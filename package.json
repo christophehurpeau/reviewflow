@@ -1,0 +1,25 @@
+{
+  "name": "reviewflow",
+  "private": true,
+  "version": "0.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 8.3.0"
+  },
+  "scripts": {
+    "start:tunnel": "lt --subdomain reviewflow --port 3010",
+    "dev": "nodemon --exec \"yarn start --port 3010 --private-key=private_key/key.pem\"",
+    "start": "probot run ./index.js"
+  },
+  "dependencies": {
+    "@slack/client": "^4.3.1",
+    "probot": "^6.2.1",
+    "probot-config": "probot/probot-config#def82e6b324439f08c1c630c4f3cb57bab689979"
+  },
+  "devDependencies": {
+    "concurrently": "^3.6.0",
+    "localtunnel": "^1.9.0",
+    "nodemon": "^1.17.5"
+  }
+}
