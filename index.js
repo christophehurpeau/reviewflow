@@ -120,10 +120,10 @@ module.exports = async (app) => {
     const sender = context.payload.sender;
     const pr = context.payload.pull_request;
     const reviewer = context.payload.review.user;
-    if (sender.login === pr.user.login) {
-      teamContext.postMessage(reviewer.login, `${teamContext.slackMention(sender.login)} dismissed your review on ${pr.html_url}, he requests a new one !`);
-    } else {
+    if (sender.login === reviewer.login) {
       teamContext.postMessage(pr.user.login, `${teamContext.slackMention(reviewer.login)} dismissed his review on ${pr.html_url}`);
+    } else {
+      teamContext.postMessage(reviewer.login, `${teamContext.slackMention(sender.login)} dismissed your review on ${pr.html_url}, he requests a new one !`);
     }
   });
 }
