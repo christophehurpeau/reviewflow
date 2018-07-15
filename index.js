@@ -48,8 +48,6 @@ const initTeamSlack = async (context, config) => {
     },
     postMessage: (githubLogin, text) => {
       const user = getUserFromGithubLogin(githubLogin);
-      console.log({ im: user && user.im, text });
-      return;
       if (!user || !user.im) return;
       return slackClient.chat.postMessage({
         channel: user.im.id,
