@@ -8,7 +8,7 @@ const config = require('./teamconfig');
 
 // let config = await getConfig(context, 'reviewflow.yml');
 
-const teamContexts = {};
+const teamContexts = new Map();
 
 const obtainTeamContext = async (context) => {
   const owner = context.payload.repository.owner;
@@ -16,9 +16,9 @@ const obtainTeamContext = async (context) => {
     console.warn(owner.login);
     return null;
   }
-  if (teamContexts[owner.login]) return teamContexts[owner.login];
 
-  
+  const existingTeamContext = teamContexts.get(owner.login);
+  if (existingTeamContext) return existingTeamContext;
 
   const githubLoginToSlackEmail = { ...config.devs, ...config.designers };
 
@@ -47,7 +47,7 @@ const obtainTeamContext = async (context) => {
     return members.get(email);
   }
 
-  teamContexts[owner.login] = { 
+  const teamContext = { 
     slackMention: (githubLogin) => {
       const user = getUserFromGithubLogin(githubLogin);
       if (!user) return githubLogin;
@@ -63,7 +63,8 @@ const obtainTeamContext = async (context) => {
     }
   };
 
-  return teamContexts[owner.login];
+  teamContexts.set(owner.login, teamContext);
+  return teamContext;
 }
 
 
