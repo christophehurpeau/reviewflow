@@ -10,18 +10,10 @@ const config = require('./teamconfig');
 
 // let config = await getConfig(context, 'reviewflow.yml');
 
+const teamContextsPromise = new Map();
 const teamContexts = new Map();
 
-const obtainTeamContext = async context => {
-  const owner = context.payload.repository.owner;
-  if (owner.login !== 'ornikar') {
-    console.warn(owner.login);
-    return null;
-  }
-
-  const existingTeamContext = teamContexts.get(owner.login);
-  if (existingTeamContext) return existingTeamContext;
-
+const initTeamContext = async (context, config) => {
   const githubLoginToSlackEmail = { ...config.devs, ...config.designers };
 
   const slackClient = new WebClient(config.slackToken);
@@ -67,8 +59,30 @@ const obtainTeamContext = async context => {
     },
   };
 
-  teamContexts.set(owner.login, teamContext);
   return teamContext;
+};
+
+const obtainTeamContext = context => {
+  const owner = context.payload.repository.owner;
+  if (owner.login !== 'ornikar') {
+    console.warn(owner.login);
+    return null;
+  }
+
+  const existingTeamContext = teamContexts.get(owner.login);
+  if (existingTeamContext) return existingTeamContext;
+
+  const existingPromise = teamContextsPromise.get(owner.login);
+  if (existingPromise) return Promise.resolve(existingPromise);
+
+  const promise = initTeamContext(context, config);
+  teamContextsPromise.set(owner.login, promise);
+
+  return promise.then(teamContext => {
+    teamContextsPromise.delete(owner.login);
+    teamContexts.set(owner.login, teamContext);
+    return teamContext;
+  });
 };
 
 /* 
