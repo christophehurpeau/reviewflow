@@ -341,12 +341,14 @@ module.exports = app => {
     //     `${repoContext.slack.mention(reviewer.login)} dismissed his review on ${pr.html_url}`
     //   );
     // } else {
-      repoContext.slack.postMessage(
-        reviewer.login,
-        `${repoContext.slack.mention(sender.login)} dismissed your review on ${
-          pr.html_url
-        }, he requests a new one !`
-      );
+    //   repoContext.slack.postMessage(
+    //     reviewer.login,
+    //     `${repoContext.slack.mention(sender.login)} dismissed your review on ${
+    //       pr.html_url
+    //     }, he requests a new one !`
+    //   );
     // }
+
+    repoContext.slack.postMessage(reviewer.login, `Your review was dismissed on ${pr.html_url}`);
   });
 };
