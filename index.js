@@ -48,6 +48,8 @@ const initTeamSlack = async (context, config) => {
     },
     postMessage: (githubLogin, text) => {
       const user = getUserFromGithubLogin(githubLogin);
+      console.log(text, githubLogin);
+      return;
       if (!user || !user.im) return;
       return slackClient.chat.postMessage({
         channel: user.im.id,
@@ -335,18 +337,18 @@ module.exports = app => {
       });
     }
 
-    if (sender.login === reviewer.login) {
-      repoContext.slack.postMessage(
-        pr.user.login,
-        `${repoContext.slack.mention(reviewer.login)} dismissed his review on ${pr.html_url}`
-      );
-    } else {
+    // if (sender.login === reviewer.login) {
+    //   repoContext.slack.postMessage(
+    //     pr.user.login,
+    //     `${repoContext.slack.mention(reviewer.login)} dismissed his review on ${pr.html_url}`
+    //   );
+    // } else {
       repoContext.slack.postMessage(
         reviewer.login,
         `${repoContext.slack.mention(sender.login)} dismissed your review on ${
           pr.html_url
         }, he requests a new one !`
       );
-    }
+    // }
   });
 };
