@@ -244,6 +244,9 @@ module.exports = app => {
     }
 
     if (sender.login === reviewer.login) return;
+    // ignore if sender is self (dismissed review rerequest review)
+    if (sender.type === 'bot') return;
+
     repoContext.slack.postMessage(
       reviewer.login,
       `${repoContext.slack.mention(sender.login)} requested your review on ${pr.html_url}`
@@ -334,6 +337,12 @@ module.exports = app => {
         ],
       });
     }
+
+    context.github.pullRequests.createReviewRequest(
+      context.issue({
+        reviewers: [reviewer.login],
+      })
+    );
 
     // if (sender.login === reviewer.login) {
     //   repoContext.slack.postMessage(
