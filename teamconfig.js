@@ -2,6 +2,7 @@
 
 module.exports = {
   slackToken: process.env.ORNIKAR_SLACK_TOKEN,
+  autoAssignToCreator: true,
   dev: {
     abarreir: `alexandre${process.env.ORNIKAR_EMAIL_DOMAIN}`,
     christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,

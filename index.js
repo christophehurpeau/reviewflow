@@ -273,6 +273,22 @@ const obtainRepoContext = context => {
 * @param {import('probot').Application} app - Probot's Application class.
 */
 module.exports = app => {
+  app.on('pull_request.opened', async context => {
+    const repoContext = await obtainRepoContext(context);
+    if (!repoContext) return;
+
+    if (repoContext.config.autoAssignToCreator) {
+      const pr = context.payload.pull_request;
+      if (pr.assignees.length !== 0) return;
+
+      await context.github.issues.addAssigneesToIssue(
+        context.issue({
+          assignees: [pr.user.login],
+        })
+      );
+    }
+  });
+
   app.on('pull_request.review_requested', async context => {
     const repoContext = await obtainRepoContext(context);
     if (!repoContext) return;
