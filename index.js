@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+
 'use strict';
 
 const { WebClient } = require('@slack/client');
@@ -11,12 +13,12 @@ const config = require('./teamconfig');
 // let config = await getConfig(context, 'reviewflow.yml');
 
 const initTeamSlack = async (context, config) => {
-  const githubLoginToSlackEmail = { ...config.devs, ...config.designers };
+  const githubLoginToSlackEmail = { ...config.dev, ...config.design };
 
   const slackClient = new WebClient(config.slackToken);
   const allUsers = await slackClient.users.list({ limit: 200 });
   const members = new Map(
-    [...Object.values(config.devs), ...Object.values(config.designers)].map(email => {
+    [...Object.values(config.dev), ...Object.values(config.design)].map(email => {
       const member = allUsers.members.find(user => user.profile.email === email);
       if (!member) {
         console.warn(`Could not find user ${email}`);
@@ -47,6 +49,9 @@ const initTeamSlack = async (context, config) => {
       return `<@${user.member.id}>`;
     },
     postMessage: (githubLogin, text) => {
+      context.log.info('send slack', { githubLogin, text });
+      if (process.env.DRY_RUN) return;
+
       const user = getUserFromGithubLogin(githubLogin);
       if (!user || !user.im) return;
       return slackClient.chat.postMessage({
@@ -61,12 +66,47 @@ const initTeamContext = async (context, config) => {
   const slackPromise = initTeamSlack(context, config);
 
   const githubLoginToGroup = new Map([
-    ...Object.keys(config.devs || {}).map(login => [login, 'dev']),
-    ...Object.keys(config.designers || {}).map(login => [login, 'design']),
+    ...Object.keys(config.dev || {}).map(login => [login, 'dev']),
+    ...Object.keys(config.design || {}).map(login => [login, 'design']),
   ]);
 
+  const getReviewerGroups = githubLogins => [
+    ...new Set(
+      githubLogins.map(githubLogin => githubLoginToGroup.get(githubLogin)).filter(Boolean)
+    ),
+  ];
+
   return {
+    config,
     getReviewerGroup: githubLogin => githubLoginToGroup.get(githubLogin),
+    getReviewerGroups: githubLogins => [
+      ...new Set(
+        githubLogins.map(githubLogin => githubLoginToGroup.get(githubLogin)).filter(Boolean)
+      ),
+    ],
+
+    reviewShouldWait: (
+      reviewerGroup,
+      requestedReviewers,
+      { includesReviewerGroup, includesWaitForGroups }
+    ) => {
+      if (!reviewerGroup) return false;
+
+      const requestedReviewerGroups = getReviewerGroups(
+        requestedReviewers.map(request => request.login)
+      );
+
+      // contains another request of a reviewer in the same group
+      if (includesReviewerGroup && requestedReviewerGroups.includes(reviewerGroup)) return true;
+
+      // contains a request from a dependent group
+      if (includesWaitForGroups)
+        return requestedReviewerGroups.some(group =>
+          config.waitForGroups[reviewerGroup].includes(group)
+        );
+
+      return false;
+    },
 
     slack: await slackPromise,
   };
@@ -117,7 +157,6 @@ const initRepoLabels = async (context, config) => {
         existingLabel = labels.find(label => label.name === 'design-reviewed');
     }
 
-    // console.log(existingLabel);
     if (!existingLabel) {
       const result = await context.github.issues.createLabel(
         context.repo({
@@ -181,6 +220,10 @@ const initRepoContext = async (context, config) => {
             .filter(label => label && prLabels.some(prLabel => prLabel.id === label.id))
             .map(label => label.name);
 
+      context.log.info('updateLabels', { labelsToAdd, labelsToRemove });
+
+      if (process.env.DRY_RUN) return;
+
       if (labelsToAdd.length !== 0) {
         await context.github.issues.addLabels(
           context.issue({
@@ -234,23 +277,43 @@ module.exports = app => {
     const repoContext = await obtainRepoContext(context);
     if (!repoContext) return;
     const sender = context.payload.sender;
+
+    // ignore if sender is self (dismissed review rerequest review)
+    if (sender.type === 'bot') return;
+
     const pr = context.payload.pull_request;
     const reviewer = context.payload.requested_reviewer;
 
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
+    const shouldWait = false;
+    // repoContext.reviewShouldWait(reviewerGroup, pr.requested_reviewers, { includesWaitForGroups: true });
 
-    if (reviewerGroup === 'design') {
-      repoContext.updateLabels(context, { add: [config.labels.review.design.needsReview] });
+    if (config.labels.review[reviewerGroup]) {
+      const { data: reviews } = await context.github.pullRequests.getReviews(
+        context.issue({ per_page: 50 })
+      );
+      const hasRequestChangesInReviews = reviews.some(
+        review =>
+          repoContext.getReviewerGroup(review.user.login) === reviewerGroup &&
+          review.state === 'REQUEST_CHANGES'
+      );
+
+      if (!hasRequestChangesInReviews) {
+        repoContext.updateLabels(context, {
+          add: [config.labels.review[reviewerGroup][shouldWait ? 'needsReview' : 'requested']],
+          remove: [config.labels.review[reviewerGroup].approved],
+        });
+      }
     }
 
     if (sender.login === reviewer.login) return;
-    // ignore if sender is self (dismissed review rerequest review)
-    if (sender.type === 'bot') return;
 
-    repoContext.slack.postMessage(
-      reviewer.login,
-      `${repoContext.slack.mention(sender.login)} requested your review on ${pr.html_url}`
-    );
+    if (!shouldWait) {
+      repoContext.slack.postMessage(
+        reviewer.login,
+        `${repoContext.slack.mention(sender.login)} requested your review on ${pr.html_url}`
+      );
+    }
   });
 
   app.on('pull_request.review_request_removed', async context => {
@@ -262,13 +325,37 @@ module.exports = app => {
 
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
-    if (reviewerGroup === 'design') {
+    const hasRequestedReviewsForGroup = repoContext.reviewShouldWait(
+      reviewerGroup,
+      pr.requested_reviewers,
+      {
+        includesReviewerGroup: true,
+      }
+    );
+
+    if (config.labels.review[reviewerGroup] && !hasRequestedReviewsForGroup) {
+      const { data: reviews } = await context.github.pullRequests.getReviews(
+        context.issue({ per_page: 50 })
+      );
+      const hasApprovedInReviews = reviews.some(
+        review =>
+          repoContext.getReviewerGroup(review.user.login) === reviewerGroup &&
+          review.state === 'APPROVED'
+      );
+
       repoContext.updateLabels(context, {
-        remove: [config.labels.review.design.needsReview, config.labels.review.design.inProgress],
+        // add label approved if was already approved by another member in the group and has no other requests waiting
+        add: [hasApprovedInReviews && config.labels.review[reviewerGroup].approved],
+        // remove labels if has no otehr requests waiting
+        remove: [
+          config.labels.review[reviewerGroup].needsReview,
+          config.labels.review[reviewerGroup].requested,
+        ],
       });
     }
 
     if (sender.login === reviewer.login) return;
+
     repoContext.slack.postMessage(
       reviewer.login,
       `${repoContext.slack.mention(sender.login)} removed the request for your review on ${
@@ -295,16 +382,43 @@ module.exports = app => {
     if (state === 'changes_requested' || state === 'approved') {
       const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
-      if (reviewerGroup === 'design') {
-        repoContext.updateLabels(context, {
-          add: [
-            config.labels.review.design[state === 'approved' ? 'approved' : 'changesRequested'],
-          ],
-          remove: [
-            config.labels.review.design.needsReview,
-            config.labels.review.design[state === 'approved' ? 'changesRequested' : 'approved'],
-          ],
-        });
+      if (reviewerGroup && config.labels.review[reviewerGroup]) {
+        const hasRequestedReviewsForGroup = repoContext.reviewShouldWait(
+          reviewerGroup,
+          pr.requested_reviewers,
+          {
+            includesReviewerGroup: true,
+            // TODO reenable this when accepted can notify request review to slack (dev accepted => design requested) and flag to disable for label (approved design ; still waiting for dev ?)
+            // includesWaitForGroups: true,
+          }
+        );
+        const { data: reviews } = await context.github.pullRequests.getReviews(
+          context.issue({ per_page: 50 })
+        );
+        const hasChangesRequestedInReviews = reviews.some(
+          review =>
+            repoContext.getReviewerGroup(review.user.login) === reviewerGroup &&
+            review.state === 'REQUEST_CHANGES'
+        );
+
+        if (!hasChangesRequestedInReviews) {
+          repoContext.updateLabels(context, {
+            add: [
+              state === 'approved' &&
+                !hasRequestedReviewsForGroup &&
+                config.labels.review[reviewerGroup].approved,
+              state === 'changesRequested' && config.labels.review[reviewerGroup].changesRequested,
+            ],
+            remove: [
+              config.labels.review[reviewerGroup].needsReview,
+              config.labels.review[reviewerGroup].requested,
+              state === 'approved' &&
+                !hasRequestedReviewsForGroup &&
+                config.labels.review[reviewerGroup].changesRequested,
+              state === 'changesRequested' && config.labels.review[reviewerGroup].approved,
+            ],
+          });
+        }
       }
     }
 
@@ -313,6 +427,7 @@ module.exports = app => {
       if (state === 'approved') return ':white_check_mark: approved';
       return 'commented on';
     })();
+
     repoContext.slack.postMessage(
       pr.user.login,
       `${repoContext.slack.mention(reviewer.login)} ${message} ${pr.html_url}`
@@ -328,14 +443,25 @@ module.exports = app => {
 
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
-    if (reviewerGroup === 'design') {
-      repoContext.updateLabels(context, {
-        add: [config.labels.review.design.inProgress],
-        remove: [
-          config.labels.review.design.approved,
-          config.labels.review.design.changesRequested,
-        ],
-      });
+    if (reviewerGroup && config.labels.review[reviewerGroup]) {
+      const { data: reviews } = await context.github.pullRequests.getReviews(
+        context.issue({ per_page: 50 })
+      );
+      const hasChangesRequestedInReviews = reviews.some(
+        review =>
+          repoContext.getReviewerGroup(review.user.login) === reviewerGroup &&
+          review.state === 'REQUEST_CHANGES'
+      );
+
+      if (!hasChangesRequestedInReviews) {
+        repoContext.updateLabels(context, {
+          add: [config.labels.review[reviewerGroup].requested],
+          remove: [
+            config.labels.review[reviewerGroup].changesRequested,
+            config.labels.review[reviewerGroup].approved,
+          ],
+        });
+      }
     }
 
     context.github.pullRequests.createReviewRequest(

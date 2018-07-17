@@ -2,7 +2,7 @@
 
 module.exports = {
   slackToken: process.env.ORNIKAR_SLACK_TOKEN,
-  devs: {
+  dev: {
     abarreir: `alexandre${process.env.ORNIKAR_EMAIL_DOMAIN}`,
     christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,
     arthurflachs: `arthur${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -10,19 +10,23 @@ module.exports = {
     LentnerStefan: `stefan${process.env.ORNIKAR_EMAIL_DOMAIN}`,
     HugoGarrido: `hugo${process.env.ORNIKAR_EMAIL_DOMAIN}`,
   },
-  designers: {
+  design: {
     jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+  },
+  waitForGroups: {
+    dev: [],
+    design: ['devs'],
   },
   labels: {
     list: {
       // /* ci */
       // 'ci/in-progress': { name: ':green_heart: ci/in-progress', color: '#0052cc' },
       // 'ci/fail': { name: ':green_heart: ci/fail', color: '#e11d21' },
-      // 'ci/success': { name: ':green_heart: ci/success', color: '#86f9b4' },
+      // 'ci/passed': { name: ':green_heart: ci/passed', color: '#86f9b4' },
       // /* code */
-      // 'code/review-requested': { name: ':ok_hand: code/review-requested', color: '#0e8a16' },
-      // 'code/changes-requested': { name: ':ok_hand: code/changes-requested', color: '#e11d21' },
-      // 'code/approved': { name: ':ok_hand: code/approved', color: '#86f9b4' },
+      'code/review-requested': { name: ':ok_hand: code/review-requested', color: '#0e8a16' },
+      'code/changes-requested': { name: ':ok_hand: code/changes-requested', color: '#e11d21' },
+      'code/approved': { name: ':ok_hand: code/approved', color: '#86f9b4' },
       /* design */
       'design/needs-review': { name: ':art: design/needs-review', color: '#fef2c0' },
       'design/review-requested': { name: ':art: design/review-requested', color: '#0052cc' },
@@ -37,13 +41,13 @@ module.exports = {
         failed: 'ci/fail',
       },
       dev: {
-        inProgress: 'code/review-requested',
+        requested: 'code/review-requested',
         changesRequested: 'code/changes-requested',
         approved: 'code/approved',
       },
       design: {
         needsReview: 'design/needs-review',
-        inProgress: 'design/review-requested',
+        requested: 'design/review-requested',
         changesRequested: 'design/changes-requested',
         approved: 'design/approved',
       },
