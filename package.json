@@ -11,7 +11,7 @@
   "engines": {
     "node": ">=10.6.0"
   },
-  "main": "./index.js",
+  "main": "./src/index.js",
   "scripts": {
     "clean": "rm -Rf docs dist",
     "commitmsg": "commitlint -e $GIT_PARAMS",
@@ -23,7 +23,7 @@
     "precommit": "lint-staged",
     "preversion": "yarn run lint && pob-repository-check-clean",
     "release": "pob-repository-check-clean && pob-release",
-    "start": "probot run ./index.js",
+    "start": "probot run ./src/index.js",
     "start:tunnel": "lt --subdomain reviewflow --port 3010",
     "version": "pob-version"
   },
