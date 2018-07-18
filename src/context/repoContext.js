@@ -29,7 +29,7 @@ const initRepoContext = async (context, config) => {
           if (!label) return;
           const existing = prLabels.find(prLabel => prLabel.id === label.id);
           if (existing) {
-            newLabels.remove(existing.name);
+            newLabels.delete(existing.name);
             modified = true;
           }
         });
