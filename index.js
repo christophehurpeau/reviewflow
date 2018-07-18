@@ -426,8 +426,10 @@ module.exports = app => {
               state === 'changes_requested' && config.labels.review[reviewerGroup].changesRequested,
             ],
             remove: [
-              config.labels.review[reviewerGroup].needsReview,
-              config.labels.review[reviewerGroup].requested,
+              (!hasRequestedReviewsForGroup || state === 'changes_requested') &&
+                config.labels.review[reviewerGroup].needsReview,
+              (!hasRequestedReviewsForGroup || state === 'changes_requested') &&
+                config.labels.review[reviewerGroup].requested,
               state === 'approved' &&
                 !hasRequestedReviewsForGroup &&
                 config.labels.review[reviewerGroup].changesRequested,
