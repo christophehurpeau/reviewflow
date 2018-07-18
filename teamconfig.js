@@ -25,12 +25,12 @@ module.exports = {
       // 'ci/fail': { name: ':green_heart: ci/fail', color: '#e11d21' },
       // 'ci/passed': { name: ':green_heart: ci/passed', color: '#86f9b4' },
       // /* code */
-      'code/review-requested': { name: ':ok_hand: code/review-requested', color: '#0e8a16' },
+      'code/review-requested': { name: ':ok_hand: code/review-requested', color: '#fef2c0' },
       'code/changes-requested': { name: ':ok_hand: code/changes-requested', color: '#e11d21' },
       'code/approved': { name: ':ok_hand: code/approved', color: '#86f9b4' },
       /* design */
       'design/needs-review': { name: ':art: design/needs-review', color: '#fef2c0' },
-      'design/review-requested': { name: ':art: design/review-requested', color: '#0052cc' },
+      'design/review-requested': { name: ':art: design/review-requested', color: '#fef2c0' },
       'design/changes-requested': { name: ':art: design/changes-requested', color: '#e11d21' },
       'design/approved': { name: ':art: design/approved', color: '#86f9b4' },
     },
