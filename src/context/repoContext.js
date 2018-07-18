@@ -44,7 +44,7 @@ const initRepoContext = async (context, config) => {
       if (process.env.DRY_RUN) return;
 
       if (modified) {
-        await context.github.issues.replaceLabels(
+        await context.github.issues.replaceAllLabels(
           context.issue({
             labels: [...newLabels],
           })
