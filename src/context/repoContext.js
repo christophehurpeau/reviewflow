@@ -28,8 +28,10 @@ const initRepoContext = async (context, config) => {
         labelsToRemove.map(key => key && labels[key]).forEach(label => {
           if (!label) return;
           const existing = prLabels.find(prLabel => prLabel.id === label.id);
-          newLabels.remove(existing.name);
-          modified = true;
+          if (existing) {
+            newLabels.remove(existing.name);
+            modified = true;
+          }
         });
       }
 
