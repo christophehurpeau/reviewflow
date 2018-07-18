@@ -9,13 +9,13 @@
   "repository": "git@github.com:christophehurpeau/reviewflow.git",
   "homepage": "https://github.com/christophehurpeau/reviewflow",
   "engines": {
-    "node": ">=8.3.0"
+    "node": ">=10.6.0"
   },
   "main": "./index.js",
   "scripts": {
     "clean": "rm -Rf docs dist",
     "commitmsg": "commitlint -e $GIT_PARAMS",
-    "dev": "nodemon --exec \"yarn start --port 3010 --private-key=private_key/key.pem\"",
+    "dev": "nodemon --exec \"yarn start --port 3010\"",
     "lint": "eslint index.js",
     "postcheckout": "yarnhook",
     "postmerge": "yarnhook",
