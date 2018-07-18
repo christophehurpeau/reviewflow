@@ -205,36 +205,39 @@ const initRepoContext = async (context, config) => {
   return Object.assign(repoContext, {
     updateLabels: async (context, { add: labelsToAdd, remove: labelsToRemove }) => {
       const prLabels = context.payload.pull_request.labels || [];
+      const newLabels = new Set(prLabels.map(label => label.name));
+      let modified = false;
 
-      labelsToAdd = !labelsToAdd
-        ? []
-        : labelsToAdd
-            .map(key => key && labels[key])
-            .filter(label => label && !prLabels.some(prLabel => prLabel.id === label.id))
-            .map(label => label.name);
+      if (labelsToAdd) {
+        labelsToAdd.map(key => key && labels[key]).forEach(label => {
+          if (!label || prLabels.some(prLabel => prLabel.id === label.id)) return;
+          newLabels.add(label.name);
+          modified = true;
+        });
+      }
 
-      labelsToRemove = !labelsToRemove
-        ? []
-        : labelsToRemove
-            .map(key => key && labels[key])
-            .filter(label => label && prLabels.some(prLabel => prLabel.id === label.id))
-            .map(label => label.name);
+      if (labelsToRemove) {
+        labelsToRemove.map(key => key && labels[key]).forEach(label => {
+          if (!label) return;
+          const existing = prLabels.find(prLabel => prLabel.id === label.id);
+          newLabels.remove(existing.name);
+          modified = true;
+        });
+      }
 
-      context.log.info('updateLabels', { labelsToAdd, labelsToRemove });
+      context.log.info('updateLabels', {
+        modified,
+        oldLabels: prLabels.map(l => l.name),
+        newLabels: [...newLabels],
+      });
 
       if (process.env.DRY_RUN) return;
 
-      if (labelsToAdd.length !== 0) {
-        await context.github.issues.addLabels(
+      if (modified) {
+        await context.github.issues.replaceLabels(
           context.issue({
-            labels: labelsToAdd,
+            labels: [...newLabels],
           })
-        );
-      }
-
-      if (labelsToRemove.length !== 0) {
-        await Promise.all(
-          labelsToRemove.map(name => context.github.issues.removeLabel(context.issue({ name })))
         );
       }
     },
