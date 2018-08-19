@@ -52,24 +52,24 @@
     ]
   },
   "dependencies": {
-    "@slack/client": "^4.3.1",
-    "probot": "^6.2.1",
+    "@slack/client": "4.3.1",
+    "probot": "6.2.1",
     "probot-config": "probot/probot-config#def82e6b324439f08c1c630c4f3cb57bab689979"
   },
   "devDependencies": {
-    "@commitlint/cli": "^7.0.0",
-    "@commitlint/config-conventional": "^7.0.1",
-    "concurrently": "^3.6.0",
-    "eslint": "^5.4.0",
-    "eslint-config-pob": "^22.0.1",
-    "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-node": "^7.0.1",
-    "husky": "^0.14.3",
-    "lint-staged": "^7.2.2",
-    "localtunnel": "^1.9.0",
-    "nodemon": "^1.17.5",
-    "pob-release": "^4.2.1",
-    "prettier": "^1.14.2",
-    "yarnhook": "^0.3.0"
+    "@commitlint/cli": "7.0.0",
+    "@commitlint/config-conventional": "7.0.1",
+    "concurrently": "3.6.0",
+    "eslint": "5.1.0",
+    "eslint-config-pob": "21.1.0",
+    "eslint-plugin-import": "2.13.0",
+    "eslint-plugin-node": "6.0.1",
+    "husky": "0.14.3",
+    "lint-staged": "7.2.0",
+    "localtunnel": "1.9.0",
+    "nodemon": "1.18.2",
+    "pob-release": "4.2.1",
+    "prettier": "1.13.7",
+    "yarnhook": "0.2.0"
   }
 }
