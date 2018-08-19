@@ -1,7 +1,12 @@
 {
   "extends": ["pob", "pob/node"],
   "rules": {
-    "camelcase": ["error", { "properties": "never" }],
+    "camelcase": [
+      "error",
+      {
+        "properties": "never"
+      }
+    ],
     "complexity": "off"
   }
 }
