@@ -57,8 +57,8 @@
     "probot-config": "probot/probot-config#def82e6b324439f08c1c630c4f3cb57bab689979"
   },
   "devDependencies": {
-    "@commitlint/cli": "7.0.0",
-    "@commitlint/config-conventional": "7.0.1",
+    "@commitlint/cli": "7.2.1",
+    "@commitlint/config-conventional": "7.1.2",
     "concurrently": "3.6.1",
     "eslint": "5.4.0",
     "eslint-config-pob": "22.0.1",
