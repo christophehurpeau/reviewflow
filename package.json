@@ -60,7 +60,7 @@
     "@commitlint/cli": "7.0.0",
     "@commitlint/config-conventional": "7.0.1",
     "concurrently": "3.6.1",
-    "eslint": "5.4.0",
+    "eslint": "5.9.0",
     "eslint-config-pob": "22.0.1",
     "eslint-plugin-import": "2.14.0",
     "eslint-plugin-node": "7.0.1",
