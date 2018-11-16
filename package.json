@@ -68,7 +68,7 @@
     "lint-staged": "7.2.2",
     "localtunnel": "1.9.0",
     "nodemon": "1.18.3",
-    "pob-release": "4.2.1",
+    "pob-release": "4.6.0",
     "prettier": "1.14.2",
     "yarnhook": "0.3.0"
   }
