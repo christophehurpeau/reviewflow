@@ -56,7 +56,7 @@
     ]
   },
   "dependencies": {
-    "@slack/client": "4.4.0",
+    "@slack/client": "4.8.0",
     "probot": "6.2.1",
     "probot-config": "probot/probot-config#def82e6b324439f08c1c630c4f3cb57bab689979"
   },
