@@ -13,19 +13,23 @@
   },
   "main": "./lib/index.js",
   "scripts": {
-    "clean": "rm -Rf docs dist",
-    "commitmsg": "commitlint -e $GIT_PARAMS",
+    "clean": "rm -Rf dist",
     "dev": "nodemon --exec \"yarn start --port 3010\"",
     "lint": "eslint lib/",
-    "postcheckout": "yarnhook",
-    "postmerge": "yarnhook",
-    "postrewrite": "yarnhook",
-    "precommit": "lint-staged",
     "preversion": "yarn run lint && pob-repository-check-clean",
     "release": "pob-repository-check-clean && pob-release",
     "start": "probot run ./lib/index.js",
     "start:tunnel": "lt --subdomain reviewflow --port 3010",
     "version": "pob-version"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -e $GIT_PARAMS",
+      "post-checkout": "yarnhook",
+      "post-merge": "yarnhook",
+      "post-rewrite": "yarnhook",
+      "pre-commit": "lint-staged"
+    }
   },
   "lint-staged": {
     "{package.json,.eslintrc.json}": [
@@ -61,14 +65,14 @@
     "@commitlint/config-conventional": "7.1.2",
     "concurrently": "3.6.1",
     "eslint": "5.9.0",
-    "eslint-config-pob": "22.0.1",
+    "eslint-config-pob": "24.0.1",
     "eslint-plugin-import": "2.14.0",
     "eslint-plugin-node": "8.0.0",
-    "husky": "0.14.3",
-    "lint-staged": "7.3.0",
+    "husky": "1.2.0",
+    "lint-staged": "8.1.0",
     "localtunnel": "1.9.0",
     "nodemon": "1.18.3",
-    "pob-release": "4.2.1",
+    "pob-release": "^4.6.0",
     "prettier": "1.15.2",
     "yarnhook": "0.3.0"
   }
