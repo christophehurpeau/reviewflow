@@ -9,7 +9,7 @@
   "repository": "git@github.com:christophehurpeau/reviewflow.git",
   "homepage": "https://github.com/christophehurpeau/reviewflow",
   "engines": {
-    "node": ">=10.6.0"
+    "node": ">=10.6.0 < 11.0.0"
   },
   "main": "./lib/index.js",
   "scripts": {
