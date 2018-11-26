@@ -4183,10 +4183,10 @@ pluralize@^7.0.0:
   resolved "https://registry.yarnpkg.com/pluralize/-/pluralize-7.0.0.tgz#298b89df8b93b0221dbf421ad2b1b1ea23fc6777"
   integrity sha512-ARhBOdzS3e41FbkW/XWrTEtukqqLoK5+Z/4UeDaLuSW+39JPeFgs4gCGqsrJHVZX0fUrx//4OF0K1CUGwlIFow==
 
-pob-release@4.6.0:
-  version "4.6.0"
-  resolved "https://registry.yarnpkg.com/pob-release/-/pob-release-4.6.0.tgz#a38e97233f69d0f6b28c1025c03362317f4bcac9"
-  integrity sha512-X4yPCQ2b0IZpx1vbjfH9DwmjlBpnih6EDB1hf91TGnvocQdkdsRvV2MbMXnv1DXPM9rOw5qjnBIT1/Ss/z/DUA==
+pob-release@4.6.1:
+  version "4.6.1"
+  resolved "https://registry.yarnpkg.com/pob-release/-/pob-release-4.6.1.tgz#5adb0865069f41c1fe1de1518524fabd67d44f3a"
+  integrity sha512-GqQAb6rdrJKM0TgzI0h0Xquk+vCQ+lBjk/ZkFpX86saErD4j02fs/Bud4ABOf2B7EOvTlZxGlec9bX+S0GfDVg==
   dependencies:
     conventional-recommended-bump "^0.3.0"
     inquirer "^6.0.0"
