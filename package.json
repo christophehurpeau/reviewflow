@@ -66,7 +66,7 @@
     "eslint": "5.9.0",
     "eslint-config-pob": "24.0.2",
     "eslint-plugin-import": "2.14.0",
-    "eslint-plugin-node": "8.0.0",
+    "eslint-plugin-node": "8.0.1",
     "husky": "1.2.0",
     "jest": "^23.6.0",
     "lint-staged": "8.1.0",
