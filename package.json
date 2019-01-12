@@ -58,7 +58,7 @@
   "dependencies": {
     "@slack/client": "4.8.0",
     "probot": "7.4.0",
-    "probot-config": "probot/probot-config#def82e6b324439f08c1c630c4f3cb57bab689979"
+    "probot-config": "probot/probot-config#dbdbc8b2d421997797a6e229f2e01c189c1696db"
   },
   "devDependencies": {
     "@commitlint/cli": "7.2.1",
