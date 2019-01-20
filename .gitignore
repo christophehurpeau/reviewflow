@@ -8,6 +8,7 @@ node_modules
 *.sublime-workspace
 
 /.env
+/.env.ornikar
 /fixtures
 /private_key
 
