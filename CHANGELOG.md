@@ -1,3 +1,12 @@
+<a name="1.1.1"></a>
+## [1.1.1](https://github.com/christophehurpeau/reviewflow/compare/v1.1.0...v1.1.1) (2019-01-28)
+
+
+### Bug Fixes
+
+* prlint add skip bot and custom status ([2d74fe2](https://github.com/christophehurpeau/reviewflow/commit/2d74fe2))
+
+
 <a name="1.1.0"></a>
 # [1.1.0](https://github.com/christophehurpeau/reviewflow/compare/v1.0.1...v1.1.0) (2019-01-27)
 
