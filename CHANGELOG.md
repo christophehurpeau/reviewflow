@@ -1,3 +1,12 @@
+<a name="1.1.2"></a>
+## [1.1.2](https://github.com/christophehurpeau/reviewflow/compare/v1.1.1...v1.1.2) (2019-02-01)
+
+
+### Bug Fixes
+
+* error title ([5e9dcaf](https://github.com/christophehurpeau/reviewflow/commit/5e9dcaf))
+
+
 <a name="1.1.1"></a>
 ## [1.1.1](https://github.com/christophehurpeau/reviewflow/compare/v1.1.0...v1.1.1) (2019-01-28)
 
