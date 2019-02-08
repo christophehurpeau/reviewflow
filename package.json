@@ -71,7 +71,7 @@
     "jest": "^23.6.0",
     "lint-staged": "8.1.0",
     "localtunnel": "1.9.1",
-    "nodemon": "1.18.9",
+    "nodemon": "1.18.10",
     "pob-release": "4.6.1",
     "prettier": "1.15.2",
     "yarnhook": "0.3.0"
