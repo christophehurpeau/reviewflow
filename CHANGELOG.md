@@ -1,3 +1,16 @@
+<a name="1.2.0"></a>
+# [1.2.0](https://github.com/christophehurpeau/reviewflow/compare/v1.1.3...v1.2.0) (2019-02-18)
+
+
+### Bug Fixes
+
+* update status check when approved added and no other labels exists ([6815c90](https://github.com/christophehurpeau/reviewflow/commit/6815c90))
+
+### Features
+
+* on open pr, add code needs review label ([4df8e04](https://github.com/christophehurpeau/reviewflow/commit/4df8e04))
+
+
 <a name="1.1.3"></a>
 ## [1.1.3](https://github.com/christophehurpeau/reviewflow/compare/v1.1.2...v1.1.3) (2019-02-18)
 
