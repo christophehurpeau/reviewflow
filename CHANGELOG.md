@@ -1,3 +1,12 @@
+<a name="1.1.3"></a>
+## [1.1.3](https://github.com/christophehurpeau/reviewflow/compare/v1.1.2...v1.1.3) (2019-02-18)
+
+
+### Bug Fixes
+
+* dont try to assign bot user to pr ([d3edbe8](https://github.com/christophehurpeau/reviewflow/commit/d3edbe8))
+
+
 <a name="1.1.2"></a>
 ## [1.1.2](https://github.com/christophehurpeau/reviewflow/compare/v1.1.1...v1.1.2) (2019-02-01)
 
