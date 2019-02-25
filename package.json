@@ -74,6 +74,6 @@
     "nodemon": "1.18.9",
     "pob-release": "4.6.1",
     "prettier": "1.15.2",
-    "yarnhook": "0.3.0"
+    "yarnhook": "0.4.0"
   }
 }
