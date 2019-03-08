@@ -1,3 +1,18 @@
+<a name="1.3.0"></a>
+# [1.3.0](https://github.com/christophehurpeau/reviewflow/compare/v1.2.0...v1.3.0) (2019-03-08)
+
+
+### Bug Fixes
+
+* remove rerequest on dismissed review, now that github added an option for that ([fc3e05c](https://github.com/christophehurpeau/reviewflow/commit/fc3e05c))
+
+### Features
+
+* add lock pr ([8fe8016](https://github.com/christophehurpeau/reviewflow/commit/8fe8016))
+* option requiresReviewRequest ([6149bf3](https://github.com/christophehurpeau/reviewflow/commit/6149bf3))
+* use github status instead of check for lint-pr when check doesnt already exists ([a15ebaa](https://github.com/christophehurpeau/reviewflow/commit/a15ebaa))
+
+
 <a name="1.2.0"></a>
 # [1.2.0](https://github.com/christophehurpeau/reviewflow/compare/v1.1.3...v1.2.0) (2019-02-18)
 
