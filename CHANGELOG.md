@@ -1,3 +1,12 @@
+<a name="1.3.1"></a>
+## [1.3.1](https://github.com/christophehurpeau/reviewflow/compare/v1.3.0...v1.3.1) (2019-03-13)
+
+
+### Bug Fixes
+
+* always update status check ([c74f410](https://github.com/christophehurpeau/reviewflow/commit/c74f410))
+
+
 <a name="1.3.0"></a>
 # [1.3.0](https://github.com/christophehurpeau/reviewflow/compare/v1.2.0...v1.3.0) (2019-03-08)
 
