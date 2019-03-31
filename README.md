@@ -8,7 +8,6 @@
 
 <p align="center">
   <a href="https://david-dm.org/christophehurpeau/reviewflow"><img src="https://david-dm.org/christophehurpeau/reviewflow.svg?style=flat-square"></a>
-  <a href="https://dependencyci.com/github/christophehurpeau/reviewflow"><img src="https://dependencyci.com/github/christophehurpeau/reviewflow/badge?style=flat-square"></a>
 </p>
 
 ## Install

@@ -11,7 +11,23 @@
       ],
       "documentation": false,
       "testing": false,
-      "envs": []
+      "envs": [
+        {
+          "target": "node",
+          "version": "10",
+          "formats": [
+            "cjs"
+          ]
+        }
+      ]
+    },
+    "renovate": {
+      "enable": true
+    }
+  },
+  "reviewflow": {
+    "type": {
+      "type": "lib"
     }
   }
 }

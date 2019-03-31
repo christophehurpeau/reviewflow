@@ -1,7 +1,17 @@
 {
-  "extends": ["pob", "pob/node"],
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    "@pob/eslint-config-babel",
+    "@pob/eslint-config-babel-node",
+    "@pob/eslint-config-typescript"
+  ],
+  "settings": {
+    "import/core-modules": ["@octokit/webhooks"]
+  },
   "rules": {
-    "camelcase": [
+    "@typescript-eslint/camelcase": [
       "error",
       {
         "properties": "never"
@@ -9,9 +19,10 @@
     ],
     "complexity": "off"
   },
+
   "overrides": [
     {
-      "files": ["lib/**/*.test.js", "lib/__tests__/**/*.js"],
+      "files": ["src/**/*.test.ts", "src/__tests__/**/*.ts"],
       "env": {
         "jest": true
       },
