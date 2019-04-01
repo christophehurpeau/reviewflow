@@ -1,4 +1,4 @@
-import { Config as ConfigType, Group } from './types';
+import { Config as ConfigType } from './types';
 import ornikar from './ornikar';
 import christophehurpeau from './christophehurpeau';
 
@@ -9,8 +9,9 @@ export const teamConfigs: { [owner: string]: Config } = {
   christophehurpeau,
 };
 
-export const getMembers = <GroupNames extends string = any>(
-  groups: Record<GroupNames, Group>,
-): string[] => {
-  return Object.values(groups).flat(1);
-};
+// flat requires node 11
+// export const getMembers = <GroupNames extends string = any>(
+//   groups: Record<GroupNames, Group>,
+// ): string[] => {
+//   return Object.values(groups).flat(1);
+// };

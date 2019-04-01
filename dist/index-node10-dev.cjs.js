@@ -216,7 +216,12 @@ const config$1 = {
 const teamConfigs = {
   ornikar: config,
   christophehurpeau: config$1
-};
+}; // flat requires node 11
+// export const getMembers = <GroupNames extends string = any>(
+//   groups: Record<GroupNames, Group>,
+// ): string[] => {
+//   return Object.values(groups).flat(1);
+// };
 
 const initRepoLabels = async (context, config) => {
   const {
