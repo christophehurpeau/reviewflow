@@ -1,3 +1,12 @@
+# [1.5.0](https://github.com/christophehurpeau/reviewflow/compare/v1.4.0...v1.5.0) (2019-04-01)
+
+
+### Features
+
+* add valerian and tilap ([e3ac7eb](https://github.com/christophehurpeau/reviewflow/commit/e3ac7eb))
+
+
+
 # [1.4.0](https://github.com/christophehurpeau/reviewflow/compare/v1.3.1...v1.4.0) (2019-04-01)
 
 
