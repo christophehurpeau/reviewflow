@@ -1,3 +1,12 @@
+## [1.5.1](https://github.com/christophehurpeau/reviewflow/compare/v1.5.0...v1.5.1) (2019-04-01)
+
+
+### Bug Fixes
+
+* requires node 10, not 11 ([21edd8f](https://github.com/christophehurpeau/reviewflow/commit/21edd8f))
+
+
+
 # [1.5.0](https://github.com/christophehurpeau/reviewflow/compare/v1.4.0...v1.5.0) (2019-04-01)
 
 
