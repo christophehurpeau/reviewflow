@@ -1,3 +1,12 @@
+## [1.6.1](https://github.com/christophehurpeau/reviewflow/compare/v1.6.0...v1.6.1) (2019-04-01)
+
+
+### Bug Fixes
+
+* diable checkrun and checksuite ([e1dd5c6](https://github.com/christophehurpeau/reviewflow/commit/e1dd5c6))
+
+
+
 # [1.6.0](https://github.com/christophehurpeau/reviewflow/compare/v1.5.3...v1.6.0) (2019-04-01)
 
 
