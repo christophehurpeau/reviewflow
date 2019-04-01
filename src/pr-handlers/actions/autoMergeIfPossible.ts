@@ -3,8 +3,7 @@ import { Handler } from '../utils';
 
 export const autoMergeIfPossible: Handler<
   Webhooks.WebhookPayloadPullRequest
-> = async (context, repoContext, labelAdded?: boolean) => {
-  if (!labelAdded) return;
+> = async (context, repoContext) => {
   const autoMergeLabel = repoContext.labels['merge/automerge'];
   if (!autoMergeLabel) return;
 

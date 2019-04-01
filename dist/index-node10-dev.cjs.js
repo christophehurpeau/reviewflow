@@ -895,8 +895,7 @@ var editedHandler = (app => {
   }));
 });
 
-const autoMergeIfPossible = async (context, repoContext, labelAdded) => {
-  if (!labelAdded) return;
+const autoMergeIfPossible = async (context, repoContext) => {
   const autoMergeLabel = repoContext.labels['merge/automerge'];
   if (!autoMergeLabel) return;
   const pr = context.payload.pull_request;
@@ -924,10 +923,22 @@ var labelsChanged = (app => {
       await repoContext.updateStatusCheckFromLabels(context);
 
       if (context.payload.action === 'labeled' && context.payload.label.id === (repoContext.labels['merge/automerge'] && repoContext.labels['merge/automerge'].id)) {
-        await autoMergeIfPossible(context, repoContext, true);
+        await autoMergeIfPossible(context, repoContext);
       }
     });
   });
+});
+
+var checkrunCompleted = (app => {
+  app.on(['check_run.completed'], createHandlerPullRequestChange(async (context, repoContext) => {
+    await autoMergeIfPossible(context, repoContext);
+  }));
+});
+
+var checksuiteCompleted = (app => {
+  app.on(['check_suite.completed'], createHandlerPullRequestChange(async (context, repoContext) => {
+    await autoMergeIfPossible(context, repoContext);
+  }));
 });
 
 if (!process.env.NAME) process.env.NAME = 'reviewflow'; // const getConfig = require('probot-config')
@@ -950,5 +961,7 @@ probot.Probot.run(app => {
   labelsChanged(app);
   synchromizeHandler(app);
   editedHandler(app);
+  checkrunCompleted(app);
+  checksuiteCompleted(app);
 });
 //# sourceMappingURL=index-node10-dev.cjs.js.map

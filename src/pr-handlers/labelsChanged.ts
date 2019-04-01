@@ -18,7 +18,7 @@ export default (app: Application) => {
             (repoContext.labels['merge/automerge'] &&
               repoContext.labels['merge/automerge'].id)
         ) {
-          await autoMergeIfPossible(context, repoContext, true);
+          await autoMergeIfPossible(context, repoContext);
         }
       });
     },
