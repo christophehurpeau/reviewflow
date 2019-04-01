@@ -1,3 +1,12 @@
+# [1.6.0](https://github.com/christophehurpeau/reviewflow/compare/v1.5.3...v1.6.0) (2019-04-01)
+
+
+### Features
+
+* also check if pr is mergeable after check suite ([774a945](https://github.com/christophehurpeau/reviewflow/commit/774a945))
+
+
+
 ## [1.5.3](https://github.com/christophehurpeau/reviewflow/compare/v1.5.2...v1.5.3) (2019-04-01)
 
 
