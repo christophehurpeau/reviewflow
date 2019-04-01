@@ -107,6 +107,12 @@ const config: Config<'dev' | 'design'> = {
         name: ':art: design/approved',
         color: '#64DD17',
       },
+
+      /* auto merge */
+      'merge/automerge': {
+        name: ':soon: automerge',
+        color: '#64DD17',
+      },
     },
 
     review: {

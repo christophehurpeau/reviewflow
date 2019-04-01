@@ -51,6 +51,16 @@ const config: Config<'dev'> = {
         name: ':ok_hand: code/approved',
         color: '#64DD17',
       },
+
+      /* auto merge */
+      'merge/automerge': {
+        name: ':soon: automerge',
+        color: '#64DD17',
+      },
+      'merge/delete-branch': {
+        name: ':recycle: delete branch after merge',
+        color: '#64DD17',
+      },
     },
 
     review: {

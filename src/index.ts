@@ -1,4 +1,4 @@
-/* eslint-disable max-lines */
+import 'dotenv/config';
 import { Probot, Application } from 'probot';
 import openedHandler from './pr-handlers/opened';
 import reviewRequestedHandler from './pr-handlers/reviewRequested';

@@ -5,10 +5,12 @@ import { Lock } from 'lock';
 import { Context } from 'probot';
 import { teamConfigs, Config } from '../teamconfigs';
 import { GroupLabels } from '../teamconfigs/types';
-import { initRepoLabels, LabelResponse } from './initRepoLabels';
+import { initRepoLabels, LabelResponse, Labels } from './initRepoLabels';
 import { obtainTeamContext, TeamContext } from './teamContext';
 
 interface RepoContextWithoutTeamContext<GroupNames extends string = any> {
+  labels: Labels;
+
   updateStatusCheckFromLabels<E>(
     context: Context<E>,
     labels?: LabelResponse[],
@@ -158,6 +160,7 @@ async function initRepoContext<GroupNames extends string>(
   const lock = Lock();
 
   return Object.assign(repoContext, {
+    labels,
     updateStatusCheckFromLabels,
 
     lockPR: (context, callback) =>

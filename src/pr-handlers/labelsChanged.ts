@@ -1,5 +1,6 @@
 import { Application } from 'probot';
 import { handlerPullRequestChange } from './utils';
+import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 
 export default (app: Application) => {
   app.on(
@@ -10,6 +11,15 @@ export default (app: Application) => {
 
       await handlerPullRequestChange(context, async (repoContext) => {
         await repoContext.updateStatusCheckFromLabels(context);
+
+        if (
+          context.payload.action === 'labeled' &&
+          context.payload.label.id ===
+            (repoContext.labels['merge/automerge'] &&
+              repoContext.labels['merge/automerge'].id)
+        ) {
+          await autoMergeIfPossible(context, repoContext, true);
+        }
       });
     },
   );

@@ -1,5 +1,6 @@
 'use strict';
 
+require('dotenv/config');
 var probot = require('probot');
 var lock = require('lock');
 var webApi = require('@slack/web-api');
@@ -106,6 +107,12 @@ const config = {
       'design/approved': {
         name: ':art: design/approved',
         color: '#64DD17'
+      },
+
+      /* auto merge */
+      'merge/automerge': {
+        name: ':soon: automerge',
+        color: '#64DD17'
       }
     },
     review: {
@@ -175,6 +182,16 @@ const config$1 = {
       },
       'code/approved': {
         name: ':ok_hand: code/approved',
+        color: '#64DD17'
+      },
+
+      /* auto merge */
+      'merge/automerge': {
+        name: ':soon: automerge',
+        color: '#64DD17'
+      },
+      'merge/delete-branch': {
+        name: ':recycle: delete branch after merge',
         color: '#64DD17'
       }
     },
@@ -467,6 +484,7 @@ async function initRepoContext(context, config) {
 
   const lock$1 = lock.Lock();
   return Object.assign(repoContext, {
+    labels,
     updateStatusCheckFromLabels,
     lockPR: (context, callback) => new Promise((resolve, reject) => {
       const pr = context.payload.pull_request;
@@ -867,17 +885,41 @@ var editedHandler = (app => {
   }));
 });
 
+const autoMergeIfPossible = async (context, repoContext, labelAdded) => {
+  if (!labelAdded) return;
+  const autoMergeLabel = repoContext.labels['merge/automerge'];
+  if (!autoMergeLabel) return;
+  const pr = context.payload.pull_request;
+  if (!pr.labels.find(l => l.id === autoMergeLabel.id)) return;
+
+  if (pr.mergeable) {
+    const mergeResult = await context.github.pulls.merge({
+      merge_method: 'squash',
+      owner: pr.head.repo.owner.login,
+      repo: pr.head.repo.name,
+      number: pr.number,
+      commit_title: `${pr.title} (#${pr.number})`,
+      commit_message: '' // TODO add BC
+
+    });
+    context.log.info('merge result:', mergeResult);
+  }
+};
+
 var labelsChanged = (app => {
   app.on(['pull_request.labeled', 'pull_request.unlabeled'], async context => {
     const sender = context.payload.sender;
     if (sender.type === 'Bot') return;
     await handlerPullRequestChange(context, async repoContext => {
       await repoContext.updateStatusCheckFromLabels(context);
+
+      if (context.payload.action === 'labeled' && context.payload.label.id === (repoContext.labels['merge/automerge'] && repoContext.labels['merge/automerge'].id)) {
+        await autoMergeIfPossible(context, repoContext, true);
+      }
     });
   });
 });
 
-/* eslint-disable max-lines */
 if (!process.env.NAME) process.env.NAME = 'reviewflow'; // const getConfig = require('probot-config')
 // const { MongoClient } = require('mongodb');
 // const connect = MongoClient.connect(process.env.MONGO_URL);

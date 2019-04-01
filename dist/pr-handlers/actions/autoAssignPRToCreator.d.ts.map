@@ -1,0 +1,1 @@
+{"version":3,"file":"autoAssignPRToCreator.d.ts","sourceRoot":"","sources":["../../../src/pr-handlers/actions/autoAssignPRToCreator.ts"],"names":[],"mappings":"AAAA,OAAO,QAAQ,MAAM,mBAAmB,CAAC;AACzC,OAAO,EAAE,OAAO,EAAE,MAAM,UAAU,CAAC;AAEnC,eAAO,MAAM,qBAAqB,EAAE,OAAO,CACzC,QAAQ,CAAC,yBAAyB,CAanC,CAAC"}

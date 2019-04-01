@@ -36,4 +36,5 @@ export const createHandlerPullRequestChange = <
 export type Handler<T = any> = (
   context: Context<T>,
   repoContext: RepoContext,
+  ...args: any[]
 ) => Promise<void>;
