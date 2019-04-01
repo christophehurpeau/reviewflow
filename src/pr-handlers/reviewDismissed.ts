@@ -21,7 +21,7 @@ export default (app: Application) => {
             review.state === 'REQUEST_CHANGES',
         );
 
-        repoContext.updateReviewStatus(context, reviewerGroup, {
+        await repoContext.updateReviewStatus(context, reviewerGroup, {
           add: ['needsReview', 'requested'],
           remove: [
             !hasChangesRequestedInReviews && 'changesRequested',

@@ -30,7 +30,7 @@ export default (app: Application) => {
         );
 
         if (!hasChangesRequestedInReviews) {
-          repoContext.updateReviewStatus(context, reviewerGroup, {
+          await repoContext.updateReviewStatus(context, reviewerGroup, {
             add: ['needsReview', !shouldWait && 'requested'],
             remove: ['approved', 'changesRequested'],
           });

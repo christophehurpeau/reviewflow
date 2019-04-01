@@ -751,7 +751,7 @@ var reviewRequestedHandler = (app => {
       review.user.login !== reviewer.login);
 
       if (!hasChangesRequestedInReviews) {
-        repoContext.updateReviewStatus(context, reviewerGroup, {
+        await repoContext.updateReviewStatus(context, reviewerGroup, {
           add: ['needsReview', "requested"],
           remove: ['approved', 'changesRequested']
         });
@@ -785,7 +785,7 @@ var reviewRequestRemovedHandler = (app => {
       const hasChangesRequestedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'REQUEST_CHANGES');
       const hasApprovedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'APPROVED');
       const approved = !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && hasApprovedInReviews;
-      repoContext.updateReviewStatus(context, reviewerGroup, {
+      await repoContext.updateReviewStatus(context, reviewerGroup, {
         add: [// if changes requested by the one which requests was removed
         hasChangesRequestedInReviews && 'changesRequested', // if was already approved by another member in the group and has no other requests waiting
         approved && 'approved'],
@@ -825,7 +825,7 @@ var reviewSubmittedHandler = (app => {
       }));
       const hasChangesRequestedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'REQUEST_CHANGES');
       const approved = !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && state === 'approved';
-      repoContext.updateReviewStatus(context, reviewerGroup, {
+      await repoContext.updateReviewStatus(context, reviewerGroup, {
         add: [approved && 'approved', state === 'changes_requested' && 'changesRequested'],
         remove: [approved && 'needsReview', !(hasRequestedReviewsForGroup || state === 'changes_requested') && 'requested', state === 'approved' && !hasChangesRequestedInReviews && 'changesRequested', state === 'changes_requested' && 'approved']
       });
@@ -864,7 +864,7 @@ var reviewDismissedHandler = (app => {
         per_page: 50
       }));
       const hasChangesRequestedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'REQUEST_CHANGES');
-      repoContext.updateReviewStatus(context, reviewerGroup, {
+      await repoContext.updateReviewStatus(context, reviewerGroup, {
         add: ['needsReview', 'requested'],
         remove: [!hasChangesRequestedInReviews && 'changesRequested', 'approved']
       });

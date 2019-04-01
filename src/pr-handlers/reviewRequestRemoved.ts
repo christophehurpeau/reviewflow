@@ -40,7 +40,7 @@ export default (app: Application) => {
           !hasRequestedReviewsForGroup &&
           !hasChangesRequestedInReviews &&
           hasApprovedInReviews;
-        repoContext.updateReviewStatus(context, reviewerGroup, {
+        await repoContext.updateReviewStatus(context, reviewerGroup, {
           add: [
             // if changes requested by the one which requests was removed
             hasChangesRequestedInReviews && 'changesRequested',

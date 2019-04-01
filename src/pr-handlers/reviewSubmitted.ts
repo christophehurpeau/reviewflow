@@ -34,7 +34,8 @@ export default (app: Application) => {
           !hasRequestedReviewsForGroup &&
           !hasChangesRequestedInReviews &&
           state === 'approved';
-        repoContext.updateReviewStatus(context, reviewerGroup, {
+
+        await repoContext.updateReviewStatus(context, reviewerGroup, {
           add: [
             approved && 'approved',
             state === 'changes_requested' && 'changesRequested',
