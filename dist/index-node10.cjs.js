@@ -929,17 +929,7 @@ var labelsChanged = (app => {
   });
 });
 
-var checkrunCompleted = (app => {
-  app.on(['check_run.completed'], createHandlerPullRequestChange(async (context, repoContext) => {
-    await autoMergeIfPossible(context, repoContext);
-  }));
-});
-
-var checksuiteCompleted = (app => {
-  app.on(['check_suite.completed'], createHandlerPullRequestChange(async (context, repoContext) => {
-    await autoMergeIfPossible(context, repoContext);
-  }));
-});
+// import checksuiteCompleted from './pr-handlers/checksuiteCompleted';
 
 if (!process.env.NAME) process.env.NAME = 'reviewflow'; // const getConfig = require('probot-config')
 // const { MongoClient } = require('mongodb');
@@ -960,8 +950,7 @@ probot.Probot.run(app => {
   reviewDismissedHandler(app);
   labelsChanged(app);
   synchromizeHandler(app);
-  editedHandler(app);
-  checkrunCompleted(app);
-  checksuiteCompleted(app);
+  editedHandler(app); // checkrunCompleted(app);
+  // checksuiteCompleted(app);
 });
 //# sourceMappingURL=index-node10.cjs.js.map
