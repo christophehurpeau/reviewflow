@@ -1,3 +1,12 @@
+## [1.5.3](https://github.com/christophehurpeau/reviewflow/compare/v1.5.2...v1.5.3) (2019-04-01)
+
+
+### Bug Fixes
+
+* githubLoginToGroup ([5d0be33](https://github.com/christophehurpeau/reviewflow/commit/5d0be33))
+
+
+
 ## [1.5.2](https://github.com/christophehurpeau/reviewflow/compare/v1.5.1...v1.5.2) (2019-04-01)
 
 
