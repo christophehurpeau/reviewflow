@@ -55,7 +55,9 @@ const config = {
       CorentinAndre: `corentin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       rigma: `romain${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       Mxime: `maxime${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      damienorny: `damien.orny${process.env.ORNIKAR_EMAIL_DOMAIN}`
+      damienorny: `damien.orny${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      tilap: `julien.lavinh${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      '63m29': `valerian${process.env.ORNIKAR_EMAIL_DOMAIN}`
     },
     design: {
       jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
