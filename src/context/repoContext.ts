@@ -143,7 +143,6 @@ async function initRepoContext<GroupNames extends string>(
     });
 
     if (hasNeedsReview(labels)) {
-      console.log(config.requiresReviewRequest, !hasRequestedReview(labels));
       if (config.requiresReviewRequest && !hasRequestedReview(labels)) {
         await createFailedStatusCheck(
           context,
@@ -188,6 +187,11 @@ async function initRepoContext<GroupNames extends string>(
       reviewGroup: GroupNames,
       { add: labelsToAdd, remove: labelsToRemove },
     ) => {
+      context.log.info('updateReviewStatus', {
+        reviewGroup,
+        labelsToAdd,
+        labelsToRemove,
+      });
       if (!reviewGroup) return;
 
       const prLabels = context.payload.pull_request.labels || [];

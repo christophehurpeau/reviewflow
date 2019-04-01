@@ -361,7 +361,7 @@ const ExcludesFalsy$1 = Boolean;
 const initTeamContext = async (context, config) => {
   const slackPromise = initTeamSlack(context, config);
   const githubLoginToGroup = getKeys(config.groups).reduce((acc, groupName) => {
-    Object.values(config.groups[groupName]).forEach(login => {
+    Object.keys(config.groups[groupName]).forEach(login => {
       acc.set(login, groupName);
     });
     return acc;
@@ -476,8 +476,6 @@ async function initRepoContext(context, config) {
     });
 
     if (hasNeedsReview(labels)) {
-      console.log(config.requiresReviewRequest, !hasRequestedReview(labels));
-
       if (config.requiresReviewRequest && !hasRequestedReview(labels)) {
         await createFailedStatusCheck(context, 'You need to request someone to review the PR');
         return;
@@ -525,6 +523,11 @@ async function initRepoContext(context, config) {
       add: labelsToAdd,
       remove: labelsToRemove
     }) => {
+      context.log.info('updateReviewStatus', {
+        reviewGroup,
+        labelsToAdd,
+        labelsToRemove
+      });
       if (!reviewGroup) return;
       const prLabels = context.payload.pull_request.labels || [];
       const newLabels = new Set(prLabels.map(label => label.name));

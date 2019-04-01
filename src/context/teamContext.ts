@@ -29,7 +29,7 @@ const initTeamContext = async (
 
   const githubLoginToGroup = getKeys(config.groups).reduce<Map<string, string>>(
     (acc, groupName) => {
-      Object.values(config.groups[groupName]).forEach((login) => {
+      Object.keys(config.groups[groupName]).forEach((login) => {
         acc.set(login, groupName);
       });
       return acc;
