@@ -1,5 +1,6 @@
 import { Application } from 'probot';
 import { createHandlerPullRequestChange } from './utils';
+import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 
 export default (app: Application) => {
   app.on(
@@ -10,6 +11,7 @@ export default (app: Application) => {
       if (pr.user.login === reviewer.login) return;
 
       const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
+      let merged;
 
       if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
         const hasRequestedReviewsForGroup = repoContext.reviewShouldWait(
@@ -35,21 +37,34 @@ export default (app: Application) => {
           !hasChangesRequestedInReviews &&
           state === 'approved';
 
-        await repoContext.updateReviewStatus(context, reviewerGroup, {
-          add: [
-            approved && 'approved',
-            state === 'changes_requested' && 'changesRequested',
-          ],
-          remove: [
-            approved && 'needsReview',
-            !(hasRequestedReviewsForGroup || state === 'changes_requested') &&
-              'requested',
-            state === 'approved' &&
-              !hasChangesRequestedInReviews &&
-              'changesRequested',
-            state === 'changes_requested' && 'approved',
-          ],
-        });
+        const newLabels = await repoContext.updateReviewStatus(
+          context,
+          reviewerGroup,
+          {
+            add: [
+              approved && 'approved',
+              state === 'changes_requested' && 'changesRequested',
+            ],
+            remove: [
+              approved && 'needsReview',
+              !(hasRequestedReviewsForGroup || state === 'changes_requested') &&
+                'requested',
+              state === 'approved' &&
+                !hasChangesRequestedInReviews &&
+                'changesRequested',
+              state === 'changes_requested' && 'approved',
+            ],
+          },
+        );
+
+        if (approved && !hasChangesRequestedInReviews) {
+          merged = await autoMergeIfPossible(
+            context,
+            repoContext,
+            undefined,
+            newLabels,
+          );
+        }
       }
 
       const mention = repoContext.slack.mention(reviewer.login);
@@ -60,7 +75,9 @@ export default (app: Application) => {
           return `:x: ${mention} requests changes on ${prUrl}`;
         }
         if (state === 'approved') {
-          return `:clap: :white_check_mark: ${mention} approves ${prUrl}`;
+          return `:clap: :white_check_mark: ${mention} approves ${prUrl}${
+            merged ? ' and PR is merged :tada:' : ''
+          }`;
         }
         return `:speech_balloon: ${mention} commented on ${prUrl}`;
       })();

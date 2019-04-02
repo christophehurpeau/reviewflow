@@ -11,13 +11,17 @@ import { obtainTeamContext, TeamContext } from './teamContext';
 interface RepoContextWithoutTeamContext<GroupNames extends string = any> {
   labels: Labels;
 
+  hasNeedsReview: (labels: LabelResponse[]) => boolean;
+  hasRequestedReview: (labels: LabelResponse[]) => boolean;
+  hasApprovesReview: (labels: LabelResponse[]) => boolean;
+
   updateStatusCheckFromLabels<E>(
     context: Context<E>,
     labels?: LabelResponse[],
   ): Promise<void>;
 
-  lockPR<E extends Webhooks.WebhookPayloadPullRequest>(
-    context: Context<E>,
+  lockPROrPRS(
+    prIdOrIds: string | string[],
     callback: () => Promise<void> | void,
   ): Promise<void>;
 
@@ -31,7 +35,7 @@ interface RepoContextWithoutTeamContext<GroupNames extends string = any> {
       add?: (GroupLabels | false | undefined)[];
       remove?: (GroupLabels | false | undefined)[];
     },
-  ): Promise<void>;
+  ): Promise<LabelResponse[]>;
 
   addStatusCheckToLatestCommit<E>(context: Context<E>): Promise<void>;
 }
@@ -41,10 +45,6 @@ export type RepoContext<GroupNames extends string = any> = TeamContext<
 > &
   RepoContextWithoutTeamContext<GroupNames>;
 
-const ExcludesFalsy = (Boolean as any) as <T>(
-  x: T | false | null | undefined,
-) => x is T;
-
 async function initRepoContext<GroupNames extends string>(
   context: Context<any>,
   config: Config<GroupNames>,
@@ -53,7 +53,6 @@ async function initRepoContext<GroupNames extends string>(
   const repoContext = Object.create(teamContext);
 
   const labels = await initRepoLabels(context, config);
-  const labelsValues = Object.values(labels);
   const reviewKeys = Object.keys(config.groups) as GroupNames[];
 
   const needsReviewLabelIds = reviewKeys
@@ -135,7 +134,7 @@ async function initRepoContext<GroupNames extends string>(
   const updateStatusCheckFromLabels = async (
     context: Context,
     labels: LabelResponse[] = context.payload.pull_request.labels || [],
-  ) => {
+  ): Promise<void> => {
     context.log.info('updateStatusCheckFromLabels', {
       labels: labels.map((l) => l && l.name),
       hasNeedsReview: hasNeedsReview(labels),
@@ -161,23 +160,26 @@ async function initRepoContext<GroupNames extends string>(
   return Object.assign(repoContext, {
     labels,
     updateStatusCheckFromLabels,
+    hasNeedsReview,
+    hasRequestedReview,
+    hasApprovesReview,
 
-    lockPR: (context, callback) =>
+    lockPROrPRS: (prIdOrIds, callback): Promise<void> =>
       new Promise((resolve, reject) => {
-        const pr = context.payload.pull_request;
-        console.log('lock: try to lock pr', { id: pr.id });
-        lock(`${pr.id}`, async (release) => {
-          console.log('lock: lock acquired', { id: pr.id });
+        console.log('lock: try to lock pr', { prIdOrIds });
+        lock(prIdOrIds, async (createReleaseCallback) => {
+          const release = createReleaseCallback(() => {});
+          console.log('lock: lock acquired', { prIdOrIds });
           try {
             await callback();
           } catch (err) {
-            console.log('lock: release pr (with error)', { id: pr.id });
-            release()();
+            console.log('lock: release pr (with error)', { prIdOrIds });
+            release();
             reject(err);
             return;
           }
-          console.log('lock: release pr', { id: pr.id });
-          release()();
+          console.log('lock: release pr', { prIdOrIds });
+          release();
           resolve();
         });
       }),
@@ -186,18 +188,20 @@ async function initRepoContext<GroupNames extends string>(
       context,
       reviewGroup: GroupNames,
       { add: labelsToAdd, remove: labelsToRemove },
-    ) => {
+    ): Promise<LabelResponse[]> => {
       context.log.info('updateReviewStatus', {
         reviewGroup,
         labelsToAdd,
         labelsToRemove,
       });
-      if (!reviewGroup) return;
 
-      const prLabels = context.payload.pull_request.labels || [];
-      const newLabels = new Set<string>(
+      let prLabels = context.payload.pull_request.labels || [];
+      if (!reviewGroup) return prLabels;
+
+      const newLabelNames = new Set<string>(
         prLabels.map((label: LabelResponse) => label.name),
       );
+
       const toAdd = new Set<GroupLabels>();
       const toDelete = new Set<GroupLabels>();
 
@@ -220,7 +224,7 @@ async function initRepoContext<GroupNames extends string>(
           ) {
             return;
           }
-          newLabels.add(label.name);
+          newLabelNames.add(label.name);
           toAdd.add(key);
         });
       }
@@ -234,28 +238,31 @@ async function initRepoContext<GroupNames extends string>(
             (prLabel: LabelResponse) => prLabel.id === label.id,
           );
           if (existing) {
-            newLabels.delete(existing.name);
+            newLabelNames.delete(existing.name);
             toDelete.add(key);
           }
         });
       }
+
+      const newLabelNamesArray = [...newLabelNames];
 
       context.log.info('updateReviewStatus', {
         reviewGroup,
         toAdd: [...toAdd],
         toDelete: [...toDelete],
         oldLabels: prLabels.map((l: LabelResponse) => l.name),
-        newLabels: [...newLabels],
+        newLabelNames: newLabelNamesArray,
       });
 
       // if (process.env.DRY_RUN) return;
 
       if (toAdd.size || toDelete.size) {
-        await context.github.issues.replaceLabels(
+        const result = await context.github.issues.replaceLabels(
           context.issue({
-            labels: [...newLabels],
+            labels: newLabelNamesArray,
           }),
         );
+        prLabels = result.data;
       }
 
       // if (toAdd.has('needsReview')) {
@@ -264,14 +271,10 @@ async function initRepoContext<GroupNames extends string>(
       //   toDelete.has('needsReview') ||
       //   (prLabels.length === 0 && toAdd.size === 1 && toAdd.has('approved'))
       // ) {
-      updateStatusCheckFromLabels(
-        context,
-        [...newLabels]
-          .map((labelName) => labelsValues.find((l) => l.name === labelName))
-          // ignore labels not handled, like "wip"
-          .filter(ExcludesFalsy),
-      );
+      await updateStatusCheckFromLabels(context, prLabels);
       // }
+
+      return prLabels;
     },
 
     addStatusCheckToLatestCommit: (context) =>

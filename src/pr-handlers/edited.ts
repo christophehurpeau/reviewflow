@@ -2,6 +2,7 @@ import { Application } from 'probot';
 import { lintPR } from './actions/lintPR';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { createHandlerPullRequestChange } from './utils';
+import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 
 export default (app: Application) => {
   app.on(
@@ -11,6 +12,8 @@ export default (app: Application) => {
         editOpenedPR(context, repoContext),
         lintPR(context, repoContext),
       ]);
+
+      await autoMergeIfPossible(context, repoContext);
     }),
   );
 };

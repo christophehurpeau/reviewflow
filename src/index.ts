@@ -8,8 +8,8 @@ import reviewDismissedHandler from './pr-handlers/reviewDismissed';
 import synchromizeHandler from './pr-handlers/synchronize';
 import editedHandler from './pr-handlers/edited';
 import labelsChanged from './pr-handlers/labelsChanged';
-// import checkrunCompleted from './pr-handlers/checkrunCompleted';
-// import checksuiteCompleted from './pr-handlers/checksuiteCompleted';
+import checkrunCompleted from './pr-handlers/checkrunCompleted';
+import checksuiteCompleted from './pr-handlers/checksuiteCompleted';
 
 if (!process.env.NAME) process.env.NAME = 'reviewflow';
 
@@ -41,6 +41,6 @@ Probot.run((app: Application) => {
   synchromizeHandler(app);
   editedHandler(app);
 
-  // checkrunCompleted(app);
-  // checksuiteCompleted(app);
+  checkrunCompleted(app);
+  checksuiteCompleted(app);
 });

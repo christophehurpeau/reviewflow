@@ -414,13 +414,11 @@ const obtainTeamContext = (context, config) => {
 };
 
 /* eslint-disable max-lines */
-const ExcludesFalsy$2 = Boolean;
 
 async function initRepoContext(context, config) {
   const teamContext = await obtainTeamContext(context, config);
   const repoContext = Object.create(teamContext);
   const labels = await initRepoLabels(context, config);
-  const labelsValues = Object.values(labels);
   const reviewKeys = Object.keys(config.groups);
   const needsReviewLabelIds = reviewKeys.map(key => config.labels.review[key].needsReview).filter(Boolean).map(name => labels[name].id);
   const requestedReviewLabelIds = reviewKeys.map(key => config.labels.review[key].requested).filter(Boolean).map(name => labels[name].id);
@@ -491,31 +489,34 @@ async function initRepoContext(context, config) {
   return Object.assign(repoContext, {
     labels,
     updateStatusCheckFromLabels,
-    lockPR: (context, callback) => new Promise((resolve, reject) => {
-      const pr = context.payload.pull_request;
+    hasNeedsReview,
+    hasRequestedReview,
+    hasApprovesReview,
+    lockPROrPRS: (prIdOrIds, callback) => new Promise((resolve, reject) => {
       console.log('lock: try to lock pr', {
-        id: pr.id
+        prIdOrIds
       });
-      lock$1(`${pr.id}`, async release => {
+      lock$1(prIdOrIds, async createReleaseCallback => {
+        const release = createReleaseCallback(() => {});
         console.log('lock: lock acquired', {
-          id: pr.id
+          prIdOrIds
         });
 
         try {
           await callback();
         } catch (err) {
           console.log('lock: release pr (with error)', {
-            id: pr.id
+            prIdOrIds
           });
-          release()();
+          release();
           reject(err);
           return;
         }
 
         console.log('lock: release pr', {
-          id: pr.id
+          prIdOrIds
         });
-        release()();
+        release();
         resolve();
       });
     }),
@@ -528,9 +529,9 @@ async function initRepoContext(context, config) {
         labelsToAdd,
         labelsToRemove
       });
-      if (!reviewGroup) return;
-      const prLabels = context.payload.pull_request.labels || [];
-      const newLabels = new Set(prLabels.map(label => label.name));
+      let prLabels = context.payload.pull_request.labels || [];
+      if (!reviewGroup) return prLabels;
+      const newLabelNames = new Set(prLabels.map(label => label.name));
       const toAdd = new Set();
       const toDelete = new Set();
 
@@ -549,7 +550,7 @@ async function initRepoContext(context, config) {
             return;
           }
 
-          newLabels.add(label.name);
+          newLabelNames.add(label.name);
           toAdd.add(key);
         });
       }
@@ -562,24 +563,26 @@ async function initRepoContext(context, config) {
           const existing = prLabels.find(prLabel => prLabel.id === label.id);
 
           if (existing) {
-            newLabels.delete(existing.name);
+            newLabelNames.delete(existing.name);
             toDelete.add(key);
           }
         });
       }
 
+      const newLabelNamesArray = [...newLabelNames];
       context.log.info('updateReviewStatus', {
         reviewGroup,
         toAdd: [...toAdd],
         toDelete: [...toDelete],
         oldLabels: prLabels.map(l => l.name),
-        newLabels: [...newLabels]
+        newLabelNames: newLabelNamesArray
       }); // if (process.env.DRY_RUN) return;
 
       if (toAdd.size || toDelete.size) {
-        await context.github.issues.replaceLabels(context.issue({
-          labels: [...newLabels]
+        const result = await context.github.issues.replaceLabels(context.issue({
+          labels: newLabelNamesArray
         }));
+        prLabels = result.data;
       } // if (toAdd.has('needsReview')) {
       //   createInProgressStatusCheck(context);
       // } else if (
@@ -588,8 +591,9 @@ async function initRepoContext(context, config) {
       // ) {
 
 
-      updateStatusCheckFromLabels(context, [...newLabels].map(labelName => labelsValues.find(l => l.name === labelName)) // ignore labels not handled, like "wip"
-      .filter(ExcludesFalsy$2)); // }
+      await updateStatusCheckFromLabels(context, prLabels); // }
+
+      return prLabels;
     },
     addStatusCheckToLatestCommit: context => // old and new sha
     // const { before, after } = context.payload;
@@ -624,12 +628,17 @@ const obtainRepoContext = context => {
 const handlerPullRequestChange = async (context, callback) => {
   const repoContext = await obtainRepoContext(context);
   if (!repoContext) return;
-  repoContext.lockPR(context, async () => {
+  repoContext.lockPROrPRS(String(context.payload.pull_request.id), async () => {
     await callback(repoContext);
   });
 };
 const createHandlerPullRequestChange = callback => context => {
   return handlerPullRequestChange(context, repoContext => callback(context, repoContext));
+};
+const createHandlerPullRequestsChange = (getPullRequests, callback) => async context => {
+  const repoContext = await obtainRepoContext(context);
+  if (!repoContext) return;
+  return repoContext.lockPROrPRS(getPullRequests(context).map(pr => String(pr.id)), () => callback(context, repoContext));
 };
 
 const autoAssignPRToCreator = async (context, repoContext) => {
@@ -658,7 +667,7 @@ const editOpenedPR = (context, repoContext) => {
   }
 };
 
-const ExcludesFalsy$3 = Boolean;
+const ExcludesFalsy$2 = Boolean;
 const lintPR = async (context, repoContext) => {
   if (!repoContext.config.prLint) return;
   const repo = context.payload.repository;
@@ -723,7 +732,7 @@ const lintPR = async (context, repoContext) => {
     state: errorRule ? 'failure' : 'success',
     target_url: undefined,
     description: errorRule ? errorRule.error.title : '✓ Your PR is valid'
-  }))].filter(ExcludesFalsy$3));
+  }))].filter(ExcludesFalsy$2));
 };
 
 var openedHandler = (app => {
@@ -805,6 +814,38 @@ var reviewRequestRemovedHandler = (app => {
   }));
 });
 
+const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pull_request, prLabels = pr.labels) => {
+  const autoMergeLabel = repoContext.labels['merge/automerge'];
+  if (!autoMergeLabel) return false;
+
+  if (!prLabels.find(l => l.id === autoMergeLabel.id)) {
+    context.log.debug('automerge not possible: no label');
+    return false;
+  }
+
+  if (repoContext.hasNeedsReview(prLabels) || repoContext.hasRequestedReview(prLabels)) {
+    context.log.debug('automerge not possible: blocking labels');
+    return false;
+  }
+
+  if (!pr.mergeable) {
+    context.log.debug('automerge not possible: not mergeable');
+    return false;
+  }
+
+  const mergeResult = await context.github.pulls.merge({
+    merge_method: 'squash',
+    owner: pr.head.repo.owner.login,
+    repo: pr.head.repo.name,
+    number: pr.number,
+    commit_title: `${pr.title} (#${pr.number})`,
+    commit_message: '' // TODO add BC
+
+  });
+  context.log.debug('merge result:', mergeResult.data);
+  return Boolean(mergeResult.data.merged);
+};
+
 var reviewSubmittedHandler = (app => {
   app.on('pull_request_review.submitted', createHandlerPullRequestChange(async (context, repoContext) => {
     const pr = context.payload.pull_request;
@@ -814,6 +855,7 @@ var reviewSubmittedHandler = (app => {
     } = context.payload.review;
     if (pr.user.login === reviewer.login) return;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
+    let merged;
 
     if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
       const hasRequestedReviewsForGroup = repoContext.reviewShouldWait(reviewerGroup, pr.requested_reviewers, {
@@ -828,10 +870,14 @@ var reviewSubmittedHandler = (app => {
       }));
       const hasChangesRequestedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'REQUEST_CHANGES');
       const approved = !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && state === 'approved';
-      await repoContext.updateReviewStatus(context, reviewerGroup, {
+      const newLabels = await repoContext.updateReviewStatus(context, reviewerGroup, {
         add: [approved && 'approved', state === 'changes_requested' && 'changesRequested'],
         remove: [approved && 'needsReview', !(hasRequestedReviewsForGroup || state === 'changes_requested') && 'requested', state === 'approved' && !hasChangesRequestedInReviews && 'changesRequested', state === 'changes_requested' && 'approved']
       });
+
+      if (approved && !hasChangesRequestedInReviews) {
+        merged = await autoMergeIfPossible(context, repoContext, undefined, newLabels);
+      }
     }
 
     const mention = repoContext.slack.mention(reviewer.login);
@@ -843,7 +889,7 @@ var reviewSubmittedHandler = (app => {
       }
 
       if (state === 'approved') {
-        return `:clap: :white_check_mark: ${mention} approves ${prUrl}`;
+        return `:clap: :white_check_mark: ${mention} approves ${prUrl}${merged ? ' and PR is merged :tada:' : ''}`;
       }
 
       return `:speech_balloon: ${mention} commented on ${prUrl}`;
@@ -885,35 +931,16 @@ var reviewDismissedHandler = (app => {
 
 var synchromizeHandler = (app => {
   app.on('pull_request.synchronize', createHandlerPullRequestChange(async (context, repoContext) => {
-    await Promise.all([editOpenedPR(context, repoContext), repoContext.addStatusCheckToLatestCommit(context)]);
+    await Promise.all([editOpenedPR(context, repoContext), lintPR(context, repoContext), repoContext.addStatusCheckToLatestCommit(context)]);
   }));
 });
 
 var editedHandler = (app => {
   app.on('pull_request.edited', createHandlerPullRequestChange(async (context, repoContext) => {
     await Promise.all([editOpenedPR(context, repoContext), lintPR(context, repoContext)]);
+    await autoMergeIfPossible(context, repoContext);
   }));
 });
-
-const autoMergeIfPossible = async (context, repoContext) => {
-  const autoMergeLabel = repoContext.labels['merge/automerge'];
-  if (!autoMergeLabel) return;
-  const pr = context.payload.pull_request;
-  if (!pr.labels.find(l => l.id === autoMergeLabel.id)) return;
-
-  if (pr.mergeable) {
-    const mergeResult = await context.github.pulls.merge({
-      merge_method: 'squash',
-      owner: pr.head.repo.owner.login,
-      repo: pr.head.repo.name,
-      number: pr.number,
-      commit_title: `${pr.title} (#${pr.number})`,
-      commit_message: '' // TODO add BC
-
-    });
-    context.log.info('merge result:', mergeResult);
-  }
-};
 
 var labelsChanged = (app => {
   app.on(['pull_request.labeled', 'pull_request.unlabeled'], async context => {
@@ -929,7 +956,26 @@ var labelsChanged = (app => {
   });
 });
 
-// import checksuiteCompleted from './pr-handlers/checksuiteCompleted';
+var checkrunCompleted = (app => {
+  app.on('check_run.completed', createHandlerPullRequestsChange(context => context.payload.check_run.pull_requests, async (context, repoContext) => {
+    console.log('check_run.completed', context.payload.check_run.pull_requests);
+    await Promise.all(context.payload.check_run.pull_requests.map(pr => context.github.pulls.get(context.repo({
+      number: pr.number
+    })).then(prResult => {
+      return autoMergeIfPossible(context, repoContext, prResult.data);
+    })));
+  }));
+});
+
+var checksuiteCompleted = (app => {
+  app.on('check_suite.completed', createHandlerPullRequestsChange(context => context.payload.check_suite.pull_requests, async (context, repoContext) => {
+    await Promise.all(context.payload.check_suite.pull_requests.map(pr => context.github.pulls.get(context.repo({
+      number: pr.number
+    })).then(prResult => {
+      return autoMergeIfPossible(context, repoContext, prResult.data);
+    })));
+  }));
+});
 
 if (!process.env.NAME) process.env.NAME = 'reviewflow'; // const getConfig = require('probot-config')
 // const { MongoClient } = require('mongodb');
@@ -950,7 +996,8 @@ probot.Probot.run(app => {
   reviewDismissedHandler(app);
   labelsChanged(app);
   synchromizeHandler(app);
-  editedHandler(app); // checkrunCompleted(app);
-  // checksuiteCompleted(app);
+  editedHandler(app);
+  checkrunCompleted(app);
+  checksuiteCompleted(app);
 });
 //# sourceMappingURL=index-node10-dev.cjs.js.map
