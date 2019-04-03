@@ -26,7 +26,8 @@ export const updateReviewStatus = async <
     labelsToRemove,
   });
 
-  let prLabels = context.payload.pull_request.labels || [];
+  const pr = context.payload.pull_request;
+  let prLabels = pr.labels || [];
   if (!reviewGroup) return prLabels;
 
   const newLabelNames = new Set<string>(
@@ -103,7 +104,7 @@ export const updateReviewStatus = async <
   //   toDelete.has('needsReview') ||
   //   (prLabels.length === 0 && toAdd.size === 1 && toAdd.has('approved'))
   // ) {
-  await updateStatusCheckFromLabels(context, repoContext, prLabels);
+  await updateStatusCheckFromLabels(context, repoContext, pr, prLabels);
   // }
 
   return prLabels;

@@ -6,12 +6,14 @@ import { teamConfigs, Config } from '../teamconfigs';
 import { initRepoLabels, LabelResponse, Labels } from './initRepoLabels';
 import { obtainTeamContext, TeamContext } from './teamContext';
 
-interface RepoContextWithoutTeamContext {
+interface RepoContextWithoutTeamContext<GroupNames extends string> {
   labels: Labels;
 
   hasNeedsReview: (labels: LabelResponse[]) => boolean;
   hasRequestedReview: (labels: LabelResponse[]) => boolean;
+  hasChangesRequestedReview: (labels: LabelResponse[]) => boolean;
   hasApprovesReview: (labels: LabelResponse[]) => boolean;
+  getNeedsReviewGroupNames: (labels: LabelResponse[]) => GroupNames[];
 
   lockPROrPRS(
     prIdOrIds: string | string[],
@@ -19,10 +21,14 @@ interface RepoContextWithoutTeamContext {
   ): Promise<void>;
 }
 
+const ExcludesFalsy = (Boolean as any) as <T>(
+  x: T | false | null | undefined,
+) => x is T;
+
 export type RepoContext<GroupNames extends string = any> = TeamContext<
   GroupNames
 > &
-  RepoContextWithoutTeamContext;
+  RepoContextWithoutTeamContext<GroupNames>;
 
 async function initRepoContext<GroupNames extends string>(
   context: Context<any>,
@@ -32,22 +38,35 @@ async function initRepoContext<GroupNames extends string>(
   const repoContext = Object.create(teamContext);
 
   const labels = await initRepoLabels(context, config);
-  const reviewKeys = Object.keys(config.groups) as GroupNames[];
+  const reviewGroupNames = Object.keys(config.groups) as GroupNames[];
 
-  const needsReviewLabelIds = reviewKeys
-    .map((key) => config.labels.review[key].needsReview)
+  const needsReviewLabelIds = reviewGroupNames
+    .map((key: GroupNames) => config.labels.review[key].needsReview)
     .filter(Boolean)
     .map((name) => labels[name].id);
 
-  const requestedReviewLabelIds = reviewKeys
+  const requestedReviewLabelIds = reviewGroupNames
     .map((key) => config.labels.review[key].requested)
     .filter(Boolean)
     .map((name) => labels[name].id);
 
-  const approvedReviewLabelIds = reviewKeys
+  const changesRequestedLabelIds = reviewGroupNames
+    .map((key) => config.labels.review[key].changesRequested)
+    .filter(Boolean)
+    .map((name) => labels[name].id);
+
+  const approvedReviewLabelIds = reviewGroupNames
     .map((key) => config.labels.review[key].approved)
     .filter(Boolean)
     .map((name) => labels[name].id);
+
+  const labelIdToGroupName = new Map<LabelResponse['id'], GroupNames>();
+  reviewGroupNames.forEach((key) => {
+    const reviewGroupLabels = config.labels.review[key] as any;
+    Object.keys(reviewGroupLabels).forEach((labelKey: string) => {
+      labelIdToGroupName.set(labels[reviewGroupLabels[labelKey]].id, key);
+    });
+  });
 
   // const updateStatusCheck = (context, reviewGroup, statusInfo) => {};
 
@@ -55,8 +74,16 @@ async function initRepoContext<GroupNames extends string>(
     labels.some((label) => needsReviewLabelIds.includes(label.id));
   const hasRequestedReview = (labels: LabelResponse[]) =>
     labels.some((label) => requestedReviewLabelIds.includes(label.id));
+  const hasChangesRequestedReview = (labels: LabelResponse[]) =>
+    labels.some((label) => changesRequestedLabelIds.includes(label.id));
   const hasApprovesReview = (labels: LabelResponse[]) =>
     labels.some((label) => approvedReviewLabelIds.includes(label.id));
+
+  const getNeedsReviewGroupNames = (labels: LabelResponse[]): GroupNames[] =>
+    labels
+      .filter((label) => needsReviewLabelIds.includes(label.id))
+      .map((label) => labelIdToGroupName.get(label.id))
+      .filter(ExcludesFalsy);
 
   const lock = Lock();
 
@@ -64,7 +91,9 @@ async function initRepoContext<GroupNames extends string>(
     labels,
     hasNeedsReview,
     hasRequestedReview,
+    hasChangesRequestedReview,
     hasApprovesReview,
+    getNeedsReviewGroupNames,
 
     lockPROrPRS: (prIdOrIds, callback): Promise<void> =>
       new Promise((resolve, reject) => {
@@ -85,7 +114,7 @@ async function initRepoContext<GroupNames extends string>(
           resolve();
         });
       }),
-  } as RepoContextWithoutTeamContext);
+  } as RepoContextWithoutTeamContext<GroupNames>);
 }
 
 const repoContextsPromise = new Map<number, Promise<RepoContext>>();

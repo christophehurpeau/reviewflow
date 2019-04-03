@@ -11,11 +11,13 @@ export interface LabelResponse {
   default: boolean;
 }
 
-export type Labels = Record<string, LabelResponse>;
+export interface Labels {
+  [key: string]: LabelResponse;
+}
 
-export const initRepoLabels = async (
+export const initRepoLabels = async <GroupNames extends string>(
   context: Context<any>,
-  config: Config,
+  config: Config<GroupNames>,
 ): Promise<Labels> => {
   const { data: labels } = await context.github.issues.listLabelsForRepo(
     context.repo({ per_page: 100 }),

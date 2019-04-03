@@ -414,22 +414,33 @@ const obtainTeamContext = (context, config) => {
 };
 
 /* eslint-disable max-lines */
+const ExcludesFalsy$2 = Boolean;
 
 async function initRepoContext(context, config) {
   const teamContext = await obtainTeamContext(context, config);
   const repoContext = Object.create(teamContext);
   const labels = await initRepoLabels(context, config);
-  const reviewKeys = Object.keys(config.groups);
-  const needsReviewLabelIds = reviewKeys.map(key => config.labels.review[key].needsReview).filter(Boolean).map(name => labels[name].id);
-  const requestedReviewLabelIds = reviewKeys.map(key => config.labels.review[key].requested).filter(Boolean).map(name => labels[name].id);
-  const approvedReviewLabelIds = reviewKeys.map(key => config.labels.review[key].approved).filter(Boolean).map(name => labels[name].id); // const updateStatusCheck = (context, reviewGroup, statusInfo) => {};
+  const reviewGroupNames = Object.keys(config.groups);
+  const needsReviewLabelIds = reviewGroupNames.map(key => config.labels.review[key].needsReview).filter(Boolean).map(name => labels[name].id);
+  const requestedReviewLabelIds = reviewGroupNames.map(key => config.labels.review[key].requested).filter(Boolean).map(name => labels[name].id);
+  const changesRequestedLabelIds = reviewGroupNames.map(key => config.labels.review[key].changesRequested).filter(Boolean).map(name => labels[name].id);
+  const approvedReviewLabelIds = reviewGroupNames.map(key => config.labels.review[key].approved).filter(Boolean).map(name => labels[name].id);
+  const labelIdToGroupName = new Map();
+  reviewGroupNames.forEach(key => {
+    const reviewGroupLabels = config.labels.review[key];
+    Object.keys(reviewGroupLabels).forEach(labelKey => {
+      labelIdToGroupName.set(labels[reviewGroupLabels[labelKey]].id, key);
+    });
+  }); // const updateStatusCheck = (context, reviewGroup, statusInfo) => {};
 
   const lock$1 = lock.Lock();
   return Object.assign(repoContext, {
     labels,
     hasNeedsReview: labels => labels.some(label => needsReviewLabelIds.includes(label.id)),
     hasRequestedReview: labels => labels.some(label => requestedReviewLabelIds.includes(label.id)),
+    hasChangesRequestedReview: labels => labels.some(label => changesRequestedLabelIds.includes(label.id)),
     hasApprovesReview: labels => labels.some(label => approvedReviewLabelIds.includes(label.id)),
+    getNeedsReviewGroupNames: labels => labels.filter(label => needsReviewLabelIds.includes(label.id)).map(label => labelIdToGroupName.get(label.id)).filter(ExcludesFalsy$2),
     lockPROrPRS: (prIdOrIds, callback) => new Promise((resolve, reject) => {
       console.log('lock: try to lock pr', {
         prIdOrIds
@@ -527,7 +538,7 @@ const editOpenedPR = (context, repoContext) => {
   }
 };
 
-const ExcludesFalsy$2 = Boolean;
+const ExcludesFalsy$3 = Boolean;
 const lintPR = async (context, repoContext) => {
   if (!repoContext.config.prLint) return;
   const repo = context.payload.repository;
@@ -592,61 +603,95 @@ const lintPR = async (context, repoContext) => {
     state: errorRule ? 'failure' : 'success',
     target_url: undefined,
     description: errorRule ? errorRule.error.title : '✓ Your PR is valid'
-  }))].filter(ExcludesFalsy$2));
+  }))].filter(ExcludesFalsy$3));
 };
 
-const addStatusCheck = async function (context, statusInfo) {
-  const pr = context.payload.pull_request;
-  await context.github.checks.create(context.repo({
-    name: process.env.NAME,
-    head_sha: pr.head.sha,
-    ...statusInfo
-  }));
+const addStatusCheck = async function (context, pr, {
+  state,
+  description
+}) {
+  const hasPrCheck = (await context.github.checks.listForRef(context.repo({
+    ref: pr.head.sha
+  }))).data.check_runs.find(check => check.name === process.env.NAME);
+  context.log.info('add status check', {
+    hasPrCheck,
+    state,
+    description
+  });
+
+  if (hasPrCheck) {
+    await context.github.checks.create(context.repo({
+      name: process.env.NAME,
+      head_sha: pr.head.sha,
+      started_at: pr.created_at,
+      status: 'completed',
+      conclusion: state,
+      completed_at: new Date().toString(),
+      output: {
+        title: description,
+        summary: ''
+      }
+    }));
+  } else {
+    await context.github.repos.createStatus(context.repo({
+      context: process.env.NAME,
+      sha: pr.head.sha,
+      state,
+      target_url: undefined,
+      description
+    }));
+  }
 };
 
-const createInProgressStatusCheck = context => addStatusCheck(context, {
-  status: 'in_progress'
+const createFailedStatusCheck = (context, pr, description) => addStatusCheck(context, pr, {
+  state: 'failure',
+  description
 });
 
-const createFailedStatusCheck = (context, message) => addStatusCheck(context, {
-  status: 'completed',
-  conclusion: 'failure',
-  started_at: context.payload.pull_request.created_at,
-  completed_at: new Date(),
-  output: {
-    title: message,
-    summary: ''
-  }
-});
-
-const createDoneStatusCheck = context => addStatusCheck(context, {
-  status: 'completed',
-  conclusion: 'success',
-  started_at: context.payload.pull_request.created_at,
-  completed_at: new Date(),
-  output: {
-    title: '✓ All reviews done !',
-    summary: 'Pull request was successfully reviewed'
-  }
-});
-
-const updateStatusCheckFromLabels = async (context, repoContext, labels = context.payload.pull_request.labels || []) => {
+const updateStatusCheckFromLabels = (context, repoContext, pr = context.payload.pull_request, labels = pr.labels || []) => {
   context.log.info('updateStatusCheckFromLabels', {
     labels: labels.map(l => l && l.name),
     hasNeedsReview: repoContext.hasNeedsReview(labels),
     hasApprovesReview: repoContext.hasApprovesReview(labels)
   });
 
-  if (repoContext.hasNeedsReview(labels)) {
-    if (repoContext.config.requiresReviewRequest && !repoContext.hasRequestedReview(labels)) {
-      await createFailedStatusCheck(context, 'You need to request someone to review the PR');
-      return;
-    }
-
-    await createInProgressStatusCheck(context);
-  } else if (repoContext.hasApprovesReview(labels)) {
-    await createDoneStatusCheck(context);
+  if (pr.requested_reviewers.length !== 0) {
+    return createFailedStatusCheck(context, pr, `Awaiting review from: ${pr.requested_reviewers.map(rr => rr.login).join(', ')}`);
   }
+
+  if (repoContext.hasChangesRequestedReview(labels)) {
+    return createFailedStatusCheck(context, pr, 'Changes requested ! Push commits or discuss changes then re-request a review.');
+  }
+
+  const needsReviewGroupNames = repoContext.getNeedsReviewGroupNames(labels);
+
+  if (needsReviewGroupNames.length !== 0) {
+    return createFailedStatusCheck(context, pr, `Awaiting review from: ${needsReviewGroupNames.join(', ')}... perhaps you can request someone ?`);
+  }
+
+  if (!repoContext.hasApprovesReview(labels)) {
+    if (repoContext.config.requiresReviewRequest) {
+      return createFailedStatusCheck(context, pr, 'Awaiting review... perhaps you can request someone ?');
+    }
+  } // if (
+  //   repoContext.config.requiresReviewRequest &&
+  //   !repoContext.hasRequestedReview(labels)
+  // ) {
+  //   return  createFailedStatusCheck(
+  //     context,
+  //     pr,
+  //     'You need to request someone to review the PR',
+  //   );
+  //   return;
+  // }
+  // return  createInProgressStatusCheck(context);
+  // } else if (repoContext.hasApprovesReview(labels)) {
+
+
+  return addStatusCheck(context, pr, {
+    state: 'success',
+    description: '✓ PR ready to merge !'
+  }); // }
 };
 
 const updateReviewStatus = async (context, repoContext, reviewGroup, {
@@ -658,7 +703,8 @@ const updateReviewStatus = async (context, repoContext, reviewGroup, {
     labelsToAdd,
     labelsToRemove
   });
-  let prLabels = context.payload.pull_request.labels || [];
+  const pr = context.payload.pull_request;
+  let prLabels = pr.labels || [];
   if (!reviewGroup) return prLabels;
   const newLabelNames = new Set(prLabels.map(label => label.name));
   const toAdd = new Set();
@@ -721,7 +767,7 @@ const updateReviewStatus = async (context, repoContext, reviewGroup, {
   // ) {
 
 
-  await updateStatusCheckFromLabels(context, repoContext, prLabels); // }
+  await updateStatusCheckFromLabels(context, repoContext, pr, prLabels); // }
 
   return prLabels;
 };

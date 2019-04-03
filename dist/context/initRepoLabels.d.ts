@@ -8,6 +8,8 @@ export interface LabelResponse {
     color: string;
     default: boolean;
 }
-export declare type Labels = Record<string, LabelResponse>;
-export declare const initRepoLabels: (context: Context<any>, config: import("../teamconfigs/types").Config<any>) => Promise<Record<string, LabelResponse>>;
+export interface Labels {
+    [key: string]: LabelResponse;
+}
+export declare const initRepoLabels: <GroupNames extends string>(context: Context<any>, config: import("../teamconfigs/types").Config<GroupNames>) => Promise<Labels>;
 //# sourceMappingURL=initRepoLabels.d.ts.map

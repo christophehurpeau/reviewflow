@@ -1,14 +1,16 @@
 import { Context } from 'probot';
 import { LabelResponse, Labels } from './initRepoLabels';
 import { TeamContext } from './teamContext';
-interface RepoContextWithoutTeamContext {
+interface RepoContextWithoutTeamContext<GroupNames extends string> {
     labels: Labels;
     hasNeedsReview: (labels: LabelResponse[]) => boolean;
     hasRequestedReview: (labels: LabelResponse[]) => boolean;
+    hasChangesRequestedReview: (labels: LabelResponse[]) => boolean;
     hasApprovesReview: (labels: LabelResponse[]) => boolean;
+    getNeedsReviewGroupNames: (labels: LabelResponse[]) => GroupNames[];
     lockPROrPRS(prIdOrIds: string | string[], callback: () => Promise<void> | void): Promise<void>;
 }
-export declare type RepoContext<GroupNames extends string = any> = TeamContext<GroupNames> & RepoContextWithoutTeamContext;
+export declare type RepoContext<GroupNames extends string = any> = TeamContext<GroupNames> & RepoContextWithoutTeamContext<GroupNames>;
 export declare const obtainRepoContext: (context: Context<any>) => RepoContext<any> | Promise<RepoContext<any>> | null;
 export {};
 //# sourceMappingURL=repoContext.d.ts.map
