@@ -94,7 +94,7 @@ export const updateStatusCheckFromLabels = (
       pr,
       `Awaiting review from: ${needsReviewGroupNames.join(
         ', ',
-      )}... perhaps you can request someone ?`,
+      )}. Perhaps request someone ?`,
     );
   }
 
@@ -103,7 +103,7 @@ export const updateStatusCheckFromLabels = (
       return createFailedStatusCheck(
         context,
         pr,
-        'Awaiting review... perhaps you can request someone ?',
+        'Awaiting review... Perhaps request someone ?',
       );
     }
   }

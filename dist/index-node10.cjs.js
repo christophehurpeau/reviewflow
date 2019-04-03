@@ -667,12 +667,12 @@ const updateStatusCheckFromLabels = (context, repoContext, pr = context.payload.
   const needsReviewGroupNames = repoContext.getNeedsReviewGroupNames(labels);
 
   if (needsReviewGroupNames.length !== 0) {
-    return createFailedStatusCheck(context, pr, `Awaiting review from: ${needsReviewGroupNames.join(', ')}... perhaps you can request someone ?`);
+    return createFailedStatusCheck(context, pr, `Awaiting review from: ${needsReviewGroupNames.join(', ')}. Perhaps request someone ?`);
   }
 
   if (!repoContext.hasApprovesReview(labels)) {
     if (repoContext.config.requiresReviewRequest) {
-      return createFailedStatusCheck(context, pr, 'Awaiting review... perhaps you can request someone ?');
+      return createFailedStatusCheck(context, pr, 'Awaiting review... Perhaps request someone ?');
     }
   } // if (
   //   repoContext.config.requiresReviewRequest &&
