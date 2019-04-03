@@ -867,7 +867,7 @@ var reviewSubmittedHandler = (app => {
       });
 
       if (approved && !hasChangesRequestedInReviews) {
-        merged = await autoMergeIfPossible(context, repoContext, undefined, newLabels);
+        merged = await autoMergeIfPossible(context, repoContext, pr, newLabels);
       }
     }
 

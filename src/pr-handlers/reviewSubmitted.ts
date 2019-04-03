@@ -63,7 +63,7 @@ export default (app: Application) => {
           merged = await autoMergeIfPossible(
             context,
             repoContext,
-            undefined,
+            pr,
             newLabels,
           );
         }
