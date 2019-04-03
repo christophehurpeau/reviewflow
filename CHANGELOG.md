@@ -1,3 +1,12 @@
+# [1.7.0](https://github.com/christophehurpeau/reviewflow/compare/v1.6.1...v1.7.0) (2019-04-03)
+
+
+### Features
+
+* support automerge after approve, checkrun/checksuite, synchromize ([704388d](https://github.com/christophehurpeau/reviewflow/commit/704388d))
+
+
+
 ## [1.6.1](https://github.com/christophehurpeau/reviewflow/compare/v1.6.0...v1.6.1) (2019-04-01)
 
 
