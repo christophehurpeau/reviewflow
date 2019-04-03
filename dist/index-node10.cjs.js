@@ -422,76 +422,14 @@ async function initRepoContext(context, config) {
   const reviewKeys = Object.keys(config.groups);
   const needsReviewLabelIds = reviewKeys.map(key => config.labels.review[key].needsReview).filter(Boolean).map(name => labels[name].id);
   const requestedReviewLabelIds = reviewKeys.map(key => config.labels.review[key].requested).filter(Boolean).map(name => labels[name].id);
-  const approvedReviewLabelIds = reviewKeys.map(key => config.labels.review[key].approved).filter(Boolean).map(name => labels[name].id);
-
-  const addStatusCheck = async function (context, statusInfo) {
-    const pr = context.payload.pull_request;
-    await context.github.checks.create(context.repo({
-      name: process.env.NAME,
-      head_sha: pr.head.sha,
-      ...statusInfo
-    }));
-  };
-
-  const createInProgressStatusCheck = context => addStatusCheck(context, {
-    status: 'in_progress'
-  });
-
-  const createFailedStatusCheck = (context, message) => addStatusCheck(context, {
-    status: 'completed',
-    conclusion: 'failure',
-    started_at: context.payload.pull_request.created_at,
-    completed_at: new Date(),
-    output: {
-      title: message,
-      summary: ''
-    }
-  });
-
-  const createDoneStatusCheck = context => addStatusCheck(context, {
-    status: 'completed',
-    conclusion: 'success',
-    started_at: context.payload.pull_request.created_at,
-    completed_at: new Date(),
-    output: {
-      title: '✓ All reviews done !',
-      summary: 'Pull request was successfully reviewed'
-    }
-  }); // const updateStatusCheck = (context, reviewGroup, statusInfo) => {};
-
-
-  const hasNeedsReview = labels => labels.some(label => needsReviewLabelIds.includes(label.id));
-
-  const hasRequestedReview = labels => labels.some(label => requestedReviewLabelIds.includes(label.id));
-
-  const hasApprovesReview = labels => labels.some(label => approvedReviewLabelIds.includes(label.id));
-
-  const updateStatusCheckFromLabels = async (context, labels = context.payload.pull_request.labels || []) => {
-    context.log.info('updateStatusCheckFromLabels', {
-      labels: labels.map(l => l && l.name),
-      hasNeedsReview: hasNeedsReview(labels),
-      hasApprovesReview: hasApprovesReview(labels)
-    });
-
-    if (hasNeedsReview(labels)) {
-      if (config.requiresReviewRequest && !hasRequestedReview(labels)) {
-        await createFailedStatusCheck(context, 'You need to request someone to review the PR');
-        return;
-      }
-
-      await createInProgressStatusCheck(context);
-    } else if (hasApprovesReview(labels)) {
-      await createDoneStatusCheck(context);
-    }
-  };
+  const approvedReviewLabelIds = reviewKeys.map(key => config.labels.review[key].approved).filter(Boolean).map(name => labels[name].id); // const updateStatusCheck = (context, reviewGroup, statusInfo) => {};
 
   const lock$1 = lock.Lock();
   return Object.assign(repoContext, {
     labels,
-    updateStatusCheckFromLabels,
-    hasNeedsReview,
-    hasRequestedReview,
-    hasApprovesReview,
+    hasNeedsReview: labels => labels.some(label => needsReviewLabelIds.includes(label.id)),
+    hasRequestedReview: labels => labels.some(label => requestedReviewLabelIds.includes(label.id)),
+    hasApprovesReview: labels => labels.some(label => approvedReviewLabelIds.includes(label.id)),
     lockPROrPRS: (prIdOrIds, callback) => new Promise((resolve, reject) => {
       console.log('lock: try to lock pr', {
         prIdOrIds
@@ -519,85 +457,7 @@ async function initRepoContext(context, config) {
         release();
         resolve();
       });
-    }),
-    updateReviewStatus: async (context, reviewGroup, {
-      add: labelsToAdd,
-      remove: labelsToRemove
-    }) => {
-      context.log.info('updateReviewStatus', {
-        reviewGroup,
-        labelsToAdd,
-        labelsToRemove
-      });
-      let prLabels = context.payload.pull_request.labels || [];
-      if (!reviewGroup) return prLabels;
-      const newLabelNames = new Set(prLabels.map(label => label.name));
-      const toAdd = new Set();
-      const toDelete = new Set();
-
-      const getLabelFromKey = key => {
-        const reviewConfig = config.labels.review[reviewGroup];
-        if (!reviewConfig) return undefined;
-        return reviewConfig[key] && labels[reviewConfig[key]] ? labels[reviewConfig[key]] : undefined;
-      };
-
-      if (labelsToAdd) {
-        labelsToAdd.forEach(key => {
-          if (!key) return;
-          const label = getLabelFromKey(key);
-
-          if (!label || prLabels.some(prLabel => prLabel.id === label.id)) {
-            return;
-          }
-
-          newLabelNames.add(label.name);
-          toAdd.add(key);
-        });
-      }
-
-      if (labelsToRemove) {
-        labelsToRemove.forEach(key => {
-          if (!key) return;
-          const label = getLabelFromKey(key);
-          if (!label) return;
-          const existing = prLabels.find(prLabel => prLabel.id === label.id);
-
-          if (existing) {
-            newLabelNames.delete(existing.name);
-            toDelete.add(key);
-          }
-        });
-      }
-
-      const newLabelNamesArray = [...newLabelNames];
-      context.log.info('updateReviewStatus', {
-        reviewGroup,
-        toAdd: [...toAdd],
-        toDelete: [...toDelete],
-        oldLabels: prLabels.map(l => l.name),
-        newLabelNames: newLabelNamesArray
-      }); // if (process.env.DRY_RUN) return;
-
-      if (toAdd.size || toDelete.size) {
-        const result = await context.github.issues.replaceLabels(context.issue({
-          labels: newLabelNamesArray
-        }));
-        prLabels = result.data;
-      } // if (toAdd.has('needsReview')) {
-      //   createInProgressStatusCheck(context);
-      // } else if (
-      //   toDelete.has('needsReview') ||
-      //   (prLabels.length === 0 && toAdd.size === 1 && toAdd.has('approved'))
-      // ) {
-
-
-      await updateStatusCheckFromLabels(context, prLabels); // }
-
-      return prLabels;
-    },
-    addStatusCheckToLatestCommit: context => // old and new sha
-    // const { before, after } = context.payload;
-    updateStatusCheckFromLabels(context)
+    })
   });
 }
 
@@ -735,9 +595,140 @@ const lintPR = async (context, repoContext) => {
   }))].filter(ExcludesFalsy$2));
 };
 
+const addStatusCheck = async function (context, statusInfo) {
+  const pr = context.payload.pull_request;
+  await context.github.checks.create(context.repo({
+    name: process.env.NAME,
+    head_sha: pr.head.sha,
+    ...statusInfo
+  }));
+};
+
+const createInProgressStatusCheck = context => addStatusCheck(context, {
+  status: 'in_progress'
+});
+
+const createFailedStatusCheck = (context, message) => addStatusCheck(context, {
+  status: 'completed',
+  conclusion: 'failure',
+  started_at: context.payload.pull_request.created_at,
+  completed_at: new Date(),
+  output: {
+    title: message,
+    summary: ''
+  }
+});
+
+const createDoneStatusCheck = context => addStatusCheck(context, {
+  status: 'completed',
+  conclusion: 'success',
+  started_at: context.payload.pull_request.created_at,
+  completed_at: new Date(),
+  output: {
+    title: '✓ All reviews done !',
+    summary: 'Pull request was successfully reviewed'
+  }
+});
+
+const updateStatusCheckFromLabels = async (context, repoContext, labels = context.payload.pull_request.labels || []) => {
+  context.log.info('updateStatusCheckFromLabels', {
+    labels: labels.map(l => l && l.name),
+    hasNeedsReview: repoContext.hasNeedsReview(labels),
+    hasApprovesReview: repoContext.hasApprovesReview(labels)
+  });
+
+  if (repoContext.hasNeedsReview(labels)) {
+    if (repoContext.config.requiresReviewRequest && !repoContext.hasRequestedReview(labels)) {
+      await createFailedStatusCheck(context, 'You need to request someone to review the PR');
+      return;
+    }
+
+    await createInProgressStatusCheck(context);
+  } else if (repoContext.hasApprovesReview(labels)) {
+    await createDoneStatusCheck(context);
+  }
+};
+
+const updateReviewStatus = async (context, repoContext, reviewGroup, {
+  add: labelsToAdd,
+  remove: labelsToRemove
+}) => {
+  context.log.info('updateReviewStatus', {
+    reviewGroup,
+    labelsToAdd,
+    labelsToRemove
+  });
+  let prLabels = context.payload.pull_request.labels || [];
+  if (!reviewGroup) return prLabels;
+  const newLabelNames = new Set(prLabels.map(label => label.name));
+  const toAdd = new Set();
+  const toDelete = new Set();
+  const labels = repoContext.labels;
+
+  const getLabelFromKey = key => {
+    const reviewConfig = repoContext.config.labels.review[reviewGroup];
+    if (!reviewConfig) return undefined;
+    return reviewConfig[key] && labels[reviewConfig[key]] ? labels[reviewConfig[key]] : undefined;
+  };
+
+  if (labelsToAdd) {
+    labelsToAdd.forEach(key => {
+      if (!key) return;
+      const label = getLabelFromKey(key);
+
+      if (!label || prLabels.some(prLabel => prLabel.id === label.id)) {
+        return;
+      }
+
+      newLabelNames.add(label.name);
+      toAdd.add(key);
+    });
+  }
+
+  if (labelsToRemove) {
+    labelsToRemove.forEach(key => {
+      if (!key) return;
+      const label = getLabelFromKey(key);
+      if (!label) return;
+      const existing = prLabels.find(prLabel => prLabel.id === label.id);
+
+      if (existing) {
+        newLabelNames.delete(existing.name);
+        toDelete.add(key);
+      }
+    });
+  }
+
+  const newLabelNamesArray = [...newLabelNames];
+  context.log.info('updateReviewStatus', {
+    reviewGroup,
+    toAdd: [...toAdd],
+    toDelete: [...toDelete],
+    oldLabels: prLabels.map(l => l.name),
+    newLabelNames: newLabelNamesArray
+  }); // if (process.env.DRY_RUN) return;
+
+  if (toAdd.size || toDelete.size) {
+    const result = await context.github.issues.replaceLabels(context.issue({
+      labels: newLabelNamesArray
+    }));
+    prLabels = result.data;
+  } // if (toAdd.has('needsReview')) {
+  //   createInProgressStatusCheck(context);
+  // } else if (
+  //   toDelete.has('needsReview') ||
+  //   (prLabels.length === 0 && toAdd.size === 1 && toAdd.has('approved'))
+  // ) {
+
+
+  await updateStatusCheckFromLabels(context, repoContext, prLabels); // }
+
+  return prLabels;
+};
+
 var openedHandler = (app => {
   app.on('pull_request.opened', createHandlerPullRequestChange(async (context, repoContext) => {
-    await Promise.all([autoAssignPRToCreator(context, repoContext), editOpenedPR(context, repoContext), lintPR(context, repoContext), repoContext.updateReviewStatus(context, 'dev', {
+    await Promise.all([autoAssignPRToCreator(context, repoContext), editOpenedPR(context, repoContext), lintPR(context, repoContext), updateReviewStatus(context, repoContext, 'dev', {
       add: ['needsReview']
     })]);
   }));
@@ -763,7 +754,7 @@ var reviewRequestedHandler = (app => {
       review.user.login !== reviewer.login);
 
       if (!hasChangesRequestedInReviews) {
-        await repoContext.updateReviewStatus(context, reviewerGroup, {
+        await updateReviewStatus(context, repoContext, reviewerGroup, {
           add: ['needsReview', "requested"],
           remove: ['approved', 'changesRequested']
         });
@@ -784,11 +775,11 @@ var reviewRequestRemovedHandler = (app => {
     const pr = context.payload.pull_request;
     const reviewer = context.payload.requested_reviewer;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
-    const hasRequestedReviewsForGroup = repoContext.reviewShouldWait(reviewerGroup, pr.requested_reviewers, {
-      includesReviewerGroup: true
-    });
 
     if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
+      const hasRequestedReviewsForGroup = repoContext.reviewShouldWait(reviewerGroup, pr.requested_reviewers, {
+        includesReviewerGroup: true
+      });
       const {
         data: reviews
       } = await context.github.pulls.listReviews(context.issue({
@@ -797,7 +788,7 @@ var reviewRequestRemovedHandler = (app => {
       const hasChangesRequestedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'REQUEST_CHANGES');
       const hasApprovedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'APPROVED');
       const approved = !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && hasApprovedInReviews;
-      await repoContext.updateReviewStatus(context, reviewerGroup, {
+      await updateReviewStatus(context, repoContext, reviewerGroup, {
         add: [// if changes requested by the one which requests was removed
         hasChangesRequestedInReviews && 'changesRequested', // if was already approved by another member in the group and has no other requests waiting
         approved && 'approved'],
@@ -870,7 +861,7 @@ var reviewSubmittedHandler = (app => {
       }));
       const hasChangesRequestedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'REQUEST_CHANGES');
       const approved = !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && state === 'approved';
-      const newLabels = await repoContext.updateReviewStatus(context, reviewerGroup, {
+      const newLabels = await updateReviewStatus(context, repoContext, reviewerGroup, {
         add: [approved && 'approved', state === 'changes_requested' && 'changesRequested'],
         remove: [approved && 'needsReview', !(hasRequestedReviewsForGroup || state === 'changes_requested') && 'requested', state === 'approved' && !hasChangesRequestedInReviews && 'changesRequested', state === 'changes_requested' && 'approved']
       });
@@ -913,7 +904,7 @@ var reviewDismissedHandler = (app => {
         per_page: 50
       }));
       const hasChangesRequestedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'REQUEST_CHANGES');
-      await repoContext.updateReviewStatus(context, reviewerGroup, {
+      await updateReviewStatus(context, repoContext, reviewerGroup, {
         add: ['needsReview', 'requested'],
         remove: [!hasChangesRequestedInReviews && 'changesRequested', 'approved']
       });
@@ -931,7 +922,10 @@ var reviewDismissedHandler = (app => {
 
 var synchromizeHandler = (app => {
   app.on('pull_request.synchronize', createHandlerPullRequestChange(async (context, repoContext) => {
-    await Promise.all([editOpenedPR(context, repoContext), lintPR(context, repoContext), repoContext.addStatusCheckToLatestCommit(context)]);
+    // old and new sha
+    // const { before, after } = context.payload;
+    await Promise.all([editOpenedPR(context, repoContext), lintPR(context, repoContext), // addStatusCheckToLatestCommit
+    updateStatusCheckFromLabels(context, repoContext)]);
   }));
 });
 
@@ -947,7 +941,7 @@ var labelsChanged = (app => {
     const sender = context.payload.sender;
     if (sender.type === 'Bot') return;
     await handlerPullRequestChange(context, async repoContext => {
-      await repoContext.updateStatusCheckFromLabels(context);
+      await updateStatusCheckFromLabels(context, repoContext);
 
       if (context.payload.action === 'labeled' && context.payload.label.id === (repoContext.labels['merge/automerge'] && repoContext.labels['merge/automerge'].id)) {
         await autoMergeIfPossible(context, repoContext);

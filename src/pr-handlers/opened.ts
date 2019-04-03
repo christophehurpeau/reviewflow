@@ -3,6 +3,7 @@ import { createHandlerPullRequestChange } from './utils';
 import { autoAssignPRToCreator } from './actions/autoAssignPRToCreator';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { lintPR } from './actions/lintPR';
+import { updateReviewStatus } from './actions/updateReviewStatus';
 
 export default (app: Application) => {
   app.on(
@@ -12,7 +13,7 @@ export default (app: Application) => {
         autoAssignPRToCreator(context, repoContext),
         editOpenedPR(context, repoContext),
         lintPR(context, repoContext),
-        repoContext.updateReviewStatus(context, 'dev', {
+        updateReviewStatus(context, repoContext, 'dev', {
           add: ['needsReview'],
         }),
       ]);

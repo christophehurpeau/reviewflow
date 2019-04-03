@@ -1,6 +1,7 @@
 import { Application } from 'probot';
 import { createHandlerPullRequestChange } from './utils';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
+import { updateReviewStatus } from './actions/updateReviewStatus';
 
 export default (app: Application) => {
   app.on(
@@ -37,8 +38,9 @@ export default (app: Application) => {
           !hasChangesRequestedInReviews &&
           state === 'approved';
 
-        const newLabels = await repoContext.updateReviewStatus(
+        const newLabels = await updateReviewStatus(
           context,
+          repoContext,
           reviewerGroup,
           {
             add: [

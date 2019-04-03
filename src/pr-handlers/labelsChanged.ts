@@ -1,6 +1,7 @@
 import { Application } from 'probot';
 import { handlerPullRequestChange } from './utils';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
+import { updateStatusCheckFromLabels } from './actions/updateStatusCheckFromLabels';
 
 export default (app: Application) => {
   app.on(
@@ -10,7 +11,7 @@ export default (app: Application) => {
       if (sender.type === 'Bot') return;
 
       await handlerPullRequestChange(context, async (repoContext) => {
-        await repoContext.updateStatusCheckFromLabels(context);
+        await updateStatusCheckFromLabels(context, repoContext);
 
         if (
           context.payload.action === 'labeled' &&

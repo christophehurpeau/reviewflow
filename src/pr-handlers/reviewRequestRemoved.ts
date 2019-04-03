@@ -1,5 +1,6 @@
 import { Application } from 'probot';
 import { createHandlerPullRequestChange } from './utils';
+import { updateReviewStatus } from './actions/updateReviewStatus';
 
 export default (app: Application) => {
   app.on(
@@ -11,15 +12,15 @@ export default (app: Application) => {
 
       const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
-      const hasRequestedReviewsForGroup = repoContext.reviewShouldWait(
-        reviewerGroup,
-        pr.requested_reviewers,
-        {
-          includesReviewerGroup: true,
-        },
-      );
-
       if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
+        const hasRequestedReviewsForGroup = repoContext.reviewShouldWait(
+          reviewerGroup,
+          pr.requested_reviewers,
+          {
+            includesReviewerGroup: true,
+          },
+        );
+
         const { data: reviews } = await context.github.pulls.listReviews(
           context.issue({ per_page: 50 }),
         );
@@ -40,7 +41,7 @@ export default (app: Application) => {
           !hasRequestedReviewsForGroup &&
           !hasChangesRequestedInReviews &&
           hasApprovedInReviews;
-        await repoContext.updateReviewStatus(context, reviewerGroup, {
+        await updateReviewStatus(context, repoContext, reviewerGroup, {
           add: [
             // if changes requested by the one which requests was removed
             hasChangesRequestedInReviews && 'changesRequested',

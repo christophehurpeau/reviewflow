@@ -1,5 +1,6 @@
 import { Application } from 'probot';
 import { createHandlerPullRequestChange } from './utils';
+import { updateReviewStatus } from './actions/updateReviewStatus';
 
 export default (app: Application) => {
   app.on(
@@ -30,7 +31,7 @@ export default (app: Application) => {
         );
 
         if (!hasChangesRequestedInReviews) {
-          await repoContext.updateReviewStatus(context, reviewerGroup, {
+          await updateReviewStatus(context, repoContext, reviewerGroup, {
             add: ['needsReview', !shouldWait && 'requested'],
             remove: ['approved', 'changesRequested'],
           });
