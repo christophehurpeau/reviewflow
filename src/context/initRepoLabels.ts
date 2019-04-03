@@ -57,7 +57,7 @@ export const initRepoLabels = async <GroupNames extends string>(
     } else if (
       existingLabel.name !== labelConfig.name ||
       existingLabel.color !== labelColor // ||
-      // TODO: description is always undefined
+      // TODO: description is never updated
       // existingLabel.description !== description
     ) {
       context.log.info('Needs to update label', {

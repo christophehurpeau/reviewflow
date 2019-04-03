@@ -8,10 +8,6 @@ export default (app: Application) => {
     createHandlerPullRequestsChange(
       (context) => context.payload.check_run.pull_requests,
       async (context, repoContext) => {
-        console.log(
-          'check_run.completed',
-          context.payload.check_run.pull_requests,
-        );
         await Promise.all(
           context.payload.check_run.pull_requests.map((pr) =>
             context.github.pulls

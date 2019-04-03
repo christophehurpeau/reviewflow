@@ -258,7 +258,7 @@ const initRepoLabels = async (context, config) => {
       }));
       finalLabels[labelKey] = result.data;
     } else if (existingLabel.name !== labelConfig.name || existingLabel.color !== labelColor // ||
-    // TODO: description is always undefined
+    // TODO: description is never updated
     // existingLabel.description !== description
     ) {
         context.log.info('Needs to update label', {
@@ -436,6 +436,7 @@ async function initRepoContext(context, config) {
   const lock$1 = lock.Lock();
   return Object.assign(repoContext, {
     labels,
+    protectedLabelIds: [...requestedReviewLabelIds, ...changesRequestedLabelIds, ...approvedReviewLabelIds],
     hasNeedsReview: labels => labels.some(label => needsReviewLabelIds.includes(label.id)),
     hasRequestedReview: labels => labels.some(label => requestedReviewLabelIds.includes(label.id)),
     hasChangesRequestedReview: labels => labels.some(label => changesRequestedLabelIds.includes(label.id)),
@@ -987,9 +988,25 @@ var labelsChanged = (app => {
     const sender = context.payload.sender;
     if (sender.type === 'Bot') return;
     await handlerPullRequestChange(context, async repoContext => {
+      const label = context.payload.label;
+
+      if (repoContext.protectedLabelIds.includes(label.id)) {
+        if (context.payload.action === 'labeled') {
+          await context.github.issues.removeLabel(context.issue({
+            name: label.name
+          }));
+        } else {
+          await context.github.issues.addLabels(context.issue({
+            labels: [label.name]
+          }));
+        }
+
+        return;
+      }
+
       await updateStatusCheckFromLabels(context, repoContext);
 
-      if (context.payload.action === 'labeled' && context.payload.label.id === (repoContext.labels['merge/automerge'] && repoContext.labels['merge/automerge'].id)) {
+      if (context.payload.action === 'labeled' && label.id === (repoContext.labels['merge/automerge'] && repoContext.labels['merge/automerge'].id)) {
         await autoMergeIfPossible(context, repoContext);
       }
     });
@@ -998,7 +1015,6 @@ var labelsChanged = (app => {
 
 var checkrunCompleted = (app => {
   app.on('check_run.completed', createHandlerPullRequestsChange(context => context.payload.check_run.pull_requests, async (context, repoContext) => {
-    console.log('check_run.completed', context.payload.check_run.pull_requests);
     await Promise.all(context.payload.check_run.pull_requests.map(pr => context.github.pulls.get(context.repo({
       number: pr.number
     })).then(prResult => {

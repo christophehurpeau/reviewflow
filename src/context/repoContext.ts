@@ -8,6 +8,7 @@ import { obtainTeamContext, TeamContext } from './teamContext';
 
 interface RepoContextWithoutTeamContext<GroupNames extends string> {
   labels: Labels;
+  protectedLabelIds: LabelResponse['id'][];
 
   hasNeedsReview: (labels: LabelResponse[]) => boolean;
   hasRequestedReview: (labels: LabelResponse[]) => boolean;
@@ -89,6 +90,11 @@ async function initRepoContext<GroupNames extends string>(
 
   return Object.assign(repoContext, {
     labels,
+    protectedLabelIds: [
+      ...requestedReviewLabelIds,
+      ...changesRequestedLabelIds,
+      ...approvedReviewLabelIds,
+    ],
     hasNeedsReview,
     hasRequestedReview,
     hasChangesRequestedReview,

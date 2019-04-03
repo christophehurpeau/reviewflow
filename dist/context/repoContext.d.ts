@@ -3,6 +3,7 @@ import { LabelResponse, Labels } from './initRepoLabels';
 import { TeamContext } from './teamContext';
 interface RepoContextWithoutTeamContext<GroupNames extends string> {
     labels: Labels;
+    protectedLabelIds: LabelResponse['id'][];
     hasNeedsReview: (labels: LabelResponse[]) => boolean;
     hasRequestedReview: (labels: LabelResponse[]) => boolean;
     hasChangesRequestedReview: (labels: LabelResponse[]) => boolean;
