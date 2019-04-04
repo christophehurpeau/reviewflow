@@ -58,7 +58,7 @@ export const lintPR = async (
     return false;
   });
 
-  const date = new Date().toString();
+  const date = new Date().toISOString();
 
   const hasLintPrCheck = (await context.github.checks.listForRef(
     context.repo({

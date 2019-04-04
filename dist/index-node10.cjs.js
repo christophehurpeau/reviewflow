@@ -573,7 +573,7 @@ const lintPR = async (context, repoContext) => {
 
     return false;
   });
-  const date = new Date().toString();
+  const date = new Date().toISOString();
   const hasLintPrCheck = (await context.github.checks.listForRef(context.repo({
     ref: pr.head.sha
   }))).data.check_runs.find(check => check.name === `${process.env.NAME}/lint-pr`);
@@ -627,7 +627,7 @@ const addStatusCheck = async function (context, pr, {
       started_at: pr.created_at,
       status: 'completed',
       conclusion: state,
-      completed_at: new Date().toString(),
+      completed_at: new Date().toISOString(),
       output: {
         title: description,
         summary: ''

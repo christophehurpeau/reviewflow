@@ -26,7 +26,7 @@ const addStatusCheck = async function<
         started_at: pr.created_at,
         status: 'completed',
         conclusion: state,
-        completed_at: new Date().toString(),
+        completed_at: new Date().toISOString(),
         output: {
           title: description,
           summary: '',
