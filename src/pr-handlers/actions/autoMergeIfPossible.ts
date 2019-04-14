@@ -28,7 +28,7 @@ export const autoMergeIfPossible = async (
   const lockedPrId = repoContext.getMergeLocked();
   if (lockedPrId && lockedPrId !== pr.id) {
     context.log.info(`automerge not possible: locked pr ${pr.id}`);
-    repoContext.pushAutomergeQueue(pr.id);
+    repoContext.pushAutomergeQueue(pr.number);
     return false;
   }
 
@@ -37,7 +37,7 @@ export const autoMergeIfPossible = async (
       context.log.info('automerge not possible: rebase renovate branch');
       // TODO check if has commits not made by renovate https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
       if (pr.mergeable_state === 'behind' || pr.mergeable_state === 'dirty') {
-        repoContext.addMergeLock(pr.id);
+        repoContext.addMergeLock(pr.number);
         await context.github.issues.update(
           context.issue({
             body: pr.body.replace(
@@ -48,7 +48,7 @@ export const autoMergeIfPossible = async (
         );
         return false;
       } else {
-        repoContext.removeMergeLocked(context, pr.id);
+        repoContext.removeMergeLocked(context, pr.number);
       }
 
       context.log.info(
@@ -72,7 +72,7 @@ export const autoMergeIfPossible = async (
       return false;
     }
 
-    repoContext.removeMergeLocked(context, pr.id);
+    repoContext.removeMergeLocked(context, pr.number);
     context.log.info(
       `automerge not possible: not mergeable mergeable_state=${
         pr.mergeable_state
@@ -81,10 +81,10 @@ export const autoMergeIfPossible = async (
     return false;
   }
 
-  repoContext.addMergeLock(pr.id);
+  repoContext.addMergeLock(pr.number);
 
   try {
-    context.log.info(`automerge pr ${pr.id}`);
+    context.log.info(`automerge pr #${pr.number}`);
     const mergeResult = await context.github.pulls.merge({
       merge_method: 'squash',
       owner: pr.head.repo.owner.login,
@@ -94,11 +94,11 @@ export const autoMergeIfPossible = async (
       commit_message: '', // TODO add BC
     });
     context.log.debug('merge result:', mergeResult.data);
-    repoContext.removeMergeLocked(context, pr.id);
+    repoContext.removeMergeLocked(context, pr.number);
     return Boolean(mergeResult.data.merged);
   } catch (err) {
     context.log.info('could not merge:', err);
-    repoContext.removeMergeLocked(context, pr.id);
+    repoContext.removeMergeLocked(context, pr.number);
     return false;
   }
 };

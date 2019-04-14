@@ -242,7 +242,7 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
 
   if (lockedPrId && lockedPrId !== pr.id) {
     context.log.info(`automerge not possible: locked pr ${pr.id}`);
-    repoContext.pushAutomergeQueue(pr.id);
+    repoContext.pushAutomergeQueue(pr.number);
     return false;
   }
 
@@ -251,13 +251,13 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
       context.log.info('automerge not possible: rebase renovate branch'); // TODO check if has commits not made by renovate https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
 
       if (pr.mergeable_state === 'behind' || pr.mergeable_state === 'dirty') {
-        repoContext.addMergeLock(pr.id);
+        repoContext.addMergeLock(pr.number);
         await context.github.issues.update(context.issue({
           body: pr.body.replace('[ ] <!-- renovate-rebase -->', '[x] <!-- renovate-rebase -->')
         }));
         return false;
       } else {
-        repoContext.removeMergeLocked(context, pr.id);
+        repoContext.removeMergeLocked(context, pr.number);
       }
 
       context.log.info(`automerge not possible: renovate with mergeable_state=${pr.mergeable_state}`);
@@ -275,15 +275,15 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
       return false;
     }
 
-    repoContext.removeMergeLocked(context, pr.id);
+    repoContext.removeMergeLocked(context, pr.number);
     context.log.info(`automerge not possible: not mergeable mergeable_state=${pr.mergeable_state}`);
     return false;
   }
 
-  repoContext.addMergeLock(pr.id);
+  repoContext.addMergeLock(pr.number);
 
   try {
-    context.log.info(`automerge pr ${pr.id}`);
+    context.log.info(`automerge pr #${pr.number}`);
     const mergeResult = await context.github.pulls.merge({
       merge_method: 'squash',
       owner: pr.head.repo.owner.login,
@@ -294,11 +294,11 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
 
     });
     context.log.debug('merge result:', mergeResult.data);
-    repoContext.removeMergeLocked(context, pr.id);
+    repoContext.removeMergeLocked(context, pr.number);
     return Boolean(mergeResult.data.merged);
   } catch (err) {
     context.log.info('could not merge:', err);
-    repoContext.removeMergeLocked(context, pr.id);
+    repoContext.removeMergeLocked(context, pr.number);
     return false;
   }
 };
@@ -514,7 +514,7 @@ async function initRepoContext(context, config) {
   }); // const updateStatusCheck = (context, reviewGroup, statusInfo) => {};
 
   const lock$1 = lock.Lock();
-  let lockMergePrId;
+  let lockMergePrNumber;
   const automergeQueue = [];
 
   const lockPROrPRS = (prIdOrIds, callback) => new Promise((resolve, reject) => {
@@ -554,40 +554,40 @@ async function initRepoContext(context, config) {
     hasChangesRequestedReview: labels => labels.some(label => changesRequestedLabelIds.includes(label.id)),
     hasApprovesReview: labels => labels.some(label => approvedReviewLabelIds.includes(label.id)),
     getNeedsReviewGroupNames: labels => labels.filter(label => needsReviewLabelIds.includes(label.id)).map(label => labelIdToGroupName.get(label.id)).filter(ExcludesFalsy$2),
-    getMergeLocked: () => lockMergePrId,
+    getMergeLocked: () => lockMergePrNumber,
     addMergeLock: prId => {
       console.log('merge lock: lock', {
         prId
       });
-      if (lockMergePrId) throw new Error('Already have lock id');
-      lockMergePrId = prId;
+      if (lockMergePrNumber) throw new Error('Already have lock id');
+      lockMergePrNumber = prId;
     },
-    removeMergeLocked: (context, prId) => {
+    removeMergeLocked: (context, prNumber) => {
       console.log('merge lock: remove', {
-        prId
+        prNumber
       });
-      if (lockMergePrId !== prId) return;
-      lockMergePrId = automergeQueue.shift();
-      console.log('merge lock: remove lockMergePrId', {
-        lockMergePrId
+      if (lockMergePrNumber !== prNumber) return;
+      lockMergePrNumber = automergeQueue.shift();
+      console.log('merge lock: remove lockMergePrNumber', {
+        lockMergePrNumber
       });
 
-      if (lockMergePrId) {
-        const newPrId = lockMergePrId;
-        lockPROrPRS(String(prId), async () => {
-          if (lockMergePrId !== newPrId) return;
+      if (lockMergePrNumber) {
+        const newPrNumber = lockMergePrNumber;
+        lockPROrPRS(String(prNumber), async () => {
+          if (lockMergePrNumber !== newPrNumber) return;
           const prResult = await context.github.pulls.get(context.repo({
-            number: newPrId
+            number: newPrNumber
           }));
           await autoMergeIfPossible(context, repoContext, prResult.data);
         });
       }
     },
-    pushAutomergeQueue: prId => {
+    pushAutomergeQueue: prNumber => {
       console.log('merge lock: push queue', {
-        prId
+        prNumber
       });
-      automergeQueue.push(prId);
+      automergeQueue.push(prNumber);
     },
     lockPROrPRS
   });

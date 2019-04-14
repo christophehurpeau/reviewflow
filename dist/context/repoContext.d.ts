@@ -11,9 +11,9 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
     getNeedsReviewGroupNames: (labels: LabelResponse[]) => GroupNames[];
     lockPROrPRS(prIdOrIds: string | string[], callback: () => Promise<void> | void): Promise<void>;
     getMergeLocked(): number | undefined;
-    addMergeLock(prId: number): void;
-    removeMergeLocked(context: Context<any>, prId: number): void;
-    pushAutomergeQueue(prId: number): void;
+    addMergeLock(prNumber: number): void;
+    removeMergeLocked(context: Context<any>, prNumber: number): void;
+    pushAutomergeQueue(prNumber: number): void;
 }
 export declare type RepoContext<GroupNames extends string = any> = TeamContext<GroupNames> & RepoContextWithoutTeamContext<GroupNames>;
 export declare const obtainRepoContext: (context: Context<any>) => RepoContext<any> | Promise<RepoContext<any>> | null;
