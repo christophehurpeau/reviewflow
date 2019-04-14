@@ -1,3 +1,12 @@
+## [1.9.16](https://github.com/christophehurpeau/reviewflow/compare/v1.9.15...v1.9.16) (2019-04-14)
+
+
+### Bug Fixes
+
+* support status ([418fa10](https://github.com/christophehurpeau/reviewflow/commit/418fa10))
+
+
+
 ## [1.9.15](https://github.com/christophehurpeau/reviewflow/compare/v1.9.14...v1.9.15) (2019-04-14)
 
 
