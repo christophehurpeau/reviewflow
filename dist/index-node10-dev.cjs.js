@@ -559,6 +559,7 @@ async function initRepoContext(context, config) {
       console.log('merge lock: lock', {
         prNumber
       });
+      if (lockMergePrNumber === prNumber) return;
       if (lockMergePrNumber) throw new Error('Already have lock id');
       lockMergePrNumber = prNumber;
     },

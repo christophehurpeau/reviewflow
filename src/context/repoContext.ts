@@ -136,6 +136,7 @@ async function initRepoContext<GroupNames extends string>(
     getMergeLocked: () => lockMergePrNumber,
     addMergeLock: (prNumber): void => {
       console.log('merge lock: lock', { prNumber });
+      if (lockMergePrNumber === prNumber) return;
       if (lockMergePrNumber) throw new Error('Already have lock id');
       lockMergePrNumber = prNumber;
     },
