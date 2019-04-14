@@ -83,15 +83,20 @@ export const autoMergeIfPossible = async (
 
   repoContext.addMergeLock(pr.id);
 
-  const mergeResult = await context.github.pulls.merge({
-    merge_method: 'squash',
-    owner: pr.head.repo.owner.login,
-    repo: pr.head.repo.name,
-    number: pr.number,
-    commit_title: `${pr.title} (#${pr.number})`,
-    commit_message: '', // TODO add BC
-  });
-  context.log.debug('merge result:', mergeResult.data);
-
-  return Boolean(mergeResult.data.merged);
+  try {
+    const mergeResult = await context.github.pulls.merge({
+      merge_method: 'squash',
+      owner: pr.head.repo.owner.login,
+      repo: pr.head.repo.name,
+      number: pr.number,
+      commit_title: `${pr.title} (#${pr.number})`,
+      commit_message: '', // TODO add BC
+    });
+    context.log.debug('merge result:', mergeResult.data);
+    return Boolean(mergeResult.data.merged);
+  } catch (err) {
+    context.log.info('could not merge:', err);
+    repoContext.removeMergeLocked(context, pr.id);
+    return false;
+  }
 };
