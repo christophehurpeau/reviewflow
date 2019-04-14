@@ -27,7 +27,7 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   addMergeLock(prNumber: number): void;
   removeMergeLocked(context: Context<any>, prNumber: number): void;
   reschedule(context: Context<any>, prId: string, prNumber: number): void;
-  pushAutomergeQueue(prNumber: number): void;
+  pushAutomergeQueue(prId: string, prNumber: number): void;
 }
 
 const ExcludesFalsy = (Boolean as any) as <T>(
@@ -97,7 +97,7 @@ async function initRepoContext<GroupNames extends string>(
 
   const lock = Lock();
   let lockMergePrNumber: number | undefined;
-  const automergeQueue: number[] = [];
+  const automergeQueue: { id: string; number: number }[] = [];
 
   const lockPROrPRS = (
     prIdOrIds: string | string[],
@@ -165,22 +165,22 @@ async function initRepoContext<GroupNames extends string>(
     removeMergeLocked: (context, prNumber): void => {
       console.log('merge lock: remove', { prNumber });
       if (lockMergePrNumber !== prNumber) return;
-      lockMergePrNumber = automergeQueue.shift();
-      console.log('merge lock: remove lockMergePrNumber', {
-        lockMergePrNumber,
-      });
-      if (lockMergePrNumber) {
-        const newPrNumber = lockMergePrNumber;
-        reschedule(context, newPrNumber);
+      const next = automergeQueue.shift();
+      if (!next) {
+        lockMergePrNumber = undefined;
+        return;
       }
+
+      console.log('merge lock: next', next);
+      reschedule(context, next.id, next.number);
     },
-    pushAutomergeQueue: (prNumber): void => {
+    pushAutomergeQueue: (prId, prNumber): void => {
       console.log('merge lock: push queue', {
         prNumber,
         lockMergePrNumber,
         automergeQueue,
       });
-      automergeQueue.push(prNumber);
+      automergeQueue.push({ id: prId, number: prNumber });
     },
     reschedule,
 

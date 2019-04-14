@@ -242,16 +242,17 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
 
   if (lockedPrNumber && lockedPrNumber !== pr.number) {
     context.log.info(`automerge not possible: locked pr ${pr.id}`);
-    repoContext.pushAutomergeQueue(pr.number);
+    repoContext.pushAutomergeQueue(pr.id, pr.number);
     return false;
   }
 
   repoContext.addMergeLock(pr.number);
 
   if (pr.mergeable === undefined) {
-    pr = await context.github.pulls.get(context.repo({
+    const prResult = await context.github.pulls.get(context.repo({
       number: pr.number
     }));
+    pr = prResult.data;
   }
 
   if (pr.merged) {
@@ -262,7 +263,7 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
   if (!pr.mergeable) {
     if (pr.mergeable_state === undefined) {
       // GitHub is determining whether the pull request is mergeable
-      repoContext.reschedule(context, pr.number);
+      repoContext.reschedule(context, String(pr.id), pr.number);
       return false;
     }
 
@@ -585,13 +586,13 @@ async function initRepoContext(context, config) {
     });
   });
 
-  const reschedule = (context, prNumber) => {
+  const reschedule = (context, prId, prNumber) => {
     context.log.info('reschedule', {
       prNumber
     });
     setTimeout(() => {
       lockPROrPRS('reschedule', () => {
-        return lockPROrPRS(String(prNumber), async () => {
+        return lockPROrPRS(prId, async () => {
           const prResult = await context.github.pulls.get(context.repo({
             number: prNumber
           }));
@@ -623,23 +624,26 @@ async function initRepoContext(context, config) {
         prNumber
       });
       if (lockMergePrNumber !== prNumber) return;
-      lockMergePrNumber = automergeQueue.shift();
-      console.log('merge lock: remove lockMergePrNumber', {
-        lockMergePrNumber
-      });
+      const next = automergeQueue.shift();
 
-      if (lockMergePrNumber) {
-        const newPrNumber = lockMergePrNumber;
-        reschedule(context, newPrNumber);
+      if (!next) {
+        lockMergePrNumber = undefined;
+        return;
       }
+
+      console.log('merge lock: next', next);
+      reschedule(context, next.id, next.number);
     },
-    pushAutomergeQueue: prNumber => {
+    pushAutomergeQueue: (prId, prNumber) => {
       console.log('merge lock: push queue', {
         prNumber,
         lockMergePrNumber,
         automergeQueue
       });
-      automergeQueue.push(prNumber);
+      automergeQueue.push({
+        id: prId,
+        number: prNumber
+      });
     },
     reschedule,
     lockPROrPRS
