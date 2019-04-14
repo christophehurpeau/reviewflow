@@ -44,12 +44,19 @@ export const autoMergeIfPossible = async (
   }
 
   if (pr.merged) {
+    repoContext.removeMergeLocked(context, pr.number);
     context.log.info(`automerge not possible: already merged pr ${pr.id}`);
     return false;
   }
 
+  context.log.info(
+    `automerge?: ${pr.id}, mergeable=${pr.mergeable} state=${
+      pr.mergeable_state
+    }`,
+  );
   if (!pr.mergeable) {
-    if (pr.mergeable_state === undefined) {
+    if (!pr.mergeable_state) {
+      context.log.info(`automerge not possible: rescheduling ${pr.id}`);
       // GitHub is determining whether the pull request is mergeable
       repoContext.reschedule(context, String(pr.id), pr.number);
       return false;
