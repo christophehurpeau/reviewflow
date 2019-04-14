@@ -134,10 +134,10 @@ async function initRepoContext<GroupNames extends string>(
     getNeedsReviewGroupNames,
 
     getMergeLocked: () => lockMergePrNumber,
-    addMergeLock: (prId): void => {
-      console.log('merge lock: lock', { prId });
+    addMergeLock: (prNumber): void => {
+      console.log('merge lock: lock', { prNumber });
       if (lockMergePrNumber) throw new Error('Already have lock id');
-      lockMergePrNumber = prId;
+      lockMergePrNumber = prNumber;
     },
     removeMergeLocked: (context, prNumber): void => {
       console.log('merge lock: remove', { prNumber });
@@ -160,7 +160,11 @@ async function initRepoContext<GroupNames extends string>(
       }
     },
     pushAutomergeQueue: (prNumber): void => {
-      console.log('merge lock: push queue', { prNumber });
+      console.log('merge lock: push queue', {
+        prNumber,
+        lockMergePrNumber,
+        automergeQueue,
+      });
       automergeQueue.push(prNumber);
     },
 

@@ -238,9 +238,9 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
     return false;
   }
 
-  const lockedPrId = repoContext.getMergeLocked();
+  const lockedPrNumber = repoContext.getMergeLocked();
 
-  if (lockedPrId && lockedPrId !== pr.id) {
+  if (lockedPrNumber && lockedPrNumber !== pr.number) {
     context.log.info(`automerge not possible: locked pr ${pr.id}`);
     repoContext.pushAutomergeQueue(pr.number);
     return false;
@@ -555,12 +555,12 @@ async function initRepoContext(context, config) {
     hasApprovesReview: labels => labels.some(label => approvedReviewLabelIds.includes(label.id)),
     getNeedsReviewGroupNames: labels => labels.filter(label => needsReviewLabelIds.includes(label.id)).map(label => labelIdToGroupName.get(label.id)).filter(ExcludesFalsy$2),
     getMergeLocked: () => lockMergePrNumber,
-    addMergeLock: prId => {
+    addMergeLock: prNumber => {
       console.log('merge lock: lock', {
-        prId
+        prNumber
       });
       if (lockMergePrNumber) throw new Error('Already have lock id');
-      lockMergePrNumber = prId;
+      lockMergePrNumber = prNumber;
     },
     removeMergeLocked: (context, prNumber) => {
       console.log('merge lock: remove', {
@@ -585,7 +585,9 @@ async function initRepoContext(context, config) {
     },
     pushAutomergeQueue: prNumber => {
       console.log('merge lock: push queue', {
-        prNumber
+        prNumber,
+        lockMergePrNumber,
+        automergeQueue
       });
       automergeQueue.push(prNumber);
     },
