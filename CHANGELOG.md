@@ -1,3 +1,12 @@
+## [1.9.14](https://github.com/christophehurpeau/reviewflow/compare/v1.9.13...v1.9.14) (2019-04-14)
+
+
+### Bug Fixes
+
+* release lock when pr is already merged ([68b91df](https://github.com/christophehurpeau/reviewflow/commit/68b91df))
+
+
+
 ## [1.9.13](https://github.com/christophehurpeau/reviewflow/compare/v1.9.12...v1.9.13) (2019-04-14)
 
 
