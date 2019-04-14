@@ -1,3 +1,12 @@
+## [1.9.10](https://github.com/christophehurpeau/reviewflow/compare/v1.9.9...v1.9.10) (2019-04-14)
+
+
+### Bug Fixes
+
+* return false when reschueduling ([cc965bb](https://github.com/christophehurpeau/reviewflow/commit/cc965bb))
+
+
+
 ## [1.9.9](https://github.com/christophehurpeau/reviewflow/compare/v1.9.8...v1.9.9) (2019-04-14)
 
 
