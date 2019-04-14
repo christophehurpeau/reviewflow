@@ -1,3 +1,12 @@
+## [1.9.17](https://github.com/christophehurpeau/reviewflow/compare/v1.9.16...v1.9.17) (2019-04-14)
+
+
+### Bug Fixes
+
+* prevent merge when mergeable_state is not clean (like unstable) ([f0342c1](https://github.com/christophehurpeau/reviewflow/commit/f0342c1))
+
+
+
 ## [1.9.16](https://github.com/christophehurpeau/reviewflow/compare/v1.9.15...v1.9.16) (2019-04-14)
 
 
