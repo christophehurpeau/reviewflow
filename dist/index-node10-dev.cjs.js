@@ -228,25 +228,33 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
   const autoMergeLabel = repoContext.labels['merge/automerge'];
   if (!autoMergeLabel) return false;
 
+  const createMergeLockPrFromPr = () => ({
+    id: pr.id,
+    number: pr.number,
+    branch: pr.head.ref
+  });
+
   if (!prLabels.find(l => l.id === autoMergeLabel.id)) {
     context.log.debug('automerge not possible: no label');
+    repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
     return false;
   }
 
   if (repoContext.hasNeedsReview(prLabels) || repoContext.hasRequestedReview(prLabels)) {
-    context.log.debug('automerge not possible: blocking labels');
+    context.log.debug('automerge not possible: blocking labels'); // repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
+
     return false;
   }
 
-  const lockedPrNumber = repoContext.getMergeLocked();
+  const lockedPr = repoContext.getMergeLockedPr();
 
-  if (lockedPrNumber && lockedPrNumber !== pr.number) {
+  if (lockedPr && lockedPr.number !== pr.number) {
     context.log.info(`automerge not possible: locked pr ${pr.id}`);
-    repoContext.pushAutomergeQueue(pr.id, pr.number);
+    repoContext.pushAutomergeQueue(createMergeLockPrFromPr());
     return false;
   }
 
-  repoContext.addMergeLock(pr.number);
+  repoContext.addMergeLockPr(createMergeLockPrFromPr());
 
   if (pr.mergeable === undefined) {
     const prResult = await context.github.pulls.get(context.repo({
@@ -256,7 +264,7 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
   }
 
   if (pr.merged) {
-    repoContext.removeMergeLocked(context, pr.number);
+    repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
     context.log.info(`automerge not possible: already merged pr ${pr.id}`);
     return false;
   }
@@ -267,7 +275,7 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
     if (!pr.mergeable_state) {
       context.log.info(`automerge not possible: rescheduling ${pr.id}`); // GitHub is determining whether the pull request is mergeable
 
-      repoContext.reschedule(context, String(pr.id), pr.number);
+      repoContext.reschedule(context, createMergeLockPrFromPr());
       return false;
     }
 
@@ -289,7 +297,7 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
 
         if (hasFailedChecks) {
           context.log.info(`automerge not possible: failed check pr ${pr.id}`);
-          repoContext.removeMergeLocked(context, pr.number);
+          repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
           return false;
         }
 
@@ -301,7 +309,7 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
 
         if (hasFailedStatuses) {
           context.log.info(`automerge not possible: failed status pr ${pr.id}`);
-          repoContext.removeMergeLocked(context, pr.number);
+          repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
           return false;
         }
       }
@@ -321,7 +329,7 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
       return false;
     }
 
-    repoContext.removeMergeLocked(context, pr.number);
+    repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
     context.log.info(`automerge not possible: not mergeable mergeable_state=${pr.mergeable_state}`);
     return false;
   }
@@ -338,11 +346,11 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
 
     });
     context.log.debug('merge result:', mergeResult.data);
-    repoContext.removeMergeLocked(context, pr.number);
+    repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
     return Boolean(mergeResult.data.merged);
   } catch (err) {
     context.log.info('could not merge:', err);
-    repoContext.removeMergeLocked(context, pr.number);
+    repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
     return false;
   }
 };
@@ -558,7 +566,7 @@ async function initRepoContext(context, config) {
   }); // const updateStatusCheck = (context, reviewGroup, statusInfo) => {};
 
   const lock$1 = lock.Lock();
-  let lockMergePrNumber;
+  let lockMergePr;
   const automergeQueue = [];
 
   const lockPROrPRS = (prIdOrIds, callback) => new Promise((resolve, reject) => {
@@ -590,15 +598,14 @@ async function initRepoContext(context, config) {
     });
   });
 
-  const reschedule = (context, prId, prNumber) => {
-    context.log.info('reschedule', {
-      prNumber
-    });
+  const reschedule = (context, pr) => {
+    if (!pr) throw new Error('Cannot reschedule undefined');
+    context.log.info('reschedule', pr);
     setTimeout(() => {
       lockPROrPRS('reschedule', () => {
-        return lockPROrPRS(prId, async () => {
+        return lockPROrPRS(String(pr.id), async () => {
           const prResult = await context.github.pulls.get(context.repo({
-            number: prNumber
+            number: pr.number
           }));
           await autoMergeIfPossible(context, repoContext, prResult.data);
         });
@@ -614,40 +621,33 @@ async function initRepoContext(context, config) {
     hasChangesRequestedReview: labels => labels.some(label => changesRequestedLabelIds.includes(label.id)),
     hasApprovesReview: labels => labels.some(label => approvedReviewLabelIds.includes(label.id)),
     getNeedsReviewGroupNames: labels => labels.filter(label => needsReviewLabelIds.includes(label.id)).map(label => labelIdToGroupName.get(label.id)).filter(ExcludesFalsy$2),
-    getMergeLocked: () => lockMergePrNumber,
-    addMergeLock: prNumber => {
-      console.log('merge lock: lock', {
-        prNumber
-      });
-      if (lockMergePrNumber === prNumber) return;
-      if (lockMergePrNumber) throw new Error('Already have lock id');
-      lockMergePrNumber = prNumber;
+    getMergeLockedPr: () => lockMergePr,
+    addMergeLockPr: pr => {
+      console.log('merge lock: lock', pr);
+      if (lockMergePr && lockMergePr.number === pr.number) return;
+      if (lockMergePr) throw new Error('Already have lock');
+      lockMergePr = pr;
     },
-    removeMergeLocked: (context, prNumber) => {
-      console.log('merge lock: remove', {
-        prNumber
-      });
-      if (lockMergePrNumber !== prNumber) return;
-      const next = automergeQueue.shift();
+    removeMergeLockedPr: (context, pr) => {
+      console.log('merge lock: remove', pr);
+      if (!lockMergePr || lockMergePr.number !== pr.number) return;
+      lockMergePr = automergeQueue.shift();
+      console.log('merge lock: next', lockMergePr);
 
-      if (!next) {
-        lockMergePrNumber = undefined;
-        return;
+      if (lockMergePr) {
+        reschedule(context, lockMergePr);
       }
-
-      console.log('merge lock: next', next);
-      reschedule(context, next.id, next.number);
     },
-    pushAutomergeQueue: (prId, prNumber) => {
+    pushAutomergeQueue: pr => {
       console.log('merge lock: push queue', {
-        prNumber,
-        lockMergePrNumber,
+        pr,
+        lockMergePr,
         automergeQueue
       });
-      automergeQueue.push({
-        id: prId,
-        number: prNumber
-      });
+
+      if (!automergeQueue.some(p => p.number === pr.number)) {
+        automergeQueue.push(pr);
+      }
     },
     reschedule,
     lockPROrPRS
@@ -691,7 +691,9 @@ const createHandlerPullRequestChange = callback => context => {
 const createHandlerPullRequestsChange = (getPullRequests, callback) => async context => {
   const repoContext = await obtainRepoContext(context);
   if (!repoContext) return;
-  return repoContext.lockPROrPRS(getPullRequests(context).map(pr => String(pr.id)), () => callback(context, repoContext));
+  const prs = getPullRequests(context, repoContext);
+  if (prs.length === 0) return;
+  return repoContext.lockPROrPRS(prs.map(pr => String(pr.id)), () => callback(context, repoContext));
 };
 
 const autoAssignPRToCreator = async (context, repoContext) => {
@@ -967,7 +969,11 @@ var closedHandler = (app => {
     const pr = context.payload.pull_request;
 
     if (pr.merged) {
-      await Promise.all([repoContext.removeMergeLocked(context, pr.number)]);
+      await Promise.all([repoContext.removeMergeLockedPr(context, (() => ({
+        id: pr.id,
+        number: pr.number,
+        branch: pr.head.ref
+      }))())]);
     } else {
       await Promise.all([updateReviewStatus(context, repoContext, 'dev', {
         remove: ['needsReview']
@@ -1196,6 +1202,30 @@ var checksuiteCompleted = (app => {
   }));
 });
 
+const isSameBranch = (context, lockedPr) => {
+  if (!lockedPr) return false;
+  return context.payload.branches.find(b => b.name === lockedPr.branch);
+};
+
+var status = (app => {
+  app.on('status', createHandlerPullRequestsChange((context, repoContext) => {
+    const lockedPr = repoContext.getMergeLockedPr();
+    if (!lockedPr) return [];
+
+    if (isSameBranch(context, lockedPr)) {
+      return [lockedPr];
+    }
+
+    return [];
+  }, (context, repoContext) => {
+    const lockedPr = repoContext.getMergeLockedPr(); // check if changed
+
+    if (isSameBranch(context, lockedPr)) {
+      repoContext.reschedule(context, lockedPr);
+    }
+  }));
+});
+
 if (!process.env.NAME) process.env.NAME = 'reviewflow'; // const getConfig = require('probot-config')
 // const { MongoClient } = require('mongodb');
 // const connect = MongoClient.connect(process.env.MONGO_URL);
@@ -1219,5 +1249,6 @@ probot.Probot.run(app => {
   editedHandler(app);
   checkrunCompleted(app);
   checksuiteCompleted(app);
+  status(app);
 });
 //# sourceMappingURL=index-node10-dev.cjs.js.map

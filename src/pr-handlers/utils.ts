@@ -41,14 +41,15 @@ export const createHandlerPullRequestChange = <
 };
 
 export const createHandlerPullRequestsChange = <T>(
-  getPullRequests: (context: Context<T>) => any[],
+  getPullRequests: (context: Context<T>, repoContext: RepoContext) => any[],
   callback: CallbackContextAndRepoContext<T>,
 ) => async (context: Context<T>) => {
   const repoContext = await obtainRepoContext(context);
   if (!repoContext) return;
 
-  return repoContext.lockPROrPRS(
-    getPullRequests(context).map((pr) => String(pr.id)),
-    () => callback(context, repoContext),
+  const prs = getPullRequests(context, repoContext);
+  if (prs.length === 0) return;
+  return repoContext.lockPROrPRS(prs.map((pr) => String(pr.id)), () =>
+    callback(context, repoContext),
   );
 };

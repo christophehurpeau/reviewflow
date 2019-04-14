@@ -8,6 +8,12 @@ import { autoMergeIfPossible } from '../pr-handlers/actions/autoMergeIfPossible'
 import { initRepoLabels, LabelResponse, Labels } from './initRepoLabels';
 import { obtainTeamContext, TeamContext } from './teamContext';
 
+export interface LockedMergePr {
+  id: number;
+  number: number;
+  branch: string;
+}
+
 interface RepoContextWithoutTeamContext<GroupNames extends string> {
   labels: Labels;
   protectedLabelIds: LabelResponse['id'][];
@@ -23,11 +29,11 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
     callback: () => Promise<void> | void,
   ): Promise<void>;
 
-  getMergeLocked(): number | undefined;
-  addMergeLock(prNumber: number): void;
-  removeMergeLocked(context: Context<any>, prNumber: number): void;
-  reschedule(context: Context<any>, prId: string, prNumber: number): void;
-  pushAutomergeQueue(prId: string, prNumber: number): void;
+  getMergeLockedPr(): LockedMergePr;
+  addMergeLockPr(pr: LockedMergePr): void;
+  removeMergeLockedPr(context: Context<any>, pr: LockedMergePr): void;
+  reschedule(context: Context<any>, pr: LockedMergePr): void;
+  pushAutomergeQueue(pr: LockedMergePr): void;
 }
 
 const ExcludesFalsy = (Boolean as any) as <T>(
@@ -96,8 +102,8 @@ async function initRepoContext<GroupNames extends string>(
       .filter(ExcludesFalsy);
 
   const lock = Lock();
-  let lockMergePrNumber: number | undefined;
-  const automergeQueue: { id: string; number: number }[] = [];
+  let lockMergePr: LockedMergePr | undefined;
+  const automergeQueue: LockedMergePr[] = [];
 
   const lockPROrPRS = (
     prIdOrIds: string | string[],
@@ -122,18 +128,15 @@ async function initRepoContext<GroupNames extends string>(
       });
     });
 
-  const reschedule = (
-    context: Context<any>,
-    prId: string,
-    prNumber: number,
-  ) => {
-    context.log.info('reschedule', { prNumber });
+  const reschedule = (context: Context<any>, pr: LockedMergePr) => {
+    if (!pr) throw new Error('Cannot reschedule undefined');
+    context.log.info('reschedule', pr);
     setTimeout(() => {
       lockPROrPRS('reschedule', () => {
-        return lockPROrPRS(prId, async () => {
+        return lockPROrPRS(String(pr.id), async () => {
           const prResult = await context.github.pulls.get(
             context.repo({
-              number: prNumber,
+              number: pr.number,
             }),
           );
           await autoMergeIfPossible(context, repoContext, prResult.data);
@@ -155,32 +158,31 @@ async function initRepoContext<GroupNames extends string>(
     hasApprovesReview,
     getNeedsReviewGroupNames,
 
-    getMergeLocked: () => lockMergePrNumber,
-    addMergeLock: (prNumber): void => {
-      console.log('merge lock: lock', { prNumber });
-      if (lockMergePrNumber === prNumber) return;
-      if (lockMergePrNumber) throw new Error('Already have lock id');
-      lockMergePrNumber = prNumber;
+    getMergeLockedPr: () => lockMergePr,
+    addMergeLockPr: (pr: LockedMergePr): void => {
+      console.log('merge lock: lock', pr);
+      if (lockMergePr && lockMergePr.number === pr.number) return;
+      if (lockMergePr) throw new Error('Already have lock');
+      lockMergePr = pr;
     },
-    removeMergeLocked: (context, prNumber): void => {
-      console.log('merge lock: remove', { prNumber });
-      if (lockMergePrNumber !== prNumber) return;
-      const next = automergeQueue.shift();
-      if (!next) {
-        lockMergePrNumber = undefined;
-        return;
+    removeMergeLockedPr: (context, pr: LockedMergePr): void => {
+      console.log('merge lock: remove', pr);
+      if (!lockMergePr || lockMergePr.number !== pr.number) return;
+      lockMergePr = automergeQueue.shift();
+      console.log('merge lock: next', lockMergePr);
+      if (lockMergePr) {
+        reschedule(context, lockMergePr);
       }
-
-      console.log('merge lock: next', next);
-      reschedule(context, next.id, next.number);
     },
-    pushAutomergeQueue: (prId, prNumber): void => {
+    pushAutomergeQueue: (pr: LockedMergePr): void => {
       console.log('merge lock: push queue', {
-        prNumber,
-        lockMergePrNumber,
+        pr,
+        lockMergePr,
         automergeQueue,
       });
-      automergeQueue.push({ id: prId, number: prNumber });
+      if (!automergeQueue.some((p) => p.number === pr.number)) {
+        automergeQueue.push(pr);
+      }
     },
     reschedule,
 

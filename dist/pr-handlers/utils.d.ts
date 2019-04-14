@@ -6,6 +6,6 @@ export declare type CallbackWithRepoContext = (repoContext: RepoContext) => void
 export declare const handlerPullRequestChange: <T extends Webhooks.WebhookPayloadPullRequest>(context: Context<T>, callback: CallbackWithRepoContext) => Promise<void>;
 declare type CallbackContextAndRepoContext<T> = (context: Context<T>, repoContext: RepoContext) => void | Promise<void>;
 export declare const createHandlerPullRequestChange: <T extends Webhooks.WebhookPayloadPullRequest>(callback: CallbackContextAndRepoContext<T>) => (context: Context<T>) => Promise<void>;
-export declare const createHandlerPullRequestsChange: <T>(getPullRequests: (context: Context<T>) => any[], callback: CallbackContextAndRepoContext<T>) => (context: Context<T>) => Promise<void>;
+export declare const createHandlerPullRequestsChange: <T>(getPullRequests: (context: Context<T>, repoContext: RepoContext<any>) => any[], callback: CallbackContextAndRepoContext<T>) => (context: Context<T>) => Promise<void>;
 export {};
 //# sourceMappingURL=utils.d.ts.map

@@ -8,8 +8,13 @@ export default (app: Application) => {
     createHandlerPullRequestChange(async (context, repoContext) => {
       const pr = context.payload.pull_request;
       if (pr.merged) {
+        const createMergeLockPrFromPr = () => ({
+          id: pr.id,
+          number: pr.number,
+          branch: pr.head.ref,
+        });
         await Promise.all([
-          repoContext.removeMergeLocked(context, pr.number),
+          repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr()),
           // TODO delete branch
         ]);
       } else {

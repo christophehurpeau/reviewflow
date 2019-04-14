@@ -11,6 +11,7 @@ import editedHandler from './pr-handlers/edited';
 import labelsChanged from './pr-handlers/labelsChanged';
 import checkrunCompleted from './pr-handlers/checkrunCompleted';
 import checksuiteCompleted from './pr-handlers/checksuiteCompleted';
+import status from './pr-handlers/status';
 
 if (!process.env.NAME) process.env.NAME = 'reviewflow';
 
@@ -45,4 +46,5 @@ Probot.run((app: Application) => {
 
   checkrunCompleted(app);
   checksuiteCompleted(app);
+  status(app);
 });
