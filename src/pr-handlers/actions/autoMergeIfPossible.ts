@@ -34,6 +34,19 @@ export const autoMergeIfPossible = async (
 
   repoContext.addMergeLock(pr.number);
 
+  if (pr.mergeable === undefined) {
+    pr = await context.github.pulls.get(
+      context.repo({
+        number: pr.number,
+      }),
+    );
+  }
+
+  if (pr.merged) {
+    context.log.info(`automerge not possible: already merged pr ${pr.id}`);
+    return false;
+  }
+
   if (!pr.mergeable) {
     if (pr.mergeable_state === undefined) {
       // GitHub is determining whether the pull request is mergeable

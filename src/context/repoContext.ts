@@ -124,7 +124,7 @@ async function initRepoContext<GroupNames extends string>(
 
   const reschedule = (context: Context<any>, prNumber: number) => {
     context.log.info('reschedule', { prNumber });
-    setImmediate(() => {
+    setTimeout(() => {
       lockPROrPRS('reschedule', () => {
         return lockPROrPRS(String(prNumber), async () => {
           const prResult = await context.github.pulls.get(
@@ -135,7 +135,7 @@ async function initRepoContext<GroupNames extends string>(
           await autoMergeIfPossible(context, repoContext, prResult.data);
         });
       });
-    });
+    }, 1000);
   };
 
   return Object.assign(repoContext, {
