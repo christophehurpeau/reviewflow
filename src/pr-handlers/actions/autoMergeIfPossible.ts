@@ -168,7 +168,7 @@ export const autoMergeIfPossible = async (
     return Boolean(mergeResult.data.merged);
   } catch (err) {
     context.log.info('could not merge:', err);
-    repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
+    repoContext.reschedule(context, createMergeLockPrFromPr());
     return false;
   }
 };
