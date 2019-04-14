@@ -283,6 +283,7 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
   repoContext.addMergeLock(pr.id);
 
   try {
+    context.log.info(`automerge pr ${pr.id}`);
     const mergeResult = await context.github.pulls.merge({
       merge_method: 'squash',
       owner: pr.head.repo.owner.login,
@@ -293,6 +294,7 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
 
     });
     context.log.debug('merge result:', mergeResult.data);
+    repoContext.removeMergeLocked(context, pr.id);
     return Boolean(mergeResult.data.merged);
   } catch (err) {
     context.log.info('could not merge:', err);
