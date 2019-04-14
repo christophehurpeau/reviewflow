@@ -246,20 +246,23 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
     return false;
   }
 
-  if (!pr.mergeable) {
-    if (pr.head.ref.startsWith('renovate/')) {
-      context.log.info('automerge not possible: rebase renovate branch'); // TODO check if has commits not made by renovate https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
+  repoContext.addMergeLock(pr.number);
 
+  if (!pr.mergeable) {
+    if (pr.mergeable_state === undefined) {
+      // GitHub is determining whether the pull request is mergeable
+      repoContext.reschedule(context, pr.number);
+      return false;
+    }
+
+    if (pr.head.ref.startsWith('renovate/')) {
       if (pr.mergeable_state === 'behind' || pr.mergeable_state === 'dirty') {
-        repoContext.addMergeLock(pr.number);
+        context.log.info(`automerge not possible: rebase renovate branch pr ${pr.id}`); // TODO check if has commits not made by renovate https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
+
         await context.github.issues.update(context.repo({
           number: pr.number,
           body: pr.body.replace('[ ] <!-- renovate-rebase -->', '[x] <!-- renovate-rebase -->')
         }));
-        return false;
-      } else if (pr.mergeable_state === undefined) {
-        // GitHub is determining whether the pull request is mergeable
-        repoContext.reschedule(context, pr.number);
         return false;
       } else {
         const checks = await context.github.checks.listForRef(context.repo({
@@ -306,8 +309,6 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
     context.log.info(`automerge not possible: not mergeable mergeable_state=${pr.mergeable_state}`);
     return false;
   }
-
-  repoContext.addMergeLock(pr.number);
 
   try {
     context.log.info(`automerge pr #${pr.number}`);
