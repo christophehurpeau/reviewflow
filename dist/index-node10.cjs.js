@@ -252,7 +252,8 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
 
       if (pr.mergeable_state === 'behind' || pr.mergeable_state === 'dirty') {
         repoContext.addMergeLock(pr.number);
-        await context.github.issues.update(context.issue({
+        await context.github.issues.update(context.repo({
+          number: pr.number,
           body: pr.body.replace('[ ] <!-- renovate-rebase -->', '[x] <!-- renovate-rebase -->')
         }));
         return false;
