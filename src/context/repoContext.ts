@@ -3,6 +3,8 @@
 import { Lock } from 'lock';
 import { Context } from 'probot';
 import { teamConfigs, Config } from '../teamconfigs';
+// eslint-disable-next-line import/no-cycle
+import { autoMergeIfPossible } from '../pr-handlers/actions/autoMergeIfPossible';
 import { initRepoLabels, LabelResponse, Labels } from './initRepoLabels';
 import { obtainTeamContext, TeamContext } from './teamContext';
 
@@ -20,6 +22,11 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
     prIdOrIds: string | string[],
     callback: () => Promise<void> | void,
   ): Promise<void>;
+
+  getMergeLocked(): number | undefined;
+  addMergeLock(prId: number): void;
+  removeMergeLocked(context: Context<any>, prId: number): void;
+  pushAutomergeQueue(prId: number): void;
 }
 
 const ExcludesFalsy = (Boolean as any) as <T>(
@@ -87,6 +94,31 @@ async function initRepoContext<GroupNames extends string>(
       .filter(ExcludesFalsy);
 
   const lock = Lock();
+  let lockMergePrId: number | undefined;
+  const automergeQueue: number[] = [];
+
+  const lockPROrPRS = (
+    prIdOrIds: string | string[],
+    callback: () => Promise<void> | void,
+  ): Promise<void> =>
+    new Promise((resolve, reject) => {
+      console.log('lock: try to lock pr', { prIdOrIds });
+      lock(prIdOrIds, async (createReleaseCallback) => {
+        const release = createReleaseCallback(() => {});
+        console.log('lock: lock acquired', { prIdOrIds });
+        try {
+          await callback();
+        } catch (err) {
+          console.log('lock: release pr (with error)', { prIdOrIds });
+          release();
+          reject(err);
+          return;
+        }
+        console.log('lock: release pr', { prIdOrIds });
+        release();
+        resolve();
+      });
+    });
 
   return Object.assign(repoContext, {
     labels,
@@ -101,25 +133,32 @@ async function initRepoContext<GroupNames extends string>(
     hasApprovesReview,
     getNeedsReviewGroupNames,
 
-    lockPROrPRS: (prIdOrIds, callback): Promise<void> =>
-      new Promise((resolve, reject) => {
-        console.log('lock: try to lock pr', { prIdOrIds });
-        lock(prIdOrIds, async (createReleaseCallback) => {
-          const release = createReleaseCallback(() => {});
-          console.log('lock: lock acquired', { prIdOrIds });
-          try {
-            await callback();
-          } catch (err) {
-            console.log('lock: release pr (with error)', { prIdOrIds });
-            release();
-            reject(err);
-            return;
-          }
-          console.log('lock: release pr', { prIdOrIds });
-          release();
-          resolve();
+    getMergeLocked: () => lockMergePrId,
+    addMergeLock: (prId): void => {
+      if (lockMergePrId) throw new Error('Already have lock id');
+      lockMergePrId = prId;
+    },
+    removeMergeLocked: (context, prId): void => {
+      if (lockMergePrId !== prId) return;
+      lockMergePrId = automergeQueue.shift();
+      if (lockMergePrId) {
+        const newPrId = lockMergePrId;
+        lockPROrPRS(String(prId), async () => {
+          if (lockMergePrId !== newPrId) return;
+          const prResult = await context.github.pulls.get(
+            context.repo({
+              number: newPrId,
+            }),
+          );
+          await autoMergeIfPossible(context, repoContext, prResult.data);
         });
-      }),
+      }
+    },
+    pushAutomergeQueue: (prId): void => {
+      automergeQueue.push(prId);
+    },
+
+    lockPROrPRS,
   } as RepoContextWithoutTeamContext<GroupNames>);
 }
 

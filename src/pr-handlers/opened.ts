@@ -13,9 +13,11 @@ export default (app: Application) => {
         autoAssignPRToCreator(context, repoContext),
         editOpenedPR(context, repoContext),
         lintPR(context, repoContext),
-        updateReviewStatus(context, repoContext, 'dev', {
-          add: ['needsReview'],
-        }),
+        context.payload.pull_request.head.ref.startsWith('renovate/')
+          ? Promise.resolve(undefined)
+          : updateReviewStatus(context, repoContext, 'dev', {
+              add: ['needsReview'],
+            }),
       ]);
     }),
   );

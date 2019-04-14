@@ -10,6 +10,10 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
     hasApprovesReview: (labels: LabelResponse[]) => boolean;
     getNeedsReviewGroupNames: (labels: LabelResponse[]) => GroupNames[];
     lockPROrPRS(prIdOrIds: string | string[], callback: () => Promise<void> | void): Promise<void>;
+    getMergeLocked(): number | undefined;
+    addMergeLock(prId: number): void;
+    removeMergeLocked(context: Context<any>, prId: number): void;
+    pushAutomergeQueue(prId: number): void;
 }
 export declare type RepoContext<GroupNames extends string = any> = TeamContext<GroupNames> & RepoContextWithoutTeamContext<GroupNames>;
 export declare const obtainRepoContext: (context: Context<any>) => RepoContext<any> | Promise<RepoContext<any>> | null;

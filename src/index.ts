@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { Probot, Application } from 'probot';
 import openedHandler from './pr-handlers/opened';
+import closedHandler from './pr-handlers/closed';
 import reviewRequestedHandler from './pr-handlers/reviewRequested';
 import reviewRequestRemovedHandler from './pr-handlers/reviewRequestRemoved';
 import reviewSubmittedHandler from './pr-handlers/reviewSubmitted';
@@ -24,6 +25,7 @@ if (!process.env.NAME) process.env.NAME = 'reviewflow';
 // eslint-disable-next-line import/no-commonjs
 Probot.run((app: Application) => {
   openedHandler(app);
+  closedHandler(app);
   reviewRequestedHandler(app);
   reviewRequestRemovedHandler(app);
 
