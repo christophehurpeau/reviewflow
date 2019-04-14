@@ -1,3 +1,12 @@
+## [1.9.1](https://github.com/christophehurpeau/reviewflow/compare/v1.9.0...v1.9.1) (2019-04-14)
+
+
+### Bug Fixes
+
+* use checkbox to rebase renovate pr ([b0d2516](https://github.com/christophehurpeau/reviewflow/commit/b0d2516))
+
+
+
 # [1.9.0](https://github.com/christophehurpeau/reviewflow/compare/v1.8.1...v1.9.0) (2019-04-14)
 
 
