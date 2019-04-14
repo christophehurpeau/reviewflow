@@ -51,6 +51,7 @@ export const autoMergeIfPossible = async (
       } else if (pr.mergeable_state === undefined) {
         // GitHub is determining whether the pull request is mergeable
         repoContext.reschedule(context, pr.number);
+        return false;
       } else {
         const checks = await context.github.checks.listForRef(
           context.repo({
