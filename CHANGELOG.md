@@ -1,3 +1,12 @@
+## [1.9.8](https://github.com/christophehurpeau/reviewflow/compare/v1.9.7...v1.9.8) (2019-04-14)
+
+
+### Bug Fixes
+
+* pr number when edit renovate pr body ([96ecbd1](https://github.com/christophehurpeau/reviewflow/commit/96ecbd1))
+
+
+
 ## [1.9.7](https://github.com/christophehurpeau/reviewflow/compare/v1.9.6...v1.9.7) (2019-04-14)
 
 
