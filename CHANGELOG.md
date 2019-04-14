@@ -1,3 +1,12 @@
+## [1.9.15](https://github.com/christophehurpeau/reviewflow/compare/v1.9.14...v1.9.15) (2019-04-14)
+
+
+### Bug Fixes
+
+* mergeable_state === behind doesnt mean not mergeable - except it is ([a822bd8](https://github.com/christophehurpeau/reviewflow/commit/a822bd8))
+
+
+
 ## [1.9.14](https://github.com/christophehurpeau/reviewflow/compare/v1.9.13...v1.9.14) (2019-04-14)
 
 
