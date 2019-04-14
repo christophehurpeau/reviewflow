@@ -1,3 +1,13 @@
+## [1.9.13](https://github.com/christophehurpeau/reviewflow/compare/v1.9.12...v1.9.13) (2019-04-14)
+
+
+### Bug Fixes
+
+* pr result and pr id ([672be5b](https://github.com/christophehurpeau/reviewflow/commit/672be5b))
+* pr result and pr id ([e90a150](https://github.com/christophehurpeau/reviewflow/commit/e90a150))
+
+
+
 ## [1.9.12](https://github.com/christophehurpeau/reviewflow/compare/v1.9.11...v1.9.12) (2019-04-14)
 
 
