@@ -1,3 +1,12 @@
+## [1.9.18](https://github.com/christophehurpeau/reviewflow/compare/v1.9.17...v1.9.18) (2019-04-14)
+
+
+### Bug Fixes
+
+* reschedule when fail ([4cd4d04](https://github.com/christophehurpeau/reviewflow/commit/4cd4d04))
+
+
+
 ## [1.9.17](https://github.com/christophehurpeau/reviewflow/compare/v1.9.16...v1.9.17) (2019-04-14)
 
 
