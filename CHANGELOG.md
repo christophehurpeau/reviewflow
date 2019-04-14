@@ -1,3 +1,12 @@
+## [1.9.9](https://github.com/christophehurpeau/reviewflow/compare/v1.9.8...v1.9.9) (2019-04-14)
+
+
+### Bug Fixes
+
+* use status and checks to determine if pr should be unlocked ([bdf7ce6](https://github.com/christophehurpeau/reviewflow/commit/bdf7ce6))
+
+
+
 ## [1.9.8](https://github.com/christophehurpeau/reviewflow/compare/v1.9.7...v1.9.8) (2019-04-14)
 
 
