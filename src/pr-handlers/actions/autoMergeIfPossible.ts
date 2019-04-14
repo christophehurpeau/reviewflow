@@ -48,8 +48,41 @@ export const autoMergeIfPossible = async (
           }),
         );
         return false;
+      } else if (pr.mergeable_state === undefined) {
+        // GitHub is determining whether the pull request is mergeable
+        repoContext.reschedule(context, pr.number);
       } else {
-        repoContext.removeMergeLocked(context, pr.number);
+        const checks = await context.github.checks.listForRef(
+          context.repo({
+            ref: pr.head.sha,
+            per_page: 100,
+          }),
+        );
+
+        const hasFailedChecks = checks.data.check_runs.some(
+          (check) => check.conclusion === 'failure',
+        );
+        if (hasFailedChecks) {
+          context.log.info(`automerge not possible: failed check pr ${pr.id}`);
+          repoContext.removeMergeLocked(context, pr.number);
+          return false;
+        }
+
+        const statuses = await context.github.repos.listStatusesForRef(
+          context.repo({
+            ref: pr.head.sha,
+            per_page: 100,
+          }),
+        );
+
+        const hasFailedStatuses = statuses.data.some(
+          (status) => status.state === 'failure',
+        );
+        if (hasFailedStatuses) {
+          context.log.info(`automerge not possible: failed status pr ${pr.id}`);
+          repoContext.removeMergeLocked(context, pr.number);
+          return false;
+        }
       }
 
       context.log.info(

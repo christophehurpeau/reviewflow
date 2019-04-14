@@ -13,6 +13,7 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
     getMergeLocked(): number | undefined;
     addMergeLock(prNumber: number): void;
     removeMergeLocked(context: Context<any>, prNumber: number): void;
+    reschedule(context: Context<any>, prNumber: number): void;
     pushAutomergeQueue(prNumber: number): void;
 }
 export declare type RepoContext<GroupNames extends string = any> = TeamContext<GroupNames> & RepoContextWithoutTeamContext<GroupNames>;

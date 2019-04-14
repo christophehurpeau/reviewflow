@@ -26,6 +26,7 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   getMergeLocked(): number | undefined;
   addMergeLock(prNumber: number): void;
   removeMergeLocked(context: Context<any>, prNumber: number): void;
+  reschedule(context: Context<any>, prNumber: number): void;
   pushAutomergeQueue(prNumber: number): void;
 }
 
@@ -45,7 +46,8 @@ async function initRepoContext<GroupNames extends string>(
   const teamContext = await obtainTeamContext(context, config);
   const repoContext = Object.create(teamContext);
 
-  const labels = await initRepoLabels(context, config);
+  const [labels] = await Promise.all([initRepoLabels(context, config)]);
+
   const reviewGroupNames = Object.keys(config.groups) as GroupNames[];
 
   const needsReviewLabelIds = reviewGroupNames
@@ -120,6 +122,22 @@ async function initRepoContext<GroupNames extends string>(
       });
     });
 
+  const reschedule = (context: Context<any>, prNumber: number) => {
+    context.log.info('reschedule', { prNumber });
+    setImmediate(() => {
+      lockPROrPRS('reschedule', () => {
+        return lockPROrPRS(String(prNumber), async () => {
+          const prResult = await context.github.pulls.get(
+            context.repo({
+              number: prNumber,
+            }),
+          );
+          await autoMergeIfPossible(context, repoContext, prResult.data);
+        });
+      });
+    });
+  };
+
   return Object.assign(repoContext, {
     labels,
     protectedLabelIds: [
@@ -149,15 +167,7 @@ async function initRepoContext<GroupNames extends string>(
       });
       if (lockMergePrNumber) {
         const newPrNumber = lockMergePrNumber;
-        lockPROrPRS(String(prNumber), async () => {
-          if (lockMergePrNumber !== newPrNumber) return;
-          const prResult = await context.github.pulls.get(
-            context.repo({
-              number: newPrNumber,
-            }),
-          );
-          await autoMergeIfPossible(context, repoContext, prResult.data);
-        });
+        reschedule(context, newPrNumber);
       }
     },
     pushAutomergeQueue: (prNumber): void => {
@@ -168,6 +178,7 @@ async function initRepoContext<GroupNames extends string>(
       });
       automergeQueue.push(prNumber);
     },
+    reschedule,
 
     lockPROrPRS,
   } as RepoContextWithoutTeamContext<GroupNames>);

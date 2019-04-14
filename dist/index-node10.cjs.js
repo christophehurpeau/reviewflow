@@ -257,8 +257,33 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
           body: pr.body.replace('[ ] <!-- renovate-rebase -->', '[x] <!-- renovate-rebase -->')
         }));
         return false;
+      } else if (pr.mergeable_state === undefined) {
+        // GitHub is determining whether the pull request is mergeable
+        repoContext.reschedule(context, pr.number);
       } else {
-        repoContext.removeMergeLocked(context, pr.number);
+        const checks = await context.github.checks.listForRef(context.repo({
+          ref: pr.head.sha,
+          per_page: 100
+        }));
+        const hasFailedChecks = checks.data.check_runs.some(check => check.conclusion === 'failure');
+
+        if (hasFailedChecks) {
+          context.log.info(`automerge not possible: failed check pr ${pr.id}`);
+          repoContext.removeMergeLocked(context, pr.number);
+          return false;
+        }
+
+        const statuses = await context.github.repos.listStatusesForRef(context.repo({
+          ref: pr.head.sha,
+          per_page: 100
+        }));
+        const hasFailedStatuses = statuses.data.some(status => status.state === 'failure');
+
+        if (hasFailedStatuses) {
+          context.log.info(`automerge not possible: failed status pr ${pr.id}`);
+          repoContext.removeMergeLocked(context, pr.number);
+          return false;
+        }
       }
 
       context.log.info(`automerge not possible: renovate with mergeable_state=${pr.mergeable_state}`);
@@ -500,7 +525,7 @@ const ExcludesFalsy$2 = Boolean;
 async function initRepoContext(context, config) {
   const teamContext = await obtainTeamContext(context, config);
   const repoContext = Object.create(teamContext);
-  const labels = await initRepoLabels(context, config);
+  const [labels] = await Promise.all([initRepoLabels(context, config)]);
   const reviewGroupNames = Object.keys(config.groups);
   const needsReviewLabelIds = reviewGroupNames.map(key => config.labels.review[key].needsReview).filter(Boolean).map(name => labels[name].id);
   const requestedReviewLabelIds = reviewGroupNames.map(key => config.labels.review[key].requested).filter(Boolean).map(name => labels[name].id);
@@ -547,6 +572,22 @@ async function initRepoContext(context, config) {
     });
   });
 
+  const reschedule = (context, prNumber) => {
+    context.log.info('reschedule', {
+      prNumber
+    });
+    setImmediate(() => {
+      lockPROrPRS('reschedule', () => {
+        return lockPROrPRS(String(prNumber), async () => {
+          const prResult = await context.github.pulls.get(context.repo({
+            number: prNumber
+          }));
+          await autoMergeIfPossible(context, repoContext, prResult.data);
+        });
+      });
+    });
+  };
+
   return Object.assign(repoContext, {
     labels,
     protectedLabelIds: [...requestedReviewLabelIds, ...changesRequestedLabelIds, ...approvedReviewLabelIds],
@@ -576,13 +617,7 @@ async function initRepoContext(context, config) {
 
       if (lockMergePrNumber) {
         const newPrNumber = lockMergePrNumber;
-        lockPROrPRS(String(prNumber), async () => {
-          if (lockMergePrNumber !== newPrNumber) return;
-          const prResult = await context.github.pulls.get(context.repo({
-            number: newPrNumber
-          }));
-          await autoMergeIfPossible(context, repoContext, prResult.data);
-        });
+        reschedule(context, newPrNumber);
       }
     },
     pushAutomergeQueue: prNumber => {
@@ -593,6 +628,7 @@ async function initRepoContext(context, config) {
       });
       automergeQueue.push(prNumber);
     },
+    reschedule,
     lockPROrPRS
   });
 }
