@@ -1,3 +1,12 @@
+## [1.9.5](https://github.com/christophehurpeau/reviewflow/compare/v1.9.4...v1.9.5) (2019-04-14)
+
+
+### Bug Fixes
+
+* use pr.number ([1774dde](https://github.com/christophehurpeau/reviewflow/commit/1774dde))
+
+
+
 ## [1.9.4](https://github.com/christophehurpeau/reviewflow/compare/v1.9.3...v1.9.4) (2019-04-14)
 
 
