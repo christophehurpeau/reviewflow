@@ -1,3 +1,12 @@
+## [1.9.4](https://github.com/christophehurpeau/reviewflow/compare/v1.9.3...v1.9.4) (2019-04-14)
+
+
+### Bug Fixes
+
+* unlock after merge ([87af768](https://github.com/christophehurpeau/reviewflow/commit/87af768))
+
+
+
 ## [1.9.3](https://github.com/christophehurpeau/reviewflow/compare/v1.9.2...v1.9.3) (2019-04-14)
 
 
