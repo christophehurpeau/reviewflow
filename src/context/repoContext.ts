@@ -26,7 +26,7 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   getMergeLocked(): number | undefined;
   addMergeLock(prNumber: number): void;
   removeMergeLocked(context: Context<any>, prNumber: number): void;
-  reschedule(context: Context<any>, prNumber: number): void;
+  reschedule(context: Context<any>, prId: string, prNumber: number): void;
   pushAutomergeQueue(prNumber: number): void;
 }
 
@@ -122,11 +122,15 @@ async function initRepoContext<GroupNames extends string>(
       });
     });
 
-  const reschedule = (context: Context<any>, prNumber: number) => {
+  const reschedule = (
+    context: Context<any>,
+    prId: string,
+    prNumber: number,
+  ) => {
     context.log.info('reschedule', { prNumber });
     setTimeout(() => {
       lockPROrPRS('reschedule', () => {
-        return lockPROrPRS(String(prNumber), async () => {
+        return lockPROrPRS(prId, async () => {
           const prResult = await context.github.pulls.get(
             context.repo({
               number: prNumber,

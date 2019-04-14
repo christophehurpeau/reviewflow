@@ -35,11 +35,12 @@ export const autoMergeIfPossible = async (
   repoContext.addMergeLock(pr.number);
 
   if (pr.mergeable === undefined) {
-    pr = await context.github.pulls.get(
+    const prResult = await context.github.pulls.get(
       context.repo({
         number: pr.number,
       }),
     );
+    pr = prResult.data;
   }
 
   if (pr.merged) {
@@ -50,7 +51,7 @@ export const autoMergeIfPossible = async (
   if (!pr.mergeable) {
     if (pr.mergeable_state === undefined) {
       // GitHub is determining whether the pull request is mergeable
-      repoContext.reschedule(context, pr.number);
+      repoContext.reschedule(context, String(pr.id), pr.number);
       return false;
     }
 
