@@ -1,3 +1,12 @@
+## [1.9.12](https://github.com/christophehurpeau/reviewflow/compare/v1.9.11...v1.9.12) (2019-04-14)
+
+
+### Bug Fixes
+
+* mergeable state ([1907bd9](https://github.com/christophehurpeau/reviewflow/commit/1907bd9))
+
+
+
 ## [1.9.11](https://github.com/christophehurpeau/reviewflow/compare/v1.9.10...v1.9.11) (2019-04-14)
 
 
