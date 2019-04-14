@@ -135,12 +135,15 @@ async function initRepoContext<GroupNames extends string>(
 
     getMergeLocked: () => lockMergePrId,
     addMergeLock: (prId): void => {
+      console.log('merge lock: lock', { prId });
       if (lockMergePrId) throw new Error('Already have lock id');
       lockMergePrId = prId;
     },
     removeMergeLocked: (context, prId): void => {
+      console.log('merge lock: remove', { prId });
       if (lockMergePrId !== prId) return;
       lockMergePrId = automergeQueue.shift();
+      console.log('merge lock: remove lockMergePrId', { lockMergePrId });
       if (lockMergePrId) {
         const newPrId = lockMergePrId;
         lockPROrPRS(String(prId), async () => {
@@ -155,6 +158,7 @@ async function initRepoContext<GroupNames extends string>(
       }
     },
     pushAutomergeQueue: (prId): void => {
+      console.log('merge lock: push queue', { prId });
       automergeQueue.push(prId);
     },
 

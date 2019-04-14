@@ -554,12 +554,21 @@ async function initRepoContext(context, config) {
     getNeedsReviewGroupNames: labels => labels.filter(label => needsReviewLabelIds.includes(label.id)).map(label => labelIdToGroupName.get(label.id)).filter(ExcludesFalsy$2),
     getMergeLocked: () => lockMergePrId,
     addMergeLock: prId => {
+      console.log('merge lock: lock', {
+        prId
+      });
       if (lockMergePrId) throw new Error('Already have lock id');
       lockMergePrId = prId;
     },
     removeMergeLocked: (context, prId) => {
+      console.log('merge lock: remove', {
+        prId
+      });
       if (lockMergePrId !== prId) return;
       lockMergePrId = automergeQueue.shift();
+      console.log('merge lock: remove lockMergePrId', {
+        lockMergePrId
+      });
 
       if (lockMergePrId) {
         const newPrId = lockMergePrId;
@@ -573,6 +582,9 @@ async function initRepoContext(context, config) {
       }
     },
     pushAutomergeQueue: prId => {
+      console.log('merge lock: push queue', {
+        prId
+      });
       automergeQueue.push(prId);
     },
     lockPROrPRS
