@@ -63,6 +63,7 @@ export const autoMergeIfPossible = async (
     }`,
   );
 
+  // https://github.com/octokit/octokit.net/issues/1763
   if (!(pr.mergeable_state === 'clean' || pr.mergeable_state === 'has_hooks')) {
     if (!pr.mergeable_state || pr.mergeable_state === 'unknown') {
       context.log.info(`automerge not possible: rescheduling ${pr.id}`);

@@ -269,7 +269,7 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
     return false;
   }
 
-  context.log.info(`automerge?: ${pr.id}, mergeable=${pr.mergeable} state=${pr.mergeable_state}`);
+  context.log.info(`automerge?: ${pr.id}, mergeable=${pr.mergeable} state=${pr.mergeable_state}`); // https://github.com/octokit/octokit.net/issues/1763
 
   if (!(pr.mergeable_state === 'clean' || pr.mergeable_state === 'has_hooks')) {
     if (!pr.mergeable_state || pr.mergeable_state === 'unknown') {
