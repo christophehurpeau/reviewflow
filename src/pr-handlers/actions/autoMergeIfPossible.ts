@@ -40,7 +40,10 @@ export const autoMergeIfPossible = async (
         repoContext.addMergeLock(pr.id);
         await context.github.issues.update(
           context.issue({
-            title: `rebase!${pr.title}`,
+            body: pr.body.replace(
+              '[ ] <!-- renovate-rebase -->',
+              '[x] <!-- renovate-rebase -->',
+            ),
           }),
         );
         return false;
