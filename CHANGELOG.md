@@ -1,3 +1,12 @@
+## [1.9.19](https://github.com/christophehurpeau/reviewflow/compare/v1.9.18...v1.9.19) (2019-04-14)
+
+
+### Bug Fixes
+
+* rescheduling when unstable ([c0dd749](https://github.com/christophehurpeau/reviewflow/commit/c0dd749))
+
+
+
 ## [1.9.18](https://github.com/christophehurpeau/reviewflow/compare/v1.9.17...v1.9.18) (2019-04-14)
 
 
