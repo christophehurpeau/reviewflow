@@ -1,3 +1,12 @@
+## [1.9.11](https://github.com/christophehurpeau/reviewflow/compare/v1.9.10...v1.9.11) (2019-04-14)
+
+
+### Bug Fixes
+
+* lock merge before doing anything in autoMergeIfPossible ([6347758](https://github.com/christophehurpeau/reviewflow/commit/6347758))
+
+
+
 ## [1.9.10](https://github.com/christophehurpeau/reviewflow/compare/v1.9.9...v1.9.10) (2019-04-14)
 
 
