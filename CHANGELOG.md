@@ -1,3 +1,12 @@
+## [1.9.20](https://github.com/christophehurpeau/reviewflow/compare/v1.9.19...v1.9.20) (2019-04-14)
+
+
+### Bug Fixes
+
+* allow to merge when unstable, when jobs are in hold in circleci ([7bc1948](https://github.com/christophehurpeau/reviewflow/commit/7bc1948))
+
+
+
 ## [1.9.19](https://github.com/christophehurpeau/reviewflow/compare/v1.9.18...v1.9.19) (2019-04-14)
 
 
