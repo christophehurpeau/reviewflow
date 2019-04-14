@@ -1,3 +1,12 @@
+## [1.9.7](https://github.com/christophehurpeau/reviewflow/compare/v1.9.6...v1.9.7) (2019-04-14)
+
+
+### Bug Fixes
+
+* error when trying to lock same number ([0198901](https://github.com/christophehurpeau/reviewflow/commit/0198901))
+
+
+
 ## [1.9.6](https://github.com/christophehurpeau/reviewflow/compare/v1.9.5...v1.9.6) (2019-04-14)
 
 
