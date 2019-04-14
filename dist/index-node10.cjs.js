@@ -263,7 +263,7 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
 
   context.log.info(`automerge?: ${pr.id}, mergeable=${pr.mergeable} state=${pr.mergeable_state}`);
 
-  if (!pr.mergeable) {
+  if (!pr.mergeable || pr.mergeable_state === 'behind') {
     if (!pr.mergeable_state) {
       context.log.info(`automerge not possible: rescheduling ${pr.id}`); // GitHub is determining whether the pull request is mergeable
 

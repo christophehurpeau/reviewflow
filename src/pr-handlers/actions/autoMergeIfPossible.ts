@@ -54,7 +54,7 @@ export const autoMergeIfPossible = async (
       pr.mergeable_state
     }`,
   );
-  if (!pr.mergeable) {
+  if (!pr.mergeable || pr.mergeable_state === 'behind') {
     if (!pr.mergeable_state) {
       context.log.info(`automerge not possible: rescheduling ${pr.id}`);
       // GitHub is determining whether the pull request is mergeable
