@@ -1,3 +1,12 @@
+## [1.9.2](https://github.com/christophehurpeau/reviewflow/compare/v1.9.1...v1.9.2) (2019-04-14)
+
+
+### Bug Fixes
+
+* release merge when merge fails ([21cbb07](https://github.com/christophehurpeau/reviewflow/commit/21cbb07))
+
+
+
 ## [1.9.1](https://github.com/christophehurpeau/reviewflow/compare/v1.9.0...v1.9.1) (2019-04-14)
 
 
