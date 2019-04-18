@@ -52,7 +52,7 @@
     "extends": ["@commitlint/config-conventional"]
   },
   "dependencies": {
-    "@slack/web-api": "5.0.0",
+    "@slack/web-api": "5.0.1",
     "dotenv": "^7.0.0",
     "lock": "^1.1.0",
     "probot": "9.2.0",
