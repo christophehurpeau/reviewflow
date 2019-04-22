@@ -1,3 +1,12 @@
+# [1.10.0](https://github.com/christophehurpeau/reviewflow/compare/v1.9.20...v1.10.0) (2019-04-22)
+
+
+### Features
+
+* pr parse body and auto delete branch and feature branch ([7b78e3c](https://github.com/christophehurpeau/reviewflow/commit/7b78e3c))
+
+
+
 ## [1.9.20](https://github.com/christophehurpeau/reviewflow/compare/v1.9.19...v1.9.20) (2019-04-14)
 
 
