@@ -9,9 +9,6 @@ it('should parse default description', () => {
 
   const parsed = parseBody(initial, defaultConfig);
 
-  // metas: {
-  //   jira: 'ONK-0000',
-  // },
   expect(parsed).not.toBeFalsy();
   expect(parsed && parsed.options).toEqual({
     featureBranch: false,
