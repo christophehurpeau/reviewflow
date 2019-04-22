@@ -1,4 +1,7 @@
+import { Options } from '../pr-handlers/actions/utils/prOptions';
+
 export interface StatusInfo {
+  inBody?: true;
   url?: string;
   title: string;
   summary: string;
@@ -12,7 +15,7 @@ export interface Group {
   [userName: string]: string;
 }
 
-export interface PrLintRule {
+export interface ParsePRRule {
   bot?: false;
   regExp: RegExp;
   error: StatusError;
@@ -21,8 +24,8 @@ export interface PrLintRule {
   statusInfoFromMatch?: (match: RegExpMatchArray) => StatusInfo;
 }
 
-export interface PrLint {
-  title: PrLintRule[];
+export interface ParsePR {
+  title: ParsePRRule[];
 }
 
 export interface LabelDescriptor {
@@ -54,7 +57,8 @@ export interface Config<GroupNames extends string> {
   autoAssignToCreator?: boolean;
   trimTitle?: boolean;
   requiresReviewRequest?: boolean;
-  prLint: PrLint;
+  parsePR: ParsePR;
+  prDefaultOptions: Record<Options, boolean>;
 
   groups: Record<GroupNames, Group>;
   waitForGroups?: Record<GroupNames, GroupNames[]>;

@@ -1,16 +1,20 @@
 'use strict';
 
 require('dotenv/config');
-var probot = require('probot');
-var lock = require('lock');
-var webApi = require('@slack/web-api');
+const probot = require('probot');
+const lock = require('lock');
+const webApi = require('@slack/web-api');
 
 const config = {
   slackToken: process.env.ORNIKAR_SLACK_TOKEN,
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: true,
-  prLint: {
+  prDefaultOptions: {
+    featureBranch: false,
+    deleteAfterMerge: true
+  },
+  parsePR: {
     title: [{
       regExp: // eslint-disable-next-line unicorn/no-unsafe-regex
       /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([a-z\-/]*)\))?:\s/,
@@ -37,6 +41,7 @@ const config = {
         }
 
         return {
+          inBody: true,
           url: `https://ornikar.atlassian.net/browse/${issue}`,
           title: `JIRA issue: ${issue}`,
           summary: `[${issue}](https://ornikar.atlassian.net/browse/${issue})`
@@ -143,7 +148,11 @@ const config$1 = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: false,
-  prLint: {
+  prDefaultOptions: {
+    featureBranch: false,
+    deleteAfterMerge: true
+  },
+  parsePR: {
     title: [{
       regExp: // eslint-disable-next-line unicorn/no-unsafe-regex
       /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([a-z\-/]*)\))?:\s/,
@@ -222,6 +231,48 @@ const teamConfigs = {
 // ): string[] => {
 //   return Object.values(groups).flat(1);
 // };
+
+const options = ['featureBranch', 'deleteAfterMerge'];
+const optionsRegexps = options.map(option => ({
+  name: option,
+  regexp: new RegExp(`\\[[ xX]]\\s*<!-- renovate-${option} -->`)
+}));
+const optionsLabels = [{
+  name: 'featureBranch',
+  label: 'This PR is a feature branch'
+}, {
+  name: 'deleteAfterMerge',
+  label: 'Automatic branch delete after this PR is merged'
+}];
+
+const regexpCols = /^(.*)(<!---? do not edit after this -?-->.*<!---? end - don't add anything after this -?-->).*$/is;
+const regexpReviewflowCol = /^(\s*<!---? do not edit after this -?--><\/td><td [^>]*>)\s*(.*)\s*(<\/td><\/tr><\/table>\s*<!---? end - don't add anything after this -?-->)\s*$/is;
+
+const parseOptions = (content, defaultConfig) => {
+  return optionsRegexps.reduce((acc, {
+    name,
+    regexp
+  }) => {
+    const match = regexp.exec(content);
+    acc[name] = !match ? defaultConfig[name] || false : match[1] === 'x' || match[2] === 'X';
+    return acc;
+  }, {});
+};
+
+const parseBody = (description, defaultConfig) => {
+  const match = regexpCols.exec(description);
+  if (!match) return null;
+  const [, content, reviewFlowCol] = match;
+  const reviewFlowColMatch = regexpReviewflowCol.exec(reviewFlowCol);
+  if (!reviewFlowColMatch) return null;
+  const [, reviewflowContentColPrefix, reviewflowContentCol, reviewflowContentColSuffix] = reviewFlowColMatch;
+  return {
+    content,
+    reviewflowContentColPrefix,
+    reviewflowContentColSuffix,
+    options: parseOptions(reviewflowContentCol, defaultConfig)
+  };
+};
 
 // eslint-disable-next-line import/no-cycle
 const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pull_request, prLabels = pr.labels) => {
@@ -336,8 +387,9 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
 
   try {
     context.log.info(`automerge pr #${pr.number}`);
+    const parsedBody = parseBody(pr.body, repoContext.config.prDefaultOptions);
     const mergeResult = await context.github.pulls.merge({
-      merge_method: 'squash',
+      merge_method: parsedBody && parsedBody.options.featureBranch ? 'merge' : 'squash',
       owner: pr.head.repo.owner.login,
       repo: pr.head.repo.name,
       number: pr.number,
@@ -709,29 +761,51 @@ const autoAssignPRToCreator = async (context, repoContext) => {
 const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*(ONK-\d+)\s*]?\s*$/, ' $1').replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `).replace(/^Revert "([^"]+)"$/, 'revert: $1') // eslint-disable-next-line unicorn/no-unsafe-regex
 .replace(/^(revert:.*)(\s+\(#\d+\))$/, '$1');
 
-const editOpenedPR = (context, repoContext) => {
-  if (!repoContext.config.trimTitle) return;
-  const pr = context.payload.pull_request;
-  const title = cleanTitle(pr.title);
+const toMarkdownOptions = options => {
+  return optionsLabels.map(({
+    name,
+    label
+  }) => `- [${options[name] ? 'x' : ' '}] <!-- reviewflow-${name} -->${label}`).join('\n');
+};
 
-  if (pr.title !== title) {
-    pr.title = title;
-    context.github.issues.update(context.issue({
-      title
-    }));
+const toMarkdownInfos = infos => {
+  return infos.map(info => {
+    if (info.url) return `[${info.title}](${info.url})`;
+    return info.title;
+  }).join('\n');
+};
+
+const updateBody = (description, defaultConfig, infos) => {
+  const parsed = parseBody(description, defaultConfig);
+
+  if (!parsed) {
+    console.info('could not parse body');
+    return description;
   }
+
+  const {
+    content,
+    reviewflowContentColPrefix,
+    reviewflowContentColSuffix,
+    options
+  } = parsed;
+  return `${content}${reviewflowContentColPrefix}
+${infos && infos.length !== 0 ? `#### Infos:\n${toMarkdownInfos(infos)}\n` : ''}#### Options:
+${toMarkdownOptions(options)}
+${reviewflowContentColSuffix}
+`;
 };
 
 const ExcludesFalsy$3 = Boolean;
-const lintPR = async (context, repoContext) => {
-  if (!repoContext.config.prLint) return;
+const editOpenedPR = async (context, repoContext) => {
   const repo = context.payload.repository;
   const pr = context.payload.pull_request; // do not lint pr from forks
 
   if (pr.head.repo.id !== repo.id) return;
+  const title = repoContext.config.trimTitle ? cleanTitle(pr.title) : pr.title;
   const isPrFromBot = pr.user.type === 'Bot';
   const statuses = [];
-  const errorRule = repoContext.config.prLint.title.find(rule => {
+  const errorRule = repoContext.config.parsePR.title.find(rule => {
     if (rule.bot === false && isPrFromBot) return false;
     const match = rule.regExp.exec(pr.title);
 
@@ -788,6 +862,16 @@ const lintPR = async (context, repoContext) => {
     target_url: undefined,
     description: errorRule ? errorRule.error.title : '✓ Your PR is valid'
   }))].filter(ExcludesFalsy$3));
+  const body = updateBody(pr.body, repoContext.config.prDefaultOptions, statuses.filter(status => status.info && status.info.inBody).map(status => status.info));
+
+  if (pr.title !== title || pr.body !== body) {
+    pr.title = title;
+    pr.body = body;
+    await context.github.issues.update(context.issue({
+      title,
+      body
+    }));
+  }
 };
 
 const addStatusCheck = async function (context, pr, {
@@ -956,24 +1040,28 @@ const updateReviewStatus = async (context, repoContext, reviewGroup, {
   return prLabels;
 };
 
-var openedHandler = (app => {
+const openedHandler = (app => {
   app.on('pull_request.opened', createHandlerPullRequestChange(async (context, repoContext) => {
-    await Promise.all([autoAssignPRToCreator(context, repoContext), editOpenedPR(context, repoContext), lintPR(context, repoContext), context.payload.pull_request.head.ref.startsWith('renovate/') ? Promise.resolve(undefined) : updateReviewStatus(context, repoContext, 'dev', {
+    await Promise.all([autoAssignPRToCreator(context, repoContext), editOpenedPR(context, repoContext), context.payload.pull_request.head.ref.startsWith('renovate/') ? Promise.resolve(undefined) : updateReviewStatus(context, repoContext, 'dev', {
       add: ['needsReview']
     })]);
   }));
 });
 
-var closedHandler = (app => {
+const closedHandler = (app => {
   app.on('pull_request.closed', createHandlerPullRequestChange(async (context, repoContext) => {
+    const repo = context.payload.repository;
     const pr = context.payload.pull_request;
 
     if (pr.merged) {
+      const parsedBody = pr.head.repo.id === repo.id && parseBody(pr.body, repoContext.config.prDefaultOptions);
       await Promise.all([repoContext.removeMergeLockedPr(context, (() => ({
         id: pr.id,
         number: pr.number,
         branch: pr.head.ref
-      }))())]);
+      }))()), parsedBody && parsedBody.options.deleteAfterMerge ? context.github.git.deleteRef(context.repo({
+        ref: `heads/${pr.head.ref}`
+      })).catch(() => {}) : undefined]);
     } else {
       await Promise.all([updateReviewStatus(context, repoContext, 'dev', {
         remove: ['needsReview']
@@ -982,7 +1070,7 @@ var closedHandler = (app => {
   }));
 });
 
-var reviewRequestedHandler = (app => {
+const reviewRequestedHandler = (app => {
   app.on('pull_request.review_requested', createHandlerPullRequestChange(async (context, repoContext) => {
     const sender = context.payload.sender; // ignore if sender is self (dismissed review rerequest review)
 
@@ -1017,7 +1105,7 @@ var reviewRequestedHandler = (app => {
   }));
 });
 
-var reviewRequestRemovedHandler = (app => {
+const reviewRequestRemovedHandler = (app => {
   app.on('pull_request.review_request_removed', createHandlerPullRequestChange(async (context, repoContext) => {
     const sender = context.payload.sender;
     const pr = context.payload.pull_request;
@@ -1053,7 +1141,7 @@ var reviewRequestRemovedHandler = (app => {
   }));
 });
 
-var reviewSubmittedHandler = (app => {
+const reviewSubmittedHandler = (app => {
   app.on('pull_request_review.submitted', createHandlerPullRequestChange(async (context, repoContext) => {
     const pr = context.payload.pull_request;
     const {
@@ -1106,7 +1194,7 @@ var reviewSubmittedHandler = (app => {
   }));
 });
 
-var reviewDismissedHandler = (app => {
+const reviewDismissedHandler = (app => {
   app.on('pull_request_review.dismissed', createHandlerPullRequestChange(async (context, repoContext) => {
     const sender = context.payload.sender;
     const pr = context.payload.pull_request;
@@ -1136,23 +1224,23 @@ var reviewDismissedHandler = (app => {
   }));
 });
 
-var synchromizeHandler = (app => {
+const synchromizeHandler = (app => {
   app.on('pull_request.synchronize', createHandlerPullRequestChange(async (context, repoContext) => {
     // old and new sha
     // const { before, after } = context.payload;
-    await Promise.all([editOpenedPR(context, repoContext), lintPR(context, repoContext), // addStatusCheckToLatestCommit
+    await Promise.all([editOpenedPR(context, repoContext), // addStatusCheckToLatestCommit
     updateStatusCheckFromLabels(context, repoContext)]);
   }));
 });
 
-var editedHandler = (app => {
+const editedHandler = (app => {
   app.on('pull_request.edited', createHandlerPullRequestChange(async (context, repoContext) => {
-    await Promise.all([editOpenedPR(context, repoContext), lintPR(context, repoContext)]);
+    await editOpenedPR(context, repoContext);
     await autoMergeIfPossible(context, repoContext);
   }));
 });
 
-var labelsChanged = (app => {
+const labelsChanged = (app => {
   app.on(['pull_request.labeled', 'pull_request.unlabeled'], async context => {
     const sender = context.payload.sender;
     if (sender.type === 'Bot') return;
@@ -1182,7 +1270,7 @@ var labelsChanged = (app => {
   });
 });
 
-var checkrunCompleted = (app => {
+const checkrunCompleted = (app => {
   app.on('check_run.completed', createHandlerPullRequestsChange(context => context.payload.check_run.pull_requests, async (context, repoContext) => {
     await Promise.all(context.payload.check_run.pull_requests.map(pr => context.github.pulls.get(context.repo({
       number: pr.number
@@ -1192,7 +1280,7 @@ var checkrunCompleted = (app => {
   }));
 });
 
-var checksuiteCompleted = (app => {
+const checksuiteCompleted = (app => {
   app.on('check_suite.completed', createHandlerPullRequestsChange(context => context.payload.check_suite.pull_requests, async (context, repoContext) => {
     await Promise.all(context.payload.check_suite.pull_requests.map(pr => context.github.pulls.get(context.repo({
       number: pr.number
@@ -1207,7 +1295,7 @@ const isSameBranch = (context, lockedPr) => {
   return context.payload.branches.find(b => b.name === lockedPr.branch);
 };
 
-var status = (app => {
+const status = (app => {
   app.on('status', createHandlerPullRequestsChange((context, repoContext) => {
     const lockedPr = repoContext.getMergeLockedPr();
     if (!lockedPr) return [];

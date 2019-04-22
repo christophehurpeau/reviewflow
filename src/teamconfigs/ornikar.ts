@@ -5,7 +5,11 @@ const config: Config<'dev' | 'design'> = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: true,
-  prLint: {
+  prDefaultOptions: {
+    featureBranch: false,
+    deleteAfterMerge: true,
+  },
+  parsePR: {
     title: [
       {
         regExp:
@@ -34,6 +38,7 @@ const config: Config<'dev' | 'design'> = {
             };
           }
           return {
+            inBody: true,
             url: `https://ornikar.atlassian.net/browse/${issue}`,
             title: `JIRA issue: ${issue}`,
             summary: `[${issue}](https://ornikar.atlassian.net/browse/${issue})`,

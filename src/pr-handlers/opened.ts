@@ -2,7 +2,6 @@ import { Application } from 'probot';
 import { createHandlerPullRequestChange } from './utils';
 import { autoAssignPRToCreator } from './actions/autoAssignPRToCreator';
 import { editOpenedPR } from './actions/editOpenedPR';
-import { lintPR } from './actions/lintPR';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 
 export default (app: Application) => {
@@ -12,7 +11,6 @@ export default (app: Application) => {
       await Promise.all([
         autoAssignPRToCreator(context, repoContext),
         editOpenedPR(context, repoContext),
-        lintPR(context, repoContext),
         context.payload.pull_request.head.ref.startsWith('renovate/')
           ? Promise.resolve(undefined)
           : updateReviewStatus(context, repoContext, 'dev', {

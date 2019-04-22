@@ -4,7 +4,11 @@ const config: Config<'dev'> = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: false,
-  prLint: {
+  prDefaultOptions: {
+    featureBranch: false,
+    deleteAfterMerge: true,
+  },
+  parsePR: {
     title: [
       {
         regExp:

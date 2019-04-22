@@ -2,6 +2,7 @@ import { Context } from 'probot';
 // eslint-disable-next-line import/no-cycle
 import { RepoContext } from '../../context/repoContext';
 import { LabelResponse } from '../../context/initRepoLabels';
+import { parseBody } from './utils/parseBody';
 
 export const autoMergeIfPossible = async (
   context: Context<any>,
@@ -161,8 +162,10 @@ export const autoMergeIfPossible = async (
 
   try {
     context.log.info(`automerge pr #${pr.number}`);
+    const parsedBody = parseBody(pr.body, repoContext.config.prDefaultOptions);
     const mergeResult = await context.github.pulls.merge({
-      merge_method: 'squash',
+      merge_method:
+        parsedBody && parsedBody.options.featureBranch ? 'merge' : 'squash',
       owner: pr.head.repo.owner.login,
       repo: pr.head.repo.name,
       number: pr.number,

@@ -1,13 +1,19 @@
 import { Application } from 'probot';
 import { createHandlerPullRequestChange } from './utils';
 import { updateReviewStatus } from './actions/updateReviewStatus';
+import { parseBody } from './actions/utils/parseBody';
 
 export default (app: Application) => {
   app.on(
     'pull_request.closed',
     createHandlerPullRequestChange(async (context, repoContext) => {
+      const repo = context.payload.repository;
       const pr = context.payload.pull_request;
+
       if (pr.merged) {
+        const parsedBody =
+          pr.head.repo.id === repo.id &&
+          parseBody(pr.body, repoContext.config.prDefaultOptions);
         const createMergeLockPrFromPr = () => ({
           id: pr.id,
           number: pr.number,
@@ -15,7 +21,11 @@ export default (app: Application) => {
         });
         await Promise.all([
           repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr()),
-          // TODO delete branch
+          parsedBody && parsedBody.options.deleteAfterMerge
+            ? context.github.git
+                .deleteRef(context.repo({ ref: `heads/${pr.head.ref}` }))
+                .catch(() => {})
+            : undefined,
         ]);
       } else {
         await Promise.all([

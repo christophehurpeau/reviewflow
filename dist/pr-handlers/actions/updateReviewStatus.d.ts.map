@@ -1,1 +1,0 @@
-{"version":3,"file":"updateReviewStatus.d.ts","sourceRoot":"","sources":["../../../src/pr-handlers/actions/updateReviewStatus.ts"],"names":[],"mappings":"AAAA,OAAO,QAAQ,MAAM,mBAAmB,CAAC;AACzC,OAAO,EAAE,OAAO,EAAE,MAAM,QAAQ,CAAC;AACjC,OAAO,EAAE,aAAa,EAAE,MAAM,8BAA8B,CAAC;AAE7D,OAAO,EAAE,WAAW,EAAE,MAAM,2BAA2B,CAAC;AAGxD,eAAO,MAAM,kBAAkB;;;8BAuG9B,CAAC"}

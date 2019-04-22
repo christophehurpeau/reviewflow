@@ -10,7 +10,10 @@
         "index"
       ],
       "documentation": false,
-      "testing": false,
+      "testing": {
+        "circleci": true,
+        "codecov": false
+      },
       "envs": [
         {
           "target": "node",
@@ -19,7 +22,8 @@
             "cjs"
           ]
         }
-      ]
+      ],
+      "withReact": false
     },
     "renovate": {
       "enable": true
