@@ -1,3 +1,12 @@
+## [1.10.1](https://github.com/christophehurpeau/reviewflow/compare/v1.10.0...v1.10.1) (2019-04-23)
+
+
+### Bug Fixes
+
+* automerge blocked status ([1d977ce](https://github.com/christophehurpeau/reviewflow/commit/1d977ce))
+
+
+
 # [1.10.0](https://github.com/christophehurpeau/reviewflow/compare/v1.9.20...v1.10.0) (2019-04-22)
 
 
@@ -400,17 +409,17 @@
 * replaceAllLabels method ([835c4f7](https://github.com/christophehurpeau/reviewflow/commit/835c4f7))
 * request review when review dismissed ([1312598](https://github.com/christophehurpeau/reviewflow/commit/1312598))
 * review status check when approved and still has needsReview ([50a0b5c](https://github.com/christophehurpeau/reviewflow/commit/50a0b5c))
-* review_requested remove label needsReview when REQUEST_CHANGES was done by the newly requested reviewer ([c080e9e](https://github.com/christophehurpeau/reviewflow/commit/c080e9e))
 * review_requested remove label needsReview when REQUEST_CHANGES was done by the newly requested reviewer ([46c0f3c](https://github.com/christophehurpeau/reviewflow/commit/46c0f3c))
+* review_requested remove label needsReview when REQUEST_CHANGES was done by the newly requested reviewer ([c080e9e](https://github.com/christophehurpeau/reviewflow/commit/c080e9e))
 * send notifs to slack ([df78bc3](https://github.com/christophehurpeau/reviewflow/commit/df78bc3))
 * send notifs to slack ([6c96cec](https://github.com/christophehurpeau/reviewflow/commit/6c96cec))
 * set has a delete method not remove ([6289059](https://github.com/christophehurpeau/reviewflow/commit/6289059))
+* **deps:** update dependency @slack/client to v4.8.0 ([#7](https://github.com/christophehurpeau/reviewflow/issues/7)) ([6353e3f](https://github.com/christophehurpeau/reviewflow/commit/6353e3f))
+* **deps:** update dependency probot to v7 ([#4](https://github.com/christophehurpeau/reviewflow/issues/4)) ([03f7405](https://github.com/christophehurpeau/reviewflow/commit/03f7405))
 * update deprecated octokit api ([1872847](https://github.com/christophehurpeau/reviewflow/commit/1872847))
 * update deprecated octokit issues.edit to issues.update ([317fd17](https://github.com/christophehurpeau/reviewflow/commit/317fd17))
 * use addAssignees instead of deprecated addAssigneesToIssue ([6932470](https://github.com/christophehurpeau/reviewflow/commit/6932470))
 * use replaceLabels to replace deprecated replaceAllLabels ([c563960](https://github.com/christophehurpeau/reviewflow/commit/c563960))
-* **deps:** update dependency @slack/client to v4.8.0 ([#7](https://github.com/christophehurpeau/reviewflow/issues/7)) ([6353e3f](https://github.com/christophehurpeau/reviewflow/commit/6353e3f))
-* **deps:** update dependency probot to v7 ([#4](https://github.com/christophehurpeau/reviewflow/issues/4)) ([03f7405](https://github.com/christophehurpeau/reviewflow/commit/03f7405))
 * when review request removed and had changes requested, put back the right label ([3636d17](https://github.com/christophehurpeau/reviewflow/commit/3636d17))
 
 
