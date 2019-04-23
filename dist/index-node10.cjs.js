@@ -274,7 +274,23 @@ const parseBody = (description, defaultConfig) => {
   };
 };
 
-// eslint-disable-next-line import/no-cycle
+/* eslint-disable max-lines */
+
+const hasFailedStatusOrChecks = async (context, repoContext, pr) => {
+  const checks = await context.github.checks.listForRef(context.repo({
+    ref: pr.head.sha,
+    per_page: 100
+  }));
+  const hasFailedChecks = checks.data.check_runs.some(check => check.conclusion === 'failure');
+  if (hasFailedChecks) return true;
+  const statuses = await context.github.repos.listStatusesForRef(context.repo({
+    ref: pr.head.sha,
+    per_page: 100
+  }));
+  const hasFailedStatuses = statuses.data.some(status => status.state === 'failure');
+  return hasFailedStatuses;
+};
+
 const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pull_request, prLabels = pr.labels) => {
   const autoMergeLabel = repoContext.labels['merge/automerge'];
   if (!autoMergeLabel) return false;
@@ -339,34 +355,30 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
           body: pr.body.replace('[ ] <!-- renovate-rebase -->', '[x] <!-- renovate-rebase -->')
         }));
         return false;
-      } else {
-        const checks = await context.github.checks.listForRef(context.repo({
-          ref: pr.head.sha,
-          per_page: 100
-        }));
-        const hasFailedChecks = checks.data.check_runs.some(check => check.conclusion === 'failure');
+      }
 
-        if (hasFailedChecks) {
-          context.log.info(`automerge not possible: failed check pr ${pr.id}`);
-          repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
-          return false;
-        }
-
-        const statuses = await context.github.repos.listStatusesForRef(context.repo({
-          ref: pr.head.sha,
-          per_page: 100
-        }));
-        const hasFailedStatuses = statuses.data.some(status => status.state === 'failure');
-
-        if (hasFailedStatuses) {
-          context.log.info(`automerge not possible: failed status pr ${pr.id}`);
-          repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
-          return false;
-        }
+      if (await hasFailedStatusOrChecks(context, repoContext, pr)) {
+        context.log.info(`automerge not possible: renovate with failed status pr ${pr.id}`);
+        repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
+        return false;
+      } else if (pr.mergeable_state === 'blocked') {
+        // waiting for reschedule in status (pr-handler/status.ts)
+        return false;
       }
 
       context.log.info(`automerge not possible: renovate with mergeable_state=${pr.mergeable_state}`);
       return false;
+    }
+
+    if (pr.mergeable_state === 'blocked') {
+      if (await hasFailedStatusOrChecks(context, repoContext, pr)) {
+        context.log.info(`automerge not possible: failed status pr ${pr.id}`);
+        repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
+        return false;
+      } else {
+        // waiting for reschedule in status (pr-handler/status.ts)
+        return false;
+      }
     }
 
     if (pr.mergeable_state === 'behind') {
