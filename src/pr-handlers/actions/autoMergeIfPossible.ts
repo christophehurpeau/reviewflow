@@ -17,11 +17,16 @@ const hasFailedStatusOrChecks = async (
     }),
   );
 
-  const hasFailedChecks = checks.data.check_runs.some(
+  const failedChecks = checks.data.check_runs.filter(
     (check) => check.conclusion === 'failure',
   );
 
-  if (hasFailedChecks) return true;
+  if (failedChecks.length !== 0) {
+    context.log.info(`automerge not possible: failed check pr ${pr.id}`, {
+      checks: failedChecks.map((check) => check.name),
+    });
+    return true;
+  }
 
   const statuses = await context.github.repos.listStatusesForRef(
     context.repo({
@@ -30,11 +35,18 @@ const hasFailedStatusOrChecks = async (
     }),
   );
 
-  const hasFailedStatuses = statuses.data.some(
+  const failedStatuses = statuses.data.filter(
     (status) => status.state === 'failure',
   );
 
-  return hasFailedStatuses;
+  if (failedStatuses.length !== 0) {
+    context.log.info(`automerge not possible: failed status pr ${pr.id}`, {
+      statuses: failedStatuses.map((status) => status.context),
+    });
+    return true;
+  }
+
+  return false;
 };
 
 export const autoMergeIfPossible = async (
@@ -132,9 +144,6 @@ export const autoMergeIfPossible = async (
       }
 
       if (await hasFailedStatusOrChecks(context, repoContext, pr)) {
-        context.log.info(
-          `automerge not possible: renovate with failed status pr ${pr.id}`,
-        );
         repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
         return false;
       } else if (pr.mergeable_state === 'blocked') {
@@ -152,7 +161,6 @@ export const autoMergeIfPossible = async (
 
     if (pr.mergeable_state === 'blocked') {
       if (await hasFailedStatusOrChecks(context, repoContext, pr)) {
-        context.log.info(`automerge not possible: failed status pr ${pr.id}`);
         repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
         return false;
       } else {
