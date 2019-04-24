@@ -783,7 +783,7 @@ const autoAssignPRToCreator = async (context, repoContext) => {
   }));
 };
 
-const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*(ONK-\d+)\s*]?\s*$/, ' $1').replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `).replace(/^Revert "([^"]+)"$/, 'revert: $1') // eslint-disable-next-line unicorn/no-unsafe-regex
+const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*ONK[- ](\d+)\s*]?\s*$/i, ' ONK-$1').replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `).replace(/^Revert "([^"]+)"$/, 'revert: $1') // eslint-disable-next-line unicorn/no-unsafe-regex
 .replace(/^(revert:.*)(\s+\(#\d+\))$/, '$1');
 
 const toMarkdownOptions = options => {
