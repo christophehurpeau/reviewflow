@@ -37,13 +37,22 @@
     }
   },
   "lint-staged": {
-    "yarn.lock": ["yarn-update-lock", "git add"],
+    "yarn.lock": [
+      "yarn-update-lock",
+      "git add"
+    ],
     "{package.json,.eslintrc.json}": [
       "prettier --parser json --write",
       "git add"
     ],
-    "src/**/*.json": ["prettier --parser json --write", "git add"],
-    "src/**/*.{js,ts}": ["eslint --fix --quiet", "git add"]
+    "src/**/*.json": [
+      "prettier --parser json --write",
+      "git add"
+    ],
+    "src/**/*.{js,ts}": [
+      "eslint --fix --quiet",
+      "git add"
+    ]
   },
   "prettier": {
     "trailingComma": "all",
@@ -51,7 +60,9 @@
     "arrowParens": "always"
   },
   "commitlint": {
-    "extends": ["@commitlint/config-conventional"]
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   },
   "jest": {
     "cacheDirectory": "./node_modules/.cache/jest",
@@ -59,8 +70,13 @@
       "<rootDir>/src/**/__tests__/**/*.ts",
       "<rootDir>/src/**/*.test.ts"
     ],
-    "collectCoverageFrom": ["src/**/*.ts"],
-    "moduleFileExtensions": ["ts", "js"],
+    "collectCoverageFrom": [
+      "src/**/*.ts"
+    ],
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
     "transform": {
       "^.+\\.ts$": "babel-jest"
     }
@@ -68,6 +84,7 @@
   "dependencies": {
     "@slack/web-api": "5.0.0",
     "dotenv": "^7.0.0",
+    "liwi-mongo": "^4.2.0",
     "lock": "^1.1.0",
     "probot": "9.2.0",
     "probot-config": "^1.0.1"
