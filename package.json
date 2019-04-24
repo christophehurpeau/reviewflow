@@ -33,7 +33,7 @@
       "post-checkout": "yarnhook",
       "post-merge": "yarnhook",
       "post-rewrite": "yarnhook",
-      "pre-commit": "lint-staged"
+      "pre-commit": "lint-staged && yarn test"
     }
   },
   "lint-staged": {
