@@ -281,14 +281,29 @@ const hasFailedStatusOrChecks = async (context, repoContext, pr) => {
     ref: pr.head.sha,
     per_page: 100
   }));
-  const hasFailedChecks = checks.data.check_runs.some(check => check.conclusion === 'failure');
-  if (hasFailedChecks) return true;
+  const failedChecks = checks.data.check_runs.filter(check => check.conclusion === 'failure');
+
+  if (failedChecks.length !== 0) {
+    context.log.info(`automerge not possible: failed check pr ${pr.id}`, {
+      checks: failedChecks.map(check => check.name)
+    });
+    return true;
+  }
+
   const statuses = await context.github.repos.listStatusesForRef(context.repo({
     ref: pr.head.sha,
     per_page: 100
   }));
-  const hasFailedStatuses = statuses.data.some(status => status.state === 'failure');
-  return hasFailedStatuses;
+  const failedStatuses = statuses.data.filter(status => status.state === 'failure');
+
+  if (failedStatuses.length !== 0) {
+    context.log.info(`automerge not possible: failed status pr ${pr.id}`, {
+      statuses: failedStatuses.map(status => status.context)
+    });
+    return true;
+  }
+
+  return false;
 };
 
 const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pull_request, prLabels = pr.labels) => {
@@ -358,7 +373,6 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
       }
 
       if (await hasFailedStatusOrChecks(context, repoContext, pr)) {
-        context.log.info(`automerge not possible: renovate with failed status pr ${pr.id}`);
         repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
         return false;
       } else if (pr.mergeable_state === 'blocked') {
@@ -372,7 +386,6 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
 
     if (pr.mergeable_state === 'blocked') {
       if (await hasFailedStatusOrChecks(context, repoContext, pr)) {
-        context.log.info(`automerge not possible: failed status pr ${pr.id}`);
         repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
         return false;
       } else {
