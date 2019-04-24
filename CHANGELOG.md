@@ -1,3 +1,17 @@
+# [1.12.0](https://github.com/christophehurpeau/reviewflow/compare/v1.11.0...v1.12.0) (2019-04-24)
+
+
+### Bug Fixes
+
+* test ([7437b66](https://github.com/christophehurpeau/reviewflow/commit/7437b66))
+
+
+### Features
+
+* support space and lowercase in ONK ([bbdbf59](https://github.com/christophehurpeau/reviewflow/commit/bbdbf59))
+
+
+
 # [1.11.0](https://github.com/christophehurpeau/reviewflow/compare/v1.10.1...v1.11.0) (2019-04-24)
 
 
