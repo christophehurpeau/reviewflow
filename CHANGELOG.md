@@ -1,3 +1,12 @@
+# [1.11.0](https://github.com/christophehurpeau/reviewflow/compare/v1.10.1...v1.11.0) (2019-04-24)
+
+
+### Features
+
+* add more log when automerged removed from status/check failed ([2020480](https://github.com/christophehurpeau/reviewflow/commit/2020480))
+
+
+
 ## [1.10.1](https://github.com/christophehurpeau/reviewflow/compare/v1.10.0...v1.10.1) (2019-04-23)
 
 
