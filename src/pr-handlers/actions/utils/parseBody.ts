@@ -1,5 +1,8 @@
 import { Options, optionsRegexps } from './prOptions';
 
+const commentStart = '<!-- do not edit after this -->';
+const commentEnd = "<!-- end - don't add anything after this -->";
+
 const regexpCols = /^(.*)(<!---? do not edit after this -?-->.*<!---? end - don't add anything after this -?-->).*$/is;
 const regexpReviewflowCol = /^(\s*<!---? do not edit after this -?--><\/td><td [^>]*>)\s*(.*)\s*(<\/td><\/tr><\/table>\s*<!---? end - don't add anything after this -?-->)\s*$/is;
 
@@ -27,7 +30,14 @@ export const parseBody = (
   if (!match) return null;
   const [, content, reviewFlowCol] = match;
   const reviewFlowColMatch = regexpReviewflowCol.exec(reviewFlowCol);
-  if (!reviewFlowColMatch) return null;
+  if (!reviewFlowColMatch) {
+    return {
+      content,
+      reviewflowContentColPrefix: commentStart,
+      reviewflowContentColSuffix: commentEnd,
+      options: parseOptions(reviewFlowCol, defaultConfig),
+    };
+  }
   const [
     ,
     reviewflowContentColPrefix,

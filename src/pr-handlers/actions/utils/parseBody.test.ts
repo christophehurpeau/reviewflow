@@ -1,17 +1,37 @@
 import { parseBody } from './parseBody';
-import initial from './mocks/body/initial';
+import initialSimple from './mocks/body/initial-simple';
+import initialTable from './mocks/body/initial-table';
 
-it('should parse default description', () => {
-  const defaultConfig = {
-    featureBranch: false,
-    deleteAfterMerge: true,
-  };
+describe('simple', () => {
+  it('should parse default description', () => {
+    const defaultConfig = {
+      featureBranch: false,
+      deleteAfterMerge: true,
+    };
 
-  const parsed = parseBody(initial, defaultConfig);
+    const parsed = parseBody(initialSimple, defaultConfig);
 
-  expect(parsed).not.toBeFalsy();
-  expect(parsed && parsed.options).toEqual({
-    featureBranch: false,
-    deleteAfterMerge: true,
+    expect(parsed).not.toBeFalsy();
+    expect(parsed && parsed.options).toEqual({
+      featureBranch: false,
+      deleteAfterMerge: true,
+    });
+  });
+});
+
+describe('table', () => {
+  it('should parse default description', () => {
+    const defaultConfig = {
+      featureBranch: false,
+      deleteAfterMerge: true,
+    };
+
+    const parsed = parseBody(initialTable, defaultConfig);
+
+    expect(parsed).not.toBeFalsy();
+    expect(parsed && parsed.options).toEqual({
+      featureBranch: false,
+      deleteAfterMerge: true,
+    });
   });
 });

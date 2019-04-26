@@ -1,11 +1,29 @@
 import { updateBody } from './updateBody';
-import initial from './mocks/body/initial';
-import initialAfterEdit from './mocks/body/initialAfterEdit';
+import initialSimple from './mocks/body/initial-simple';
+import initialAfterEditSimple from './mocks/body/initialAfterEdit-simple';
+import initialTable from './mocks/body/initial-table';
+import initialAfterEditTable from './mocks/body/initialAfterEdit-table';
 
-it('should update initial description', () => {
-  const defaultConfig = {
-    featureBranch: false,
-    deleteAfterMerge: true,
-  };
-  expect(updateBody(initial, defaultConfig)).toEqual(initialAfterEdit);
+describe('simple', () => {
+  it('should update initial description', () => {
+    const defaultConfig = {
+      featureBranch: false,
+      deleteAfterMerge: true,
+    };
+    expect(updateBody(initialSimple, defaultConfig)).toEqual(
+      initialAfterEditSimple,
+    );
+  });
+});
+
+describe('table', () => {
+  it('should update initial description', () => {
+    const defaultConfig = {
+      featureBranch: false,
+      deleteAfterMerge: true,
+    };
+    expect(updateBody(initialTable, defaultConfig)).toEqual(
+      initialAfterEditTable,
+    );
+  });
 });
