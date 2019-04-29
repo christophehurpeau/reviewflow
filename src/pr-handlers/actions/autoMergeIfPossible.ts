@@ -28,21 +28,22 @@ const hasFailedStatusOrChecks = async (
     return true;
   }
 
-  const statuses = await context.github.repos.listStatusesForRef(
+  const combinedStatus = await context.github.repos.getCombinedStatusForRef(
     context.repo({
       ref: pr.head.sha,
       per_page: 100,
     }),
   );
 
-  const failedStatuses = statuses.data.filter(
-    (status) => status.state === 'failure',
-  );
+  if (combinedStatus.data.state === 'failure') {
+    const failedStatuses = combinedStatus.data.statuses.filter(
+      (status) => status.state === 'failure' || status.state === 'error',
+    );
 
-  if (failedStatuses.length !== 0) {
     context.log.info(`automerge not possible: failed status pr ${pr.id}`, {
       statuses: failedStatuses.map((status) => status.context),
     });
+
     return true;
   }
 
