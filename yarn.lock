@@ -873,10 +873,10 @@
   resolved "https://registry.yarnpkg.com/@slack/types/-/types-1.0.0.tgz#1dc7a63b293c4911e474197585c3feda012df17a"
   integrity sha512-IktC4uD/CHfLQcSitKSmjmRu4a6+Nf/KzfS6dTgUlDzENhh26l8aESKAuIpvYD5VOOE6NxDDIAdPJOXBvUGxlg==
 
-"@slack/web-api@5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@slack/web-api/-/web-api-5.0.0.tgz#a2f7c25ba7a9c32cc51530b8a40e75f35113ed0a"
-  integrity sha512-DXCYl665+ugXG194/c5h7ZLCuEdLqCVJ8Y1WOMco+wr9ZaVbVgaL8l1ns4zQBZddexpDcYpwvuM4GbkunRiYIA==
+"@slack/web-api@5.0.1":
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/@slack/web-api/-/web-api-5.0.1.tgz#f46ecd2dd8b8104144082c079a4f53ec7737f327"
+  integrity sha512-L2Nc8P+NjXH1yqnsNhqxsrbpW3Qv+//9X5PQqcM3bctDmvmwTuhuM1X208RVD2avhnC89aghY5PssyaayWj5sA==
   dependencies:
     "@slack/logger" "^1.0.0"
     "@slack/types" "^1.0.0"
