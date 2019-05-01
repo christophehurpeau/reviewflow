@@ -87,7 +87,7 @@
     "jest": "24.7.1",
     "jest-junit-reporter": "1.1.0",
     "lint-staged": "8.1.5",
-    "nodemon": "1.18.10",
+    "nodemon": "1.19.0",
     "pob-babel": "23.14.1",
     "pob-lcov-reporter": "1.2.0",
     "pob-release": "4.13.0",
