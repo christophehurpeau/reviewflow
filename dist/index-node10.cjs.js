@@ -51,16 +51,20 @@ const config = {
   },
   groups: {
     dev: {
+      /* back */
       abarreir: `alexandre${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       arthurflachs: `arthur${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      skyline42sh: `alexandre.charbonnier${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      LentnerStefan: `stefan${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      HugoGarrido: `hugo${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       CorentinAndre: `corentin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       rigma: `romain${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      Mxime: `maxime${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       damienorny: `damien.orny${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      'Thierry-girod': `thierry${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      darame07: `kevin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+
+      /* front */
+      christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      HugoGarrido: `hugo${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      LentnerStefan: `stefan${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      Mxime: `maxime${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       tilap: `julien.lavinh${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       '63m29': `valerian${process.env.ORNIKAR_EMAIL_DOMAIN}`
     },
