@@ -169,7 +169,8 @@ const config$1 = {
   groups: {
     dev: {
       christophehurpeau: 'christophe@hurpeau.com',
-      'chris-reviewflow': 'christophe.hurpeau+reviewflow@gmail.com'
+      'chris-reviewflow': 'christophe.hurpeau+reviewflow@gmail.com',
+      tilap: 'jlavinh@gmail.com'
     }
   },
   waitForGroups: {
@@ -203,10 +204,6 @@ const config$1 = {
       /* auto merge */
       'merge/automerge': {
         name: ':soon: automerge',
-        color: '#64DD17'
-      },
-      'merge/delete-branch': {
-        name: ':recycle: delete branch after merge',
         color: '#64DD17'
       }
     },
@@ -305,13 +302,13 @@ const hasFailedStatusOrChecks = async (context, repoContext, pr) => {
     return true;
   }
 
-  const statuses = await context.github.repos.listStatusesForRef(context.repo({
+  const combinedStatus = await context.github.repos.getCombinedStatusForRef(context.repo({
     ref: pr.head.sha,
     per_page: 100
   }));
-  const failedStatuses = statuses.data.filter(status => status.state === 'failure');
 
-  if (failedStatuses.length !== 0) {
+  if (combinedStatus.data.state === 'failure') {
+    const failedStatuses = combinedStatus.data.statuses.filter(status => status.state === 'failure' || status.state === 'error');
     context.log.info(`automerge not possible: failed status pr ${pr.id}`, {
       statuses: failedStatuses.map(status => status.context)
     });
@@ -749,14 +746,20 @@ async function initRepoContext(context, config) {
 const repoContextsPromise = new Map();
 const repoContexts = new Map();
 const obtainRepoContext = context => {
-  const owner = context.payload.repository.owner;
+  const repo = context.payload.repository;
+
+  if (repo.name === 'reviewflow-test' && process.env.NAME !== 'reviewflow-test') {
+    return null;
+  }
+
+  const owner = repo.owner;
 
   if (!teamConfigs[owner.login]) {
     console.warn(owner.login, Object.keys(teamConfigs));
     return null;
   }
 
-  const key = context.payload.repository.id;
+  const key = repo.id;
   const existingRepoContext = repoContexts.get(key);
   if (existingRepoContext) return existingRepoContext;
   const existingPromise = repoContextsPromise.get(key);
@@ -1080,15 +1083,15 @@ const updateReviewStatus = async (context, repoContext, reviewGroup, {
   return prLabels;
 };
 
-const openedHandler = (app => {
+function opened(app) {
   app.on('pull_request.opened', createHandlerPullRequestChange(async (context, repoContext) => {
     await Promise.all([autoAssignPRToCreator(context, repoContext), editOpenedPR(context, repoContext), context.payload.pull_request.head.ref.startsWith('renovate/') ? Promise.resolve(undefined) : updateReviewStatus(context, repoContext, 'dev', {
       add: ['needsReview']
     })]);
   }));
-});
+}
 
-const closedHandler = (app => {
+function closed(app) {
   app.on('pull_request.closed', createHandlerPullRequestChange(async (context, repoContext) => {
     const repo = context.payload.repository;
     const pr = context.payload.pull_request;
@@ -1108,9 +1111,9 @@ const closedHandler = (app => {
       })]);
     }
   }));
-});
+}
 
-const reviewRequestedHandler = (app => {
+function reviewRequested(app) {
   app.on('pull_request.review_requested', createHandlerPullRequestChange(async (context, repoContext) => {
     const sender = context.payload.sender; // ignore if sender is self (dismissed review rerequest review)
 
@@ -1143,9 +1146,9 @@ const reviewRequestedHandler = (app => {
       repoContext.slack.postMessage(reviewer.login, `:eyes: ${repoContext.slack.mention(sender.login)} requests your review on ${pr.html_url} !\n> ${pr.title}`);
     }
   }));
-});
+}
 
-const reviewRequestRemovedHandler = (app => {
+function reviewRequestRemoved(app) {
   app.on('pull_request.review_request_removed', createHandlerPullRequestChange(async (context, repoContext) => {
     const sender = context.payload.sender;
     const pr = context.payload.pull_request;
@@ -1179,9 +1182,9 @@ const reviewRequestRemovedHandler = (app => {
       repoContext.slack.postMessage(reviewer.login, `:skull_and_crossbones: ${repoContext.slack.mention(sender.login)} removed the request for your review on ${pr.html_url}`);
     }
   }));
-});
+}
 
-const reviewSubmittedHandler = (app => {
+function reviewSubmitted(app) {
   app.on('pull_request_review.submitted', createHandlerPullRequestChange(async (context, repoContext) => {
     const pr = context.payload.pull_request;
     const {
@@ -1232,9 +1235,9 @@ const reviewSubmittedHandler = (app => {
 
     repoContext.slack.postMessage(pr.user.login, message);
   }));
-});
+}
 
-const reviewDismissedHandler = (app => {
+function reviewDismissed(app) {
   app.on('pull_request_review.dismissed', createHandlerPullRequestChange(async (context, repoContext) => {
     const sender = context.payload.sender;
     const pr = context.payload.pull_request;
@@ -1262,25 +1265,25 @@ const reviewDismissedHandler = (app => {
       }
     }
   }));
-});
+}
 
-const synchromizeHandler = (app => {
+function synchronize(app) {
   app.on('pull_request.synchronize', createHandlerPullRequestChange(async (context, repoContext) => {
     // old and new sha
     // const { before, after } = context.payload;
     await Promise.all([editOpenedPR(context, repoContext), // addStatusCheckToLatestCommit
     updateStatusCheckFromLabels(context, repoContext)]);
   }));
-});
+}
 
-const editedHandler = (app => {
+function edited(app) {
   app.on('pull_request.edited', createHandlerPullRequestChange(async (context, repoContext) => {
     await editOpenedPR(context, repoContext);
     await autoMergeIfPossible(context, repoContext);
   }));
-});
+}
 
-const labelsChanged = (app => {
+function labelsChanged(app) {
   app.on(['pull_request.labeled', 'pull_request.unlabeled'], async context => {
     const sender = context.payload.sender;
     if (sender.type === 'Bot') return;
@@ -1308,9 +1311,9 @@ const labelsChanged = (app => {
       }
     });
   });
-});
+}
 
-const checkrunCompleted = (app => {
+function checkrunCompleted(app) {
   app.on('check_run.completed', createHandlerPullRequestsChange(context => context.payload.check_run.pull_requests, async (context, repoContext) => {
     await Promise.all(context.payload.check_run.pull_requests.map(pr => context.github.pulls.get(context.repo({
       number: pr.number
@@ -1318,9 +1321,9 @@ const checkrunCompleted = (app => {
       return autoMergeIfPossible(context, repoContext, prResult.data);
     })));
   }));
-});
+}
 
-const checksuiteCompleted = (app => {
+function checksuiteCompleted(app) {
   app.on('check_suite.completed', createHandlerPullRequestsChange(context => context.payload.check_suite.pull_requests, async (context, repoContext) => {
     await Promise.all(context.payload.check_suite.pull_requests.map(pr => context.github.pulls.get(context.repo({
       number: pr.number
@@ -1328,14 +1331,14 @@ const checksuiteCompleted = (app => {
       return autoMergeIfPossible(context, repoContext, prResult.data);
     })));
   }));
-});
+}
 
 const isSameBranch = (context, lockedPr) => {
   if (!lockedPr) return false;
-  return context.payload.branches.find(b => b.name === lockedPr.branch);
+  return !!context.payload.branches.find(b => b.name === lockedPr.branch);
 };
 
-const status = (app => {
+function status(app) {
   app.on('status', createHandlerPullRequestsChange((context, repoContext) => {
     const lockedPr = repoContext.getMergeLockedPr();
     if (!lockedPr) return [];
@@ -1352,7 +1355,7 @@ const status = (app => {
       repoContext.reschedule(context, lockedPr);
     }
   }));
-});
+}
 
 if (!process.env.NAME) process.env.NAME = 'reviewflow'; // const getConfig = require('probot-config')
 // const { MongoClient } = require('mongodb');
@@ -1362,19 +1365,19 @@ if (!process.env.NAME) process.env.NAME = 'reviewflow'; // const getConfig = req
 // eslint-disable-next-line import/no-commonjs
 
 probot.Probot.run(app => {
-  openedHandler(app);
-  closedHandler(app);
-  reviewRequestedHandler(app);
-  reviewRequestRemovedHandler(app); // app.on('pull_request.closed', async context => {
+  opened(app);
+  closed(app);
+  reviewRequested(app);
+  reviewRequestRemoved(app); // app.on('pull_request.closed', async context => {
   // });
   // app.on('pull_request.reopened', async context => {
   // });
 
-  reviewSubmittedHandler(app);
-  reviewDismissedHandler(app);
+  reviewSubmitted(app);
+  reviewDismissed(app);
   labelsChanged(app);
-  synchromizeHandler(app);
-  editedHandler(app);
+  synchronize(app);
+  edited(app);
   checkrunCompleted(app);
   checksuiteCompleted(app);
   status(app);
