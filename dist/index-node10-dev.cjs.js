@@ -352,7 +352,7 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
 
   if (pr.mergeable === undefined) {
     const prResult = await context.github.pulls.get(context.repo({
-      number: pr.number
+      pull_number: pr.number
     }));
     pr = prResult.data;
   }
@@ -407,12 +407,15 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
     }
 
     if (pr.mergeable_state === 'behind') {
-      context.log.info('automerge not possible: update branch');
+      context.log.info('automerge not possible: update branch', {
+        head: pr.head.ref,
+        base: pr.base.ref
+      });
       await context.github.repos.merge({
         owner: pr.head.repo.owner.login,
         repo: pr.head.repo.name,
-        base: pr.head.name,
-        head: pr.head.name
+        head: pr.base.ref,
+        base: pr.head.ref
       });
       return false;
     }
@@ -429,7 +432,7 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
       merge_method: parsedBody && parsedBody.options.featureBranch ? 'merge' : 'squash',
       owner: pr.head.repo.owner.login,
       repo: pr.head.repo.name,
-      number: pr.number,
+      pull_number: pr.number,
       commit_title: `${pr.title} (#${pr.number})`,
       commit_message: '' // TODO add BC
 
@@ -694,7 +697,7 @@ async function initRepoContext(context, config) {
       lockPROrPRS('reschedule', () => {
         return lockPROrPRS(String(pr.id), async () => {
           const prResult = await context.github.pulls.get(context.repo({
-            number: pr.number
+            pull_number: pr.number
           }));
           await autoMergeIfPossible(context, repoContext, prResult.data);
         });

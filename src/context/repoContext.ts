@@ -136,7 +136,7 @@ async function initRepoContext<GroupNames extends string>(
         return lockPROrPRS(String(pr.id), async () => {
           const prResult = await context.github.pulls.get(
             context.repo({
-              number: pr.number,
+              pull_number: pr.number,
             }),
           );
           await autoMergeIfPossible(context, repoContext, prResult.data);

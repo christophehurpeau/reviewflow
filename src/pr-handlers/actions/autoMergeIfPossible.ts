@@ -92,7 +92,7 @@ export const autoMergeIfPossible = async (
   if (pr.mergeable === undefined) {
     const prResult = await context.github.pulls.get(
       context.repo({
-        number: pr.number,
+        pull_number: pr.number,
       }),
     );
     pr = prResult.data;
@@ -171,13 +171,16 @@ export const autoMergeIfPossible = async (
     }
 
     if (pr.mergeable_state === 'behind') {
-      context.log.info('automerge not possible: update branch');
+      context.log.info('automerge not possible: update branch', {
+        head: pr.head.ref,
+        base: pr.base.ref,
+      });
 
       await context.github.repos.merge({
         owner: pr.head.repo.owner.login,
         repo: pr.head.repo.name,
-        base: pr.head.name,
-        head: pr.head.name,
+        head: pr.base.ref,
+        base: pr.head.ref,
       });
 
       return false;
@@ -200,7 +203,7 @@ export const autoMergeIfPossible = async (
         parsedBody && parsedBody.options.featureBranch ? 'merge' : 'squash',
       owner: pr.head.repo.owner.login,
       repo: pr.head.repo.name,
-      number: pr.number,
+      pull_number: pr.number,
       commit_title: `${pr.title} (#${pr.number})`,
       commit_message: '', // TODO add BC
     });
