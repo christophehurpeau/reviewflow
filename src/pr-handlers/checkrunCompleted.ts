@@ -2,7 +2,7 @@ import { Application } from 'probot';
 import { createHandlerPullRequestsChange } from './utils';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 
-export default (app: Application) => {
+export default function checkrunCompleted(app: Application): void {
   app.on(
     'check_run.completed',
     createHandlerPullRequestsChange(
@@ -24,4 +24,4 @@ export default (app: Application) => {
       },
     ),
   );
-};
+}

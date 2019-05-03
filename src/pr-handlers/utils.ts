@@ -41,9 +41,12 @@ export const createHandlerPullRequestChange = <
 };
 
 export const createHandlerPullRequestsChange = <T>(
-  getPullRequests: (context: Context<T>, repoContext: RepoContext) => any[],
+  getPullRequests: (
+    context: Context<T>,
+    repoContext: RepoContext,
+  ) => { id: string | number }[],
   callback: CallbackContextAndRepoContext<T>,
-) => async (context: Context<T>) => {
+) => async (context: Context<T>): Promise<void> => {
   const repoContext = await obtainRepoContext(context);
   if (!repoContext) return;
 

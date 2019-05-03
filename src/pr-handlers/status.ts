@@ -6,16 +6,16 @@ import { createHandlerPullRequestsChange } from './utils';
 const isSameBranch = (
   context: Context<Webhooks.WebhookPayloadStatus>,
   lockedPr: LockedMergePr,
-) => {
+): boolean => {
   if (!lockedPr) return false;
-  return context.payload.branches.find((b) => b.name === lockedPr.branch);
+  return !!context.payload.branches.find((b) => b.name === lockedPr.branch);
 };
 
-export default (app: Application) => {
+export default function status(app: Application): void {
   app.on(
     'status',
     createHandlerPullRequestsChange(
-      (context, repoContext) => {
+      (context, repoContext): LockedMergePr[] => {
         const lockedPr = repoContext.getMergeLockedPr();
         if (!lockedPr) return [];
 
@@ -25,7 +25,7 @@ export default (app: Application) => {
 
         return [];
       },
-      (context, repoContext) => {
+      (context, repoContext): void => {
         const lockedPr = repoContext.getMergeLockedPr();
         // check if changed
         if (isSameBranch(context, lockedPr)) {
@@ -34,4 +34,4 @@ export default (app: Application) => {
       },
     ),
   );
-};
+}

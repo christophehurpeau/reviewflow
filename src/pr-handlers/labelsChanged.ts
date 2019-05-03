@@ -3,7 +3,7 @@ import { handlerPullRequestChange } from './utils';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateStatusCheckFromLabels } from './actions/updateStatusCheckFromLabels';
 
-export default (app: Application) => {
+export default function labelsChanged(app: Application): void {
   app.on(
     ['pull_request.labeled', 'pull_request.unlabeled'],
     async (context) => {
@@ -38,4 +38,4 @@ export default (app: Application) => {
       });
     },
   );
-};
+}
