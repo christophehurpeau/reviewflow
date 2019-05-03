@@ -26,6 +26,7 @@ const config: Config<'dev'> = {
     dev: {
       christophehurpeau: 'christophe@hurpeau.com',
       'chris-reviewflow': 'christophe.hurpeau+reviewflow@gmail.com',
+      tilap: 'jlavinh@gmail.com',
     },
   },
   waitForGroups: {
