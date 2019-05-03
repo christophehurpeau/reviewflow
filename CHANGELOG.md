@@ -1,3 +1,12 @@
+## [1.15.1](https://github.com/christophehurpeau/reviewflow/compare/v1.15.0...v1.15.1) (2019-05-03)
+
+
+### Bug Fixes
+
+* auto merge when need to update branch ([f7809df](https://github.com/christophehurpeau/reviewflow/commit/f7809df))
+
+
+
 # [1.15.0](https://github.com/christophehurpeau/reviewflow/compare/v1.14.0...v1.15.0) (2019-05-03)
 
 
