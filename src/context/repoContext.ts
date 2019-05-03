@@ -196,12 +196,19 @@ const repoContexts = new Map<number, RepoContext>();
 export const obtainRepoContext = (
   context: Context<any>,
 ): Promise<RepoContext> | RepoContext | null => {
-  const owner = context.payload.repository.owner;
+  const repo = context.payload.repository;
+  if (
+    repo.name === 'reviewflow-test' &&
+    process.env.NAME !== 'reviewflow-test'
+  ) {
+    return null;
+  }
+  const owner = repo.owner;
   if (!teamConfigs[owner.login]) {
     console.warn(owner.login, Object.keys(teamConfigs));
     return null;
   }
-  const key = context.payload.repository.id;
+  const key = repo.id;
 
   const existingRepoContext = repoContexts.get(key);
   if (existingRepoContext) return existingRepoContext;
