@@ -62,10 +62,6 @@ const config: Config<'dev'> = {
         name: ':soon: automerge',
         color: '#64DD17',
       },
-      'merge/delete-branch': {
-        name: ':recycle: delete branch after merge',
-        color: '#64DD17',
-      },
     },
 
     review: {
