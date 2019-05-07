@@ -909,14 +909,23 @@ const editOpenedPR = async (context, repoContext) => {
     description: errorRule ? errorRule.error.title : '✓ Your PR is valid'
   }))].filter(ExcludesFalsy$3));
   const body = updateBody(pr.body, repoContext.config.prDefaultOptions, statuses.filter(status => status.info && status.info.inBody).map(status => status.info));
+  const hasDiffInTitle = pr.title !== title;
+  const hasDiffInBody = pr.body !== body;
 
-  if (pr.title !== title || pr.body !== body) {
-    pr.title = title;
-    pr.body = body;
-    await context.github.issues.update(context.issue({
-      title,
-      body
-    }));
+  if (hasDiffInTitle || hasDiffInBody) {
+    const update = {};
+
+    if (hasDiffInTitle) {
+      update.title = title;
+      pr.title = title;
+    }
+
+    if (hasDiffInBody) {
+      update.body = body;
+      pr.body = body;
+    }
+
+    await context.github.issues.update(context.issue(update));
   }
 };
 
