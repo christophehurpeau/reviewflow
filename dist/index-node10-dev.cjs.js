@@ -1275,7 +1275,8 @@ function synchronize(app) {
     // old and new sha
     // const { before, after } = context.payload;
     await Promise.all([editOpenedPR(context, repoContext), // addStatusCheckToLatestCommit
-    updateStatusCheckFromLabels(context, repoContext)]);
+    updateStatusCheckFromLabels(context, repoContext), // call autoMergeIfPossible to re-add to the queue when push is fixed
+    autoMergeIfPossible(context, repoContext)]);
   }));
 }
 
