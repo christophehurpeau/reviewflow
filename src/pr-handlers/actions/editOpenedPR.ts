@@ -126,14 +126,19 @@ export const editOpenedPR = async (
       .map((status) => status.info) as StatusInfo[],
   );
 
-  if (pr.title !== title || pr.body !== body) {
-    pr.title = title;
-    pr.body = body;
-    await context.github.issues.update(
-      context.issue({
-        title,
-        body,
-      }),
-    );
+  const hasDiffInTitle = pr.title !== title;
+  const hasDiffInBody = pr.body !== body;
+  if (hasDiffInTitle || hasDiffInBody) {
+    const update: Partial<Record<'title' | 'body', string>> = {};
+    if (hasDiffInTitle) {
+      update.title = title;
+      pr.title = title;
+    }
+    if (hasDiffInBody) {
+      update.body = body;
+      pr.body = body;
+    }
+
+    await context.github.issues.update(context.issue(update));
   }
 };
