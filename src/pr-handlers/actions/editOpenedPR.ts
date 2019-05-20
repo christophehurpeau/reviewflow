@@ -53,7 +53,7 @@ export const editOpenedPR = async (
     if (rule.status && rule.statusInfoFromMatch) {
       statuses.push({
         name: rule.status,
-        info: rule.statusInfoFromMatch(match, { bot: isPrFromBot }),
+        info: rule.statusInfoFromMatch(match),
       });
       return false;
     }
