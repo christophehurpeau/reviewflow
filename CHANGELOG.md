@@ -1,3 +1,12 @@
+# [1.17.0](https://github.com/christophehurpeau/reviewflow/compare/v1.16.0...v1.17.0) (2019-05-20)
+
+
+### Features
+
+* pr from bot jira-issue ([f2441fd](https://github.com/christophehurpeau/reviewflow/commit/f2441fd))
+
+
+
 # [1.16.0](https://github.com/christophehurpeau/reviewflow/compare/v1.15.2...v1.16.0) (2019-05-20)
 
 
