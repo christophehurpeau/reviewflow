@@ -993,7 +993,7 @@ const updateStatusCheckFromLabels = (context, repoContext, pr = context.payload.
   }
 
   if (!repoContext.hasApprovesReview(labels)) {
-    if (repoContext.config.requiresReviewRequest) {
+    if (repoContext.config.requiresReviewRequest && !pr.head.ref.startsWith('renovate/')) {
       return createFailedStatusCheck(context, pr, 'Awaiting review... Perhaps request someone ?');
     }
   } // if (

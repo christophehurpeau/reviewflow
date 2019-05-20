@@ -99,7 +99,10 @@ export const updateStatusCheckFromLabels = (
   }
 
   if (!repoContext.hasApprovesReview(labels)) {
-    if (repoContext.config.requiresReviewRequest) {
+    if (
+      repoContext.config.requiresReviewRequest &&
+      !pr.head.ref.startsWith('renovate/')
+    ) {
       return createFailedStatusCheck(
         context,
         pr,
