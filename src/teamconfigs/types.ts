@@ -15,13 +15,20 @@ export interface Group {
   [userName: string]: string;
 }
 
+export interface StatusInfoFromMatchOptions {
+  bot: boolean;
+}
+
 export interface ParsePRRule {
   bot?: false;
   regExp: RegExp;
   error: StatusError;
 
   status?: string;
-  statusInfoFromMatch?: (match: RegExpMatchArray) => StatusInfo;
+  statusInfoFromMatch?: (
+    match: RegExpMatchArray,
+    options: StatusInfoFromMatchOptions,
+  ) => StatusInfo;
 }
 
 export interface ParsePR {

@@ -22,14 +22,19 @@ const config: Config<'dev' | 'design'> = {
         },
       },
       {
-        bot: false,
         regExp: /\s(ONK-(\d+)|\[no issue])$/,
         error: {
           title: 'Title does not have JIRA issue',
           summary: 'The PR title should end with ONK-0000, or [no issue]',
         },
         status: 'jira-issue',
-        statusInfoFromMatch: (match) => {
+        statusInfoFromMatch: (match, { bot }) => {
+          if (bot) {
+            return {
+              title: 'PR from bot',
+              summary: '',
+            };
+          }
           const issue = match[1];
           if (issue === '[no issue]') {
             return {
