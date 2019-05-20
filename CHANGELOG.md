@@ -1,3 +1,12 @@
+# [1.16.0](https://github.com/christophehurpeau/reviewflow/compare/v1.15.2...v1.16.0) (2019-05-20)
+
+
+### Features
+
+* optional review when pr came from renovate ([0561ec3](https://github.com/christophehurpeau/reviewflow/commit/0561ec3))
+
+
+
 ## [1.15.2](https://github.com/christophehurpeau/reviewflow/compare/v1.15.1...v1.15.2) (2019-05-07)
 
 
