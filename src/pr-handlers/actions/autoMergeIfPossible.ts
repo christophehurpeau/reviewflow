@@ -65,7 +65,7 @@ export const autoMergeIfPossible = async (
     branch: pr.head.ref,
   });
 
-  if (!prLabels.find((l: LabelResponse) => l.id === autoMergeLabel.id)) {
+  if (!prLabels.find((l): boolean => l.id === autoMergeLabel.id)) {
     context.log.debug('automerge not possible: no label');
     repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
     return false;

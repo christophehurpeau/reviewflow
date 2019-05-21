@@ -1,9 +1,31 @@
-import { Application } from 'probot';
-import { LabelResponse } from '../context/initRepoLabels';
+import Webhooks from '@octokit/webhooks';
+import { Application, Context } from 'probot';
+import { RepoContext } from '../context/repoContext';
 import { createHandlerPullRequestChange } from './utils';
 import { autoAssignPRToCreator } from './actions/autoAssignPRToCreator';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { updateReviewStatus } from './actions/updateReviewStatus';
+import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
+
+const autoApproveAndAutoMerge = async (
+  context: Context<Webhooks.WebhookPayloadPullRequest>,
+  repoContext: RepoContext,
+): Promise<void> => {
+  const autoMergeLabel = repoContext.labels['merge/automerge'];
+  const codeApprovedLabel = repoContext.labels['code/approved'];
+  const prLabels = context.payload.pull_request.labels;
+  if (
+    autoMergeLabel &&
+    prLabels.find((l): boolean => l.id === autoMergeLabel.id) &&
+    prLabels.find((l): boolean => l.id === codeApprovedLabel.id)
+  ) {
+    await context.github.pulls.createReview(
+      context.issue({ event: 'APPROVE' }),
+    );
+  }
+
+  await autoMergeIfPossible(context, repoContext);
+};
 
 export default function opened(app: Application): void {
   app.on(
@@ -14,26 +36,14 @@ export default function opened(app: Application): void {
           'renovate/',
         );
 
-        if (fromRenovate) {
-          const autoMergeLabel = repoContext.labels['merge/automerge'];
-          const prLabels = context.payload.pull_request.labels;
-          if (
-            autoMergeLabel &&
-            prLabels.find((l: LabelResponse) => l.id === autoMergeLabel.id)
-          ) {
-            await context.github.pulls.createReview(
-              context.issue({ event: 'APPROVE' }),
-            );
-          }
-        }
-
-        await Promise.all([
+        await Promise.all<unknown>([
           autoAssignPRToCreator(context, repoContext),
           editOpenedPR(context, repoContext),
           fromRenovate
-            ? Promise.resolve(undefined)
+            ? autoApproveAndAutoMerge(context, repoContext)
             : updateReviewStatus(context, repoContext, 'dev', {
                 add: ['needsReview'],
+                remove: ['approved', 'changesRequested'],
               }),
         ]);
       },
