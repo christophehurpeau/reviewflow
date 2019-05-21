@@ -28,22 +28,6 @@ const config: Config<'dev' | 'design'> = {
           title: 'Title does not have JIRA issue',
           summary: 'The PR title should end with ONK-0000, or [no issue]',
         },
-        status: 'jira-issue',
-        statusInfoFromMatch: (match) => {
-          const issue = match[1];
-          if (issue === '[no issue]') {
-            return {
-              title: 'No issue',
-              summary: '',
-            };
-          }
-          return {
-            inBody: true,
-            url: `https://ornikar.atlassian.net/browse/${issue}`,
-            title: `JIRA issue: ${issue}`,
-            summary: `[${issue}](https://ornikar.atlassian.net/browse/${issue})`,
-          };
-        },
       },
     ],
   },
