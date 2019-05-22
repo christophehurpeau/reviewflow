@@ -11,14 +11,10 @@ const autoApproveAndAutoMerge = async (
   context: Context<Webhooks.WebhookPayloadPullRequest>,
   repoContext: RepoContext,
 ): Promise<void> => {
-  const autoMergeLabel = repoContext.labels['merge/automerge'];
+  // const autoMergeLabel = repoContext.labels['merge/automerge'];
   const codeApprovedLabel = repoContext.labels['code/approved'];
   const prLabels = context.payload.pull_request.labels;
-  if (
-    autoMergeLabel &&
-    prLabels.find((l): boolean => l.id === autoMergeLabel.id) &&
-    prLabels.find((l): boolean => l.id === codeApprovedLabel.id)
-  ) {
+  if (prLabels.find((l): boolean => l.id === codeApprovedLabel.id)) {
     await context.github.pulls.createReview(
       context.issue({ event: 'APPROVE' }),
     );

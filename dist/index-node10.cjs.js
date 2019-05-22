@@ -1079,11 +1079,11 @@ const updateReviewStatus = async (context, repoContext, reviewGroup, {
 };
 
 const autoApproveAndAutoMerge = async (context, repoContext) => {
-  const autoMergeLabel = repoContext.labels['merge/automerge'];
+  // const autoMergeLabel = repoContext.labels['merge/automerge'];
   const codeApprovedLabel = repoContext.labels['code/approved'];
   const prLabels = context.payload.pull_request.labels;
 
-  if (autoMergeLabel && prLabels.find(l => l.id === autoMergeLabel.id) && prLabels.find(l => l.id === codeApprovedLabel.id)) {
+  if (prLabels.find(l => l.id === codeApprovedLabel.id)) {
     await context.github.pulls.createReview(context.issue({
       event: 'APPROVE'
     }));
