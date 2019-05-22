@@ -1,3 +1,12 @@
+## [1.18.1](https://github.com/christophehurpeau/reviewflow/compare/v1.18.0...v1.18.1) (2019-05-22)
+
+
+### Bug Fixes
+
+* only need code/approved on renovate pr open to trigger automerge ([75490f1](https://github.com/christophehurpeau/reviewflow/commit/75490f1))
+
+
+
 # [1.18.0](https://github.com/christophehurpeau/reviewflow/compare/v1.17.1...v1.18.0) (2019-05-22)
 
 
