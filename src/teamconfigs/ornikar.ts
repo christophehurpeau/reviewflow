@@ -42,6 +42,7 @@ const config: Config<'dev' | 'design'> = {
       damienorny: `damien.orny${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       'Thierry-girod': `thierry${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       darame07: `kevin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      Pixy: `pierre-alexis${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       /* front */
       christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       HugoGarrido: `hugo${process.env.ORNIKAR_EMAIL_DOMAIN}`,
