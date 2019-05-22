@@ -28,24 +28,6 @@ const config = {
       error: {
         title: 'Title does not have JIRA issue',
         summary: 'The PR title should end with ONK-0000, or [no issue]'
-      },
-      status: 'jira-issue',
-      statusInfoFromMatch: match => {
-        const issue = match[1];
-
-        if (issue === '[no issue]') {
-          return {
-            title: 'No issue',
-            summary: ''
-          };
-        }
-
-        return {
-          inBody: true,
-          url: `https://ornikar.atlassian.net/browse/${issue}`,
-          title: `JIRA issue: ${issue}`,
-          summary: `[${issue}](https://ornikar.atlassian.net/browse/${issue})`
-        };
       }
     }]
   },
@@ -59,6 +41,7 @@ const config = {
       damienorny: `damien.orny${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       'Thierry-girod': `thierry${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       darame07: `kevin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      Pixy: `pierre-alexis${process.env.ORNIKAR_EMAIL_DOMAIN}`,
 
       /* front */
       christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -1095,10 +1078,26 @@ const updateReviewStatus = async (context, repoContext, reviewGroup, {
   return prLabels;
 };
 
+const autoApproveAndAutoMerge = async (context, repoContext) => {
+  const autoMergeLabel = repoContext.labels['merge/automerge'];
+  const codeApprovedLabel = repoContext.labels['code/approved'];
+  const prLabels = context.payload.pull_request.labels;
+
+  if (autoMergeLabel && prLabels.find(l => l.id === autoMergeLabel.id) && prLabels.find(l => l.id === codeApprovedLabel.id)) {
+    await context.github.pulls.createReview(context.issue({
+      event: 'APPROVE'
+    }));
+  }
+
+  await autoMergeIfPossible(context, repoContext);
+};
+
 function opened(app) {
   app.on('pull_request.opened', createHandlerPullRequestChange(async (context, repoContext) => {
-    await Promise.all([autoAssignPRToCreator(context, repoContext), editOpenedPR(context, repoContext), context.payload.pull_request.head.ref.startsWith('renovate/') ? Promise.resolve(undefined) : updateReviewStatus(context, repoContext, 'dev', {
-      add: ['needsReview']
+    const fromRenovate = context.payload.pull_request.head.ref.startsWith('renovate/');
+    await Promise.all([autoAssignPRToCreator(context, repoContext), editOpenedPR(context, repoContext), fromRenovate ? autoApproveAndAutoMerge(context, repoContext) : updateReviewStatus(context, repoContext, 'dev', {
+      add: ['needsReview'],
+      remove: ['approved', 'changesRequested']
     })]);
   }));
 }
