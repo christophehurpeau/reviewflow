@@ -1,3 +1,20 @@
+# [1.18.0](https://github.com/christophehurpeau/reviewflow/compare/v1.17.1...v1.18.0) (2019-05-22)
+
+
+### Bug Fixes
+
+* **deps:** update dependency probot to v9.2.11 ([#56](https://github.com/christophehurpeau/reviewflow/issues/56)) ([4ca9378](https://github.com/christophehurpeau/reviewflow/commit/4ca9378))
+* autoApproveAndAutoMerge after pr opened when from renovate ([e6b7e08](https://github.com/christophehurpeau/reviewflow/commit/e6b7e08))
+
+
+### Features
+
+* add pixy in ornikar config ([d6be52e](https://github.com/christophehurpeau/reviewflow/commit/d6be52e))
+* auto approve when from renovate ([a70a549](https://github.com/christophehurpeau/reviewflow/commit/a70a549))
+* ornikar remove jira-issue status ([35f110f](https://github.com/christophehurpeau/reviewflow/commit/35f110f))
+
+
+
 ## [1.17.1](https://github.com/christophehurpeau/reviewflow/compare/v1.17.0...v1.17.1) (2019-05-21)
 
 
