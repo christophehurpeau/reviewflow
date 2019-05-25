@@ -1074,7 +1074,7 @@ const updateStatusCheckFromLabels = (context, repoContext, pr = context.payload.
   }
 
   if (!repoContext.hasApprovesReview(labels)) {
-    if (repoContext.config.requiresReviewRequest && !pr.head.ref.startsWith('renovate/')) {
+    if (repoContext.config.requiresReviewRequest) {
       return createFailedStatusCheck(context, pr, 'Awaiting review... Perhaps request someone ?');
     }
   } // if (
@@ -1412,6 +1412,7 @@ function labelsChanged(app) {
           await context.github.pulls.createReview(context.issue({
             event: 'APPROVE'
           }));
+          await updateStatusCheckFromLabels(context, repoContext, context.payload.pull_request);
         }
 
         return;

@@ -29,6 +29,11 @@ export default function labelsChanged(app: Application): void {
             await context.github.pulls.createReview(
               context.issue({ event: 'APPROVE' }),
             );
+            await updateStatusCheckFromLabels(
+              context,
+              repoContext,
+              context.payload.pull_request,
+            );
           }
           return;
         }
