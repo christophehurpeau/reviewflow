@@ -1298,8 +1298,17 @@ function edited(app) {
 function labelsChanged(app) {
   app.on(['pull_request.labeled', 'pull_request.unlabeled'], async context => {
     const sender = context.payload.sender;
-    if (sender.type === 'Bot') return;
+    const fromRenovate = sender.type === 'Bot' && context.payload.pull_request.head.ref.startsWith('renovate/');
+
+    if (sender.type === 'Bot' && !fromRenovate) {
+      return;
+    }
+
     await handlerPullRequestChange(context, async repoContext => {
+      if (fromRenovate) {
+        return autoApproveAndAutoMerge(context, repoContext);
+      }
+
       const label = context.payload.label;
 
       if (repoContext.protectedLabelIds.includes(label.id)) {
