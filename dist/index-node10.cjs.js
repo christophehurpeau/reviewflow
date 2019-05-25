@@ -1403,11 +1403,19 @@ function labelsChanged(app) {
     }
 
     await handlerPullRequestChange(context, async repoContext => {
-      if (fromRenovate) {
-        return autoApproveAndAutoMerge(context, repoContext);
-      }
-
       const label = context.payload.label;
+
+      if (fromRenovate) {
+        const codeApprovedLabel = repoContext.labels['code/approved'];
+
+        if (context.payload.action === 'labeled' && codeApprovedLabel && label.id === codeApprovedLabel.id) {
+          await context.github.pulls.createReview(context.issue({
+            event: 'APPROVE'
+          }));
+        }
+
+        return;
+      }
 
       if (repoContext.protectedLabelIds.includes(label.id)) {
         if (context.payload.action === 'labeled') {

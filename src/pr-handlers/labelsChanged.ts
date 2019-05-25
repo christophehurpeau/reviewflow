@@ -2,7 +2,6 @@ import { Application } from 'probot';
 import { handlerPullRequestChange } from './utils';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateStatusCheckFromLabels } from './actions/updateStatusCheckFromLabels';
-import { autoApproveAndAutoMerge } from './actions/autoApproveAndAutoMerge';
 import { updateBody } from './actions/utils/updateBody';
 
 export default function labelsChanged(app: Application): void {
@@ -19,11 +18,21 @@ export default function labelsChanged(app: Application): void {
       }
 
       await handlerPullRequestChange(context, async (repoContext) => {
+        const label = context.payload.label;
         if (fromRenovate) {
-          return autoApproveAndAutoMerge(context, repoContext);
+          const codeApprovedLabel = repoContext.labels['code/approved'];
+          if (
+            context.payload.action === 'labeled' &&
+            codeApprovedLabel &&
+            label.id === codeApprovedLabel.id
+          ) {
+            await context.github.pulls.createReview(
+              context.issue({ event: 'APPROVE' }),
+            );
+          }
+          return;
         }
 
-        const label = context.payload.label;
         if (repoContext.protectedLabelIds.includes(label.id)) {
           if (context.payload.action === 'labeled') {
             await context.github.issues.removeLabel(
