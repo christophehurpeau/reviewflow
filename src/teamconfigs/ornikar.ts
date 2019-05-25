@@ -70,11 +70,11 @@ const config: Config<'dev' | 'design'> = {
       /* code */
       'code/needs-review': {
         name: ':ok_hand: code/needs-review',
-        color: '#FFD57F',
+        color: '#FFC44C',
       },
       'code/review-requested': {
         name: ':ok_hand: code/review-requested',
-        color: '#B2E1FF',
+        color: '#DAE1E6',
       },
       'code/changes-requested': {
         name: ':ok_hand: code/changes-requested',
@@ -88,11 +88,11 @@ const config: Config<'dev' | 'design'> = {
       /* design */
       'design/needs-review': {
         name: ':art: design/needs-review',
-        color: '#FFD57F',
+        color: '#FFC44C',
       },
       'design/review-requested': {
         name: ':art: design/review-requested',
-        color: '#B2E1FF',
+        color: '#DAE1E6',
       },
       'design/changes-requested': {
         name: ':art: design/changes-requested',
@@ -107,6 +107,12 @@ const config: Config<'dev' | 'design'> = {
       'merge/automerge': {
         name: ':soon: automerge',
         color: '#64DD17',
+      },
+
+      /* feature-branch */
+      'feature-branch': {
+        name: 'feature-branch',
+        color: '#7FCEFF',
       },
     },
 

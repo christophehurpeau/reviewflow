@@ -10,7 +10,7 @@ describe('simple', () => {
       featureBranch: false,
       deleteAfterMerge: true,
     };
-    expect(updateBody(initialSimple, defaultConfig)).toEqual(
+    expect(updateBody(initialSimple, defaultConfig).body).toEqual(
       initialAfterEditSimple,
     );
   });
@@ -22,7 +22,7 @@ describe('table', () => {
       featureBranch: false,
       deleteAfterMerge: true,
     };
-    expect(updateBody(initialTable, defaultConfig)).toEqual(
+    expect(updateBody(initialTable, defaultConfig).body).toEqual(
       initialAfterEditTable,
     );
   });

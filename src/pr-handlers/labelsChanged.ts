@@ -38,13 +38,19 @@ export default function labelsChanged(app: Application): void {
 
         await updateStatusCheckFromLabels(context, repoContext);
 
-        if (
-          context.payload.action === 'labeled' &&
-          label.id ===
-            (repoContext.labels['merge/automerge'] &&
-              repoContext.labels['merge/automerge'].id)
-        ) {
-          await autoMergeIfPossible(context, repoContext);
+        if (context.payload.action === 'labeled') {
+          if (
+            repoContext.labels['merge/automerge'] &&
+            label.id === repoContext.labels['merge/automerge'].id
+          ) {
+            await autoMergeIfPossible(context, repoContext);
+          }
+
+          // if (
+          //   repoContext.labels['feature-branch'] &&
+          //   label.id === repoContext.labels['feature-branch'].id
+          // ) {
+          // }
         }
       });
     },

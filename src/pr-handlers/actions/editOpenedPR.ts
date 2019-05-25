@@ -118,13 +118,19 @@ export const editOpenedPR = async (
     ].filter(ExcludesFalsy),
   );
 
-  const body = updateBody(
-    pr.body,
-    repoContext.config.prDefaultOptions,
-    statuses
-      .filter((status) => status.info && status.info.inBody)
-      .map((status) => status.info) as StatusInfo[],
+  const featureBranchLabel = repoContext.labels['feature-branch'];
+  const prHasFeatureBranchLabel = Boolean(
+    featureBranchLabel &&
+      pr.labels.find((label): boolean => label.id === featureBranchLabel.id),
   );
+  const defaultOptions = {
+    ...repoContext.config.prDefaultOptions,
+    featureBranch: prHasFeatureBranchLabel,
+  };
+
+  const { body, options } = updateBody(pr.body, defaultOptions, statuses
+    .filter((status) => status.info && status.info.inBody)
+    .map((status) => status.info) as StatusInfo[]);
 
   const hasDiffInTitle = pr.title !== title;
   const hasDiffInBody = pr.body !== body;
@@ -140,5 +146,19 @@ export const editOpenedPR = async (
     }
 
     await context.github.issues.update(context.issue(update));
+  }
+
+  if (options && featureBranchLabel) {
+    if (prHasFeatureBranchLabel && !options.featureBranch) {
+      await context.github.issues.removeLabel(
+        context.issue({ name: featureBranchLabel.name }),
+      );
+    }
+
+    if (options.featureBranch && !prHasFeatureBranchLabel) {
+      await context.github.issues.addLabels(
+        context.issue({ labels: [featureBranchLabel.name] }),
+      );
+    }
   }
 };

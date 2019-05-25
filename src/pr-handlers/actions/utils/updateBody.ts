@@ -20,15 +20,20 @@ const toMarkdownInfos = (infos: StatusInfo[]) => {
     .join('\n');
 };
 
+interface UpdatedBodyWithOptions {
+  body: string;
+  options?: Record<Options, boolean>;
+}
+
 export const updateBody = (
-  description: string,
+  body: string,
   defaultConfig: Record<Options, boolean>,
   infos?: StatusInfo[],
-) => {
-  const parsed = parseBody(description, defaultConfig);
+): UpdatedBodyWithOptions => {
+  const parsed = parseBody(body, defaultConfig);
   if (!parsed) {
     console.info('could not parse body');
-    return description;
+    return { body };
   }
   const {
     content,
@@ -37,11 +42,14 @@ export const updateBody = (
     options,
   } = parsed;
 
-  return `${content}${reviewflowContentColPrefix}
+  return {
+    options: parsed.options,
+    body: `${content}${reviewflowContentColPrefix}
 ${
   infos && infos.length !== 0 ? `#### Infos:\n${toMarkdownInfos(infos)}\n` : ''
 }#### Options:
 ${toMarkdownOptions(options)}
 ${reviewflowContentColSuffix}
-`;
+`,
+  };
 };

@@ -70,11 +70,11 @@ const config = {
       /* code */
       'code/needs-review': {
         name: ':ok_hand: code/needs-review',
-        color: '#FFD57F'
+        color: '#FFC44C'
       },
       'code/review-requested': {
         name: ':ok_hand: code/review-requested',
-        color: '#B2E1FF'
+        color: '#DAE1E6'
       },
       'code/changes-requested': {
         name: ':ok_hand: code/changes-requested',
@@ -88,11 +88,11 @@ const config = {
       /* design */
       'design/needs-review': {
         name: ':art: design/needs-review',
-        color: '#FFD57F'
+        color: '#FFC44C'
       },
       'design/review-requested': {
         name: ':art: design/review-requested',
-        color: '#B2E1FF'
+        color: '#DAE1E6'
       },
       'design/changes-requested': {
         name: ':art: design/changes-requested',
@@ -107,6 +107,12 @@ const config = {
       'merge/automerge': {
         name: ':soon: automerge',
         color: '#64DD17'
+      },
+
+      /* feature-branch */
+      'feature-branch': {
+        name: 'feature-branch',
+        color: '#7FCEFF'
       }
     },
     review: {
@@ -804,12 +810,14 @@ const toMarkdownInfos = infos => {
   }).join('\n');
 };
 
-const updateBody = (description, defaultConfig, infos) => {
-  const parsed = parseBody(description, defaultConfig);
+const updateBody = (body, defaultConfig, infos) => {
+  const parsed = parseBody(body, defaultConfig);
 
   if (!parsed) {
     console.info('could not parse body');
-    return description;
+    return {
+      body
+    };
   }
 
   const {
@@ -818,11 +826,14 @@ const updateBody = (description, defaultConfig, infos) => {
     reviewflowContentColSuffix,
     options
   } = parsed;
-  return `${content}${reviewflowContentColPrefix}
+  return {
+    options: parsed.options,
+    body: `${content}${reviewflowContentColPrefix}
 ${infos && infos.length !== 0 ? `#### Infos:\n${toMarkdownInfos(infos)}\n` : ''}#### Options:
 ${toMarkdownOptions(options)}
 ${reviewflowContentColSuffix}
-`;
+`
+  };
 };
 
 const ExcludesFalsy$3 = Boolean;
@@ -891,7 +902,15 @@ const editOpenedPR = async (context, repoContext) => {
     target_url: undefined,
     description: errorRule ? errorRule.error.title : '✓ Your PR is valid'
   }))].filter(ExcludesFalsy$3));
-  const body = updateBody(pr.body, repoContext.config.prDefaultOptions, statuses.filter(status => status.info && status.info.inBody).map(status => status.info));
+  const featureBranchLabel = repoContext.labels['feature-branch'];
+  const prHasFeatureBranchLabel = Boolean(featureBranchLabel && pr.labels.find(label => label.id === featureBranchLabel.id));
+  const defaultOptions = { ...repoContext.config.prDefaultOptions,
+    featureBranch: prHasFeatureBranchLabel
+  };
+  const {
+    body,
+    options
+  } = updateBody(pr.body, defaultOptions, statuses.filter(status => status.info && status.info.inBody).map(status => status.info));
   const hasDiffInTitle = pr.title !== title;
   const hasDiffInBody = pr.body !== body;
 
@@ -909,6 +928,20 @@ const editOpenedPR = async (context, repoContext) => {
     }
 
     await context.github.issues.update(context.issue(update));
+  }
+
+  if (options && featureBranchLabel) {
+    if (prHasFeatureBranchLabel && !options.featureBranch) {
+      await context.github.issues.removeLabel(context.issue({
+        name: featureBranchLabel.name
+      }));
+    }
+
+    if (options.featureBranch && !prHasFeatureBranchLabel) {
+      await context.github.issues.addLabels(context.issue({
+        labels: [featureBranchLabel.name]
+      }));
+    }
   }
 };
 
@@ -1327,8 +1360,15 @@ function labelsChanged(app) {
 
       await updateStatusCheckFromLabels(context, repoContext);
 
-      if (context.payload.action === 'labeled' && label.id === (repoContext.labels['merge/automerge'] && repoContext.labels['merge/automerge'].id)) {
-        await autoMergeIfPossible(context, repoContext);
+      if (context.payload.action === 'labeled') {
+        if (repoContext.labels['merge/automerge'] && label.id === repoContext.labels['merge/automerge'].id) {
+          await autoMergeIfPossible(context, repoContext);
+        } // if (
+        //   repoContext.labels['feature-branch'] &&
+        //   label.id === repoContext.labels['feature-branch'].id
+        // ) {
+        // }
+
       }
     });
   });
