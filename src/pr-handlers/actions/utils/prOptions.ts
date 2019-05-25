@@ -4,7 +4,7 @@ export const options: Options[] = ['featureBranch', 'deleteAfterMerge'];
 export const optionsRegexps: { name: Options; regexp: RegExp }[] = options.map(
   (option) => ({
     name: option,
-    regexp: new RegExp(`\\[[ xX]]\\s*<!-- renovate-${option} -->`),
+    regexp: new RegExp(`\\[([ xX]?)]\\s*<!-- reviewflow-${option} -->`),
   }),
 );
 

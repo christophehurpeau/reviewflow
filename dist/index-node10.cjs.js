@@ -194,6 +194,12 @@ const config$1 = {
       'merge/automerge': {
         name: ':soon: automerge',
         color: '#64DD17'
+      },
+
+      /* feature-branch */
+      'feature-branch': {
+        name: 'feature-branch',
+        color: '#7FCEFF'
       }
     },
     review: {
@@ -225,7 +231,7 @@ const teamConfigs = {
 const options = ['featureBranch', 'deleteAfterMerge'];
 const optionsRegexps = options.map(option => ({
   name: option,
-  regexp: new RegExp(`\\[[ xX]]\\s*<!-- renovate-${option} -->`)
+  regexp: new RegExp(`\\[([ xX]?)]\\s*<!-- reviewflow-${option} -->`)
 }));
 const optionsLabels = [{
   name: 'featureBranch',
@@ -246,7 +252,7 @@ const parseOptions = (content, defaultConfig) => {
     regexp
   }) => {
     const match = regexp.exec(content);
-    acc[name] = !match ? defaultConfig[name] || false : match[1] === 'x' || match[2] === 'X';
+    acc[name] = !match ? defaultConfig[name] || false : match[1] === 'x' || match[1] === 'X';
     return acc;
   }, {});
 };
@@ -638,6 +644,12 @@ async function initRepoContext(context, config) {
   const requestedReviewLabelIds = reviewGroupNames.map(key => config.labels.review[key].requested).filter(Boolean).map(name => labels[name].id);
   const changesRequestedLabelIds = reviewGroupNames.map(key => config.labels.review[key].changesRequested).filter(Boolean).map(name => labels[name].id);
   const approvedReviewLabelIds = reviewGroupNames.map(key => config.labels.review[key].approved).filter(Boolean).map(name => labels[name].id);
+  const protectedLabelIds = [...requestedReviewLabelIds, ...changesRequestedLabelIds, ...approvedReviewLabelIds];
+
+  if (labels['feature-branch']) {
+    protectedLabelIds.push(labels['feature-branch'].id);
+  }
+
   const labelIdToGroupName = new Map();
   reviewGroupNames.forEach(key => {
     const reviewGroupLabels = config.labels.review[key];
@@ -696,7 +708,7 @@ async function initRepoContext(context, config) {
 
   return Object.assign(repoContext, {
     labels,
-    protectedLabelIds: [...requestedReviewLabelIds, ...changesRequestedLabelIds, ...approvedReviewLabelIds],
+    protectedLabelIds,
     hasNeedsReview: labels => labels.some(label => needsReviewLabelIds.includes(label.id)),
     hasRequestedReview: labels => labels.some(label => requestedReviewLabelIds.includes(label.id)),
     hasChangesRequestedReview: labels => labels.some(label => changesRequestedLabelIds.includes(label.id)),
@@ -929,6 +941,8 @@ const editOpenedPR = async (context, repoContext) => {
 
     await context.github.issues.update(context.issue(update));
   }
+
+  console.log(options);
 
   if (options && featureBranchLabel) {
     if (prHasFeatureBranchLabel && !options.featureBranch) {

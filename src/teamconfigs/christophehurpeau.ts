@@ -62,6 +62,12 @@ const config: Config<'dev'> = {
         name: ':soon: automerge',
         color: '#64DD17',
       },
+
+      /* feature-branch */
+      'feature-branch': {
+        name: 'feature-branch',
+        color: '#7FCEFF',
+      },
     },
 
     review: {

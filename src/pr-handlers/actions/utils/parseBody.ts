@@ -15,7 +15,7 @@ const parseOptions = (
       const match = regexp.exec(content);
       acc[name] = !match
         ? defaultConfig[name] || false
-        : match[1] === 'x' || match[2] === 'X';
+        : match[1] === 'x' || match[1] === 'X';
       return acc;
     },
     {} as any,

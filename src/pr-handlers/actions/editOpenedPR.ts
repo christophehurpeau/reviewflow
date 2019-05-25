@@ -148,6 +148,7 @@ export const editOpenedPR = async (
     await context.github.issues.update(context.issue(update));
   }
 
+  console.log(options);
   if (options && featureBranchLabel) {
     if (prHasFeatureBranchLabel && !options.featureBranch) {
       await context.github.issues.removeLabel(

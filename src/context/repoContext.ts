@@ -16,7 +16,7 @@ export interface LockedMergePr {
 
 interface RepoContextWithoutTeamContext<GroupNames extends string> {
   labels: Labels;
-  protectedLabelIds: LabelResponse['id'][];
+  protectedLabelIds: readonly LabelResponse['id'][];
 
   hasNeedsReview: (labels: LabelResponse[]) => boolean;
   hasRequestedReview: (labels: LabelResponse[]) => boolean;
@@ -75,6 +75,15 @@ async function initRepoContext<GroupNames extends string>(
     .map((key) => config.labels.review[key].approved)
     .filter(Boolean)
     .map((name) => labels[name].id);
+
+  const protectedLabelIds = [
+    ...requestedReviewLabelIds,
+    ...changesRequestedLabelIds,
+    ...approvedReviewLabelIds,
+  ];
+  if (labels['feature-branch']) {
+    protectedLabelIds.push(labels['feature-branch'].id);
+  }
 
   const labelIdToGroupName = new Map<LabelResponse['id'], GroupNames>();
   reviewGroupNames.forEach((key) => {
@@ -147,11 +156,7 @@ async function initRepoContext<GroupNames extends string>(
 
   return Object.assign(repoContext, {
     labels,
-    protectedLabelIds: [
-      ...requestedReviewLabelIds,
-      ...changesRequestedLabelIds,
-      ...approvedReviewLabelIds,
-    ],
+    protectedLabelIds,
     hasNeedsReview,
     hasRequestedReview,
     hasChangesRequestedReview,
