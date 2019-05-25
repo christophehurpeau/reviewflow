@@ -1,3 +1,13 @@
+## [1.19.1](https://github.com/christophehurpeau/reviewflow/compare/v1.19.0...v1.19.1) (2019-05-25)
+
+
+### Bug Fixes
+
+* missing reviewflow status on renovate pr ([e71d725](https://github.com/christophehurpeau/reviewflow/commit/e71d725))
+* prevent multiple approve on renovate prs ([40ef01d](https://github.com/christophehurpeau/reviewflow/commit/40ef01d))
+
+
+
 # [1.19.0](https://github.com/christophehurpeau/reviewflow/compare/v1.18.2...v1.19.0) (2019-05-25)
 
 
