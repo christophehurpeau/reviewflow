@@ -995,9 +995,10 @@ const editOpenedPR = async (context, repoContext) => {
       }
 
       if (options.autoMerge && !prHasAutoMergeLabel) {
-        await context.github.issues.addLabels(context.issue({
+        const result = await context.github.issues.addLabels(context.issue({
           labels: [automergeLabel.name]
         }));
+        await autoMergeIfPossible(context, repoContext, context.payload.pull_request, result.data);
       }
     }
   }

@@ -4,6 +4,7 @@ import { RepoContext } from '../../context/repoContext';
 import { StatusError, StatusInfo } from '../../teamconfigs/types';
 import { cleanTitle } from './utils/cleanTitle';
 import { updateBody } from './utils/updateBody';
+import { autoMergeIfPossible } from './autoMergeIfPossible';
 
 interface StatusWithInfo {
   name: string;
@@ -178,8 +179,14 @@ export const editOpenedPR = async (
         );
       }
       if (options.autoMerge && !prHasAutoMergeLabel) {
-        await context.github.issues.addLabels(
+        const result = await context.github.issues.addLabels(
           context.issue({ labels: [automergeLabel.name] }),
+        );
+        await autoMergeIfPossible(
+          context,
+          repoContext,
+          context.payload.pull_request,
+          result.data,
         );
       }
     }
