@@ -29,6 +29,7 @@ export const updateBody = (
   body: string,
   defaultConfig: Record<Options, boolean>,
   infos?: StatusInfo[],
+  updateOptions?: Partial<Record<Options, boolean>>,
 ): UpdatedBodyWithOptions => {
   const parsed = parseBody(body, defaultConfig);
   if (!parsed) {
@@ -37,18 +38,32 @@ export const updateBody = (
   }
   const {
     content,
+    reviewflowContentCol,
     reviewflowContentColPrefix,
     reviewflowContentColSuffix,
     options,
   } = parsed;
 
+  // eslint-disable-next-line no-nested-ternary
+  const infosParagraph = !infos
+    ? reviewflowContentCol.replace(
+        // eslint-disable-next-line unicorn/no-unsafe-regex
+        /^\s*(?:(#### Infos:.*)?#### Options:)?.*$/s,
+        '$1',
+      )
+    : infos.length !== 0
+    ? `#### Infos:\n${toMarkdownInfos(infos)}\n`
+    : '';
+
+  const updatedOptions = !updateOptions
+    ? options
+    : { ...options, ...updateOptions };
+
   return {
-    options: parsed.options,
+    options: updatedOptions,
     body: `${content}${reviewflowContentColPrefix}
-${
-  infos && infos.length !== 0 ? `#### Infos:\n${toMarkdownInfos(infos)}\n` : ''
-}#### Options:
-${toMarkdownOptions(options)}
+${infosParagraph}#### Options:
+${toMarkdownOptions(updatedOptions)}
 ${reviewflowContentColSuffix}
 `,
   };

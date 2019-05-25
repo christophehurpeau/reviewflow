@@ -81,9 +81,6 @@ async function initRepoContext<GroupNames extends string>(
     ...changesRequestedLabelIds,
     ...approvedReviewLabelIds,
   ];
-  if (labels['feature-branch']) {
-    protectedLabelIds.push(labels['feature-branch'].id);
-  }
 
   const labelIdToGroupName = new Map<LabelResponse['id'], GroupNames>();
   reviewGroupNames.forEach((key) => {

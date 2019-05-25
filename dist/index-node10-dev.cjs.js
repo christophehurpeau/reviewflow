@@ -243,7 +243,7 @@ const optionsLabels = [{
 
 const commentStart = '<!-- do not edit after this -->';
 const commentEnd = "<!-- end - don't add anything after this -->";
-const regexpCols = /^(.*)(<!---? do not edit after this -?-->.*<!---? end - don't add anything after this -?-->).*$/is;
+const regexpCols = /^(.*)(<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->).*$/is;
 const regexpReviewflowCol = /^(\s*<!---? do not edit after this -?--><\/td><td [^>]*>)\s*(.*)\s*(<\/td><\/tr><\/table>\s*<!---? end - don't add anything after this -?-->)\s*$/is;
 
 const parseOptions = (content, defaultConfig) => {
@@ -260,12 +260,13 @@ const parseOptions = (content, defaultConfig) => {
 const parseBody = (description, defaultConfig) => {
   const match = regexpCols.exec(description);
   if (!match) return null;
-  const [, content, reviewFlowCol] = match;
+  const [, content, reviewFlowCol, reviewflowContent] = match;
   const reviewFlowColMatch = regexpReviewflowCol.exec(reviewFlowCol);
 
   if (!reviewFlowColMatch) {
     return {
       content,
+      reviewflowContentCol: reviewflowContent,
       reviewflowContentColPrefix: commentStart,
       reviewflowContentColSuffix: commentEnd,
       options: parseOptions(reviewFlowCol, defaultConfig)
@@ -275,6 +276,7 @@ const parseBody = (description, defaultConfig) => {
   const [, reviewflowContentColPrefix, reviewflowContentCol, reviewflowContentColSuffix] = reviewFlowColMatch;
   return {
     content,
+    reviewflowContentCol,
     reviewflowContentColPrefix,
     reviewflowContentColSuffix,
     options: parseOptions(reviewflowContentCol, defaultConfig)
@@ -645,11 +647,6 @@ async function initRepoContext(context, config) {
   const changesRequestedLabelIds = reviewGroupNames.map(key => config.labels.review[key].changesRequested).filter(Boolean).map(name => labels[name].id);
   const approvedReviewLabelIds = reviewGroupNames.map(key => config.labels.review[key].approved).filter(Boolean).map(name => labels[name].id);
   const protectedLabelIds = [...requestedReviewLabelIds, ...changesRequestedLabelIds, ...approvedReviewLabelIds];
-
-  if (labels['feature-branch']) {
-    protectedLabelIds.push(labels['feature-branch'].id);
-  }
-
   const labelIdToGroupName = new Map();
   reviewGroupNames.forEach(key => {
     const reviewGroupLabels = config.labels.review[key];
@@ -822,7 +819,7 @@ const toMarkdownInfos = infos => {
   }).join('\n');
 };
 
-const updateBody = (body, defaultConfig, infos) => {
+const updateBody = (body, defaultConfig, infos, updateOptions) => {
   const parsed = parseBody(body, defaultConfig);
 
   if (!parsed) {
@@ -834,15 +831,22 @@ const updateBody = (body, defaultConfig, infos) => {
 
   const {
     content,
+    reviewflowContentCol,
     reviewflowContentColPrefix,
     reviewflowContentColSuffix,
     options
-  } = parsed;
+  } = parsed; // eslint-disable-next-line no-nested-ternary
+
+  const infosParagraph = !infos ? reviewflowContentCol.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
+  /^\s*(?:(#### Infos:.*)?#### Options:)?.*$/s, '$1') : infos.length !== 0 ? `#### Infos:\n${toMarkdownInfos(infos)}\n` : '';
+  const updatedOptions = !updateOptions ? options : { ...options,
+    ...updateOptions
+  };
   return {
-    options: parsed.options,
+    options: updatedOptions,
     body: `${content}${reviewflowContentColPrefix}
-${infos && infos.length !== 0 ? `#### Infos:\n${toMarkdownInfos(infos)}\n` : ''}#### Options:
-${toMarkdownOptions(options)}
+${infosParagraph}#### Options:
+${toMarkdownOptions(updatedOptions)}
 ${reviewflowContentColSuffix}
 `
   };
@@ -941,8 +945,6 @@ const editOpenedPR = async (context, repoContext) => {
 
     await context.github.issues.update(context.issue(update));
   }
-
-  console.log(options);
 
   if (options && featureBranchLabel) {
     if (prHasFeatureBranchLabel && !options.featureBranch) {
@@ -1374,15 +1376,26 @@ function labelsChanged(app) {
 
       await updateStatusCheckFromLabels(context, repoContext);
 
-      if (context.payload.action === 'labeled') {
+      if (repoContext.labels['feature-branch'] && label.id === repoContext.labels['feature-branch'].id) {
+        const prBody = context.payload.pull_request.body;
+        const {
+          body
+        } = updateBody(prBody, {
+          featureBranch: false,
+          deleteAfterMerge: false
+        }, undefined, {
+          featureBranch: context.payload.action === 'labeled'
+        });
+
+        if (body !== prBody) {
+          await context.github.pulls.update(context.issue({
+            body
+          }));
+        }
+      } else if (context.payload.action === 'labeled') {
         if (repoContext.labels['merge/automerge'] && label.id === repoContext.labels['merge/automerge'].id) {
           await autoMergeIfPossible(context, repoContext);
-        } // if (
-        //   repoContext.labels['feature-branch'] &&
-        //   label.id === repoContext.labels['feature-branch'].id
-        // ) {
-        // }
-
+        }
       }
     });
   });

@@ -3,6 +3,7 @@ import { handlerPullRequestChange } from './utils';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateStatusCheckFromLabels } from './actions/updateStatusCheckFromLabels';
 import { autoApproveAndAutoMerge } from './actions/autoApproveAndAutoMerge';
+import { updateBody } from './actions/utils/updateBody';
 
 export default function labelsChanged(app: Application): void {
   app.on(
@@ -38,19 +39,33 @@ export default function labelsChanged(app: Application): void {
 
         await updateStatusCheckFromLabels(context, repoContext);
 
-        if (context.payload.action === 'labeled') {
+        if (
+          repoContext.labels['feature-branch'] &&
+          label.id === repoContext.labels['feature-branch'].id
+        ) {
+          const prBody = context.payload.pull_request.body;
+          const { body } = updateBody(
+            prBody,
+            {
+              featureBranch: false,
+              deleteAfterMerge: false,
+            },
+            undefined,
+            {
+              featureBranch: context.payload.action === 'labeled',
+            },
+          );
+
+          if (body !== prBody) {
+            await context.github.pulls.update(context.issue({ body }));
+          }
+        } else if (context.payload.action === 'labeled') {
           if (
             repoContext.labels['merge/automerge'] &&
             label.id === repoContext.labels['merge/automerge'].id
           ) {
             await autoMergeIfPossible(context, repoContext);
           }
-
-          // if (
-          //   repoContext.labels['feature-branch'] &&
-          //   label.id === repoContext.labels['feature-branch'].id
-          // ) {
-          // }
         }
       });
     },
