@@ -7,6 +7,7 @@ import initialAfterEditTable from './mocks/body/initialAfterEdit-table';
 
 const defaultConfig = {
   featureBranch: false,
+  autoMergeWithSkipCi: false,
   autoMerge: false,
   deleteAfterMerge: true,
 };

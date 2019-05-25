@@ -7,6 +7,7 @@ const config: Config<'dev' | 'design'> = {
   requiresReviewRequest: true,
   prDefaultOptions: {
     featureBranch: false,
+    autoMergeWithSkipCi: false,
     autoMerge: false,
     deleteAfterMerge: true,
   },

@@ -7,6 +7,7 @@ describe('simple', () => {
   it('should parse default description', () => {
     const defaultConfig = {
       featureBranch: false,
+      autoMergeWithSkipCi: false,
       autoMerge: false,
       deleteAfterMerge: true,
     };
@@ -16,6 +17,7 @@ describe('simple', () => {
     expect(parsed).not.toBeFalsy();
     expect(parsed && parsed.options).toEqual({
       featureBranch: false,
+      autoMergeWithSkipCi: false,
       autoMerge: false,
       deleteAfterMerge: true,
     });
@@ -26,6 +28,7 @@ describe('table', () => {
   it('should parse default description', () => {
     const defaultConfig = {
       featureBranch: false,
+      autoMergeWithSkipCi: false,
       autoMerge: false,
       deleteAfterMerge: true,
     };
@@ -35,6 +38,7 @@ describe('table', () => {
     expect(parsed).not.toBeFalsy();
     expect(parsed && parsed.options).toEqual({
       featureBranch: false,
+      autoMergeWithSkipCi: false,
       autoMerge: false,
       deleteAfterMerge: true,
     });
@@ -45,6 +49,7 @@ describe('table', () => {
   it('should parse edited description', () => {
     const defaultConfig = {
       featureBranch: true,
+      autoMergeWithSkipCi: false,
       autoMerge: false,
       deleteAfterMerge: true,
     };
@@ -54,6 +59,7 @@ describe('table', () => {
     expect(parsed).not.toBeFalsy();
     expect(parsed && parsed.options).toEqual({
       featureBranch: false,
+      autoMergeWithSkipCi: false,
       autoMerge: false,
       deleteAfterMerge: true,
     });

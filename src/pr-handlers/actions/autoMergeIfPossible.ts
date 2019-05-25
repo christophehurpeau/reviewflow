@@ -197,14 +197,19 @@ export const autoMergeIfPossible = async (
 
   try {
     context.log.info(`automerge pr #${pr.number}`);
+
     const parsedBody = parseBody(pr.body, repoContext.config.prDefaultOptions);
+    const options =
+      (parsedBody && parsedBody.options) || repoContext.config.prDefaultOptions;
+
     const mergeResult = await context.github.pulls.merge({
-      merge_method:
-        parsedBody && parsedBody.options.featureBranch ? 'merge' : 'squash',
+      merge_method: options.featureBranch ? 'merge' : 'squash',
       owner: pr.head.repo.owner.login,
       repo: pr.head.repo.name,
       pull_number: pr.number,
-      commit_title: `${pr.title} (#${pr.number})`,
+      commit_title: `${pr.title}${
+        options.autoMergeWithSkipCi ? ' [skip ci]' : ''
+      } (#${pr.number})`,
       commit_message: '', // TODO add BC
     });
     context.log.debug('merge result:', mergeResult.data);

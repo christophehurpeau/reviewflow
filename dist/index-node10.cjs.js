@@ -12,6 +12,7 @@ const config = {
   requiresReviewRequest: true,
   prDefaultOptions: {
     featureBranch: false,
+    autoMergeWithSkipCi: false,
     autoMerge: false,
     deleteAfterMerge: true
   },
@@ -162,6 +163,7 @@ const config$1 = {
   requiresReviewRequest: false,
   prDefaultOptions: {
     featureBranch: false,
+    autoMergeWithSkipCi: false,
     autoMerge: false,
     deleteAfterMerge: true
   },
@@ -248,7 +250,7 @@ const teamConfigs = {
 //   return Object.values(groups).flat(1);
 // };
 
-const options = ['featureBranch', 'autoMerge', 'deleteAfterMerge'];
+const options = ['featureBranch', 'autoMergeWithSkipCi', 'autoMerge', 'deleteAfterMerge'];
 const optionsRegexps = options.map(option => ({
   name: option,
   regexp: new RegExp(`\\[([ xX]?)]\\s*<!-- reviewflow-${option} -->`)
@@ -256,6 +258,9 @@ const optionsRegexps = options.map(option => ({
 const optionsLabels = [{
   name: 'featureBranch',
   label: 'This PR is a feature branch'
+}, {
+  name: 'autoMergeWithSkipCi',
+  label: 'Auto merge with `[skip ci]`'
 }, {
   name: 'autoMerge',
   label: 'Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless "Update branch" triggers)'
@@ -448,12 +453,13 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
   try {
     context.log.info(`automerge pr #${pr.number}`);
     const parsedBody = parseBody(pr.body, repoContext.config.prDefaultOptions);
+    const options = parsedBody && parsedBody.options || repoContext.config.prDefaultOptions;
     const mergeResult = await context.github.pulls.merge({
-      merge_method: parsedBody && parsedBody.options.featureBranch ? 'merge' : 'squash',
+      merge_method: options.featureBranch ? 'merge' : 'squash',
       owner: pr.head.repo.owner.login,
       repo: pr.head.repo.name,
       pull_number: pr.number,
-      commit_title: `${pr.title} (#${pr.number})`,
+      commit_title: `${pr.title}${options.autoMergeWithSkipCi ? ' [skip ci]' : ''} (#${pr.number})`,
       commit_message: '' // TODO add BC
 
     });
