@@ -1,3 +1,22 @@
+# [1.19.0](https://github.com/christophehurpeau/reviewflow/compare/v1.18.2...v1.19.0) (2019-05-25)
+
+
+### Bug Fixes
+
+* bring back jira-issue link ([f9dc926](https://github.com/christophehurpeau/reviewflow/commit/f9dc926))
+
+
+### Features
+
+* add option autoMerge ([e418623](https://github.com/christophehurpeau/reviewflow/commit/e418623))
+* add option autoMerge ([534436a](https://github.com/christophehurpeau/reviewflow/commit/534436a))
+* add option autoMergeWithSkipCi ([bb76ec5](https://github.com/christophehurpeau/reviewflow/commit/bb76ec5))
+* feature-branch label sync with options ([f0558d4](https://github.com/christophehurpeau/reviewflow/commit/f0558d4))
+* sync feature-branch label ([278aa6f](https://github.com/christophehurpeau/reviewflow/commit/278aa6f))
+* sync feature-branch label with tag ([0f47044](https://github.com/christophehurpeau/reviewflow/commit/0f47044))
+
+
+
 ## [1.18.2](https://github.com/christophehurpeau/reviewflow/compare/v1.18.1...v1.18.2) (2019-05-25)
 
 
