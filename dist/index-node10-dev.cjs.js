@@ -12,6 +12,7 @@ const config = {
   requiresReviewRequest: true,
   prDefaultOptions: {
     featureBranch: false,
+    autoMerge: false,
     deleteAfterMerge: true
   },
   parsePR: {
@@ -161,6 +162,7 @@ const config$1 = {
   requiresReviewRequest: false,
   prDefaultOptions: {
     featureBranch: false,
+    autoMerge: false,
     deleteAfterMerge: true
   },
   parsePR: {
@@ -246,7 +248,7 @@ const teamConfigs = {
 //   return Object.values(groups).flat(1);
 // };
 
-const options = ['featureBranch', 'deleteAfterMerge'];
+const options = ['featureBranch', 'autoMerge', 'deleteAfterMerge'];
 const optionsRegexps = options.map(option => ({
   name: option,
   regexp: new RegExp(`\\[([ xX]?)]\\s*<!-- reviewflow-${option} -->`)
@@ -254,6 +256,9 @@ const optionsRegexps = options.map(option => ({
 const optionsLabels = [{
   name: 'featureBranch',
   label: 'This PR is a feature branch'
+}, {
+  name: 'autoMerge',
+  label: 'Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless "Update branch" triggers)'
 }, {
   name: 'deleteAfterMerge',
   label: 'Automatic branch delete after this PR is merged'
@@ -937,8 +942,11 @@ const editOpenedPR = async (context, repoContext) => {
     description: errorRule ? errorRule.error.title : '✓ Your PR is valid'
   }))].filter(ExcludesFalsy$3));
   const featureBranchLabel = repoContext.labels['feature-branch'];
+  const automergeLabel = repoContext.labels['merge/automerge'];
   const prHasFeatureBranchLabel = Boolean(featureBranchLabel && pr.labels.find(label => label.id === featureBranchLabel.id));
+  const prHasAutoMergeLabel = Boolean(automergeLabel && pr.labels.find(label => label.id === automergeLabel.id));
   const defaultOptions = { ...repoContext.config.prDefaultOptions,
+    autoMerge: prHasAutoMergeLabel,
     featureBranch: prHasFeatureBranchLabel
   };
   const {
@@ -964,17 +972,33 @@ const editOpenedPR = async (context, repoContext) => {
     await context.github.issues.update(context.issue(update));
   }
 
-  if (options && featureBranchLabel) {
-    if (prHasFeatureBranchLabel && !options.featureBranch) {
-      await context.github.issues.removeLabel(context.issue({
-        name: featureBranchLabel.name
-      }));
+  if (options && (featureBranchLabel || automergeLabel)) {
+    if (featureBranchLabel) {
+      if (prHasFeatureBranchLabel && !options.featureBranch) {
+        await context.github.issues.removeLabel(context.issue({
+          name: featureBranchLabel.name
+        }));
+      }
+
+      if (options.featureBranch && !prHasFeatureBranchLabel) {
+        await context.github.issues.addLabels(context.issue({
+          labels: [featureBranchLabel.name]
+        }));
+      }
     }
 
-    if (options.featureBranch && !prHasFeatureBranchLabel) {
-      await context.github.issues.addLabels(context.issue({
-        labels: [featureBranchLabel.name]
-      }));
+    if (automergeLabel) {
+      if (prHasAutoMergeLabel && !options.autoMerge) {
+        await context.github.issues.removeLabel(context.issue({
+          name: automergeLabel.name
+        }));
+      }
+
+      if (options.autoMerge && !prHasAutoMergeLabel) {
+        await context.github.issues.addLabels(context.issue({
+          labels: [automergeLabel.name]
+        }));
+      }
     }
   }
 };
@@ -1393,16 +1417,16 @@ function labelsChanged(app) {
       }
 
       await updateStatusCheckFromLabels(context, repoContext);
+      const featureBranchLabel = repoContext.labels['feature-branch'];
+      const automergeLabel = repoContext.labels['merge/automerge'];
 
-      if (repoContext.labels['feature-branch'] && label.id === repoContext.labels['feature-branch'].id) {
+      if (featureBranchLabel && label.id === automergeLabel.id || automergeLabel && label.id === automergeLabel.id) {
+        const option = featureBranchLabel && label.id === automergeLabel.id ? 'featureBranch' : 'autoMerge';
         const prBody = context.payload.pull_request.body;
         const {
           body
-        } = updateBody(prBody, {
-          featureBranch: false,
-          deleteAfterMerge: false
-        }, undefined, {
-          featureBranch: context.payload.action === 'labeled'
+        } = updateBody(prBody, repoContext.config.prDefaultOptions, undefined, {
+          [option]: context.payload.action === 'labeled'
         });
 
         if (body !== prBody) {

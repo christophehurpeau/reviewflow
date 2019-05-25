@@ -6,6 +6,7 @@ const config: Config<'dev'> = {
   requiresReviewRequest: false,
   prDefaultOptions: {
     featureBranch: false,
+    autoMerge: false,
     deleteAfterMerge: true,
   },
   parsePR: {

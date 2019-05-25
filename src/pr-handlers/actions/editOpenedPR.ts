@@ -119,12 +119,21 @@ export const editOpenedPR = async (
   );
 
   const featureBranchLabel = repoContext.labels['feature-branch'];
+  const automergeLabel = repoContext.labels['merge/automerge'];
+
   const prHasFeatureBranchLabel = Boolean(
     featureBranchLabel &&
       pr.labels.find((label): boolean => label.id === featureBranchLabel.id),
   );
+
+  const prHasAutoMergeLabel = Boolean(
+    automergeLabel &&
+      pr.labels.find((label): boolean => label.id === automergeLabel.id),
+  );
+
   const defaultOptions = {
     ...repoContext.config.prDefaultOptions,
+    autoMerge: prHasAutoMergeLabel,
     featureBranch: prHasFeatureBranchLabel,
   };
 
@@ -148,17 +157,31 @@ export const editOpenedPR = async (
     await context.github.issues.update(context.issue(update));
   }
 
-  if (options && featureBranchLabel) {
-    if (prHasFeatureBranchLabel && !options.featureBranch) {
-      await context.github.issues.removeLabel(
-        context.issue({ name: featureBranchLabel.name }),
-      );
+  if (options && (featureBranchLabel || automergeLabel)) {
+    if (featureBranchLabel) {
+      if (prHasFeatureBranchLabel && !options.featureBranch) {
+        await context.github.issues.removeLabel(
+          context.issue({ name: featureBranchLabel.name }),
+        );
+      }
+      if (options.featureBranch && !prHasFeatureBranchLabel) {
+        await context.github.issues.addLabels(
+          context.issue({ labels: [featureBranchLabel.name] }),
+        );
+      }
     }
 
-    if (options.featureBranch && !prHasFeatureBranchLabel) {
-      await context.github.issues.addLabels(
-        context.issue({ labels: [featureBranchLabel.name] }),
-      );
+    if (automergeLabel) {
+      if (prHasAutoMergeLabel && !options.autoMerge) {
+        await context.github.issues.removeLabel(
+          context.issue({ name: automergeLabel.name }),
+        );
+      }
+      if (options.autoMerge && !prHasAutoMergeLabel) {
+        await context.github.issues.addLabels(
+          context.issue({ labels: [automergeLabel.name] }),
+        );
+      }
     }
   }
 };

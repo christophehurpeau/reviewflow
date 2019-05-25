@@ -39,20 +39,24 @@ export default function labelsChanged(app: Application): void {
 
         await updateStatusCheckFromLabels(context, repoContext);
 
+        const featureBranchLabel = repoContext.labels['feature-branch'];
+        const automergeLabel = repoContext.labels['merge/automerge'];
+
         if (
-          repoContext.labels['feature-branch'] &&
-          label.id === repoContext.labels['feature-branch'].id
+          (featureBranchLabel && label.id === automergeLabel.id) ||
+          (automergeLabel && label.id === automergeLabel.id)
         ) {
+          const option: 'featureBranch' | 'autoMerge' =
+            featureBranchLabel && label.id === automergeLabel.id
+              ? 'featureBranch'
+              : 'autoMerge';
           const prBody = context.payload.pull_request.body;
           const { body } = updateBody(
             prBody,
-            {
-              featureBranch: false,
-              deleteAfterMerge: false,
-            },
+            repoContext.config.prDefaultOptions,
             undefined,
             {
-              featureBranch: context.payload.action === 'labeled',
+              [option]: context.payload.action === 'labeled',
             },
           );
 
