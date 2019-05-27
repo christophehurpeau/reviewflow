@@ -61,7 +61,7 @@ export default function labelsChanged(app: Application): void {
           (automergeLabel && label.id === automergeLabel.id)
         ) {
           const option: 'featureBranch' | 'autoMerge' =
-            featureBranchLabel && label.id === automergeLabel.id
+            featureBranchLabel && label.id === featureBranchLabel.id
               ? 'featureBranch'
               : 'autoMerge';
           const prBody = context.payload.pull_request.body;

@@ -1437,7 +1437,7 @@ function labelsChanged(app) {
       const automergeLabel = repoContext.labels['merge/automerge'];
 
       if (featureBranchLabel && label.id === automergeLabel.id || automergeLabel && label.id === automergeLabel.id) {
-        const option = featureBranchLabel && label.id === automergeLabel.id ? 'featureBranch' : 'autoMerge';
+        const option = featureBranchLabel && label.id === featureBranchLabel.id ? 'featureBranch' : 'autoMerge';
         const prBody = context.payload.pull_request.body;
         const {
           body
