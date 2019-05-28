@@ -1,3 +1,12 @@
+## [1.19.3](https://github.com/christophehurpeau/reviewflow/compare/v1.19.2...v1.19.3) (2019-05-28)
+
+
+### Bug Fixes
+
+* still try to automerge when pr is closed ([70af724](https://github.com/christophehurpeau/reviewflow/commit/70af724))
+
+
+
 ## [1.19.2](https://github.com/christophehurpeau/reviewflow/compare/v1.19.1...v1.19.2) (2019-05-27)
 
 
