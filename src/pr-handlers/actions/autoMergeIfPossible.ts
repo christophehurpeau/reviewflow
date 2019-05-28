@@ -71,6 +71,11 @@ export const autoMergeIfPossible = async (
     return false;
   }
 
+  if (pr.state !== 'open') {
+    context.log.debug('automerge not possible: pr is not opened');
+    repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
+  }
+
   if (
     repoContext.hasNeedsReview(prLabels) ||
     repoContext.hasRequestedReview(prLabels)

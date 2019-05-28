@@ -359,6 +359,11 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
     return false;
   }
 
+  if (pr.state !== 'open') {
+    context.log.debug('automerge not possible: pr is not opened');
+    repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
+  }
+
   if (repoContext.hasNeedsReview(prLabels) || repoContext.hasRequestedReview(prLabels)) {
     context.log.debug('automerge not possible: blocking labels'); // repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr());
 
