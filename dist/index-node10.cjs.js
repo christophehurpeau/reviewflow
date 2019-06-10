@@ -1401,7 +1401,8 @@ function edited(app) {
 function labelsChanged(app) {
   app.on(['pull_request.labeled', 'pull_request.unlabeled'], async context => {
     const sender = context.payload.sender;
-    const fromRenovate = sender.type === 'Bot' && context.payload.pull_request.head.ref.startsWith('renovate/');
+    const fromRenovate = sender.type === 'Bot' && sender.login === 'renovate[bot]';
+    context.payload.pull_request.head.ref.startsWith('renovate/');
 
     if (sender.type === 'Bot' && !fromRenovate) {
       return;
@@ -1414,10 +1415,14 @@ function labelsChanged(app) {
         const codeApprovedLabel = repoContext.labels['code/approved'];
 
         if (context.payload.action === 'labeled' && codeApprovedLabel && label.id === codeApprovedLabel.id) {
+          // const { data: reviews } = await context.github.pulls.listReviews(
+          //   context.issue({ per_page: 1 }),
+          // );
+          // if (reviews.length !== 0) {
           await context.github.pulls.createReview(context.issue({
             event: 'APPROVE'
           }));
-          await updateStatusCheckFromLabels(context, repoContext, context.payload.pull_request);
+          await updateStatusCheckFromLabels(context, repoContext, context.payload.pull_request); // }
         }
 
         return;
