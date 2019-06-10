@@ -1,3 +1,12 @@
+## [1.19.4](https://github.com/christophehurpeau/reviewflow/compare/v1.19.3...v1.19.4) (2019-06-10)
+
+
+### Bug Fixes
+
+* labels change only take events from non bot or renovate bot ([dc22e05](https://github.com/christophehurpeau/reviewflow/commit/dc22e05))
+
+
+
 ## [1.19.3](https://github.com/christophehurpeau/reviewflow/compare/v1.19.2...v1.19.3) (2019-05-28)
 
 
