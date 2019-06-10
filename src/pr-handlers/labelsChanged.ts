@@ -1,4 +1,5 @@
-import { Application } from 'probot';
+import Webhooks from '@octokit/webhooks';
+import { Application, Context } from 'probot';
 import { handlerPullRequestChange } from './utils';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateStatusCheckFromLabels } from './actions/updateStatusCheckFromLabels';
@@ -7,18 +8,18 @@ import { updateBody } from './actions/utils/updateBody';
 export default function labelsChanged(app: Application): void {
   app.on(
     ['pull_request.labeled', 'pull_request.unlabeled'],
-    async (context) => {
+    async (context: Context<Webhooks.WebhookPayloadPullRequest>) => {
       const sender = context.payload.sender;
       const fromRenovate =
-        sender.type === 'Bot' &&
-        context.payload.pull_request.head.ref.startsWith('renovate/');
+        sender.type === 'Bot' && sender.login === 'renovate[bot]';
+      context.payload.pull_request.head.ref.startsWith('renovate/');
 
       if (sender.type === 'Bot' && !fromRenovate) {
         return;
       }
 
       await handlerPullRequestChange(context, async (repoContext) => {
-        const label = context.payload.label;
+        const label = (context.payload as any).label;
         if (fromRenovate) {
           const codeApprovedLabel = repoContext.labels['code/approved'];
           if (
@@ -26,6 +27,10 @@ export default function labelsChanged(app: Application): void {
             codeApprovedLabel &&
             label.id === codeApprovedLabel.id
           ) {
+            // const { data: reviews } = await context.github.pulls.listReviews(
+            //   context.issue({ per_page: 1 }),
+            // );
+            // if (reviews.length !== 0) {
             await context.github.pulls.createReview(
               context.issue({ event: 'APPROVE' }),
             );
@@ -34,6 +39,7 @@ export default function labelsChanged(app: Application): void {
               repoContext,
               context.payload.pull_request,
             );
+            // }
           }
           return;
         }
