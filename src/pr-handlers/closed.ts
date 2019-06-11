@@ -15,13 +15,9 @@ export default function closed(app: Application): void {
           const parsedBody =
             pr.head.repo.id === repo.id &&
             parseBody(pr.body, repoContext.config.prDefaultOptions);
-          const createMergeLockPrFromPr = () => ({
-            id: pr.id,
-            number: pr.number,
-            branch: pr.head.ref,
-          });
+
           await Promise.all([
-            repoContext.removeMergeLockedPr(context, createMergeLockPrFromPr()),
+            repoContext.removeClosedPr(context, pr.number),
             parsedBody && parsedBody.options.deleteAfterMerge
               ? context.github.git
                   .deleteRef(context.repo({ ref: `heads/${pr.head.ref}` }))
@@ -30,6 +26,7 @@ export default function closed(app: Application): void {
           ]);
         } else {
           await Promise.all([
+            repoContext.removeClosedPr(context, pr.number),
             updateReviewStatus(context, repoContext, 'dev', {
               remove: ['needsReview'],
             }),
