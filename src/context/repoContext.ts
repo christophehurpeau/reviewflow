@@ -31,7 +31,7 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
 
   getMergeLockedPr(): LockedMergePr;
   addMergeLockPr(pr: LockedMergePr): void;
-  removeClosedPr(context: Context<any>, prNumber: number): void;
+  removePrFromAutomergeQueue(context: Context<any>, prNumber: number): void;
   reschedule(context: Context<any>, pr: LockedMergePr): void;
   pushAutomergeQueue(pr: LockedMergePr): void;
 }
@@ -163,13 +163,15 @@ async function initRepoContext<GroupNames extends string>(
     getMergeLockedPr: () => lockMergePr,
     addMergeLockPr: (pr: LockedMergePr): void => {
       console.log('merge lock: lock', pr);
-      if (lockMergePr && lockMergePr.number === pr.number) return;
+      if (lockMergePr && String(lockMergePr.number) === String(pr.number)) {
+        return;
+      }
       if (lockMergePr) throw new Error('Already have lock');
       lockMergePr = pr;
     },
-    removeClosedPr: (context, prNumber: number): void => {
+    removePrFromAutomergeQueue: (context, prNumber: number | string): void => {
       context.log('merge lock: remove', { prNumber });
-      if (lockMergePr && lockMergePr.number !== prNumber) {
+      if (lockMergePr && String(lockMergePr.number) !== String(prNumber)) {
         lockMergePr = automergeQueue.shift();
         context.log('merge lock: next', { lockMergePr });
         if (lockMergePr) {
@@ -177,7 +179,7 @@ async function initRepoContext<GroupNames extends string>(
         }
       } else {
         automergeQueue = automergeQueue.filter(
-          (value) => value.number !== prNumber,
+          (value) => String(value.number) !== String(prNumber),
         );
       }
     },

@@ -67,13 +67,13 @@ export const autoMergeIfPossible = async (
 
   if (!prLabels.find((l): boolean => l.id === autoMergeLabel.id)) {
     context.log.debug('automerge not possible: no label');
-    repoContext.removeClosedPr(context, pr.number);
+    repoContext.removePrFromAutomergeQueue(context, pr.number);
     return false;
   }
 
   if (pr.state !== 'open') {
     context.log.debug('automerge not possible: pr is not opened');
-    repoContext.removeClosedPr(context, pr.number);
+    repoContext.removePrFromAutomergeQueue(context, pr.number);
   }
 
   if (
@@ -81,7 +81,7 @@ export const autoMergeIfPossible = async (
     repoContext.hasRequestedReview(prLabels)
   ) {
     context.log.debug('automerge not possible: blocking labels');
-    // repoContext.removeClosedPr(context, pr.number);
+    // repoContext.removePrFromAutomergeQueue(context, pr.number);
     return false;
   }
 
@@ -104,7 +104,7 @@ export const autoMergeIfPossible = async (
   }
 
   if (pr.merged) {
-    repoContext.removeClosedPr(context, pr.number);
+    repoContext.removePrFromAutomergeQueue(context, pr.number);
     context.log.info(`automerge not possible: already merged pr ${pr.id}`);
     return false;
   }
@@ -150,7 +150,7 @@ export const autoMergeIfPossible = async (
       }
 
       if (await hasFailedStatusOrChecks(context, repoContext, pr)) {
-        repoContext.removeClosedPr(context, pr.number);
+        repoContext.removePrFromAutomergeQueue(context, pr.number);
         return false;
       } else if (pr.mergeable_state === 'blocked') {
         // waiting for reschedule in status (pr-handler/status.ts)
@@ -167,7 +167,7 @@ export const autoMergeIfPossible = async (
 
     if (pr.mergeable_state === 'blocked') {
       if (await hasFailedStatusOrChecks(context, repoContext, pr)) {
-        repoContext.removeClosedPr(context, pr.number);
+        repoContext.removePrFromAutomergeQueue(context, pr.number);
         return false;
       } else {
         // waiting for reschedule in status (pr-handler/status.ts)
@@ -191,7 +191,7 @@ export const autoMergeIfPossible = async (
       return false;
     }
 
-    repoContext.removeClosedPr(context, pr.number);
+    repoContext.removePrFromAutomergeQueue(context, pr.number);
     context.log.info(
       `automerge not possible: not mergeable mergeable_state=${
         pr.mergeable_state
@@ -218,7 +218,7 @@ export const autoMergeIfPossible = async (
       commit_message: '', // TODO add BC
     });
     context.log.debug('merge result:', mergeResult.data);
-    repoContext.removeClosedPr(context, pr.number);
+    repoContext.removePrFromAutomergeQueue(context, pr.number);
     return Boolean(mergeResult.data.merged);
   } catch (err) {
     context.log.info('could not merge:', err.message);
