@@ -1,3 +1,12 @@
+## [1.19.6](https://github.com/christophehurpeau/reviewflow/compare/v1.19.5...v1.19.6) (2019-06-11)
+
+
+### Bug Fixes
+
+* ensure pr number is always compared as string ([a10bfbc](https://github.com/christophehurpeau/reviewflow/commit/a10bfbc))
+
+
+
 ## [1.19.5](https://github.com/christophehurpeau/reviewflow/compare/v1.19.4...v1.19.5) (2019-06-11)
 
 
