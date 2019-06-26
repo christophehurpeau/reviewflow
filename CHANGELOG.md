@@ -1,3 +1,13 @@
+## [1.19.7](https://github.com/christophehurpeau/reviewflow/compare/v1.19.6...v1.19.7) (2019-06-26)
+
+
+### Bug Fixes
+
+* removePrFromAutomergeQueue ([35b818a](https://github.com/christophehurpeau/reviewflow/commit/35b818a))
+* support endings, for renovate body for example ([9c3c0fb](https://github.com/christophehurpeau/reviewflow/commit/9c3c0fb))
+
+
+
 ## [1.19.6](https://github.com/christophehurpeau/reviewflow/compare/v1.19.5...v1.19.6) (2019-06-11)
 
 
