@@ -171,7 +171,7 @@ async function initRepoContext<GroupNames extends string>(
     },
     removePrFromAutomergeQueue: (context, prNumber: number | string): void => {
       context.log('merge lock: remove', { prNumber });
-      if (lockMergePr && String(lockMergePr.number) !== String(prNumber)) {
+      if (lockMergePr && String(lockMergePr.number) === String(prNumber)) {
         lockMergePr = automergeQueue.shift();
         context.log('merge lock: next', { lockMergePr });
         if (lockMergePr) {
