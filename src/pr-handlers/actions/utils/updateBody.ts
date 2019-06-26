@@ -38,6 +38,7 @@ export const updateBody = (
   }
   const {
     content,
+    ending,
     reviewflowContentCol,
     reviewflowContentColPrefix,
     reviewflowContentColSuffix,
@@ -64,7 +65,6 @@ export const updateBody = (
     body: `${content}${reviewflowContentColPrefix}
 ${infosParagraph}#### Options:
 ${toMarkdownOptions(updatedOptions)}
-${reviewflowContentColSuffix}
-`,
+${reviewflowContentColSuffix}${ending || ''}`,
   };
 };

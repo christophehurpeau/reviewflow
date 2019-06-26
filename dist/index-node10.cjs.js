@@ -271,7 +271,7 @@ const optionsLabels = [{
 
 const commentStart = '<!-- do not edit after this -->';
 const commentEnd = "<!-- end - don't add anything after this -->";
-const regexpCols = /^(.*)(<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->).*$/is;
+const regexpCols = /^(.*)(<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->)(.*)$/is;
 const regexpReviewflowCol = /^(\s*<!---? do not edit after this -?--><\/td><td [^>]*>)\s*(.*)\s*(<\/td><\/tr><\/table>\s*<!---? end - don't add anything after this -?-->)\s*$/is;
 
 const parseOptions = (content, defaultConfig) => {
@@ -288,12 +288,13 @@ const parseOptions = (content, defaultConfig) => {
 const parseBody = (description, defaultConfig) => {
   const match = regexpCols.exec(description);
   if (!match) return null;
-  const [, content, reviewFlowCol, reviewflowContent] = match;
+  const [, content, reviewFlowCol, reviewflowContent, ending] = match;
   const reviewFlowColMatch = regexpReviewflowCol.exec(reviewFlowCol);
 
   if (!reviewFlowColMatch) {
     return {
       content,
+      ending,
       reviewflowContentCol: reviewflowContent,
       reviewflowContentColPrefix: commentStart,
       reviewflowContentColSuffix: commentEnd,
@@ -304,6 +305,7 @@ const parseBody = (description, defaultConfig) => {
   const [, reviewflowContentColPrefix, reviewflowContentCol, reviewflowContentColSuffix] = reviewFlowColMatch;
   return {
     content,
+    ending,
     reviewflowContentCol,
     reviewflowContentColPrefix,
     reviewflowContentColSuffix,
@@ -877,6 +879,7 @@ const updateBody = (body, defaultConfig, infos, updateOptions) => {
 
   const {
     content,
+    ending,
     reviewflowContentCol,
     reviewflowContentColPrefix,
     reviewflowContentColSuffix,
@@ -893,8 +896,7 @@ const updateBody = (body, defaultConfig, infos, updateOptions) => {
     body: `${content}${reviewflowContentColPrefix}
 ${infosParagraph}#### Options:
 ${toMarkdownOptions(updatedOptions)}
-${reviewflowContentColSuffix}
-`
+${reviewflowContentColSuffix}${ending || ''}`
   };
 };
 

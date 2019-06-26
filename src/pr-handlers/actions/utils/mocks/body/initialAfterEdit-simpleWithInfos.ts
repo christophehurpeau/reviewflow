@@ -21,6 +21,9 @@ Some informations here, like links.
 - [ ] <!-- reviewflow-autoMerge -->Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless "Update branch" triggers)
 - [x] <!-- reviewflow-deleteAfterMerge -->Automatic branch delete after this PR is merged
 <!-- end - don't add anything after this -->
+
+Some ending lines.
+This is the case with renovate for example.
 `;
 
 // [ONK-0000](https://a;dlkas;dlkas;dk)

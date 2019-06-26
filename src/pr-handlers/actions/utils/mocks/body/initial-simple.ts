@@ -14,4 +14,7 @@ If needed, explain here the solution you chose for this
 <!-- do not edit after this -->
 This will be auto filled by reviewflow.
 <!-- end - don't add anything after this -->
+
+Some ending lines.
+This is the case with renovate for example.
 `;
