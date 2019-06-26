@@ -39,6 +39,18 @@ export default function labelsChanged(app: Application): void {
               repoContext,
               context.payload.pull_request,
             );
+            const prBody = context.payload.pull_request.body;
+            const { body } = updateBody(
+              prBody,
+              repoContext.config.prDefaultOptions,
+              undefined,
+              {
+                autoMerge: true,
+                autoMergeWithSkipCi: true,
+              },
+            );
+
+            await context.github.pulls.update(context.issue({ body }));
             // }
           }
           return;

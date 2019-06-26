@@ -1438,7 +1438,17 @@ function labelsChanged(app) {
           await context.github.pulls.createReview(context.issue({
             event: 'APPROVE'
           }));
-          await updateStatusCheckFromLabels(context, repoContext, context.payload.pull_request); // }
+          await updateStatusCheckFromLabels(context, repoContext, context.payload.pull_request);
+          const prBody = context.payload.pull_request.body;
+          const {
+            body
+          } = updateBody(prBody, repoContext.config.prDefaultOptions, undefined, {
+            autoMerge: true,
+            autoMergeWithSkipCi: true
+          });
+          await context.github.pulls.update(context.issue({
+            body
+          })); // }
         }
 
         return;
