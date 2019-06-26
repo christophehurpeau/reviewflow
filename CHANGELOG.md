@@ -1,3 +1,19 @@
+# [1.20.0](https://github.com/christophehurpeau/reviewflow/compare/v1.19.7...v1.20.0) (2019-06-26)
+
+
+### Bug Fixes
+
+* ignore edits from bots ([dc944ab](https://github.com/christophehurpeau/reviewflow/commit/dc944ab))
+* use autoMergeWithSkipCi when merge is auto approved to avoid unwanted deployments ([2f36630](https://github.com/christophehurpeau/reviewflow/commit/2f36630))
+
+
+### Features
+
+* orgs and teams ([0c8974f](https://github.com/christophehurpeau/reviewflow/commit/0c8974f))
+* simplify updatePrBody ([649fd81](https://github.com/christophehurpeau/reviewflow/commit/649fd81))
+
+
+
 ## [1.19.7](https://github.com/christophehurpeau/reviewflow/compare/v1.19.6...v1.19.7) (2019-06-26)
 
 
