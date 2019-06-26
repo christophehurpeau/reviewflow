@@ -8,8 +8,12 @@ export default function edited(app: Application): void {
     'pull_request.edited',
     createHandlerPullRequestChange(
       async (context, repoContext): Promise<void> => {
-        await editOpenedPR(context, repoContext);
+        const sender = context.payload.sender;
+        if (sender.type === 'Bot') {
+          return;
+        }
 
+        await editOpenedPR(context, repoContext);
         await autoMergeIfPossible(context, repoContext);
       },
     ),

@@ -1403,6 +1403,12 @@ function synchronize(app) {
 
 function edited(app) {
   app.on('pull_request.edited', createHandlerPullRequestChange(async (context, repoContext) => {
+    const sender = context.payload.sender;
+
+    if (sender.type === 'Bot') {
+      return;
+    }
+
     await editOpenedPR(context, repoContext);
     await autoMergeIfPossible(context, repoContext);
   }));
