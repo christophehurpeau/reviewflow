@@ -645,12 +645,14 @@ const initTeamContext = async (context, config) => {
     });
   });
   const githubLoginToTeams = new Map();
-  getKeys(config.teams || {}).forEach((acc, teamName) => {
+  getKeys(config.teams || {}).forEach(teamName => {
     config.teams[teamName].logins.forEach(login => {
-      if (acc.has(login)) {
-        acc.get(login).push(teamName);
+      const teams = githubLoginToTeams.get(login);
+
+      if (teams) {
+        teams.push(teamName);
       } else {
-        acc.set(login, [teamName]);
+        githubLoginToTeams.set(login, [teamName]);
       }
     });
   });
