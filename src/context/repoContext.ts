@@ -2,11 +2,11 @@
 
 import { Lock } from 'lock';
 import { Context } from 'probot';
-import { teamConfigs, Config } from '../teamconfigs';
+import { orgsConfigs, Config } from '../orgsConfigs';
 // eslint-disable-next-line import/no-cycle
 import { autoMergeIfPossible } from '../pr-handlers/actions/autoMergeIfPossible';
 import { initRepoLabels, LabelResponse, Labels } from './initRepoLabels';
-import { obtainTeamContext, TeamContext } from './teamContext';
+import { obtainOrgContext, OrgContext } from './orgContext';
 
 export interface LockedMergePr {
   id: number;
@@ -40,7 +40,7 @@ const ExcludesFalsy = (Boolean as any) as <T>(
   x: T | false | null | undefined,
 ) => x is T;
 
-export type RepoContext<GroupNames extends string = any> = TeamContext<
+export type RepoContext<GroupNames extends string = any> = OrgContext<
   GroupNames
 > &
   RepoContextWithoutTeamContext<GroupNames>;
@@ -49,8 +49,8 @@ async function initRepoContext<GroupNames extends string>(
   context: Context<any>,
   config: Config<GroupNames>,
 ): Promise<RepoContext<GroupNames>> {
-  const teamContext = await obtainTeamContext(context, config);
-  const repoContext = Object.create(teamContext);
+  const orgContext = await obtainOrgContext(context, config);
+  const repoContext = Object.create(orgContext);
 
   const [labels] = await Promise.all([initRepoLabels(context, config)]);
 
@@ -213,8 +213,8 @@ export const obtainRepoContext = (
     return null;
   }
   const owner = repo.owner;
-  if (!teamConfigs[owner.login]) {
-    console.warn(owner.login, Object.keys(teamConfigs));
+  if (!orgsConfigs[owner.login]) {
+    console.warn(owner.login, Object.keys(orgsConfigs));
     return null;
   }
   const key = repo.id;
@@ -225,7 +225,7 @@ export const obtainRepoContext = (
   const existingPromise = repoContextsPromise.get(key);
   if (existingPromise) return Promise.resolve(existingPromise);
 
-  const promise = initRepoContext(context, teamConfigs[owner.login]);
+  const promise = initRepoContext(context, orgsConfigs[owner.login]);
   repoContextsPromise.set(key, promise);
 
   return promise.then((repoContext) => {

@@ -56,7 +56,6 @@ const config = {
       /* back */
       abarreir: `alexandre${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       arthurflachs: `arthur${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      CorentinAndre: `corentin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       rigma: `romain${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       damienorny: `damien.orny${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       'Thierry-girod': `thierry${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -67,6 +66,7 @@ const config = {
       christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       HugoGarrido: `hugo${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       LentnerStefan: `stefan${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      CorentinAndre: `corentin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       Mxime: `maxime${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       tilap: `julien.lavinh${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       '63m29': `valerian${process.env.ORNIKAR_EMAIL_DOMAIN}`
@@ -74,6 +74,16 @@ const config = {
     design: {
       jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       CoralineColasse: `coraline${process.env.ORNIKAR_EMAIL_DOMAIN}`
+    }
+  },
+  teams: {
+    backends: {
+      logins: ['abarreir', 'arthurflachs', 'rigma', 'damienorny', 'Thierry-girod', 'darame07', 'Pixy'],
+      labels: ['teams/backend']
+    },
+    frontends: {
+      logins: ['christophehurpeau', 'HugoGarrido', 'LentnerStefan', 'CorentinAndre', 'Mxime', 'tilap', '63m29'],
+      labels: ['teams/frontend']
     }
   },
   waitForGroups: {
@@ -121,6 +131,16 @@ const config = {
       'design/approved': {
         name: ':art: design/approved',
         color: '#64DD17'
+      },
+
+      /* teams */
+      'teams/backend': {
+        name: 'backend',
+        color: '#6ad8cb'
+      },
+      'teams/frontend': {
+        name: 'frontend',
+        color: '#8a5abc'
       },
 
       /* auto merge */
@@ -187,6 +207,7 @@ const config$1 = {
   waitForGroups: {
     dev: []
   },
+  teams: {},
   labels: {
     list: {
       // /* ci */
@@ -240,7 +261,7 @@ const config$1 = {
   }
 };
 
-const teamConfigs = {
+const orgsConfigs = {
   ornikar: config,
   christophehurpeau: config$1
 }; // flat requires node 11
@@ -617,12 +638,22 @@ const ExcludesFalsy$1 = Boolean;
 
 const initTeamContext = async (context, config) => {
   const slackPromise = initTeamSlack(context, config);
-  const githubLoginToGroup = getKeys(config.groups).reduce((acc, groupName) => {
+  const githubLoginToGroup = new Map();
+  getKeys(config.groups).forEach(groupName => {
     Object.keys(config.groups[groupName]).forEach(login => {
-      acc.set(login, groupName);
+      githubLoginToGroup.set(login, groupName);
     });
-    return acc;
-  }, new Map());
+  });
+  const githubLoginToTeams = new Map();
+  getKeys(config.teams || {}).forEach((acc, teamName) => {
+    config.teams[teamName].logins.forEach(login => {
+      if (acc.has(login)) {
+        acc.get(login).push(teamName);
+      } else {
+        acc.set(login, [teamName]);
+      }
+    });
+  });
 
   const getReviewerGroups = githubLogins => [...new Set(githubLogins.map(githubLogin => githubLoginToGroup.get(githubLogin)).filter(Boolean))];
 
@@ -630,6 +661,7 @@ const initTeamContext = async (context, config) => {
     config,
     getReviewerGroup: githubLogin => githubLoginToGroup.get(githubLogin),
     getReviewerGroups: githubLogins => [...new Set(githubLogins.map(githubLogin => githubLoginToGroup.get(githubLogin)).filter(ExcludesFalsy$1))],
+    getTeamsForLogin: githubLogin => githubLoginToTeams.get(githubLogin) || [],
     reviewShouldWait: (reviewerGroup, requestedReviewers, {
       includesReviewerGroup,
       includesWaitForGroups
@@ -653,20 +685,20 @@ const initTeamContext = async (context, config) => {
   };
 };
 
-const teamContextsPromise = new Map();
-const teamContexts = new Map();
-const obtainTeamContext = (context, config) => {
+const orgContextsPromise = new Map();
+const orgContexts = new Map();
+const obtainOrgContext = (context, config) => {
   const owner = context.payload.repository.owner;
-  const existingTeamContext = teamContexts.get(owner.login);
+  const existingTeamContext = orgContexts.get(owner.login);
   if (existingTeamContext) return existingTeamContext;
-  const existingPromise = teamContextsPromise.get(owner.login);
+  const existingPromise = orgContextsPromise.get(owner.login);
   if (existingPromise) return Promise.resolve(existingPromise);
   const promise = initTeamContext(context, config);
-  teamContextsPromise.set(owner.login, promise);
-  return promise.then(teamContext => {
-    teamContextsPromise.delete(owner.login);
-    teamContexts.set(owner.login, teamContext);
-    return teamContext;
+  orgContextsPromise.set(owner.login, promise);
+  return promise.then(orgContext => {
+    orgContextsPromise.delete(owner.login);
+    orgContexts.set(owner.login, orgContext);
+    return orgContext;
   });
 };
 
@@ -674,8 +706,8 @@ const obtainTeamContext = (context, config) => {
 const ExcludesFalsy$2 = Boolean;
 
 async function initRepoContext(context, config) {
-  const teamContext = await obtainTeamContext(context, config);
-  const repoContext = Object.create(teamContext);
+  const orgContext = await obtainOrgContext(context, config);
+  const repoContext = Object.create(orgContext);
   const [labels] = await Promise.all([initRepoLabels(context, config)]);
   const reviewGroupNames = Object.keys(config.groups);
   const needsReviewLabelIds = reviewGroupNames.map(key => config.labels.review[key].needsReview).filter(Boolean).map(name => labels[name].id);
@@ -803,8 +835,8 @@ const obtainRepoContext = context => {
 
   const owner = repo.owner;
 
-  if (!teamConfigs[owner.login]) {
-    console.warn(owner.login, Object.keys(teamConfigs));
+  if (!orgsConfigs[owner.login]) {
+    console.warn(owner.login, Object.keys(orgsConfigs));
     return null;
   }
 
@@ -813,7 +845,7 @@ const obtainRepoContext = context => {
   if (existingRepoContext) return existingRepoContext;
   const existingPromise = repoContextsPromise.get(key);
   if (existingPromise) return Promise.resolve(existingPromise);
-  const promise = initRepoContext(context, teamConfigs[owner.login]);
+  const promise = initRepoContext(context, orgsConfigs[owner.login]);
   repoContextsPromise.set(key, promise);
   return promise.then(repoContext => {
     repoContextsPromise.delete(key);
@@ -1166,8 +1198,23 @@ const updateReviewStatus = async (context, repoContext, reviewGroup, {
         toDelete.add(key);
       }
     });
-  }
+  } // TODO move that elsewhere
 
+
+  repoContext.getTeamsForLogin(pr.user.login).forEach(teamName => {
+    const team = repoContext.config.teams[teamName];
+
+    if (team.labels) {
+      team.labels.forEach(labelKey => {
+        const label = repoContext.labels[labelKey];
+
+        if (label && !prLabels.some(prLabel => prLabel.id === label.id)) {
+          newLabelNames.add(label.name);
+          toAdd.add(labelKey);
+        }
+      });
+    }
+  });
   const newLabelNamesArray = [...newLabelNames];
   context.log.info('updateReviewStatus', {
     reviewGroup,

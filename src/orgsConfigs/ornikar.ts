@@ -1,6 +1,6 @@
 import { Config } from './types';
 
-const config: Config<'dev' | 'design'> = {
+const config: Config<'dev' | 'design', 'frontends' | 'backends'> = {
   slackToken: process.env.ORNIKAR_SLACK_TOKEN,
   autoAssignToCreator: true,
   trimTitle: true,
@@ -55,7 +55,6 @@ const config: Config<'dev' | 'design'> = {
       /* back */
       abarreir: `alexandre${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       arthurflachs: `arthur${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      CorentinAndre: `corentin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       rigma: `romain${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       damienorny: `damien.orny${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       'Thierry-girod': `thierry${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -65,6 +64,7 @@ const config: Config<'dev' | 'design'> = {
       christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       HugoGarrido: `hugo${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       LentnerStefan: `stefan${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      CorentinAndre: `corentin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       Mxime: `maxime${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       tilap: `julien.lavinh${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       '63m29': `valerian${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -74,6 +74,35 @@ const config: Config<'dev' | 'design'> = {
       CoralineColasse: `coraline${process.env.ORNIKAR_EMAIL_DOMAIN}`,
     },
   },
+
+  teams: {
+    backends: {
+      logins: [
+        'abarreir',
+        'arthurflachs',
+        'rigma',
+        'damienorny',
+        'Thierry-girod',
+        'darame07',
+        'Pixy',
+      ],
+      labels: ['teams/backend'],
+    },
+
+    frontends: {
+      logins: [
+        'christophehurpeau',
+        'HugoGarrido',
+        'LentnerStefan',
+        'CorentinAndre',
+        'Mxime',
+        'tilap',
+        '63m29',
+      ],
+      labels: ['teams/frontend'],
+    },
+  },
+
   waitForGroups: {
     dev: [],
     design: ['dev'],
@@ -119,6 +148,17 @@ const config: Config<'dev' | 'design'> = {
       'design/approved': {
         name: ':art: design/approved',
         color: '#64DD17',
+      },
+
+      /* teams */
+
+      'teams/backend': {
+        name: 'backend',
+        color: '#6ad8cb',
+      },
+      'teams/frontend': {
+        name: 'frontend',
+        color: '#8a5abc',
       },
 
       /* auto merge */

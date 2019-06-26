@@ -1,7 +1,7 @@
 import Webhooks from '@octokit/webhooks';
 import { Context } from 'probot';
 import { RepoContext } from '../../context/repoContext';
-import { StatusError, StatusInfo } from '../../teamconfigs/types';
+import { StatusError, StatusInfo } from '../../orgsConfigs/types';
 import { cleanTitle } from './utils/cleanTitle';
 import { updateBody } from './utils/updateBody';
 import { autoMergeIfPossible } from './autoMergeIfPossible';

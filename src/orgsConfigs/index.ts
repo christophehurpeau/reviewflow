@@ -2,9 +2,12 @@ import { Config as ConfigType } from './types';
 import ornikar from './ornikar';
 import christophehurpeau from './christophehurpeau';
 
-export type Config<GroupNames extends string = any> = ConfigType<GroupNames>;
+export type Config<
+  GroupNames extends string = any,
+  TeamNames extends string = any
+> = ConfigType<GroupNames, TeamNames>;
 
-export const teamConfigs: { [owner: string]: Config } = {
+export const orgsConfigs: { [owner: string]: Config } = {
   ornikar,
   christophehurpeau,
 };

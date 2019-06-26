@@ -1,6 +1,6 @@
 import { Config } from './types';
 
-const config: Config<'dev'> = {
+const config: Config<'dev', never> = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: false,
@@ -34,6 +34,7 @@ const config: Config<'dev'> = {
   waitForGroups: {
     dev: [],
   },
+  teams: {},
   labels: {
     list: {
       // /* ci */

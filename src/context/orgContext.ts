@@ -1,13 +1,17 @@
 import { Context } from 'probot';
-import { Config } from '../teamconfigs';
+import { Config } from '../orgsConfigs';
 import { initTeamSlack, TeamSlack } from './initTeamSlack';
 import { getKeys } from './utils';
 
-export interface TeamContext<GroupNames extends string = any> {
-  config: Config<GroupNames>;
+export interface OrgContext<
+  GroupNames extends string = any,
+  TeamNames extends string = any
+> {
+  config: Config<GroupNames, TeamNames>;
   slack: TeamSlack;
   getReviewerGroup: (githubLogin: string) => string | undefined;
   getReviewerGroups: (githubLogins: string[]) => string[];
+  getTeamsForLogin: (githubLogin: string) => TeamNames[];
   reviewShouldWait: (
     reviewerGroup: GroupNames | undefined,
     requestedReviewers: any[],
@@ -24,18 +28,28 @@ const ExcludesFalsy = (Boolean as any) as <T>(
 const initTeamContext = async (
   context: Context<any>,
   config: Config,
-): Promise<TeamContext> => {
+): Promise<OrgContext> => {
   const slackPromise = initTeamSlack(context, config);
 
-  const githubLoginToGroup = getKeys(config.groups).reduce<Map<string, string>>(
-    (acc, groupName) => {
-      Object.keys(config.groups[groupName]).forEach((login) => {
-        acc.set(login, groupName);
-      });
-      return acc;
-    },
-    new Map(),
-  );
+  const githubLoginToGroup = new Map<string, string>();
+  getKeys(config.groups).forEach((groupName) => {
+    Object.keys(config.groups[groupName]).forEach((login) => {
+      githubLoginToGroup.set(login, groupName);
+    });
+  });
+
+  const githubLoginToTeams = new Map<string, string[]>();
+  getKeys(config.teams || {}).forEach((acc, teamName) => {
+    (config.teams as NonNullable<typeof config.teams>)[teamName].logins.forEach(
+      (login) => {
+        if (acc.has(login)) {
+          acc.get(login).push(teamName);
+        } else {
+          acc.set(login, [teamName]);
+        }
+      },
+    );
+  });
 
   const getReviewerGroups = (githubLogins: string[]) => [
     ...new Set(
@@ -55,6 +69,9 @@ const initTeamContext = async (
           .filter(ExcludesFalsy),
       ),
     ],
+
+    getTeamsForLogin: (githubLogin) =>
+      githubLoginToTeams.get(githubLogin) || [],
 
     reviewShouldWait: (
       reviewerGroup,
@@ -90,27 +107,27 @@ const initTeamContext = async (
   };
 };
 
-const teamContextsPromise = new Map();
-const teamContexts = new Map();
+const orgContextsPromise = new Map();
+const orgContexts = new Map();
 
-export const obtainTeamContext = (
+export const obtainOrgContext = (
   context: Context<any>,
   config: Config,
-): Promise<TeamContext> => {
+): Promise<OrgContext> => {
   const owner = context.payload.repository.owner;
 
-  const existingTeamContext = teamContexts.get(owner.login);
+  const existingTeamContext = orgContexts.get(owner.login);
   if (existingTeamContext) return existingTeamContext;
 
-  const existingPromise = teamContextsPromise.get(owner.login);
+  const existingPromise = orgContextsPromise.get(owner.login);
   if (existingPromise) return Promise.resolve(existingPromise);
 
   const promise = initTeamContext(context, config);
-  teamContextsPromise.set(owner.login, promise);
+  orgContextsPromise.set(owner.login, promise);
 
-  return promise.then((teamContext) => {
-    teamContextsPromise.delete(owner.login);
-    teamContexts.set(owner.login, teamContext);
-    return teamContext;
+  return promise.then((orgContext) => {
+    orgContextsPromise.delete(owner.login);
+    orgContexts.set(owner.login, orgContext);
+    return orgContext;
   });
 };

@@ -1,5 +1,5 @@
 import { Context } from 'probot';
-import { Config } from '../teamconfigs';
+import { Config } from '../orgsConfigs';
 
 export interface LabelResponse {
   id: number;

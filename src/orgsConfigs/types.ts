@@ -15,6 +15,11 @@ export interface Group {
   [userName: string]: string;
 }
 
+export interface Team {
+  logins: string[];
+  labels?: string[];
+}
+
 export interface ParsePRRule {
   bot?: false;
   regExp: RegExp;
@@ -52,7 +57,7 @@ export interface LabelsConfig<GroupNames extends string> {
   review: ReviewConfig<GroupNames>;
 }
 
-export interface Config<GroupNames extends string> {
+export interface Config<GroupNames extends string, TeamNames extends string> {
   slackToken?: string;
   autoAssignToCreator?: boolean;
   trimTitle?: boolean;
@@ -61,6 +66,7 @@ export interface Config<GroupNames extends string> {
   prDefaultOptions: Record<Options, boolean>;
 
   groups: Record<GroupNames, Group>;
+  teams: Record<TeamNames, Team>;
   waitForGroups?: Record<GroupNames, GroupNames[]>;
 
   labels: LabelsConfig<GroupNames>;

@@ -1,4 +1,4 @@
-import { StatusInfo } from '../../../teamconfigs/types';
+import { StatusInfo } from '../../../orgsConfigs/types';
 import { parseBody } from './parseBody';
 import { Options, optionsLabels } from './prOptions';
 

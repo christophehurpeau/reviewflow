@@ -1,6 +1,6 @@
 import { WebClient } from '@slack/web-api';
 import { Context } from 'probot';
-import { Config } from '../teamconfigs';
+import { Config } from '../orgsConfigs';
 import { getKeys } from './utils';
 
 export interface TeamSlack {
