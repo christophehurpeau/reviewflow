@@ -1414,6 +1414,19 @@ function edited(app) {
   }));
 }
 
+const updatePrBody = async (context, repoContext, updateOptions) => {
+  const prBody = context.payload.pull_request.body;
+  const {
+    body
+  } = updateBody(prBody, repoContext.config.prDefaultOptions, undefined, updateOptions);
+
+  if (body !== prBody) {
+    await context.github.pulls.update(context.issue({
+      body
+    }));
+  }
+};
+
 function labelsChanged(app) {
   app.on(['pull_request.labeled', 'pull_request.unlabeled'], async context => {
     const sender = context.payload.sender;
@@ -1429,26 +1442,26 @@ function labelsChanged(app) {
 
       if (fromRenovate) {
         const codeApprovedLabel = repoContext.labels['code/approved'];
+        const autoMergeLabel = repoContext.labels['merge/automerge'];
 
-        if (context.payload.action === 'labeled' && codeApprovedLabel && label.id === codeApprovedLabel.id) {
-          // const { data: reviews } = await context.github.pulls.listReviews(
-          //   context.issue({ per_page: 1 }),
-          // );
-          // if (reviews.length !== 0) {
-          await context.github.pulls.createReview(context.issue({
-            event: 'APPROVE'
-          }));
-          await updateStatusCheckFromLabels(context, repoContext, context.payload.pull_request);
-          const prBody = context.payload.pull_request.body;
-          const {
-            body
-          } = updateBody(prBody, repoContext.config.prDefaultOptions, undefined, {
-            autoMerge: true,
-            autoMergeWithSkipCi: true
-          });
-          await context.github.pulls.update(context.issue({
-            body
-          })); // }
+        if (context.payload.action === 'labeled') {
+          if (codeApprovedLabel && label.id === codeApprovedLabel.id) {
+            // const { data: reviews } = await context.github.pulls.listReviews(
+            //   context.issue({ per_page: 1 }),
+            // );
+            // if (reviews.length !== 0) {
+            await context.github.pulls.createReview(context.issue({
+              event: 'APPROVE'
+            }));
+            await updateStatusCheckFromLabels(context, repoContext, context.payload.pull_request);
+            await updatePrBody(context, repoContext, {
+              autoMergeWithSkipCi: true
+            }); // }
+          } else if (autoMergeLabel && label.id === autoMergeLabel.id) {
+            await updatePrBody(context, repoContext, {
+              autoMerge: true
+            });
+          }
         }
 
         return;
@@ -1474,18 +1487,9 @@ function labelsChanged(app) {
 
       if (featureBranchLabel && label.id === automergeLabel.id || automergeLabel && label.id === automergeLabel.id) {
         const option = featureBranchLabel && label.id === featureBranchLabel.id ? 'featureBranch' : 'autoMerge';
-        const prBody = context.payload.pull_request.body;
-        const {
-          body
-        } = updateBody(prBody, repoContext.config.prDefaultOptions, undefined, {
+        await updatePrBody(context, repoContext, {
           [option]: context.payload.action === 'labeled'
         });
-
-        if (body !== prBody) {
-          await context.github.pulls.update(context.issue({
-            body
-          }));
-        }
       } else if (context.payload.action === 'labeled') {
         if (repoContext.labels['merge/automerge'] && label.id === repoContext.labels['merge/automerge'].id) {
           await autoMergeIfPossible(context, repoContext);
