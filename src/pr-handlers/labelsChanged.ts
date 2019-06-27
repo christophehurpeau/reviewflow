@@ -46,6 +46,7 @@ export default function labelsChanged(app: Application): void {
                 autoMerge: true,
               });
             }
+            await autoMergeIfPossible(context, repoContext);
           }
           return;
         }

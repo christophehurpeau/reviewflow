@@ -1511,6 +1511,8 @@ function labelsChanged(app) {
               autoMerge: true
             });
           }
+
+          await autoMergeIfPossible(context, repoContext);
         }
 
         return;
