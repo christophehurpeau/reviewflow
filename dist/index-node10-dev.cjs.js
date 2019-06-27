@@ -1454,7 +1454,7 @@ function edited(app) {
   app.on('pull_request.edited', createHandlerPullRequestChange(async (context, repoContext) => {
     const sender = context.payload.sender;
 
-    if (sender.type === 'Bot') {
+    if (sender.type === 'Bot' && sender.login === `${process.env.NAME}[bot]`) {
       return;
     }
 

@@ -9,7 +9,10 @@ export default function edited(app: Application): void {
     createHandlerPullRequestChange(
       async (context, repoContext): Promise<void> => {
         const sender = context.payload.sender;
-        if (sender.type === 'Bot') {
+        if (
+          sender.type === 'Bot' &&
+          sender.login === `${process.env.NAME}[bot]`
+        ) {
           return;
         }
 
