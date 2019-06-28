@@ -1,3 +1,12 @@
+## [1.20.4](https://github.com/christophehurpeau/reviewflow/compare/v1.20.3...v1.20.4) (2019-06-28)
+
+
+### Bug Fixes
+
+* use skipAutoMerge ([4bf9c0a](https://github.com/christophehurpeau/reviewflow/commit/4bf9c0a))
+
+
+
 ## [1.20.3](https://github.com/christophehurpeau/reviewflow/compare/v1.20.2...v1.20.3) (2019-06-28)
 
 
