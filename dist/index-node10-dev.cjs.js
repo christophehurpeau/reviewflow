@@ -377,18 +377,27 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
   });
 
   if (!prLabels.find(l => l.id === autoMergeLabel.id)) {
-    context.log.debug('automerge not possible: no label');
+    context.log.debug('automerge not possible: no label', {
+      prId: pr.id,
+      prNumber: pr.number
+    });
     repoContext.removePrFromAutomergeQueue(context, pr.number);
     return false;
   }
 
   if (pr.state !== 'open') {
-    context.log.debug('automerge not possible: pr is not opened');
+    context.log.debug('automerge not possible: pr is not opened', {
+      prId: pr.id,
+      prNumber: pr.number
+    });
     repoContext.removePrFromAutomergeQueue(context, pr.number);
   }
 
   if (repoContext.hasNeedsReview(prLabels) || repoContext.hasRequestedReview(prLabels)) {
-    context.log.debug('automerge not possible: blocking labels'); // repoContext.removePrFromAutomergeQueue(context, pr.number);
+    context.log.debug('automerge not possible: blocking labels', {
+      prId: pr.id,
+      prNumber: pr.number
+    }); // repoContext.removePrFromAutomergeQueue(context, pr.number);
 
     return false;
   }
@@ -396,7 +405,10 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
   const lockedPr = repoContext.getMergeLockedPr();
 
   if (lockedPr && lockedPr.number !== pr.number) {
-    context.log.info(`automerge not possible: locked pr ${pr.id}`);
+    context.log.info('automerge not possible: locked pr', {
+      prId: pr.id,
+      prNumber: pr.number
+    });
     repoContext.pushAutomergeQueue(createMergeLockPrFromPr());
     return false;
   }
@@ -412,11 +424,14 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
 
   if (pr.merged) {
     repoContext.removePrFromAutomergeQueue(context, pr.number);
-    context.log.info(`automerge not possible: already merged pr ${pr.id}`);
+    context.log.info('automerge not possible: already merged pr', {
+      prId: pr.id,
+      prNumber: pr.number
+    });
     return false;
   }
 
-  context.log.info(`automerge?: ${pr.id}, mergeable=${pr.mergeable} state=${pr.mergeable_state}`); // https://github.com/octokit/octokit.net/issues/1763
+  context.log.info(`automerge?: ${pr.id}, #${pr.number}, mergeable=${pr.mergeable} state=${pr.mergeable_state}`); // https://github.com/octokit/octokit.net/issues/1763
 
   if (!(pr.mergeable_state === 'clean' || pr.mergeable_state === 'has_hooks' || pr.mergeable_state === 'unstable')) {
     if (!pr.mergeable_state || pr.mergeable_state === 'unknown') {
@@ -939,7 +954,9 @@ const editOpenedPR = async (context, repoContext) => {
   const repo = context.payload.repository;
   const pr = context.payload.pull_request; // do not lint pr from forks
 
-  if (pr.head.repo.id !== repo.id) return;
+  if (pr.head.repo.id !== repo.id) return {
+    skipAutoMerge: true
+  };
   const title = repoContext.config.trimTitle ? cleanTitle(pr.title) : pr.title;
   const isPrFromBot = pr.user.type === 'Bot';
   const statuses = [];
@@ -1051,6 +1068,7 @@ const editOpenedPR = async (context, repoContext) => {
         await context.github.issues.removeLabel(context.issue({
           name: automergeLabel.name
         }));
+        repoContext.removePrFromAutomergeQueue(context, pr.number);
       }
 
       if (options.autoMerge && !prHasAutoMergeLabel) {
@@ -1059,8 +1077,16 @@ const editOpenedPR = async (context, repoContext) => {
         }));
         await autoMergeIfPossible(context, repoContext, context.payload.pull_request, result.data);
       }
+
+      return {
+        skipAutoMerge: true
+      };
     }
   }
+
+  return {
+    skipAutoMerge: false
+  };
 };
 
 const addStatusCheck = async function (context, pr, {
