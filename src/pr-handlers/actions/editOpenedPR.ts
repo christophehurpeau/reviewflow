@@ -177,6 +177,7 @@ export const editOpenedPR = async (
         await context.github.issues.removeLabel(
           context.issue({ name: automergeLabel.name }),
         );
+        repoContext.removePrFromAutomergeQueue(context, pr.number);
       }
       if (options.autoMerge && !prHasAutoMergeLabel) {
         const result = await context.github.issues.addLabels(
@@ -188,8 +189,8 @@ export const editOpenedPR = async (
           context.payload.pull_request,
           result.data,
         );
-        return { skipAutoMerge: true };
       }
+      return { skipAutoMerge: true };
     }
   }
 
