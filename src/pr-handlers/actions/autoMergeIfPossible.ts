@@ -66,13 +66,19 @@ export const autoMergeIfPossible = async (
   });
 
   if (!prLabels.find((l): boolean => l.id === autoMergeLabel.id)) {
-    context.log.debug('automerge not possible: no label');
+    context.log.debug('automerge not possible: no label', {
+      prId: pr.id,
+      prNumber: pr.number,
+    });
     repoContext.removePrFromAutomergeQueue(context, pr.number);
     return false;
   }
 
   if (pr.state !== 'open') {
-    context.log.debug('automerge not possible: pr is not opened');
+    context.log.debug('automerge not possible: pr is not opened', {
+      prId: pr.id,
+      prNumber: pr.number,
+    });
     repoContext.removePrFromAutomergeQueue(context, pr.number);
   }
 
@@ -80,14 +86,20 @@ export const autoMergeIfPossible = async (
     repoContext.hasNeedsReview(prLabels) ||
     repoContext.hasRequestedReview(prLabels)
   ) {
-    context.log.debug('automerge not possible: blocking labels');
+    context.log.debug('automerge not possible: blocking labels', {
+      prId: pr.id,
+      prNumber: pr.number,
+    });
     // repoContext.removePrFromAutomergeQueue(context, pr.number);
     return false;
   }
 
   const lockedPr = repoContext.getMergeLockedPr();
   if (lockedPr && lockedPr.number !== pr.number) {
-    context.log.info(`automerge not possible: locked pr ${pr.id}`);
+    context.log.info('automerge not possible: locked pr', {
+      prId: pr.id,
+      prNumber: pr.number,
+    });
     repoContext.pushAutomergeQueue(createMergeLockPrFromPr());
     return false;
   }
@@ -105,12 +117,15 @@ export const autoMergeIfPossible = async (
 
   if (pr.merged) {
     repoContext.removePrFromAutomergeQueue(context, pr.number);
-    context.log.info(`automerge not possible: already merged pr ${pr.id}`);
+    context.log.info('automerge not possible: already merged pr', {
+      prId: pr.id,
+      prNumber: pr.number,
+    });
     return false;
   }
 
   context.log.info(
-    `automerge?: ${pr.id}, mergeable=${pr.mergeable} state=${
+    `automerge?: ${pr.id}, #${pr.number}, mergeable=${pr.mergeable} state=${
       pr.mergeable_state
     }`,
   );

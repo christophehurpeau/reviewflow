@@ -27,12 +27,12 @@ const ExcludesFalsy = (Boolean as any) as <T>(
 export const editOpenedPR = async (
   context: Context<Webhooks.WebhookPayloadPullRequest>,
   repoContext: RepoContext,
-): Promise<void> => {
+): Promise<{ skipAutoMerge: boolean }> => {
   const repo = context.payload.repository;
   const pr = context.payload.pull_request;
 
   // do not lint pr from forks
-  if (pr.head.repo.id !== repo.id) return;
+  if (pr.head.repo.id !== repo.id) return { skipAutoMerge: true };
 
   const title = repoContext.config.trimTitle ? cleanTitle(pr.title) : pr.title;
 
@@ -188,7 +188,10 @@ export const editOpenedPR = async (
           context.payload.pull_request,
           result.data,
         );
+        return { skipAutoMerge: true };
       }
     }
   }
+
+  return { skipAutoMerge: false };
 };
