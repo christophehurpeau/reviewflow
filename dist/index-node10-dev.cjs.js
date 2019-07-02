@@ -69,7 +69,7 @@ const config = {
       CorentinAndre: `corentin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       Mxime: `maxime${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       tilap: `julien.lavinh${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      '63m29': `valerian${process.env.ORNIKAR_EMAIL_DOMAIN}`
+      vlbr: `valerian${process.env.ORNIKAR_EMAIL_DOMAIN}`
     },
     design: {
       jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -82,7 +82,7 @@ const config = {
       labels: ['teams/backend']
     },
     frontends: {
-      logins: ['christophehurpeau', 'HugoGarrido', 'LentnerStefan', 'CorentinAndre', 'Mxime', 'tilap', '63m29'],
+      logins: ['christophehurpeau', 'HugoGarrido', 'LentnerStefan', 'CorentinAndre', 'Mxime', 'tilap', 'vlbr'],
       labels: ['teams/frontend']
     }
   },
