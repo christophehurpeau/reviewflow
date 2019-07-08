@@ -1,3 +1,12 @@
+## [1.20.6](https://github.com/christophehurpeau/reviewflow/compare/v1.20.5...v1.20.6) (2019-07-08)
+
+
+### Bug Fixes
+
+* remove pr from automerge queue when pr is missing approval ([309c42f](https://github.com/christophehurpeau/reviewflow/commit/309c42f))
+
+
+
 ## [1.20.5](https://github.com/christophehurpeau/reviewflow/compare/v1.20.4...v1.20.5) (2019-07-02)
 
 
