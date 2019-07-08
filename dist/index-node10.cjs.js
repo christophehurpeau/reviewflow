@@ -397,8 +397,8 @@ const autoMergeIfPossible = async (context, repoContext, pr = context.payload.pu
     context.log.debug('automerge not possible: blocking labels', {
       prId: pr.id,
       prNumber: pr.number
-    }); // repoContext.removePrFromAutomergeQueue(context, pr.number);
-
+    });
+    repoContext.removePrFromAutomergeQueue(context, pr.number);
     return false;
   }
 

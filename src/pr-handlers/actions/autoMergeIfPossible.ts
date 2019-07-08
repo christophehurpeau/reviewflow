@@ -90,7 +90,7 @@ export const autoMergeIfPossible = async (
       prId: pr.id,
       prNumber: pr.number,
     });
-    // repoContext.removePrFromAutomergeQueue(context, pr.number);
+    repoContext.removePrFromAutomergeQueue(context, pr.number);
     return false;
   }
 
