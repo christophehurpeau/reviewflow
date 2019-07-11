@@ -1,3 +1,12 @@
+## [1.20.7](https://github.com/christophehurpeau/reviewflow/compare/v1.20.6...v1.20.7) (2019-07-11)
+
+
+### Bug Fixes
+
+* ensure [skip-ci] exists when automatic automerge from renovate ([badd77b](https://github.com/christophehurpeau/reviewflow/commit/badd77b))
+
+
+
 ## [1.20.6](https://github.com/christophehurpeau/reviewflow/compare/v1.20.5...v1.20.6) (2019-07-08)
 
 
