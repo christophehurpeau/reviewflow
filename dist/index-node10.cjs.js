@@ -1532,11 +1532,16 @@ function labelsChanged(app) {
             }));
             await updateStatusCheckFromLabels(context, repoContext, context.payload.pull_request);
             await updatePrBody(context, repoContext, {
-              autoMergeWithSkipCi: true
+              autoMergeWithSkipCi: true,
+              // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
+              autoMerge: autoMergeLabel && context.payload.pull_request.labels.find(l => l.id === autoMergeLabel.id) ? true : repoContext.config.prDefaultOptions.autoMerge
             }); // }
           } else if (autoMergeLabel && label.id === autoMergeLabel.id) {
             await updatePrBody(context, repoContext, {
-              autoMerge: true
+              autoMerge: true,
+              // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
+              // Note: si c'est renovate qui ajoute le label autoMerge, le label codeApprovedLabel n'aurait pu etre ajouté que par renovate également (on est a quelques secondes de l'ouverture de la pr par renovate)
+              autoMergeWithSkipCi: codeApprovedLabel && context.payload.pull_request.labels.find(l => l.id === codeApprovedLabel.id) ? true : repoContext.config.prDefaultOptions.autoMergeWithSkipCi
             });
           }
 
