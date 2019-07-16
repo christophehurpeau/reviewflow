@@ -152,15 +152,30 @@ export const autoMergeIfPossible = async (
         );
         // TODO check if has commits not made by renovate https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
 
-        await context.github.issues.update(
-          context.repo({
-            number: pr.number,
-            body: pr.body.replace(
-              '[ ] <!-- renovate-rebase -->',
-              '[x] <!-- renovate-rebase -->',
-            ),
-          }),
-        );
+        if (pr.body.includes('<!-- renovate-rebase -->')) {
+          if (pr.body.includes('[x] <!-- renovate-rebase -->')) {
+            return false;
+          }
+
+          const renovateRebaseBody = pr.body.replace(
+            '[ ] <!-- renovate-rebase -->',
+            '[x] <!-- renovate-rebase -->',
+          );
+          await context.github.issues.update(
+            context.repo({
+              number: pr.number,
+              body: renovateRebaseBody,
+            }),
+          );
+        } else if (!pr.title.startsWith('rebase!')) {
+          await context.github.issues.update(
+            context.repo({
+              number: pr.number,
+              title: `rebase!${pr.title}`,
+            }),
+          );
+        }
+
         return false;
       }
 
