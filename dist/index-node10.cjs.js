@@ -1292,15 +1292,23 @@ const autoApproveAndAutoMerge = async (context, repoContext) => {
     await context.github.pulls.createReview(context.issue({
       event: 'APPROVE'
     }));
+    await autoMergeIfPossible(context, repoContext);
+    return true;
   }
 
-  await autoMergeIfPossible(context, repoContext);
+  return false;
 };
 
 function opened(app) {
   app.on('pull_request.opened', createHandlerPullRequestChange(async (context, repoContext) => {
     const fromRenovate = context.payload.pull_request.head.ref.startsWith('renovate/');
-    await Promise.all([autoAssignPRToCreator(context, repoContext), editOpenedPR(context, repoContext), fromRenovate ? autoApproveAndAutoMerge(context, repoContext) : updateReviewStatus(context, repoContext, 'dev', {
+    await Promise.all([autoAssignPRToCreator(context, repoContext), editOpenedPR(context, repoContext), fromRenovate ? autoApproveAndAutoMerge(context, repoContext).then(async approved => {
+      if (!approved) {
+        await updateReviewStatus(context, repoContext, 'dev', {
+          add: ['needsReview']
+        });
+      }
+    }) : updateReviewStatus(context, repoContext, 'dev', {
       add: ['needsReview'],
       remove: ['approved', 'changesRequested']
     })]);
