@@ -18,7 +18,15 @@ export default function opened(app: Application): void {
           autoAssignPRToCreator(context, repoContext),
           editOpenedPR(context, repoContext),
           fromRenovate
-            ? autoApproveAndAutoMerge(context, repoContext)
+            ? autoApproveAndAutoMerge(context, repoContext).then(
+                async (approved: boolean): Promise<void> => {
+                  if (!approved) {
+                    await updateReviewStatus(context, repoContext, 'dev', {
+                      add: ['needsReview'],
+                    });
+                  }
+                },
+              )
             : updateReviewStatus(context, repoContext, 'dev', {
                 add: ['needsReview'],
                 remove: ['approved', 'changesRequested'],

@@ -6,7 +6,7 @@ import { autoMergeIfPossible } from './autoMergeIfPossible';
 export const autoApproveAndAutoMerge = async (
   context: Context<Webhooks.WebhookPayloadPullRequest>,
   repoContext: RepoContext,
-): Promise<void> => {
+): Promise<boolean> => {
   // const autoMergeLabel = repoContext.labels['merge/automerge'];
   const codeApprovedLabel = repoContext.labels['code/approved'];
   const prLabels = context.payload.pull_request.labels;
@@ -14,7 +14,9 @@ export const autoApproveAndAutoMerge = async (
     await context.github.pulls.createReview(
       context.issue({ event: 'APPROVE' }),
     );
+    await autoMergeIfPossible(context, repoContext);
+    return true;
   }
 
-  await autoMergeIfPossible(context, repoContext);
+  return false;
 };
