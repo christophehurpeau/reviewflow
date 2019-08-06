@@ -1,3 +1,13 @@
+## [1.20.9](https://github.com/christophehurpeau/reviewflow/compare/v1.20.8...v1.20.9) (2019-08-06)
+
+
+### Bug Fixes
+
+* add needsReview label in renovate pr that are not automerged ([2247461](https://github.com/christophehurpeau/reviewflow/commit/2247461))
+* **deps:** update dependency @slack/web-api to v5.1.0 ([#62](https://github.com/christophehurpeau/reviewflow/issues/62)) ([e4417dc](https://github.com/christophehurpeau/reviewflow/commit/e4417dc))
+
+
+
 ## [1.20.8](https://github.com/christophehurpeau/reviewflow/compare/v1.20.7...v1.20.8) (2019-07-16)
 
 
