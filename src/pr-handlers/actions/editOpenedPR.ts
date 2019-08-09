@@ -69,7 +69,7 @@ export const editOpenedPR = async (
       ref: pr.head.sha,
     }),
   )).data.check_runs.find(
-    (check) => check.name === `${process.env.NAME}/lint-pr`,
+    (check) => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`,
   );
 
   await Promise.all<any>(
@@ -77,7 +77,7 @@ export const editOpenedPR = async (
       ...statuses.map(({ name, error, info }) =>
         context.github.repos.createStatus(
           context.repo({
-            context: `${process.env.NAME}/${name}`,
+            context: `${process.env.REVIEWFLOW_NAME}/${name}`,
             sha: pr.head.sha,
             state: (error ? 'failure' : 'success') as 'failure' | 'success',
             target_url: error ? undefined : (info as StatusInfo).url,
@@ -88,7 +88,7 @@ export const editOpenedPR = async (
       hasLintPrCheck &&
         context.github.checks.create(
           context.repo({
-            name: `${process.env.NAME}/lint-pr`,
+            name: `${process.env.REVIEWFLOW_NAME}/lint-pr`,
             head_sha: pr.head.sha,
             status: 'completed' as 'completed',
             conclusion: (errorRule ? 'failure' : 'success') as
@@ -107,7 +107,7 @@ export const editOpenedPR = async (
       !hasLintPrCheck &&
         context.github.repos.createStatus(
           context.repo({
-            context: `${process.env.NAME}/lint-pr`,
+            context: `${process.env.REVIEWFLOW_NAME}/lint-pr`,
             sha: pr.head.sha,
             state: (errorRule ? 'failure' : 'success') as 'failure' | 'success',
             target_url: undefined,

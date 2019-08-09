@@ -11,7 +11,7 @@ export default function edited(app: Application): void {
         const sender = context.payload.sender;
         if (
           sender.type === 'Bot' &&
-          sender.login === `${process.env.NAME}[bot]`
+          sender.login === `${process.env.REVIEWFLOW_NAME}[bot]`
         ) {
           return;
         }

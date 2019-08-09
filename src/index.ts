@@ -13,7 +13,8 @@ import checkrunCompleted from './pr-handlers/checkrunCompleted';
 import checksuiteCompleted from './pr-handlers/checksuiteCompleted';
 import status from './pr-handlers/status';
 
-if (!process.env.NAME) process.env.NAME = 'reviewflow';
+if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = 'reviewflow';
+console.log({ name: process.env.REVIEWFLOW_NAME });
 
 // const getConfig = require('probot-config')
 // const { MongoClient } = require('mongodb');

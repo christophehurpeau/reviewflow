@@ -208,7 +208,7 @@ export const obtainRepoContext = (
   const repo = context.payload.repository;
   if (
     repo.name === 'reviewflow-test' &&
-    process.env.NAME !== 'reviewflow-test'
+    process.env.REVIEWFLOW_NAME !== 'reviewflow-test'
   ) {
     return null;
   }

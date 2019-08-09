@@ -859,7 +859,7 @@ const repoContexts = new Map();
 const obtainRepoContext = context => {
   const repo = context.payload.repository;
 
-  if (repo.name === 'reviewflow-test' && process.env.NAME !== 'reviewflow-test') {
+  if (repo.name === 'reviewflow-test' && process.env.REVIEWFLOW_NAME !== 'reviewflow-test') {
     return null;
   }
 
@@ -1001,19 +1001,19 @@ const editOpenedPR = async (context, repoContext) => {
   const date = new Date().toISOString();
   const hasLintPrCheck = (await context.github.checks.listForRef(context.repo({
     ref: pr.head.sha
-  }))).data.check_runs.find(check => check.name === `${process.env.NAME}/lint-pr`);
+  }))).data.check_runs.find(check => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`);
   await Promise.all([...statuses.map(({
     name,
     error,
     info
   }) => context.github.repos.createStatus(context.repo({
-    context: `${process.env.NAME}/${name}`,
+    context: `${process.env.REVIEWFLOW_NAME}/${name}`,
     sha: pr.head.sha,
     state: error ? 'failure' : 'success',
     target_url: error ? undefined : info.url,
     description: error ? error.title : info.title
   }))), hasLintPrCheck && context.github.checks.create(context.repo({
-    name: `${process.env.NAME}/lint-pr`,
+    name: `${process.env.REVIEWFLOW_NAME}/lint-pr`,
     head_sha: pr.head.sha,
     status: 'completed',
     conclusion: errorRule ? 'failure' : 'success',
@@ -1024,7 +1024,7 @@ const editOpenedPR = async (context, repoContext) => {
       summary: ''
     }
   })), !hasLintPrCheck && context.github.repos.createStatus(context.repo({
-    context: `${process.env.NAME}/lint-pr`,
+    context: `${process.env.REVIEWFLOW_NAME}/lint-pr`,
     sha: pr.head.sha,
     state: errorRule ? 'failure' : 'success',
     target_url: undefined,
@@ -1108,7 +1108,7 @@ const addStatusCheck = async function (context, pr, {
 }) {
   const hasPrCheck = (await context.github.checks.listForRef(context.repo({
     ref: pr.head.sha
-  }))).data.check_runs.find(check => check.name === process.env.NAME);
+  }))).data.check_runs.find(check => check.name === process.env.REVIEWFLOW_NAME);
   context.log.info('add status check', {
     hasPrCheck,
     state,
@@ -1117,7 +1117,7 @@ const addStatusCheck = async function (context, pr, {
 
   if (hasPrCheck) {
     await context.github.checks.create(context.repo({
-      name: process.env.NAME,
+      name: process.env.REVIEWFLOW_NAME,
       head_sha: pr.head.sha,
       started_at: pr.created_at,
       status: 'completed',
@@ -1130,7 +1130,7 @@ const addStatusCheck = async function (context, pr, {
     }));
   } else {
     await context.github.repos.createStatus(context.repo({
-      context: process.env.NAME,
+      context: process.env.REVIEWFLOW_NAME,
       sha: pr.head.sha,
       state,
       target_url: undefined,
@@ -1204,7 +1204,9 @@ const updateReviewStatus = async (context, repoContext, reviewGroup, {
   if (!reviewGroup) return prLabels;
   const newLabelNames = new Set(prLabels.map(label => label.name));
   const toAdd = new Set();
+  const toAddNames = new Set();
   const toDelete = new Set();
+  const toDeleteNames = new Set();
   const labels = repoContext.labels;
 
   const getLabelFromKey = key => {
@@ -1224,6 +1226,7 @@ const updateReviewStatus = async (context, repoContext, reviewGroup, {
 
       newLabelNames.add(label.name);
       toAdd.add(key);
+      toAddNames.add(label.name);
     });
   }
 
@@ -1237,6 +1240,7 @@ const updateReviewStatus = async (context, repoContext, reviewGroup, {
       if (existing) {
         newLabelNames.delete(existing.name);
         toDelete.add(key);
+        toDeleteNames.add(existing.name);
       }
     });
   } // TODO move that elsewhere
@@ -1255,21 +1259,47 @@ const updateReviewStatus = async (context, repoContext, reviewGroup, {
         }
       });
     }
-  });
-  const newLabelNamesArray = [...newLabelNames];
-  context.log.info('updateReviewStatus', {
-    reviewGroup,
-    toAdd: [...toAdd],
-    toDelete: [...toDelete],
-    oldLabels: prLabels.map(l => l.name),
-    newLabelNames: newLabelNamesArray
   }); // if (process.env.DRY_RUN) return;
 
-  if (toAdd.size || toDelete.size) {
-    const result = await context.github.issues.replaceLabels(context.issue({
-      labels: newLabelNamesArray
-    }));
-    prLabels = result.data;
+  if (toAdd.size !== 0 || toDelete.size !== 0) {
+    if (toDelete.size === 0 || toDelete.size < 4) {
+      context.log.info('updateReviewStatus', {
+        reviewGroup,
+        toAdd: [...toAdd],
+        toDelete: [...toDelete],
+        toAddNames: [...toAddNames],
+        toDeleteNames: [...toDeleteNames]
+      });
+
+      if (toAdd.size !== 0) {
+        const result = await context.github.issues.addLabels(context.issue({
+          labels: [...toAddNames]
+        }));
+        prLabels = result.data;
+      }
+
+      if (toDelete.size !== 0) {
+        for (const toDeleteName of [...toDeleteNames]) {
+          const result = await context.github.issues.removeLabel(context.issue({
+            name: toDeleteName
+          }));
+          prLabels = result.data;
+        }
+      }
+    } else {
+      const newLabelNamesArray = [...newLabelNames];
+      context.log.info('updateReviewStatus', {
+        reviewGroup,
+        toAdd: [...toAdd],
+        toDelete: [...toDelete],
+        oldLabels: prLabels.map(l => l.name),
+        newLabelNames: newLabelNamesArray
+      });
+      const result = await context.github.issues.replaceLabels(context.issue({
+        labels: newLabelNamesArray
+      }));
+      prLabels = result.data;
+    }
   } // if (toAdd.has('needsReview')) {
   //   createInProgressStatusCheck(context);
   // } else if (
@@ -1501,7 +1531,7 @@ function edited(app) {
   app.on('pull_request.edited', createHandlerPullRequestChange(async (context, repoContext) => {
     const sender = context.payload.sender;
 
-    if (sender.type === 'Bot' && sender.login === `${process.env.NAME}[bot]`) {
+    if (sender.type === 'Bot' && sender.login === `${process.env.REVIEWFLOW_NAME}[bot]`) {
       return;
     }
 
@@ -1648,7 +1678,10 @@ function status(app) {
   }));
 }
 
-if (!process.env.NAME) process.env.NAME = 'reviewflow'; // const getConfig = require('probot-config')
+if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = 'reviewflow';
+console.log({
+  name: process.env.REVIEWFLOW_NAME
+}); // const getConfig = require('probot-config')
 // const { MongoClient } = require('mongodb');
 // const connect = MongoClient.connect(process.env.MONGO_URL);
 // const db = connect.then(client => client.db(process.env.MONGO_DB));

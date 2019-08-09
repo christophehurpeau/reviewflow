@@ -14,14 +14,16 @@ const addStatusCheck = async function<
     context.repo({
       ref: pr.head.sha,
     }),
-  )).data.check_runs.find((check) => check.name === process.env.NAME);
+  )).data.check_runs.find(
+    (check) => check.name === process.env.REVIEWFLOW_NAME,
+  );
 
   context.log.info('add status check', { hasPrCheck, state, description });
 
   if (hasPrCheck) {
     await context.github.checks.create(
       context.repo({
-        name: process.env.NAME as string,
+        name: process.env.REVIEWFLOW_NAME as string,
         head_sha: pr.head.sha,
         started_at: pr.created_at,
         status: 'completed',
@@ -36,7 +38,7 @@ const addStatusCheck = async function<
   } else {
     await context.github.repos.createStatus(
       context.repo({
-        context: process.env.NAME,
+        context: process.env.REVIEWFLOW_NAME,
         sha: pr.head.sha,
         state,
         target_url: undefined,
