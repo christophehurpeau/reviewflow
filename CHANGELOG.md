@@ -1,3 +1,17 @@
+# [1.21.0](https://github.com/christophehurpeau/reviewflow/compare/v1.20.9...v1.21.0) (2019-08-09)
+
+
+### Bug Fixes
+
+* avoid overriding labels ([a4f3381](https://github.com/christophehurpeau/reviewflow/commit/a4f3381))
+
+
+### Features
+
+* support all jira formats ([fbd8304](https://github.com/christophehurpeau/reviewflow/commit/fbd8304))
+
+
+
 ## [1.20.9](https://github.com/christophehurpeau/reviewflow/compare/v1.20.8...v1.20.9) (2019-08-06)
 
 
