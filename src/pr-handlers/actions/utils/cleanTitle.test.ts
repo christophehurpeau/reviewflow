@@ -1,8 +1,11 @@
 import { cleanTitle } from './cleanTitle';
 
-it('should clean dash before ONK', () => {
+it('should clean dash before jira issue', () => {
   expect(cleanTitle('feat: add something - ONK-1234')).toBe(
     'feat: add something ONK-1234',
+  );
+  expect(cleanTitle('feat: add something - CORE-1234')).toBe(
+    'feat: add something CORE-1234',
   );
 });
 
@@ -41,4 +44,19 @@ it('should write correct revert', () => {
   expect(
     cleanTitle('Revert "chore(deps): update node.js to v8.14 (#296)"'),
   ).toBe('revert: chore(deps): update node.js to v8.14');
+});
+
+it('should clean no issue', () => {
+  expect(cleanTitle('feat: add something [no issue[')).toBe(
+    'feat: add something [no issue]',
+  );
+  expect(cleanTitle('feat: add something [noissue]')).toBe(
+    'feat: add something [no issue]',
+  );
+  expect(cleanTitle('feat: add something    [noissue     ]')).toBe(
+    'feat: add something [no issue]',
+  );
+  expect(cleanTitle('feat: add something    [no     issue]    ')).toBe(
+    'feat: add something [no issue]',
+  );
 });
