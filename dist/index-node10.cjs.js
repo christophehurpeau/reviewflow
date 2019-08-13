@@ -5,6 +5,7 @@ const probot = require('probot');
 const lock = require('lock');
 const webApi = require('@slack/web-api');
 
+/* eslint-disable max-lines */
 const config = {
   slackToken: process.env.ORNIKAR_SLACK_TOKEN,
   autoAssignToCreator: true,
@@ -53,6 +54,9 @@ const config = {
   },
   groups: {
     dev: {
+      /* archi */
+      JulienBreux: `julien.breux${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+
       /* back */
       abarreir: `alexandre${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       arthurflachs: `arthur${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -77,6 +81,10 @@ const config = {
     }
   },
   teams: {
+    archis: {
+      logins: ['JulienBreux'],
+      labels: ['teams/archi']
+    },
     backends: {
       logins: ['abarreir', 'arthurflachs', 'rigma', 'damienorny', 'Thierry-girod', 'darame07', 'Pixy'],
       labels: ['teams/backend']
@@ -134,6 +142,10 @@ const config = {
       },
 
       /* teams */
+      'teams/archi': {
+        name: 'archi',
+        color: '#003b55'
+      },
       'teams/backend': {
         name: 'backend',
         color: '#6ad8cb'
