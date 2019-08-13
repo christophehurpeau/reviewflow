@@ -1,6 +1,8 @@
+/* eslint-disable max-lines */
+
 import { Config } from './types';
 
-const config: Config<'dev' | 'design', 'frontends' | 'backends'> = {
+const config: Config<'dev' | 'design', 'archis' | 'frontends' | 'backends'> = {
   slackToken: process.env.ORNIKAR_SLACK_TOKEN,
   autoAssignToCreator: true,
   trimTitle: true,
@@ -52,6 +54,9 @@ const config: Config<'dev' | 'design', 'frontends' | 'backends'> = {
 
   groups: {
     dev: {
+      /* archi */
+      JulienBreux: `julien.breux${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+
       /* back */
       abarreir: `alexandre${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       arthurflachs: `arthur${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -60,6 +65,7 @@ const config: Config<'dev' | 'design', 'frontends' | 'backends'> = {
       'Thierry-girod': `thierry${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       darame07: `kevin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       Pixy: `pierre-alexis${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+
       /* front */
       christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       HugoGarrido: `hugo${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -76,6 +82,11 @@ const config: Config<'dev' | 'design', 'frontends' | 'backends'> = {
   },
 
   teams: {
+    archis: {
+      logins: ['JulienBreux'],
+      labels: ['teams/archi'],
+    },
+
     backends: {
       logins: [
         'abarreir',
@@ -151,7 +162,10 @@ const config: Config<'dev' | 'design', 'frontends' | 'backends'> = {
       },
 
       /* teams */
-
+      'teams/archi': {
+        name: 'archi',
+        color: '#003b55',
+      },
       'teams/backend': {
         name: 'backend',
         color: '#6ad8cb',
