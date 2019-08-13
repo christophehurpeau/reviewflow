@@ -1,3 +1,12 @@
+# [1.22.0](https://github.com/christophehurpeau/reviewflow/compare/v1.21.0...v1.22.0) (2019-08-13)
+
+
+### Features
+
+* add juliano and archi team ([280aa9e](https://github.com/christophehurpeau/reviewflow/commit/280aa9e))
+
+
+
 # [1.21.0](https://github.com/christophehurpeau/reviewflow/compare/v1.20.9...v1.21.0) (2019-08-09)
 
 
