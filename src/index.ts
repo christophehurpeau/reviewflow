@@ -12,6 +12,8 @@ import labelsChanged from './pr-handlers/labelsChanged';
 import checkrunCompleted from './pr-handlers/checkrunCompleted';
 import checksuiteCompleted from './pr-handlers/checksuiteCompleted';
 import status from './pr-handlers/status';
+import mongoInit from './mongo';
+import appRouter from './appRouter';
 
 if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = 'reviewflow';
 console.log({ name: process.env.REVIEWFLOW_NAME });
@@ -26,6 +28,9 @@ console.log({ name: process.env.REVIEWFLOW_NAME });
 
 // eslint-disable-next-line import/no-commonjs
 Probot.run((app: Application) => {
+  const mongoStores = mongoInit();
+  appRouter(app, mongoStores);
+
   openedHandler(app);
   closedHandler(app);
   reviewRequestedHandler(app);
