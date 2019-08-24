@@ -1,3 +1,14 @@
+## [1.23.1](https://github.com/christophehurpeau/reviewflow/compare/v1.23.0...v1.23.1) (2019-08-24)
+
+
+### Bug Fixes
+
+* missing arg in closed event ([cce63b1](https://github.com/christophehurpeau/reviewflow/commit/cce63b1))
+* renovate label could not merge ([3345e2b](https://github.com/christophehurpeau/reviewflow/commit/3345e2b))
+* skip ci label to ensure it stays after renovate rebase ([90f1375](https://github.com/christophehurpeau/reviewflow/commit/90f1375))
+
+
+
 # [1.23.0](https://github.com/christophehurpeau/reviewflow/compare/v1.22.0...v1.23.0) (2019-08-24)
 
 
