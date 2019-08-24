@@ -74,7 +74,7 @@
     "liwi": "^1.1.0",
     "liwi-mongo": "^4.1.0",
     "lock": "^1.1.0",
-    "probot": "9.2.11",
+    "probot": "9.3.2",
     "probot-config": "^1.0.1",
     "react": "^16.8.4",
     "react-dom": "^16.8.4",
