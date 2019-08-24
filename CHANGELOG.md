@@ -1,3 +1,17 @@
+# [1.23.0](https://github.com/christophehurpeau/reviewflow/compare/v1.22.0...v1.23.0) (2019-08-24)
+
+
+### Bug Fixes
+
+* missing types jest ([4f2f188](https://github.com/christophehurpeau/reviewflow/commit/4f2f188))
+
+
+### Features
+
+* add app router and github login ([84ff532](https://github.com/christophehurpeau/reviewflow/commit/84ff532))
+
+
+
 # [1.22.0](https://github.com/christophehurpeau/reviewflow/compare/v1.21.0...v1.22.0) (2019-08-13)
 
 
