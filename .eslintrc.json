@@ -8,10 +8,11 @@
   "extends": [
     "@pob/eslint-config-babel",
     "@pob/eslint-config-babel-node",
-    "@pob/eslint-config-typescript"
+    "@pob/eslint-config-typescript",
+    "@pob/eslint-config-typescript-react"
   ],
   "settings": {
-    "import/core-modules": ["@octokit/webhooks"]
+    "import/core-modules": ["@octokit/webhooks", "@octokit/rest", "express"]
   },
   "rules": {
     "@typescript-eslint/camelcase": [
