@@ -145,7 +145,7 @@ async function initRepoContext<GroupNames extends string>(
               pull_number: pr.number,
             }),
           );
-          await autoMergeIfPossible(context, repoContext, prResult.data);
+          await autoMergeIfPossible(prResult.data, context, repoContext);
         });
       });
     }, 1000);
@@ -210,6 +210,7 @@ export const obtainRepoContext = (
     repo.name === 'reviewflow-test' &&
     process.env.REVIEWFLOW_NAME !== 'reviewflow-test'
   ) {
+    console.warn('repo ignored', { owner: repo.owner, name: repo.name });
     return null;
   }
   const owner = repo.owner;

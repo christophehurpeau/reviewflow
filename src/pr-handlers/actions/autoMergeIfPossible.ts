@@ -1,4 +1,5 @@
 /* eslint-disable max-lines */
+import { PullsGetResponse } from '@octokit/rest';
 import { Context } from 'probot';
 // eslint-disable-next-line import/no-cycle
 import { RepoContext } from '../../context/repoContext';
@@ -6,9 +7,8 @@ import { LabelResponse } from '../../context/initRepoLabels';
 import { parseBody } from './utils/parseBody';
 
 const hasFailedStatusOrChecks = async (
+  pr: PullsGetResponse,
   context: Context<any>,
-  repoContext: RepoContext,
-  pr: any,
 ) => {
   const checks = await context.github.checks.listForRef(
     context.repo({
@@ -51,9 +51,9 @@ const hasFailedStatusOrChecks = async (
 };
 
 export const autoMergeIfPossible = async (
+  pr: PullsGetResponse,
   context: Context<any>,
   repoContext: RepoContext,
-  pr: any = context.payload.pull_request,
   prLabels: LabelResponse[] = pr.labels,
 ): Promise<boolean> => {
   const autoMergeLabel = repoContext.labels['merge/automerge'];
@@ -179,7 +179,7 @@ export const autoMergeIfPossible = async (
         return false;
       }
 
-      if (await hasFailedStatusOrChecks(context, repoContext, pr)) {
+      if (await hasFailedStatusOrChecks(pr, context)) {
         repoContext.removePrFromAutomergeQueue(context, pr.number);
         return false;
       } else if (pr.mergeable_state === 'blocked') {
@@ -196,7 +196,7 @@ export const autoMergeIfPossible = async (
     }
 
     if (pr.mergeable_state === 'blocked') {
-      if (await hasFailedStatusOrChecks(context, repoContext, pr)) {
+      if (await hasFailedStatusOrChecks(pr, context)) {
         repoContext.removePrFromAutomergeQueue(context, pr.number);
         return false;
       } else {

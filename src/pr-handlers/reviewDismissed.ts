@@ -6,9 +6,8 @@ export default function reviewDismissed(app: Application): void {
   app.on(
     'pull_request_review.dismissed',
     createHandlerPullRequestChange(
-      async (context, repoContext): Promise<void> => {
+      async (pr, context, repoContext): Promise<void> => {
         const sender = context.payload.sender;
-        const pr = context.payload.pull_request;
         const reviewer = (context.payload as any).review.user;
 
         const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
@@ -23,7 +22,7 @@ export default function reviewDismissed(app: Application): void {
                 reviewerGroup && review.state === 'REQUEST_CHANGES',
           );
 
-          await updateReviewStatus(context, repoContext, reviewerGroup, {
+          await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
             add: ['needsReview', 'requested'],
             remove: [
               !hasChangesRequestedInReviews && 'changesRequested',

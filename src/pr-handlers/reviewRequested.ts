@@ -6,13 +6,12 @@ export default function reviewRequested(app: Application): void {
   app.on(
     'pull_request.review_requested',
     createHandlerPullRequestChange(
-      async (context, repoContext): Promise<void> => {
+      async (pr, context, repoContext): Promise<void> => {
         const sender = context.payload.sender;
 
         // ignore if sender is self (dismissed review rerequest review)
         if (sender.type === 'Bot') return;
 
-        const pr = context.payload.pull_request;
         const reviewer = (context.payload as any).requested_reviewer;
 
         const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
@@ -33,7 +32,7 @@ export default function reviewRequested(app: Application): void {
           );
 
           if (!hasChangesRequestedInReviews) {
-            await updateReviewStatus(context, repoContext, reviewerGroup, {
+            await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
               add: ['needsReview', !shouldWait && 'requested'],
               remove: ['approved', 'changesRequested'],
             });

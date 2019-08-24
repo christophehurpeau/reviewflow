@@ -1,13 +1,16 @@
+import { PullsGetResponse } from '@octokit/rest';
 import Webhooks from '@octokit/webhooks';
 import { Context } from 'probot';
 import { obtainRepoContext, RepoContext } from '../context/repoContext';
 
-export type Handler<T = any> = (
+export type PRHandler<T = any> = (
+  pr: PullsGetResponse,
   context: Context<T>,
   repoContext: RepoContext,
 ) => Promise<void>;
 
-export type CallbackWithRepoContext = (
+export type CallbackWithPRAndRepoContext = (
+  pr: PullsGetResponse,
   repoContext: RepoContext,
 ) => void | Promise<void>;
 
@@ -15,17 +18,24 @@ export const handlerPullRequestChange = async <
   T extends Webhooks.WebhookPayloadPullRequest
 >(
   context: Context<T>,
-  callback: CallbackWithRepoContext,
+  callback: CallbackWithPRAndRepoContext,
 ): Promise<void> => {
   const repoContext = await obtainRepoContext(context);
   if (!repoContext) return;
 
   repoContext.lockPROrPRS(String(context.payload.pull_request.id), async () => {
-    await callback(repoContext);
+    const prResult = await context.github.pulls.get(
+      context.repo({
+        pull_number: context.payload.pull_request.number,
+      }),
+    );
+
+    await callback(prResult.data, repoContext);
   });
 };
 
-type CallbackContextAndRepoContext<T> = (
+type CallbackPRAndContextAndRepoContext<T> = (
+  pr: PullsGetResponse,
   context: Context<T>,
   repoContext: RepoContext,
 ) => void | Promise<void>;
@@ -33,12 +43,17 @@ type CallbackContextAndRepoContext<T> = (
 export const createHandlerPullRequestChange = <
   T extends Webhooks.WebhookPayloadPullRequest
 >(
-  callback: CallbackContextAndRepoContext<T>,
+  callback: CallbackPRAndContextAndRepoContext<T>,
 ) => (context: Context<T>) => {
-  return handlerPullRequestChange(context, (repoContext) =>
-    callback(context, repoContext),
+  return handlerPullRequestChange(context, (pr, repoContext) =>
+    callback(pr, context, repoContext),
   );
 };
+
+type CallbackContextAndRepoContext<T> = (
+  context: Context<T>,
+  repoContext: RepoContext,
+) => void | Promise<void>;
 
 export const createHandlerPullRequestsChange = <T>(
   getPullRequests: (

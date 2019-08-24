@@ -8,16 +8,16 @@ export default function synchronize(app: Application): void {
   app.on(
     'pull_request.synchronize',
     createHandlerPullRequestChange(
-      async (context, repoContext): Promise<void> => {
+      async (pr, context, repoContext): Promise<void> => {
         // old and new sha
         // const { before, after } = context.payload;
 
         await Promise.all([
-          editOpenedPR(context, repoContext),
+          editOpenedPR(pr, context, repoContext),
           // addStatusCheckToLatestCommit
-          updateStatusCheckFromLabels(context, repoContext),
+          updateStatusCheckFromLabels(pr, context, repoContext),
           // call autoMergeIfPossible to re-add to the queue when push is fixed
-          autoMergeIfPossible(context, repoContext),
+          autoMergeIfPossible(pr, context, repoContext),
         ]);
       },
     ),

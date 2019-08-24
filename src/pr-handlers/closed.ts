@@ -7,9 +7,8 @@ export default function closed(app: Application): void {
   app.on(
     'pull_request.closed',
     createHandlerPullRequestChange(
-      async (context, repoContext): Promise<void> => {
+      async (pr, context, repoContext): Promise<void> => {
         const repo = context.payload.repository;
-        const pr = context.payload.pull_request;
 
         if (pr.merged) {
           const parsedBody =

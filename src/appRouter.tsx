@@ -55,7 +55,7 @@ export default async function appRouter(
   app: Application,
   mongoStuff: MongoStores,
 ): Promise<void> {
-  const router = app.route('/');
+  const router = app.route('/app');
   const api = await app.auth();
   router.use(cookieParser());
 

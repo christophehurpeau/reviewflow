@@ -7,8 +7,7 @@ export default function reviewSubmitted(app: Application): void {
   app.on(
     'pull_request_review.submitted',
     createHandlerPullRequestChange(
-      async (context, repoContext): Promise<void> => {
-        const pr = context.payload.pull_request;
+      async (pr, context, repoContext): Promise<void> => {
         const { user: reviewer, state } = (context.payload as any).review;
         if (pr.user.login === reviewer.login) return;
 
@@ -40,6 +39,7 @@ export default function reviewSubmitted(app: Application): void {
             state === 'approved';
 
           const newLabels = await updateReviewStatus(
+            pr,
             context,
             repoContext,
             reviewerGroup,
@@ -63,9 +63,9 @@ export default function reviewSubmitted(app: Application): void {
 
           if (approved && !hasChangesRequestedInReviews) {
             merged = await autoMergeIfPossible(
+              pr,
               context,
               repoContext,
-              pr,
               newLabels,
             );
           }

@@ -1,12 +1,10 @@
 import Webhooks from '@octokit/webhooks';
-import { Handler } from '../utils';
+import { PRHandler } from '../utils';
 
-export const autoAssignPRToCreator: Handler<
+export const autoAssignPRToCreator: PRHandler<
   Webhooks.WebhookPayloadPullRequest
-> = async (context, repoContext) => {
+> = async (pr, context, repoContext) => {
   if (!repoContext.config.autoAssignToCreator) return;
-
-  const pr = context.payload.pull_request;
   if (pr.assignees.length !== 0) return;
   if (pr.user.type === 'Bot') return;
 

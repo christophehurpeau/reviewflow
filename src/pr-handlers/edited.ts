@@ -7,7 +7,7 @@ export default function edited(app: Application): void {
   app.on(
     'pull_request.edited',
     createHandlerPullRequestChange(
-      async (context, repoContext): Promise<void> => {
+      async (pr, context, repoContext): Promise<void> => {
         const sender = context.payload.sender;
         if (
           sender.type === 'Bot' &&
@@ -16,8 +16,8 @@ export default function edited(app: Application): void {
           return;
         }
 
-        const { skipAutoMerge } = await editOpenedPR(context, repoContext);
-        if (!skipAutoMerge) await autoMergeIfPossible(context, repoContext);
+        const { skipAutoMerge } = await editOpenedPR(pr, context, repoContext);
+        if (!skipAutoMerge) await autoMergeIfPossible(pr, context, repoContext);
       },
     ),
   );

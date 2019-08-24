@@ -18,7 +18,7 @@ export default function labelsChanged(app: Application): void {
         return;
       }
 
-      await handlerPullRequestChange(context, async (repoContext) => {
+      await handlerPullRequestChange(context, async (pr, repoContext) => {
         const label = (context.payload as any).label;
         if (fromRenovate) {
           const codeApprovedLabel = repoContext.labels['code/approved'];
@@ -32,38 +32,30 @@ export default function labelsChanged(app: Application): void {
               await context.github.pulls.createReview(
                 context.issue({ event: 'APPROVE' }),
               );
-              await updateStatusCheckFromLabels(
-                context,
-                repoContext,
-                context.payload.pull_request,
-              );
-              await updatePrBody(context, repoContext, {
+              await updateStatusCheckFromLabels(pr, context, repoContext);
+              await updatePrBody(pr, context, repoContext, {
                 autoMergeWithSkipCi: true,
                 // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
                 autoMerge:
                   autoMergeLabel &&
-                  context.payload.pull_request.labels.find(
-                    (l): boolean => l.id === autoMergeLabel.id,
-                  )
+                  pr.labels.find((l): boolean => l.id === autoMergeLabel.id)
                     ? true
                     : repoContext.config.prDefaultOptions.autoMerge,
               });
               // }
             } else if (autoMergeLabel && label.id === autoMergeLabel.id) {
-              await updatePrBody(context, repoContext, {
+              await updatePrBody(pr, context, repoContext, {
                 autoMerge: true,
                 // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
                 // Note: si c'est renovate qui ajoute le label autoMerge, le label codeApprovedLabel n'aurait pu etre ajouté que par renovate également (on est a quelques secondes de l'ouverture de la pr par renovate)
                 autoMergeWithSkipCi:
                   codeApprovedLabel &&
-                  context.payload.pull_request.labels.find(
-                    (l): boolean => l.id === codeApprovedLabel.id,
-                  )
+                  pr.labels.find((l): boolean => l.id === codeApprovedLabel.id)
                     ? true
                     : repoContext.config.prDefaultOptions.autoMergeWithSkipCi,
               });
             }
-            await autoMergeIfPossible(context, repoContext);
+            await autoMergeIfPossible(pr, context, repoContext);
           }
           return;
         }
@@ -81,7 +73,7 @@ export default function labelsChanged(app: Application): void {
           return;
         }
 
-        await updateStatusCheckFromLabels(context, repoContext);
+        await updateStatusCheckFromLabels(pr, context, repoContext);
 
         const featureBranchLabel = repoContext.labels['feature-branch'];
         const automergeLabel = repoContext.labels['merge/automerge'];
@@ -94,7 +86,7 @@ export default function labelsChanged(app: Application): void {
             featureBranchLabel && label.id === featureBranchLabel.id
               ? 'featureBranch'
               : 'autoMerge';
-          await updatePrBody(context, repoContext, {
+          await updatePrBody(pr, context, repoContext, {
             [option]: context.payload.action === 'labeled',
           });
         } else if (context.payload.action === 'labeled') {
@@ -102,7 +94,7 @@ export default function labelsChanged(app: Application): void {
             repoContext.labels['merge/automerge'] &&
             label.id === repoContext.labels['merge/automerge'].id
           ) {
-            await autoMergeIfPossible(context, repoContext);
+            await autoMergeIfPossible(pr, context, repoContext);
           }
         }
       });

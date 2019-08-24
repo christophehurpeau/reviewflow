@@ -1,4 +1,5 @@
 import Webhooks from '@octokit/webhooks';
+import { PullsGetResponse } from '@octokit/rest';
 import { Context } from 'probot';
 import { LabelResponse } from '../../context/initRepoLabels';
 import { GroupLabels } from '../../orgsConfigs/types';
@@ -9,6 +10,7 @@ export const updateReviewStatus = async <
   E extends Webhooks.WebhookPayloadPullRequest,
   GroupNames extends string = any
 >(
+  pr: PullsGetResponse,
   context: Context<E>,
   repoContext: RepoContext,
   reviewGroup: GroupNames,
@@ -26,7 +28,6 @@ export const updateReviewStatus = async <
     labelsToRemove,
   });
 
-  const pr = context.payload.pull_request;
   let prLabels: LabelResponse[] = pr.labels || [];
   if (!reviewGroup) return prLabels;
 
@@ -148,7 +149,7 @@ export const updateReviewStatus = async <
   //   toDelete.has('needsReview') ||
   //   (prLabels.length === 0 && toAdd.size === 1 && toAdd.has('approved'))
   // ) {
-  await updateStatusCheckFromLabels(context, repoContext, pr, prLabels);
+  await updateStatusCheckFromLabels(pr, context, repoContext, prLabels);
   // }
 
   return prLabels;

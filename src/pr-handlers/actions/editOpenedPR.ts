@@ -1,3 +1,4 @@
+import { PullsGetResponse } from '@octokit/rest';
 import Webhooks from '@octokit/webhooks';
 import { Context } from 'probot';
 import { RepoContext } from '../../context/repoContext';
@@ -25,11 +26,11 @@ const ExcludesFalsy = (Boolean as any) as <T>(
 ) => x is T;
 
 export const editOpenedPR = async (
+  pr: PullsGetResponse,
   context: Context<Webhooks.WebhookPayloadPullRequest>,
   repoContext: RepoContext,
 ): Promise<{ skipAutoMerge: boolean }> => {
   const repo = context.payload.repository;
-  const pr = context.payload.pull_request;
 
   // do not lint pr from forks
   if (pr.head.repo.id !== repo.id) return { skipAutoMerge: true };
@@ -183,12 +184,7 @@ export const editOpenedPR = async (
         const result = await context.github.issues.addLabels(
           context.issue({ labels: [automergeLabel.name] }),
         );
-        await autoMergeIfPossible(
-          context,
-          repoContext,
-          context.payload.pull_request,
-          result.data,
-        );
+        await autoMergeIfPossible(pr, context, repoContext, result.data);
       }
       return { skipAutoMerge: true };
     }

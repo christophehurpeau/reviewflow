@@ -1,4 +1,5 @@
 import Webhooks from '@octokit/webhooks';
+import { PullsGetResponse } from '@octokit/rest';
 import { Context } from 'probot';
 import { LabelResponse } from '../../context/initRepoLabels';
 import { RepoContext } from '../../context/repoContext';
@@ -6,8 +7,8 @@ import { RepoContext } from '../../context/repoContext';
 const addStatusCheck = async function<
   E extends Webhooks.WebhookPayloadPullRequest
 >(
+  pr: PullsGetResponse,
   context: Context<E>,
-  pr: any,
   { state, description }: { state: 'failure' | 'success'; description: string },
 ): Promise<void> {
   const hasPrCheck = (await context.github.checks.listForRef(
@@ -49,19 +50,19 @@ const addStatusCheck = async function<
 };
 
 const createFailedStatusCheck = <E extends Webhooks.WebhookPayloadPullRequest>(
+  pr: PullsGetResponse,
   context: Context<E>,
-  pr: any,
   description: string,
 ): Promise<void> =>
-  addStatusCheck(context, pr, {
+  addStatusCheck(pr, context, {
     state: 'failure',
     description,
   });
 
 export const updateStatusCheckFromLabels = (
+  pr: PullsGetResponse,
   context: Context<any>,
   repoContext: RepoContext,
-  pr: any = context.payload.pull_request,
   labels: LabelResponse[] = pr.labels || [],
 ): Promise<void> => {
   context.log.info('updateStatusCheckFromLabels', {
@@ -72,8 +73,8 @@ export const updateStatusCheckFromLabels = (
 
   if (pr.requested_reviewers.length !== 0) {
     return createFailedStatusCheck(
-      context,
       pr,
+      context,
       `Awaiting review from: ${pr.requested_reviewers
         .map((rr: any) => rr.login)
         .join(', ')}`,
@@ -82,8 +83,8 @@ export const updateStatusCheckFromLabels = (
 
   if (repoContext.hasChangesRequestedReview(labels)) {
     return createFailedStatusCheck(
-      context,
       pr,
+      context,
       'Changes requested ! Push commits or discuss changes then re-request a review.',
     );
   }
@@ -92,8 +93,8 @@ export const updateStatusCheckFromLabels = (
 
   if (needsReviewGroupNames.length !== 0) {
     return createFailedStatusCheck(
-      context,
       pr,
+      context,
       `Awaiting review from: ${needsReviewGroupNames.join(
         ', ',
       )}. Perhaps request someone ?`,
@@ -103,8 +104,8 @@ export const updateStatusCheckFromLabels = (
   if (!repoContext.hasApprovesReview(labels)) {
     if (repoContext.config.requiresReviewRequest) {
       return createFailedStatusCheck(
-        context,
         pr,
+        context,
         'Awaiting review... Perhaps request someone ?',
       );
     }
@@ -123,7 +124,7 @@ export const updateStatusCheckFromLabels = (
   // }
   // return  createInProgressStatusCheck(context);
   // } else if (repoContext.hasApprovesReview(labels)) {
-  return addStatusCheck(context, pr, {
+  return addStatusCheck(pr, context, {
     state: 'success',
     description: '✓ PR ready to merge !',
   });

@@ -17,7 +17,7 @@ export default function checkrunCompleted(app: Application): void {
                 }),
               )
               .then((prResult) => {
-                return autoMergeIfPossible(context, repoContext, prResult.data);
+                return autoMergeIfPossible(prResult.data, context, repoContext);
               }),
           ),
         );

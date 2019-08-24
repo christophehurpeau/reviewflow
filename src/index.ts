@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { Probot, Application } from 'probot';
 import openedHandler from './pr-handlers/opened';
 import closedHandler from './pr-handlers/closed';
+import reopenedHandler from './pr-handlers/reopened';
 import reviewRequestedHandler from './pr-handlers/reviewRequested';
 import reviewRequestRemovedHandler from './pr-handlers/reviewRequestRemoved';
 import reviewSubmittedHandler from './pr-handlers/reviewSubmitted';
@@ -33,6 +34,7 @@ Probot.run((app: Application) => {
 
   openedHandler(app);
   closedHandler(app);
+  reopenedHandler(app);
   reviewRequestedHandler(app);
   reviewRequestRemovedHandler(app);
 

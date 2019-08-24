@@ -1,3 +1,4 @@
+import { PullsGetResponse } from '@octokit/rest';
 import Webhooks from '@octokit/webhooks';
 import { Context } from 'probot';
 import { RepoContext } from '../../context/repoContext';
@@ -7,11 +8,12 @@ import { Options } from './utils/prOptions';
 export const updatePrBody = async <
   E extends Webhooks.WebhookPayloadPullRequest
 >(
+  pr: PullsGetResponse,
   context: Context<E>,
   repoContext: RepoContext,
   updateOptions: Partial<Record<Options, boolean>>,
 ): Promise<void> => {
-  const prBody = context.payload.pull_request.body;
+  const prBody = pr.body;
   const { body } = updateBody(
     prBody,
     repoContext.config.prDefaultOptions,

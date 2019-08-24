@@ -6,9 +6,8 @@ export default function reviewRequestRemoved(app: Application): void {
   app.on(
     'pull_request.review_request_removed',
     createHandlerPullRequestChange(
-      async (context, repoContext): Promise<void> => {
+      async (pr, context, repoContext): Promise<void> => {
         const sender = context.payload.sender;
-        const pr = context.payload.pull_request;
         const reviewer = (context.payload as any).requested_reviewer;
 
         const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
@@ -42,7 +41,7 @@ export default function reviewRequestRemoved(app: Application): void {
             !hasRequestedReviewsForGroup &&
             !hasChangesRequestedInReviews &&
             hasApprovedInReviews;
-          await updateReviewStatus(context, repoContext, reviewerGroup, {
+          await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
             add: [
               // if changes requested by the one which requests was removed
               hasChangesRequestedInReviews && 'changesRequested',

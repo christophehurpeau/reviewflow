@@ -17,7 +17,7 @@ export default function checksuiteCompleted(app: Application): void {
                 }),
               )
               .then((prResult) => {
-                return autoMergeIfPossible(context, repoContext, prResult.data);
+                return autoMergeIfPossible(prResult.data, context, repoContext);
               }),
           ),
         );
