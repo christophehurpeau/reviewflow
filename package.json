@@ -72,7 +72,7 @@
     "dotenv": "^8.0.0",
     "jsonwebtoken": "^8.5.0",
     "liwi": "^1.1.0",
-    "liwi-mongo": "^4.1.0",
+    "liwi-mongo": "^5.0.0",
     "lock": "^1.1.0",
     "probot": "9.2.11",
     "probot-config": "^1.0.1",
