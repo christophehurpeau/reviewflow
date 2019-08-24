@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import { PullsGetResponse } from '@octokit/rest';
 import Webhooks from '@octokit/webhooks';
 import { Context } from 'probot';
@@ -70,7 +71,7 @@ export const editOpenedPR = async (
       ref: pr.head.sha,
     }),
   )).data.check_runs.find(
-    (check) => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`,
+    (check): boolean => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`,
   );
 
   await Promise.all<any>(
@@ -122,10 +123,16 @@ export const editOpenedPR = async (
 
   const featureBranchLabel = repoContext.labels['feature-branch'];
   const automergeLabel = repoContext.labels['merge/automerge'];
+  const skipCiLabel = repoContext.labels['merge/skip-ci'];
 
   const prHasFeatureBranchLabel = Boolean(
     featureBranchLabel &&
       pr.labels.find((label): boolean => label.id === featureBranchLabel.id),
+  );
+
+  const prHasSkipCiLabel = Boolean(
+    skipCiLabel &&
+      pr.labels.find((label): boolean => label.id === skipCiLabel.id),
   );
 
   const prHasAutoMergeLabel = Boolean(
@@ -135,8 +142,9 @@ export const editOpenedPR = async (
 
   const defaultOptions = {
     ...repoContext.config.prDefaultOptions,
-    autoMerge: prHasAutoMergeLabel,
     featureBranch: prHasFeatureBranchLabel,
+    autoMergeWithSkipCi: prHasSkipCiLabel,
+    autoMerge: prHasAutoMergeLabel,
   };
 
   const { body, options } = updateBody(pr.body, defaultOptions, statuses
@@ -160,17 +168,33 @@ export const editOpenedPR = async (
   }
 
   if (options && (featureBranchLabel || automergeLabel)) {
-    if (featureBranchLabel) {
-      if (prHasFeatureBranchLabel && !options.featureBranch) {
+    const syncLabel = async (
+      label: any,
+      prHasLabel: boolean,
+      optionKey: keyof typeof options,
+    ) => {
+      if (prHasLabel && !options[optionKey]) {
         await context.github.issues.removeLabel(
-          context.issue({ name: featureBranchLabel.name }),
+          context.issue({ name: label.name }),
         );
       }
-      if (options.featureBranch && !prHasFeatureBranchLabel) {
+      if (options[optionKey] && !prHasLabel) {
         await context.github.issues.addLabels(
-          context.issue({ labels: [featureBranchLabel.name] }),
+          context.issue({ labels: [label.name] }),
         );
       }
+    };
+
+    if (featureBranchLabel) {
+      await syncLabel(
+        featureBranchLabel,
+        prHasFeatureBranchLabel,
+        'featureBranch',
+      );
+    }
+
+    if (skipCiLabel) {
+      await syncLabel(skipCiLabel, prHasSkipCiLabel, 'autoMergeWithSkipCi');
     }
 
     if (automergeLabel) {

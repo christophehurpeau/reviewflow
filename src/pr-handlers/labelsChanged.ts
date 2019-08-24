@@ -23,6 +23,7 @@ export default function labelsChanged(app: Application): void {
         if (fromRenovate) {
           const codeApprovedLabel = repoContext.labels['code/approved'];
           const autoMergeLabel = repoContext.labels['merge/automerge'];
+          const autoMergeSkipCiLabel = repoContext.labels['merge/skip-ci'];
           if (context.payload.action === 'labeled') {
             if (codeApprovedLabel && label.id === codeApprovedLabel.id) {
               // const { data: reviews } = await context.github.pulls.listReviews(
@@ -32,6 +33,11 @@ export default function labelsChanged(app: Application): void {
               await context.github.pulls.createReview(
                 context.issue({ event: 'APPROVE' }),
               );
+              if (autoMergeSkipCiLabel) {
+                await context.github.issues.addLabels(
+                  context.issue({ labels: [autoMergeSkipCiLabel.name] }),
+                );
+              }
               await updateStatusCheckFromLabels(pr, context, repoContext);
               await updatePrBody(pr, context, repoContext, {
                 autoMergeWithSkipCi: true,
@@ -77,15 +83,19 @@ export default function labelsChanged(app: Application): void {
 
         const featureBranchLabel = repoContext.labels['feature-branch'];
         const automergeLabel = repoContext.labels['merge/automerge'];
+        const skipCiLabel = repoContext.labels['merge/skip-ci'];
 
-        if (
-          (featureBranchLabel && label.id === automergeLabel.id) ||
-          (automergeLabel && label.id === automergeLabel.id)
-        ) {
-          const option: 'featureBranch' | 'autoMerge' =
-            featureBranchLabel && label.id === featureBranchLabel.id
-              ? 'featureBranch'
-              : 'autoMerge';
+        const option = (() => {
+          if (featureBranchLabel && label.id === automergeLabel.id)
+            return 'featureBranch';
+          if (automergeLabel && label.id === automergeLabel.id)
+            return 'autoMerge';
+          if (skipCiLabel && label.id === skipCiLabel.id)
+            return 'autoMergeWithSkipCi';
+          return null;
+        })();
+
+        if (option) {
           await updatePrBody(pr, context, repoContext, {
             [option]: context.payload.action === 'labeled',
           });

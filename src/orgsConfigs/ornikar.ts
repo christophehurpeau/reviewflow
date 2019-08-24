@@ -180,6 +180,10 @@ const config: Config<'dev' | 'design', 'archis' | 'frontends' | 'backends'> = {
         name: ':soon: automerge',
         color: '#64DD17',
       },
+      'merge/skip-ci': {
+        name: 'automerge/skip-ci',
+        color: '#e1e8ed',
+      },
 
       /* feature-branch */
       'feature-branch': {
