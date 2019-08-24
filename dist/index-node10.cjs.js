@@ -1401,7 +1401,7 @@ function closed(app) {
         ref: `heads/${pr.head.ref}`
       })).catch(() => {}) : undefined]);
     } else {
-      await Promise.all([repoContext.removePrFromAutomergeQueue(context, pr.number), updateReviewStatus(context, repoContext, 'dev', {
+      await Promise.all([repoContext.removePrFromAutomergeQueue(context, pr.number), updateReviewStatus(pr, context, repoContext, 'dev', {
         remove: ['needsReview']
       })]);
     }
