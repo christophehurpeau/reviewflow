@@ -626,7 +626,8 @@ const initTeamSlack = async (context, config) => {
   if (!config.slackToken) {
     return {
       mention: () => '',
-      postMessage: () => Promise.resolve()
+      postMessage: () => Promise.resolve(),
+      prLink: () => ''
     };
   }
 
@@ -678,7 +679,7 @@ const initTeamSlack = async (context, config) => {
       return `<@${user.member.id}>`;
     },
     postMessage: async (githubLogin, text) => {
-      context.log.info('send slack', {
+      context.log.debug('send slack', {
         githubLogin,
         text
       });
@@ -686,9 +687,13 @@ const initTeamSlack = async (context, config) => {
       const user = getUserFromGithubLogin(githubLogin);
       if (!user || !user.im) return;
       await slackClient.chat.postMessage({
+        username: process.env.REVIEWFLOW_NAME,
         channel: user.im.id,
         text
       });
+    },
+    prLink: (pr, context) => {
+      return `<${pr.html_url}|${context.payload.repository.name}#${pr.number}>`;
     }
   };
 };
@@ -1445,7 +1450,7 @@ function reviewRequested(app) {
     if (sender.login === reviewer.login) return;
 
     if (repoContext.slack) {
-      repoContext.slack.postMessage(reviewer.login, `:eyes: ${repoContext.slack.mention(sender.login)} requests your review on ${pr.html_url} !\n> ${pr.title}`);
+      repoContext.slack.postMessage(reviewer.login, `:eyes: ${repoContext.slack.mention(sender.login)} requests your review on ${repoContext.slack.prLink(pr, context)} !\n> ${pr.title}`);
     }
   }));
 }
@@ -1480,7 +1485,7 @@ function reviewRequestRemoved(app) {
     if (sender.login === reviewer.login) return;
 
     if (repoContext.slack) {
-      repoContext.slack.postMessage(reviewer.login, `:skull_and_crossbones: ${repoContext.slack.mention(sender.login)} removed the request for your review on ${pr.html_url}`);
+      repoContext.slack.postMessage(reviewer.login, `:skull_and_crossbones: ${repoContext.slack.mention(sender.login)} removed the request for your review on ${repoContext.slack.prLink(pr, context)}`);
     }
   }));
 }
@@ -1519,7 +1524,7 @@ function reviewSubmitted(app) {
     }
 
     const mention = repoContext.slack.mention(reviewer.login);
-    const prUrl = pr.html_url;
+    const prUrl = repoContext.slack.prLink(pr, context);
 
     const message = (() => {
       if (state === 'changes_requested') {
@@ -1558,9 +1563,9 @@ function reviewDismissed(app) {
 
     if (repoContext.slack) {
       if (sender.login === reviewer.login) {
-        repoContext.slack.postMessage(pr.user.login, `:skull: ${repoContext.slack.mention(reviewer.login)} dismissed his review on ${pr.html_url}`);
+        repoContext.slack.postMessage(pr.user.login, `:skull: ${repoContext.slack.mention(reviewer.login)} dismissed his review on ${repoContext.slack.prLink(pr, context)}`);
       } else {
-        repoContext.slack.postMessage(reviewer.login, `:skull: ${repoContext.slack.mention(sender.login)} dismissed your review on ${pr.html_url}`);
+        repoContext.slack.postMessage(reviewer.login, `:skull: ${repoContext.slack.mention(sender.login)} dismissed your review on ${repoContext.slack.prLink(pr, context)}`);
       }
     }
   }));

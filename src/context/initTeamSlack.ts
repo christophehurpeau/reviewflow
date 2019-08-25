@@ -81,12 +81,13 @@ export const initTeamSlack = async <GroupNames extends string>(
       return `<@${user.member.id}>`;
     },
     postMessage: async (githubLogin: string, text: string): Promise<void> => {
-      context.log.info('send slack', { githubLogin, text });
+      context.log.debug('send slack', { githubLogin, text });
       if (process.env.DRY_RUN) return;
 
       const user = getUserFromGithubLogin(githubLogin);
       if (!user || !user.im) return;
       await slackClient.chat.postMessage({
+        username: process.env.REVIEWFLOW_NAME,
         channel: user.im.id,
         text,
       });
