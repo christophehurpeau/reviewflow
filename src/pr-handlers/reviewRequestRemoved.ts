@@ -65,7 +65,10 @@ export default function reviewRequestRemoved(app: Application): void {
             reviewer.login,
             `:skull_and_crossbones: ${repoContext.slack.mention(
               sender.login,
-            )} removed the request for your review on ${pr.html_url}`,
+            )} removed the request for your review on ${repoContext.slack.prLink(
+              pr,
+              context,
+            )}`,
           );
         }
       },

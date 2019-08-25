@@ -72,7 +72,7 @@ export default function reviewSubmitted(app: Application): void {
         }
 
         const mention = repoContext.slack.mention(reviewer.login);
-        const prUrl = pr.html_url;
+        const prUrl = repoContext.slack.prLink(pr, context);
 
         const message = (() => {
           if (state === 'changes_requested') {

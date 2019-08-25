@@ -46,7 +46,10 @@ export default function reviewRequested(app: Application): void {
             reviewer.login,
             `:eyes: ${repoContext.slack.mention(
               sender.login,
-            )} requests your review on ${pr.html_url} !\n> ${pr.title}`,
+            )} requests your review on ${repoContext.slack.prLink(
+              pr,
+              context,
+            )} !\n> ${pr.title}`,
           );
         }
       },

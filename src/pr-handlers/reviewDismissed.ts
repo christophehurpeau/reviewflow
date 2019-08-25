@@ -37,14 +37,20 @@ export default function reviewDismissed(app: Application): void {
               pr.user.login,
               `:skull: ${repoContext.slack.mention(
                 reviewer.login,
-              )} dismissed his review on ${pr.html_url}`,
+              )} dismissed his review on ${repoContext.slack.prLink(
+                pr,
+                context,
+              )}`,
             );
           } else {
             repoContext.slack.postMessage(
               reviewer.login,
               `:skull: ${repoContext.slack.mention(
                 sender.login,
-              )} dismissed your review on ${pr.html_url}`,
+              )} dismissed your review on ${repoContext.slack.prLink(
+                pr,
+                context,
+              )}`,
             );
           }
         }
