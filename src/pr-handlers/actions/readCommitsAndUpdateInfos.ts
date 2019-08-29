@@ -64,8 +64,5 @@ export const readCommitsAndUpdateInfos: PRHandler<
     updatePrIfNeeded(pr, context, repoContext, { body: newBody }),
   ]);
 
-  // TODO check if add/remove label works and pr body update works
-  // TODO add infos in merge
-
   // TODO auto update ! in front of : to signal a breaking change when https://github.com/conventional-changelog/commitlint/issues/658 is closed
 };
