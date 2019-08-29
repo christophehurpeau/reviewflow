@@ -83,8 +83,8 @@
   "devDependencies": {
     "@babel/core": "7.4.4",
     "@babel/preset-react": "^7.0.0",
-    "@commitlint/cli": "7.5.2",
-    "@commitlint/config-conventional": "7.5.0",
+    "@commitlint/cli": "7.6.1",
+    "@commitlint/config-conventional": "7.6.0",
     "@pob/eslint-config-babel": "31.0.0",
     "@pob/eslint-config-babel-node": "31.0.0",
     "@pob/eslint-config-typescript": "31.1.0",
