@@ -1,3 +1,12 @@
+## [1.24.1](https://github.com/christophehurpeau/reviewflow/compare/v1.24.0...v1.24.1) (2019-08-29)
+
+
+### Bug Fixes
+
+* repo ignored only display owner login ([27d6dda](https://github.com/christophehurpeau/reviewflow/commit/27d6dda))
+
+
+
 # [1.24.0](https://github.com/christophehurpeau/reviewflow/compare/v1.23.1...v1.24.0) (2019-08-29)
 
 
