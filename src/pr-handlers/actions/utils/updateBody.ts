@@ -1,5 +1,5 @@
 import { StatusInfo } from '../../../orgsConfigs/types';
-import { parseBody } from './parseBody';
+import { parseBodyWithOptions, parseBody } from './parseBody';
 import { Options, optionsLabels } from './prOptions';
 
 const toMarkdownOptions = (options: Record<Options, boolean>) => {
@@ -31,7 +31,7 @@ export const updateBody = (
   infos?: StatusInfo[],
   updateOptions?: Partial<Record<Options, boolean>>,
 ): UpdatedBodyWithOptions => {
-  const parsed = parseBody(body, defaultConfig);
+  const parsed = parseBodyWithOptions(body, defaultConfig);
   if (!parsed) {
     console.info('could not parse body');
     return { body };
@@ -45,16 +45,16 @@ export const updateBody = (
     options,
   } = parsed;
 
-  // eslint-disable-next-line no-nested-ternary
-  const infosParagraph = !infos
-    ? reviewflowContentCol.replace(
-        // eslint-disable-next-line unicorn/no-unsafe-regex
-        /^\s*(?:(#### Infos:.*)?#### Options:)?.*$/s,
-        '$1',
-      )
-    : infos.length !== 0
-    ? `#### Infos:\n${toMarkdownInfos(infos)}\n`
-    : '';
+  const infosAndCommitNotesParagraph = reviewflowContentCol.replace(
+    // eslint-disable-next-line unicorn/no-unsafe-regex
+    /^\s*(?:(#### Infos:.*)?(#### Commits Notes:.*)?#### Options:)?.*$/s,
+    // eslint-disable-next-line no-nested-ternary
+    !infos
+      ? '$1$2'
+      : infos.length !== 0
+      ? `#### Infos:\n${toMarkdownInfos(infos)}\n$2`
+      : '$2',
+  );
 
   const updatedOptions = !updateOptions
     ? options
@@ -63,8 +63,37 @@ export const updateBody = (
   return {
     options: updatedOptions,
     body: `${content}${reviewflowContentColPrefix}
-${infosParagraph}#### Options:
+${infosAndCommitNotesParagraph}#### Options:
 ${toMarkdownOptions(updatedOptions)}
 ${reviewflowContentColSuffix}${ending || ''}`,
   };
+};
+
+export const updateBodyCommitsNotes = (
+  body: string,
+  commitNotes?: string,
+): string => {
+  const parsed = parseBody(body);
+  if (!parsed) {
+    console.info('could not parse body');
+    return body;
+  }
+
+  const {
+    content,
+    ending,
+    reviewflowContentCol,
+    reviewflowContentColPrefix,
+    reviewflowContentColSuffix,
+  } = parsed;
+
+  const reviewflowContentColReplaced = reviewflowContentCol.replace(
+    // eslint-disable-next-line unicorn/no-unsafe-regex
+    /(?:#### Commits Notes:.*)?(#### Options:)/s,
+    // eslint-disable-next-line no-nested-ternary
+    !commitNotes ? '$1' : `#### Commits Notes:\n\n${commitNotes}\n\n$1`,
+  );
+
+  return `${content}${reviewflowContentColPrefix}${reviewflowContentColReplaced}${reviewflowContentColSuffix}${ending ||
+    ''}`;
 };

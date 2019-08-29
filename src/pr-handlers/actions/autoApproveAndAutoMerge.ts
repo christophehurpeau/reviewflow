@@ -3,6 +3,7 @@ import { PullsGetResponse } from '@octokit/rest';
 import { Context } from 'probot';
 import { RepoContext } from '../../context/repoContext';
 import { autoMergeIfPossible } from './autoMergeIfPossible';
+import hasLabelInPR from './utils/hasLabelInPR';
 
 export const autoApproveAndAutoMerge = async (
   pr: PullsGetResponse,
@@ -11,7 +12,7 @@ export const autoApproveAndAutoMerge = async (
 ): Promise<boolean> => {
   // const autoMergeLabel = repoContext.labels['merge/automerge'];
   const codeApprovedLabel = repoContext.labels['code/approved'];
-  if (pr.labels.find((l): boolean => l.id === codeApprovedLabel.id)) {
+  if (hasLabelInPR(pr, codeApprovedLabel)) {
     await context.github.pulls.createReview(
       context.issue({ event: 'APPROVE' }),
     );

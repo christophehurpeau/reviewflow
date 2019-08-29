@@ -4,6 +4,7 @@ import { handlerPullRequestChange } from './utils';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateStatusCheckFromLabels } from './actions/updateStatusCheckFromLabels';
 import { updatePrBody } from './actions/updatePrBody';
+import hasLabelInPR from './actions/utils/hasLabelInPR';
 
 export default function labelsChanged(app: Application): void {
   app.on(
@@ -42,11 +43,9 @@ export default function labelsChanged(app: Application): void {
               await updatePrBody(pr, context, repoContext, {
                 autoMergeWithSkipCi: true,
                 // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
-                autoMerge:
-                  autoMergeLabel &&
-                  pr.labels.find((l): boolean => l.id === autoMergeLabel.id)
-                    ? true
-                    : repoContext.config.prDefaultOptions.autoMerge,
+                autoMerge: hasLabelInPR(pr, autoMergeLabel)
+                  ? true
+                  : repoContext.config.prDefaultOptions.autoMerge,
               });
               // }
             } else if (autoMergeLabel && label.id === autoMergeLabel.id) {
@@ -54,11 +53,9 @@ export default function labelsChanged(app: Application): void {
                 autoMerge: true,
                 // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
                 // Note: si c'est renovate qui ajoute le label autoMerge, le label codeApprovedLabel n'aurait pu etre ajouté que par renovate également (on est a quelques secondes de l'ouverture de la pr par renovate)
-                autoMergeWithSkipCi:
-                  codeApprovedLabel &&
-                  pr.labels.find((l): boolean => l.id === codeApprovedLabel.id)
-                    ? true
-                    : repoContext.config.prDefaultOptions.autoMergeWithSkipCi,
+                autoMergeWithSkipCi: hasLabelInPR(pr, codeApprovedLabel)
+                  ? true
+                  : repoContext.config.prDefaultOptions.autoMergeWithSkipCi,
               });
             }
             await autoMergeIfPossible(pr, context, repoContext);

@@ -4,7 +4,8 @@ import { Context } from 'probot';
 // eslint-disable-next-line import/no-cycle
 import { RepoContext } from '../../context/repoContext';
 import { LabelResponse } from '../../context/initRepoLabels';
-import { parseBody } from './utils/parseBody';
+import { parseBodyWithOptions } from './utils/parseBody';
+import hasLabelInPR from './utils/hasLabelInPR';
 
 const hasFailedStatusOrChecks = async (
   pr: PullsGetResponse,
@@ -57,15 +58,8 @@ export const autoMergeIfPossible = async (
   prLabels: LabelResponse[] = pr.labels,
 ): Promise<boolean> => {
   const autoMergeLabel = repoContext.labels['merge/automerge'];
-  if (!autoMergeLabel) return false;
 
-  const createMergeLockPrFromPr = () => ({
-    id: pr.id,
-    number: pr.number,
-    branch: pr.head.ref,
-  });
-
-  if (!prLabels.find((l): boolean => l.id === autoMergeLabel.id)) {
+  if (!hasLabelInPR(pr, autoMergeLabel)) {
     context.log.debug('automerge not possible: no label', {
       prId: pr.id,
       prNumber: pr.number,
@@ -73,6 +67,12 @@ export const autoMergeIfPossible = async (
     repoContext.removePrFromAutomergeQueue(context, pr.number);
     return false;
   }
+
+  const createMergeLockPrFromPr = () => ({
+    id: pr.id,
+    number: pr.number,
+    branch: pr.head.ref,
+  });
 
   if (pr.state !== 'open') {
     context.log.debug('automerge not possible: pr is not opened', {
@@ -233,7 +233,10 @@ export const autoMergeIfPossible = async (
   try {
     context.log.info(`automerge pr #${pr.number}`);
 
-    const parsedBody = parseBody(pr.body, repoContext.config.prDefaultOptions);
+    const parsedBody = parseBodyWithOptions(
+      pr.body,
+      repoContext.config.prDefaultOptions,
+    );
     const options =
       (parsedBody && parsedBody.options) || repoContext.config.prDefaultOptions;
 

@@ -1,7 +1,7 @@
 import { Application } from 'probot';
 import { createHandlerPullRequestChange } from './utils';
 import { updateReviewStatus } from './actions/updateReviewStatus';
-import { parseBody } from './actions/utils/parseBody';
+import { parseBodyWithOptions } from './actions/utils/parseBody';
 
 export default function closed(app: Application): void {
   app.on(
@@ -13,7 +13,7 @@ export default function closed(app: Application): void {
         if (pr.merged) {
           const parsedBody =
             pr.head.repo.id === repo.id &&
-            parseBody(pr.body, repoContext.config.prDefaultOptions);
+            parseBodyWithOptions(pr.body, repoContext.config.prDefaultOptions);
 
           await Promise.all([
             repoContext.removePrFromAutomergeQueue(context, pr.number),

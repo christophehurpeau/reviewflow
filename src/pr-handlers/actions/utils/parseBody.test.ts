@@ -1,4 +1,4 @@
-import { parseBody } from './parseBody';
+import { parseBodyWithOptions } from './parseBody';
 import initialSimple from './mocks/body/initial-simple';
 import initialTable from './mocks/body/initial-table';
 import initialAfterEditSimple from './mocks/body/initialAfterEdit-simple';
@@ -12,7 +12,7 @@ describe('simple', () => {
       deleteAfterMerge: true,
     };
 
-    const parsed = parseBody(initialSimple, defaultConfig);
+    const parsed = parseBodyWithOptions(initialSimple, defaultConfig);
 
     expect(parsed).not.toBeFalsy();
     expect(parsed && parsed.options).toEqual({
@@ -21,6 +21,33 @@ describe('simple', () => {
       autoMerge: false,
       deleteAfterMerge: true,
     });
+    expect(parsed && parsed.breakingChanges).toBe('');
+  });
+
+  it('should parse breaking changes', () => {
+    const defaultConfig = {
+      featureBranch: false,
+      autoMergeWithSkipCi: false,
+      autoMerge: false,
+      deleteAfterMerge: true,
+    };
+
+    const parsed = parseBodyWithOptions(
+      initialAfterEditSimple.replace(
+        '#### Options:',
+        '#### Commits Notes:\n\nSome commits Notes\n\n#### Options:',
+      ),
+      defaultConfig,
+    );
+
+    expect(parsed).not.toBeFalsy();
+    expect(parsed && parsed.options).toEqual({
+      featureBranch: false,
+      autoMergeWithSkipCi: false,
+      autoMerge: false,
+      deleteAfterMerge: true,
+    });
+    expect(parsed && parsed.breakingChanges).toBe('Some commits Notes');
   });
 });
 
@@ -33,7 +60,7 @@ describe('table', () => {
       deleteAfterMerge: true,
     };
 
-    const parsed = parseBody(initialTable, defaultConfig);
+    const parsed = parseBodyWithOptions(initialTable, defaultConfig);
 
     expect(parsed).not.toBeFalsy();
     expect(parsed && parsed.options).toEqual({
@@ -42,6 +69,7 @@ describe('table', () => {
       autoMerge: false,
       deleteAfterMerge: true,
     });
+    expect(parsed && parsed.breakingChanges).toBe('');
   });
 });
 
@@ -54,7 +82,7 @@ describe('table', () => {
       deleteAfterMerge: true,
     };
 
-    const parsed = parseBody(initialAfterEditSimple, defaultConfig);
+    const parsed = parseBodyWithOptions(initialAfterEditSimple, defaultConfig);
 
     expect(parsed).not.toBeFalsy();
     expect(parsed && parsed.options).toEqual({
@@ -63,5 +91,6 @@ describe('table', () => {
       autoMerge: false,
       deleteAfterMerge: true,
     });
+    expect(parsed && parsed.breakingChanges).toBe('');
   });
 });

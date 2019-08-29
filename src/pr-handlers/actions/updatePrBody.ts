@@ -4,6 +4,7 @@ import { Context } from 'probot';
 import { RepoContext } from '../../context/repoContext';
 import { updateBody } from './utils/updateBody';
 import { Options } from './utils/prOptions';
+import { updatePrIfNeeded } from './updatePr';
 
 export const updatePrBody = async <
   E extends Webhooks.WebhookPayloadPullRequest
@@ -13,15 +14,12 @@ export const updatePrBody = async <
   repoContext: RepoContext,
   updateOptions: Partial<Record<Options, boolean>>,
 ): Promise<void> => {
-  const prBody = pr.body;
   const { body } = updateBody(
-    prBody,
+    pr.body,
     repoContext.config.prDefaultOptions,
     undefined,
     updateOptions,
   );
 
-  if (body !== prBody) {
-    await context.github.pulls.update(context.issue({ body }));
-  }
+  await updatePrIfNeeded(pr, context, repoContext, { body });
 };

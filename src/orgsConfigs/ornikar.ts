@@ -190,6 +190,12 @@ const config: Config<'dev' | 'design', 'archis' | 'frontends' | 'backends'> = {
         name: 'feature-branch',
         color: '#7FCEFF',
       },
+
+      /* infos */
+      'breaking-changes': {
+        name: ':warning: Breaking Changes',
+        color: '#FF6F00',
+      },
     },
 
     review: {

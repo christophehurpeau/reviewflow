@@ -66,6 +66,7 @@
     }
   },
   "dependencies": {
+    "@commitlint/parse": "^8.1.0",
     "@slack/web-api": "5.1.0",
     "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.4",
@@ -74,8 +75,7 @@
     "liwi": "^1.1.0",
     "liwi-mongo": "^4.1.0",
     "lock": "^1.1.0",
-    "probot": "9.2.11",
-    "probot-config": "^1.0.1",
+    "probot": "9.3.2",
     "react": "^16.8.4",
     "react-dom": "^16.8.4",
     "simple-oauth2": "^2.2.1"
@@ -111,7 +111,7 @@
     "prettier": "1.17.0",
     "repository-check-dirty": "1.0.2",
     "smee-client": "1.1.0",
-    "typescript": "3.5.3",
+    "typescript": "3.6.1-rc",
     "yarn-update-lock": "1.0.0",
     "yarnhook": "0.4.1"
   }

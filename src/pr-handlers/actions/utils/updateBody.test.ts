@@ -1,4 +1,4 @@
-import { updateBody } from './updateBody';
+import { updateBody, updateBodyCommitsNotes } from './updateBody';
 import initialSimple from './mocks/body/initial-simple';
 import initialAfterEditSimple from './mocks/body/initialAfterEdit-simple';
 import initialAfterEditSimpleWithInfos from './mocks/body/initialAfterEdit-simpleWithInfos';
@@ -36,6 +36,30 @@ describe('simple', () => {
         '- [x] <!-- reviewflow-featureBranch -->',
       ),
     );
+  });
+  it('should update commit notes', () => {
+    expect(
+      updateBodyCommitsNotes(
+        initialAfterEditSimpleWithInfos,
+        'Some commits Notes',
+      ),
+    ).toEqual(
+      initialAfterEditSimpleWithInfos.replace(
+        '#### Options:',
+        '#### Commits Notes:\n\nSome commits Notes\n\n#### Options:',
+      ),
+    );
+  });
+  it('should remove commit notes', () => {
+    expect(
+      updateBodyCommitsNotes(
+        initialAfterEditSimpleWithInfos.replace(
+          '#### Options:',
+          '#### Commits Notes:\n\nSome commits Notes\n\n#### Options:',
+        ),
+        '',
+      ),
+    ).toEqual(initialAfterEditSimpleWithInfos);
   });
 });
 

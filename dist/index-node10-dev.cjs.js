@@ -6,6 +6,7 @@ require('dotenv/config');
 const probot = require('probot');
 const lock = require('lock');
 const webApi = require('@slack/web-api');
+const parse = _interopDefault(require('@commitlint/parse'));
 const liwiMongo = require('liwi-mongo');
 const util = require('util');
 const Octokit = _interopDefault(require('@octokit/rest'));
@@ -180,6 +181,12 @@ const config = {
       'feature-branch': {
         name: 'feature-branch',
         color: '#7FCEFF'
+      },
+
+      /* infos */
+      'breaking-changes': {
+        name: ':warning: Breaking Changes',
+        color: '#FF6F00'
       }
     },
     review: {
@@ -217,7 +224,7 @@ const config$1 = {
   parsePR: {
     title: [{
       regExp: // eslint-disable-next-line unicorn/no-unsafe-regex
-      /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([a-z\-/]*)\))?:\s/,
+      /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([a-z\-/]*)\))?(!)?:\s/,
       error: {
         title: 'Title does not match commitlint conventional',
         summary: 'https://github.com/marionebl/commitlint/tree/master/%40commitlint/config-conventional'
@@ -274,6 +281,12 @@ const config$1 = {
       'feature-branch': {
         name: 'feature-branch',
         color: '#7FCEFF'
+      },
+
+      /* infos */
+      'breaking-changes': {
+        name: ':warning: Breaking Changes',
+        color: '#ef7934'
       }
     },
     review: {
@@ -337,7 +350,7 @@ const parseOptions = (content, defaultConfig) => {
   }, {});
 };
 
-const parseBody = (description, defaultConfig) => {
+const parseBody = description => {
   const match = regexpCols.exec(description);
   if (!match) return null;
   const [, content, reviewFlowCol, reviewflowContent, ending] = match;
@@ -349,8 +362,7 @@ const parseBody = (description, defaultConfig) => {
       ending,
       reviewflowContentCol: reviewflowContent,
       reviewflowContentColPrefix: commentStart,
-      reviewflowContentColSuffix: commentEnd,
-      options: parseOptions(reviewFlowCol, defaultConfig)
+      reviewflowContentColSuffix: commentEnd
     };
   }
 
@@ -360,10 +372,31 @@ const parseBody = (description, defaultConfig) => {
     ending,
     reviewflowContentCol,
     reviewflowContentColPrefix,
-    reviewflowContentColSuffix,
-    options: parseOptions(reviewflowContentCol, defaultConfig)
+    reviewflowContentColSuffix
   };
 };
+const parseBodyWithOptions = (description, defaultConfig) => {
+  const parsedBody = parseBody(description);
+  if (parsedBody === null) return null; // console.log(parsedBody.reviewflowContentCol);
+
+  let breakingChanges = parsedBody.reviewflowContentCol.replace(/^.*#### Commits Notes:(.*)#### Options:.*$/s, '$1');
+
+  if (breakingChanges === parsedBody.reviewflowContentCol) {
+    breakingChanges = '';
+  } else {
+    breakingChanges = breakingChanges.trim();
+  }
+
+  return { ...parsedBody,
+    options: parseOptions(parsedBody.reviewflowContentCol, defaultConfig),
+    breakingChanges
+  };
+};
+
+function hasLabelInPR(pr, label) {
+  if (!label) return false;
+  return pr.labels.some(l => l.id === label.id);
+}
 
 /* eslint-disable max-lines */
 
@@ -399,15 +432,8 @@ const hasFailedStatusOrChecks = async (pr, context) => {
 
 const autoMergeIfPossible = async (pr, context, repoContext, prLabels = pr.labels) => {
   const autoMergeLabel = repoContext.labels['merge/automerge'];
-  if (!autoMergeLabel) return false;
 
-  const createMergeLockPrFromPr = () => ({
-    id: pr.id,
-    number: pr.number,
-    branch: pr.head.ref
-  });
-
-  if (!prLabels.find(l => l.id === autoMergeLabel.id)) {
+  if (!hasLabelInPR(pr, autoMergeLabel)) {
     context.log.debug('automerge not possible: no label', {
       prId: pr.id,
       prNumber: pr.number
@@ -415,6 +441,12 @@ const autoMergeIfPossible = async (pr, context, repoContext, prLabels = pr.label
     repoContext.removePrFromAutomergeQueue(context, pr.number);
     return false;
   }
+
+  const createMergeLockPrFromPr = () => ({
+    id: pr.id,
+    number: pr.number,
+    branch: pr.head.ref
+  });
 
   if (pr.state !== 'open') {
     context.log.debug('automerge not possible: pr is not opened', {
@@ -539,7 +571,7 @@ const autoMergeIfPossible = async (pr, context, repoContext, prLabels = pr.label
 
   try {
     context.log.info(`automerge pr #${pr.number}`);
-    const parsedBody = parseBody(pr.body, repoContext.config.prDefaultOptions);
+    const parsedBody = parseBodyWithOptions(pr.body, repoContext.config.prDefaultOptions);
     const options = parsedBody && parsedBody.options || repoContext.config.prDefaultOptions;
     const mergeResult = await context.github.pulls.merge({
       merge_method: options.featureBranch ? 'merge' : 'squash',
@@ -972,7 +1004,7 @@ const toMarkdownInfos = infos => {
 };
 
 const updateBody = (body, defaultConfig, infos, updateOptions) => {
-  const parsed = parseBody(body, defaultConfig);
+  const parsed = parseBodyWithOptions(body, defaultConfig);
 
   if (!parsed) {
     console.info('could not parse body');
@@ -988,21 +1020,81 @@ const updateBody = (body, defaultConfig, infos, updateOptions) => {
     reviewflowContentColPrefix,
     reviewflowContentColSuffix,
     options
-  } = parsed; // eslint-disable-next-line no-nested-ternary
-
-  const infosParagraph = !infos ? reviewflowContentCol.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
-  /^\s*(?:(#### Infos:.*)?#### Options:)?.*$/s, '$1') : infos.length !== 0 ? `#### Infos:\n${toMarkdownInfos(infos)}\n` : '';
+  } = parsed;
+  const infosAndCommitNotesParagraph = reviewflowContentCol.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
+  /^\s*(?:(#### Infos:.*)?(#### Commits Notes:.*)?#### Options:)?.*$/s, // eslint-disable-next-line no-nested-ternary
+  !infos ? '$1$2' : infos.length !== 0 ? `#### Infos:\n${toMarkdownInfos(infos)}\n$2` : '$2');
   const updatedOptions = !updateOptions ? options : { ...options,
     ...updateOptions
   };
   return {
     options: updatedOptions,
     body: `${content}${reviewflowContentColPrefix}
-${infosParagraph}#### Options:
+${infosAndCommitNotesParagraph}#### Options:
 ${toMarkdownOptions(updatedOptions)}
 ${reviewflowContentColSuffix}${ending || ''}`
   };
 };
+const updateBodyCommitsNotes = (body, commitNotes) => {
+  const parsed = parseBody(body);
+
+  if (!parsed) {
+    console.info('could not parse body');
+    return body;
+  }
+
+  const {
+    content,
+    ending,
+    reviewflowContentCol,
+    reviewflowContentColPrefix,
+    reviewflowContentColSuffix
+  } = parsed;
+  const reviewflowContentColReplaced = reviewflowContentCol.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
+  /(?:#### Commits Notes:.*)?(#### Options:)/s, // eslint-disable-next-line no-nested-ternary
+  !commitNotes ? '$1' : `#### Commits Notes:\n\n${commitNotes}\n\n$1`);
+  return `${content}${reviewflowContentColPrefix}${reviewflowContentColReplaced}${reviewflowContentColSuffix}${ending || ''}`;
+};
+
+const updatePrIfNeeded = async (pr, context, repoContext, update) => {
+  const hasDiffInTitle = update.title && pr.title !== update.title;
+  const hasDiffInBody = update.body && pr.body !== update.body;
+
+  if (hasDiffInTitle || hasDiffInBody) {
+    const diff = {};
+
+    if (hasDiffInTitle) {
+      diff.title = update.title;
+      pr.title = update.title;
+    }
+
+    if (hasDiffInBody) {
+      diff.body = update.body;
+      pr.body = update.body;
+    }
+
+    await context.github.issues.update(context.issue(diff));
+  }
+};
+
+async function syncLabel(pr, context, shouldHaveLabel, label, prHasLabel = hasLabelInPR(pr, label), {
+  onRemove,
+  onAdd
+} = {}) {
+  if (prHasLabel && !shouldHaveLabel) {
+    await context.github.issues.removeLabel(context.issue({
+      name: label.name
+    }));
+    if (onRemove) await onRemove();
+  }
+
+  if (shouldHaveLabel && !prHasLabel) {
+    const response = await context.github.issues.addLabels(context.issue({
+      labels: [label.name]
+    }));
+    if (onAdd) await onAdd(response.data);
+  }
+}
 
 /* eslint-disable max-lines */
 const ExcludesFalsy$3 = Boolean;
@@ -1075,9 +1167,9 @@ const editOpenedPR = async (pr, context, repoContext) => {
   const featureBranchLabel = repoContext.labels['feature-branch'];
   const automergeLabel = repoContext.labels['merge/automerge'];
   const skipCiLabel = repoContext.labels['merge/skip-ci'];
-  const prHasFeatureBranchLabel = Boolean(featureBranchLabel && pr.labels.find(label => label.id === featureBranchLabel.id));
-  const prHasSkipCiLabel = Boolean(skipCiLabel && pr.labels.find(label => label.id === skipCiLabel.id));
-  const prHasAutoMergeLabel = Boolean(automergeLabel && pr.labels.find(label => label.id === automergeLabel.id));
+  const prHasFeatureBranchLabel = hasLabelInPR(pr, featureBranchLabel);
+  const prHasSkipCiLabel = hasLabelInPR(pr, skipCiLabel);
+  const prHasAutoMergeLabel = hasLabelInPR(pr, automergeLabel);
   const defaultOptions = { ...repoContext.config.prDefaultOptions,
     featureBranch: prHasFeatureBranchLabel,
     autoMergeWithSkipCi: prHasSkipCiLabel,
@@ -1087,63 +1179,22 @@ const editOpenedPR = async (pr, context, repoContext) => {
     body,
     options
   } = updateBody(pr.body, defaultOptions, statuses.filter(status => status.info && status.info.inBody).map(status => status.info));
-  const hasDiffInTitle = pr.title !== title;
-  const hasDiffInBody = pr.body !== body;
-
-  if (hasDiffInTitle || hasDiffInBody) {
-    const update = {};
-
-    if (hasDiffInTitle) {
-      update.title = title;
-      pr.title = title;
-    }
-
-    if (hasDiffInBody) {
-      update.body = body;
-      pr.body = body;
-    }
-
-    await context.github.issues.update(context.issue(update));
-  }
+  await updatePrIfNeeded(pr, context, repoContext, {
+    title,
+    body
+  });
 
   if (options && (featureBranchLabel || automergeLabel)) {
-    const syncLabel = async (label, prHasLabel, optionKey) => {
-      if (prHasLabel && !options[optionKey]) {
-        await context.github.issues.removeLabel(context.issue({
-          name: label.name
-        }));
+    await Promise.all([featureBranchLabel && syncLabel(pr, context, options.featureBranch, featureBranchLabel, prHasFeatureBranchLabel), skipCiLabel && syncLabel(pr, context, options.autoMergeWithSkipCi, skipCiLabel, prHasSkipCiLabel), automergeLabel && syncLabel(pr, context, options.autoMerge, automergeLabel, prHasAutoMergeLabel, {
+      onAdd: async prLabels => {
+        await autoMergeIfPossible(pr, context, repoContext, prLabels);
+      },
+      onRemove: async () => {
+        await repoContext.removePrFromAutomergeQueue(context, pr.number);
       }
+    })]);
 
-      if (options[optionKey] && !prHasLabel) {
-        await context.github.issues.addLabels(context.issue({
-          labels: [label.name]
-        }));
-      }
-    };
-
-    if (featureBranchLabel) {
-      await syncLabel(featureBranchLabel, prHasFeatureBranchLabel, 'featureBranch');
-    }
-
-    if (skipCiLabel) {
-      await syncLabel(skipCiLabel, prHasSkipCiLabel, 'autoMergeWithSkipCi');
-    }
-
-    if (automergeLabel) {
-      if (prHasAutoMergeLabel && !options.autoMerge) {
-        await context.github.issues.removeLabel(context.issue({
-          name: automergeLabel.name
-        }));
-        repoContext.removePrFromAutomergeQueue(context, pr.number);
-      }
-
-      if (options.autoMerge && !prHasAutoMergeLabel) {
-        const result = await context.github.issues.addLabels(context.issue({
-          labels: [automergeLabel.name]
-        }));
-        await autoMergeIfPossible(pr, context, repoContext, result.data);
-      }
-
+    if (!automergeLabel) {
       return {
         skipAutoMerge: true
       };
@@ -1369,7 +1420,7 @@ const autoApproveAndAutoMerge = async (pr, context, repoContext) => {
   // const autoMergeLabel = repoContext.labels['merge/automerge'];
   const codeApprovedLabel = repoContext.labels['code/approved'];
 
-  if (pr.labels.find(l => l.id === codeApprovedLabel.id)) {
+  if (hasLabelInPR(pr, codeApprovedLabel)) {
     await context.github.pulls.createReview(context.issue({
       event: 'APPROVE'
     }));
@@ -1380,10 +1431,44 @@ const autoApproveAndAutoMerge = async (pr, context, repoContext) => {
   return false;
 };
 
+const readCommitsAndUpdateInfos = async (pr, context, repoContext) => {
+  // tmp.data[0].sha
+  // tmp.data[0].commit.message
+  const commits = await context.github.paginate(context.github.pulls.listCommits(context.issue({
+    // A custom page size up to 100. Default is 30.
+    per_page: 100
+  })), res => res.data);
+  const conventionalCommits = await Promise.all(commits.map(c => parse(c.commit.message)));
+  const breakingChangesCommits = conventionalCommits.reduce((acc, c, index) => {
+    const breakingChangesNotes = c.notes.filter(note => note.title === 'BREAKING CHANGE');
+
+    if (breakingChangesNotes.length !== 0) {
+      acc.push({
+        commit: commits[index],
+        breakingChangesNotes
+      });
+    }
+
+    return acc;
+  }, []);
+  const breakingChangesLabel = repoContext.labels['breaking-changes'];
+  const newBody = updateBodyCommitsNotes(pr.body, breakingChangesCommits.length === 0 ? '' : `Breaking Changes:\n${breakingChangesCommits.map(({
+    commit,
+    breakingChangesNotes
+  }) => breakingChangesNotes.map(note => `- ${note.text.replace('\n', ' ')} (${commit.sha})`)).join('')}`);
+  await Promise.all([syncLabel(pr, context, breakingChangesCommits.length !== 0, breakingChangesLabel), updatePrIfNeeded(pr, context, repoContext, {
+    body: newBody
+  })]); // TODO check if add/remove label works and pr body update works
+  // TODO add infos in merge
+  // TODO auto update ! in front of : to signal a breaking change when https://github.com/conventional-changelog/commitlint/issues/658 is closed
+};
+
 function opened(app) {
   app.on('pull_request.opened', createHandlerPullRequestChange(async (pr, context, repoContext) => {
     const fromRenovate = pr.head.ref.startsWith('renovate/');
-    await Promise.all([autoAssignPRToCreator(pr, context, repoContext), editOpenedPR(pr, context, repoContext), fromRenovate ? autoApproveAndAutoMerge(pr, context, repoContext).then(async approved => {
+    await Promise.all([autoAssignPRToCreator(pr, context, repoContext), editOpenedPR(pr, context, repoContext).then(() => {
+      return readCommitsAndUpdateInfos(pr, context, repoContext);
+    }), fromRenovate ? autoApproveAndAutoMerge(pr, context, repoContext).then(async approved => {
       if (!approved) {
         await updateReviewStatus(pr, context, repoContext, 'dev', {
           add: ['needsReview']
@@ -1401,7 +1486,7 @@ function closed(app) {
     const repo = context.payload.repository;
 
     if (pr.merged) {
-      const parsedBody = pr.head.repo.id === repo.id && parseBody(pr.body, repoContext.config.prDefaultOptions);
+      const parsedBody = pr.head.repo.id === repo.id && parseBodyWithOptions(pr.body, repoContext.config.prDefaultOptions);
       await Promise.all([repoContext.removePrFromAutomergeQueue(context, pr.number), parsedBody && parsedBody.options.deleteAfterMerge ? context.github.git.deleteRef(context.repo({
         ref: `heads/${pr.head.ref}`
       })).catch(() => {}) : undefined]);
@@ -1416,8 +1501,9 @@ function closed(app) {
 function closed$1(app) {
   app.on('pull_request.reopened', createHandlerPullRequestChange(async (pr, context, repoContext) => {
     await Promise.all([updateReviewStatus(pr, context, repoContext, 'dev', {
-      add: ['needsReview']
-    })]);
+      add: ['needsReview'],
+      remove: ['approved']
+    }), readCommitsAndUpdateInfos(pr, context, repoContext)]);
   }));
 }
 
@@ -1576,8 +1662,9 @@ function synchronize(app) {
     // old and new sha
     // const { before, after } = context.payload;
     await Promise.all([editOpenedPR(pr, context, repoContext), // addStatusCheckToLatestCommit
-    updateStatusCheckFromLabels(pr, context, repoContext), // call autoMergeIfPossible to re-add to the queue when push is fixed
-    autoMergeIfPossible(pr, context, repoContext)]);
+    updateStatusCheckFromLabels(pr, context, repoContext), readCommitsAndUpdateInfos(pr, context, repoContext)]); // call autoMergeIfPossible to re-add to the queue when push is fixed
+
+    await autoMergeIfPossible(pr, context, repoContext);
   }));
 }
 
@@ -1597,16 +1684,12 @@ function edited(app) {
 }
 
 const updatePrBody = async (pr, context, repoContext, updateOptions) => {
-  const prBody = pr.body;
   const {
     body
-  } = updateBody(prBody, repoContext.config.prDefaultOptions, undefined, updateOptions);
-
-  if (body !== prBody) {
-    await context.github.pulls.update(context.issue({
-      body
-    }));
-  }
+  } = updateBody(pr.body, repoContext.config.prDefaultOptions, undefined, updateOptions);
+  await updatePrIfNeeded(pr, context, repoContext, {
+    body
+  });
 };
 
 function labelsChanged(app) {
@@ -1647,14 +1730,14 @@ function labelsChanged(app) {
             await updatePrBody(pr, context, repoContext, {
               autoMergeWithSkipCi: true,
               // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
-              autoMerge: autoMergeLabel && pr.labels.find(l => l.id === autoMergeLabel.id) ? true : repoContext.config.prDefaultOptions.autoMerge
+              autoMerge: hasLabelInPR(pr, autoMergeLabel) ? true : repoContext.config.prDefaultOptions.autoMerge
             }); // }
           } else if (autoMergeLabel && label.id === autoMergeLabel.id) {
             await updatePrBody(pr, context, repoContext, {
               autoMerge: true,
               // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
               // Note: si c'est renovate qui ajoute le label autoMerge, le label codeApprovedLabel n'aurait pu etre ajouté que par renovate également (on est a quelques secondes de l'ouverture de la pr par renovate)
-              autoMergeWithSkipCi: codeApprovedLabel && pr.labels.find(l => l.id === codeApprovedLabel.id) ? true : repoContext.config.prDefaultOptions.autoMergeWithSkipCi
+              autoMergeWithSkipCi: hasLabelInPR(pr, codeApprovedLabel) ? true : repoContext.config.prDefaultOptions.autoMergeWithSkipCi
             });
           }
 
@@ -1778,7 +1861,7 @@ function init() {
   };
 }
 
-var _jsxFileName = "/Users/chris/utils/reviewflow/src/views/Layout.tsx";
+var _jsxFileName = "/Users/chris/Work/github-apps/reviewflow/src/views/Layout.tsx";
 function Layout({
   lang = 'en',
   title = process.env.NAME,
@@ -1869,7 +1952,7 @@ async function randomHex(size) {
   return buffer.toString('hex');
 }
 
-var _jsxFileName$1 = "/Users/chris/utils/reviewflow/src/appRouter.tsx";
+var _jsxFileName$1 = "/Users/chris/Work/github-apps/reviewflow/src/appRouter.tsx";
 
 if (!process.env.AUTH_SECRET_KEY) {
   throw new Error('Missing env variable: AUTH_SECRET_KEY');

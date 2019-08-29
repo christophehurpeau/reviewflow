@@ -4,6 +4,7 @@ import { autoAssignPRToCreator } from './actions/autoAssignPRToCreator';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { autoApproveAndAutoMerge } from './actions/autoApproveAndAutoMerge';
+import { readCommitsAndUpdateInfos } from './actions/readCommitsAndUpdateInfos';
 
 export default function opened(app: Application): void {
   app.on(
@@ -14,7 +15,9 @@ export default function opened(app: Application): void {
 
         await Promise.all<unknown>([
           autoAssignPRToCreator(pr, context, repoContext),
-          editOpenedPR(pr, context, repoContext),
+          editOpenedPR(pr, context, repoContext).then(() => {
+            return readCommitsAndUpdateInfos(pr, context, repoContext);
+          }),
           fromRenovate
             ? autoApproveAndAutoMerge(pr, context, repoContext).then(
                 async (approved: boolean): Promise<void> => {
