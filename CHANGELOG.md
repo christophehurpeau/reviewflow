@@ -1,3 +1,18 @@
+# [1.24.0](https://github.com/christophehurpeau/reviewflow/compare/v1.23.1...v1.24.0) (2019-08-29)
+
+
+### Bug Fixes
+
+* force reviewflow name as username in slack ([2b3b898](https://github.com/christophehurpeau/reviewflow/commit/2b3b898))
+
+
+### Features
+
+* add breaking changes info ([29b771e](https://github.com/christophehurpeau/reviewflow/commit/29b771e))
+* improve pr link ([a4812c6](https://github.com/christophehurpeau/reviewflow/commit/a4812c6))
+
+
+
 ## [1.23.1](https://github.com/christophehurpeau/reviewflow/compare/v1.23.0...v1.23.1) (2019-08-24)
 
 
