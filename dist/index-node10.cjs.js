@@ -929,7 +929,7 @@ const obtainRepoContext = context => {
 
   if (repo.name === 'reviewflow-test' && process.env.REVIEWFLOW_NAME !== 'reviewflow-test') {
     console.warn('repo ignored', {
-      owner: repo.owner,
+      owner: repo.owner.login,
       name: repo.name
     });
     return null;
