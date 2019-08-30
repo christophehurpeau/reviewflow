@@ -115,12 +115,18 @@ export const updateReviewStatus = async <
 
       if (toDelete.size !== 0) {
         for (const toDeleteName of [...toDeleteNames]) {
-          const result = await context.github.issues.removeLabel(
-            context.issue({
-              name: toDeleteName,
-            }),
-          );
-          prLabels = result.data;
+          try {
+            const result = await context.github.issues.removeLabel(
+              context.issue({
+                name: toDeleteName,
+              }),
+            );
+            prLabels = result.data;
+          } catch (err) {
+            context.log.warn('error removing label', {
+              err: err && err.message,
+            });
+          }
         }
       }
     } else {
