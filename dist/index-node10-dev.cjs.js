@@ -1359,6 +1359,7 @@ const updateReviewStatus = async (pr, context, repoContext, reviewGroup, {
         if (label && !prLabels.some(prLabel => prLabel.id === label.id)) {
           newLabelNames.add(label.name);
           toAdd.add(labelKey);
+          toAddNames.add(label.name);
         }
       });
     }

@@ -87,6 +87,7 @@ export const updateReviewStatus = async <
         if (label && !prLabels.some((prLabel) => prLabel.id === label.id)) {
           newLabelNames.add(label.name);
           toAdd.add(labelKey);
+          toAddNames.add(label.name);
         }
       });
     }
