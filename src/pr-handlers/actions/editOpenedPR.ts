@@ -45,7 +45,7 @@ export const editOpenedPR: PRHandler<
   const errorRule = repoContext.config.parsePR.title.find((rule) => {
     if (rule.bot === false && isPrFromBot) return false;
 
-    const match = rule.regExp.exec(pr.title);
+    const match = rule.regExp.exec(title);
     if (match === null) {
       if (rule.status) {
         statuses.push({ name: rule.status, error: rule.error });

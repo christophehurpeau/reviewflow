@@ -1109,7 +1109,7 @@ const editOpenedPR = async (pr, context, repoContext) => {
   const statuses = [];
   const errorRule = repoContext.config.parsePR.title.find(rule => {
     if (rule.bot === false && isPrFromBot) return false;
-    const match = rule.regExp.exec(pr.title);
+    const match = rule.regExp.exec(title);
 
     if (match === null) {
       if (rule.status) {
@@ -1865,7 +1865,7 @@ function init() {
   };
 }
 
-var _jsxFileName = "/Users/chris/Work/github-apps/reviewflow/src/views/Layout.tsx";
+var _jsxFileName = "/Users/chris/utils/reviewflow/src/views/Layout.tsx";
 function Layout({
   lang = 'en',
   title = process.env.NAME,
@@ -1956,7 +1956,7 @@ async function randomHex(size) {
   return buffer.toString('hex');
 }
 
-var _jsxFileName$1 = "/Users/chris/Work/github-apps/reviewflow/src/appRouter.tsx";
+var _jsxFileName$1 = "/Users/chris/utils/reviewflow/src/appRouter.tsx";
 
 if (!process.env.AUTH_SECRET_KEY) {
   throw new Error('Missing env variable: AUTH_SECRET_KEY');
