@@ -1,3 +1,13 @@
+## [1.24.2](https://github.com/christophehurpeau/reviewflow/compare/v1.24.1...v1.24.2) (2019-09-02)
+
+
+### Bug Fixes
+
+* catch 404 remove non existing label ([255aecf](https://github.com/christophehurpeau/reviewflow/commit/255aecf))
+* use cleaned title for match ([ab08b75](https://github.com/christophehurpeau/reviewflow/commit/ab08b75))
+
+
+
 ## [1.24.1](https://github.com/christophehurpeau/reviewflow/compare/v1.24.0...v1.24.1) (2019-08-29)
 
 
