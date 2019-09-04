@@ -1,3 +1,12 @@
+## [1.24.4](https://github.com/christophehurpeau/reviewflow/compare/v1.24.3...v1.24.4) (2019-09-04)
+
+
+### Bug Fixes
+
+* automerge label not found ([65af12c](https://github.com/christophehurpeau/reviewflow/commit/65af12c))
+
+
+
 ## [1.24.3](https://github.com/christophehurpeau/reviewflow/compare/v1.24.2...v1.24.3) (2019-09-02)
 
 
