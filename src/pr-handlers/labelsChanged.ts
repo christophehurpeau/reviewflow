@@ -43,7 +43,7 @@ export default function labelsChanged(app: Application): void {
               await updatePrBody(pr, context, repoContext, {
                 autoMergeWithSkipCi: true,
                 // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
-                autoMerge: hasLabelInPR(pr, autoMergeLabel)
+                autoMerge: hasLabelInPR(pr.labels, autoMergeLabel)
                   ? true
                   : repoContext.config.prDefaultOptions.autoMerge,
               });
@@ -53,7 +53,7 @@ export default function labelsChanged(app: Application): void {
                 autoMerge: true,
                 // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
                 // Note: si c'est renovate qui ajoute le label autoMerge, le label codeApprovedLabel n'aurait pu etre ajouté que par renovate également (on est a quelques secondes de l'ouverture de la pr par renovate)
-                autoMergeWithSkipCi: hasLabelInPR(pr, codeApprovedLabel)
+                autoMergeWithSkipCi: hasLabelInPR(pr.labels, codeApprovedLabel)
                   ? true
                   : repoContext.config.prDefaultOptions.autoMergeWithSkipCi,
               });

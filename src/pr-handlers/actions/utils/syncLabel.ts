@@ -16,7 +16,7 @@ export default async function syncLabel<
   context: Context<T>,
   shouldHaveLabel: boolean,
   label: LabelResponse,
-  prHasLabel = hasLabelInPR(pr, label),
+  prHasLabel = hasLabelInPR(pr.labels, label),
   { onRemove, onAdd }: SyncLabelOptions = {},
 ): Promise<void> {
   if (prHasLabel && !shouldHaveLabel) {

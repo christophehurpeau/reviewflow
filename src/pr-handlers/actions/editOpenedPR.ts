@@ -125,9 +125,9 @@ export const editOpenedPR: PRHandler<
   const automergeLabel = repoContext.labels['merge/automerge'];
   const skipCiLabel = repoContext.labels['merge/skip-ci'];
 
-  const prHasFeatureBranchLabel = hasLabelInPR(pr, featureBranchLabel);
-  const prHasSkipCiLabel = hasLabelInPR(pr, skipCiLabel);
-  const prHasAutoMergeLabel = hasLabelInPR(pr, automergeLabel);
+  const prHasFeatureBranchLabel = hasLabelInPR(pr.labels, featureBranchLabel);
+  const prHasSkipCiLabel = hasLabelInPR(pr.labels, skipCiLabel);
+  const prHasAutoMergeLabel = hasLabelInPR(pr.labels, automergeLabel);
 
   const defaultOptions = {
     ...repoContext.config.prDefaultOptions,

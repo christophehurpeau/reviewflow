@@ -59,7 +59,7 @@ export const autoMergeIfPossible = async (
 ): Promise<boolean> => {
   const autoMergeLabel = repoContext.labels['merge/automerge'];
 
-  if (!hasLabelInPR(pr, autoMergeLabel)) {
+  if (!hasLabelInPR(prLabels, autoMergeLabel)) {
     context.log.debug('automerge not possible: no label', {
       prId: pr.id,
       prNumber: pr.number,

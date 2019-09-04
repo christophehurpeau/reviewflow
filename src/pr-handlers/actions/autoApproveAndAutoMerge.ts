@@ -12,7 +12,7 @@ export const autoApproveAndAutoMerge = async (
 ): Promise<boolean> => {
   // const autoMergeLabel = repoContext.labels['merge/automerge'];
   const codeApprovedLabel = repoContext.labels['code/approved'];
-  if (hasLabelInPR(pr, codeApprovedLabel)) {
+  if (hasLabelInPR(pr.labels, codeApprovedLabel)) {
     await context.github.pulls.createReview(
       context.issue({ event: 'APPROVE' }),
     );

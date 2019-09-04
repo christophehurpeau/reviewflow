@@ -2,9 +2,9 @@ import { PullsGetResponse } from '@octokit/rest';
 import { LabelResponse } from '../../../context/initRepoLabels';
 
 export default function hasLabelInPR(
-  pr: PullsGetResponse,
+  prLabels: PullsGetResponse['labels'],
   label: LabelResponse,
 ): boolean {
   if (!label) return false;
-  return pr.labels.some((l): boolean => l.id === label.id);
+  return prLabels.some((l): boolean => l.id === label.id);
 }

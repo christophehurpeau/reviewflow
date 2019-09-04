@@ -393,9 +393,9 @@ const parseBodyWithOptions = (description, defaultConfig) => {
   };
 };
 
-function hasLabelInPR(pr, label) {
+function hasLabelInPR(prLabels, label) {
   if (!label) return false;
-  return pr.labels.some(l => l.id === label.id);
+  return prLabels.some(l => l.id === label.id);
 }
 
 /* eslint-disable max-lines */
@@ -433,7 +433,7 @@ const hasFailedStatusOrChecks = async (pr, context) => {
 const autoMergeIfPossible = async (pr, context, repoContext, prLabels = pr.labels) => {
   const autoMergeLabel = repoContext.labels['merge/automerge'];
 
-  if (!hasLabelInPR(pr, autoMergeLabel)) {
+  if (!hasLabelInPR(prLabels, autoMergeLabel)) {
     context.log.debug('automerge not possible: no label', {
       prId: pr.id,
       prNumber: pr.number
@@ -1077,7 +1077,7 @@ const updatePrIfNeeded = async (pr, context, repoContext, update) => {
   }
 };
 
-async function syncLabel(pr, context, shouldHaveLabel, label, prHasLabel = hasLabelInPR(pr, label), {
+async function syncLabel(pr, context, shouldHaveLabel, label, prHasLabel = hasLabelInPR(pr.labels, label), {
   onRemove,
   onAdd
 } = {}) {
@@ -1167,9 +1167,9 @@ const editOpenedPR = async (pr, context, repoContext) => {
   const featureBranchLabel = repoContext.labels['feature-branch'];
   const automergeLabel = repoContext.labels['merge/automerge'];
   const skipCiLabel = repoContext.labels['merge/skip-ci'];
-  const prHasFeatureBranchLabel = hasLabelInPR(pr, featureBranchLabel);
-  const prHasSkipCiLabel = hasLabelInPR(pr, skipCiLabel);
-  const prHasAutoMergeLabel = hasLabelInPR(pr, automergeLabel);
+  const prHasFeatureBranchLabel = hasLabelInPR(pr.labels, featureBranchLabel);
+  const prHasSkipCiLabel = hasLabelInPR(pr.labels, skipCiLabel);
+  const prHasAutoMergeLabel = hasLabelInPR(pr.labels, automergeLabel);
   const defaultOptions = { ...repoContext.config.prDefaultOptions,
     featureBranch: prHasFeatureBranchLabel,
     autoMergeWithSkipCi: prHasSkipCiLabel,
@@ -1427,7 +1427,7 @@ const autoApproveAndAutoMerge = async (pr, context, repoContext) => {
   // const autoMergeLabel = repoContext.labels['merge/automerge'];
   const codeApprovedLabel = repoContext.labels['code/approved'];
 
-  if (hasLabelInPR(pr, codeApprovedLabel)) {
+  if (hasLabelInPR(pr.labels, codeApprovedLabel)) {
     await context.github.pulls.createReview(context.issue({
       event: 'APPROVE'
     }));
@@ -1735,14 +1735,14 @@ function labelsChanged(app) {
             await updatePrBody(pr, context, repoContext, {
               autoMergeWithSkipCi: true,
               // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
-              autoMerge: hasLabelInPR(pr, autoMergeLabel) ? true : repoContext.config.prDefaultOptions.autoMerge
+              autoMerge: hasLabelInPR(pr.labels, autoMergeLabel) ? true : repoContext.config.prDefaultOptions.autoMerge
             }); // }
           } else if (autoMergeLabel && label.id === autoMergeLabel.id) {
             await updatePrBody(pr, context, repoContext, {
               autoMerge: true,
               // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
               // Note: si c'est renovate qui ajoute le label autoMerge, le label codeApprovedLabel n'aurait pu etre ajouté que par renovate également (on est a quelques secondes de l'ouverture de la pr par renovate)
-              autoMergeWithSkipCi: hasLabelInPR(pr, codeApprovedLabel) ? true : repoContext.config.prDefaultOptions.autoMergeWithSkipCi
+              autoMergeWithSkipCi: hasLabelInPR(pr.labels, codeApprovedLabel) ? true : repoContext.config.prDefaultOptions.autoMergeWithSkipCi
             });
           }
 
