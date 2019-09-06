@@ -1,3 +1,12 @@
+## [1.24.5](https://github.com/christophehurpeau/reviewflow/compare/v1.24.4...v1.24.5) (2019-09-06)
+
+
+### Bug Fixes
+
+* on sync event, remove failed status on previous sha ([142085f](https://github.com/christophehurpeau/reviewflow/commit/142085f))
+
+
+
 ## [1.24.4](https://github.com/christophehurpeau/reviewflow/compare/v1.24.3...v1.24.4) (2019-09-04)
 
 
