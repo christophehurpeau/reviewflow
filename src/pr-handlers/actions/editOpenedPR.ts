@@ -8,6 +8,7 @@ import { autoMergeIfPossible } from './autoMergeIfPossible';
 import { updatePrIfNeeded } from './updatePr';
 import hasLabelInPR from './utils/hasLabelInPR';
 import syncLabel from './utils/syncLabel';
+import createStatus from './utils/createStatus';
 
 interface StatusWithInfo {
   name: string;
@@ -29,8 +30,9 @@ const ExcludesFalsy = (Boolean as any) as <T>(
 
 export const editOpenedPR: PRHandler<
   Webhooks.WebhookPayloadPullRequest,
-  { skipAutoMerge: boolean }
-> = async (pr, context, repoContext) => {
+  { skipAutoMerge: boolean },
+  string
+> = async (pr, context, repoContext, previousSha) => {
   const repo = context.payload.repository;
 
   // do not lint pr from forks
@@ -76,17 +78,33 @@ export const editOpenedPR: PRHandler<
 
   await Promise.all<any>(
     [
-      ...statuses.map(({ name, error, info }) =>
-        context.github.repos.createStatus(
-          context.repo({
-            context: `${process.env.REVIEWFLOW_NAME}/${name}`,
-            sha: pr.head.sha,
-            state: (error ? 'failure' : 'success') as 'failure' | 'success',
-            target_url: error ? undefined : (info as StatusInfo).url,
-            description: error ? error.title : (info as StatusInfo).title,
-          }),
-        ),
+      ...statuses.map(
+        ({ name, error, info }): Promise<void> =>
+          createStatus(
+            context,
+            name,
+            pr.head.sha,
+            error ? 'failure' : 'success',
+            error ? error.title : (info as StatusInfo).title,
+            error ? undefined : (info as StatusInfo).url,
+          ),
       ),
+      ...(previousSha
+        ? statuses
+            .map(
+              ({ name, error, info }): Promise<void> | undefined =>
+                error
+                  ? createStatus(
+                      context,
+                      name,
+                      previousSha,
+                      'success',
+                      'New commits have been pushed',
+                    )
+                  : undefined,
+            )
+            .filter(ExcludesFalsy)
+        : []),
       hasLintPrCheck &&
         context.github.checks.create(
           context.repo({
@@ -106,17 +124,22 @@ export const editOpenedPR: PRHandler<
                 },
           }),
         ),
+      !hasLintPrCheck && previousSha && errorRule
+        ? createStatus(
+            context,
+            'lint-pr',
+            previousSha,
+            'success',
+            'New commits have been pushed',
+          )
+        : undefined,
       !hasLintPrCheck &&
-        context.github.repos.createStatus(
-          context.repo({
-            context: `${process.env.REVIEWFLOW_NAME}/lint-pr`,
-            sha: pr.head.sha,
-            state: (errorRule ? 'failure' : 'success') as 'failure' | 'success',
-            target_url: undefined,
-            description: errorRule
-              ? errorRule.error.title
-              : '✓ Your PR is valid',
-          }),
+        createStatus(
+          context,
+          'lint-pr',
+          pr.head.sha,
+          errorRule ? 'failure' : 'success',
+          errorRule ? errorRule.error.title : '✓ Your PR is valid',
         ),
     ].filter(ExcludesFalsy),
   );

@@ -3,10 +3,11 @@ import Webhooks from '@octokit/webhooks';
 import { Context } from 'probot';
 import { obtainRepoContext, RepoContext } from '../context/repoContext';
 
-export type PRHandler<T = any, Result = void> = (
+export type PRHandler<T = any, Result = void, FourthArgument = never> = (
   pr: PullsGetResponse,
   context: Context<T>,
   repoContext: RepoContext,
+  fourthArgument?: FourthArgument,
 ) => Promise<Result>;
 
 export type CallbackWithPRAndRepoContext = (

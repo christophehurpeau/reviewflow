@@ -1096,9 +1096,19 @@ async function syncLabel(pr, context, shouldHaveLabel, label, prHasLabel = hasLa
   }
 }
 
+async function createStatus(context, name, sha, type, description, url) {
+  await context.github.repos.createStatus(context.repo({
+    context: name === '' ? process.env.REVIEWFLOW_NAME : `${process.env.REVIEWFLOW_NAME}/${name}`,
+    sha,
+    state: type,
+    description,
+    target_url: url
+  }));
+}
+
 /* eslint-disable max-lines */
 const ExcludesFalsy$3 = Boolean;
-const editOpenedPR = async (pr, context, repoContext) => {
+const editOpenedPR = async (pr, context, repoContext, previousSha) => {
   const repo = context.payload.repository; // do not lint pr from forks
 
   if (pr.head.repo.id !== repo.id) return {
@@ -1140,13 +1150,11 @@ const editOpenedPR = async (pr, context, repoContext) => {
     name,
     error,
     info
-  }) => context.github.repos.createStatus(context.repo({
-    context: `${process.env.REVIEWFLOW_NAME}/${name}`,
-    sha: pr.head.sha,
-    state: error ? 'failure' : 'success',
-    target_url: error ? undefined : info.url,
-    description: error ? error.title : info.title
-  }))), hasLintPrCheck && context.github.checks.create(context.repo({
+  }) => createStatus(context, name, pr.head.sha, error ? 'failure' : 'success', error ? error.title : info.title, error ? undefined : info.url)), ...(previousSha ? statuses.map(({
+    name,
+    error,
+    info
+  }) => error ? createStatus(context, name, previousSha, 'success', 'New commits have been pushed') : undefined).filter(ExcludesFalsy$3) : []), hasLintPrCheck && context.github.checks.create(context.repo({
     name: `${process.env.REVIEWFLOW_NAME}/lint-pr`,
     head_sha: pr.head.sha,
     status: 'completed',
@@ -1157,13 +1165,7 @@ const editOpenedPR = async (pr, context, repoContext) => {
       title: '✓ Your PR is valid',
       summary: ''
     }
-  })), !hasLintPrCheck && context.github.repos.createStatus(context.repo({
-    context: `${process.env.REVIEWFLOW_NAME}/lint-pr`,
-    sha: pr.head.sha,
-    state: errorRule ? 'failure' : 'success',
-    target_url: undefined,
-    description: errorRule ? errorRule.error.title : '✓ Your PR is valid'
-  }))].filter(ExcludesFalsy$3));
+  })), !hasLintPrCheck && previousSha && errorRule ? createStatus(context, 'lint-pr', previousSha, 'success', 'New commits have been pushed') : undefined, !hasLintPrCheck && createStatus(context, 'lint-pr', pr.head.sha, errorRule ? 'failure' : 'success', errorRule ? errorRule.error.title : '✓ Your PR is valid')].filter(ExcludesFalsy$3));
   const featureBranchLabel = repoContext.labels['feature-branch'];
   const automergeLabel = repoContext.labels['merge/automerge'];
   const skipCiLabel = repoContext.labels['merge/skip-ci'];
@@ -1209,7 +1211,7 @@ const editOpenedPR = async (pr, context, repoContext) => {
 const addStatusCheck = async function (pr, context, {
   state,
   description
-}) {
+}, previousSha) {
   const hasPrCheck = (await context.github.checks.listForRef(context.repo({
     ref: pr.head.sha
   }))).data.check_runs.find(check => check.name === process.env.REVIEWFLOW_NAME);
@@ -1232,46 +1234,42 @@ const addStatusCheck = async function (pr, context, {
         summary: ''
       }
     }));
+  } else if (previousSha && state === 'failure') {
+    await Promise.all([createStatus(context, '', previousSha, 'success', 'New commits have been pushed'), createStatus(context, '', pr.head.sha, state, description)]);
   } else {
-    await context.github.repos.createStatus(context.repo({
-      context: process.env.REVIEWFLOW_NAME,
-      sha: pr.head.sha,
-      state,
-      target_url: undefined,
-      description
-    }));
+    await createStatus(context, '', pr.head.sha, state, description);
   }
 };
 
-const createFailedStatusCheck = (pr, context, description) => addStatusCheck(pr, context, {
-  state: 'failure',
-  description
-});
-
-const updateStatusCheckFromLabels = (pr, context, repoContext, labels = pr.labels || []) => {
+const updateStatusCheckFromLabels = (pr, context, repoContext, labels = pr.labels || [], previousSha) => {
   context.log.info('updateStatusCheckFromLabels', {
     labels: labels.map(l => l && l.name),
     hasNeedsReview: repoContext.hasNeedsReview(labels),
     hasApprovesReview: repoContext.hasApprovesReview(labels)
   });
 
+  const createFailedStatusCheck = description => addStatusCheck(pr, context, {
+    state: 'failure',
+    description
+  }, previousSha);
+
   if (pr.requested_reviewers.length !== 0) {
-    return createFailedStatusCheck(pr, context, `Awaiting review from: ${pr.requested_reviewers.map(rr => rr.login).join(', ')}`);
+    return createFailedStatusCheck(`Awaiting review from: ${pr.requested_reviewers.map(rr => rr.login).join(', ')}`);
   }
 
   if (repoContext.hasChangesRequestedReview(labels)) {
-    return createFailedStatusCheck(pr, context, 'Changes requested ! Push commits or discuss changes then re-request a review.');
+    return createFailedStatusCheck('Changes requested ! Push commits or discuss changes then re-request a review.');
   }
 
   const needsReviewGroupNames = repoContext.getNeedsReviewGroupNames(labels);
 
   if (needsReviewGroupNames.length !== 0) {
-    return createFailedStatusCheck(pr, context, `Awaiting review from: ${needsReviewGroupNames.join(', ')}. Perhaps request someone ?`);
+    return createFailedStatusCheck(`Awaiting review from: ${needsReviewGroupNames.join(', ')}. Perhaps request someone ?`);
   }
 
   if (!repoContext.hasApprovesReview(labels)) {
     if (repoContext.config.requiresReviewRequest) {
-      return createFailedStatusCheck(pr, context, 'Awaiting review... Perhaps request someone ?');
+      return createFailedStatusCheck('Awaiting review... Perhaps request someone ?');
     }
   } // if (
   //   repoContext.config.requiresReviewRequest &&
@@ -1291,7 +1289,7 @@ const updateStatusCheckFromLabels = (pr, context, repoContext, labels = pr.label
   return addStatusCheck(pr, context, {
     state: 'success',
     description: '✓ PR ready to merge !'
-  }); // }
+  }, previousSha); // }
 };
 
 const updateReviewStatus = async (pr, context, repoContext, reviewGroup, {
@@ -1666,8 +1664,9 @@ function synchronize(app) {
   app.on('pull_request.synchronize', createHandlerPullRequestChange(async (pr, context, repoContext) => {
     // old and new sha
     // const { before, after } = context.payload;
-    await Promise.all([editOpenedPR(pr, context, repoContext), // addStatusCheckToLatestCommit
-    updateStatusCheckFromLabels(pr, context, repoContext), readCommitsAndUpdateInfos(pr, context, repoContext)]); // call autoMergeIfPossible to re-add to the queue when push is fixed
+    const previousSha = context.payload.before;
+    await Promise.all([editOpenedPR(pr, context, repoContext, previousSha), // addStatusCheckToLatestCommit
+    updateStatusCheckFromLabels(pr, context, repoContext, pr.labels, previousSha), readCommitsAndUpdateInfos(pr, context, repoContext)]); // call autoMergeIfPossible to re-add to the queue when push is fixed
 
     await autoMergeIfPossible(pr, context, repoContext);
   }));
@@ -1866,7 +1865,7 @@ function init() {
   };
 }
 
-var _jsxFileName = "/Users/chris/utils/reviewflow/src/views/Layout.tsx";
+var _jsxFileName = "/Users/chris/Work/github-apps/reviewflow/src/views/Layout.tsx";
 function Layout({
   lang = 'en',
   title = process.env.NAME,
@@ -1957,7 +1956,7 @@ async function randomHex(size) {
   return buffer.toString('hex');
 }
 
-var _jsxFileName$1 = "/Users/chris/utils/reviewflow/src/appRouter.tsx";
+var _jsxFileName$1 = "/Users/chris/Work/github-apps/reviewflow/src/appRouter.tsx";
 
 if (!process.env.AUTH_SECRET_KEY) {
   throw new Error('Missing env variable: AUTH_SECRET_KEY');

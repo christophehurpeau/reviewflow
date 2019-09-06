@@ -3,6 +3,7 @@ import { PullsGetResponse } from '@octokit/rest';
 import { Context } from 'probot';
 import { LabelResponse } from '../../context/initRepoLabels';
 import { RepoContext } from '../../context/repoContext';
+import createStatus from './utils/createStatus';
 
 const addStatusCheck = async function<
   E extends Webhooks.WebhookPayloadPullRequest
@@ -10,6 +11,7 @@ const addStatusCheck = async function<
   pr: PullsGetResponse,
   context: Context<E>,
   { state, description }: { state: 'failure' | 'success'; description: string },
+  previousSha?: string,
 ): Promise<void> {
   const hasPrCheck = (await context.github.checks.listForRef(
     context.repo({
@@ -36,34 +38,28 @@ const addStatusCheck = async function<
         },
       }),
     );
+  } else if (previousSha && state === 'failure') {
+    await Promise.all([
+      createStatus(
+        context,
+        '',
+        previousSha,
+        'success',
+        'New commits have been pushed',
+      ),
+      createStatus(context, '', pr.head.sha, state, description),
+    ]);
   } else {
-    await context.github.repos.createStatus(
-      context.repo({
-        context: process.env.REVIEWFLOW_NAME,
-        sha: pr.head.sha,
-        state,
-        target_url: undefined,
-        description,
-      }),
-    );
+    await createStatus(context, '', pr.head.sha, state, description);
   }
 };
-
-const createFailedStatusCheck = <E extends Webhooks.WebhookPayloadPullRequest>(
-  pr: PullsGetResponse,
-  context: Context<E>,
-  description: string,
-): Promise<void> =>
-  addStatusCheck(pr, context, {
-    state: 'failure',
-    description,
-  });
 
 export const updateStatusCheckFromLabels = (
   pr: PullsGetResponse,
   context: Context<any>,
   repoContext: RepoContext,
   labels: LabelResponse[] = pr.labels || [],
+  previousSha?: string,
 ): Promise<void> => {
   context.log.info('updateStatusCheckFromLabels', {
     labels: labels.map((l) => l && l.name),
@@ -71,10 +67,19 @@ export const updateStatusCheckFromLabels = (
     hasApprovesReview: repoContext.hasApprovesReview(labels),
   });
 
-  if (pr.requested_reviewers.length !== 0) {
-    return createFailedStatusCheck(
+  const createFailedStatusCheck = (description: string): Promise<void> =>
+    addStatusCheck(
       pr,
       context,
+      {
+        state: 'failure',
+        description,
+      },
+      previousSha,
+    );
+
+  if (pr.requested_reviewers.length !== 0) {
+    return createFailedStatusCheck(
       `Awaiting review from: ${pr.requested_reviewers
         .map((rr: any) => rr.login)
         .join(', ')}`,
@@ -83,8 +88,6 @@ export const updateStatusCheckFromLabels = (
 
   if (repoContext.hasChangesRequestedReview(labels)) {
     return createFailedStatusCheck(
-      pr,
-      context,
       'Changes requested ! Push commits or discuss changes then re-request a review.',
     );
   }
@@ -93,8 +96,6 @@ export const updateStatusCheckFromLabels = (
 
   if (needsReviewGroupNames.length !== 0) {
     return createFailedStatusCheck(
-      pr,
-      context,
       `Awaiting review from: ${needsReviewGroupNames.join(
         ', ',
       )}. Perhaps request someone ?`,
@@ -104,8 +105,6 @@ export const updateStatusCheckFromLabels = (
   if (!repoContext.hasApprovesReview(labels)) {
     if (repoContext.config.requiresReviewRequest) {
       return createFailedStatusCheck(
-        pr,
-        context,
         'Awaiting review... Perhaps request someone ?',
       );
     }
@@ -124,9 +123,14 @@ export const updateStatusCheckFromLabels = (
   // }
   // return  createInProgressStatusCheck(context);
   // } else if (repoContext.hasApprovesReview(labels)) {
-  return addStatusCheck(pr, context, {
-    state: 'success',
-    description: '✓ PR ready to merge !',
-  });
+  return addStatusCheck(
+    pr,
+    context,
+    {
+      state: 'success',
+      description: '✓ PR ready to merge !',
+    },
+    previousSha,
+  );
   // }
 };

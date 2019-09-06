@@ -12,11 +12,18 @@ export default function synchronize(app: Application): void {
       async (pr, context, repoContext): Promise<void> => {
         // old and new sha
         // const { before, after } = context.payload;
+        const previousSha = (context.payload as any).before as string;
 
         await Promise.all([
-          editOpenedPR(pr, context, repoContext),
+          editOpenedPR(pr, context, repoContext, previousSha),
           // addStatusCheckToLatestCommit
-          updateStatusCheckFromLabels(pr, context, repoContext),
+          updateStatusCheckFromLabels(
+            pr,
+            context,
+            repoContext,
+            pr.labels,
+            previousSha,
+          ),
 
           readCommitsAndUpdateInfos(pr, context, repoContext),
         ]);
