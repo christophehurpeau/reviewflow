@@ -1,3 +1,12 @@
+## [1.24.6](https://github.com/christophehurpeau/reviewflow/compare/v1.24.5...v1.24.6) (2019-09-16)
+
+
+### Bug Fixes
+
+* detect uppercase no issue ([b8c6aec](https://github.com/christophehurpeau/reviewflow/commit/b8c6aec))
+
+
+
 ## [1.24.5](https://github.com/christophehurpeau/reviewflow/compare/v1.24.4...v1.24.5) (2019-09-06)
 
 
