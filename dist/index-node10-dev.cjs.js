@@ -986,7 +986,7 @@ const autoAssignPRToCreator = async (pr, context, repoContext) => {
   }));
 };
 
-const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*([A-Za-z]+)[- ](\d+)\s*]?\s*$/, (s, arg1, arg2) => ` ${arg1.toUpperCase()}-${arg2}`).replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `).replace(/^Revert "([^"]+)"$/, 'revert: $1').replace(/\s+[[\]]\s*no\s*issue\s*[[\]]$/, ' [no issue]') // eslint-disable-next-line unicorn/no-unsafe-regex
+const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*([A-Za-z]+)[- ](\d+)\s*]?\s*$/, (s, arg1, arg2) => ` ${arg1.toUpperCase()}-${arg2}`).replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `).replace(/^Revert "([^"]+)"$/, 'revert: $1').replace(/\s+[[\]]\s*no\s*issue\s*[[\]]$/i, ' [no issue]') // eslint-disable-next-line unicorn/no-unsafe-regex
 .replace(/^(revert:.*)(\s+\(#\d+\))$/, '$1');
 
 const toMarkdownOptions = options => {
@@ -1865,7 +1865,7 @@ function init() {
   };
 }
 
-var _jsxFileName = "/Users/chris/Work/github-apps/reviewflow/src/views/Layout.tsx";
+var _jsxFileName = "/Users/chris/utils/reviewflow/src/views/Layout.tsx";
 function Layout({
   lang = 'en',
   title = process.env.NAME,
@@ -1956,7 +1956,7 @@ async function randomHex(size) {
   return buffer.toString('hex');
 }
 
-var _jsxFileName$1 = "/Users/chris/Work/github-apps/reviewflow/src/appRouter.tsx";
+var _jsxFileName$1 = "/Users/chris/utils/reviewflow/src/appRouter.tsx";
 
 if (!process.env.AUTH_SECRET_KEY) {
   throw new Error('Missing env variable: AUTH_SECRET_KEY');
