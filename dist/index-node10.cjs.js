@@ -806,6 +806,7 @@ const obtainOrgContext = (context, config) => {
 const ExcludesFalsy$2 = Boolean;
 
 async function initRepoContext(context, config) {
+  const repo = context.payload.repository;
   const orgContext = await obtainOrgContext(context, config);
   const repoContext = Object.create(orgContext);
   const [labels] = await Promise.all([initRepoLabels(context, config)]);
@@ -827,30 +828,27 @@ async function initRepoContext(context, config) {
   let lockMergePr;
   let automergeQueue = [];
 
-  const lockPROrPRS = (prIdOrIds, callback) => new Promise((resolve, reject) => {
-    console.log('lock: try to lock pr', {
-      prIdOrIds
-    });
+  const lockPROrPRS = (prIdOrIds, prNumberOrPrNumbers, callback) => new Promise((resolve, reject) => {
+    const logInfos = {
+      repoName: repo.name,
+      prIdOrIds,
+      prNumberOrPrNumbers
+    };
+    context.info('lock: try to lock pr', logInfos);
     lock$1(prIdOrIds, async createReleaseCallback => {
       const release = createReleaseCallback(() => {});
-      console.log('lock: lock acquired', {
-        prIdOrIds
-      });
+      context.info('lock: lock acquired', logInfos);
 
       try {
         await callback();
       } catch (err) {
-        console.log('lock: release pr (with error)', {
-          prIdOrIds
-        });
+        context.info('lock: release pr (with error)', logInfos);
         release();
         reject(err);
         return;
       }
 
-      console.log('lock: release pr', {
-        prIdOrIds
-      });
+      context.info('lock: release pr', logInfos);
       release();
       resolve();
     });
@@ -860,8 +858,8 @@ async function initRepoContext(context, config) {
     if (!pr) throw new Error('Cannot reschedule undefined');
     context.log.info('reschedule', pr);
     setTimeout(() => {
-      lockPROrPRS('reschedule', () => {
-        return lockPROrPRS(String(pr.id), async () => {
+      lockPROrPRS('reschedule', [], () => {
+        return lockPROrPRS(String(pr.id), pr.number, async () => {
           const prResult = await context.github.pulls.get(context.repo({
             pull_number: pr.number
           }));
@@ -961,7 +959,7 @@ const obtainRepoContext = context => {
 const handlerPullRequestChange = async (context, callback) => {
   const repoContext = await obtainRepoContext(context);
   if (!repoContext) return;
-  repoContext.lockPROrPRS(String(context.payload.pull_request.id), async () => {
+  repoContext.lockPROrPRS(String(context.payload.pull_request.id), context.payload.pull_request.number, async () => {
     const prResult = await context.github.pulls.get(context.repo({
       pull_number: context.payload.pull_request.number
     }));
@@ -976,7 +974,7 @@ const createHandlerPullRequestsChange = (getPullRequests, callback) => async con
   if (!repoContext) return;
   const prs = getPullRequests(context, repoContext);
   if (prs.length === 0) return;
-  return repoContext.lockPROrPRS(prs.map(pr => String(pr.id)), () => callback(context, repoContext));
+  return repoContext.lockPROrPRS(prs.map(pr => String(pr.id)), prs.map(pr => pr.number), () => callback(context, repoContext));
 };
 
 const autoAssignPRToCreator = async (pr, context, repoContext) => {
@@ -1822,7 +1820,7 @@ function status(app) {
     const lockedPr = repoContext.getMergeLockedPr();
     if (!lockedPr) return [];
 
-    if (isSameBranch(context, lockedPr)) {
+    if (context.payload.state !== 'loading' && isSameBranch(context, lockedPr)) {
       return [lockedPr];
     }
 
