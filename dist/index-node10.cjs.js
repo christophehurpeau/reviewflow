@@ -5,6 +5,7 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 require('dotenv/config');
 const probot = require('probot');
 const lock = require('lock');
+const minimatch = _interopDefault(require('minimatch'));
 const webApi = require('@slack/web-api');
 const parse = _interopDefault(require('@commitlint/parse'));
 const liwiMongo = require('liwi-mongo');
@@ -22,6 +23,7 @@ const config = {
   slackToken: process.env.ORNIKAR_SLACK_TOKEN,
   autoAssignToCreator: true,
   trimTitle: true,
+  ignoreRepoPattern: 'infra-*',
   requiresReviewRequest: true,
   prDefaultOptions: {
     featureBranch: false,
@@ -926,8 +928,20 @@ const repoContextsPromise = new Map();
 const repoContexts = new Map();
 const obtainRepoContext = context => {
   const repo = context.payload.repository;
+  const owner = repo.owner;
+  const key = repo.id;
+  const existingRepoContext = repoContexts.get(key);
+  if (existingRepoContext) return existingRepoContext;
+  const existingPromise = repoContextsPromise.get(key);
+  if (existingPromise) return Promise.resolve(existingPromise);
+  const orgConfig = orgsConfigs[owner.login];
 
-  if (repo.name === 'reviewflow-test' && process.env.REVIEWFLOW_NAME !== 'reviewflow-test') {
+  if (!orgConfig) {
+    console.warn(owner.login, Object.keys(orgsConfigs));
+    return null;
+  }
+
+  if (repo.name === 'reviewflow-test' && process.env.REVIEWFLOW_NAME !== 'reviewflow-test' || orgConfig.ignoreRepoPattern && minimatch(repo.name, orgConfig.ignoreRepoPattern)) {
     console.warn('repo ignored', {
       owner: repo.owner.login,
       name: repo.name
@@ -935,19 +949,7 @@ const obtainRepoContext = context => {
     return null;
   }
 
-  const owner = repo.owner;
-
-  if (!orgsConfigs[owner.login]) {
-    console.warn(owner.login, Object.keys(orgsConfigs));
-    return null;
-  }
-
-  const key = repo.id;
-  const existingRepoContext = repoContexts.get(key);
-  if (existingRepoContext) return existingRepoContext;
-  const existingPromise = repoContextsPromise.get(key);
-  if (existingPromise) return Promise.resolve(existingPromise);
-  const promise = initRepoContext(context, orgsConfigs[owner.login]);
+  const promise = initRepoContext(context, orgConfig);
   repoContextsPromise.set(key, promise);
   return promise.then(repoContext => {
     repoContextsPromise.delete(key);

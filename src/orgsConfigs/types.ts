@@ -61,6 +61,7 @@ export interface Config<GroupNames extends string, TeamNames extends string> {
   slackToken?: string;
   autoAssignToCreator?: boolean;
   trimTitle?: boolean;
+  ignoreRepoPattern?: string;
   requiresReviewRequest?: boolean;
   parsePR: ParsePR;
   prDefaultOptions: Record<Options, boolean>;

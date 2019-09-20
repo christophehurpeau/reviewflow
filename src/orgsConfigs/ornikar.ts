@@ -6,6 +6,7 @@ const config: Config<'dev' | 'design', 'archis' | 'frontends' | 'backends'> = {
   slackToken: process.env.ORNIKAR_SLACK_TOKEN,
   autoAssignToCreator: true,
   trimTitle: true,
+  ignoreRepoPattern: 'infra-*',
   requiresReviewRequest: true,
   prDefaultOptions: {
     featureBranch: false,

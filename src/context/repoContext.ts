@@ -2,6 +2,7 @@
 
 import { Lock } from 'lock';
 import { Context } from 'probot';
+import minimatch from 'minimatch';
 import { orgsConfigs, Config } from '../orgsConfigs';
 // eslint-disable-next-line import/no-cycle
 import { autoMergeIfPossible } from '../pr-handlers/actions/autoMergeIfPossible';
@@ -206,18 +207,7 @@ export const obtainRepoContext = (
   context: Context<any>,
 ): Promise<RepoContext> | RepoContext | null => {
   const repo = context.payload.repository;
-  if (
-    repo.name === 'reviewflow-test' &&
-    process.env.REVIEWFLOW_NAME !== 'reviewflow-test'
-  ) {
-    console.warn('repo ignored', { owner: repo.owner.login, name: repo.name });
-    return null;
-  }
   const owner = repo.owner;
-  if (!orgsConfigs[owner.login]) {
-    console.warn(owner.login, Object.keys(orgsConfigs));
-    return null;
-  }
   const key = repo.id;
 
   const existingRepoContext = repoContexts.get(key);
@@ -226,7 +216,24 @@ export const obtainRepoContext = (
   const existingPromise = repoContextsPromise.get(key);
   if (existingPromise) return Promise.resolve(existingPromise);
 
-  const promise = initRepoContext(context, orgsConfigs[owner.login]);
+  const orgConfig = orgsConfigs[owner.login];
+
+  if (!orgConfig) {
+    console.warn(owner.login, Object.keys(orgsConfigs));
+    return null;
+  }
+
+  if (
+    (repo.name === 'reviewflow-test' &&
+      process.env.REVIEWFLOW_NAME !== 'reviewflow-test') ||
+    (orgConfig.ignoreRepoPattern &&
+      minimatch(repo.name, orgConfig.ignoreRepoPattern))
+  ) {
+    console.warn('repo ignored', { owner: repo.owner.login, name: repo.name });
+    return null;
+  }
+
+  const promise = initRepoContext(context, orgConfig);
   repoContextsPromise.set(key, promise);
 
   return promise.then((repoContext) => {
