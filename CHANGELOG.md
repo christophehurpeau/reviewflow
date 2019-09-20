@@ -1,3 +1,12 @@
+# [1.25.0](https://github.com/christophehurpeau/reviewflow/compare/v1.24.6...v1.25.0) (2019-09-20)
+
+
+### Features
+
+* new config option ignoreRepoPattern ([669c0f9](https://github.com/christophehurpeau/reviewflow/commit/669c0f9))
+
+
+
 ## [1.24.6](https://github.com/christophehurpeau/reviewflow/compare/v1.24.5...v1.24.6) (2019-09-16)
 
 
