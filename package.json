@@ -115,6 +115,6 @@
     "smee-client": "1.1.0",
     "typescript": "3.6.1-rc",
     "yarn-update-lock": "1.0.0",
-    "yarnhook": "0.4.1"
+    "yarnhook": "0.4.3"
   }
 }
