@@ -1,3 +1,17 @@
+# [1.26.0](https://github.com/christophehurpeau/reviewflow/compare/v1.25.0...v1.26.0) (2019-10-02)
+
+
+### Bug Fixes
+
+* prevent rescheduling for loading state status webhook ([02ff760](https://github.com/christophehurpeau/reviewflow/commit/02ff760))
+
+
+### Features
+
+* add 2 new frontends ([fef3f48](https://github.com/christophehurpeau/reviewflow/commit/fef3f48))
+
+
+
 # [1.25.0](https://github.com/christophehurpeau/reviewflow/compare/v1.24.6...v1.25.0) (2019-09-20)
 
 
