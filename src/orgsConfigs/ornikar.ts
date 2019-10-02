@@ -75,6 +75,8 @@ const config: Config<'dev' | 'design', 'archis' | 'frontends' | 'backends'> = {
       Mxime: `maxime${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       tilap: `julien.lavinh${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       vlbr: `valerian${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      'budet-b': `benjamin.budet${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      mdcarter: `maxime.dehaye${process.env.ORNIKAR_EMAIL_DOMAIN}`,
     },
     design: {
       jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
