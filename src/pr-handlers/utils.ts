@@ -24,19 +24,15 @@ export const handlerPullRequestChange = async <
   const repoContext = await obtainRepoContext(context);
   if (!repoContext) return;
 
-  repoContext.lockPROrPRS(
-    String(context.payload.pull_request.id),
-    context.payload.pull_request.number,
-    async () => {
-      const prResult = await context.github.pulls.get(
-        context.repo({
-          pull_number: context.payload.pull_request.number,
-        }),
-      );
+  repoContext.lockPROrPRS(String(context.payload.pull_request.id), async () => {
+    const prResult = await context.github.pulls.get(
+      context.repo({
+        pull_number: context.payload.pull_request.number,
+      }),
+    );
 
-      await callback(prResult.data, repoContext);
-    },
-  );
+    await callback(prResult.data, repoContext);
+  });
 };
 
 type CallbackPRAndContextAndRepoContext<T> = (
@@ -72,9 +68,7 @@ export const createHandlerPullRequestsChange = <T>(
 
   const prs = getPullRequests(context, repoContext);
   if (prs.length === 0) return;
-  return repoContext.lockPROrPRS(
-    prs.map((pr) => String(pr.id)),
-    prs.map((pr) => pr.number),
-    () => callback(context, repoContext),
+  return repoContext.lockPROrPRS(prs.map((pr) => String(pr.id)), () =>
+    callback(context, repoContext),
   );
 };
