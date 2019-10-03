@@ -1,3 +1,12 @@
+# [1.27.0](https://github.com/christophehurpeau/reviewflow/compare/v1.26.0...v1.27.0) (2019-10-03)
+
+
+### Features
+
+* add lena ([b8e37ce](https://github.com/christophehurpeau/reviewflow/commit/b8e37ce))
+
+
+
 # [1.26.0](https://github.com/christophehurpeau/reviewflow/compare/v1.25.0...v1.26.0) (2019-10-02)
 
 
