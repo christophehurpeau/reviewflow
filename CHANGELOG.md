@@ -1,3 +1,12 @@
+# [1.28.0](https://github.com/christophehurpeau/reviewflow/compare/v1.27.0...v1.28.0) (2019-10-24)
+
+
+### Features
+
+* add alexis to team design ([ef73ec1](https://github.com/christophehurpeau/reviewflow/commit/ef73ec1))
+
+
+
 # [1.27.0](https://github.com/christophehurpeau/reviewflow/compare/v1.26.0...v1.27.0) (2019-10-03)
 
 
