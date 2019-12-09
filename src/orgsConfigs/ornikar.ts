@@ -66,6 +66,7 @@ const config: Config<'dev' | 'design', 'archis' | 'frontends' | 'backends'> = {
       'Thierry-girod': `thierry${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       darame07: `kevin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       Pixy: `pierre-alexis${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      Radyum: `romain.reynaud${process.env.ORNIKAR_EMAIL_DOMAIN}`,
 
       /* front */
       christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -101,6 +102,7 @@ const config: Config<'dev' | 'design', 'archis' | 'frontends' | 'backends'> = {
         'Thierry-girod',
         'darame07',
         'Pixy',
+        'Radyum',
       ],
       labels: ['teams/backend'],
     },
@@ -114,6 +116,8 @@ const config: Config<'dev' | 'design', 'archis' | 'frontends' | 'backends'> = {
         'Mxime',
         'tilap',
         'vlbr',
+        'budet-b',
+        'mdcarter',
       ],
       labels: ['teams/frontend'],
     },
