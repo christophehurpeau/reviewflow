@@ -79,6 +79,7 @@ const config = {
       'Thierry-girod': `thierry${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       darame07: `kevin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       Pixy: `pierre-alexis${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      Radyum: `romain.reynaud${process.env.ORNIKAR_EMAIL_DOMAIN}`,
 
       /* front */
       christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -104,11 +105,11 @@ const config = {
       labels: ['teams/archi']
     },
     backends: {
-      logins: ['abarreir', 'arthurflachs', 'rigma', 'damienorny', 'Thierry-girod', 'darame07', 'Pixy'],
+      logins: ['abarreir', 'arthurflachs', 'rigma', 'damienorny', 'Thierry-girod', 'darame07', 'Pixy', 'Radyum'],
       labels: ['teams/backend']
     },
     frontends: {
-      logins: ['christophehurpeau', 'HugoGarrido', 'LentnerStefan', 'CorentinAndre', 'Mxime', 'tilap', 'vlbr'],
+      logins: ['christophehurpeau', 'HugoGarrido', 'LentnerStefan', 'CorentinAndre', 'Mxime', 'tilap', 'vlbr', 'budet-b', 'mdcarter'],
       labels: ['teams/frontend']
     }
   },
