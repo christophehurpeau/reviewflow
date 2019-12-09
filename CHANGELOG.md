@@ -1,3 +1,12 @@
+# [1.29.0](https://github.com/christophehurpeau/reviewflow/compare/v1.28.0...v1.29.0) (2019-12-09)
+
+
+### Features
+
+* add Radyum in ornikar config ([e2a63c1](https://github.com/christophehurpeau/reviewflow/commit/e2a63c1))
+
+
+
 # [1.28.0](https://github.com/christophehurpeau/reviewflow/compare/v1.27.0...v1.28.0) (2019-10-24)
 
 
