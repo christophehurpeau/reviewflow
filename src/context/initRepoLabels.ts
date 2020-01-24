@@ -43,6 +43,9 @@ export const initRepoLabels = async <GroupNames extends string>(
           (label) => label.name === 'design-reviewed',
         );
       }
+      if (labelKey === 'team/ops') {
+        existingLabel = labels.find((label) => label.name === 'archi');
+      }
     }
 
     if (!existingLabel) {

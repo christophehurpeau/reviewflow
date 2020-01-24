@@ -68,13 +68,14 @@ const config = {
   },
   groups: {
     dev: {
-      /* archi */
+      /* ops */
       JulienBreux: `julien.breux${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      'Alan-pad': null,
+      CamilSadiki: null,
 
       /* back */
       abarreir: `alexandre${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       arthurflachs: `arthur${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      rigma: `romain${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       damienorny: `damien.orny${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       'Thierry-girod': `thierry${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       darame07: `kevin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -87,7 +88,6 @@ const config = {
       LentnerStefan: `stefan${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       CorentinAndre: `corentin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       Mxime: `maxime${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      tilap: `julien.lavinh${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       vlbr: `valerian${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       'budet-b': `benjamin.budet${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       mdcarter: `maxime.dehaye${process.env.ORNIKAR_EMAIL_DOMAIN}`
@@ -100,16 +100,16 @@ const config = {
     }
   },
   teams: {
-    archis: {
-      logins: ['JulienBreux'],
-      labels: ['teams/archi']
+    ops: {
+      logins: ['JulienBreux', 'Alan-pad', 'CamilSadiki'],
+      labels: ['teams/ops']
     },
     backends: {
-      logins: ['abarreir', 'arthurflachs', 'rigma', 'damienorny', 'Thierry-girod', 'darame07', 'Pixy', 'Radyum'],
+      logins: ['abarreir', 'arthurflachs', 'damienorny', 'Thierry-girod', 'darame07', 'Pixy', 'Radyum'],
       labels: ['teams/backend']
     },
     frontends: {
-      logins: ['christophehurpeau', 'HugoGarrido', 'LentnerStefan', 'CorentinAndre', 'Mxime', 'tilap', 'vlbr', 'budet-b', 'mdcarter'],
+      logins: ['christophehurpeau', 'HugoGarrido', 'LentnerStefan', 'CorentinAndre', 'Mxime', 'vlbr', 'budet-b', 'mdcarter'],
       labels: ['teams/frontend']
     }
   },
@@ -161,8 +161,8 @@ const config = {
       },
 
       /* teams */
-      'teams/archi': {
-        name: 'archi',
+      'teams/ops': {
+        name: 'ops',
         color: '#003b55'
       },
       'teams/backend': {
@@ -623,6 +623,10 @@ const initRepoLabels = async (context, config) => {
 
       if (labelKey === 'design/approved') {
         existingLabel = labels.find(label => label.name === 'design-reviewed');
+      }
+
+      if (labelKey === 'team/ops') {
+        existingLabel = labels.find(label => label.name === 'archi');
       }
     }
 

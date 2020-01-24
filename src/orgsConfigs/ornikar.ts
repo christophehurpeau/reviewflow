@@ -2,7 +2,7 @@
 
 import { Config } from './types';
 
-const config: Config<'dev' | 'design', 'archis' | 'frontends' | 'backends'> = {
+const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
   slackToken: process.env.ORNIKAR_SLACK_TOKEN,
   autoAssignToCreator: true,
   trimTitle: true,
@@ -55,13 +55,14 @@ const config: Config<'dev' | 'design', 'archis' | 'frontends' | 'backends'> = {
 
   groups: {
     dev: {
-      /* archi */
+      /* ops */
       JulienBreux: `julien.breux${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      'Alan-pad': null,
+      CamilSadiki: null,
 
       /* back */
       abarreir: `alexandre${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       arthurflachs: `arthur${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      rigma: `romain${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       damienorny: `damien.orny${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       'Thierry-girod': `thierry${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       darame07: `kevin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -74,7 +75,6 @@ const config: Config<'dev' | 'design', 'archis' | 'frontends' | 'backends'> = {
       LentnerStefan: `stefan${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       CorentinAndre: `corentin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       Mxime: `maxime${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      tilap: `julien.lavinh${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       vlbr: `valerian${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       'budet-b': `benjamin.budet${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       mdcarter: `maxime.dehaye${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -88,16 +88,15 @@ const config: Config<'dev' | 'design', 'archis' | 'frontends' | 'backends'> = {
   },
 
   teams: {
-    archis: {
-      logins: ['JulienBreux'],
-      labels: ['teams/archi'],
+    ops: {
+      logins: ['JulienBreux', 'Alan-pad', 'CamilSadiki'],
+      labels: ['teams/ops'],
     },
 
     backends: {
       logins: [
         'abarreir',
         'arthurflachs',
-        'rigma',
         'damienorny',
         'Thierry-girod',
         'darame07',
@@ -114,7 +113,6 @@ const config: Config<'dev' | 'design', 'archis' | 'frontends' | 'backends'> = {
         'LentnerStefan',
         'CorentinAndre',
         'Mxime',
-        'tilap',
         'vlbr',
         'budet-b',
         'mdcarter',
@@ -171,8 +169,8 @@ const config: Config<'dev' | 'design', 'archis' | 'frontends' | 'backends'> = {
       },
 
       /* teams */
-      'teams/archi': {
-        name: 'archi',
+      'teams/ops': {
+        name: 'ops',
         color: '#003b55',
       },
       'teams/backend': {

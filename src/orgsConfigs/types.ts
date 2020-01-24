@@ -12,7 +12,7 @@ export interface StatusError {
 }
 
 export interface Group {
-  [userName: string]: string;
+  [userName: string]: string | null;
 }
 
 export interface Team {
