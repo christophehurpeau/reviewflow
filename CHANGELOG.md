@@ -1,3 +1,12 @@
+# [1.30.0](https://github.com/christophehurpeau/reviewflow/compare/v1.29.0...v1.30.0) (2020-01-24)
+
+
+### Features
+
+* rename ornikar ops team and add two members ([0c6c334](https://github.com/christophehurpeau/reviewflow/commit/0c6c334))
+
+
+
 # [1.29.0](https://github.com/christophehurpeau/reviewflow/compare/v1.28.0...v1.29.0) (2019-12-09)
 
 
