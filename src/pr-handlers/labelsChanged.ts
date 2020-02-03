@@ -83,7 +83,7 @@ export default function labelsChanged(app: Application): void {
         const skipCiLabel = repoContext.labels['merge/skip-ci'];
 
         const option = (() => {
-          if (featureBranchLabel && label.id === automergeLabel.id)
+          if (featureBranchLabel && label.id === featureBranchLabel.id)
             return 'featureBranch';
           if (automergeLabel && label.id === automergeLabel.id)
             return 'autoMerge';

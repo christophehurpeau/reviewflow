@@ -35,6 +35,7 @@ export interface ParsePR {
 
 export interface LabelDescriptor {
   name: string;
+  description?: string;
   color: string;
 }
 

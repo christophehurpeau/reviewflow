@@ -201,27 +201,48 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       /* infos */
       'breaking-changes': {
         name: ':warning: Breaking Changes',
+        description: 'This issue or pull request will need a new major version',
         color: '#FF6F00',
+      },
+      duplicate: {
+        name: 'duplicate',
+        description: 'This issue or pull request already exists',
+        color: '#ECEFF1',
+      },
+      documentation: {
+        name: 'documentation',
+        description: 'Improvements or additions to documentation',
+        color: '#7FCEFF',
       },
       rfc: {
         name: 'RFC',
+        description: 'Request For Comments',
         color: '#FFD3B2',
       },
       bug: {
         name: 'bug',
+        description: "Something isn't working",
         color: '#FF3D00',
       },
       enhancement: {
         name: 'enhancement',
+        description: 'New feature or request',
         color: '#7FCEFF',
       },
       'help-wanted': {
         name: 'help wanted',
+        description: 'Extra attention is needed',
         color: '#B1EE8B',
       },
       question: {
         name: 'question',
+        description: 'Further information is requested',
         color: '#F860A4',
+      },
+      wontfix: {
+        name: 'wontfix',
+        description: 'This will not be worked on',
+        color: '#ECEFF1',
       },
     },
 
