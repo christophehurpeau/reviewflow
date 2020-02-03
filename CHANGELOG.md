@@ -1,3 +1,18 @@
+# [1.31.0](https://github.com/christophehurpeau/reviewflow/compare/v1.30.0...v1.31.0) (2020-02-03)
+
+
+### Bug Fixes
+
+* teams/ops label migration ([5e43d40](https://github.com/christophehurpeau/reviewflow/commit/5e43d40))
+
+
+### Features
+
+* add more labels to sync in ornikar config ([d4deefa](https://github.com/christophehurpeau/reviewflow/commit/d4deefa))
+* sync more labels ([95916b5](https://github.com/christophehurpeau/reviewflow/commit/95916b5))
+
+
+
 # [1.30.0](https://github.com/christophehurpeau/reviewflow/compare/v1.29.0...v1.30.0) (2020-01-24)
 
 
