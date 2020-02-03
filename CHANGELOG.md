@@ -1,3 +1,12 @@
+# [1.32.0](https://github.com/christophehurpeau/reviewflow/compare/v1.31.1...v1.32.0) (2020-02-03)
+
+
+### Features
+
+* ornikar config ignore devenv repo ([051de98](https://github.com/christophehurpeau/reviewflow/commit/051de98))
+
+
+
 ## [1.31.1](https://github.com/christophehurpeau/reviewflow/compare/v1.31.0...v1.31.1) (2020-02-03)
 
 
