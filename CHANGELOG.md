@@ -1,3 +1,12 @@
+## [1.31.1](https://github.com/christophehurpeau/reviewflow/compare/v1.31.0...v1.31.1) (2020-02-03)
+
+
+### Bug Fixes
+
+* enable description check now that github fixed issue ([bbc51e4](https://github.com/christophehurpeau/reviewflow/commit/bbc51e4))
+
+
+
 # [1.31.0](https://github.com/christophehurpeau/reviewflow/compare/v1.30.0...v1.31.0) (2020-02-03)
 
 
