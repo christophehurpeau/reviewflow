@@ -23,7 +23,7 @@ const config = {
   slackToken: process.env.ORNIKAR_SLACK_TOKEN,
   autoAssignToCreator: true,
   trimTitle: true,
-  ignoreRepoPattern: 'infra-*',
+  ignoreRepoPattern: '(infra-*|devenv)',
   requiresReviewRequest: true,
   prDefaultOptions: {
     featureBranch: false,
