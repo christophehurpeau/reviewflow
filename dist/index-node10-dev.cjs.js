@@ -678,24 +678,21 @@ const initRepoLabels = async (context, config) => {
         description
       }));
       finalLabels[labelKey] = result.data;
-    } else if (existingLabel.name !== labelConfig.name || existingLabel.color !== labelColor // ||
-    // TODO: description is never updated
-    // existingLabel.description !== description
-    ) {
-        context.log.info('Needs to update label', {
-          current_name: existingLabel.name,
-          name: existingLabel.name !== labelConfig.name && labelConfig.name,
-          color: existingLabel.color !== labelColor && labelColor,
-          description: existingLabel.description !== description && description
-        });
-        const result = await context.github.issues.updateLabel(context.repo({
-          current_name: existingLabel.name,
-          name: labelConfig.name,
-          color: labelColor,
-          description
-        }));
-        finalLabels[labelKey] = result.data;
-      } else {
+    } else if (existingLabel.name !== labelConfig.name || existingLabel.color !== labelColor || existingLabel.description !== description) {
+      context.log.info('Needs to update label', {
+        current_name: existingLabel.name,
+        name: existingLabel.name !== labelConfig.name && labelConfig.name,
+        color: existingLabel.color !== labelColor && labelColor,
+        description: existingLabel.description !== description && description
+      });
+      const result = await context.github.issues.updateLabel(context.repo({
+        current_name: existingLabel.name,
+        name: labelConfig.name,
+        color: labelColor,
+        description
+      }));
+      finalLabels[labelKey] = result.data;
+    } else {
       finalLabels[labelKey] = existingLabel;
     }
   }
