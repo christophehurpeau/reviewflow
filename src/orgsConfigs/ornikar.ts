@@ -203,6 +203,26 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         name: ':warning: Breaking Changes',
         color: '#FF6F00',
       },
+      rfc: {
+        name: 'RFC',
+        color: '#FFD3B2',
+      },
+      bug: {
+        name: 'bug',
+        color: '#FF3D00',
+      },
+      enhancement: {
+        name: 'enhancement',
+        color: '#7FCEFF',
+      },
+      'help-wanted': {
+        name: 'help wanted',
+        color: '#B1EE8B',
+      },
+      question: {
+        name: 'question',
+        color: '#F860A4',
+      },
     },
 
     review: {
