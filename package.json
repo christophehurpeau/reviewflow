@@ -67,7 +67,7 @@
   },
   "dependencies": {
     "@commitlint/parse": "^8.1.0",
-    "@slack/web-api": "5.1.0",
+    "@slack/web-api": "5.7.0",
     "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.4",
     "dotenv": "^8.0.0",
