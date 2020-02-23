@@ -1160,7 +1160,7 @@ async function initRepoContext(context, config) {
     if (!pr) throw new Error('Cannot reschedule undefined');
     context.log.info('reschedule', pr);
     setTimeout(() => {
-      lockPROrPRS('reschedule', [], () => {
+      lockPROrPRS('reschedule', pr.number, () => {
         return lockPROrPRS(String(pr.id), pr.number, async () => {
           const prResult = await context.github.pulls.get(context.repo({
             pull_number: pr.number
