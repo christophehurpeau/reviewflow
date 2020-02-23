@@ -1,3 +1,12 @@
+# [1.34.0](https://github.com/christophehurpeau/reviewflow/compare/v1.33.0...v1.34.0) (2020-02-23)
+
+
+### Features
+
+* addn pr number in reschedule ([5613bd5](https://github.com/christophehurpeau/reviewflow/commit/5613bd5))
+
+
+
 # [1.33.0](https://github.com/christophehurpeau/reviewflow/compare/v1.32.0...v1.33.0) (2020-02-23)
 
 
