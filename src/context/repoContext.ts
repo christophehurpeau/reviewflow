@@ -27,6 +27,7 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
 
   lockPROrPRS(
     prIdOrIds: string | string[],
+    prNumberOrPrNumbers: number | number[],
     callback: () => Promise<void> | void,
   ): Promise<void>;
 
@@ -50,6 +51,7 @@ async function initRepoContext<GroupNames extends string>(
   context: Context<any>,
   config: Config<GroupNames>,
 ): Promise<RepoContext<GroupNames>> {
+  const repo = context.payload.repository;
   const orgContext = await obtainOrgContext(context, config);
   const repoContext = Object.create(orgContext);
 
@@ -114,22 +116,28 @@ async function initRepoContext<GroupNames extends string>(
 
   const lockPROrPRS = (
     prIdOrIds: string | string[],
+    prNumberOrPrNumbers: number | number[],
     callback: () => Promise<void> | void,
   ): Promise<void> =>
     new Promise((resolve, reject) => {
-      console.log('lock: try to lock pr', { prIdOrIds });
+      const logInfos = {
+        repoName: repo.name,
+        prIdOrIds,
+        prNumberOrPrNumbers,
+      };
+      context.info('lock: try to lock pr', logInfos);
       lock(prIdOrIds, async (createReleaseCallback) => {
         const release = createReleaseCallback(() => {});
-        console.log('lock: lock acquired', { prIdOrIds });
+        context.info('lock: lock acquired', logInfos);
         try {
           await callback();
         } catch (err) {
-          console.log('lock: release pr (with error)', { prIdOrIds });
+          context.info('lock: release pr (with error)', logInfos);
           release();
           reject(err);
           return;
         }
-        console.log('lock: release pr', { prIdOrIds });
+        context.info('lock: release pr', logInfos);
         release();
         resolve();
       });
@@ -139,8 +147,8 @@ async function initRepoContext<GroupNames extends string>(
     if (!pr) throw new Error('Cannot reschedule undefined');
     context.log.info('reschedule', pr);
     setTimeout(() => {
-      lockPROrPRS('reschedule', () => {
-        return lockPROrPRS(String(pr.id), async () => {
+      lockPROrPRS('reschedule', [], () => {
+        return lockPROrPRS(String(pr.id), pr.number, async () => {
           const prResult = await context.github.pulls.get(
             context.repo({
               pull_number: pr.number,

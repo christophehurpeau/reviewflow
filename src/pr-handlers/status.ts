@@ -19,7 +19,10 @@ export default function status(app: Application): void {
         const lockedPr = repoContext.getMergeLockedPr();
         if (!lockedPr) return [];
 
-        if (isSameBranch(context, lockedPr)) {
+        if (
+          context.payload.state !== 'loading' &&
+          isSameBranch(context, lockedPr)
+        ) {
           return [lockedPr];
         }
 
