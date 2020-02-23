@@ -1,3 +1,18 @@
+# [1.33.0](https://github.com/christophehurpeau/reviewflow/compare/v1.32.0...v1.33.0) (2020-02-23)
+
+
+### Bug Fixes
+
+* shouldIgnoreRepo ([d99430e](https://github.com/christophehurpeau/reviewflow/commit/d99430e))
+* **deps:** update dependency probot to v9.9.4 ([#70](https://github.com/christophehurpeau/reviewflow/issues/70)) ([2f1dd26](https://github.com/christophehurpeau/reviewflow/commit/2f1dd26))
+
+
+### Features
+
+* add first test on opened PR ([bf856df](https://github.com/christophehurpeau/reviewflow/commit/bf856df))
+
+
+
 # [1.32.0](https://github.com/christophehurpeau/reviewflow/compare/v1.31.1...v1.32.0) (2020-02-03)
 
 
