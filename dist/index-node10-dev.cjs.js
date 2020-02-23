@@ -13,7 +13,6 @@ const server = require('react-dom/server');
 const simpleOauth2 = require('simple-oauth2');
 const crypto = require('crypto');
 const lock = require('lock');
-const minimatch = _interopDefault(require('minimatch'));
 const webApi = require('@slack/web-api');
 const parse = _interopDefault(require('@commitlint/parse'));
 
@@ -435,7 +434,7 @@ const config = {
   slackToken: process.env.ORNIKAR_SLACK_TOKEN,
   autoAssignToCreator: true,
   trimTitle: true,
-  ignoreRepoPattern: '(infra-*|devenv)',
+  ignoreRepoPattern: '(infra-.*|devenv)',
   requiresReviewRequest: true,
   prDefaultOptions: {
     featureBranch: false,
@@ -1388,6 +1387,19 @@ async function initRepoContext(context, config) {
 
 const repoContextsPromise = new Map();
 const repoContexts = new Map();
+const shouldIgnoreRepo = (repoName, orgConfig) => {
+  const ignoreRepoRegexp = orgConfig.ignoreRepoPattern && new RegExp(`^${orgConfig.ignoreRepoPattern}$`);
+
+  if (repoName === 'reviewflow-test') {
+    return process.env.REVIEWFLOW_NAME !== 'reviewflow-test';
+  }
+
+  if (ignoreRepoRegexp) {
+    return ignoreRepoRegexp.test(repoName);
+  }
+
+  return false;
+};
 const obtainRepoContext = context => {
   const repo = context.payload.repository;
   const owner = repo.owner;
@@ -1403,7 +1415,7 @@ const obtainRepoContext = context => {
     return null;
   }
 
-  if (repo.name === 'reviewflow-test' && process.env.REVIEWFLOW_NAME !== 'reviewflow-test' || orgConfig.ignoreRepoPattern && minimatch(repo.name, orgConfig.ignoreRepoPattern)) {
+  if (shouldIgnoreRepo(repo.name, orgConfig)) {
     console.warn('repo ignored', {
       owner: repo.owner.login,
       name: repo.name

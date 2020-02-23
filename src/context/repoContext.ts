@@ -2,7 +2,6 @@
 
 import { Lock } from 'lock';
 import { Context } from 'probot';
-import minimatch from 'minimatch';
 import { orgsConfigs, Config } from '../orgsConfigs';
 // eslint-disable-next-line import/no-cycle
 import { autoMergeIfPossible } from '../pr-handlers/actions/autoMergeIfPossible';
@@ -211,6 +210,25 @@ async function initRepoContext<GroupNames extends string>(
 const repoContextsPromise = new Map<number, Promise<RepoContext>>();
 const repoContexts = new Map<number, RepoContext>();
 
+export const shouldIgnoreRepo = (
+  repoName: string,
+  orgConfig: Config<any, any>,
+): boolean => {
+  const ignoreRepoRegexp =
+    orgConfig.ignoreRepoPattern &&
+    new RegExp(`^${orgConfig.ignoreRepoPattern}$`);
+
+  if (repoName === 'reviewflow-test') {
+    return process.env.REVIEWFLOW_NAME !== 'reviewflow-test';
+  }
+
+  if (ignoreRepoRegexp) {
+    return ignoreRepoRegexp.test(repoName);
+  }
+
+  return false;
+};
+
 export const obtainRepoContext = (
   context: Context<any>,
 ): Promise<RepoContext> | RepoContext | null => {
@@ -231,12 +249,7 @@ export const obtainRepoContext = (
     return null;
   }
 
-  if (
-    (repo.name === 'reviewflow-test' &&
-      process.env.REVIEWFLOW_NAME !== 'reviewflow-test') ||
-    (orgConfig.ignoreRepoPattern &&
-      minimatch(repo.name, orgConfig.ignoreRepoPattern))
-  ) {
+  if (shouldIgnoreRepo(repo.name, orgConfig)) {
     console.warn('repo ignored', { owner: repo.owner.login, name: repo.name });
     return null;
   }
