@@ -1,6 +1,5 @@
 import Webhooks from '@octokit/webhooks';
-import { PullsGetResponse } from '@octokit/rest';
-import { Context } from 'probot';
+import { Context, Octokit } from 'probot';
 import { RepoContext } from '../../context/repoContext';
 
 interface UpdatePr {
@@ -11,7 +10,7 @@ interface UpdatePr {
 export const updatePrIfNeeded = async <
   E extends Webhooks.WebhookPayloadPullRequest
 >(
-  pr: PullsGetResponse,
+  pr: Octokit.PullsGetResponse,
   context: Context<E>,
   repoContext: RepoContext,
   update: UpdatePr,

@@ -1,17 +1,16 @@
-import { PullsGetResponse } from '@octokit/rest';
 import Webhooks from '@octokit/webhooks';
-import { Context } from 'probot';
+import { Context, Octokit } from 'probot';
 import { obtainRepoContext, RepoContext } from '../context/repoContext';
 
 export type PRHandler<T = any, Result = void, FourthArgument = never> = (
-  pr: PullsGetResponse,
+  pr: Octokit.PullsGetResponse,
   context: Context<T>,
   repoContext: RepoContext,
   fourthArgument?: FourthArgument,
 ) => Promise<Result>;
 
 export type CallbackWithPRAndRepoContext = (
-  pr: PullsGetResponse,
+  pr: Octokit.PullsGetResponse,
   repoContext: RepoContext,
 ) => void | Promise<void>;
 
@@ -24,7 +23,7 @@ export const handlerPullRequestChange = async <
   const repoContext = await obtainRepoContext(context);
   if (!repoContext) return;
 
-  repoContext.lockPROrPRS(
+  return repoContext.lockPROrPRS(
     String(context.payload.pull_request.id),
     context.payload.pull_request.number,
     async () => {
@@ -40,7 +39,7 @@ export const handlerPullRequestChange = async <
 };
 
 type CallbackPRAndContextAndRepoContext<T> = (
-  pr: PullsGetResponse,
+  pr: Octokit.PullsGetResponse,
   context: Context<T>,
   repoContext: RepoContext,
 ) => void | Promise<void>;
@@ -64,7 +63,7 @@ export const createHandlerPullRequestsChange = <T>(
   getPullRequests: (
     context: Context<T>,
     repoContext: RepoContext,
-  ) => { id: string | number }[],
+  ) => { id: string | number; number: number }[],
   callback: CallbackContextAndRepoContext<T>,
 ) => async (context: Context<T>): Promise<void> => {
   const repoContext = await obtainRepoContext(context);

@@ -1,6 +1,5 @@
-import { PullsGetResponse } from '@octokit/rest';
 import Webhooks from '@octokit/webhooks';
-import { Context } from 'probot';
+import { Context, Octokit } from 'probot';
 import { LabelResponse } from '../../../context/initRepoLabels';
 import hasLabelInPR from './hasLabelInPR';
 
@@ -12,7 +11,7 @@ interface SyncLabelOptions {
 export default async function syncLabel<
   T extends Webhooks.WebhookPayloadPullRequest
 >(
-  pr: PullsGetResponse,
+  pr: Octokit.PullsGetResponse,
   context: Context<T>,
   shouldHaveLabel: boolean,
   label: LabelResponse,

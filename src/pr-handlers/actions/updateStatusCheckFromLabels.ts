@@ -1,6 +1,5 @@
 import Webhooks from '@octokit/webhooks';
-import { PullsGetResponse } from '@octokit/rest';
-import { Context } from 'probot';
+import { Context, Octokit } from 'probot';
 import { LabelResponse } from '../../context/initRepoLabels';
 import { RepoContext } from '../../context/repoContext';
 import createStatus from './utils/createStatus';
@@ -8,7 +7,7 @@ import createStatus from './utils/createStatus';
 const addStatusCheck = async function<
   E extends Webhooks.WebhookPayloadPullRequest
 >(
-  pr: PullsGetResponse,
+  pr: Octokit.PullsGetResponse,
   context: Context<E>,
   { state, description }: { state: 'failure' | 'success'; description: string },
   previousSha?: string,
@@ -55,7 +54,7 @@ const addStatusCheck = async function<
 };
 
 export const updateStatusCheckFromLabels = (
-  pr: PullsGetResponse,
+  pr: Octokit.PullsGetResponse,
   context: Context<any>,
   repoContext: RepoContext,
   labels: LabelResponse[] = pr.labels || [],

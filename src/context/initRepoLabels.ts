@@ -1,4 +1,4 @@
-import { Context } from 'probot';
+import { Context, Octokit } from 'probot';
 import { Config } from '../orgsConfigs';
 
 export interface LabelResponse {
@@ -15,13 +15,20 @@ export interface Labels {
   [key: string]: LabelResponse;
 }
 
+export const getLabelsForRepo = async (
+  context: Context<any>,
+): Promise<Octokit.IssuesListLabelsForRepoResponse> => {
+  const { data: labels } = await context.github.issues.listLabelsForRepo(
+    context.repo({ per_page: 100 }),
+  );
+  return labels;
+};
+
 export const initRepoLabels = async <GroupNames extends string>(
   context: Context<any>,
   config: Config<GroupNames>,
 ): Promise<Labels> => {
-  const { data: labels } = await context.github.issues.listLabelsForRepo(
-    context.repo({ per_page: 100 }),
-  );
+  const labels = await getLabelsForRepo(context);
   const finalLabels: Record<string, LabelResponse> = {};
 
   for (const [labelKey, labelConfig] of Object.entries(config.labels.list)) {

@@ -1,0 +1,173 @@
+[
+  {
+    "id": 1210432963,
+    "node_id": "MDU6TGFiZWwxMjEwNDMyOTYz",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/:ok_hand:%20code/approved",
+    "name": ":ok_hand: code/approved",
+    "color": "64DD17",
+    "default": false,
+    "description": "Synced by reviewflow for code/approved"
+  },
+  {
+    "id": 1210432962,
+    "node_id": "MDU6TGFiZWwxMjEwNDMyOTYy",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/:ok_hand:%20code/changes-requested",
+    "name": ":ok_hand: code/changes-requested",
+    "color": "e11d21",
+    "default": false,
+    "description": "Synced by reviewflow for code/changes-requested"
+  },
+  {
+    "id": 1210432920,
+    "node_id": "MDU6TGFiZWwxMjEwNDMyOTIw",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/:ok_hand:%20code/needs-review",
+    "name": ":ok_hand: code/needs-review",
+    "color": "FFD57F",
+    "default": false,
+    "description": "Synced by reviewflow for code/needs-review"
+  },
+  {
+    "id": 1210432937,
+    "node_id": "MDU6TGFiZWwxMjEwNDMyOTM3",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/:ok_hand:%20code/review-requested",
+    "name": ":ok_hand: code/review-requested",
+    "color": "B2E1FF",
+    "default": false,
+    "description": "Synced by reviewflow for code/review-requested"
+  },
+  {
+    "id": 1285316261,
+    "node_id": "MDU6TGFiZWwxMjg1MzE2MjYx",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/:recycle:%20delete%20branch%20after%20merge",
+    "name": ":recycle: delete branch after merge",
+    "color": "64DD17",
+    "default": false,
+    "description": null
+  },
+  {
+    "id": 1285313537,
+    "node_id": "MDU6TGFiZWwxMjg1MzEzNTM3",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/:recycle:%20merge/delete-branch",
+    "name": ":recycle: merge/delete-branch",
+    "color": "64DD17",
+    "default": false,
+    "description": null
+  },
+  {
+    "id": 1285313520,
+    "node_id": "MDU6TGFiZWwxMjg1MzEzNTIw",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/:soon:%20automerge",
+    "name": ":soon: automerge",
+    "color": "64DD17",
+    "default": false,
+    "description": "Synced by reviewflow for merge/automerge"
+  },
+  {
+    "id": 1526652856,
+    "node_id": "MDU6TGFiZWwxNTI2NjUyODU2",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/:warning:%20Breaking%20Changes",
+    "name": ":warning: Breaking Changes",
+    "color": "ef7934",
+    "default": false,
+    "description": "Synced by reviewflow for breaking-changes"
+  },
+  {
+    "id": 1210424795,
+    "node_id": "MDU6TGFiZWwxMjEwNDI0Nzk1",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/:warning:%20invalid",
+    "name": ":warning: invalid",
+    "color": "e4e669",
+    "default": false,
+    "description": "This doesn't seem right"
+  },
+  {
+    "id": 1517089313,
+    "node_id": "MDU6TGFiZWwxNTE3MDg5MzEz",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/automerge/skip-ci",
+    "name": "automerge/skip-ci",
+    "color": "e1e8ed",
+    "default": false,
+    "description": "Synced by reviewflow for merge/skip-ci"
+  },
+  {
+    "id": 1210424790,
+    "node_id": "MDU6TGFiZWwxMjEwNDI0Nzkw",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/bug",
+    "name": "bug",
+    "color": "d73a4a",
+    "default": true,
+    "description": "Something isn't working"
+  },
+  {
+    "id": 1210424791,
+    "node_id": "MDU6TGFiZWwxMjEwNDI0Nzkx",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/duplicate",
+    "name": "duplicate",
+    "color": "cfd3d7",
+    "default": true,
+    "description": "This issue or pull request already exists"
+  },
+  {
+    "id": 1210424792,
+    "node_id": "MDU6TGFiZWwxMjEwNDI0Nzky",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/enhancement",
+    "name": "enhancement",
+    "color": "a2eeef",
+    "default": true,
+    "description": "New feature or request"
+  },
+  {
+    "id": 1376725501,
+    "node_id": "MDU6TGFiZWwxMzc2NzI1NTAx",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/feature-branch",
+    "name": "feature-branch",
+    "color": "7FCEFF",
+    "default": false,
+    "description": "Synced by reviewflow for feature-branch"
+  },
+  {
+    "id": 1210424794,
+    "node_id": "MDU6TGFiZWwxMjEwNDI0Nzk0",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/good%20first%20issue",
+    "name": "good first issue",
+    "color": "7057ff",
+    "default": true,
+    "description": "Good for newcomers"
+  },
+  {
+    "id": 1210424793,
+    "node_id": "MDU6TGFiZWwxMjEwNDI0Nzkz",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/help%20wanted",
+    "name": "help wanted",
+    "color": "008672",
+    "default": true,
+    "description": "Extra attention is needed"
+  },
+  {
+    "id": 1210424796,
+    "node_id": "MDU6TGFiZWwxMjEwNDI0Nzk2",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/question",
+    "name": "question",
+    "color": "d876e3",
+    "default": true,
+    "description": "Further information is requested"
+  },
+  {
+    "id": 1517086662,
+    "node_id": "MDU6TGFiZWwxNTE3MDg2NjYy",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/skip-ci",
+    "name": "skip-ci",
+    "color": "e1e8ed",
+    "default": false,
+    "description": null
+  },
+  {
+    "id": 1210424797,
+    "node_id": "MDU6TGFiZWwxMjEwNDI0Nzk3",
+    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/labels/wontfix",
+    "name": "wontfix",
+    "color": "ffffff",
+    "default": true,
+    "description": "This will not be worked on"
+  }
+]

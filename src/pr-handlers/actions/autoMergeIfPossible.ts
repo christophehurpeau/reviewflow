@@ -1,6 +1,5 @@
 /* eslint-disable max-lines */
-import { PullsGetResponse } from '@octokit/rest';
-import { Context } from 'probot';
+import { Context, Octokit } from 'probot';
 // eslint-disable-next-line import/no-cycle
 import { RepoContext } from '../../context/repoContext';
 import { LabelResponse } from '../../context/initRepoLabels';
@@ -8,7 +7,7 @@ import { parseBodyWithOptions } from './utils/parseBody';
 import hasLabelInPR from './utils/hasLabelInPR';
 
 const hasFailedStatusOrChecks = async (
-  pr: PullsGetResponse,
+  pr: Octokit.PullsGetResponse,
   context: Context<any>,
 ) => {
   const checks = await context.github.checks.listForRef(
@@ -52,7 +51,7 @@ const hasFailedStatusOrChecks = async (
 };
 
 export const autoMergeIfPossible = async (
-  pr: PullsGetResponse,
+  pr: Octokit.PullsGetResponse,
   context: Context<any>,
   repoContext: RepoContext,
   prLabels: LabelResponse[] = pr.labels,

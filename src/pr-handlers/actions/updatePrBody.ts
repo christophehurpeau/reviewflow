@@ -1,6 +1,5 @@
-import { PullsGetResponse } from '@octokit/rest';
 import Webhooks from '@octokit/webhooks';
-import { Context } from 'probot';
+import { Context, Octokit } from 'probot';
 import { RepoContext } from '../../context/repoContext';
 import { updateBody } from './utils/updateBody';
 import { Options } from './utils/prOptions';
@@ -9,7 +8,7 @@ import { updatePrIfNeeded } from './updatePr';
 export const updatePrBody = async <
   E extends Webhooks.WebhookPayloadPullRequest
 >(
-  pr: PullsGetResponse,
+  pr: Octokit.PullsGetResponse,
   context: Context<E>,
   repoContext: RepoContext,
   updateOptions: Partial<Record<Options, boolean>>,

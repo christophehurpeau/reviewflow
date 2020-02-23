@@ -1,8 +1,8 @@
-import { PullsGetResponse } from '@octokit/rest';
+import { Octokit } from 'probot';
 import { LabelResponse } from '../../../context/initRepoLabels';
 
 export default function hasLabelInPR(
-  prLabels: PullsGetResponse['labels'],
+  prLabels: Octokit.PullsGetResponse['labels'],
   label: LabelResponse,
 ): boolean {
   if (!label) return false;

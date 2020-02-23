@@ -1,7 +1,6 @@
-import { PullsGetResponse } from '@octokit/rest';
 import Webhooks from '@octokit/webhooks';
 import { WebClient } from '@slack/web-api';
-import { Context } from 'probot';
+import { Context, Octokit } from 'probot';
 import { Config } from '../orgsConfigs';
 import { getKeys } from './utils';
 
@@ -9,7 +8,7 @@ export interface TeamSlack {
   mention: (githubLogin: string) => string;
   postMessage: (githubLogin: string, text: string) => Promise<void>;
   prLink: <T extends Webhooks.WebhookPayloadPullRequest>(
-    pr: PullsGetResponse,
+    pr: Octokit.PullsGetResponse,
     context: Context<T>,
   ) => string;
 }
@@ -18,16 +17,18 @@ const ExcludesFalsy = (Boolean as any) as <T>(
   x: T | false | null | undefined,
 ) => x is T;
 
+export const voidTeamSlack = (): TeamSlack => ({
+  mention: (): string => '',
+  postMessage: (): Promise<void> => Promise.resolve(),
+  prLink: (): string => '',
+});
+
 export const initTeamSlack = async <GroupNames extends string>(
   context: Context<any>,
   config: Config<GroupNames>,
 ): Promise<TeamSlack> => {
   if (!config.slackToken) {
-    return {
-      mention: (): string => '',
-      postMessage: (): Promise<void> => Promise.resolve(),
-      prLink: (): string => '',
-    };
+    return voidTeamSlack();
   }
 
   const githubLoginToSlackEmail = getKeys(config.groups).reduce<{
@@ -93,7 +94,7 @@ export const initTeamSlack = async <GroupNames extends string>(
       });
     },
     prLink: <T extends Webhooks.WebhookPayloadPullRequest>(
-      pr: PullsGetResponse,
+      pr: Octokit.PullsGetResponse,
       context: Context<T>,
     ): string => {
       return `<${pr.html_url}|${context.payload.repository.name}#${pr.number}>`;

@@ -12,7 +12,7 @@
     "@pob/eslint-config-typescript-react"
   ],
   "settings": {
-    "import/core-modules": ["@octokit/webhooks", "@octokit/rest", "express"]
+    "import/core-modules": ["@octokit/webhooks", "express"]
   },
   "rules": {
     "@typescript-eslint/camelcase": [

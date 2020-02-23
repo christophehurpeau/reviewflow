@@ -59,11 +59,7 @@
       "<rootDir>/src/**/__tests__/**/*.ts",
       "<rootDir>/src/**/*.test.ts"
     ],
-    "collectCoverageFrom": ["src/**/*.ts"],
-    "moduleFileExtensions": ["ts", "js"],
-    "transform": {
-      "^.+\\.ts$": "babel-jest"
-    }
+    "collectCoverageFrom": ["src/**/*.ts"]
   },
   "dependencies": {
     "@commitlint/parse": "^8.1.0",
@@ -95,6 +91,7 @@
     "@types/jest": "^24.0.18",
     "@types/jsonwebtoken": "^8.3.2",
     "@types/minimatch": "^3.0.3",
+    "@types/nock": "^11.1.0",
     "@types/node": ">=10.0.0",
     "@types/react": "^16.8.7",
     "@types/react-dom": "^16.8.2",
@@ -106,6 +103,8 @@
     "jest": "24.7.1",
     "jest-junit-reporter": "1.1.0",
     "lint-staged": "8.2.1",
+    "lint-staged": "8.1.6",
+    "nock": "^11.7.2",
     "nodemon": "2.0.2",
     "pob-babel": "23.16.0",
     "pob-lcov-reporter": "1.2.0",
@@ -113,7 +112,7 @@
     "prettier": "1.17.0",
     "repository-check-dirty": "1.0.2",
     "smee-client": "1.1.0",
-    "typescript": "3.6.1-rc",
+    "typescript": "3.7.5",
     "yarn-update-lock": "1.0.0",
     "yarnhook": "0.4.3"
   }

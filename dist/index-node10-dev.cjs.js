@@ -4,19 +4,431 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 require('dotenv/config');
 const probot = require('probot');
-const lock = require('lock');
-const minimatch = _interopDefault(require('minimatch'));
-const webApi = require('@slack/web-api');
-const parse = _interopDefault(require('@commitlint/parse'));
 const liwiMongo = require('liwi-mongo');
 const util = require('util');
-const Octokit = _interopDefault(require('@octokit/rest'));
 const cookieParser = _interopDefault(require('cookie-parser'));
 const jsonwebtoken = require('jsonwebtoken');
 const React = _interopDefault(require('react'));
 const server = require('react-dom/server');
 const simpleOauth2 = require('simple-oauth2');
 const crypto = require('crypto');
+const lock = require('lock');
+const minimatch = _interopDefault(require('minimatch'));
+const webApi = require('@slack/web-api');
+const parse = _interopDefault(require('@commitlint/parse'));
+
+// import { MongoStore, MongoConnection, MongoModel } from 'liwi-mongo';
+//   owner: string;
+//   repo: string;
+//   prId: string;
+//   prNumber: string;
+//   event: string;
+// }
+
+if (!process.env.MONGO_DB) {
+  throw new Error('MONGO_DB is missing in process.env');
+}
+
+function init() {
+  const config = new Map([['host', process.env.MONGO_HOST || 'localhost'], ['port', process.env.MONGO_PORT || '27017'], ['database', process.env.MONGO_DB]]);
+
+  if (process.env.MONGO_USER) {
+    config.set('user', process.env.MONGO_USER);
+    config.set('password', process.env.MONGO_PASSWORD);
+  }
+
+  const connection = new liwiMongo.MongoConnection(config); // const prEvents = new MongoStore<PrEventsModel>(connection, 'prEvents');
+  // prEvents.collection.then((coll) => {
+  //   coll.createIndex({ owner: 1, repo: 1, ???: 1 });
+  // });
+  // return { connection, prEvents };
+
+  return {
+    connection
+  };
+}
+
+var _jsxFileName = "/Users/chris/Work/github-apps/reviewflow/src/views/Layout.tsx";
+function Layout({
+  lang = 'en',
+  title = process.env.NAME,
+  children
+}) {
+  return React.createElement("html", {
+    lang: lang,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 15
+    },
+    __self: this
+  }, React.createElement("head", {
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 16
+    },
+    __self: this
+  }, React.createElement("meta", {
+    charSet: "UTF-8",
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 17
+    },
+    __self: this
+  }), React.createElement("meta", {
+    name: "robots",
+    content: "noindex",
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 18
+    },
+    __self: this
+  }), React.createElement("title", {
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 19
+    },
+    __self: this
+  }, title), React.createElement("link", {
+    rel: "stylesheet",
+    type: "text/css",
+    href: "https://christophe.hurpeau.com/index.css",
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 20
+    },
+    __self: this
+  }), React.createElement("style", {
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 25
+    },
+    __self: this
+  }, `html,body,html body
+            #container{height:100%} footer{position:absolute;bottom:5px;left:0;right:0;}`)), React.createElement("body", {
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 28
+    },
+    __self: this
+  }, children));
+}
+
+if (!process.env.GITHUB_CLIENT_ID) {
+  throw new Error('Missing env variable: GITHUB_CLIENT_ID');
+}
+
+if (!process.env.GITHUB_CLIENT_SECRET) {
+  throw new Error('Missing env variable: GITHUB_CLIENT_SECRET');
+}
+
+const oauth2 = simpleOauth2.create({
+  client: {
+    id: process.env.GITHUB_CLIENT_ID,
+    secret: process.env.GITHUB_CLIENT_SECRET
+  },
+  auth: {
+    tokenHost: 'https://github.com',
+    tokenPath: '/login/oauth/access_token',
+    authorizePath: '/login/oauth/authorize'
+  }
+});
+
+const randomBytesPromisified = util.promisify(crypto.randomBytes);
+async function randomHex(size) {
+  const buffer = await randomBytesPromisified(size);
+  return buffer.toString('hex');
+}
+
+var _jsxFileName$1 = "/Users/chris/Work/github-apps/reviewflow/src/appRouter.tsx";
+
+if (!process.env.AUTH_SECRET_KEY) {
+  throw new Error('Missing env variable: AUTH_SECRET_KEY');
+}
+
+const AUTH_SECRET_KEY = process.env.AUTH_SECRET_KEY;
+const signPromisified = util.promisify(jsonwebtoken.sign);
+const verifyPromisified = util.promisify(jsonwebtoken.verify);
+const secure = !!process.env.SECURE_COOKIE && process.env.SECURE_COOKIE !== 'false';
+
+const createRedirectUri = (req, strategy) => {
+  const host = `http${secure ? 's' : ''}://${req.hostname}${req.hostname === 'localhost' ? `:${process.env.PORT}` : ''}`;
+  return `${host}/${strategy}/login-response`;
+};
+
+const readAuthCookie = (req, strategy) => {
+  const cookie = req.cookies[`auth_${strategy}`];
+  if (!cookie) return;
+  return verifyPromisified(cookie, AUTH_SECRET_KEY, {
+    algorithm: 'HS512',
+    audience: req.headers['user-agent']
+  });
+};
+
+async function appRouter(app) {
+  const router = app.route('/app');
+  const api = await app.auth();
+  router.use(cookieParser());
+  router.get('/', (req, res) => {
+    res.redirect('/gh');
+  });
+  router.get('/gh', async (req, res) => {
+    const authInfo = await readAuthCookie(req, "gh");
+
+    if (!authInfo) {
+      return res.redirect('/gh/login');
+    }
+
+    const octokit = new probot.Octokit({
+      auth: `token ${authInfo.accessToken}`
+    });
+    const {
+      data
+    } = await octokit.repos.list({
+      per_page: 100
+    });
+    res.send(server.renderToStaticMarkup(React.createElement(Layout, {
+      __source: {
+        fileName: _jsxFileName$1,
+        lineNumber: 77
+      },
+      __self: this
+    }, React.createElement("div", {
+      __source: {
+        fileName: _jsxFileName$1,
+        lineNumber: 78
+      },
+      __self: this
+    }, React.createElement("h4", {
+      __source: {
+        fileName: _jsxFileName$1,
+        lineNumber: 79
+      },
+      __self: this
+    }, "Your repositories"), React.createElement("ul", {
+      __source: {
+        fileName: _jsxFileName$1,
+        lineNumber: 80
+      },
+      __self: this
+    }, data.map(repo => React.createElement("li", {
+      key: repo.id,
+      __source: {
+        fileName: _jsxFileName$1,
+        lineNumber: 82
+      },
+      __self: this
+    }, React.createElement("a", {
+      href: `/gh/repository/${repo.owner.login}/${repo.name}`,
+      __source: {
+        fileName: _jsxFileName$1,
+        lineNumber: 83
+      },
+      __self: this
+    }, repo.name))))), data.length === 100 && React.createElement("div", {
+      __source: {
+        fileName: _jsxFileName$1,
+        lineNumber: 91
+      },
+      __self: this
+    }, "We currently have a limit to 100 repositories"))));
+  });
+  router.get('/gh/login', async (req, res) => {
+    if (await readAuthCookie(req, "gh")) {
+      return res.redirect('/gh');
+    }
+
+    const state = await randomHex(8);
+    res.cookie(`auth_${"gh"}_${state}`, "gh", {
+      maxAge: 600000,
+      httpOnly: true,
+      secure
+    });
+    const redirectUri = oauth2.authorizationCode.authorizeURL({
+      redirect_uri: createRedirectUri(req, "gh"),
+      scope: 'read:user,repo',
+      state // grant_type: options.grantType,
+      // access_type: options.accessType,
+      // login_hint: req.query.loginHint,
+      // include_granted_scopes: options.includeGrantedScopes,
+
+    }); // console.log(redirectUri);
+
+    res.redirect(redirectUri);
+  });
+  router.get('/gh/login-response', async (req, res) => {
+    if (req.query.error) {
+      res.send(req.query.error_description);
+      return;
+    }
+
+    const code = req.query.code;
+    const state = req.query.state;
+    const cookieName = `auth_${"gh"}_${state}`;
+    const cookie = req.cookies && req.cookies[cookieName];
+
+    if (!cookie) {
+      // res.redirect(`/${strategy}/login`);
+      res.send('<html><body>No cookie for this state. <a href="/gh/login">Retry ?</a></body></html>');
+      return;
+    }
+
+    res.clearCookie(cookieName);
+    const result = await oauth2.authorizationCode.getToken({
+      code,
+      redirect_uri: createRedirectUri(req, "gh")
+    });
+
+    if (!result) {
+      // res.redirect(`/${strategy}/login`);
+      res.send(server.renderToStaticMarkup(React.createElement(Layout, {
+        __source: {
+          fileName: _jsxFileName$1,
+          lineNumber: 155
+        },
+        __self: this
+      }, React.createElement("div", {
+        __source: {
+          fileName: _jsxFileName$1,
+          lineNumber: 156
+        },
+        __self: this
+      }, "Could not get access token. ", React.createElement("a", {
+        href: "/gh/login",
+        __source: {
+          fileName: _jsxFileName$1,
+          lineNumber: 157
+        },
+        __self: this
+      }, "Retry ?")))));
+      return;
+    }
+
+    const accessToken = result.access_token;
+    const octokit = new probot.Octokit({
+      auth: `token ${accessToken}`
+    });
+    const user = await octokit.users.getAuthenticated({});
+    const login = user.data.login;
+    const token = await signPromisified({
+      login,
+      accessToken,
+      time: Date.now()
+    }, AUTH_SECRET_KEY, {
+      algorithm: 'HS512',
+      audience: req.headers['user-agent'],
+      expiresIn: '10 days'
+    });
+    res.cookie(`auth_${"gh"}`, token, {
+      httpOnly: true,
+      secure
+    });
+    res.redirect('/gh');
+  });
+  router.get('/gh/repository/:owner/:repository', async (req, res) => {
+    const authInfo = await readAuthCookie(req, "gh");
+
+    if (!authInfo) {
+      return res.redirect('/gh/login');
+    }
+
+    const octokit = new probot.Octokit({
+      auth: `token ${authInfo.accessToken}`
+    });
+    const {
+      data
+    } = await octokit.repos.get({
+      owner: req.params.owner,
+      repo: req.params.repository
+    });
+
+    if (!data) {
+      return res.status(404).send(server.renderToStaticMarkup(React.createElement(Layout, {
+        __source: {
+          fileName: _jsxFileName$1,
+          lineNumber: 204
+        },
+        __self: this
+      }, React.createElement("div", {
+        __source: {
+          fileName: _jsxFileName$1,
+          lineNumber: 205
+        },
+        __self: this
+      }, "repo not found"))));
+    }
+
+    if (!data.permissions.admin) {
+      return res.status(401).send(server.renderToStaticMarkup(React.createElement(Layout, {
+        __source: {
+          fileName: _jsxFileName$1,
+          lineNumber: 214
+        },
+        __self: this
+      }, React.createElement("div", {
+        __source: {
+          fileName: _jsxFileName$1,
+          lineNumber: 215
+        },
+        __self: this
+      }, "not authorized to see this repo, you need to have admin permission"))));
+    }
+
+    const {
+      data: data2
+    } = await api.apps.getRepoInstallation({
+      owner: req.params.owner,
+      repo: req.params.repository
+    }).catch(err => {
+      return {
+        status: err.status,
+        data: undefined
+      };
+    });
+
+    if (!data2) {
+      return res.send(server.renderToStaticMarkup(React.createElement(Layout, {
+        __source: {
+          fileName: _jsxFileName$1,
+          lineNumber: 235
+        },
+        __self: this
+      }, React.createElement("div", {
+        __source: {
+          fileName: _jsxFileName$1,
+          lineNumber: 236
+        },
+        __self: this
+      }, process.env.REVIEWFLOW_NAME, " ", "isn't", " installed on this repo. Go to", ' ', React.createElement("a", {
+        href: `https://github.com/apps/${process.env.REVIEWFLOW_NAME}/installations/new`,
+        __source: {
+          fileName: _jsxFileName$1,
+          lineNumber: 239
+        },
+        __self: this
+      }, "Github Configuration"), ' ', "to add it."))));
+    }
+
+    res.send(server.renderToStaticMarkup(React.createElement(Layout, {
+      __source: {
+        fileName: _jsxFileName$1,
+        lineNumber: 255
+      },
+      __self: this
+    }, React.createElement("div", {
+      __source: {
+        fileName: _jsxFileName$1,
+        lineNumber: 256
+      },
+      __self: this
+    }, React.createElement("h4", {
+      __source: {
+        fileName: _jsxFileName$1,
+        lineNumber: 257
+      },
+      __self: this
+    }, req.params.repository)))));
+  });
+}
 
 /* eslint-disable max-lines */
 const config = {
@@ -640,12 +1052,16 @@ const autoMergeIfPossible = async (pr, context, repoContext, prLabels = pr.label
   }
 };
 
-const initRepoLabels = async (context, config) => {
+const getLabelsForRepo = async context => {
   const {
     data: labels
   } = await context.github.issues.listLabelsForRepo(context.repo({
     per_page: 100
   }));
+  return labels;
+};
+const initRepoLabels = async (context, config) => {
+  const labels = await getLabelsForRepo(context);
   const finalLabels = {};
 
   for (const [labelKey, labelConfig] of Object.entries(config.labels.list)) {
@@ -703,13 +1119,14 @@ const initRepoLabels = async (context, config) => {
 const getKeys = o => Object.keys(o);
 
 const ExcludesFalsy = Boolean;
+const voidTeamSlack = () => ({
+  mention: () => '',
+  postMessage: () => Promise.resolve(),
+  prLink: () => ''
+});
 const initTeamSlack = async (context, config) => {
   if (!config.slackToken) {
-    return {
-      mention: () => '',
-      postMessage: () => Promise.resolve(),
-      prLink: () => ''
-    };
+    return voidTeamSlack();
   }
 
   const githubLoginToSlackEmail = getKeys(config.groups).reduce((acc, groupName) => {
@@ -856,7 +1273,7 @@ async function initRepoContext(context, config) {
   const repo = context.payload.repository;
   const orgContext = await obtainOrgContext(context, config);
   const repoContext = Object.create(orgContext);
-  const [labels] = await Promise.all([initRepoLabels(context, config)]);
+  const labels = await initRepoLabels(context, config);
   const reviewGroupNames = Object.keys(config.groups);
   const needsReviewLabelIds = reviewGroupNames.map(key => config.labels.review[key].needsReview).filter(Boolean).map(name => labels[name].id);
   const requestedReviewLabelIds = reviewGroupNames.map(key => config.labels.review[key].requested).filter(Boolean).map(name => labels[name].id);
@@ -881,21 +1298,21 @@ async function initRepoContext(context, config) {
       prIdOrIds,
       prNumberOrPrNumbers
     };
-    context.info('lock: try to lock pr', logInfos);
+    context.log.info('lock: try to lock pr', logInfos);
     lock$1(prIdOrIds, async createReleaseCallback => {
       const release = createReleaseCallback(() => {});
-      context.info('lock: lock acquired', logInfos);
+      context.log.info('lock: lock acquired', logInfos);
 
       try {
         await callback();
       } catch (err) {
-        context.info('lock: release pr (with error)', logInfos);
+        context.log.info('lock: release pr (with error)', logInfos);
         release();
         reject(err);
         return;
       }
 
-      context.info('lock: release pr', logInfos);
+      context.log.info('lock: release pr', logInfos);
       release();
       resolve();
     });
@@ -1006,7 +1423,7 @@ const obtainRepoContext = context => {
 const handlerPullRequestChange = async (context, callback) => {
   const repoContext = await obtainRepoContext(context);
   if (!repoContext) return;
-  repoContext.lockPROrPRS(String(context.payload.pull_request.id), context.payload.pull_request.number, async () => {
+  return repoContext.lockPROrPRS(String(context.payload.pull_request.id), context.payload.pull_request.number, async () => {
     const prResult = await context.github.pulls.get(context.repo({
       pull_number: context.payload.pull_request.number
     }));
@@ -1881,432 +2298,7 @@ function status(app) {
   }));
 }
 
-// import { MongoStore, MongoConnection, MongoModel } from 'liwi-mongo';
-//   owner: string;
-//   repo: string;
-//   prId: string;
-//   prNumber: string;
-//   event: string;
-// }
-
-if (!process.env.MONGO_DB) {
-  throw new Error('MONGO_DB is missing in process.env');
-}
-
-function init() {
-  const config = new Map([['host', process.env.MONGO_HOST || 'localhost'], ['port', process.env.MONGO_PORT || '27017'], ['database', process.env.MONGO_DB]]);
-
-  if (process.env.MONGO_USER) {
-    config.set('user', process.env.MONGO_USER);
-    config.set('password', process.env.MONGO_PASSWORD);
-  }
-
-  const connection = new liwiMongo.MongoConnection(config); // const prEvents = new MongoStore<PrEventsModel>(connection, 'prEvents');
-  // prEvents.collection.then((coll) => {
-  //   coll.createIndex({ owner: 1, repo: 1, ???: 1 });
-  // });
-  // return { connection, prEvents };
-
-  return {
-    connection
-  };
-}
-
-var _jsxFileName = "/Users/chris/Work/github-apps/reviewflow/src/views/Layout.tsx";
-function Layout({
-  lang = 'en',
-  title = process.env.NAME,
-  children
-}) {
-  return React.createElement("html", {
-    lang: lang,
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 15
-    },
-    __self: this
-  }, React.createElement("head", {
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 16
-    },
-    __self: this
-  }, React.createElement("meta", {
-    charSet: "UTF-8",
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 17
-    },
-    __self: this
-  }), React.createElement("meta", {
-    name: "robots",
-    content: "noindex",
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 18
-    },
-    __self: this
-  }), React.createElement("title", {
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 19
-    },
-    __self: this
-  }, title), React.createElement("link", {
-    rel: "stylesheet",
-    type: "text/css",
-    href: "https://christophe.hurpeau.com/index.css",
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 20
-    },
-    __self: this
-  }), React.createElement("style", {
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 25
-    },
-    __self: this
-  }, `html,body,html body
-            #container{height:100%} footer{position:absolute;bottom:5px;left:0;right:0;}`)), React.createElement("body", {
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 28
-    },
-    __self: this
-  }, children));
-}
-
-if (!process.env.GITHUB_CLIENT_ID) {
-  throw new Error('Missing env variable: GITHUB_CLIENT_ID');
-}
-
-if (!process.env.GITHUB_CLIENT_SECRET) {
-  throw new Error('Missing env variable: GITHUB_CLIENT_SECRET');
-}
-
-const oauth2 = simpleOauth2.create({
-  client: {
-    id: process.env.GITHUB_CLIENT_ID,
-    secret: process.env.GITHUB_CLIENT_SECRET
-  },
-  auth: {
-    tokenHost: 'https://github.com',
-    tokenPath: '/login/oauth/access_token',
-    authorizePath: '/login/oauth/authorize'
-  }
-});
-
-const randomBytesPromisified = util.promisify(crypto.randomBytes);
-async function randomHex(size) {
-  const buffer = await randomBytesPromisified(size);
-  return buffer.toString('hex');
-}
-
-var _jsxFileName$1 = "/Users/chris/Work/github-apps/reviewflow/src/appRouter.tsx";
-
-if (!process.env.AUTH_SECRET_KEY) {
-  throw new Error('Missing env variable: AUTH_SECRET_KEY');
-}
-
-const AUTH_SECRET_KEY = process.env.AUTH_SECRET_KEY;
-const signPromisified = util.promisify(jsonwebtoken.sign);
-const verifyPromisified = util.promisify(jsonwebtoken.verify);
-const secure = !!process.env.SECURE_COOKIE && process.env.SECURE_COOKIE !== 'false';
-
-const createRedirectUri = (req, strategy) => {
-  const host = `http${secure ? 's' : ''}://${req.hostname}${req.hostname === 'localhost' ? `:${process.env.PORT}` : ''}`;
-  return `${host}/${strategy}/login-response`;
-};
-
-const readAuthCookie = (req, strategy) => {
-  const cookie = req.cookies[`auth_${strategy}`];
-  if (!cookie) return;
-  return verifyPromisified(cookie, AUTH_SECRET_KEY, {
-    algorithm: 'HS512',
-    audience: req.headers['user-agent']
-  });
-};
-
-async function appRouter(app) {
-  const router = app.route('/app');
-  const api = await app.auth();
-  router.use(cookieParser());
-  router.get('/', (req, res) => {
-    res.redirect('/gh');
-  });
-  router.get('/gh', async (req, res) => {
-    const authInfo = await readAuthCookie(req, "gh");
-
-    if (!authInfo) {
-      return res.redirect('/gh/login');
-    }
-
-    const octokit = new Octokit({
-      auth: `token ${authInfo.accessToken}`
-    });
-    const {
-      data
-    } = await octokit.repos.list({
-      per_page: 100
-    });
-    res.send(server.renderToStaticMarkup(React.createElement(Layout, {
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 78
-      },
-      __self: this
-    }, React.createElement("div", {
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 79
-      },
-      __self: this
-    }, React.createElement("h4", {
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 80
-      },
-      __self: this
-    }, "Your repositories"), React.createElement("ul", {
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 81
-      },
-      __self: this
-    }, data.map(repo => React.createElement("li", {
-      key: repo.id,
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 83
-      },
-      __self: this
-    }, React.createElement("a", {
-      href: `/gh/repository/${repo.owner.login}/${repo.name}`,
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 84
-      },
-      __self: this
-    }, repo.name))))), data.length === 100 && React.createElement("div", {
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 92
-      },
-      __self: this
-    }, "We currently have a limit to 100 repositories"))));
-  });
-  router.get('/gh/login', async (req, res) => {
-    if (await readAuthCookie(req, "gh")) {
-      return res.redirect('/gh');
-    }
-
-    const state = await randomHex(8);
-    res.cookie(`auth_${"gh"}_${state}`, "gh", {
-      maxAge: 600000,
-      httpOnly: true,
-      secure
-    });
-    const redirectUri = oauth2.authorizationCode.authorizeURL({
-      redirect_uri: createRedirectUri(req, "gh"),
-      scope: 'read:user,repo',
-      state // grant_type: options.grantType,
-      // access_type: options.accessType,
-      // login_hint: req.query.loginHint,
-      // include_granted_scopes: options.includeGrantedScopes,
-
-    }); // console.log(redirectUri);
-
-    res.redirect(redirectUri);
-  });
-  router.get('/gh/login-response', async (req, res) => {
-    if (req.query.error) {
-      res.send(req.query.error_description);
-      return;
-    }
-
-    const code = req.query.code;
-    const state = req.query.state;
-    const cookieName = `auth_${"gh"}_${state}`;
-    const cookie = req.cookies && req.cookies[cookieName];
-
-    if (!cookie) {
-      // res.redirect(`/${strategy}/login`);
-      res.send('<html><body>No cookie for this state. <a href="/gh/login">Retry ?</a></body></html>');
-      return;
-    }
-
-    res.clearCookie(cookieName);
-    const result = await oauth2.authorizationCode.getToken({
-      code,
-      redirect_uri: createRedirectUri(req, "gh")
-    });
-
-    if (!result) {
-      // res.redirect(`/${strategy}/login`);
-      res.send(server.renderToStaticMarkup(React.createElement(Layout, {
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 156
-        },
-        __self: this
-      }, React.createElement("div", {
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 157
-        },
-        __self: this
-      }, "Could not get access token. ", React.createElement("a", {
-        href: "/gh/login",
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 158
-        },
-        __self: this
-      }, "Retry ?")))));
-      return;
-    }
-
-    const accessToken = result.access_token;
-    const octokit = new Octokit({
-      auth: `token ${accessToken}`
-    });
-    const user = await octokit.users.getAuthenticated({});
-    const login = user.data.login;
-    const token = await signPromisified({
-      login,
-      accessToken,
-      time: Date.now()
-    }, AUTH_SECRET_KEY, {
-      algorithm: 'HS512',
-      audience: req.headers['user-agent'],
-      expiresIn: '10 days'
-    });
-    res.cookie(`auth_${"gh"}`, token, {
-      httpOnly: true,
-      secure
-    });
-    res.redirect('/gh');
-  });
-  router.get('/gh/repository/:owner/:repository', async (req, res) => {
-    const authInfo = await readAuthCookie(req, "gh");
-
-    if (!authInfo) {
-      return res.redirect('/gh/login');
-    }
-
-    const octokit = new Octokit({
-      auth: `token ${authInfo.accessToken}`
-    });
-    const {
-      data
-    } = await octokit.repos.get({
-      owner: req.params.owner,
-      repo: req.params.repository
-    });
-
-    if (!data) {
-      return res.status(404).send(server.renderToStaticMarkup(React.createElement(Layout, {
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 205
-        },
-        __self: this
-      }, React.createElement("div", {
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 206
-        },
-        __self: this
-      }, "repo not found"))));
-    }
-
-    if (!data.permissions.admin) {
-      return res.status(401).send(server.renderToStaticMarkup(React.createElement(Layout, {
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 215
-        },
-        __self: this
-      }, React.createElement("div", {
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 216
-        },
-        __self: this
-      }, "not authorized to see this repo, you need to have admin permission"))));
-    }
-
-    const {
-      data: data2
-    } = await api.apps.getRepoInstallation({
-      owner: req.params.owner,
-      repo: req.params.repository
-    }).catch(err => {
-      return {
-        status: err.status,
-        data: undefined
-      };
-    });
-
-    if (!data2) {
-      return res.send(server.renderToStaticMarkup(React.createElement(Layout, {
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 236
-        },
-        __self: this
-      }, React.createElement("div", {
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 237
-        },
-        __self: this
-      }, process.env.REVIEWFLOW_NAME, " ", "isn't", " installed on this repo. Go to", ' ', React.createElement("a", {
-        href: `https://github.com/apps/${process.env.REVIEWFLOW_NAME}/installations/new`,
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 240
-        },
-        __self: this
-      }, "Github Configuration"), ' ', "to add it."))));
-    }
-
-    res.send(server.renderToStaticMarkup(React.createElement(Layout, {
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 256
-      },
-      __self: this
-    }, React.createElement("div", {
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 257
-      },
-      __self: this
-    }, React.createElement("h4", {
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 258
-      },
-      __self: this
-    }, req.params.repository)))));
-  });
-}
-
-if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = 'reviewflow';
-console.log({
-  name: process.env.REVIEWFLOW_NAME
-}); // const getConfig = require('probot-config')
-// const { MongoClient } = require('mongodb');
-// const connect = MongoClient.connect(process.env.MONGO_URL);
-// const db = connect.then(client => client.db(process.env.MONGO_DB));
-// let config = await getConfig(context, 'reviewflow.yml');
-// eslint-disable-next-line import/no-commonjs
-
-probot.Probot.run(app => {
-  const mongoStores = init();
-  appRouter(app, mongoStores);
+function initApp(app) {
   opened(app);
   closed(app);
   closed$1(app);
@@ -2324,5 +2316,21 @@ probot.Probot.run(app => {
   checkrunCompleted(app);
   checksuiteCompleted(app);
   status(app);
+}
+
+if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = 'reviewflow';
+console.log({
+  name: process.env.REVIEWFLOW_NAME
+}); // const getConfig = require('probot-config')
+// const { MongoClient } = require('mongodb');
+// const connect = MongoClient.connect(process.env.MONGO_URL);
+// const db = connect.then(client => client.db(process.env.MONGO_DB));
+// let config = await getConfig(context, 'reviewflow.yml');
+// eslint-disable-next-line import/no-commonjs
+
+probot.Probot.run(app => {
+  const mongoStores = init();
+  appRouter(app, mongoStores);
+  initApp(app);
 });
 //# sourceMappingURL=index-node10-dev.cjs.js.map

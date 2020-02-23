@@ -1,13 +1,12 @@
 /* eslint-disable max-lines */
 
 import { promisify } from 'util';
-import Octokit from '@octokit/rest';
 import { Request, Response } from 'express';
+import { Octokit, Application } from 'probot';
 import cookieParser from 'cookie-parser';
 import { sign, verify } from 'jsonwebtoken';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { Application } from 'probot';
 import { MongoStores } from './mongo';
 import Layout from './views/Layout';
 import * as githubAuth from './auth/github';

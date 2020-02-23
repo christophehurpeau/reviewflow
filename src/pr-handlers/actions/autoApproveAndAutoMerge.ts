@@ -1,12 +1,11 @@
 import Webhooks from '@octokit/webhooks';
-import { PullsGetResponse } from '@octokit/rest';
-import { Context } from 'probot';
+import { Context, Octokit } from 'probot';
 import { RepoContext } from '../../context/repoContext';
 import { autoMergeIfPossible } from './autoMergeIfPossible';
 import hasLabelInPR from './utils/hasLabelInPR';
 
 export const autoApproveAndAutoMerge = async (
-  pr: PullsGetResponse,
+  pr: Octokit.PullsGetResponse,
   context: Context<Webhooks.WebhookPayloadPullRequest>,
   repoContext: RepoContext,
 ): Promise<boolean> => {

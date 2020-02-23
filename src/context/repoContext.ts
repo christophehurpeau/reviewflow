@@ -55,7 +55,7 @@ async function initRepoContext<GroupNames extends string>(
   const orgContext = await obtainOrgContext(context, config);
   const repoContext = Object.create(orgContext);
 
-  const [labels] = await Promise.all([initRepoLabels(context, config)]);
+  const labels = await initRepoLabels(context, config);
 
   const reviewGroupNames = Object.keys(config.groups) as GroupNames[];
 
@@ -125,19 +125,19 @@ async function initRepoContext<GroupNames extends string>(
         prIdOrIds,
         prNumberOrPrNumbers,
       };
-      context.info('lock: try to lock pr', logInfos);
+      context.log.info('lock: try to lock pr', logInfos);
       lock(prIdOrIds, async (createReleaseCallback) => {
         const release = createReleaseCallback(() => {});
-        context.info('lock: lock acquired', logInfos);
+        context.log.info('lock: lock acquired', logInfos);
         try {
           await callback();
         } catch (err) {
-          context.info('lock: release pr (with error)', logInfos);
+          context.log.info('lock: release pr (with error)', logInfos);
           release();
           reject(err);
           return;
         }
-        context.info('lock: release pr', logInfos);
+        context.log.info('lock: release pr', logInfos);
         release();
         resolve();
       });

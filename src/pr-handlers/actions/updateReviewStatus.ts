@@ -1,6 +1,5 @@
 import Webhooks from '@octokit/webhooks';
-import { PullsGetResponse } from '@octokit/rest';
-import { Context } from 'probot';
+import { Context, Octokit } from 'probot';
 import { LabelResponse } from '../../context/initRepoLabels';
 import { GroupLabels } from '../../orgsConfigs/types';
 import { RepoContext } from '../../context/repoContext';
@@ -10,7 +9,7 @@ export const updateReviewStatus = async <
   E extends Webhooks.WebhookPayloadPullRequest,
   GroupNames extends string = any
 >(
-  pr: PullsGetResponse,
+  pr: Octokit.PullsGetResponse,
   context: Context<E>,
   repoContext: RepoContext,
   reviewGroup: GroupNames,
