@@ -237,10 +237,12 @@ export const autoMergeIfPossible = async (
       owner: pr.head.repo.owner.login,
       repo: pr.head.repo.name,
       pull_number: pr.number,
-      commit_title: `${pr.title}${
-        options.autoMergeWithSkipCi ? ' [skip ci]' : ''
-      } (#${pr.number})`,
-      commit_message: '', // TODO add BC
+      commit_title: options.featureBranch
+        ? undefined
+        : `${pr.title}${options.autoMergeWithSkipCi ? ' [skip ci]' : ''} (#${
+            pr.number
+          })`,
+      commit_message: options.featureBranch ? undefined : '', // TODO add BC
     });
     context.log.debug('merge result:', mergeResult.data);
     repoContext.removePrFromAutomergeQueue(context, pr.number);
