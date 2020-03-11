@@ -1,3 +1,12 @@
+# [1.35.0](https://github.com/christophehurpeau/reviewflow/compare/v1.34.0...v1.35.0) (2020-03-11)
+
+
+### Features
+
+* add busser in ops team ([0ebf1b8](https://github.com/christophehurpeau/reviewflow/commit/0ebf1b8))
+
+
+
 # [1.34.0](https://github.com/christophehurpeau/reviewflow/compare/v1.33.0...v1.34.0) (2020-02-23)
 
 
