@@ -483,6 +483,7 @@ const config = {
       JulienBreux: `julien.breux${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       'Alan-pad': null,
       CamilSadiki: null,
+      busser: null,
 
       /* back */
       abarreir: `alexandre${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -512,7 +513,7 @@ const config = {
   },
   teams: {
     ops: {
-      logins: ['JulienBreux', 'Alan-pad', 'CamilSadiki'],
+      logins: ['JulienBreux', 'Alan-pad', 'CamilSadiki', 'busser'],
       labels: ['teams/ops']
     },
     backends: {
