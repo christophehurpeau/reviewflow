@@ -47,7 +47,7 @@ function init() {
   };
 }
 
-var _jsxFileName = "/Users/chris/Work/github-apps/reviewflow/src/views/Layout.tsx";
+var _jsxFileName = "/home/chris/github-apps/reviewflow/src/views/Layout.tsx";
 function Layout({
   lang = 'en',
   title = process.env.NAME,
@@ -138,7 +138,7 @@ async function randomHex(size) {
   return buffer.toString('hex');
 }
 
-var _jsxFileName$1 = "/Users/chris/Work/github-apps/reviewflow/src/appRouter.tsx";
+var _jsxFileName$1 = "/home/chris/github-apps/reviewflow/src/appRouter.tsx";
 
 if (!process.env.AUTH_SECRET_KEY) {
   throw new Error('Missing env variable: AUTH_SECRET_KEY');
