@@ -1,3 +1,12 @@
+# [1.36.0](https://github.com/christophehurpeau/reviewflow/compare/v1.35.0...v1.36.0) (2020-04-27)
+
+
+### Features
+
+* support number inside ticket key ([1e2a87a](https://github.com/christophehurpeau/reviewflow/commit/1e2a87a))
+
+
+
 # [1.35.0](https://github.com/christophehurpeau/reviewflow/compare/v1.34.0...v1.35.0) (2020-03-11)
 
 
