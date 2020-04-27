@@ -28,7 +28,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       },
       {
         bot: false,
-        regExp: /\s([A-Z]{2,}-(\d+)|\[no issue])$/,
+        regExp: /\s([A-Z][A-Z\d]+-(\d+)|\[no issue])$/,
         error: {
           title: 'Title does not have JIRA issue',
           summary: 'The PR title should end with ONK-0000, or [no issue]',

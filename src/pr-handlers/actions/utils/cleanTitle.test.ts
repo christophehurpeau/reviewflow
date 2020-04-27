@@ -36,6 +36,15 @@ it('should support lowercase onk', () => {
   );
 });
 
+it('should support ticket with number', () => {
+  expect(cleanTitle('feat: add something c0re-1234')).toBe(
+    'feat: add something C0RE-1234',
+  );
+  expect(cleanTitle('feat: add something c0re 1234')).toBe(
+    'feat: add something C0RE-1234',
+  );
+});
+
 it('should clean uppercase and slash', () => {
   expect(cleanTitle('Feat/add something')).toBe('feat: add something');
 });

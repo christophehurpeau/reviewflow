@@ -2,7 +2,7 @@ export const cleanTitle = (title: string): string =>
   title
     .trim()
     .replace(
-      /[\s-]+\[?\s*([A-Za-z]+)[- ](\d+)\s*]?\s*$/,
+      /[\s-]+\[?\s*([A-Za-z][A-Za-z\d]+)[- ](\d+)\s*]?\s*$/,
       (s, arg1, arg2) => ` ${arg1.toUpperCase()}-${arg2}`,
     )
     .replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `)
