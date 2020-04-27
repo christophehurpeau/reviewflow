@@ -291,7 +291,7 @@ const config = {
       }
     }, {
       bot: false,
-      regExp: /\s([A-Z]{2,}-(\d+)|\[no issue])$/,
+      regExp: /\s([A-Z][A-Z\d]+-(\d+)|\[no issue])$/,
       error: {
         title: 'Title does not have JIRA issue',
         summary: 'The PR title should end with ONK-0000, or [no issue]'
@@ -1302,7 +1302,7 @@ const autoAssignPRToCreator = async (pr, context, repoContext) => {
   }));
 };
 
-const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*([A-Za-z]+)[- ](\d+)\s*]?\s*$/, (s, arg1, arg2) => ` ${arg1.toUpperCase()}-${arg2}`).replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `).replace(/^Revert "([^"]+)"$/, 'revert: $1').replace(/\s+[[\]]\s*no\s*issue\s*[[\]]$/i, ' [no issue]') // eslint-disable-next-line unicorn/no-unsafe-regex
+const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*([A-Za-z][A-Za-z\d]+)[- ](\d+)\s*]?\s*$/, (s, arg1, arg2) => ` ${arg1.toUpperCase()}-${arg2}`).replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `).replace(/^Revert "([^"]+)"$/, 'revert: $1').replace(/\s+[[\]]\s*no\s*issue\s*[[\]]$/i, ' [no issue]') // eslint-disable-next-line unicorn/no-unsafe-regex
 .replace(/^(revert:.*)(\s+\(#\d+\))$/, '$1');
 
 const toMarkdownOptions = options => {
