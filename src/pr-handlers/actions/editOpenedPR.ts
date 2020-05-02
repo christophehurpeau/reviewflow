@@ -2,6 +2,7 @@
 import Webhooks from '@octokit/webhooks';
 import { StatusError, StatusInfo } from '../../orgsConfigs/types';
 import { PRHandler } from '../utils';
+import { ExcludesFalsy } from '../../utils/ExcludesFalsy';
 import { cleanTitle } from './utils/cleanTitle';
 import { updateBody } from './utils/updateBody';
 import { autoMergeIfPossible } from './autoMergeIfPossible';
@@ -23,10 +24,6 @@ interface StatusWithError {
 }
 
 type Status = StatusWithInfo | StatusWithError;
-
-const ExcludesFalsy = (Boolean as any) as <T>(
-  x: T | false | null | undefined,
-) => x is T;
 
 export const editOpenedPR: PRHandler<
   Webhooks.WebhookPayloadPullRequest,

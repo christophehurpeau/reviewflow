@@ -1,25 +1,36 @@
 import Webhooks from '@octokit/webhooks';
-import { WebClient } from '@slack/web-api';
+import { WebClient, KnownBlock } from '@slack/web-api';
 import { Context, Octokit } from 'probot';
+import { ExcludesFalsy } from '../utils/ExcludesFalsy';
 import { Config } from '../orgsConfigs';
 import { getKeys } from './utils';
 
+interface SlackMessage {
+  text: string;
+  blocks?: KnownBlock[];
+  secondaryBlocks?: KnownBlock[];
+  ts?: string;
+}
+
+interface SlackMessageResult {
+  ts: string;
+}
+
 export interface TeamSlack {
   mention: (githubLogin: string) => string;
-  postMessage: (githubLogin: string, text: string) => Promise<void>;
+  postMessage: (
+    githubLogin: string,
+    message: SlackMessage,
+  ) => Promise<SlackMessageResult | null>;
   prLink: <T extends Webhooks.WebhookPayloadPullRequest>(
     pr: Octokit.PullsGetResponse,
     context: Context<T>,
   ) => string;
 }
 
-const ExcludesFalsy = (Boolean as any) as <T>(
-  x: T | false | null | undefined,
-) => x is T;
-
 export const voidTeamSlack = (): TeamSlack => ({
   mention: (): string => '',
-  postMessage: (): Promise<void> => Promise.resolve(),
+  postMessage: (): Promise<null> => Promise.resolve(null),
   prLink: (): string => '',
 });
 
@@ -81,17 +92,27 @@ export const initTeamSlack = async <GroupNames extends string>(
       if (!user) return githubLogin;
       return `<@${user.member.id}>`;
     },
-    postMessage: async (githubLogin: string, text: string): Promise<void> => {
-      context.log.debug('send slack', { githubLogin, text });
-      if (process.env.DRY_RUN) return;
+    postMessage: async (
+      githubLogin: string,
+      message: SlackMessage,
+    ): Promise<null | SlackMessageResult> => {
+      context.log.debug('send slack', { githubLogin, message });
+      if (process.env.DRY_RUN) return null;
 
       const user = getUserFromGithubLogin(githubLogin);
-      if (!user || !user.im) return;
-      await slackClient.chat.postMessage({
+      if (!user || !user.im) return null;
+      const result = await slackClient.chat.postMessage({
         username: process.env.REVIEWFLOW_NAME,
         channel: user.im.id,
-        text,
+        text: message.text,
+        blocks: message.blocks,
+        attachments: message.secondaryBlocks
+          ? [{ blocks: message.secondaryBlocks }]
+          : undefined,
+        thread_ts: message.ts,
       });
+      if (!result.ok) return null;
+      return { ts: result.ts as string };
     },
     prLink: <T extends Webhooks.WebhookPayloadPullRequest>(
       pr: Octokit.PullsGetResponse,

@@ -9,7 +9,7 @@ export default function reviewSubmitted(app: Application): void {
     'pull_request_review.submitted',
     createHandlerPullRequestChange(
       async (pr, context, repoContext): Promise<void> => {
-        const { user: reviewer, state } = (context.payload as any).review;
+        const { user: reviewer, state, body } = (context.payload as any).review;
         if (pr.user.login === reviewer.login) return;
 
         const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
@@ -87,7 +87,29 @@ export default function reviewSubmitted(app: Application): void {
           return `:speech_balloon: ${mention} commented on ${prUrl}`;
         })();
 
-        repoContext.slack.postMessage(pr.user.login, message);
+        repoContext.slack.postMessage(pr.user.login, {
+          text: message,
+          blocks: [
+            {
+              type: 'section' as const,
+              text: {
+                type: 'mrkdwn' as const,
+                text: message,
+              },
+            },
+          ],
+          secondaryBlocks: !body
+            ? undefined
+            : [
+                {
+                  type: 'section' as const,
+                  text: {
+                    type: 'mrkdwn' as const,
+                    text: body,
+                  },
+                },
+              ],
+        });
       },
     ),
   );

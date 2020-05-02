@@ -5,6 +5,7 @@ import { Context } from 'probot';
 import { orgsConfigs, Config, defaultConfig } from '../orgsConfigs';
 // eslint-disable-next-line import/no-cycle
 import { autoMergeIfPossible } from '../pr-handlers/actions/autoMergeIfPossible';
+import { ExcludesFalsy } from '../utils/ExcludesFalsy';
 import { initRepoLabels, LabelResponse, Labels } from './initRepoLabels';
 import { obtainOrgContext, OrgContext } from './orgContext';
 
@@ -36,10 +37,6 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   reschedule(context: Context<any>, pr: LockedMergePr): void;
   pushAutomergeQueue(pr: LockedMergePr): void;
 }
-
-const ExcludesFalsy = (Boolean as any) as <T>(
-  x: T | false | null | undefined,
-) => x is T;
 
 export type RepoContext<GroupNames extends string = any> = OrgContext<
   GroupNames

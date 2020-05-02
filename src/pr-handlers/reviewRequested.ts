@@ -43,15 +43,14 @@ export default function reviewRequested(app: Application): void {
         if (sender.login === reviewer.login) return;
 
         if (!shouldWait && repoContext.slack) {
-          repoContext.slack.postMessage(
-            reviewer.login,
-            `:eyes: ${repoContext.slack.mention(
+          repoContext.slack.postMessage(reviewer.login, {
+            text: `:eyes: ${repoContext.slack.mention(
               sender.login,
             )} requests your review on ${repoContext.slack.prLink(
               pr,
               context,
             )} !\n> ${pr.title}`,
-          );
+          });
         }
       },
     ),

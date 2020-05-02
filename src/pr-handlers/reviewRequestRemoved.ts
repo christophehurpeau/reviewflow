@@ -62,15 +62,14 @@ export default function reviewRequestRemoved(app: Application): void {
         if (sender.login === reviewer.login) return;
 
         if (repoContext.slack) {
-          repoContext.slack.postMessage(
-            reviewer.login,
-            `:skull_and_crossbones: ${repoContext.slack.mention(
+          repoContext.slack.postMessage(reviewer.login, {
+            text: `:skull_and_crossbones: ${repoContext.slack.mention(
               sender.login,
             )} removed the request for your review on ${repoContext.slack.prLink(
               pr,
               context,
             )}`,
-          );
+          });
         }
       },
     ),

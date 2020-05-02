@@ -1,5 +1,6 @@
 import { Context } from 'probot';
 import { Config } from '../orgsConfigs';
+import { ExcludesFalsy } from '../utils/ExcludesFalsy';
 import { initTeamSlack, TeamSlack } from './initTeamSlack';
 import { getKeys } from './utils';
 
@@ -21,9 +22,6 @@ export interface OrgContext<
     }: { includesReviewerGroup?: boolean; includesWaitForGroups?: boolean },
   ) => boolean;
 }
-const ExcludesFalsy = (Boolean as any) as <T>(
-  x: T | false | null | undefined,
-) => x is T;
 
 const initTeamContext = async (
   context: Context<any>,
