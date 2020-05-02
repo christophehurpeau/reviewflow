@@ -28,7 +28,7 @@ const createRedirectUri = (req: Request, strategy: string) => {
   const host = `http${secure ? 's' : ''}://${req.hostname}${
     req.hostname === 'localhost' ? `:${process.env.PORT}` : ''
   }`;
-  return `${host}/${strategy}/login-response`;
+  return `${host}/app/${strategy}/login-response`;
 };
 
 interface AuthInfo {
@@ -66,7 +66,7 @@ export default async function appRouter(
     const strategy = 'gh';
     const authInfo = await readAuthCookie(req, strategy);
     if (!authInfo) {
-      return res.redirect('/gh/login');
+      return res.redirect('/app/gh/login');
     }
 
     const octokit = new Octokit({ auth: `token ${authInfo.accessToken}` });
@@ -80,7 +80,9 @@ export default async function appRouter(
             <ul>
               {data.map((repo: any) => (
                 <li key={repo.id}>
-                  <a href={`/gh/repository/${repo.owner.login}/${repo.name}`}>
+                  <a
+                    href={`/app/gh/repository/${repo.owner.login}/${repo.name}`}
+                  >
                     {repo.name}
                   </a>
                 </li>
@@ -98,7 +100,7 @@ export default async function appRouter(
   router.get('/gh/login', async (req: Request, res: Response) => {
     const strategy = 'gh';
     if (await readAuthCookie(req, strategy)) {
-      return res.redirect('/gh');
+      return res.redirect('/app/gh');
     }
 
     const state = await randomHex(8);
@@ -137,7 +139,7 @@ export default async function appRouter(
     if (!cookie) {
       // res.redirect(`/${strategy}/login`);
       res.send(
-        '<html><body>No cookie for this state. <a href="/gh/login">Retry ?</a></body></html>',
+        '<html><body>No cookie for this state. <a href="/app/gh/login">Retry ?</a></body></html>',
       );
       return;
     }
@@ -154,7 +156,7 @@ export default async function appRouter(
         renderToStaticMarkup(
           <Layout>
             <div>
-              Could not get access token. <a href="/gh/login">Retry ?</a>
+              Could not get access token. <a href="/app/gh/login">Retry ?</a>
             </div>
           </Layout>,
         ),

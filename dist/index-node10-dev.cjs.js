@@ -47,7 +47,7 @@ function init() {
   };
 }
 
-var _jsxFileName = "/Users/chris/github-apps/reviewflow/src/views/Layout.tsx";
+var _jsxFileName = "/home/chris/github-apps/reviewflow/src/views/Layout.tsx";
 function Layout({
   lang = 'en',
   title = process.env.NAME,
@@ -138,7 +138,7 @@ async function randomHex(size) {
   return buffer.toString('hex');
 }
 
-var _jsxFileName$1 = "/Users/chris/github-apps/reviewflow/src/appRouter.tsx";
+var _jsxFileName$1 = "/home/chris/github-apps/reviewflow/src/appRouter.tsx";
 
 if (!process.env.AUTH_SECRET_KEY) {
   throw new Error('Missing env variable: AUTH_SECRET_KEY');
@@ -151,7 +151,7 @@ const secure = !!process.env.SECURE_COOKIE && process.env.SECURE_COOKIE !== 'fal
 
 const createRedirectUri = (req, strategy) => {
   const host = `http${secure ? 's' : ''}://${req.hostname}${req.hostname === 'localhost' ? `:${process.env.PORT}` : ''}`;
-  return `${host}/${strategy}/login-response`;
+  return `${host}/app/${strategy}/login-response`;
 };
 
 const readAuthCookie = (req, strategy) => {
@@ -174,7 +174,7 @@ async function appRouter(app) {
     const authInfo = await readAuthCookie(req, "gh");
 
     if (!authInfo) {
-      return res.redirect('/gh/login');
+      return res.redirect('/app/gh/login');
     }
 
     const octokit = new probot.Octokit({
@@ -217,7 +217,7 @@ async function appRouter(app) {
       },
       __self: this
     }, React.createElement("a", {
-      href: `/gh/repository/${repo.owner.login}/${repo.name}`,
+      href: `/app/gh/repository/${repo.owner.login}/${repo.name}`,
       __source: {
         fileName: _jsxFileName$1,
         lineNumber: 83
@@ -226,14 +226,14 @@ async function appRouter(app) {
     }, repo.name))))), data.length === 100 && React.createElement("div", {
       __source: {
         fileName: _jsxFileName$1,
-        lineNumber: 91
+        lineNumber: 93
       },
       __self: this
     }, "We currently have a limit to 100 repositories"))));
   });
   router.get('/gh/login', async (req, res) => {
     if (await readAuthCookie(req, "gh")) {
-      return res.redirect('/gh');
+      return res.redirect('/app/gh');
     }
 
     const state = await randomHex(8);
@@ -267,7 +267,7 @@ async function appRouter(app) {
 
     if (!cookie) {
       // res.redirect(`/${strategy}/login`);
-      res.send('<html><body>No cookie for this state. <a href="/gh/login">Retry ?</a></body></html>');
+      res.send('<html><body>No cookie for this state. <a href="/app/gh/login">Retry ?</a></body></html>');
       return;
     }
 
@@ -282,20 +282,20 @@ async function appRouter(app) {
       res.send(server.renderToStaticMarkup(React.createElement(Layout, {
         __source: {
           fileName: _jsxFileName$1,
-          lineNumber: 155
+          lineNumber: 157
         },
         __self: this
       }, React.createElement("div", {
         __source: {
           fileName: _jsxFileName$1,
-          lineNumber: 156
+          lineNumber: 158
         },
         __self: this
       }, "Could not get access token. ", React.createElement("a", {
-        href: "/gh/login",
+        href: "/app/gh/login",
         __source: {
           fileName: _jsxFileName$1,
-          lineNumber: 157
+          lineNumber: 159
         },
         __self: this
       }, "Retry ?")))));
@@ -344,13 +344,13 @@ async function appRouter(app) {
       return res.status(404).send(server.renderToStaticMarkup(React.createElement(Layout, {
         __source: {
           fileName: _jsxFileName$1,
-          lineNumber: 204
+          lineNumber: 206
         },
         __self: this
       }, React.createElement("div", {
         __source: {
           fileName: _jsxFileName$1,
-          lineNumber: 205
+          lineNumber: 207
         },
         __self: this
       }, "repo not found"))));
@@ -360,13 +360,13 @@ async function appRouter(app) {
       return res.status(401).send(server.renderToStaticMarkup(React.createElement(Layout, {
         __source: {
           fileName: _jsxFileName$1,
-          lineNumber: 214
+          lineNumber: 216
         },
         __self: this
       }, React.createElement("div", {
         __source: {
           fileName: _jsxFileName$1,
-          lineNumber: 215
+          lineNumber: 217
         },
         __self: this
       }, "not authorized to see this repo, you need to have admin permission"))));
@@ -388,20 +388,20 @@ async function appRouter(app) {
       return res.send(server.renderToStaticMarkup(React.createElement(Layout, {
         __source: {
           fileName: _jsxFileName$1,
-          lineNumber: 235
+          lineNumber: 237
         },
         __self: this
       }, React.createElement("div", {
         __source: {
           fileName: _jsxFileName$1,
-          lineNumber: 236
+          lineNumber: 238
         },
         __self: this
       }, process.env.REVIEWFLOW_NAME, " ", "isn't", " installed on this repo. Go to", ' ', React.createElement("a", {
         href: `https://github.com/apps/${process.env.REVIEWFLOW_NAME}/installations/new`,
         __source: {
           fileName: _jsxFileName$1,
-          lineNumber: 239
+          lineNumber: 241
         },
         __self: this
       }, "Github Configuration"), ' ', "to add it."))));
@@ -410,19 +410,19 @@ async function appRouter(app) {
     res.send(server.renderToStaticMarkup(React.createElement(Layout, {
       __source: {
         fileName: _jsxFileName$1,
-        lineNumber: 255
+        lineNumber: 257
       },
       __self: this
     }, React.createElement("div", {
       __source: {
         fileName: _jsxFileName$1,
-        lineNumber: 256
+        lineNumber: 258
       },
       __self: this
     }, React.createElement("h4", {
       __source: {
         fileName: _jsxFileName$1,
-        lineNumber: 257
+        lineNumber: 259
       },
       __self: this
     }, req.params.repository)))));

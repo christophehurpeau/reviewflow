@@ -106,7 +106,7 @@ const secure = !!process.env.SECURE_COOKIE && process.env.SECURE_COOKIE !== 'fal
 
 const createRedirectUri = (req, strategy) => {
   const host = `http${secure ? 's' : ''}://${req.hostname}${req.hostname === 'localhost' ? `:${process.env.PORT}` : ''}`;
-  return `${host}/${strategy}/login-response`;
+  return `${host}/app/${strategy}/login-response`;
 };
 
 const readAuthCookie = (req, strategy) => {
@@ -129,7 +129,7 @@ async function appRouter(app) {
     const authInfo = await readAuthCookie(req, "gh");
 
     if (!authInfo) {
-      return res.redirect('/gh/login');
+      return res.redirect('/app/gh/login');
     }
 
     const octokit = new probot.Octokit({
@@ -143,12 +143,12 @@ async function appRouter(app) {
     res.send(server.renderToStaticMarkup(React.createElement(Layout, null, React.createElement("div", null, React.createElement("h4", null, "Your repositories"), React.createElement("ul", null, data.map(repo => React.createElement("li", {
       key: repo.id
     }, React.createElement("a", {
-      href: `/gh/repository/${repo.owner.login}/${repo.name}`
+      href: `/app/gh/repository/${repo.owner.login}/${repo.name}`
     }, repo.name))))), data.length === 100 && React.createElement("div", null, "We currently have a limit to 100 repositories"))));
   });
   router.get('/gh/login', async (req, res) => {
     if (await readAuthCookie(req, "gh")) {
-      return res.redirect('/gh');
+      return res.redirect('/app/gh');
     }
 
     const state = await randomHex(8);
@@ -182,7 +182,7 @@ async function appRouter(app) {
 
     if (!cookie) {
       // res.redirect(`/${strategy}/login`);
-      res.send('<html><body>No cookie for this state. <a href="/gh/login">Retry ?</a></body></html>');
+      res.send('<html><body>No cookie for this state. <a href="/app/gh/login">Retry ?</a></body></html>');
       return;
     }
 
@@ -195,7 +195,7 @@ async function appRouter(app) {
     if (!result) {
       // res.redirect(`/${strategy}/login`);
       res.send(server.renderToStaticMarkup(React.createElement(Layout, null, React.createElement("div", null, "Could not get access token. ", React.createElement("a", {
-        href: "/gh/login"
+        href: "/app/gh/login"
       }, "Retry ?")))));
       return;
     }
