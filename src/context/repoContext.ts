@@ -2,7 +2,7 @@
 
 import { Lock } from 'lock';
 import { Context } from 'probot';
-import { orgsConfigs, Config } from '../orgsConfigs';
+import { orgsConfigs, Config, defaultConfig } from '../orgsConfigs';
 // eslint-disable-next-line import/no-cycle
 import { autoMergeIfPossible } from '../pr-handlers/actions/autoMergeIfPossible';
 import { initRepoLabels, LabelResponse, Labels } from './initRepoLabels';
@@ -242,11 +242,11 @@ export const obtainRepoContext = (
   const existingPromise = repoContextsPromise.get(key);
   if (existingPromise) return Promise.resolve(existingPromise);
 
-  const orgConfig = orgsConfigs[owner.login];
+  let orgConfig = orgsConfigs[owner.login];
 
   if (!orgConfig) {
     console.warn(`using default config for ${owner.login}`);
-    return null;
+    orgConfig = defaultConfig as Config<any, any>;
   }
 
   if (shouldIgnoreRepo(repo.name, orgConfig)) {

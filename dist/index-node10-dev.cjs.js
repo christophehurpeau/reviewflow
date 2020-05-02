@@ -429,8 +429,47 @@ async function appRouter(app) {
   });
 }
 
-/* eslint-disable max-lines */
 const config = {
+  autoAssignToCreator: true,
+  trimTitle: true,
+  requiresReviewRequest: false,
+  prDefaultOptions: {
+    featureBranch: false,
+    autoMergeWithSkipCi: false,
+    autoMerge: false,
+    deleteAfterMerge: true
+  },
+  parsePR: {
+    title: []
+  },
+  groups: {},
+  waitForGroups: {},
+  teams: {},
+  labels: {
+    list: {
+      // /* ci */
+      // 'ci/in-progress': { name: ':green_heart: ci/in-progress', color: '#0052cc' },
+      // 'ci/fail': { name: ':green_heart: ci/fail', color: '#e11d21' },
+      // 'ci/passed': { name: ':green_heart: ci/passed', color: '#86f9b4' },
+
+      /* infos */
+      'breaking-changes': {
+        name: ':warning: Breaking Changes',
+        color: '#ef7934'
+      }
+    },
+    review: {
+      ci: {
+        inProgress: 'ci/in-progress',
+        succeeded: 'ci/success',
+        failed: 'ci/fail'
+      }
+    }
+  }
+};
+
+/* eslint-disable max-lines */
+const config$1 = {
   slackToken: process.env.ORNIKAR_SLACK_TOKEN,
   autoAssignToCreator: true,
   trimTitle: true,
@@ -671,7 +710,7 @@ const config = {
   }
 };
 
-const config$1 = {
+const config$2 = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: false,
@@ -766,8 +805,8 @@ const config$1 = {
 };
 
 const orgsConfigs = {
-  ornikar: config,
-  christophehurpeau: config$1
+  ornikar: config$1,
+  christophehurpeau: config$2
 };
 // export const getMembers = <GroupNames extends string = any>(
 //   groups: Record<GroupNames, Group>,
@@ -1421,11 +1460,11 @@ const obtainRepoContext = context => {
   if (existingRepoContext) return existingRepoContext;
   const existingPromise = repoContextsPromise.get(key);
   if (existingPromise) return Promise.resolve(existingPromise);
-  const orgConfig = orgsConfigs[owner.login];
+  let orgConfig = orgsConfigs[owner.login];
 
   if (!orgConfig) {
     console.warn(`using default config for ${owner.login}`);
-    return null;
+    orgConfig = config;
   }
 
   if (shouldIgnoreRepo(repo.name, orgConfig)) {
