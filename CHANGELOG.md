@@ -1,3 +1,17 @@
+# [1.37.0](https://github.com/christophehurpeau/reviewflow/compare/v1.36.0...v1.37.0) (2020-05-02)
+
+
+### Bug Fixes
+
+* app router paths ([c3452c4](https://github.com/christophehurpeau/reviewflow/commit/c3452c4))
+
+
+### Features
+
+* default config ([85fd768](https://github.com/christophehurpeau/reviewflow/commit/85fd768))
+
+
+
 # [1.36.0](https://github.com/christophehurpeau/reviewflow/compare/v1.35.0...v1.36.0) (2020-04-27)
 
 
