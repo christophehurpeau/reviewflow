@@ -930,6 +930,8 @@ const autoMergeIfPossible = async (pr, context, repoContext, prLabels = pr.label
   }
 };
 
+const ExcludesFalsy = Boolean;
+
 const getLabelsForRepo = async context => {
   const {
     data: labels
@@ -1008,10 +1010,9 @@ const contextPr = (context, object) => {
   });
 };
 
-const ExcludesFalsy = Boolean;
 const voidTeamSlack = () => ({
   mention: () => '',
-  postMessage: () => Promise.resolve(),
+  postMessage: () => Promise.resolve(null),
   prLink: () => ''
 });
 const initTeamSlack = async (context, config) => {
@@ -1066,27 +1067,34 @@ const initTeamSlack = async (context, config) => {
       if (!user) return githubLogin;
       return `<@${user.member.id}>`;
     },
-    postMessage: async (githubLogin, text) => {
+    postMessage: async (githubLogin, message) => {
       context.log.debug('send slack', {
         githubLogin,
-        text
+        message
       });
-      if (process.env.DRY_RUN) return;
+      if (process.env.DRY_RUN) return null;
       const user = getUserFromGithubLogin(githubLogin);
-      if (!user || !user.im) return;
-      await slackClient.chat.postMessage({
+      if (!user || !user.im) return null;
+      const result = await slackClient.chat.postMessage({
         username: process.env.REVIEWFLOW_NAME,
         channel: user.im.id,
-        text
+        text: message.text,
+        blocks: message.blocks,
+        attachments: message.secondaryBlocks ? [{
+          blocks: message.secondaryBlocks
+        }] : undefined,
+        thread_ts: message.ts
       });
+      if (!result.ok) return null;
+      return {
+        ts: result.ts
+      };
     },
     prLink: (pr, context) => {
       return `<${pr.html_url}|${context.payload.repository.name}#${pr.number}>`;
     }
   };
 };
-
-const ExcludesFalsy$1 = Boolean;
 
 const initTeamContext = async (context, config) => {
   const slackPromise = initTeamSlack(context, config);
@@ -1114,7 +1122,7 @@ const initTeamContext = async (context, config) => {
   return {
     config,
     getReviewerGroup: githubLogin => githubLoginToGroup.get(githubLogin),
-    getReviewerGroups: githubLogins => [...new Set(githubLogins.map(githubLogin => githubLoginToGroup.get(githubLogin)).filter(ExcludesFalsy$1))],
+    getReviewerGroups: githubLogins => [...new Set(githubLogins.map(githubLogin => githubLoginToGroup.get(githubLogin)).filter(ExcludesFalsy))],
     getTeamsForLogin: githubLogin => githubLoginToTeams.get(githubLogin) || [],
     reviewShouldWait: (reviewerGroup, requestedReviewers, {
       includesReviewerGroup,
@@ -1157,7 +1165,6 @@ const obtainOrgContext = (context, config) => {
 };
 
 /* eslint-disable max-lines */
-const ExcludesFalsy$2 = Boolean;
 
 async function initRepoContext(context, config) {
   const repo = context.payload.repository;
@@ -1231,7 +1238,7 @@ async function initRepoContext(context, config) {
     hasRequestedReview: labels => labels.some(label => requestedReviewLabelIds.includes(label.id)),
     hasChangesRequestedReview: labels => labels.some(label => changesRequestedLabelIds.includes(label.id)),
     hasApprovesReview: labels => labels.some(label => approvedReviewLabelIds.includes(label.id)),
-    getNeedsReviewGroupNames: labels => labels.filter(label => needsReviewLabelIds.includes(label.id)).map(label => labelIdToGroupName.get(label.id)).filter(ExcludesFalsy$2),
+    getNeedsReviewGroupNames: labels => labels.filter(label => needsReviewLabelIds.includes(label.id)).map(label => labelIdToGroupName.get(label.id)).filter(ExcludesFalsy),
     getMergeLockedPr: () => lockMergePr,
     addMergeLockPr: pr => {
       console.log('merge lock: lock', {
@@ -1485,7 +1492,6 @@ async function createStatus(context, name, sha, type, description, url) {
 }
 
 /* eslint-disable max-lines */
-const ExcludesFalsy$3 = Boolean;
 const editOpenedPR = async (pr, context, repoContext, previousSha) => {
   const repo = context.payload.repository; // do not lint pr from forks
 
@@ -1532,7 +1538,7 @@ const editOpenedPR = async (pr, context, repoContext, previousSha) => {
     name,
     error,
     info
-  }) => error ? createStatus(context, name, previousSha, 'success', 'New commits have been pushed') : undefined).filter(ExcludesFalsy$3) : []), hasLintPrCheck && context.github.checks.create(context.repo({
+  }) => error ? createStatus(context, name, previousSha, 'success', 'New commits have been pushed') : undefined).filter(ExcludesFalsy) : []), hasLintPrCheck && context.github.checks.create(context.repo({
     name: `${process.env.REVIEWFLOW_NAME}/lint-pr`,
     head_sha: pr.head.sha,
     status: 'completed',
@@ -1543,7 +1549,7 @@ const editOpenedPR = async (pr, context, repoContext, previousSha) => {
       title: '✓ Your PR is valid',
       summary: ''
     }
-  })), !hasLintPrCheck && previousSha && errorRule ? createStatus(context, 'lint-pr', previousSha, 'success', 'New commits have been pushed') : undefined, !hasLintPrCheck && createStatus(context, 'lint-pr', pr.head.sha, errorRule ? 'failure' : 'success', errorRule ? errorRule.error.title : '✓ Your PR is valid')].filter(ExcludesFalsy$3));
+  })), !hasLintPrCheck && previousSha && errorRule ? createStatus(context, 'lint-pr', previousSha, 'success', 'New commits have been pushed') : undefined, !hasLintPrCheck && createStatus(context, 'lint-pr', pr.head.sha, errorRule ? 'failure' : 'success', errorRule ? errorRule.error.title : '✓ Your PR is valid')].filter(ExcludesFalsy));
   const featureBranchLabel = repoContext.labels['feature-branch'];
   const automergeLabel = repoContext.labels['merge/automerge'];
   const skipCiLabel = repoContext.labels['merge/skip-ci'];
@@ -1917,7 +1923,9 @@ function reviewRequested(app) {
     if (sender.login === reviewer.login) return;
 
     if (repoContext.slack) {
-      repoContext.slack.postMessage(reviewer.login, `:eyes: ${repoContext.slack.mention(sender.login)} requests your review on ${repoContext.slack.prLink(pr, context)} !\n> ${pr.title}`);
+      repoContext.slack.postMessage(reviewer.login, {
+        text: `:eyes: ${repoContext.slack.mention(sender.login)} requests your review on ${repoContext.slack.prLink(pr, context)} !\n> ${pr.title}`
+      });
     }
   }));
 }
@@ -1952,7 +1960,9 @@ function reviewRequestRemoved(app) {
     if (sender.login === reviewer.login) return;
 
     if (repoContext.slack) {
-      repoContext.slack.postMessage(reviewer.login, `:skull_and_crossbones: ${repoContext.slack.mention(sender.login)} removed the request for your review on ${repoContext.slack.prLink(pr, context)}`);
+      repoContext.slack.postMessage(reviewer.login, {
+        text: `:skull_and_crossbones: ${repoContext.slack.mention(sender.login)} removed the request for your review on ${repoContext.slack.prLink(pr, context)}`
+      });
     }
   }));
 }
@@ -1961,7 +1971,8 @@ function reviewSubmitted(app) {
   app.on('pull_request_review.submitted', createHandlerPullRequestChange(async (pr, context, repoContext) => {
     const {
       user: reviewer,
-      state
+      state,
+      body
     } = context.payload.review;
     if (pr.user.login === reviewer.login) return;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
@@ -2005,7 +2016,23 @@ function reviewSubmitted(app) {
       return `:speech_balloon: ${mention} commented on ${prUrl}`;
     })();
 
-    repoContext.slack.postMessage(pr.user.login, message);
+    repoContext.slack.postMessage(pr.user.login, {
+      text: message,
+      blocks: [{
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: message
+        }
+      }],
+      secondaryBlocks: !body ? undefined : [{
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: body
+        }
+      }]
+    });
   }));
 }
 
@@ -2030,9 +2057,13 @@ function reviewDismissed(app) {
 
     if (repoContext.slack) {
       if (sender.login === reviewer.login) {
-        repoContext.slack.postMessage(pr.user.login, `:skull: ${repoContext.slack.mention(reviewer.login)} dismissed his review on ${repoContext.slack.prLink(pr, context)}`);
+        repoContext.slack.postMessage(pr.user.login, {
+          text: `:skull: ${repoContext.slack.mention(reviewer.login)} dismissed his review on ${repoContext.slack.prLink(pr, context)}`
+        });
       } else {
-        repoContext.slack.postMessage(reviewer.login, `:skull: ${repoContext.slack.mention(sender.login)} dismissed your review on ${repoContext.slack.prLink(pr, context)}`);
+        repoContext.slack.postMessage(reviewer.login, {
+          text: `:skull: ${repoContext.slack.mention(sender.login)} dismissed your review on ${repoContext.slack.prLink(pr, context)}`
+        });
       }
     }
   }));
