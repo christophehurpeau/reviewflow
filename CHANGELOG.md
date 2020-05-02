@@ -1,3 +1,12 @@
+# [1.40.0](https://github.com/christophehurpeau/reviewflow/compare/v1.39.2...v1.40.0) (2020-05-02)
+
+
+### Features
+
+* add body review as attachment in slack message ([6a54ef7](https://github.com/christophehurpeau/reviewflow/commit/6a54ef79536c9887321e4dfd42ae2a823c278992))
+
+
+
 ## [1.39.2](https://github.com/christophehurpeau/reviewflow/compare/v1.39.1...v1.39.2) (2020-05-02)
 
 
