@@ -1,3 +1,12 @@
+## [1.37.1](https://github.com/christophehurpeau/reviewflow/compare/v1.37.0...v1.37.1) (2020-05-02)
+
+
+### Bug Fixes
+
+* deprecated warnings on number parameter ([e57e0d6](https://github.com/christophehurpeau/reviewflow/commit/e57e0d6))
+
+
+
 # [1.37.0](https://github.com/christophehurpeau/reviewflow/compare/v1.36.0...v1.37.0) (2020-05-02)
 
 
