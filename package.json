@@ -100,7 +100,7 @@
     "husky": "2.7.0",
     "jest": "24.7.1",
     "jest-junit-reporter": "1.1.0",
-    "lint-staged": "8.2.1",
+    "lint-staged": "10.2.2",
     "nock": "11.7.2",
     "nodemon": "2.0.2",
     "pob-babel": "23.16.0",
