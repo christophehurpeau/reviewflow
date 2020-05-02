@@ -1,3 +1,12 @@
+# [1.39.0](https://github.com/christophehurpeau/reviewflow/compare/v1.38.0...v1.39.0) (2020-05-02)
+
+
+### Features
+
+* enable defaultconfig ([e0d6721](https://github.com/christophehurpeau/reviewflow/commit/e0d6721))
+
+
+
 # [1.38.0](https://github.com/christophehurpeau/reviewflow/compare/v1.37.1...v1.38.0) (2020-05-02)
 
 
