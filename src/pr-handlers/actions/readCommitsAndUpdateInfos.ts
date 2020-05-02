@@ -1,6 +1,7 @@
 import Webhooks from '@octokit/webhooks';
 import parse from '@commitlint/parse';
 import { PRHandler } from '../utils';
+import { contextPr } from '../../context/utils';
 import syncLabel from './utils/syncLabel';
 import { updateBodyCommitsNotes } from './utils/updateBody';
 import { updatePrIfNeeded } from './updatePr';
@@ -13,7 +14,7 @@ export const readCommitsAndUpdateInfos: PRHandler<
 
   const commits = await context.github.paginate(
     context.github.pulls.listCommits(
-      context.issue({
+      contextPr(context, {
         // A custom page size up to 100. Default is 30.
         per_page: 100,
       }),

@@ -1,6 +1,7 @@
 import Webhooks from '@octokit/webhooks';
 import { Context, Octokit } from 'probot';
 import { RepoContext } from '../../context/repoContext';
+import { contextIssue } from '../../context/utils';
 
 interface UpdatePr {
   title?: string;
@@ -29,6 +30,6 @@ export const updatePrIfNeeded = async <
       pr.body = update.body as string;
     }
 
-    await context.github.issues.update(context.issue(diff));
+    await context.github.issues.update(contextIssue(context, diff));
   }
 };

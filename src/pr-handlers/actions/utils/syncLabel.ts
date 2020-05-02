@@ -1,6 +1,7 @@
 import Webhooks from '@octokit/webhooks';
 import { Context, Octokit } from 'probot';
 import { LabelResponse } from '../../../context/initRepoLabels';
+import { contextIssue } from '../../../context/utils';
 import hasLabelInPR from './hasLabelInPR';
 
 interface SyncLabelOptions {
@@ -20,13 +21,13 @@ export default async function syncLabel<
 ): Promise<void> {
   if (prHasLabel && !shouldHaveLabel) {
     await context.github.issues.removeLabel(
-      context.issue({ name: label.name }),
+      contextIssue(context, { name: label.name }),
     );
     if (onRemove) await onRemove();
   }
   if (shouldHaveLabel && !prHasLabel) {
     const response = await context.github.issues.addLabels(
-      context.issue({ labels: [label.name] }),
+      contextIssue(context, { labels: [label.name] }),
     );
     if (onAdd) await onAdd(response.data);
   }

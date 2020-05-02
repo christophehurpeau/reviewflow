@@ -1,5 +1,6 @@
 import Webhooks from '@octokit/webhooks';
 import { Application, Context } from 'probot';
+import { contextPr, contextIssue } from '../context/utils';
 import { handlerPullRequestChange } from './utils';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateStatusCheckFromLabels } from './actions/updateStatusCheckFromLabels';
@@ -28,15 +29,17 @@ export default function labelsChanged(app: Application): void {
           if (context.payload.action === 'labeled') {
             if (codeApprovedLabel && label.id === codeApprovedLabel.id) {
               // const { data: reviews } = await context.github.pulls.listReviews(
-              //   context.issue({ per_page: 1 }),
+              //   contextPr(context, { per_page: 1 }),
               // );
               // if (reviews.length !== 0) {
               await context.github.pulls.createReview(
-                context.issue({ event: 'APPROVE' }),
+                contextPr(context, { event: 'APPROVE' }),
               );
               if (autoMergeSkipCiLabel) {
                 await context.github.issues.addLabels(
-                  context.issue({ labels: [autoMergeSkipCiLabel.name] }),
+                  contextIssue(context, {
+                    labels: [autoMergeSkipCiLabel.name],
+                  }),
                 );
               }
               await updateStatusCheckFromLabels(pr, context, repoContext);
@@ -66,11 +69,11 @@ export default function labelsChanged(app: Application): void {
         if (repoContext.protectedLabelIds.includes(label.id)) {
           if (context.payload.action === 'labeled') {
             await context.github.issues.removeLabel(
-              context.issue({ name: label.name }),
+              contextIssue(context, { name: label.name }),
             );
           } else {
             await context.github.issues.addLabels(
-              context.issue({ labels: [label.name] }),
+              contextIssue(context, { labels: [label.name] }),
             );
           }
           return;

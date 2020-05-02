@@ -1,5 +1,6 @@
 import Webhooks from '@octokit/webhooks';
 import { PRHandler } from '../utils';
+import { contextIssue } from '../../context/utils';
 
 export const autoAssignPRToCreator: PRHandler<
   Webhooks.WebhookPayloadPullRequest
@@ -9,7 +10,7 @@ export const autoAssignPRToCreator: PRHandler<
   if (pr.user.type === 'Bot') return;
 
   await context.github.issues.addAssignees(
-    context.issue({
+    contextIssue(context, {
       assignees: [pr.user.login],
     }),
   );

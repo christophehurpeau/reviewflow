@@ -1,4 +1,5 @@
 import { Application } from 'probot';
+import { contextPr } from '../context/utils';
 import { createHandlerPullRequestChange } from './utils';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateReviewStatus } from './actions/updateReviewStatus';
@@ -25,7 +26,7 @@ export default function reviewSubmitted(app: Application): void {
             },
           );
           const { data: reviews } = await context.github.pulls.listReviews(
-            context.issue({ per_page: 50 }),
+            contextPr(context, { per_page: 50 }),
           );
           const hasChangesRequestedInReviews = reviews.some(
             (review) =>

@@ -956,6 +956,18 @@ const initRepoLabels = async (context, config) => {
 };
 
 const getKeys = o => Object.keys(o);
+const contextIssue = (context, object) => {
+  const payload = context.payload;
+  return context.repo({ ...object,
+    issue_number: (payload.issue || payload.pull_request || payload).number
+  });
+};
+const contextPr = (context, object) => {
+  const payload = context.payload;
+  return context.repo({ ...object,
+    pull_number: (payload.issue || payload.pull_request || payload).number
+  });
+};
 
 const ExcludesFalsy = Boolean;
 const voidTeamSlack = () => ({
@@ -1297,7 +1309,7 @@ const autoAssignPRToCreator = async (pr, context, repoContext) => {
   if (!repoContext.config.autoAssignToCreator) return;
   if (pr.assignees.length !== 0) return;
   if (pr.user.type === 'Bot') return;
-  await context.github.issues.addAssignees(context.issue({
+  await context.github.issues.addAssignees(contextIssue(context, {
     assignees: [pr.user.login]
   }));
 };
@@ -1389,7 +1401,7 @@ const updatePrIfNeeded = async (pr, context, repoContext, update) => {
       pr.body = update.body;
     }
 
-    await context.github.issues.update(context.issue(diff));
+    await context.github.issues.update(contextIssue(context, diff));
   }
 };
 
@@ -1398,14 +1410,14 @@ async function syncLabel(pr, context, shouldHaveLabel, label, prHasLabel = hasLa
   onAdd
 } = {}) {
   if (prHasLabel && !shouldHaveLabel) {
-    await context.github.issues.removeLabel(context.issue({
+    await context.github.issues.removeLabel(contextIssue(context, {
       name: label.name
     }));
     if (onRemove) await onRemove();
   }
 
   if (shouldHaveLabel && !prHasLabel) {
-    const response = await context.github.issues.addLabels(context.issue({
+    const response = await context.github.issues.addLabels(contextIssue(context, {
       labels: [label.name]
     }));
     if (onAdd) await onAdd(response.data);
@@ -1690,7 +1702,7 @@ const updateReviewStatus = async (pr, context, repoContext, reviewGroup, {
       });
 
       if (toAdd.size !== 0) {
-        const result = await context.github.issues.addLabels(context.issue({
+        const result = await context.github.issues.addLabels(contextIssue(context, {
           labels: [...toAddNames]
         }));
         prLabels = result.data;
@@ -1699,7 +1711,7 @@ const updateReviewStatus = async (pr, context, repoContext, reviewGroup, {
       if (toDelete.size !== 0) {
         for (const toDeleteName of [...toDeleteNames]) {
           try {
-            const result = await context.github.issues.removeLabel(context.issue({
+            const result = await context.github.issues.removeLabel(contextIssue(context, {
               name: toDeleteName
             }));
             prLabels = result.data;
@@ -1719,7 +1731,7 @@ const updateReviewStatus = async (pr, context, repoContext, reviewGroup, {
         oldLabels: prLabels.map(l => l.name),
         newLabelNames: newLabelNamesArray
       });
-      const result = await context.github.issues.replaceLabels(context.issue({
+      const result = await context.github.issues.replaceLabels(contextIssue(context, {
         labels: newLabelNamesArray
       }));
       prLabels = result.data;
@@ -1742,7 +1754,7 @@ const autoApproveAndAutoMerge = async (pr, context, repoContext) => {
   const codeApprovedLabel = repoContext.labels['code/approved'];
 
   if (hasLabelInPR(pr.labels, codeApprovedLabel)) {
-    await context.github.pulls.createReview(context.issue({
+    await context.github.pulls.createReview(contextPr(context, {
       event: 'APPROVE'
     }));
     await autoMergeIfPossible(pr, context, repoContext);
@@ -1755,7 +1767,7 @@ const autoApproveAndAutoMerge = async (pr, context, repoContext) => {
 const readCommitsAndUpdateInfos = async (pr, context, repoContext) => {
   // tmp.data[0].sha
   // tmp.data[0].commit.message
-  const commits = await context.github.paginate(context.github.pulls.listCommits(context.issue({
+  const commits = await context.github.paginate(context.github.pulls.listCommits(contextPr(context, {
     // A custom page size up to 100. Default is 30.
     per_page: 100
   })), res => res.data);
@@ -1838,7 +1850,7 @@ function reviewRequested(app) {
     if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
       const {
         data: reviews
-      } = await context.github.pulls.listReviews(context.issue({
+      } = await context.github.pulls.listReviews(contextPr(context, {
         per_page: 50
       }));
       const hasChangesRequestedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'REQUEST_CHANGES' && // In case this is a rerequest for review
@@ -1872,7 +1884,7 @@ function reviewRequestRemoved(app) {
       });
       const {
         data: reviews
-      } = await context.github.pulls.listReviews(context.issue({
+      } = await context.github.pulls.listReviews(contextPr(context, {
         per_page: 50
       }));
       const hasChangesRequestedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'REQUEST_CHANGES');
@@ -1913,7 +1925,7 @@ function reviewSubmitted(app) {
       });
       const {
         data: reviews
-      } = await context.github.pulls.listReviews(context.issue({
+      } = await context.github.pulls.listReviews(contextPr(context, {
         per_page: 50
       }));
       const hasChangesRequestedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'REQUEST_CHANGES');
@@ -1956,7 +1968,7 @@ function reviewDismissed(app) {
     if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
       const {
         data: reviews
-      } = await context.github.pulls.listReviews(context.issue({
+      } = await context.github.pulls.listReviews(contextPr(context, {
         per_page: 50
       }));
       const hasChangesRequestedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'REQUEST_CHANGES');
@@ -2033,15 +2045,15 @@ function labelsChanged(app) {
         if (context.payload.action === 'labeled') {
           if (codeApprovedLabel && label.id === codeApprovedLabel.id) {
             // const { data: reviews } = await context.github.pulls.listReviews(
-            //   context.issue({ per_page: 1 }),
+            //   contextPr(context, { per_page: 1 }),
             // );
             // if (reviews.length !== 0) {
-            await context.github.pulls.createReview(context.issue({
+            await context.github.pulls.createReview(contextPr(context, {
               event: 'APPROVE'
             }));
 
             if (autoMergeSkipCiLabel) {
-              await context.github.issues.addLabels(context.issue({
+              await context.github.issues.addLabels(contextIssue(context, {
                 labels: [autoMergeSkipCiLabel.name]
               }));
             }
@@ -2069,11 +2081,11 @@ function labelsChanged(app) {
 
       if (repoContext.protectedLabelIds.includes(label.id)) {
         if (context.payload.action === 'labeled') {
-          await context.github.issues.removeLabel(context.issue({
+          await context.github.issues.removeLabel(contextIssue(context, {
             name: label.name
           }));
         } else {
-          await context.github.issues.addLabels(context.issue({
+          await context.github.issues.addLabels(contextIssue(context, {
             labels: [label.name]
           }));
         }

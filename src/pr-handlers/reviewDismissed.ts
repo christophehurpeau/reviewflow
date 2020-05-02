@@ -1,4 +1,5 @@
 import { Application } from 'probot';
+import { contextPr } from '../context/utils';
 import { createHandlerPullRequestChange } from './utils';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 
@@ -14,7 +15,7 @@ export default function reviewDismissed(app: Application): void {
 
         if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
           const { data: reviews } = await context.github.pulls.listReviews(
-            context.issue({ per_page: 50 }),
+            contextPr(context, { per_page: 50 }),
           );
           const hasChangesRequestedInReviews = reviews.some(
             (review) =>

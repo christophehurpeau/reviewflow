@@ -3,6 +3,7 @@ import { Context, Octokit } from 'probot';
 import { LabelResponse } from '../../context/initRepoLabels';
 import { GroupLabels } from '../../orgsConfigs/types';
 import { RepoContext } from '../../context/repoContext';
+import { contextIssue } from '../../context/utils';
 import { updateStatusCheckFromLabels } from './updateStatusCheckFromLabels';
 
 export const updateReviewStatus = async <
@@ -106,7 +107,7 @@ export const updateReviewStatus = async <
 
       if (toAdd.size !== 0) {
         const result = await context.github.issues.addLabels(
-          context.issue({
+          contextIssue(context, {
             labels: [...toAddNames],
           }),
         );
@@ -117,7 +118,7 @@ export const updateReviewStatus = async <
         for (const toDeleteName of [...toDeleteNames]) {
           try {
             const result = await context.github.issues.removeLabel(
-              context.issue({
+              contextIssue(context, {
                 name: toDeleteName,
               }),
             );
@@ -141,7 +142,7 @@ export const updateReviewStatus = async <
       });
 
       const result = await context.github.issues.replaceLabels(
-        context.issue({
+        contextIssue(context, {
           labels: newLabelNamesArray,
         }),
       );

@@ -1,6 +1,7 @@
 import Webhooks from '@octokit/webhooks';
 import { Context, Octokit } from 'probot';
 import { RepoContext } from '../../context/repoContext';
+import { contextPr } from '../../context/utils';
 import { autoMergeIfPossible } from './autoMergeIfPossible';
 import hasLabelInPR from './utils/hasLabelInPR';
 
@@ -13,7 +14,7 @@ export const autoApproveAndAutoMerge = async (
   const codeApprovedLabel = repoContext.labels['code/approved'];
   if (hasLabelInPR(pr.labels, codeApprovedLabel)) {
     await context.github.pulls.createReview(
-      context.issue({ event: 'APPROVE' }),
+      contextPr(context, { event: 'APPROVE' }),
     );
     await autoMergeIfPossible(pr, context, repoContext);
     return true;
