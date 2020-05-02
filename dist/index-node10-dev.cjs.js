@@ -1928,7 +1928,7 @@ const autoApproveAndAutoMerge = async (pr, context, repoContext) => {
 const readCommitsAndUpdateInfos = async (pr, context, repoContext) => {
   // tmp.data[0].sha
   // tmp.data[0].commit.message
-  const commits = await context.github.paginate(context.github.pulls.listCommits(contextPr(context, {
+  const commits = await context.github.paginate(context.github.pulls.listCommits.endpoint.merge(contextPr(context, {
     // A custom page size up to 100. Default is 30.
     per_page: 100
   })), res => res.data);

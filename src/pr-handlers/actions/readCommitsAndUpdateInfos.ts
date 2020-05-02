@@ -13,7 +13,7 @@ export const readCommitsAndUpdateInfos: PRHandler<
   // tmp.data[0].commit.message
 
   const commits = await context.github.paginate(
-    context.github.pulls.listCommits(
+    context.github.pulls.listCommits.endpoint.merge(
       contextPr(context, {
         // A custom page size up to 100. Default is 30.
         per_page: 100,
