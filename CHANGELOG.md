@@ -1,3 +1,12 @@
+## [1.39.1](https://github.com/christophehurpeau/reviewflow/compare/v1.39.0...v1.39.1) (2020-05-02)
+
+
+### Bug Fixes
+
+* redirect on / ([b8ef656](https://github.com/christophehurpeau/reviewflow/commit/b8ef656))
+
+
+
 # [1.39.0](https://github.com/christophehurpeau/reviewflow/compare/v1.38.0...v1.39.0) (2020-05-02)
 
 
