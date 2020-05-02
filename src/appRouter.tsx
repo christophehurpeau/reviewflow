@@ -59,7 +59,7 @@ export default async function appRouter(
   router.use(cookieParser());
 
   router.get('/', (req, res) => {
-    res.redirect('/gh');
+    res.redirect('/app/gh');
   });
 
   router.get('/gh', async (req, res) => {

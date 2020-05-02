@@ -123,7 +123,7 @@ async function appRouter(app) {
   const api = await app.auth();
   router.use(cookieParser());
   router.get('/', (req, res) => {
-    res.redirect('/gh');
+    res.redirect('/app/gh');
   });
   router.get('/gh', async (req, res) => {
     const authInfo = await readAuthCookie(req, "gh");
