@@ -120,7 +120,7 @@ async function initRepoContext<GroupNames extends string>(
   ): Promise<void> =>
     new Promise((resolve, reject) => {
       const logInfos = {
-        repoName: repo.name,
+        repo: `${repo.owner.login}/${repo.name}`,
         prIdOrIds,
         prNumberOrPrNumbers,
       };

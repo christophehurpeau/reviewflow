@@ -1306,7 +1306,7 @@ async function initRepoContext(context, config) {
 
   const lockPROrPRS = (prIdOrIds, prNumberOrPrNumbers, callback) => new Promise((resolve, reject) => {
     const logInfos = {
-      repoName: repo.name,
+      repo: `${repo.owner.login}/${repo.name}`,
       prIdOrIds,
       prNumberOrPrNumbers
     };
