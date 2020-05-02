@@ -13,7 +13,7 @@ export default function checksuiteCompleted(app: Application): void {
             context.github.pulls
               .get(
                 context.repo({
-                  number: pr.number,
+                  pull_number: pr.number,
                 }),
               )
               .then((prResult) => {

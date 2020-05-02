@@ -975,12 +975,12 @@ const autoMergeIfPossible = async (pr, context, repoContext, prLabels = pr.label
 
           const renovateRebaseBody = pr.body.replace('[ ] <!-- renovate-rebase -->', '[x] <!-- renovate-rebase -->');
           await context.github.issues.update(context.repo({
-            number: pr.number,
+            issue_number: pr.number,
             body: renovateRebaseBody
           }));
         } else if (!pr.title.startsWith('rebase!')) {
           await context.github.issues.update(context.repo({
-            number: pr.number,
+            issue_number: pr.number,
             title: `rebase!${pr.title}`
           }));
         }
@@ -2282,7 +2282,7 @@ function labelsChanged(app) {
 function checkrunCompleted(app) {
   app.on('check_run.completed', createHandlerPullRequestsChange(context => context.payload.check_run.pull_requests, async (context, repoContext) => {
     await Promise.all(context.payload.check_run.pull_requests.map(pr => context.github.pulls.get(context.repo({
-      number: pr.number
+      pull_number: pr.number
     })).then(prResult => {
       return autoMergeIfPossible(prResult.data, context, repoContext);
     })));
@@ -2292,7 +2292,7 @@ function checkrunCompleted(app) {
 function checksuiteCompleted(app) {
   app.on('check_suite.completed', createHandlerPullRequestsChange(context => context.payload.check_suite.pull_requests, async (context, repoContext) => {
     await Promise.all(context.payload.check_suite.pull_requests.map(pr => context.github.pulls.get(context.repo({
-      number: pr.number
+      pull_number: pr.number
     })).then(prResult => {
       return autoMergeIfPossible(prResult.data, context, repoContext);
     })));

@@ -162,14 +162,14 @@ export const autoMergeIfPossible = async (
           );
           await context.github.issues.update(
             context.repo({
-              number: pr.number,
+              issue_number: pr.number,
               body: renovateRebaseBody,
             }),
           );
         } else if (!pr.title.startsWith('rebase!')) {
           await context.github.issues.update(
             context.repo({
-              number: pr.number,
+              issue_number: pr.number,
               title: `rebase!${pr.title}`,
             }),
           );
