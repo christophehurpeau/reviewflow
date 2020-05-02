@@ -1,4 +1,5 @@
 import { Config as ConfigType } from './types';
+import defaultConfig from './defaultConfig';
 import ornikar from './ornikar';
 import christophehurpeau from './christophehurpeau';
 
@@ -11,6 +12,8 @@ export const orgsConfigs: { [owner: string]: Config } = {
   ornikar,
   christophehurpeau,
 };
+
+export { defaultConfig };
 
 // flat requires node 11
 // export const getMembers = <GroupNames extends string = any>(

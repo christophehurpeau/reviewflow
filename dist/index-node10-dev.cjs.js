@@ -768,7 +768,7 @@ const config$1 = {
 const orgsConfigs = {
   ornikar: config,
   christophehurpeau: config$1
-}; // flat requires node 11
+};
 // export const getMembers = <GroupNames extends string = any>(
 //   groups: Record<GroupNames, Group>,
 // ): string[] => {
@@ -1412,7 +1412,7 @@ const obtainRepoContext = context => {
   const orgConfig = orgsConfigs[owner.login];
 
   if (!orgConfig) {
-    console.warn(owner.login, Object.keys(orgsConfigs));
+    console.warn(`using default config for ${owner.login}`);
     return null;
   }
 

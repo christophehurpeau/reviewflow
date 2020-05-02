@@ -245,7 +245,7 @@ export const obtainRepoContext = (
   const orgConfig = orgsConfigs[owner.login];
 
   if (!orgConfig) {
-    console.warn(owner.login, Object.keys(orgsConfigs));
+    console.warn(`using default config for ${owner.login}`);
     return null;
   }
 
