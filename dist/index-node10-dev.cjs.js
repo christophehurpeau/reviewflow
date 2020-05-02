@@ -47,69 +47,24 @@ function init() {
   };
 }
 
-var _jsxFileName = "/home/chris/github-apps/reviewflow/src/views/Layout.tsx";
 function Layout({
   lang = 'en',
   title = process.env.NAME,
   children
 }) {
-  return React.createElement("html", {
-    lang: lang,
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 15
-    },
-    __self: this
-  }, React.createElement("head", {
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 16
-    },
-    __self: this
-  }, React.createElement("meta", {
-    charSet: "UTF-8",
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 17
-    },
-    __self: this
-  }), React.createElement("meta", {
+  return /*#__PURE__*/React.createElement("html", {
+    lang: lang
+  }, /*#__PURE__*/React.createElement("head", null, /*#__PURE__*/React.createElement("meta", {
+    charSet: "UTF-8"
+  }), /*#__PURE__*/React.createElement("meta", {
     name: "robots",
-    content: "noindex",
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 18
-    },
-    __self: this
-  }), React.createElement("title", {
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 19
-    },
-    __self: this
-  }, title), React.createElement("link", {
+    content: "noindex"
+  }), /*#__PURE__*/React.createElement("title", null, title), /*#__PURE__*/React.createElement("link", {
     rel: "stylesheet",
     type: "text/css",
-    href: "https://christophe.hurpeau.com/index.css",
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 20
-    },
-    __self: this
-  }), React.createElement("style", {
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 25
-    },
-    __self: this
-  }, `html,body,html body
-            #container{height:100%} footer{position:absolute;bottom:5px;left:0;right:0;}`)), React.createElement("body", {
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 28
-    },
-    __self: this
-  }, children));
+    href: "https://christophe.hurpeau.com/index.css"
+  }), /*#__PURE__*/React.createElement("style", null, `html,body,html body
+            #container{height:100%} footer{position:absolute;bottom:5px;left:0;right:0;}`)), /*#__PURE__*/React.createElement("body", null, children));
 }
 
 if (!process.env.GITHUB_CLIENT_ID) {
@@ -138,7 +93,7 @@ async function randomHex(size) {
   return buffer.toString('hex');
 }
 
-var _jsxFileName$1 = "/home/chris/github-apps/reviewflow/src/appRouter.tsx";
+/* eslint-disable max-lines */
 
 if (!process.env.AUTH_SECRET_KEY) {
   throw new Error('Missing env variable: AUTH_SECRET_KEY');
@@ -185,51 +140,11 @@ async function appRouter(app) {
     } = await octokit.repos.list({
       per_page: 100
     });
-    res.send(server.renderToStaticMarkup(React.createElement(Layout, {
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 77
-      },
-      __self: this
-    }, React.createElement("div", {
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 78
-      },
-      __self: this
-    }, React.createElement("h4", {
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 79
-      },
-      __self: this
-    }, "Your repositories"), React.createElement("ul", {
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 80
-      },
-      __self: this
-    }, data.map(repo => React.createElement("li", {
-      key: repo.id,
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 82
-      },
-      __self: this
-    }, React.createElement("a", {
-      href: `/app/gh/repository/${repo.owner.login}/${repo.name}`,
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 83
-      },
-      __self: this
-    }, repo.name))))), data.length === 100 && React.createElement("div", {
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 93
-      },
-      __self: this
-    }, "We currently have a limit to 100 repositories"))));
+    res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", null, "Your repositories"), /*#__PURE__*/React.createElement("ul", null, data.map(repo => /*#__PURE__*/React.createElement("li", {
+      key: repo.id
+    }, /*#__PURE__*/React.createElement("a", {
+      href: `/app/gh/repository/${repo.owner.login}/${repo.name}`
+    }, repo.name))))), data.length === 100 && /*#__PURE__*/React.createElement("div", null, "We currently have a limit to 100 repositories"))));
   });
   router.get('/gh/login', async (req, res) => {
     if (await readAuthCookie(req, "gh")) {
@@ -279,25 +194,8 @@ async function appRouter(app) {
 
     if (!result) {
       // res.redirect(`/${strategy}/login`);
-      res.send(server.renderToStaticMarkup(React.createElement(Layout, {
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 157
-        },
-        __self: this
-      }, React.createElement("div", {
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 158
-        },
-        __self: this
-      }, "Could not get access token. ", React.createElement("a", {
-        href: "/app/gh/login",
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 159
-        },
-        __self: this
+      res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, "Could not get access token. ", /*#__PURE__*/React.createElement("a", {
+        href: "/app/gh/login"
       }, "Retry ?")))));
       return;
     }
@@ -341,35 +239,11 @@ async function appRouter(app) {
     });
 
     if (!data) {
-      return res.status(404).send(server.renderToStaticMarkup(React.createElement(Layout, {
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 206
-        },
-        __self: this
-      }, React.createElement("div", {
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 207
-        },
-        __self: this
-      }, "repo not found"))));
+      return res.status(404).send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, "repo not found"))));
     }
 
     if (!data.permissions.admin) {
-      return res.status(401).send(server.renderToStaticMarkup(React.createElement(Layout, {
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 216
-        },
-        __self: this
-      }, React.createElement("div", {
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 217
-        },
-        __self: this
-      }, "not authorized to see this repo, you need to have admin permission"))));
+      return res.status(401).send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, "not authorized to see this repo, you need to have admin permission"))));
     }
 
     const {
@@ -385,47 +259,12 @@ async function appRouter(app) {
     });
 
     if (!data2) {
-      return res.send(server.renderToStaticMarkup(React.createElement(Layout, {
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 237
-        },
-        __self: this
-      }, React.createElement("div", {
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 238
-        },
-        __self: this
-      }, process.env.REVIEWFLOW_NAME, " ", "isn't", " installed on this repo. Go to", ' ', React.createElement("a", {
-        href: `https://github.com/apps/${process.env.REVIEWFLOW_NAME}/installations/new`,
-        __source: {
-          fileName: _jsxFileName$1,
-          lineNumber: 241
-        },
-        __self: this
+      return res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed on this repo. Go to ", /*#__PURE__*/React.createElement("a", {
+        href: `https://github.com/apps/${process.env.REVIEWFLOW_NAME}/installations/new`
       }, "Github Configuration"), ' ', "to add it."))));
     }
 
-    res.send(server.renderToStaticMarkup(React.createElement(Layout, {
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 257
-      },
-      __self: this
-    }, React.createElement("div", {
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 258
-      },
-      __self: this
-    }, React.createElement("h4", {
-      __source: {
-        fileName: _jsxFileName$1,
-        lineNumber: 259
-      },
-      __self: this
-    }, req.params.repository)))));
+    res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", null, req.params.repository)))));
   });
 }
 
@@ -484,14 +323,14 @@ const config$1 = {
   parsePR: {
     title: [{
       regExp: // eslint-disable-next-line unicorn/no-unsafe-regex
-      /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([a-z\-/]*)\))?:\s/,
+      /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([/a-z-]*)\))?:\s/,
       error: {
         title: 'Title does not match commitlint conventional',
         summary: 'https://github.com/marionebl/commitlint/tree/master/%40commitlint/config-conventional'
       }
     }, {
       bot: false,
-      regExp: /\s([A-Z][A-Z\d]+-(\d+)|\[no issue])$/,
+      regExp: /\s([A-Z][\dA-Z]+-(\d+)|\[no issue])$/,
       error: {
         title: 'Title does not have JIRA issue',
         summary: 'The PR title should end with ONK-0000, or [no issue]'
@@ -723,7 +562,7 @@ const config$2 = {
   parsePR: {
     title: [{
       regExp: // eslint-disable-next-line unicorn/no-unsafe-regex
-      /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([a-z\-/]*)\))?(!)?:\s/,
+      /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([/a-z-]*)\))?(!)?:\s/,
       error: {
         title: 'Title does not match commitlint conventional',
         summary: 'https://github.com/marionebl/commitlint/tree/master/%40commitlint/config-conventional'
@@ -1071,7 +910,7 @@ const autoMergeIfPossible = async (pr, context, repoContext, prLabels = pr.label
   try {
     context.log.info(`automerge pr #${pr.number}`);
     const parsedBody = parseBodyWithOptions(pr.body, repoContext.config.prDefaultOptions);
-    const options = parsedBody && parsedBody.options || repoContext.config.prDefaultOptions;
+    const options = (parsedBody === null || parsedBody === void 0 ? void 0 : parsedBody.options) || repoContext.config.prDefaultOptions;
     const mergeResult = await context.github.pulls.merge({
       merge_method: options.featureBranch ? 'merge' : 'squash',
       owner: pr.head.repo.owner.login,
@@ -1349,7 +1188,8 @@ async function initRepoContext(context, config) {
       prIdOrIds,
       prNumberOrPrNumbers
     };
-    context.log.info('lock: try to lock pr', logInfos);
+    context.log.info('lock: try to lock pr', logInfos); // eslint-disable-next-line @typescript-eslint/no-misused-promises
+
     lock$1(prIdOrIds, async createReleaseCallback => {
       const release = createReleaseCallback(() => {});
       context.log.info('lock: lock acquired', logInfos);
@@ -1394,7 +1234,10 @@ async function initRepoContext(context, config) {
     getNeedsReviewGroupNames: labels => labels.filter(label => needsReviewLabelIds.includes(label.id)).map(label => labelIdToGroupName.get(label.id)).filter(ExcludesFalsy$2),
     getMergeLockedPr: () => lockMergePr,
     addMergeLockPr: pr => {
-      console.log('merge lock: lock', pr);
+      console.log('merge lock: lock', {
+        repo: `${repo.owner.login}/${repo.name}`,
+        pr
+      });
 
       if (lockMergePr && String(lockMergePr.number) === String(pr.number)) {
         return;
@@ -1405,12 +1248,14 @@ async function initRepoContext(context, config) {
     },
     removePrFromAutomergeQueue: (context, prNumber) => {
       context.log('merge lock: remove', {
+        repo: `${repo.owner.login}/${repo.name}`,
         prNumber
       });
 
       if (lockMergePr && String(lockMergePr.number) === String(prNumber)) {
         lockMergePr = automergeQueue.shift();
         context.log('merge lock: next', {
+          repo: `${repo.owner.login}/${repo.name}`,
           lockMergePr
         });
 
@@ -1423,6 +1268,7 @@ async function initRepoContext(context, config) {
     },
     pushAutomergeQueue: pr => {
       console.log('merge lock: push queue', {
+        repo: `${repo.owner.login}/${repo.name}`,
         pr,
         lockMergePr,
         automergeQueue
@@ -1514,7 +1360,7 @@ const autoAssignPRToCreator = async (pr, context, repoContext) => {
   }));
 };
 
-const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*([A-Za-z][A-Za-z\d]+)[- ](\d+)\s*]?\s*$/, (s, arg1, arg2) => ` ${arg1.toUpperCase()}-${arg2}`).replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `).replace(/^Revert "([^"]+)"$/, 'revert: $1').replace(/\s+[[\]]\s*no\s*issue\s*[[\]]$/i, ' [no issue]') // eslint-disable-next-line unicorn/no-unsafe-regex
+const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*([A-Za-z][\dA-Za-z]+)[ -](\d+)\s*]?\s*$/, (s, arg1, arg2) => ` ${arg1.toUpperCase()}-${arg2}`).replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `).replace(/^Revert "([^"]+)"$/, 'revert: $1').replace(/\s+[[\]]\s*no\s*issue\s*[[\]]$/i, ' [no issue]') // eslint-disable-next-line unicorn/no-unsafe-regex
 .replace(/^(revert:.*)(\s+\(#\d+\))$/, '$1');
 
 const toMarkdownOptions = options => {
@@ -1529,6 +1375,11 @@ const toMarkdownInfos = infos => {
     if (info.url) return `[${info.title}](${info.url})`;
     return info.title;
   }).join('\n');
+};
+
+const getReplacement = infos => {
+  if (!infos) return '$1$2';
+  return infos.length !== 0 ? `#### Infos:\n${toMarkdownInfos(infos)}\n$2` : '$2';
 };
 
 const updateBody = (body, defaultConfig, infos, updateOptions) => {
@@ -1550,8 +1401,7 @@ const updateBody = (body, defaultConfig, infos, updateOptions) => {
     options
   } = parsed;
   const infosAndCommitNotesParagraph = reviewflowContentCol.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
-  /^\s*(?:(#### Infos:.*)?(#### Commits Notes:.*)?#### Options:)?.*$/s, // eslint-disable-next-line no-nested-ternary
-  !infos ? '$1$2' : infos.length !== 0 ? `#### Infos:\n${toMarkdownInfos(infos)}\n$2` : '$2');
+  /^\s*(?:(#### Infos:.*)?(#### Commits Notes:.*)?#### Options:)?.*$/s, getReplacement(infos));
   const updatedOptions = !updateOptions ? options : { ...options,
     ...updateOptions
   };
@@ -1719,8 +1569,8 @@ const editOpenedPR = async (pr, context, repoContext, previousSha) => {
       onAdd: async prLabels => {
         await autoMergeIfPossible(pr, context, repoContext, prLabels);
       },
-      onRemove: async () => {
-        await repoContext.removePrFromAutomergeQueue(context, pr.number);
+      onRemove: () => {
+        repoContext.removePrFromAutomergeQueue(context, pr.number);
       }
     })]);
 
@@ -1771,7 +1621,7 @@ const addStatusCheck = async function (pr, context, {
 
 const updateStatusCheckFromLabels = (pr, context, repoContext, labels = pr.labels || [], previousSha) => {
   context.log.info('updateStatusCheckFromLabels', {
-    labels: labels.map(l => l && l.name),
+    labels: labels.map(l => l === null || l === void 0 ? void 0 : l.name),
     hasNeedsReview: repoContext.hasNeedsReview(labels),
     hasApprovesReview: repoContext.hasApprovesReview(labels)
   });
@@ -1917,7 +1767,7 @@ const updateReviewStatus = async (pr, context, repoContext, reviewGroup, {
             prLabels = result.data;
           } catch (err) {
             context.log.warn('error removing label', {
-              err: err && err.message
+              err: err === null || err === void 0 ? void 0 : err.message
             });
           }
         }
@@ -2017,8 +1867,8 @@ function closed(app) {
     const repo = context.payload.repository;
 
     if (pr.merged) {
-      const parsedBody = pr.head.repo.id === repo.id && parseBodyWithOptions(pr.body, repoContext.config.prDefaultOptions);
-      await Promise.all([repoContext.removePrFromAutomergeQueue(context, pr.number), parsedBody && parsedBody.options.deleteAfterMerge ? context.github.git.deleteRef(context.repo({
+      const parsedBody = pr.head.repo.id === repo.id ? parseBodyWithOptions(pr.body, repoContext.config.prDefaultOptions) : null;
+      await Promise.all([repoContext.removePrFromAutomergeQueue(context, pr.number), (parsedBody === null || parsedBody === void 0 ? void 0 : parsedBody.options.deleteAfterMerge) ? context.github.git.deleteRef(context.repo({
         ref: `heads/${pr.head.ref}`
       })).catch(() => {}) : undefined]);
     } else {
@@ -2394,7 +2244,7 @@ console.log({
 
 probot.Probot.run(app => {
   const mongoStores = init();
-  appRouter(app, mongoStores);
+  appRouter(app);
   initApp(app);
 });
 //# sourceMappingURL=index-node10-dev.cjs.js.map

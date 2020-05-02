@@ -6,9 +6,11 @@ import syncLabel from './utils/syncLabel';
 import { updateBodyCommitsNotes } from './utils/updateBody';
 import { updatePrIfNeeded } from './updatePr';
 
-export const readCommitsAndUpdateInfos: PRHandler<
-  Webhooks.WebhookPayloadPullRequest
-> = async (pr, context, repoContext) => {
+export const readCommitsAndUpdateInfos: PRHandler<Webhooks.WebhookPayloadPullRequest> = async (
+  pr,
+  context,
+  repoContext,
+) => {
   // tmp.data[0].sha
   // tmp.data[0].commit.message
 

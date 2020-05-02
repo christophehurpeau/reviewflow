@@ -16,10 +16,8 @@ console.log({ name: process.env.REVIEWFLOW_NAME });
 // let config = await getConfig(context, 'reviewflow.yml');
 
 // eslint-disable-next-line import/no-commonjs
-Probot.run(
-  (app: Application): void => {
-    const mongoStores = mongoInit();
-    appRouter(app, mongoStores);
-    initApp(app);
-  },
-);
+Probot.run((app: Application): void => {
+  const mongoStores = mongoInit();
+  appRouter(app, mongoStores);
+  initApp(app);
+});

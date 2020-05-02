@@ -53,7 +53,7 @@ export const initTeamSlack = async <GroupNames extends string>(
       }
       return [email, { member, im: undefined }] as [
         string,
-        { member: any; im: any }
+        { member: any; im: any },
       ];
     })
     .filter(ExcludesFalsy);

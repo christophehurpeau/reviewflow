@@ -27,11 +27,13 @@
     },
     "renovate": {
       "enable": true
-    }
-  },
-  "reviewflow": {
-    "type": {
-      "type": "lib"
+    },
+    "project": {
+      "type": "app",
+      "yarn2": false
+    },
+    "app": {
+      "type": "node"
     }
   }
 }

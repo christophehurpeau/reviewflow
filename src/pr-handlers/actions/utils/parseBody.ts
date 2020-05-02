@@ -9,16 +9,13 @@ const regexpReviewflowCol = /^(\s*<!---? do not edit after this -?--><\/td><td [
 type Config = Record<Options, boolean>;
 
 const parseOptions = (content: string, defaultConfig: Config): Config => {
-  return optionsRegexps.reduce(
-    (acc, { name, regexp }) => {
-      const match = regexp.exec(content);
-      acc[name] = !match
-        ? defaultConfig[name] || false
-        : match[1] === 'x' || match[1] === 'X';
-      return acc;
-    },
-    {} as any,
-  ) as Config;
+  return optionsRegexps.reduce((acc, { name, regexp }) => {
+    const match = regexp.exec(content);
+    acc[name] = !match
+      ? defaultConfig[name] || false
+      : match[1] === 'x' || match[1] === 'X';
+    return acc;
+  }, {} as any) as Config;
 };
 
 interface ParseBodyResultWithoutOptions {

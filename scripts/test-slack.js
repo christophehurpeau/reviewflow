@@ -1,3 +1,5 @@
+'use strict';
+
 require('dotenv').config();
 const { WebClient } = require('@slack/web-api');
 
@@ -16,6 +18,6 @@ if (!process.env.ORNIKAR_SLACK_TOKEN) {
 
   await slackClient.chat.postMessage({
     channel: im.channel.id,
-    text: `<https://github.com/ornikar/www/pull/2945|www#2945>`,
+    text: '<https://github.com/ornikar/www/pull/2945|www#2945>',
   });
 })();

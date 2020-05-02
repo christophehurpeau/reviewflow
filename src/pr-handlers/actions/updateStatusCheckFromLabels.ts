@@ -4,7 +4,7 @@ import { LabelResponse } from '../../context/initRepoLabels';
 import { RepoContext } from '../../context/repoContext';
 import createStatus from './utils/createStatus';
 
-const addStatusCheck = async function<
+const addStatusCheck = async function <
   E extends Webhooks.WebhookPayloadPullRequest
 >(
   pr: Octokit.PullsGetResponse,
@@ -12,13 +12,13 @@ const addStatusCheck = async function<
   { state, description }: { state: 'failure' | 'success'; description: string },
   previousSha?: string,
 ): Promise<void> {
-  const hasPrCheck = (await context.github.checks.listForRef(
-    context.repo({
-      ref: pr.head.sha,
-    }),
-  )).data.check_runs.find(
-    (check) => check.name === process.env.REVIEWFLOW_NAME,
-  );
+  const hasPrCheck = (
+    await context.github.checks.listForRef(
+      context.repo({
+        ref: pr.head.sha,
+      }),
+    )
+  ).data.check_runs.find((check) => check.name === process.env.REVIEWFLOW_NAME);
 
   context.log.info('add status check', { hasPrCheck, state, description });
 
@@ -61,7 +61,7 @@ export const updateStatusCheckFromLabels = (
   previousSha?: string,
 ): Promise<void> => {
   context.log.info('updateStatusCheckFromLabels', {
-    labels: labels.map((l) => l && l.name),
+    labels: labels.map((l) => l?.name),
     hasNeedsReview: repoContext.hasNeedsReview(labels),
     hasApprovesReview: repoContext.hasApprovesReview(labels),
   });

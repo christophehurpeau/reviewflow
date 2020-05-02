@@ -125,7 +125,7 @@ export const updateReviewStatus = async <
             prLabels = result.data;
           } catch (err) {
             context.log.warn('error removing label', {
-              err: err && err.message,
+              err: err?.message,
             });
           }
         }

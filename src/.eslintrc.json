@@ -1,0 +1,39 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json",
+    "createDefaultProgram": true
+  },
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    "@pob/eslint-config-typescript",
+    "@pob/eslint-config-babel-node",
+    "@pob/eslint-config-typescript-react"
+  ],
+  "rules": {
+    "@typescript-eslint/camelcase": [
+      "error",
+      {
+        "properties": "never"
+      }
+    ],
+    "complexity": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.{ts,tsx}", "__tests__/**/*.{ts,tsx}"],
+      "env": {
+        "jest": true
+      },
+      "rules": {
+        "import/no-extraneous-dependencies": [
+          "error",
+          {
+            "devDependencies": true
+          }
+        ]
+      }
+    }
+  ]
+}

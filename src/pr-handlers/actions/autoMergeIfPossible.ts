@@ -124,9 +124,7 @@ export const autoMergeIfPossible = async (
   }
 
   context.log.info(
-    `automerge?: ${pr.id}, #${pr.number}, mergeable=${pr.mergeable} state=${
-      pr.mergeable_state
-    }`,
+    `automerge?: ${pr.id}, #${pr.number}, mergeable=${pr.mergeable} state=${pr.mergeable_state}`,
   );
 
   // https://github.com/octokit/octokit.net/issues/1763
@@ -187,9 +185,7 @@ export const autoMergeIfPossible = async (
       }
 
       context.log.info(
-        `automerge not possible: renovate with mergeable_state=${
-          pr.mergeable_state
-        }`,
+        `automerge not possible: renovate with mergeable_state=${pr.mergeable_state}`,
       );
       return false;
     }
@@ -222,9 +218,7 @@ export const autoMergeIfPossible = async (
 
     repoContext.removePrFromAutomergeQueue(context, pr.number);
     context.log.info(
-      `automerge not possible: not mergeable mergeable_state=${
-        pr.mergeable_state
-      }`,
+      `automerge not possible: not mergeable mergeable_state=${pr.mergeable_state}`,
     );
     return false;
   }
@@ -236,8 +230,7 @@ export const autoMergeIfPossible = async (
       pr.body,
       repoContext.config.prDefaultOptions,
     );
-    const options =
-      (parsedBody && parsedBody.options) || repoContext.config.prDefaultOptions;
+    const options = parsedBody?.options || repoContext.config.prDefaultOptions;
 
     const mergeResult = await context.github.pulls.merge({
       merge_method: options.featureBranch ? 'merge' : 'squash',

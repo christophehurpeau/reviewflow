@@ -12,12 +12,16 @@ export default function closed(app: Application): void {
 
         if (pr.merged) {
           const parsedBody =
-            pr.head.repo.id === repo.id &&
-            parseBodyWithOptions(pr.body, repoContext.config.prDefaultOptions);
+            pr.head.repo.id === repo.id
+              ? parseBodyWithOptions(
+                  pr.body,
+                  repoContext.config.prDefaultOptions,
+                )
+              : null;
 
           await Promise.all([
             repoContext.removePrFromAutomergeQueue(context, pr.number),
-            parsedBody && parsedBody.options.deleteAfterMerge
+            parsedBody?.options.deleteAfterMerge
               ? context.github.git
                   .deleteRef(context.repo({ ref: `heads/${pr.head.ref}` }))
                   .catch(() => {})

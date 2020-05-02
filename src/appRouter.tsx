@@ -1,7 +1,7 @@
 /* eslint-disable max-lines */
 
 import { promisify } from 'util';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { Octokit, Application } from 'probot';
 import cookieParser from 'cookie-parser';
 import { sign, verify } from 'jsonwebtoken';
@@ -132,7 +132,7 @@ export default async function appRouter(
     }
 
     const strategy = 'gh';
-    const code = req.query.code;
+    const code: string = req.query.code as string;
     const state = req.query.state;
     const cookieName = `auth_${strategy}_${state}`;
     const cookie = req.cookies && req.cookies[cookieName];
@@ -236,12 +236,10 @@ export default async function appRouter(
         renderToStaticMarkup(
           <Layout>
             <div>
-              {process.env.REVIEWFLOW_NAME} {"isn't"} installed on this repo. Go
-              to{' '}
+              {process.env.REVIEWFLOW_NAME}{' '}
+              {"isn't installed on this repo. Go to "}
               <a
-                href={`https://github.com/apps/${
-                  process.env.REVIEWFLOW_NAME
-                }/installations/new`}
+                href={`https://github.com/apps/${process.env.REVIEWFLOW_NAME}/installations/new`}
               >
                 Github Configuration
               </a>{' '}

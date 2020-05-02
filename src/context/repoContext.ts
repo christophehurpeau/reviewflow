@@ -125,6 +125,7 @@ async function initRepoContext<GroupNames extends string>(
         prNumberOrPrNumbers,
       };
       context.log.info('lock: try to lock pr', logInfos);
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       lock(prIdOrIds, async (createReleaseCallback) => {
         const release = createReleaseCallback(() => {});
         context.log.info('lock: lock acquired', logInfos);
@@ -170,7 +171,10 @@ async function initRepoContext<GroupNames extends string>(
 
     getMergeLockedPr: () => lockMergePr,
     addMergeLockPr: (pr: LockedMergePr): void => {
-      console.log('merge lock: lock', pr);
+      console.log('merge lock: lock', {
+        repo: `${repo.owner.login}/${repo.name}`,
+        pr,
+      });
       if (lockMergePr && String(lockMergePr.number) === String(pr.number)) {
         return;
       }
@@ -178,10 +182,16 @@ async function initRepoContext<GroupNames extends string>(
       lockMergePr = pr;
     },
     removePrFromAutomergeQueue: (context, prNumber: number | string): void => {
-      context.log('merge lock: remove', { prNumber });
+      context.log('merge lock: remove', {
+        repo: `${repo.owner.login}/${repo.name}`,
+        prNumber,
+      });
       if (lockMergePr && String(lockMergePr.number) === String(prNumber)) {
         lockMergePr = automergeQueue.shift();
-        context.log('merge lock: next', { lockMergePr });
+        context.log('merge lock: next', {
+          repo: `${repo.owner.login}/${repo.name}`,
+          lockMergePr,
+        });
         if (lockMergePr) {
           reschedule(context, lockMergePr);
         }
@@ -193,6 +203,7 @@ async function initRepoContext<GroupNames extends string>(
     },
     pushAutomergeQueue: (pr: LockedMergePr): void => {
       console.log('merge lock: push queue', {
+        repo: `${repo.owner.login}/${repo.name}`,
         pr,
         lockMergePr,
         automergeQueue,

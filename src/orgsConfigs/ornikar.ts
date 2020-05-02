@@ -19,7 +19,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       {
         regExp:
           // eslint-disable-next-line unicorn/no-unsafe-regex
-          /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([a-z\-/]*)\))?:\s/,
+          /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([/a-z-]*)\))?:\s/,
         error: {
           title: 'Title does not match commitlint conventional',
           summary:
@@ -28,7 +28,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       },
       {
         bot: false,
-        regExp: /\s([A-Z][A-Z\d]+-(\d+)|\[no issue])$/,
+        regExp: /\s([A-Z][\dA-Z]+-(\d+)|\[no issue])$/,
         error: {
           title: 'Title does not have JIRA issue',
           summary: 'The PR title should end with ONK-0000, or [no issue]',

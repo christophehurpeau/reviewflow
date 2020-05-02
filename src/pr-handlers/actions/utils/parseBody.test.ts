@@ -15,13 +15,13 @@ describe('simple', () => {
     const parsed = parseBodyWithOptions(initialSimple, defaultConfig);
 
     expect(parsed).not.toBeFalsy();
-    expect(parsed && parsed.options).toEqual({
+    expect(parsed?.options).toEqual({
       featureBranch: false,
       autoMergeWithSkipCi: false,
       autoMerge: false,
       deleteAfterMerge: true,
     });
-    expect(parsed && parsed.breakingChanges).toBe('');
+    expect(parsed?.breakingChanges).toBe('');
   });
 
   it('should parse breaking changes', () => {
@@ -41,13 +41,13 @@ describe('simple', () => {
     );
 
     expect(parsed).not.toBeFalsy();
-    expect(parsed && parsed.options).toEqual({
+    expect(parsed?.options).toEqual({
       featureBranch: false,
       autoMergeWithSkipCi: false,
       autoMerge: false,
       deleteAfterMerge: true,
     });
-    expect(parsed && parsed.breakingChanges).toBe('Some commits Notes');
+    expect(parsed?.breakingChanges).toBe('Some commits Notes');
   });
 });
 
@@ -63,13 +63,13 @@ describe('table', () => {
     const parsed = parseBodyWithOptions(initialTable, defaultConfig);
 
     expect(parsed).not.toBeFalsy();
-    expect(parsed && parsed.options).toEqual({
+    expect(parsed?.options).toEqual({
       featureBranch: false,
       autoMergeWithSkipCi: false,
       autoMerge: false,
       deleteAfterMerge: true,
     });
-    expect(parsed && parsed.breakingChanges).toBe('');
+    expect(parsed?.breakingChanges).toBe('');
   });
 });
 
@@ -85,12 +85,12 @@ describe('table', () => {
     const parsed = parseBodyWithOptions(initialAfterEditSimple, defaultConfig);
 
     expect(parsed).not.toBeFalsy();
-    expect(parsed && parsed.options).toEqual({
+    expect(parsed?.options).toEqual({
       featureBranch: false,
       autoMergeWithSkipCi: false,
       autoMerge: false,
       deleteAfterMerge: true,
     });
-    expect(parsed && parsed.breakingChanges).toBe('');
+    expect(parsed?.breakingChanges).toBe('');
   });
 });

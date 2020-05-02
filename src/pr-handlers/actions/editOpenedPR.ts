@@ -68,11 +68,13 @@ export const editOpenedPR: PRHandler<
 
   const date = new Date().toISOString();
 
-  const hasLintPrCheck = (await context.github.checks.listForRef(
-    context.repo({
-      ref: pr.head.sha,
-    }),
-  )).data.check_runs.find(
+  const hasLintPrCheck = (
+    await context.github.checks.listForRef(
+      context.repo({
+        ref: pr.head.sha,
+      }),
+    )
+  ).data.check_runs.find(
     (check): boolean => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`,
   );
 
@@ -91,17 +93,16 @@ export const editOpenedPR: PRHandler<
       ),
       ...(previousSha
         ? statuses
-            .map(
-              ({ name, error, info }): Promise<void> | undefined =>
-                error
-                  ? createStatus(
-                      context,
-                      name,
-                      previousSha,
-                      'success',
-                      'New commits have been pushed',
-                    )
-                  : undefined,
+            .map(({ name, error, info }): Promise<void> | undefined =>
+              error
+                ? createStatus(
+                    context,
+                    name,
+                    previousSha,
+                    'success',
+                    'New commits have been pushed',
+                  )
+                : undefined,
             )
             .filter(ExcludesFalsy)
         : []),
@@ -159,9 +160,13 @@ export const editOpenedPR: PRHandler<
     autoMerge: prHasAutoMergeLabel,
   };
 
-  const { body, options } = updateBody(pr.body, defaultOptions, statuses
-    .filter((status) => status.info && status.info.inBody)
-    .map((status) => status.info) as StatusInfo[]);
+  const { body, options } = updateBody(
+    pr.body,
+    defaultOptions,
+    statuses
+      .filter((status) => status.info && status.info.inBody)
+      .map((status) => status.info) as StatusInfo[],
+  );
   await updatePrIfNeeded(pr, context, repoContext, { title, body });
 
   if (options && (featureBranchLabel || automergeLabel)) {
@@ -193,8 +198,8 @@ export const editOpenedPR: PRHandler<
             onAdd: async (prLabels) => {
               await autoMergeIfPossible(pr, context, repoContext, prLabels);
             },
-            onRemove: async () => {
-              await repoContext.removePrFromAutomergeQueue(context, pr.number);
+            onRemove: () => {
+              repoContext.removePrFromAutomergeQueue(context, pr.number);
             },
           },
         ),

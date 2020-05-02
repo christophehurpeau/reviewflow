@@ -25,6 +25,13 @@ interface UpdatedBodyWithOptions {
   options?: Record<Options, boolean>;
 }
 
+const getReplacement = (infos?: StatusInfo[]): string => {
+  if (!infos) return '$1$2';
+  return infos.length !== 0
+    ? `#### Infos:\n${toMarkdownInfos(infos)}\n$2`
+    : '$2';
+};
+
 export const updateBody = (
   body: string,
   defaultConfig: Record<Options, boolean>,
@@ -48,12 +55,7 @@ export const updateBody = (
   const infosAndCommitNotesParagraph = reviewflowContentCol.replace(
     // eslint-disable-next-line unicorn/no-unsafe-regex
     /^\s*(?:(#### Infos:.*)?(#### Commits Notes:.*)?#### Options:)?.*$/s,
-    // eslint-disable-next-line no-nested-ternary
-    !infos
-      ? '$1$2'
-      : infos.length !== 0
-      ? `#### Infos:\n${toMarkdownInfos(infos)}\n$2`
-      : '$2',
+    getReplacement(infos),
   );
 
   const updatedOptions = !updateOptions
@@ -94,6 +96,7 @@ export const updateBodyCommitsNotes = (
     !commitNotes ? '$1' : `#### Commits Notes:\n\n${commitNotes}\n\n$1`,
   );
 
-  return `${content}${reviewflowContentColPrefix}${reviewflowContentColReplaced}${reviewflowContentColSuffix}${ending ||
-    ''}`;
+  return `${content}${reviewflowContentColPrefix}${reviewflowContentColReplaced}${reviewflowContentColSuffix}${
+    ending || ''
+  }`;
 };
