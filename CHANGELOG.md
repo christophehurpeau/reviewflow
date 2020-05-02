@@ -1,3 +1,18 @@
+# [1.38.0](https://github.com/christophehurpeau/reviewflow/compare/v1.37.1...v1.38.0) (2020-05-02)
+
+
+### Bug Fixes
+
+* paginate migration from .paginate(promise) to .paginate(endpointOptions) ([87ebf29](https://github.com/christophehurpeau/reviewflow/commit/87ebf29))
+* remaining rename pull_number and issue_number ([fc1c5c3](https://github.com/christophehurpeau/reviewflow/commit/fc1c5c3))
+
+
+### Features
+
+* better log repo ([fad050a](https://github.com/christophehurpeau/reviewflow/commit/fad050a))
+
+
+
 ## [1.37.1](https://github.com/christophehurpeau/reviewflow/compare/v1.37.0...v1.37.1) (2020-05-02)
 
 
