@@ -1,3 +1,17 @@
+# [1.41.0](https://github.com/christophehurpeau/reviewflow/compare/v1.40.0...v1.41.0) (2020-05-11)
+
+
+### Bug Fixes
+
+* **deps:** pin dependencies ([#86](https://github.com/christophehurpeau/reviewflow/issues/86)) ([73537da](https://github.com/christophehurpeau/reviewflow/commit/73537da29fa46668e1a176c6b3b05dfe0e076d9a))
+
+
+### Features
+
+* add christopher ([f85a13f](https://github.com/christophehurpeau/reviewflow/commit/f85a13f7ca35549c19975a167d4c0dfe15155c90))
+
+
+
 # [1.40.0](https://github.com/christophehurpeau/reviewflow/compare/v1.39.2...v1.40.0) (2020-05-02)
 
 
