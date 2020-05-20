@@ -1025,23 +1025,22 @@ const initTeamSlack = async (context, config) => {
     Object.assign(acc, config.groups[groupName]);
     return acc;
   }, {});
+  const slackEmails = Object.values(githubLoginToSlackEmail);
   const slackClient = new webApi.WebClient(config.slackToken);
-  const allUsers = await slackClient.users.list({
-    limit: 200
+  const members = [];
+  await slackClient.paginate('users.list', {}, page => {
+    page.members.forEach(member => {
+      const email = member.profile && member.profile.email;
+
+      if (email && slackEmails.includes(email)) {
+        members.push([email, {
+          member,
+          im: undefined
+        }]);
+      }
+    });
+    return false;
   });
-  const members = Object.values(githubLoginToSlackEmail).map(email => {
-    const member = allUsers.members.find(user => user.profile.email === email);
-
-    if (!member) {
-      console.warn(`Could not find user ${email}`);
-      return;
-    }
-
-    return [email, {
-      member,
-      im: undefined
-    }];
-  }).filter(ExcludesFalsy);
 
   for (const [, user] of members) {
     try {
