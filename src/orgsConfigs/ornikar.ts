@@ -79,13 +79,13 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       vlbr: `valerian${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       'budet-b': `benjamin.budet${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       mdcarter: `maxime.dehaye${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      ChibiBlasphem: `christopher${process.env.ORNIKAR_EMAIL_DOMAIN}`,
     },
     design: {
       jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       CoralineColasse: `coraline${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       Lenamari: `lena${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       'AlexisRiols-Ornikar': `alexis.riols${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      ChibiBlasphem: `christopher${process.env.ORNIKAR_EMAIL_DOMAIN}`,
     },
   },
 
@@ -118,6 +118,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         'vlbr',
         'budet-b',
         'mdcarter',
+        'ChibiBlasphem',
       ],
       labels: ['teams/frontend'],
     },
