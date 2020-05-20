@@ -1,3 +1,12 @@
+## [1.41.1](https://github.com/christophehurpeau/reviewflow/compare/v1.41.0...v1.41.1) (2020-05-20)
+
+
+### Bug Fixes
+
+* move ChibiBlasphem to right group ([800bb85](https://github.com/christophehurpeau/reviewflow/commit/800bb85de1b2e40472be6a1852c06f13604eaddf))
+
+
+
 # [1.41.0](https://github.com/christophehurpeau/reviewflow/compare/v1.40.0...v1.41.0) (2020-05-11)
 
 
