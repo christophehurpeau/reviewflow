@@ -1,3 +1,12 @@
+## [1.41.2](https://github.com/christophehurpeau/reviewflow/compare/v1.41.1...v1.41.2) (2020-05-20)
+
+
+### Bug Fixes
+
+* paginate user list ([e192667](https://github.com/christophehurpeau/reviewflow/commit/e192667f9f9e7267eb5082c448431a8b84c8898a))
+
+
+
 ## [1.41.1](https://github.com/christophehurpeau/reviewflow/compare/v1.41.0...v1.41.1) (2020-05-20)
 
 
