@@ -1,7 +1,6 @@
 import Webhooks from '@octokit/webhooks';
 import { WebClient, KnownBlock } from '@slack/web-api';
 import { Context, Octokit } from 'probot';
-import { ExcludesFalsy } from '../utils/ExcludesFalsy';
 import { Config } from '../orgsConfigs';
 import { getKeys } from './utils';
 
@@ -49,25 +48,19 @@ export const initTeamSlack = async <GroupNames extends string>(
     return acc;
   }, {});
 
+  const slackEmails = Object.values(githubLoginToSlackEmail);
   const slackClient = new WebClient(config.slackToken);
-  const allUsers: any = await slackClient.users.list({ limit: 200 });
-  const members: [string, { member: any; im: any }][] = Object.values(
-    githubLoginToSlackEmail,
-  )
-    .map((email) => {
-      const member = allUsers.members.find(
-        (user: any) => user.profile.email === email,
-      );
-      if (!member) {
-        console.warn(`Could not find user ${email}`);
-        return;
+  const members: [string, { member: any; im: any }][] = [];
+
+  await slackClient.paginate('users.list', {}, (page: any) => {
+    page.members.forEach((member: any) => {
+      const email = member.profile && member.profile.email;
+      if (email && slackEmails.includes(email)) {
+        members.push([email, { member, im: undefined }]);
       }
-      return [email, { member, im: undefined }] as [
-        string,
-        { member: any; im: any },
-      ];
-    })
-    .filter(ExcludesFalsy);
+    });
+    return false;
+  });
 
   for (const [, user] of members) {
     try {

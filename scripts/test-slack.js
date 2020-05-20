@@ -10,10 +10,18 @@ if (!process.env.ORNIKAR_SLACK_TOKEN) {
 
 (async () => {
   const slackClient = new WebClient(process.env.ORNIKAR_SLACK_TOKEN);
-  const allUsers = await slackClient.users.list({ limit: 200 });
-  const member = allUsers.members.find(
-    (user) => user.profile.email === 'christophe@ornikar.com',
-  );
+  const slackUsers = new Map();
+  await slackClient.paginate('users.list', {}, (page) => {
+    page.members.forEach((member) => {
+      if (member.profile && member.profile.email) {
+        slackUsers.set(member.profile.email, member);
+      }
+    });
+    return false;
+  });
+
+  const member = slackUsers.get('christophe@ornikar.com');
+
   const im = await slackClient.im.open({ user: member.id });
 
   const message = await slackClient.chat.postMessage({
