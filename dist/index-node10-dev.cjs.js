@@ -380,14 +380,14 @@ const config$1 = {
       Mxime: `maxime${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       vlbr: `valerian${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       'budet-b': `benjamin.budet${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      mdcarter: `maxime.dehaye${process.env.ORNIKAR_EMAIL_DOMAIN}`
+      mdcarter: `maxime.dehaye${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      ChibiBlasphem: `christopher${process.env.ORNIKAR_EMAIL_DOMAIN}`
     },
     design: {
       jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       CoralineColasse: `coraline${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       Lenamari: `lena${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      'AlexisRiols-Ornikar': `alexis.riols${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      ChibiBlasphem: `christopher${process.env.ORNIKAR_EMAIL_DOMAIN}`
+      'AlexisRiols-Ornikar': `alexis.riols${process.env.ORNIKAR_EMAIL_DOMAIN}`
     }
   },
   teams: {
@@ -400,7 +400,7 @@ const config$1 = {
       labels: ['teams/backend']
     },
     frontends: {
-      logins: ['christophehurpeau', 'HugoGarrido', 'LentnerStefan', 'CorentinAndre', 'Mxime', 'vlbr', 'budet-b', 'mdcarter'],
+      logins: ['christophehurpeau', 'HugoGarrido', 'LentnerStefan', 'CorentinAndre', 'Mxime', 'vlbr', 'budet-b', 'mdcarter', 'ChibiBlasphem'],
       labels: ['teams/frontend']
     }
   },
