@@ -1,3 +1,12 @@
+# [1.44.0](https://github.com/christophehurpeau/reviewflow/compare/v1.43.0...v1.44.0) (2020-05-21)
+
+
+### Features
+
+* home ([dfc351c](https://github.com/christophehurpeau/reviewflow/commit/dfc351c4da754a9101d1e1f9684ca849d5cbdf55))
+
+
+
 # [1.43.0](https://github.com/christophehurpeau/reviewflow/compare/v1.42.4...v1.43.0) (2020-05-21)
 
 
