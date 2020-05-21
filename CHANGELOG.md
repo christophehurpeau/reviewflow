@@ -1,4 +1,4 @@
-# [1.44.0](https://github.com/christophehurpeau/reviewflow/compare/v1.43.0...v1.44.0) (2020-05-21)
+# [1.45.0](https://github.com/christophehurpeau/reviewflow/compare/v1.43.0...v1.45.0) (2020-05-21)
 
 
 ### Features
