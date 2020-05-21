@@ -1,3 +1,12 @@
+## [1.42.2](https://github.com/christophehurpeau/reviewflow/compare/v1.42.1...v1.42.2) (2020-05-21)
+
+
+### Bug Fixes
+
+* sync teams on initial sync ([c1d8744](https://github.com/christophehurpeau/reviewflow/commit/c1d87440ba3b6f3e01cda25d989172e3cc02368a))
+
+
+
 ## [1.42.1](https://github.com/christophehurpeau/reviewflow/compare/v1.42.0...v1.42.1) (2020-05-21)
 
 
