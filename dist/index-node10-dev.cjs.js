@@ -345,6 +345,40 @@ function home(router) {
   });
 }
 
+const syncTeams = async (mongoStores, github, org) => {
+  const orgEmbed = {
+    id: org.id,
+    login: org.login
+  };
+  const teamIds = [];
+  await github.paginate(github.teams.list.endpoint.merge({
+    org: org.login
+  }), async ({
+    data
+  }, done) => {
+    await Promise.all(data.map(team => {
+      teamIds.push(team.id);
+      return mongoStores.orgTeams.upsertOne({
+        _id: team.id,
+        // TODO _id number
+        org: orgEmbed,
+        name: team.name,
+        slug: team.slug,
+        description: team.description
+      });
+    }));
+    done();
+  });
+  await mongoStores.orgMembers.deleteMany({
+    'org.id': org.id,
+    'user.id': {
+      $not: {
+        $in: teamIds
+      }
+    }
+  });
+};
+
 const syncOrg = async (mongoStores, github, org) => {
   const orgInStore = await mongoStores.orgs.upsertOne({
     _id: org.id,
@@ -838,6 +872,7 @@ function orgSettings(router, api, mongoStores) {
     const org = orgs.data.find(o => o.login === req.params.org);
     if (!org) return res.redirect('/app/gh');
     await syncOrg(mongoStores, user.api, org);
+    await syncTeams(mongoStores, user.api, org);
     res.redirect(`/app/gh/org/${req.params.org}`);
   });
   router.get('/gh/org/:org', async (req, res) => {
@@ -1426,9 +1461,11 @@ const initTeamSlack = async (mongoStores, context, config, slackToken) => {
 };
 
 const getOrCreateOrg = async (mongoStores, github, orgInfo) => {
-  const org = await mongoStores.orgs.findByKey(orgInfo.id);
+  let org = await mongoStores.orgs.findByKey(orgInfo.id);
   if (org) return org;
-  return syncOrg(mongoStores, github, orgInfo);
+  org = await syncOrg(mongoStores, github, orgInfo);
+  await syncTeams(mongoStores, github, orgInfo);
+  return org;
 };
 
 const initTeamContext = async (mongoStores, context, config, orgInfo) => {
@@ -2733,40 +2770,6 @@ const handlerOrgChange = async (mongoStores, context, callback) => {
 };
 const createHandlerOrgChange = (mongoStores, callback) => context => {
   return handlerOrgChange(mongoStores, context, callback);
-};
-
-const syncTeams = async (mongoStores, github, org) => {
-  const orgEmbed = {
-    id: org.id,
-    login: org.login
-  };
-  const teamIds = [];
-  await github.paginate(github.teams.list.endpoint.merge({
-    org: org.login
-  }), async ({
-    data
-  }, done) => {
-    await Promise.all(data.map(team => {
-      teamIds.push(team.id);
-      return mongoStores.orgTeams.upsertOne({
-        _id: team.id,
-        // TODO _id number
-        org: orgEmbed,
-        name: team.name,
-        slug: team.slug,
-        description: team.description
-      });
-    }));
-    done();
-  });
-  await mongoStores.orgMembers.deleteMany({
-    'org.id': org.id,
-    'user.id': {
-      $not: {
-        $in: teamIds
-      }
-    }
-  });
 };
 
 function initApp(app, mongoStores) {

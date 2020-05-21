@@ -4,6 +4,7 @@ import { MongoStores, Org } from '../mongo';
 import { Config } from '../orgsConfigs';
 import { ExcludesFalsy } from '../utils/ExcludesFalsy';
 import { syncOrg } from '../org-handlers/actions/syncOrg';
+import { syncTeams } from '../org-handlers/actions/syncTeams';
 import { initTeamSlack, TeamSlack } from './initTeamSlack';
 import { getKeys } from './utils';
 
@@ -34,9 +35,11 @@ const getOrCreateOrg = async (
   github: Octokit,
   orgInfo: { id: number; login: string },
 ): Promise<Org> => {
-  const org = await mongoStores.orgs.findByKey(orgInfo.id);
+  let org = await mongoStores.orgs.findByKey(orgInfo.id);
   if (org) return org;
-  return syncOrg(mongoStores, github, orgInfo);
+  org = await syncOrg(mongoStores, github, orgInfo);
+  await syncTeams(mongoStores, github, orgInfo);
+  return org;
 };
 
 const initTeamContext = async (

@@ -3,6 +3,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { GitHubAPI } from 'probot/lib/github';
 import bodyParser from 'body-parser';
+import { syncTeams } from '../org-handlers/actions/syncTeams';
 import { syncOrg } from '../org-handlers/actions/syncOrg';
 import { MessageCategory } from '../dm/MessageCategory';
 import { getUserDmSettings, updateCache } from '../dm/getUserDmSettings';
@@ -37,6 +38,7 @@ export default function orgSettings(
     if (!org) return res.redirect('/app/gh');
 
     await syncOrg(mongoStores, user.api, org);
+    await syncTeams(mongoStores, user.api, org);
 
     res.redirect(`/app/gh/org/${req.params.org}`);
   });
