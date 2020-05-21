@@ -150,7 +150,6 @@ export default function auth(router: Router): void {
     const login = user.data.login;
 
     const authInfo: AuthInfo = { id, login, accessToken, time: Date.now() };
-    console.log({ authInfo });
     const token = await signPromisified(authInfo, AUTH_SECRET_KEY, {
       algorithm: 'HS512',
       audience: req.headers['user-agent'],

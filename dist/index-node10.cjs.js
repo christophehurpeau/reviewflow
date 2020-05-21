@@ -246,9 +246,6 @@ function auth(router) {
       accessToken,
       time: Date.now()
     };
-    console.log({
-      authInfo
-    });
     const token = await signPromisified(authInfo, AUTH_SECRET_KEY, {
       algorithm: 'HS512',
       audience: req.headers['user-agent'],
