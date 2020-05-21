@@ -1,7 +1,7 @@
 {
   "name": "reviewflow",
   "private": true,
-  "version": "1.42.4",
+  "version": "1.43.0",
   "description": "reviewflow",
   "author": "Christophe Hurpeau <christophe@hurpeau.com> (https://christophe.hurpeau.com)",
   "license": "ISC",

@@ -1,3 +1,12 @@
+# [1.43.0](https://github.com/christophehurpeau/reviewflow/compare/v1.42.4...v1.43.0) (2020-05-21)
+
+
+### Features
+
+* support comments from issue_comment.created event ([a57f251](https://github.com/christophehurpeau/reviewflow/commit/a57f25191594183b251ab82a1e3c90f6dbbc3b54))
+
+
+
 ## [1.42.4](https://github.com/christophehurpeau/reviewflow/compare/v1.42.3...v1.42.4) (2020-05-21)
 
 
