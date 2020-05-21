@@ -1,3 +1,12 @@
+## [1.42.3](https://github.com/christophehurpeau/reviewflow/compare/v1.42.2...v1.42.3) (2020-05-21)
+
+
+### Bug Fixes
+
+* not unique team index ([5be15f7](https://github.com/christophehurpeau/reviewflow/commit/5be15f75f20dcfa20d293c6aa8a25582a60aeede))
+
+
+
 ## [1.42.2](https://github.com/christophehurpeau/reviewflow/compare/v1.42.1...v1.42.2) (2020-05-21)
 
 
