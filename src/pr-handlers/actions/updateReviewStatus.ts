@@ -7,7 +7,7 @@ import { contextIssue } from '../../context/utils';
 import { updateStatusCheckFromLabels } from './updateStatusCheckFromLabels';
 
 export const updateReviewStatus = async <
-  E extends Webhooks.WebhookPayloadPullRequest,
+  E extends { repository: Webhooks.PayloadRepository },
   GroupNames extends string = any
 >(
   pr: Octokit.PullsGetResponse,
