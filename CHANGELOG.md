@@ -1,3 +1,17 @@
+# [1.42.0](https://github.com/christophehurpeau/reviewflow/compare/v1.41.2...v1.42.0) (2020-05-21)
+
+
+### Bug Fixes
+
+* tsc ([71ce9ba](https://github.com/christophehurpeau/reviewflow/commit/71ce9ba72f0bd45a35c7c4487a1369ee52b7d76b))
+
+
+### Features
+
+* pr comment and settings ([#91](https://github.com/christophehurpeau/reviewflow/issues/91)) ([e631a42](https://github.com/christophehurpeau/reviewflow/commit/e631a42ad31e446b296593ece22ecf4a25ad9114))
+
+
+
 ## [1.41.2](https://github.com/christophehurpeau/reviewflow/compare/v1.41.1...v1.41.2) (2020-05-20)
 
 
