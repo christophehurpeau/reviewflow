@@ -1,3 +1,12 @@
+## [1.45.1](https://github.com/christophehurpeau/reviewflow/compare/v1.45.0...v1.45.1) (2020-05-21)
+
+
+### Bug Fixes
+
+* insert org members ([b132601](https://github.com/christophehurpeau/reviewflow/commit/b132601f6c9c8d93e30b5ad4156c7e770586b93f))
+
+
+
 # [1.45.0](https://github.com/christophehurpeau/reviewflow/compare/v1.43.0...v1.45.0) (2020-05-21)
 
 
