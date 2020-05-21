@@ -21,16 +21,27 @@ export const handlerPullRequestChange = async <
   context: Context<T>,
   callback: CallbackWithPRAndRepoContext,
 ): Promise<void> => {
+  let pullRequest = context.payload.pull_request;
+  if (!pullRequest) {
+    const issue = (context.payload as any).issue;
+    if (!issue) return;
+    pullRequest = {
+      ...issue,
+      ...issue.pull_request,
+    };
+  }
+  if (!pullRequest) return;
+
   const repoContext = await obtainRepoContext(mongoStores, context);
   if (!repoContext) return;
 
   return repoContext.lockPROrPRS(
-    String(context.payload.pull_request.id),
-    context.payload.pull_request.number,
+    String(pullRequest.id),
+    pullRequest.number,
     async () => {
       const prResult = await context.github.pulls.get(
         context.repo({
-          pull_number: context.payload.pull_request.number,
+          pull_number: pullRequest.number,
         }),
       );
 

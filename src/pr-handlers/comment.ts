@@ -56,7 +56,12 @@ export default function prComment(
   mongoStores: MongoStores,
 ): void {
   app.on(
-    'pull_request_review_comment.created',
+    [
+      'pull_request_review_comment.created',
+      // comments without review and without path are sent with issue_comment.created.
+      // createHandlerPullRequestChange checks if pull_request event is present, removing real issues comments.
+      'issue_comment.created',
+    ],
     createHandlerPullRequestChange<WebhookPayloadPullRequestReviewComment>(
       mongoStores,
       async (pr, context, repoContext): Promise<void> => {

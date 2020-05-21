@@ -1735,11 +1735,22 @@ const obtainRepoContext = (mongoStores, context) => {
 };
 
 const handlerPullRequestChange = async (mongoStores, context, callback) => {
+  let pullRequest = context.payload.pull_request;
+
+  if (!pullRequest) {
+    const issue = context.payload.issue;
+    if (!issue) return;
+    pullRequest = { ...issue,
+      ...issue.pull_request
+    };
+  }
+
+  if (!pullRequest) return;
   const repoContext = await obtainRepoContext(mongoStores, context);
   if (!repoContext) return;
-  return repoContext.lockPROrPRS(String(context.payload.pull_request.id), context.payload.pull_request.number, async () => {
+  return repoContext.lockPROrPRS(String(pullRequest.id), pullRequest.number, async () => {
     const prResult = await context.github.pulls.get(context.repo({
-      pull_number: context.payload.pull_request.number
+      pull_number: pullRequest.number
     }));
     await callback(prResult.data, repoContext);
   });
@@ -2409,7 +2420,9 @@ const getUsersInThread = discussion => {
 };
 
 function prComment(app, mongoStores) {
-  app.on('pull_request_review_comment.created', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
+  app.on(['pull_request_review_comment.created', // comments without review and without path are sent with issue_comment.created.
+  // createHandlerPullRequestChange checks if pull_request event is present, removing real issues comments.
+  'issue_comment.created'], createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
     const {
       comment
     } = context.payload;
