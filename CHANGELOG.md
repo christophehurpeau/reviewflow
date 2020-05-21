@@ -1,3 +1,14 @@
+## [1.42.4](https://github.com/christophehurpeau/reviewflow/compare/v1.42.3...v1.42.4) (2020-05-21)
+
+
+### Bug Fixes
+
+* check mentions length ([8f0df74](https://github.com/christophehurpeau/reviewflow/commit/8f0df748f363e52a6710a2ac20f5b8958c2bc4cf))
+* remove console.log ([46d78e4](https://github.com/christophehurpeau/reviewflow/commit/46d78e47df0ee05eaef2624a1ba7ec1a4aa7a264))
+* reviews states and duplicate notifications ([d5544ca](https://github.com/christophehurpeau/reviewflow/commit/d5544caa9550e04c155c36cf84a55320e97ef407))
+
+
+
 ## [1.42.3](https://github.com/christophehurpeau/reviewflow/compare/v1.42.2...v1.42.3) (2020-05-21)
 
 
