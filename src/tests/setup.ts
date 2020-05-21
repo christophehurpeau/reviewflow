@@ -17,7 +17,9 @@ export const initializeProbotApp = (): Probot => {
     cert: 'test',
     githubToken: 'test',
   });
-  const mockStores = { orgs: { findByKey: () => Promise.resolve({}) } } as any;
+  const mockStores = {
+    orgs: { findByKey: () => Promise.resolve({ installationId: 1 }) },
+  } as any;
   probot.load((app) => initApp(app, mockStores));
 
   return probot;
