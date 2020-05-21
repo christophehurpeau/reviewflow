@@ -93,7 +93,7 @@ export const updateReviewStatus = async <
     }
   });
 
-  // if (process.env.DRY_RUN) return;
+  // if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return;
 
   if (toAdd.size !== 0 || toDelete.size !== 0) {
     if (toDelete.size === 0 || toDelete.size < 4) {

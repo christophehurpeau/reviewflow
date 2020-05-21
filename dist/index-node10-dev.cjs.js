@@ -5,24 +5,17 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 require('dotenv/config');
 const probot = require('probot');
 const liwiMongo = require('liwi-mongo');
-const util = require('util');
 const cookieParser = _interopDefault(require('cookie-parser'));
-const jsonwebtoken = require('jsonwebtoken');
 const React = _interopDefault(require('react'));
 const server = require('react-dom/server');
+const util = require('util');
+const jsonwebtoken = require('jsonwebtoken');
 const simpleOauth2 = require('simple-oauth2');
-const crypto = require('crypto');
+const bodyParser = _interopDefault(require('body-parser'));
 const lock = require('lock');
 const webApi = require('@slack/web-api');
-const parse = _interopDefault(require('@commitlint/parse'));
-
-// import { MongoStore, MongoConnection, MongoModel } from 'liwi-mongo';
-//   owner: string;
-//   repo: string;
-//   prId: string;
-//   prNumber: string;
-//   event: string;
-// }
+const parse$1 = _interopDefault(require('@commitlint/parse'));
+const issueParser = _interopDefault(require('issue-parser'));
 
 if (!process.env.MONGO_DB) {
   throw new Error('MONGO_DB is missing in process.env');
@@ -40,16 +33,63 @@ function init() {
   // prEvents.collection.then((coll) => {
   //   coll.createIndex({ owner: 1, repo: 1, ???: 1 });
   // });
-  // return { connection, prEvents };
+
+  const userDmSettings = new liwiMongo.MongoStore(connection, 'userDmSettings');
+  userDmSettings.collection.then(coll => {
+    coll.createIndex({
+      userId: 1,
+      orgId: 1
+    }, {
+      unique: true
+    });
+  });
+  const users = new liwiMongo.MongoStore(connection, 'users');
+  users.collection.then(coll => {
+    coll.createIndex({
+      login: 1
+    }, {
+      unique: true
+    });
+  });
+  const orgs = new liwiMongo.MongoStore(connection, 'orgs');
+  orgs.collection.then(coll => {
+    coll.createIndex({
+      login: 1
+    }, {
+      unique: true
+    });
+  });
+  const orgMembers = new liwiMongo.MongoStore(connection, 'orgMembers');
+  orgMembers.collection.then(coll => {
+    coll.createIndex({
+      'user.id': 1,
+      'org.id': 1
+    }, {
+      unique: true
+    });
+  });
+  const orgTeams = new liwiMongo.MongoStore(connection, 'orgTeams');
+  orgTeams.collection.then(coll => {
+    coll.createIndex({
+      'org.id': 1
+    }, {
+      unique: true
+    });
+  }); // return { connection, prEvents };
 
   return {
-    connection
+    connection,
+    userDmSettings,
+    users,
+    orgs,
+    orgMembers,
+    orgTeams
   };
 }
 
 function Layout({
   lang = 'en',
-  title = process.env.NAME,
+  title = process.env.REVIEWFLOW_NAME,
   children
 }) {
   return /*#__PURE__*/React.createElement("html", {
@@ -64,7 +104,11 @@ function Layout({
     type: "text/css",
     href: "https://christophe.hurpeau.com/index.css"
   }), /*#__PURE__*/React.createElement("style", null, `html,body,html body
-            #container{height:100%} footer{position:absolute;bottom:5px;left:0;right:0;}`)), /*#__PURE__*/React.createElement("body", null, children));
+            #container{height:100%} footer{position:absolute;bottom:5px;left:0;right:0;}`)), /*#__PURE__*/React.createElement("body", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '24px 48px'
+    }
+  }, children)));
 }
 
 if (!process.env.GITHUB_CLIENT_ID) {
@@ -86,14 +130,6 @@ const oauth2 = simpleOauth2.create({
     authorizePath: '/login/oauth/authorize'
   }
 });
-
-const randomBytesPromisified = util.promisify(crypto.randomBytes);
-async function randomHex(size) {
-  const buffer = await randomBytesPromisified(size);
-  return buffer.toString('hex');
-}
-
-/* eslint-disable max-lines */
 
 if (!process.env.AUTH_SECRET_KEY) {
   throw new Error('Missing env variable: AUTH_SECRET_KEY');
@@ -118,49 +154,49 @@ const readAuthCookie = (req, strategy) => {
   });
 };
 
-async function appRouter(app) {
-  const router = app.route('/app');
-  const api = await app.auth();
-  router.use(cookieParser());
-  router.get('/', (req, res) => {
-    res.redirect('/app/gh');
-  });
-  router.get('/gh', async (req, res) => {
-    const authInfo = await readAuthCookie(req, "gh");
+const getAuthInfoFromCookie = async (req, res) => {
+  // req.params.strategy
+  const authInfo = await readAuthCookie(req, "gh");
 
-    if (!authInfo) {
-      return res.redirect('/app/gh/login');
-    }
+  if (authInfo === null || authInfo === void 0 ? void 0 : authInfo.id) {
+    return authInfo;
+  }
 
-    const octokit = new probot.Octokit({
+  res.clearCookie(`auth_${"gh"}`);
+  return undefined;
+};
+
+const getUser = async (req, res) => {
+  const authInfo = await getAuthInfoFromCookie(req, res);
+
+  if (!authInfo) {
+    res.redirect('/app/gh/login');
+    return null;
+  }
+
+  return {
+    authInfo,
+    api: new probot.Octokit({
       auth: `token ${authInfo.accessToken}`
-    });
-    const {
-      data
-    } = await octokit.repos.list({
-      per_page: 100
-    });
-    res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", null, "Your repositories"), /*#__PURE__*/React.createElement("ul", null, data.map(repo => /*#__PURE__*/React.createElement("li", {
-      key: repo.id
-    }, /*#__PURE__*/React.createElement("a", {
-      href: `/app/gh/repository/${repo.owner.login}/${repo.name}`
-    }, repo.name))))), data.length === 100 && /*#__PURE__*/React.createElement("div", null, "We currently have a limit to 100 repositories"))));
-  });
+    })
+  };
+};
+function auth(router) {
   router.get('/gh/login', async (req, res) => {
-    if (await readAuthCookie(req, "gh")) {
+    if (await getAuthInfoFromCookie(req, res)) {
       return res.redirect('/app/gh');
-    }
+    } // const state = await randomHex(8);
+    // res.cookie(`auth_${strategy}_${state}`, strategy, {
+    //   maxAge: 10 * 60 * 1000,
+    //   httpOnly: true,
+    //   secure,
+    // });
 
-    const state = await randomHex(8);
-    res.cookie(`auth_${"gh"}_${state}`, "gh", {
-      maxAge: 600000,
-      httpOnly: true,
-      secure
-    });
+
     const redirectUri = oauth2.authorizationCode.authorizeURL({
-      redirect_uri: createRedirectUri(req, "gh"),
-      scope: 'read:user,repo',
-      state // grant_type: options.grantType,
+      redirect_uri: createRedirectUri(req, 'gh'),
+      scope: 'read:user,repo' // state,
+      // grant_type: options.grantType,
       // access_type: options.accessType,
       // login_hint: req.query.loginHint,
       // include_granted_scopes: options.includeGrantedScopes,
@@ -175,25 +211,24 @@ async function appRouter(app) {
       return;
     }
 
-    const code = req.query.code;
-    const state = req.query.state;
-    const cookieName = `auth_${"gh"}_${state}`;
-    const cookie = req.cookies && req.cookies[cookieName];
+    const code = req.query.code; // const state = req.query.state;
+    // const cookieName = `auth_${strategy}_${state}`;
+    // const cookie = req.cookies && req.cookies[cookieName];
+    // if (!cookie) {
+    //   // res.redirect(`/${strategy}/login`);
+    //   res.send(
+    //     '<html><body>No cookie for this state. <a href="/app/gh/login">Retry ?</a></body></html>',
+    //   );
+    //   return;
+    // }
+    // res.clearCookie(cookieName);
 
-    if (!cookie) {
-      // res.redirect(`/${strategy}/login`);
-      res.send('<html><body>No cookie for this state. <a href="/app/gh/login">Retry ?</a></body></html>');
-      return;
-    }
-
-    res.clearCookie(cookieName);
     const result = await oauth2.authorizationCode.getToken({
       code,
       redirect_uri: createRedirectUri(req, "gh")
     });
 
     if (!result) {
-      // res.redirect(`/${strategy}/login`);
       res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, "Could not get access token. ", /*#__PURE__*/React.createElement("a", {
         href: "/app/gh/login"
       }, "Retry ?")))));
@@ -205,12 +240,18 @@ async function appRouter(app) {
       auth: `token ${accessToken}`
     });
     const user = await octokit.users.getAuthenticated({});
+    const id = user.data.id;
     const login = user.data.login;
-    const token = await signPromisified({
+    const authInfo = {
+      id,
       login,
       accessToken,
       time: Date.now()
-    }, AUTH_SECRET_KEY, {
+    };
+    console.log({
+      authInfo
+    });
+    const token = await signPromisified(authInfo, AUTH_SECRET_KEY, {
       algorithm: 'HS512',
       audience: req.headers['user-agent'],
       expiresIn: '10 days'
@@ -219,31 +260,43 @@ async function appRouter(app) {
       httpOnly: true,
       secure
     });
-    res.redirect('/gh');
+    res.redirect('/app/gh');
   });
-  router.get('/gh/repository/:owner/:repository', async (req, res) => {
-    const authInfo = await readAuthCookie(req, "gh");
+}
 
-    if (!authInfo) {
-      return res.redirect('/gh/login');
-    }
-
-    const octokit = new probot.Octokit({
-      auth: `token ${authInfo.accessToken}`
-    });
+function repository(router, api) {
+  router.get('/gh/repositories', async (req, res) => {
+    const user = await getUser(req, res);
+    if (!user) return;
     const {
       data
-    } = await octokit.repos.get({
+    } = await user.api.repos.list({
+      per_page: 100
+    });
+    res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", null, "Your repositories"), /*#__PURE__*/React.createElement("ul", null, data.map(repo => /*#__PURE__*/React.createElement("li", {
+      key: repo.id
+    }, /*#__PURE__*/React.createElement("a", {
+      href: `/app/gh/repository/${repo.owner.login}/${repo.name}`
+    }, repo.name)))), data.length === 100 && /*#__PURE__*/React.createElement("div", null, "We currently have a limit to 100 repositories")))));
+  });
+  router.get('/gh/repository/:owner/:repository', async (req, res) => {
+    const user = await getUser(req, res);
+    if (!user) return;
+    const {
+      data
+    } = await user.api.repos.get({
       owner: req.params.owner,
       repo: req.params.repository
     });
 
     if (!data) {
-      return res.status(404).send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, "repo not found"))));
+      res.status(404).send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, "repo not found"))));
+      return;
     }
 
     if (!data.permissions.admin) {
-      return res.status(401).send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, "not authorized to see this repo, you need to have admin permission"))));
+      res.status(401).send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, "not authorized to see this repo, you need to have admin permission"))));
+      return;
     }
 
     const {
@@ -259,14 +312,82 @@ async function appRouter(app) {
     });
 
     if (!data2) {
-      return res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed on this repo. Go to ", /*#__PURE__*/React.createElement("a", {
+      res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed on this repo. Go to ", /*#__PURE__*/React.createElement("a", {
         href: `https://github.com/apps/${process.env.REVIEWFLOW_NAME}/installations/new`
       }, "Github Configuration"), ' ', "to add it."))));
+      return;
     }
 
     res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", null, req.params.repository)))));
   });
 }
+
+function home(router) {
+  router.get('/gh', async (req, res) => {
+    const user = await getUser(req, res);
+    if (!user) return;
+    const orgs = await user.api.orgs.listForAuthenticatedUser();
+    res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", null, process.env.REVIEWFLOW_NAME), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        flexGrow: 1
+      }
+    }, /*#__PURE__*/React.createElement("h4", null, "Choose your account"), /*#__PURE__*/React.createElement("ul", null, /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("a", {
+      href: "/app/gh/user"
+    }, user.authInfo.login)), orgs.data.map(org => /*#__PURE__*/React.createElement("li", {
+      key: org.id
+    }, /*#__PURE__*/React.createElement("a", {
+      href: `/app/gh/org/${org.login}`
+    }, org.login))))))))));
+  });
+}
+
+const syncOrg = async (mongoStores, github, org) => {
+  const orgInStore = await mongoStores.orgs.upsertOne({
+    _id: org.id,
+    // TODO _id is number
+    login: org.login
+  });
+  const orgEmbed = {
+    id: org.id,
+    login: org.login
+  };
+  const memberIds = [];
+  await github.paginate(github.orgs.listMembers.endpoint.merge({
+    org: org.login
+  }), async ({
+    data
+  }, done) => {
+    await Promise.all(data.map(member => {
+      memberIds.push(member.id);
+      return Promise.all([mongoStores.orgMembers.upsertOne({
+        _id: `${org.id}_${member.id}`,
+        org: orgEmbed,
+        user: {
+          id: member.id,
+          login: member.login
+        }
+      }), mongoStores.users.upsertOne({
+        _id: member.id,
+        login: member.login,
+        type: member.type
+      })]);
+    }));
+    done();
+  });
+  await mongoStores.orgMembers.deleteMany({
+    'org.id': org.id,
+    'user.id': {
+      $not: {
+        $in: memberIds
+      }
+    }
+  });
+  return orgInStore;
+};
 
 const config = {
   autoAssignToCreator: true,
@@ -309,7 +430,6 @@ const config = {
 
 /* eslint-disable max-lines */
 const config$1 = {
-  slackToken: process.env.ORNIKAR_SLACK_TOKEN,
   autoAssignToCreator: true,
   trimTitle: true,
   ignoreRepoPattern: '(infra-.*|devenv)',
@@ -646,13 +766,214 @@ const config$2 = {
 
 const orgsConfigs = {
   ornikar: config$1,
-  christophehurpeau: config$2
+  christophehurpeau: config$2,
+  reviewflow: config$2
 };
 // export const getMembers = <GroupNames extends string = any>(
 //   groups: Record<GroupNames, Group>,
 // ): string[] => {
 //   return Object.values(groups).flat(1);
 // };
+
+const defaultDmSettings = {
+  'pr-review': true,
+  'pr-review-follow': true,
+  'pr-comment': true,
+  'pr-comment-follow': true,
+  'pr-comment-mention': true,
+  'pr-comment-thread': true,
+  'pr-merge-conflicts': true,
+  'issue-comment-mention': true
+};
+
+const cache = new Map();
+
+const getDefaultDmSettings = org => {
+  const orgConfig = orgsConfigs[org] || config;
+  return orgConfig.defaultDmSettings ? { ...defaultDmSettings,
+    ...orgConfig.defaultDmSettings
+  } : defaultDmSettings;
+};
+
+const updateCache = (org, userId, newSettings) => {
+  let orgCache = cache.get(org);
+
+  if (!orgCache) {
+    orgCache = new Map();
+    cache.set(org, orgCache);
+  }
+
+  orgCache.set(userId, { ...getDefaultDmSettings(org),
+    ...newSettings
+  });
+};
+const getUserDmSettings = async (mongoStores, org, orgId, userId) => {
+  const orgDefaultDmSettings = getDefaultDmSettings(org);
+  const userDmSettingsConfig = await mongoStores.userDmSettings.findOne({
+    orgId,
+    userId
+  });
+  const config = userDmSettingsConfig ? { ...orgDefaultDmSettings,
+    ...userDmSettingsConfig.settings
+  } : orgDefaultDmSettings;
+  updateCache(org, userId, config);
+  return config;
+};
+
+const dmMessages = {
+  'pr-review': 'You are assigned to a review, someone reviewed your PR',
+  'pr-review-follow': "Someone reviewed a PR you're also reviewing (NEW!)",
+  'pr-comment': 'Someone commented on your PR (NEW!)',
+  'pr-comment-follow': "Someone commented on a PR you're reviewing (NEW!)",
+  'pr-comment-mention': 'Someone mentioned you in a PR (NEW!)',
+  'pr-comment-thread': "Someone replied to a discussion you're in (NEW!)",
+  'pr-merge-conflicts': 'Your PR has a merge conflict (not implemented)',
+  'issue-comment-mention': 'Someone mentioned you in an issue (not implemented)'
+};
+function orgSettings(router, api, mongoStores) {
+  router.get('/gh/org/:org/force-sync', async (req, res) => {
+    const user = await getUser(req, res);
+    if (!user) return;
+    const orgs = await user.api.orgs.listForAuthenticatedUser();
+    const org = orgs.data.find(o => o.login === req.params.org);
+    if (!org) return res.redirect('/app/gh');
+    await syncOrg(mongoStores, user.api, org);
+    res.redirect(`/app/gh/org/${req.params.org}`);
+  });
+  router.get('/gh/org/:org', async (req, res) => {
+    const user = await getUser(req, res);
+    if (!user) return;
+    const orgs = await user.api.orgs.listForAuthenticatedUser();
+    const org = orgs.data.find(o => o.login === req.params.org);
+    if (!org) return res.redirect('/app/gh');
+    const installation = await api.apps.getOrgInstallation({
+      org: org.login
+    }).catch(err => {
+      return {
+        status: err.status,
+        data: undefined
+      };
+    });
+
+    if (!installation) {
+      return res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed for this user. Go to ", /*#__PURE__*/React.createElement("a", {
+        href: `https://github.com/settings/apps/${process.env.REVIEWFLOW_NAME}/installations/new`
+      }, "Github Configuration"), ' ', "to install it."))));
+    }
+
+    const orgConfig = orgsConfigs[org.login];
+    const userDmSettings = await getUserDmSettings(mongoStores, org.login, org.id, user.authInfo.id);
+    res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", null, process.env.REVIEWFLOW_NAME), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex'
+      }
+    }, /*#__PURE__*/React.createElement("h2", {
+      style: {
+        flexGrow: 1
+      }
+    }, org.login), /*#__PURE__*/React.createElement("a", {
+      href: "/app/gh/"
+    }, "Switch account")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        flexGrow: 1
+      }
+    }, /*#__PURE__*/React.createElement("h4", null, "Information"), !orgConfig ? 'Default config is used: https://github.com/christophehurpeau/reviewflow/blob/master/src/orgsConfigs/defaultConfig.ts' : `Custom config: https://github.com/christophehurpeau/reviewflow/blob/master/src/orgsConfigs/${org.login}.ts`), /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: '380px'
+      }
+    }, /*#__PURE__*/React.createElement("h4", null, "My DM Settings"), Object.entries(dmMessages).map(([key, name]) => /*#__PURE__*/React.createElement("div", {
+      key: key
+    }, /*#__PURE__*/React.createElement("label", {
+      htmlFor: key
+    }, /*#__PURE__*/React.createElement("span", {
+      // eslint-disable-next-line react/no-danger
+      dangerouslySetInnerHTML: {
+        __html: `<input id="${key}" type="checkbox" autocomplete="off" ${userDmSettings[key] ? 'checked="checked" ' : ''}onclick="fetch(location.pathname, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: '${key}', value: event.currentTarget.checked }) })" />`
+      }
+    }), name)))))))));
+  });
+  router.patch('/gh/org/:org', bodyParser.json(), async (req, res) => {
+    if (!req.body) {
+      res.status(400).send('not ok');
+      return;
+    }
+
+    const user = await getUser(req, res);
+    if (!user) return;
+    const orgs = await user.api.orgs.listForAuthenticatedUser();
+    const org = orgs.data.find(o => o.login === req.params.org);
+    if (!org) return res.redirect('/app/gh');
+    (await mongoStores.userDmSettings.collection).updateOne({
+      _id: `${org.id}_${user.authInfo.id}`
+    }, {
+      $set: {
+        [`settings.${req.body.key}`]: req.body.value,
+        updated: new Date()
+      },
+      $setOnInsert: {
+        orgId: org.id,
+        userId: user.authInfo.id,
+        created: new Date()
+      }
+    }, {
+      upsert: true
+    });
+    const userDmSettingsConfig = await mongoStores.userDmSettings.findOne({
+      orgId: org.id,
+      userId: user.authInfo.id
+    });
+
+    if (userDmSettingsConfig) {
+      updateCache(org.login, user.authInfo.id, userDmSettingsConfig.settings);
+    }
+
+    res.send('ok');
+  });
+}
+
+function userSettings(router, api) {
+  router.get('/gh/user', async (req, res) => {
+    const user = await getUser(req, res);
+    if (!user) return;
+    const {
+      data: installation
+    } = await api.apps.getUserInstallation({
+      username: user.authInfo.login
+    }).catch(err => {
+      return {
+        status: err.status,
+        data: undefined
+      };
+    });
+
+    if (!installation) {
+      return res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed for this user. Go to ", /*#__PURE__*/React.createElement("a", {
+        href: `https://github.com/settings/apps/${process.env.REVIEWFLOW_NAME}/installations/new`
+      }, "Github Configuration"), ' ', "to install it."))));
+    }
+
+    return res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, process.env.REVIEWFLOW_NAME, " is installed for this user"))));
+  });
+}
+
+/* eslint-disable max-lines */
+async function appRouter(app, mongoStores) {
+  const router = app.route('/app');
+  const api = await app.auth();
+  router.use(cookieParser());
+  router.get('/', (req, res) => {
+    res.redirect('/app/gh');
+  });
+  auth(router);
+  repository(router, api);
+  home(router);
+  orgSettings(router, api, mongoStores);
+  userSettings(router, api);
+}
 
 const options = ['featureBranch', 'autoMergeWithSkipCi', 'autoMerge', 'deleteAfterMerge'];
 const optionsRegexps = options.map(option => ({
@@ -1013,11 +1334,14 @@ const contextPr = (context, object) => {
 
 const voidTeamSlack = () => ({
   mention: () => '',
+  link: () => '',
   postMessage: () => Promise.resolve(null),
   prLink: () => ''
 });
-const initTeamSlack = async (context, config) => {
-  if (!config.slackToken) {
+const initTeamSlack = async (mongoStores, context, config, slackToken) => {
+  const owner = context.payload.repository.owner;
+
+  if (!slackToken) {
     return voidTeamSlack();
   }
 
@@ -1026,7 +1350,7 @@ const initTeamSlack = async (context, config) => {
     return acc;
   }, {});
   const slackEmails = Object.values(githubLoginToSlackEmail);
-  const slackClient = new webApi.WebClient(config.slackToken);
+  const slackClient = new webApi.WebClient(slackToken);
   const members = [];
   await slackClient.paginate('users.list', {}, page => {
     page.members.forEach(member => {
@@ -1067,12 +1391,14 @@ const initTeamSlack = async (context, config) => {
       if (!user) return githubLogin;
       return `<@${user.member.id}>`;
     },
-    postMessage: async (githubLogin, message) => {
-      context.log.debug('send slack', {
+    postMessage: async (category, githubId, githubLogin, message) => {
+      context.log.info('send slack', {
         githubLogin,
         message
       });
-      if (process.env.DRY_RUN) return null;
+      if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
+      const userDmSettings = await getUserDmSettings(mongoStores, owner.login, owner.id, githubId);
+      if (!userDmSettings[category]) return null;
       const user = getUserFromGithubLogin(githubLogin);
       if (!user || !user.im) return null;
       const result = await slackClient.chat.postMessage({
@@ -1090,14 +1416,24 @@ const initTeamSlack = async (context, config) => {
         ts: result.ts
       };
     },
+    link: (url, text) => {
+      return `<${url}|${text}>`;
+    },
     prLink: (pr, context) => {
       return `<${pr.html_url}|${context.payload.repository.name}#${pr.number}>`;
     }
   };
 };
 
-const initTeamContext = async (context, config) => {
-  const slackPromise = initTeamSlack(context, config);
+const getOrCreateOrg = async (mongoStores, github, orgInfo) => {
+  const org = await mongoStores.orgs.findByKey(orgInfo.id);
+  if (org) return org;
+  return syncOrg(mongoStores, github, orgInfo);
+};
+
+const initTeamContext = async (mongoStores, context, config, orgInfo) => {
+  const org = await getOrCreateOrg(mongoStores, context.github, orgInfo);
+  const slackPromise = initTeamSlack(mongoStores, context, config, org.slackToken);
   const githubLoginToGroup = new Map();
   getKeys(config.groups).forEach(groupName => {
     Object.keys(config.groups[groupName]).forEach(login => {
@@ -1119,8 +1455,35 @@ const initTeamContext = async (context, config) => {
 
   const getReviewerGroups = githubLogins => [...new Set(githubLogins.map(githubLogin => githubLoginToGroup.get(githubLogin)).filter(Boolean))];
 
+  const lock$1 = lock.Lock();
   return {
     config,
+    lock: callback => {
+      return new Promise((resolve, reject) => {
+        const logInfos = {
+          org: orgInfo.login
+        };
+        context.log.info('lock: try to lock org', logInfos); // eslint-disable-next-line @typescript-eslint/no-misused-promises
+
+        lock$1('_', async createReleaseCallback => {
+          const release = createReleaseCallback(() => {});
+          context.log.info('lock: lock org acquired', logInfos);
+
+          try {
+            await callback();
+          } catch (err) {
+            context.log.info('lock: release org (with error)', logInfos);
+            release();
+            reject(err);
+            return;
+          }
+
+          context.log.info('lock: release org', logInfos);
+          release();
+          resolve();
+        });
+      });
+    },
     getReviewerGroup: githubLogin => githubLoginToGroup.get(githubLogin),
     getReviewerGroups: githubLogins => [...new Set(githubLogins.map(githubLogin => githubLoginToGroup.get(githubLogin)).filter(ExcludesFalsy))],
     getTeamsForLogin: githubLogin => githubLoginToTeams.get(githubLogin) || [],
@@ -1143,32 +1506,33 @@ const initTeamContext = async (context, config) => {
 
       return false;
     },
-    slack: await slackPromise
+    slack: await slackPromise,
+    org
   };
 };
 
 const orgContextsPromise = new Map();
 const orgContexts = new Map();
-const obtainOrgContext = (context, config) => {
-  const owner = context.payload.repository.owner;
-  const existingTeamContext = orgContexts.get(owner.login);
+const obtainOrgContext = (mongoStores, context, config, org) => {
+  const existingTeamContext = orgContexts.get(org.login);
   if (existingTeamContext) return existingTeamContext;
-  const existingPromise = orgContextsPromise.get(owner.login);
+  const existingPromise = orgContextsPromise.get(org.login);
   if (existingPromise) return Promise.resolve(existingPromise);
-  const promise = initTeamContext(context, config);
-  orgContextsPromise.set(owner.login, promise);
+  const promise = initTeamContext(mongoStores, context, config, org);
+  orgContextsPromise.set(org.login, promise);
   return promise.then(orgContext => {
-    orgContextsPromise.delete(owner.login);
-    orgContexts.set(owner.login, orgContext);
+    orgContextsPromise.delete(org.login);
+    orgContexts.set(org.login, orgContext);
     return orgContext;
   });
 };
 
 /* eslint-disable max-lines */
 
-async function initRepoContext(context, config) {
+async function initRepoContext(mongoStores, context, config) {
   const repo = context.payload.repository;
-  const orgContext = await obtainOrgContext(context, config);
+  const org = repo.owner;
+  const orgContext = await obtainOrgContext(mongoStores, context, config, org);
   const repoContext = Object.create(orgContext);
   const labels = await initRepoLabels(context, config);
   const reviewGroupNames = Object.keys(config.groups);
@@ -1305,7 +1669,7 @@ const shouldIgnoreRepo = (repoName, orgConfig) => {
 
   return false;
 };
-const obtainRepoContext = context => {
+const obtainRepoContext = (mongoStores, context) => {
   const repo = context.payload.repository;
   const owner = repo.owner;
   const key = repo.id;
@@ -1328,7 +1692,7 @@ const obtainRepoContext = context => {
     return null;
   }
 
-  const promise = initRepoContext(context, orgConfig);
+  const promise = initRepoContext(mongoStores, context, orgConfig);
   repoContextsPromise.set(key, promise);
   return promise.then(repoContext => {
     repoContextsPromise.delete(key);
@@ -1337,8 +1701,8 @@ const obtainRepoContext = context => {
   });
 };
 
-const handlerPullRequestChange = async (context, callback) => {
-  const repoContext = await obtainRepoContext(context);
+const handlerPullRequestChange = async (mongoStores, context, callback) => {
+  const repoContext = await obtainRepoContext(mongoStores, context);
   if (!repoContext) return;
   return repoContext.lockPROrPRS(String(context.payload.pull_request.id), context.payload.pull_request.number, async () => {
     const prResult = await context.github.pulls.get(context.repo({
@@ -1347,11 +1711,11 @@ const handlerPullRequestChange = async (context, callback) => {
     await callback(prResult.data, repoContext);
   });
 };
-const createHandlerPullRequestChange = callback => context => {
-  return handlerPullRequestChange(context, (pr, repoContext) => callback(pr, context, repoContext));
+const createHandlerPullRequestChange = (mongoStores, callback) => context => {
+  return handlerPullRequestChange(mongoStores, context, (pr, repoContext) => callback(pr, context, repoContext));
 };
-const createHandlerPullRequestsChange = (getPullRequests, callback) => async context => {
-  const repoContext = await obtainRepoContext(context);
+const createHandlerPullRequestsChange = (mongoStores, getPullRequests, callback) => async context => {
+  const repoContext = await obtainRepoContext(mongoStores, context);
   if (!repoContext) return;
   const prs = getPullRequests(context, repoContext);
   if (prs.length === 0) return;
@@ -1745,7 +2109,7 @@ const updateReviewStatus = async (pr, context, repoContext, reviewGroup, {
         }
       });
     }
-  }); // if (process.env.DRY_RUN) return;
+  }); // if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return;
 
   if (toAdd.size !== 0 || toDelete.size !== 0) {
     if (toDelete.size === 0 || toDelete.size < 4) {
@@ -1827,7 +2191,7 @@ const readCommitsAndUpdateInfos = async (pr, context, repoContext) => {
     // A custom page size up to 100. Default is 30.
     per_page: 100
   })), res => res.data);
-  const conventionalCommits = await Promise.all(commits.map(c => parse(c.commit.message)));
+  const conventionalCommits = await Promise.all(commits.map(c => parse$1(c.commit.message)));
   const breakingChangesCommits = conventionalCommits.reduce((acc, c, index) => {
     const breakingChangesNotes = c.notes.filter(note => note.title === 'BREAKING CHANGE');
 
@@ -1850,8 +2214,8 @@ const readCommitsAndUpdateInfos = async (pr, context, repoContext) => {
   })]); // TODO auto update ! in front of : to signal a breaking change when https://github.com/conventional-changelog/commitlint/issues/658 is closed
 };
 
-function opened(app) {
-  app.on('pull_request.opened', createHandlerPullRequestChange(async (pr, context, repoContext) => {
+function opened(app, mongoStores) {
+  app.on('pull_request.opened', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
     const fromRenovate = pr.head.ref.startsWith('renovate/');
     await Promise.all([autoAssignPRToCreator(pr, context, repoContext), editOpenedPR(pr, context, repoContext).then(() => {
       return readCommitsAndUpdateInfos(pr, context, repoContext);
@@ -1868,8 +2232,8 @@ function opened(app) {
   }));
 }
 
-function closed(app) {
-  app.on('pull_request.closed', createHandlerPullRequestChange(async (pr, context, repoContext) => {
+function closed(app, mongoStores) {
+  app.on('pull_request.closed', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
     const repo = context.payload.repository;
 
     if (pr.merged) {
@@ -1885,8 +2249,8 @@ function closed(app) {
   }));
 }
 
-function closed$1(app) {
-  app.on('pull_request.reopened', createHandlerPullRequestChange(async (pr, context, repoContext) => {
+function closed$1(app, mongoStores) {
+  app.on('pull_request.reopened', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
     await Promise.all([updateReviewStatus(pr, context, repoContext, 'dev', {
       add: ['needsReview'],
       remove: ['approved']
@@ -1894,8 +2258,122 @@ function closed$1(app) {
   }));
 }
 
-function reviewRequested(app) {
-  app.on('pull_request.review_requested', createHandlerPullRequestChange(async (pr, context, repoContext) => {
+const postSlackMessageWithSecondaryBlock = (repoContext, category, userId, userLogin, message, secondaryBlockText) => {
+  return repoContext.slack.postMessage(category, userId, userLogin, {
+    text: message,
+    blocks: [{
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: message
+      }
+    }],
+    secondaryBlocks: !secondaryBlockText ? undefined : [{
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: secondaryBlockText
+      }
+    }]
+  });
+};
+
+const listReviews = async context => {
+  const {
+    data: reviews
+  } = await context.github.pulls.listReviews(contextPr(context, {
+    per_page: 50
+  }));
+  return reviews;
+};
+
+const parse = issueParser('github', {
+  actions: {},
+  issuePrefixes: []
+});
+const parseMentions = body => {
+  return parse(body).mentions.map(m => m.user);
+};
+
+const getDiscussion = async (context, comment) => {
+  if (!comment.in_reply_to_id) return [comment];
+  return context.github.paginate(context.github.pulls.listComments.endpoint.merge(contextPr(context)), ({
+    data
+  }) => {
+    return data.filter(c => c.in_reply_to_id === comment.in_reply_to_id || c.id === comment.in_reply_to_id);
+  });
+};
+
+const getMentions = discussion => {
+  const mentions = new Set();
+  discussion.forEach(c => {
+    parseMentions(c.body).forEach(m => mentions.add(m));
+  });
+  return [...mentions];
+};
+
+const getUsersInThread = discussion => {
+  const userIds = new Set();
+  const users = [];
+  discussion.forEach(c => {
+    if (userIds.has(c.user.id)) return;
+    userIds.add(c.user.id);
+    users.push({
+      id: c.user.id,
+      login: c.user.login
+    });
+  });
+  return users;
+};
+
+function prComment(app, mongoStores) {
+  app.on('pull_request_review_comment.created', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
+    const {
+      comment
+    } = context.payload;
+    const body = comment.body;
+    if (!body) return;
+    const commentByOwner = pr.user.login === comment.user.login;
+    const [discussion, reviews] = await Promise.all([getDiscussion(context, comment), listReviews(context)]);
+    const reviewers = reviews.map(review => review.user);
+    const followers = commentByOwner ? reviewers : reviewers.filter(user => user.login !== comment.user.login);
+    const usersInThread = getUsersInThread(discussion).filter(u => u.id !== pr.user.id && !followers.find(f => f.id === u.id));
+    const mentions = getMentions(discussion).filter(m => m !== pr.user.login && !followers.find(f => f.login === m) && !usersInThread.find(u => u.login === m));
+    const mention = repoContext.slack.mention(comment.user.login);
+    const prUrl = repoContext.slack.prLink(pr, context);
+    const ownerMention = repoContext.slack.mention(pr.user.login);
+    const commentLink = repoContext.slack.link(comment.html_url, 'commented');
+
+    const createMessage = toOwner => {
+      const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR `;
+      return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
+    };
+
+    if (!commentByOwner) {
+      postSlackMessageWithSecondaryBlock(repoContext, 'pr-comment', pr.user.id, pr.user.login, createMessage(true), body);
+    }
+
+    followers.forEach(follower => {
+      postSlackMessageWithSecondaryBlock(repoContext, 'pr-comment-follow', follower.id, follower.login, createMessage(false), body);
+    });
+    usersInThread.forEach(user => {
+      postSlackMessageWithSecondaryBlock(repoContext, 'pr-comment-thread', user.id, user.login, createMessage(false), body);
+    });
+    mongoStores.users.findAll({
+      login: {
+        $in: mentions
+      }
+    }).then(users => {
+      users.forEach(u => {
+        postSlackMessageWithSecondaryBlock(repoContext, 'pr-comment-mention', u._id, // TODO _id is number
+        u.login, createMessage(false), body);
+      });
+    });
+  }));
+}
+
+function reviewRequested(app, mongoStores) {
+  app.on('pull_request.review_requested', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
     const sender = context.payload.sender; // ignore if sender is self (dismissed review rerequest review)
 
     if (sender.type === 'Bot') return;
@@ -1923,15 +2401,15 @@ function reviewRequested(app) {
     if (sender.login === reviewer.login) return;
 
     if (repoContext.slack) {
-      repoContext.slack.postMessage(reviewer.login, {
+      repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, {
         text: `:eyes: ${repoContext.slack.mention(sender.login)} requests your review on ${repoContext.slack.prLink(pr, context)} !\n> ${pr.title}`
       });
     }
   }));
 }
 
-function reviewRequestRemoved(app) {
-  app.on('pull_request.review_request_removed', createHandlerPullRequestChange(async (pr, context, repoContext) => {
+function reviewRequestRemoved(app, mongoStores) {
+  app.on('pull_request.review_request_removed', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
     const sender = context.payload.sender;
     const reviewer = context.payload.requested_reviewer;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
@@ -1960,84 +2438,85 @@ function reviewRequestRemoved(app) {
     if (sender.login === reviewer.login) return;
 
     if (repoContext.slack) {
-      repoContext.slack.postMessage(reviewer.login, {
+      repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, {
         text: `:skull_and_crossbones: ${repoContext.slack.mention(sender.login)} removed the request for your review on ${repoContext.slack.prLink(pr, context)}`
       });
     }
   }));
 }
 
-function reviewSubmitted(app) {
-  app.on('pull_request_review.submitted', createHandlerPullRequestChange(async (pr, context, repoContext) => {
+function reviewSubmitted(app, mongoStores) {
+  app.on('pull_request_review.submitted', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
     const {
       user: reviewer,
       state,
       body
     } = context.payload.review;
-    if (pr.user.login === reviewer.login) return;
-    const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
-    let merged;
+    const reviewByOwner = pr.user.login === reviewer.login;
+    const reviews = await listReviews(context);
+    const reviewers = reviews.map(review => review.user);
+    const followers = reviewers.filter(user => user.login !== reviewer.login);
 
-    if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
-      const hasRequestedReviewsForGroup = repoContext.reviewShouldWait(reviewerGroup, pr.requested_reviewers, {
-        includesReviewerGroup: true // TODO reenable this when accepted can notify request review to slack (dev accepted => design requested) and flag to disable for label (approved design ; still waiting for dev ?)
-        // includesWaitForGroups: true,
+    if (!reviewByOwner) {
+      const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
+      let merged;
 
-      });
-      const {
-        data: reviews
-      } = await context.github.pulls.listReviews(contextPr(context, {
-        per_page: 50
-      }));
-      const hasChangesRequestedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'REQUEST_CHANGES');
-      const approved = !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && state === 'approved';
-      const newLabels = await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
-        add: [approved && 'approved', state === 'changes_requested' && 'changesRequested'],
-        remove: [approved && 'needsReview', !(hasRequestedReviewsForGroup || state === 'changes_requested') && 'requested', state === 'approved' && !hasChangesRequestedInReviews && 'changesRequested', state === 'changes_requested' && 'approved']
-      });
+      if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
+        const hasRequestedReviewsForGroup = repoContext.reviewShouldWait(reviewerGroup, pr.requested_reviewers, {
+          includesReviewerGroup: true // TODO reenable this when accepted can notify request review to slack (dev accepted => design requested) and flag to disable for label (approved design ; still waiting for dev ?)
+          // includesWaitForGroups: true,
 
-      if (approved && !hasChangesRequestedInReviews) {
-        merged = await autoMergeIfPossible(pr, context, repoContext, newLabels);
+        });
+        const hasChangesRequestedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'REQUEST_CHANGES');
+        const approved = !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && state === 'approved';
+        const newLabels = await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
+          add: [approved && 'approved', state === 'changes_requested' && 'changesRequested'],
+          remove: [approved && 'needsReview', !(hasRequestedReviewsForGroup || state === 'changes_requested') && 'requested', state === 'approved' && !hasChangesRequestedInReviews && 'changesRequested', state === 'changes_requested' && 'approved']
+        });
+
+        if (approved && !hasChangesRequestedInReviews) {
+          merged = await autoMergeIfPossible(pr, context, repoContext, newLabels);
+        }
       }
+
+      const mention = repoContext.slack.mention(reviewer.login);
+      const prUrl = repoContext.slack.prLink(pr, context);
+      const ownerMention = repoContext.slack.mention(pr.user.login);
+
+      if (!body && state !== 'changes_requested' && state !== 'approved') {
+        return;
+      }
+
+      const createMessage = toOwner => {
+        const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR `;
+
+        if (state === 'changes_requested') {
+          return `:x: ${mention} requests changes on ${ownerPart} ${prUrl}`;
+        }
+
+        if (state === 'approved') {
+          return `${toOwner ? ':clap: ' : ''}:white_check_mark: ${mention} approves ${ownerPart} ${prUrl}${merged ? ' and PR is merged :tada:' : ''}`;
+        }
+
+        return `:speech_balloon: ${mention} commented on ${ownerPart} ${prUrl}`;
+      };
+
+      postSlackMessageWithSecondaryBlock(repoContext, 'pr-review', pr.user.id, pr.user.login, createMessage(true), body);
+      followers.forEach(follower => {
+        postSlackMessageWithSecondaryBlock(repoContext, 'pr-review-follow', follower.id, follower.login, createMessage(false), body);
+      });
+    } else if (body) {
+      const mention = repoContext.slack.mention(reviewer.login);
+      const prUrl = repoContext.slack.prLink(pr, context);
+      followers.forEach(follower => {
+        postSlackMessageWithSecondaryBlock(repoContext, 'pr-review-follow', follower.id, follower.login, `:speech_balloon: ${mention} commented on his PR ${prUrl}`, body);
+      });
     }
-
-    const mention = repoContext.slack.mention(reviewer.login);
-    const prUrl = repoContext.slack.prLink(pr, context);
-
-    const message = (() => {
-      if (state === 'changes_requested') {
-        return `:x: ${mention} requests changes on ${prUrl}`;
-      }
-
-      if (state === 'approved') {
-        return `:clap: :white_check_mark: ${mention} approves ${prUrl}${merged ? ' and PR is merged :tada:' : ''}`;
-      }
-
-      return `:speech_balloon: ${mention} commented on ${prUrl}`;
-    })();
-
-    repoContext.slack.postMessage(pr.user.login, {
-      text: message,
-      blocks: [{
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: message
-        }
-      }],
-      secondaryBlocks: !body ? undefined : [{
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: body
-        }
-      }]
-    });
   }));
 }
 
-function reviewDismissed(app) {
-  app.on('pull_request_review.dismissed', createHandlerPullRequestChange(async (pr, context, repoContext) => {
+function reviewDismissed(app, mongoStores) {
+  app.on('pull_request_review.dismissed', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
     const sender = context.payload.sender;
     const reviewer = context.payload.review.user;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
@@ -2057,11 +2536,11 @@ function reviewDismissed(app) {
 
     if (repoContext.slack) {
       if (sender.login === reviewer.login) {
-        repoContext.slack.postMessage(pr.user.login, {
+        repoContext.slack.postMessage('pr-review', pr.user.id, pr.user.login, {
           text: `:skull: ${repoContext.slack.mention(reviewer.login)} dismissed his review on ${repoContext.slack.prLink(pr, context)}`
         });
       } else {
-        repoContext.slack.postMessage(reviewer.login, {
+        repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, {
           text: `:skull: ${repoContext.slack.mention(sender.login)} dismissed your review on ${repoContext.slack.prLink(pr, context)}`
         });
       }
@@ -2069,8 +2548,8 @@ function reviewDismissed(app) {
   }));
 }
 
-function synchronize(app) {
-  app.on('pull_request.synchronize', createHandlerPullRequestChange(async (pr, context, repoContext) => {
+function synchronize(app, mongoStores) {
+  app.on('pull_request.synchronize', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
     // old and new sha
     // const { before, after } = context.payload;
     const previousSha = context.payload.before;
@@ -2081,8 +2560,8 @@ function synchronize(app) {
   }));
 }
 
-function edited(app) {
-  app.on('pull_request.edited', createHandlerPullRequestChange(async (pr, context, repoContext) => {
+function edited(app, mongoStores) {
+  app.on('pull_request.edited', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
     const sender = context.payload.sender;
 
     if (sender.type === 'Bot' && sender.login === `${process.env.REVIEWFLOW_NAME}[bot]`) {
@@ -2105,7 +2584,7 @@ const updatePrBody = async (pr, context, repoContext, updateOptions) => {
   });
 };
 
-function labelsChanged(app) {
+function labelsChanged(app, mongoStores) {
   app.on(['pull_request.labeled', 'pull_request.unlabeled'], async context => {
     const sender = context.payload.sender;
     const fromRenovate = sender.type === 'Bot' && sender.login === 'renovate[bot]';
@@ -2115,7 +2594,7 @@ function labelsChanged(app) {
       return;
     }
 
-    await handlerPullRequestChange(context, async (pr, repoContext) => {
+    await handlerPullRequestChange(mongoStores, context, async (pr, repoContext) => {
       const label = context.payload.label;
 
       if (fromRenovate) {
@@ -2199,8 +2678,8 @@ function labelsChanged(app) {
   });
 }
 
-function checkrunCompleted(app) {
-  app.on('check_run.completed', createHandlerPullRequestsChange(context => context.payload.check_run.pull_requests, async (context, repoContext) => {
+function checkrunCompleted(app, mongoStores) {
+  app.on('check_run.completed', createHandlerPullRequestsChange(mongoStores, context => context.payload.check_run.pull_requests, async (context, repoContext) => {
     await Promise.all(context.payload.check_run.pull_requests.map(pr => context.github.pulls.get(context.repo({
       pull_number: pr.number
     })).then(prResult => {
@@ -2209,8 +2688,8 @@ function checkrunCompleted(app) {
   }));
 }
 
-function checksuiteCompleted(app) {
-  app.on('check_suite.completed', createHandlerPullRequestsChange(context => context.payload.check_suite.pull_requests, async (context, repoContext) => {
+function checksuiteCompleted(app, mongoStores) {
+  app.on('check_suite.completed', createHandlerPullRequestsChange(mongoStores, context => context.payload.check_suite.pull_requests, async (context, repoContext) => {
     await Promise.all(context.payload.check_suite.pull_requests.map(pr => context.github.pulls.get(context.repo({
       pull_number: pr.number
     })).then(prResult => {
@@ -2224,8 +2703,8 @@ const isSameBranch = (context, lockedPr) => {
   return !!context.payload.branches.find(b => b.name === lockedPr.branch);
 };
 
-function status(app) {
-  app.on('status', createHandlerPullRequestsChange((context, repoContext) => {
+function status(app, mongoStores) {
+  app.on('status', createHandlerPullRequestsChange(mongoStores, (context, repoContext) => {
     const lockedPr = repoContext.getMergeLockedPr();
     if (!lockedPr) return [];
 
@@ -2243,24 +2722,103 @@ function status(app) {
   }));
 }
 
-function initApp(app) {
-  opened(app);
-  closed(app);
-  closed$1(app);
-  reviewRequested(app);
-  reviewRequestRemoved(app); // app.on('pull_request.closed', async context => {
-  // });
-  // app.on('pull_request.reopened', async context => {
-  // });
+const handlerOrgChange = async (mongoStores, context, callback) => {
+  const org = context.payload.organization;
+  const config$1 = orgsConfigs[org.login] || config;
+  const orgContext = await obtainOrgContext(mongoStores, context, config$1, org);
+  if (!orgContext) return;
+  return orgContext.lock(async () => {
+    await callback(context, orgContext);
+  });
+};
+const createHandlerOrgChange = (mongoStores, callback) => context => {
+  return handlerOrgChange(mongoStores, context, callback);
+};
 
-  reviewSubmitted(app);
-  reviewDismissed(app);
-  labelsChanged(app);
-  synchronize(app);
-  edited(app);
-  checkrunCompleted(app);
-  checksuiteCompleted(app);
-  status(app);
+const syncTeams = async (mongoStores, github, org) => {
+  const orgEmbed = {
+    id: org.id,
+    login: org.login
+  };
+  const teamIds = [];
+  await github.paginate(github.teams.list.endpoint.merge({
+    org: org.login
+  }), async ({
+    data
+  }, done) => {
+    await Promise.all(data.map(team => {
+      teamIds.push(team.id);
+      return mongoStores.orgTeams.upsertOne({
+        _id: team.id,
+        // TODO _id number
+        org: orgEmbed,
+        name: team.name,
+        slug: team.slug,
+        description: team.description
+      });
+    }));
+    done();
+  });
+  await mongoStores.orgMembers.deleteMany({
+    'org.id': org.id,
+    'user.id': {
+      $not: {
+        $in: teamIds
+      }
+    }
+  });
+};
+
+function initApp(app, mongoStores) {
+  /* https://developer.github.com/webhooks/event-payloads/#organization */
+  app.on(['organization.member_added', 'organization.member_removed'], createHandlerOrgChange(mongoStores, async context => {
+    await syncOrg(mongoStores, context.github, context.payload.organization);
+  }));
+  /* https://developer.github.com/webhooks/event-payloads/#team */
+
+  app.on(['team.created', 'team.deleted', 'team.edited'], createHandlerOrgChange(mongoStores, async context => {
+    await syncTeams(mongoStores, context.github, context.payload.organization);
+  })); // /* https://developer.github.com/webhooks/event-payloads/#membership */
+  // app.on(
+  //   ['membership.added', 'membership.removed'],
+  //   createHandlerOrgChange<Webhooks.WebhookPayloadMembership>(
+  //     mongoStores,
+  //     async (context, orgContext) => {
+  //       await syncTeamMembers(
+  //         mongoStores,
+  //         context.github,
+  //         context.payload.organization,
+  //         context.payload.team,
+  //       );
+  //     },
+  //   ),
+  // );
+  // PR
+
+  /* https://developer.github.com/webhooks/event-payloads/#pull_request */
+
+  opened(app, mongoStores);
+  edited(app, mongoStores);
+  closed(app, mongoStores);
+  closed$1(app, mongoStores);
+  reviewRequested(app, mongoStores);
+  reviewRequestRemoved(app, mongoStores);
+  reviewSubmitted(app, mongoStores);
+  reviewDismissed(app, mongoStores);
+  labelsChanged(app, mongoStores);
+  synchronize(app, mongoStores);
+  /* https://developer.github.com/webhooks/event-payloads/#pull_request_review_comment */
+
+  prComment(app, mongoStores);
+  /* https://developer.github.com/webhooks/event-payloads/#check_run */
+
+  checkrunCompleted(app, mongoStores);
+  /* https://developer.github.com/webhooks/event-payloads/#check_suite */
+
+  checksuiteCompleted(app, mongoStores);
+  /* https://developer.github.com/webhooks/event-payloads/#status */
+
+  status(app, mongoStores);
 }
 
 if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = 'reviewflow';
@@ -2275,7 +2833,7 @@ console.log({
 
 probot.Probot.run(app => {
   const mongoStores = init();
-  appRouter(app);
-  initApp(app);
+  appRouter(app, mongoStores);
+  initApp(app, mongoStores);
 });
 //# sourceMappingURL=index-node10-dev.cjs.js.map

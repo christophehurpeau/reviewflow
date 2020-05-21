@@ -1,6 +1,9 @@
-import { Context } from 'probot';
+import { Context, Octokit } from 'probot';
+import { Lock } from 'lock';
+import { MongoStores, Org } from '../mongo';
 import { Config } from '../orgsConfigs';
 import { ExcludesFalsy } from '../utils/ExcludesFalsy';
+import { syncOrg } from '../org-handlers/actions/syncOrg';
 import { initTeamSlack, TeamSlack } from './initTeamSlack';
 import { getKeys } from './utils';
 
@@ -9,6 +12,7 @@ export interface OrgContext<
   TeamNames extends string = any
 > {
   config: Config<GroupNames, TeamNames>;
+  org: Org;
   slack: TeamSlack;
   getReviewerGroup: (githubLogin: string) => string | undefined;
   getReviewerGroups: (githubLogins: string[]) => string[];
@@ -21,13 +25,33 @@ export interface OrgContext<
       includesWaitForGroups,
     }: { includesReviewerGroup?: boolean; includesWaitForGroups?: boolean },
   ) => boolean;
+
+  lock(callback: () => Promise<void> | void): Promise<void>;
 }
 
+const getOrCreateOrg = async (
+  mongoStores: MongoStores,
+  github: Octokit,
+  orgInfo: { id: number; login: string },
+): Promise<Org> => {
+  const org = await mongoStores.orgs.findByKey(orgInfo.id);
+  if (org) return org;
+  return syncOrg(mongoStores, github, orgInfo);
+};
+
 const initTeamContext = async (
+  mongoStores: MongoStores,
   context: Context<any>,
   config: Config,
+  orgInfo: { id: number; login: string },
 ): Promise<OrgContext> => {
-  const slackPromise = initTeamSlack(context, config);
+  const org = await getOrCreateOrg(mongoStores, context.github, orgInfo);
+  const slackPromise = initTeamSlack(
+    mongoStores,
+    context,
+    config,
+    org.slackToken,
+  );
 
   const githubLoginToGroup = new Map<string, string>();
   getKeys(config.groups).forEach((groupName) => {
@@ -58,8 +82,32 @@ const initTeamContext = async (
     ),
   ];
 
+  const lock = Lock();
+
   return {
     config,
+    lock: (callback: () => Promise<void> | void): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        const logInfos = { org: orgInfo.login };
+        context.log.info('lock: try to lock org', logInfos);
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        lock('_', async (createReleaseCallback) => {
+          const release = createReleaseCallback(() => {});
+          context.log.info('lock: lock org acquired', logInfos);
+          try {
+            await callback();
+          } catch (err) {
+            context.log.info('lock: release org (with error)', logInfos);
+            release();
+            reject(err);
+            return;
+          }
+          context.log.info('lock: release org', logInfos);
+          release();
+          resolve();
+        });
+      });
+    },
     getReviewerGroup: (githubLogin) => githubLoginToGroup.get(githubLogin),
     getReviewerGroups: (githubLogins) => [
       ...new Set(
@@ -103,6 +151,7 @@ const initTeamContext = async (
     },
 
     slack: await slackPromise,
+    org,
   };
 };
 
@@ -110,23 +159,23 @@ const orgContextsPromise = new Map();
 const orgContexts = new Map();
 
 export const obtainOrgContext = (
+  mongoStores: MongoStores,
   context: Context<any>,
   config: Config,
+  org: { id: number; login: string },
 ): Promise<OrgContext> => {
-  const owner = context.payload.repository.owner;
-
-  const existingTeamContext = orgContexts.get(owner.login);
+  const existingTeamContext = orgContexts.get(org.login);
   if (existingTeamContext) return existingTeamContext;
 
-  const existingPromise = orgContextsPromise.get(owner.login);
+  const existingPromise = orgContextsPromise.get(org.login);
   if (existingPromise) return Promise.resolve(existingPromise);
 
-  const promise = initTeamContext(context, config);
-  orgContextsPromise.set(owner.login, promise);
+  const promise = initTeamContext(mongoStores, context, config, org);
+  orgContextsPromise.set(org.login, promise);
 
   return promise.then((orgContext) => {
-    orgContextsPromise.delete(owner.login);
-    orgContexts.set(owner.login, orgContext);
+    orgContextsPromise.delete(org.login);
+    orgContexts.set(org.login, orgContext);
     return orgContext;
   });
 };

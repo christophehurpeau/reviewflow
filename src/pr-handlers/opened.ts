@@ -1,4 +1,5 @@
 import { Application } from 'probot';
+import { MongoStores } from '../mongo';
 import { createHandlerPullRequestChange } from './utils';
 import { autoAssignPRToCreator } from './actions/autoAssignPRToCreator';
 import { editOpenedPR } from './actions/editOpenedPR';
@@ -6,10 +7,14 @@ import { updateReviewStatus } from './actions/updateReviewStatus';
 import { autoApproveAndAutoMerge } from './actions/autoApproveAndAutoMerge';
 import { readCommitsAndUpdateInfos } from './actions/readCommitsAndUpdateInfos';
 
-export default function opened(app: Application): void {
+export default function opened(
+  app: Application,
+  mongoStores: MongoStores,
+): void {
   app.on(
     'pull_request.opened',
     createHandlerPullRequestChange(
+      mongoStores,
       async (pr, context, repoContext): Promise<void> => {
         const fromRenovate = pr.head.ref.startsWith('renovate/');
 

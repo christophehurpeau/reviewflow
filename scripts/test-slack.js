@@ -3,13 +3,13 @@
 require('dotenv').config();
 const { WebClient } = require('@slack/web-api');
 
-if (!process.env.ORNIKAR_SLACK_TOKEN) {
+if (!process.env.SLACK_TOKEN) {
   console.error('Missing slack token');
   process.exit(1);
 }
 
 (async () => {
-  const slackClient = new WebClient(process.env.ORNIKAR_SLACK_TOKEN);
+  const slackClient = new WebClient(process.env.SLACK_TOKEN);
   const slackUsers = new Map();
   await slackClient.paginate('users.list', {}, (page) => {
     page.members.forEach((member) => {

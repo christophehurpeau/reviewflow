@@ -3,7 +3,6 @@
 import { Config } from './types';
 
 const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
-  slackToken: process.env.ORNIKAR_SLACK_TOKEN,
   autoAssignToCreator: true,
   trimTitle: true,
   ignoreRepoPattern: '(infra-.*|devenv)',

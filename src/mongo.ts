@@ -1,5 +1,5 @@
-// import { MongoStore, MongoConnection, MongoModel } from 'liwi-mongo';
-import { MongoConnection } from 'liwi-mongo';
+import { MongoStore, MongoConnection, MongoModel } from 'liwi-mongo';
+import { MessageCategory } from './dm/MessageCategory';
 
 // export interface PrEventsModel extends MongoModel {
 //   owner: string;
@@ -9,8 +9,43 @@ import { MongoConnection } from 'liwi-mongo';
 //   event: string;
 // }
 
+export interface UserDmSettings extends MongoModel {
+  userId: number;
+  orgId: number;
+  settings: Record<MessageCategory, boolean>;
+}
+
+// TODO _id is number
+export interface User extends MongoModel {
+  login: string;
+  type: string;
+}
+
+// TODO _id is number
+export interface Org extends MongoModel {
+  login: string;
+  slackToken?: string;
+}
+
+export interface OrgMembers extends MongoModel {
+  org: { id: number; login: string };
+  user: { id: number; login: string };
+}
+
+export interface OrgTeam extends MongoModel {
+  org: { id: number; login: string };
+  name: string;
+  slug: string;
+  description: string;
+}
+
 export interface MongoStores {
   connection: MongoConnection;
+  userDmSettings: MongoStore<UserDmSettings>;
+  users: MongoStore<User>;
+  orgs: MongoStore<Org>;
+  orgMembers: MongoStore<OrgMembers>;
+  orgTeams: MongoStore<OrgTeam>;
   // prEvents: MongoStore<PrEventsModel>;
 }
 
@@ -35,6 +70,34 @@ export default function init(): MongoStores {
   //   coll.createIndex({ owner: 1, repo: 1, ???: 1 });
   // });
 
+  const userDmSettings = new MongoStore<UserDmSettings>(
+    connection,
+    'userDmSettings',
+  );
+  userDmSettings.collection.then((coll) => {
+    coll.createIndex({ userId: 1, orgId: 1 }, { unique: true });
+  });
+
+  const users = new MongoStore<User>(connection, 'users');
+  users.collection.then((coll) => {
+    coll.createIndex({ login: 1 }, { unique: true });
+  });
+
+  const orgs = new MongoStore<Org>(connection, 'orgs');
+  orgs.collection.then((coll) => {
+    coll.createIndex({ login: 1 }, { unique: true });
+  });
+
+  const orgMembers = new MongoStore<OrgMembers>(connection, 'orgMembers');
+  orgMembers.collection.then((coll) => {
+    coll.createIndex({ 'user.id': 1, 'org.id': 1 }, { unique: true });
+  });
+
+  const orgTeams = new MongoStore<OrgTeam>(connection, 'orgTeams');
+  orgTeams.collection.then((coll) => {
+    coll.createIndex({ 'org.id': 1 }, { unique: true });
+  });
+
   // return { connection, prEvents };
-  return { connection };
+  return { connection, userDmSettings, users, orgs, orgMembers, orgTeams };
 }

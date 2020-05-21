@@ -1,12 +1,17 @@
 import { Application } from 'probot';
+import { MongoStores } from '../mongo';
 import { contextPr } from '../context/utils';
 import { createHandlerPullRequestChange } from './utils';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 
-export default function reviewRequested(app: Application): void {
+export default function reviewRequested(
+  app: Application,
+  mongoStores: MongoStores,
+): void {
   app.on(
     'pull_request.review_requested',
     createHandlerPullRequestChange(
+      mongoStores,
       async (pr, context, repoContext): Promise<void> => {
         const sender = context.payload.sender;
 
@@ -43,14 +48,19 @@ export default function reviewRequested(app: Application): void {
         if (sender.login === reviewer.login) return;
 
         if (!shouldWait && repoContext.slack) {
-          repoContext.slack.postMessage(reviewer.login, {
-            text: `:eyes: ${repoContext.slack.mention(
-              sender.login,
-            )} requests your review on ${repoContext.slack.prLink(
-              pr,
-              context,
-            )} !\n> ${pr.title}`,
-          });
+          repoContext.slack.postMessage(
+            'pr-review',
+            reviewer.id,
+            reviewer.login,
+            {
+              text: `:eyes: ${repoContext.slack.mention(
+                sender.login,
+              )} requests your review on ${repoContext.slack.prLink(
+                pr,
+                context,
+              )} !\n> ${pr.title}`,
+            },
+          );
         }
       },
     ),

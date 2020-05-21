@@ -1,6 +1,9 @@
 import Webhooks from '@octokit/webhooks';
 import { WebClient, KnownBlock } from '@slack/web-api';
 import { Context, Octokit } from 'probot';
+import { MongoStores } from '../mongo';
+import { getUserDmSettings } from '../dm/getUserDmSettings';
+import { MessageCategory } from '../dm/MessageCategory';
 import { Config } from '../orgsConfigs';
 import { getKeys } from './utils';
 
@@ -17,11 +20,14 @@ interface SlackMessageResult {
 
 export interface TeamSlack {
   mention: (githubLogin: string) => string;
+  link: (url: string, text: string) => string;
   postMessage: (
+    category: MessageCategory,
+    githubId: number,
     githubLogin: string,
     message: SlackMessage,
   ) => Promise<SlackMessageResult | null>;
-  prLink: <T extends Webhooks.WebhookPayloadPullRequest>(
+  prLink: <T extends { repository: Webhooks.PayloadRepository }>(
     pr: Octokit.PullsGetResponse,
     context: Context<T>,
   ) => string;
@@ -29,15 +35,19 @@ export interface TeamSlack {
 
 export const voidTeamSlack = (): TeamSlack => ({
   mention: (): string => '',
+  link: (): string => '',
   postMessage: (): Promise<null> => Promise.resolve(null),
   prLink: (): string => '',
 });
 
 export const initTeamSlack = async <GroupNames extends string>(
+  mongoStores: MongoStores,
   context: Context<any>,
   config: Config<GroupNames>,
+  slackToken?: string,
 ): Promise<TeamSlack> => {
-  if (!config.slackToken) {
+  const owner = context.payload.repository.owner;
+  if (!slackToken) {
     return voidTeamSlack();
   }
 
@@ -49,7 +59,7 @@ export const initTeamSlack = async <GroupNames extends string>(
   }, {});
 
   const slackEmails = Object.values(githubLoginToSlackEmail);
-  const slackClient = new WebClient(config.slackToken);
+  const slackClient = new WebClient(slackToken);
   const members: [string, { member: any; im: any }][] = [];
 
   await slackClient.paginate('users.list', {}, (page: any) => {
@@ -86,11 +96,22 @@ export const initTeamSlack = async <GroupNames extends string>(
       return `<@${user.member.id}>`;
     },
     postMessage: async (
+      category: MessageCategory,
+      githubId: number,
       githubLogin: string,
       message: SlackMessage,
     ): Promise<null | SlackMessageResult> => {
-      context.log.debug('send slack', { githubLogin, message });
-      if (process.env.DRY_RUN) return null;
+      context.log.info('send slack', { githubLogin, message });
+      if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
+
+      const userDmSettings = await getUserDmSettings(
+        mongoStores,
+        owner.login,
+        owner.id,
+        githubId,
+      );
+
+      if (!userDmSettings[category]) return null;
 
       const user = getUserFromGithubLogin(githubLogin);
       if (!user || !user.im) return null;
@@ -107,7 +128,10 @@ export const initTeamSlack = async <GroupNames extends string>(
       if (!result.ok) return null;
       return { ts: result.ts as string };
     },
-    prLink: <T extends Webhooks.WebhookPayloadPullRequest>(
+    link: (url: string, text: string): string => {
+      return `<${url}|${text}>`;
+    },
+    prLink: <T extends { repository: Webhooks.PayloadRepository }>(
       pr: Octokit.PullsGetResponse,
       context: Context<T>,
     ): string => {

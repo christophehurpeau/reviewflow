@@ -1,6 +1,6 @@
-import Webhooks from '@octokit/webhooks';
 import { Context, Octokit } from 'probot';
-import { obtainRepoContext, RepoContext } from '../context/repoContext';
+import { MongoStores } from '../../mongo';
+import { obtainRepoContext, RepoContext } from '../../context/repoContext';
 
 export type PRHandler<T = any, Result = void, FourthArgument = never> = (
   pr: Octokit.PullsGetResponse,
@@ -15,12 +15,13 @@ export type CallbackWithPRAndRepoContext = (
 ) => void | Promise<void>;
 
 export const handlerPullRequestChange = async <
-  T extends Webhooks.WebhookPayloadPullRequest
+  T extends { pull_request: { id: number; number: number } }
 >(
+  mongoStores: MongoStores,
   context: Context<T>,
   callback: CallbackWithPRAndRepoContext,
 ): Promise<void> => {
-  const repoContext = await obtainRepoContext(context);
+  const repoContext = await obtainRepoContext(mongoStores, context);
   if (!repoContext) return;
 
   return repoContext.lockPROrPRS(
@@ -45,11 +46,12 @@ type CallbackPRAndContextAndRepoContext<T> = (
 ) => void | Promise<void>;
 
 export const createHandlerPullRequestChange = <
-  T extends Webhooks.WebhookPayloadPullRequest
+  T extends { pull_request: { id: number; number: number } }
 >(
+  mongoStores: MongoStores,
   callback: CallbackPRAndContextAndRepoContext<T>,
 ) => (context: Context<T>) => {
-  return handlerPullRequestChange(context, (pr, repoContext) =>
+  return handlerPullRequestChange(mongoStores, context, (pr, repoContext) =>
     callback(pr, context, repoContext),
   );
 };
@@ -60,13 +62,14 @@ type CallbackContextAndRepoContext<T> = (
 ) => void | Promise<void>;
 
 export const createHandlerPullRequestsChange = <T>(
+  mongoStores: MongoStores,
   getPullRequests: (
     context: Context<T>,
     repoContext: RepoContext,
   ) => { id: string | number; number: number }[],
   callback: CallbackContextAndRepoContext<T>,
 ) => async (context: Context<T>): Promise<void> => {
-  const repoContext = await obtainRepoContext(context);
+  const repoContext = await obtainRepoContext(mongoStores, context);
   if (!repoContext) return;
 
   const prs = getPullRequests(context, repoContext);

@@ -11,6 +11,7 @@ export type Config<
 export const orgsConfigs: { [owner: string]: Config } = {
   ornikar,
   christophehurpeau,
+  reviewflow: christophehurpeau,
 };
 
 export { defaultConfig };
