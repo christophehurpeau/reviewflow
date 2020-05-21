@@ -1,3 +1,4 @@
+import { MessageCategory } from '../dm/MessageCategory';
 import { Options } from '../pr-handlers/actions/utils/prOptions';
 
 export interface StatusInfo {
@@ -59,7 +60,6 @@ export interface LabelsConfig<GroupNames extends string> {
 }
 
 export interface Config<GroupNames extends string, TeamNames extends string> {
-  slackToken?: string;
   autoAssignToCreator?: boolean;
   trimTitle?: boolean;
   ignoreRepoPattern?: string;
@@ -72,4 +72,5 @@ export interface Config<GroupNames extends string, TeamNames extends string> {
   waitForGroups?: Record<GroupNames, GroupNames[]>;
 
   labels: LabelsConfig<GroupNames>;
+  defaultDmSettings?: Partial<Record<MessageCategory, boolean>>;
 }

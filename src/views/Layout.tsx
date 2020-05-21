@@ -8,7 +8,7 @@ interface LayoutProps {
 
 export default function Layout({
   lang = 'en',
-  title = process.env.NAME,
+  title = process.env.REVIEWFLOW_NAME,
   children,
 }: LayoutProps) {
   return (
@@ -25,7 +25,9 @@ export default function Layout({
         <style>{`html,body,html body
             #container{height:100%} footer{position:absolute;bottom:5px;left:0;right:0;}`}</style>
       </head>
-      <body>{children}</body>
+      <body>
+        <div style={{ padding: '24px 48px' }}>{children}</div>
+      </body>
     </html>
   );
 }

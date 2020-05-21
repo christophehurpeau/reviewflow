@@ -19,5 +19,5 @@ console.log({ name: process.env.REVIEWFLOW_NAME });
 Probot.run((app: Application): void => {
   const mongoStores = mongoInit();
   appRouter(app, mongoStores);
-  initApp(app);
+  initApp(app, mongoStores);
 });
