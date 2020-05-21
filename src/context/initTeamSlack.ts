@@ -47,6 +47,7 @@ export const initTeamSlack = async <GroupNames extends string>(
   slackToken?: string,
 ): Promise<TeamSlack> => {
   const owner = context.payload.repository.owner;
+
   if (!slackToken) {
     return voidTeamSlack();
   }
@@ -101,7 +102,7 @@ export const initTeamSlack = async <GroupNames extends string>(
       githubLogin: string,
       message: SlackMessage,
     ): Promise<null | SlackMessageResult> => {
-      context.log.info('send slack', { githubLogin, message });
+      context.log.debug('send slack', { category, githubLogin, message });
       if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
 
       const userDmSettings = await getUserDmSettings(

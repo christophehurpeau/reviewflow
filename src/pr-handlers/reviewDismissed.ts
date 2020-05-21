@@ -1,8 +1,8 @@
 import { Application } from 'probot';
 import { MongoStores } from '../mongo';
-import { contextPr } from '../context/utils';
 import { createHandlerPullRequestChange } from './utils';
 import { updateReviewStatus } from './actions/updateReviewStatus';
+import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 
 export default function reviewDismissed(
   app: Application,
@@ -19,20 +19,33 @@ export default function reviewDismissed(
         const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
         if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
-          const { data: reviews } = await context.github.pulls.listReviews(
-            contextPr(context, { per_page: 50 }),
+          const { reviewStates } = await getReviewersAndReviewStates(
+            context,
+            repoContext,
           );
-          const hasChangesRequestedInReviews = reviews.some(
-            (review) =>
-              repoContext.getReviewerGroup(review.user.login) ===
-                reviewerGroup && review.state === 'REQUEST_CHANGES',
+          const hasChangesRequestedInReviews =
+            reviewStates[reviewerGroup].changesRequested !== 0;
+          const hasApprovals = reviewStates[reviewerGroup].approved !== 0;
+          const hasRequestedReviewsForGroup = repoContext.approveShouldWait(
+            reviewerGroup,
+            pr.requested_reviewers,
+            { includesReviewerGroup: true },
           );
 
           await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
-            add: ['needsReview', 'requested'],
+            add: [
+              !hasApprovals && 'needsReview',
+              hasApprovals &&
+                !hasRequestedReviewsForGroup &&
+                !hasChangesRequestedInReviews &&
+                'approved',
+            ],
             remove: [
+              !hasRequestedReviewsForGroup &&
+                !hasChangesRequestedInReviews &&
+                'requested',
               !hasChangesRequestedInReviews && 'changesRequested',
-              'approved',
+              !hasApprovals && 'approved',
             ],
           });
         }

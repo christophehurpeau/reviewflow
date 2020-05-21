@@ -1422,7 +1422,8 @@ const initTeamSlack = async (mongoStores, context, config, slackToken) => {
       return `<@${user.member.id}>`;
     },
     postMessage: async (category, githubId, githubLogin, message) => {
-      context.log.info('send slack', {
+      context.log.debug('send slack', {
+        category,
         githubLogin,
         message
       });
@@ -1519,7 +1520,7 @@ const initTeamContext = async (mongoStores, context, config, orgInfo) => {
     getReviewerGroup: githubLogin => githubLoginToGroup.get(githubLogin),
     getReviewerGroups: githubLogins => [...new Set(githubLogins.map(githubLogin => githubLoginToGroup.get(githubLogin)).filter(ExcludesFalsy))],
     getTeamsForLogin: githubLogin => githubLoginToTeams.get(githubLogin) || [],
-    reviewShouldWait: (reviewerGroup, requestedReviewers, {
+    approveShouldWait: (reviewerGroup, requestedReviewers, {
       includesReviewerGroup,
       includesWaitForGroups
     }) => {
@@ -1995,7 +1996,7 @@ const addStatusCheck = async function (pr, context, {
   const hasPrCheck = (await context.github.checks.listForRef(context.repo({
     ref: pr.head.sha
   }))).data.check_runs.find(check => check.name === process.env.REVIEWFLOW_NAME);
-  context.log.info('add status check', {
+  context.log.debug('add status check', {
     hasPrCheck,
     state,
     description
@@ -2022,7 +2023,7 @@ const addStatusCheck = async function (pr, context, {
 };
 
 const updateStatusCheckFromLabels = (pr, context, repoContext, labels = pr.labels || [], previousSha) => {
-  context.log.info('updateStatusCheckFromLabels', {
+  context.log.debug('updateStatusCheckFromLabels', {
     labels: labels.map(l => l === null || l === void 0 ? void 0 : l.name),
     hasNeedsReview: repoContext.hasNeedsReview(labels),
     hasApprovesReview: repoContext.hasApprovesReview(labels)
@@ -2310,13 +2311,62 @@ const postSlackMessageWithSecondaryBlock = (repoContext, category, userId, userL
   });
 };
 
-const listReviews = async context => {
-  const {
+const getReviewersAndReviewStates = async (context, repoContext) => {
+  const userIds = new Set();
+  const reviewers = [];
+  const reviewStatesByUser = new Map();
+  await context.github.paginate(context.github.pulls.listReviews.endpoint.merge(contextPr(context)), ({
     data: reviews
-  } = await context.github.pulls.listReviews(contextPr(context, {
-    per_page: 50
-  }));
-  return reviews;
+  }) => {
+    reviews.forEach(review => {
+      if (!userIds.has(review.user.id)) {
+        userIds.add(review.user.id);
+        reviewers.push({
+          id: review.user.id,
+          login: review.user.login
+        });
+      }
+
+      const state = review.state.toUpperCase();
+
+      if (state !== 'COMMENTED') {
+        reviewStatesByUser.set(review.user.id, state);
+      }
+    });
+  });
+  const reviewStates = {};
+  getKeys(repoContext.config.groups).forEach(groupName => {
+    reviewStates[groupName] = {
+      approved: 0,
+      changesRequested: 0,
+      dismissed: 0
+    };
+  });
+  reviewers.forEach(reviewer => {
+    const group = repoContext.getReviewerGroup(reviewer.login);
+
+    if (group) {
+      const state = reviewStatesByUser.get(reviewer.id);
+
+      switch (state) {
+        case 'APPROVED':
+          reviewStates[group].approved++;
+          break;
+
+        case 'CHANGES_REQUESTED':
+          reviewStates[group].changesRequested++;
+          break;
+
+        case 'DISMISSED':
+          reviewStates[group].dismissed++;
+          break;
+      }
+    }
+  });
+  return {
+    reviewers,
+    reviewStates
+  };
 };
 
 const parse = issueParser('github', {
@@ -2366,8 +2416,9 @@ function prComment(app, mongoStores) {
     const body = comment.body;
     if (!body) return;
     const commentByOwner = pr.user.login === comment.user.login;
-    const [discussion, reviews] = await Promise.all([getDiscussion(context, comment), listReviews(context)]);
-    const reviewers = reviews.map(review => review.user);
+    const [discussion, {
+      reviewers
+    }] = await Promise.all([getDiscussion(context, comment), getReviewersAndReviewStates(context, repoContext)]);
     const followers = commentByOwner ? reviewers : reviewers.filter(user => user.login !== comment.user.login);
     const usersInThread = getUsersInThread(discussion).filter(u => u.id !== pr.user.id && !followers.find(f => f.id === u.id));
     const mentions = getMentions(discussion).filter(m => m !== pr.user.login && !followers.find(f => f.login === m) && !usersInThread.find(u => u.login === m));
@@ -2415,22 +2466,12 @@ function reviewRequested(app, mongoStores) {
     const reviewer = context.payload.requested_reviewer;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
-    // repoContext.reviewShouldWait(reviewerGroup, pr.requested_reviewers, { includesWaitForGroups: true });
+    // repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, { includesWaitForGroups: true });
     if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
-      const {
-        data: reviews
-      } = await context.github.pulls.listReviews(contextPr(context, {
-        per_page: 50
-      }));
-      const hasChangesRequestedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'REQUEST_CHANGES' && // In case this is a rerequest for review
-      review.user.login !== reviewer.login);
-
-      if (!hasChangesRequestedInReviews) {
-        await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
-          add: ['needsReview', "requested"],
-          remove: ['approved', 'changesRequested']
-        });
-      }
+      await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
+        add: ['needsReview', "requested"],
+        remove: ['approved']
+      });
     }
 
     if (sender.login === reviewer.login) return;
@@ -2450,23 +2491,21 @@ function reviewRequestRemoved(app, mongoStores) {
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
     if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
-      const hasRequestedReviewsForGroup = repoContext.reviewShouldWait(reviewerGroup, pr.requested_reviewers, {
+      const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, {
         includesReviewerGroup: true
       });
       const {
-        data: reviews
-      } = await context.github.pulls.listReviews(contextPr(context, {
-        per_page: 50
-      }));
-      const hasChangesRequestedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'REQUEST_CHANGES');
-      const hasApprovedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'APPROVED');
+        reviewStates
+      } = await getReviewersAndReviewStates(context, repoContext);
+      const hasChangesRequestedInReviews = reviewStates[reviewerGroup].changesRequested !== 0;
+      const hasApprovedInReviews = reviewStates[reviewerGroup].approved !== 0;
       const approved = !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && hasApprovedInReviews;
       await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
-        add: [// if changes requested by the one which requests was removed
+        add: [// if changes requested by the one which requests was removed (should still be in changed requested anyway, but we never know)
         hasChangesRequestedInReviews && 'changesRequested', // if was already approved by another member in the group and has no other requests waiting
         approved && 'approved'],
         // remove labels if has no other requests waiting
-        remove: [approved && 'needsReview', !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && 'requested']
+        remove: [approved && 'needsReview', !hasRequestedReviewsForGroup && 'requested']
       });
     }
 
@@ -2485,28 +2524,31 @@ function reviewSubmitted(app, mongoStores) {
     const {
       user: reviewer,
       state,
-      body
+      body,
+      html_url: reviewUrl
     } = context.payload.review;
     const reviewByOwner = pr.user.login === reviewer.login;
-    const reviews = await listReviews(context);
-    const reviewers = reviews.map(review => review.user);
-    const followers = reviewers.filter(user => user.login !== reviewer.login);
+    const {
+      reviewers,
+      reviewStates
+    } = await getReviewersAndReviewStates(context, repoContext);
+    const followers = reviewers.filter(user => user.id !== reviewer.id && user.id !== pr.user.id);
 
     if (!reviewByOwner) {
       const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
       let merged;
 
       if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
-        const hasRequestedReviewsForGroup = repoContext.reviewShouldWait(reviewerGroup, pr.requested_reviewers, {
+        const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, {
           includesReviewerGroup: true // TODO reenable this when accepted can notify request review to slack (dev accepted => design requested) and flag to disable for label (approved design ; still waiting for dev ?)
           // includesWaitForGroups: true,
 
         });
-        const hasChangesRequestedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'REQUEST_CHANGES');
+        const hasChangesRequestedInReviews = reviewStates[reviewerGroup].changesRequested !== 0;
         const approved = !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && state === 'approved';
         const newLabels = await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
-          add: [approved && 'approved', state === 'changes_requested' && 'changesRequested'],
-          remove: [approved && 'needsReview', !(hasRequestedReviewsForGroup || state === 'changes_requested') && 'requested', state === 'approved' && !hasChangesRequestedInReviews && 'changesRequested', state === 'changes_requested' && 'approved']
+          add: [approved && 'approved', state === 'changes_requested' && 'needsReview', state === 'changes_requested' && 'changesRequested'],
+          remove: [approved && 'needsReview', !hasRequestedReviewsForGroup && 'requested', state === 'approved' && !hasChangesRequestedInReviews && 'changesRequested', state === 'changes_requested' && 'approved']
         });
 
         if (approved && !hasChangesRequestedInReviews) {
@@ -2533,7 +2575,8 @@ function reviewSubmitted(app, mongoStores) {
           return `${toOwner ? ':clap: ' : ''}:white_check_mark: ${mention} approves ${ownerPart} ${prUrl}${merged ? ' and PR is merged :tada:' : ''}`;
         }
 
-        return `:speech_balloon: ${mention} commented on ${ownerPart} ${prUrl}`;
+        const commentLink = repoContext.slack.link(reviewUrl, 'commented');
+        return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
       };
 
       postSlackMessageWithSecondaryBlock(repoContext, 'pr-review', pr.user.id, pr.user.login, createMessage(true), body);
@@ -2543,8 +2586,9 @@ function reviewSubmitted(app, mongoStores) {
     } else if (body) {
       const mention = repoContext.slack.mention(reviewer.login);
       const prUrl = repoContext.slack.prLink(pr, context);
+      const commentLink = repoContext.slack.link(reviewUrl, 'commented');
       followers.forEach(follower => {
-        postSlackMessageWithSecondaryBlock(repoContext, 'pr-review-follow', follower.id, follower.login, `:speech_balloon: ${mention} commented on his PR ${prUrl}`, body);
+        postSlackMessageWithSecondaryBlock(repoContext, 'pr-review-follow', follower.id, follower.login, `:speech_balloon: ${mention} ${commentLink} on his PR ${prUrl}`, body);
       });
     }
   }));
@@ -2558,14 +2602,16 @@ function reviewDismissed(app, mongoStores) {
 
     if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
       const {
-        data: reviews
-      } = await context.github.pulls.listReviews(contextPr(context, {
-        per_page: 50
-      }));
-      const hasChangesRequestedInReviews = reviews.some(review => repoContext.getReviewerGroup(review.user.login) === reviewerGroup && review.state === 'REQUEST_CHANGES');
+        reviewStates
+      } = await getReviewersAndReviewStates(context, repoContext);
+      const hasChangesRequestedInReviews = reviewStates[reviewerGroup].changesRequested !== 0;
+      const hasApprovals = reviewStates[reviewerGroup].approved !== 0;
+      const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, {
+        includesReviewerGroup: true
+      });
       await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
-        add: ['needsReview', 'requested'],
-        remove: [!hasChangesRequestedInReviews && 'changesRequested', 'approved']
+        add: [!hasApprovals && 'needsReview', hasApprovals && !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && 'approved'],
+        remove: [!hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && 'requested', !hasChangesRequestedInReviews && 'changesRequested', !hasApprovals && 'approved']
       });
     }
 

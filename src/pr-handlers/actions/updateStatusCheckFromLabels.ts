@@ -20,7 +20,7 @@ const addStatusCheck = async function <
     )
   ).data.check_runs.find((check) => check.name === process.env.REVIEWFLOW_NAME);
 
-  context.log.info('add status check', { hasPrCheck, state, description });
+  context.log.debug('add status check', { hasPrCheck, state, description });
 
   if (hasPrCheck) {
     await context.github.checks.create(
@@ -60,7 +60,7 @@ export const updateStatusCheckFromLabels = (
   labels: LabelResponse[] = pr.labels || [],
   previousSha?: string,
 ): Promise<void> => {
-  context.log.info('updateStatusCheckFromLabels', {
+  context.log.debug('updateStatusCheckFromLabels', {
     labels: labels.map((l) => l?.name),
     hasNeedsReview: repoContext.hasNeedsReview(labels),
     hasApprovesReview: repoContext.hasApprovesReview(labels),

@@ -15,10 +15,10 @@ export interface OrgContext<
   config: Config<GroupNames, TeamNames>;
   org: Org;
   slack: TeamSlack;
-  getReviewerGroup: (githubLogin: string) => string | undefined;
-  getReviewerGroups: (githubLogins: string[]) => string[];
+  getReviewerGroup: (githubLogin: string) => GroupNames | undefined;
+  getReviewerGroups: (githubLogins: string[]) => GroupNames[];
   getTeamsForLogin: (githubLogin: string) => TeamNames[];
-  reviewShouldWait: (
+  approveShouldWait: (
     reviewerGroup: GroupNames | undefined,
     requestedReviewers: any[],
     {
@@ -123,7 +123,7 @@ const initTeamContext = async (
     getTeamsForLogin: (githubLogin) =>
       githubLoginToTeams.get(githubLogin) || [],
 
-    reviewShouldWait: (
+    approveShouldWait: (
       reviewerGroup,
       requestedReviewers,
       { includesReviewerGroup, includesWaitForGroups },

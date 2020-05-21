@@ -4,7 +4,7 @@ import { contextPr } from '../context/utils';
 import { MongoStores } from '../mongo';
 import { createHandlerPullRequestChange } from './utils';
 import { postSlackMessageWithSecondaryBlock } from './utils/postSlackMessageWithSecondaryBlock';
-import { listReviews } from './utils/listReviews';
+import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 import { parseMentions } from './utils/parseMentions';
 
 const getDiscussion = async (
@@ -66,12 +66,11 @@ export default function prComment(
         if (!body) return;
 
         const commentByOwner = pr.user.login === comment.user.login;
-        const [discussion, reviews] = await Promise.all([
+        const [discussion, { reviewers }] = await Promise.all([
           getDiscussion(context, comment),
-          listReviews(context),
+          getReviewersAndReviewStates(context, repoContext),
         ]);
 
-        const reviewers = reviews.map((review) => review.user);
         const followers = commentByOwner
           ? reviewers
           : reviewers.filter((user) => user.login !== comment.user.login);

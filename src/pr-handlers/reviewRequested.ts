@@ -1,6 +1,5 @@
 import { Application } from 'probot';
 import { MongoStores } from '../mongo';
-import { contextPr } from '../context/utils';
 import { createHandlerPullRequestChange } from './utils';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 
@@ -22,27 +21,13 @@ export default function reviewRequested(
 
         const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
         const shouldWait = false;
-        // repoContext.reviewShouldWait(reviewerGroup, pr.requested_reviewers, { includesWaitForGroups: true });
+        // repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, { includesWaitForGroups: true });
 
         if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
-          const { data: reviews } = await context.github.pulls.listReviews(
-            contextPr(context, { per_page: 50 }),
-          );
-          const hasChangesRequestedInReviews = reviews.some(
-            (review) =>
-              repoContext.getReviewerGroup(review.user.login) ===
-                reviewerGroup &&
-              review.state === 'REQUEST_CHANGES' &&
-              // In case this is a rerequest for review
-              review.user.login !== reviewer.login,
-          );
-
-          if (!hasChangesRequestedInReviews) {
-            await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
-              add: ['needsReview', !shouldWait && 'requested'],
-              remove: ['approved', 'changesRequested'],
-            });
-          }
+          await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
+            add: ['needsReview', !shouldWait && 'requested'],
+            remove: ['approved'],
+          });
         }
 
         if (sender.login === reviewer.login) return;

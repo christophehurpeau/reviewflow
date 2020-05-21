@@ -3,7 +3,7 @@ import { MongoStores } from '../mongo';
 import { createHandlerPullRequestChange } from './utils';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateReviewStatus } from './actions/updateReviewStatus';
-import { listReviews } from './utils/listReviews';
+import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 import { postSlackMessageWithSecondaryBlock } from './utils/postSlackMessageWithSecondaryBlock';
 
 export default function reviewSubmitted(
@@ -15,13 +15,20 @@ export default function reviewSubmitted(
     createHandlerPullRequestChange(
       mongoStores,
       async (pr, context, repoContext): Promise<void> => {
-        const { user: reviewer, state, body } = (context.payload as any).review;
+        const {
+          user: reviewer,
+          state,
+          body,
+          html_url: reviewUrl,
+        } = (context.payload as any).review;
 
         const reviewByOwner = pr.user.login === reviewer.login;
-        const reviews = await listReviews(context);
-        const reviewers = reviews.map((review) => review.user);
+        const { reviewers, reviewStates } = await getReviewersAndReviewStates(
+          context,
+          repoContext,
+        );
         const followers = reviewers.filter(
-          (user) => user.login !== reviewer.login,
+          (user, index) => user.id !== reviewer.id && user.id !== pr.user.id,
         );
 
         if (!reviewByOwner) {
@@ -32,7 +39,7 @@ export default function reviewSubmitted(
             reviewerGroup &&
             repoContext.config.labels.review[reviewerGroup]
           ) {
-            const hasRequestedReviewsForGroup = repoContext.reviewShouldWait(
+            const hasRequestedReviewsForGroup = repoContext.approveShouldWait(
               reviewerGroup,
               pr.requested_reviewers,
               {
@@ -42,11 +49,8 @@ export default function reviewSubmitted(
               },
             );
 
-            const hasChangesRequestedInReviews = reviews.some(
-              (review) =>
-                repoContext.getReviewerGroup(review.user.login) ===
-                  reviewerGroup && review.state === 'REQUEST_CHANGES',
-            );
+            const hasChangesRequestedInReviews =
+              reviewStates[reviewerGroup].changesRequested !== 0;
 
             const approved =
               !hasRequestedReviewsForGroup &&
@@ -61,13 +65,12 @@ export default function reviewSubmitted(
               {
                 add: [
                   approved && 'approved',
+                  state === 'changes_requested' && 'needsReview',
                   state === 'changes_requested' && 'changesRequested',
                 ],
                 remove: [
                   approved && 'needsReview',
-                  !(
-                    hasRequestedReviewsForGroup || state === 'changes_requested'
-                  ) && 'requested',
+                  !hasRequestedReviewsForGroup && 'requested',
                   state === 'approved' &&
                     !hasChangesRequestedInReviews &&
                     'changesRequested',
@@ -107,7 +110,9 @@ export default function reviewSubmitted(
                 merged ? ' and PR is merged :tada:' : ''
               }`;
             }
-            return `:speech_balloon: ${mention} commented on ${ownerPart} ${prUrl}`;
+
+            const commentLink = repoContext.slack.link(reviewUrl, 'commented');
+            return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
           };
 
           postSlackMessageWithSecondaryBlock(
@@ -133,13 +138,16 @@ export default function reviewSubmitted(
           const mention = repoContext.slack.mention(reviewer.login);
           const prUrl = repoContext.slack.prLink(pr, context);
 
+          const commentLink = repoContext.slack.link(reviewUrl, 'commented');
+          const message = `:speech_balloon: ${mention} ${commentLink} on his PR ${prUrl}`;
+
           followers.forEach((follower) => {
             postSlackMessageWithSecondaryBlock(
               repoContext,
               'pr-review-follow',
               follower.id,
               follower.login,
-              `:speech_balloon: ${mention} commented on his PR ${prUrl}`,
+              message,
               body,
             );
           });

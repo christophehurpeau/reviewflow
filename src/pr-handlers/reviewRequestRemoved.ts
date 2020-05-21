@@ -1,8 +1,8 @@
 import { Application } from 'probot';
 import { MongoStores } from '../mongo';
-import { contextPr } from '../context/utils';
 import { createHandlerPullRequestChange } from './utils';
 import { updateReviewStatus } from './actions/updateReviewStatus';
+import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 
 export default function reviewRequestRemoved(
   app: Application,
@@ -19,7 +19,7 @@ export default function reviewRequestRemoved(
         const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
         if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
-          const hasRequestedReviewsForGroup = repoContext.reviewShouldWait(
+          const hasRequestedReviewsForGroup = repoContext.approveShouldWait(
             reviewerGroup,
             pr.requested_reviewers,
             {
@@ -27,29 +27,25 @@ export default function reviewRequestRemoved(
             },
           );
 
-          const { data: reviews } = await context.github.pulls.listReviews(
-            contextPr(context, { per_page: 50 }),
+          const { reviewStates } = await getReviewersAndReviewStates(
+            context,
+            repoContext,
           );
 
-          const hasChangesRequestedInReviews = reviews.some(
-            (review) =>
-              repoContext.getReviewerGroup(review.user.login) ===
-                reviewerGroup && review.state === 'REQUEST_CHANGES',
-          );
+          const hasChangesRequestedInReviews =
+            reviewStates[reviewerGroup].changesRequested !== 0;
 
-          const hasApprovedInReviews = reviews.some(
-            (review) =>
-              repoContext.getReviewerGroup(review.user.login) ===
-                reviewerGroup && review.state === 'APPROVED',
-          );
+          const hasApprovedInReviews =
+            reviewStates[reviewerGroup].approved !== 0;
 
           const approved =
             !hasRequestedReviewsForGroup &&
             !hasChangesRequestedInReviews &&
             hasApprovedInReviews;
+
           await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
             add: [
-              // if changes requested by the one which requests was removed
+              // if changes requested by the one which requests was removed (should still be in changed requested anyway, but we never know)
               hasChangesRequestedInReviews && 'changesRequested',
               // if was already approved by another member in the group and has no other requests waiting
               approved && 'approved',
@@ -57,9 +53,7 @@ export default function reviewRequestRemoved(
             // remove labels if has no other requests waiting
             remove: [
               approved && 'needsReview',
-              !hasRequestedReviewsForGroup &&
-                !hasChangesRequestedInReviews &&
-                'requested',
+              !hasRequestedReviewsForGroup && 'requested',
             ],
           });
         }
