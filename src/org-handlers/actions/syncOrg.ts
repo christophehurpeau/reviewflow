@@ -32,21 +32,14 @@ export const syncOrg = async (
           data.map(async (member) => {
             memberIds.push(member.id);
             return Promise.all([
-              (await mongoStores.orgMembers.collection).updateOne(
-                { _id: `${org.id}_${member.id}` },
-                {
-                  $set: {
-                    org: orgEmbed,
-                    user: {
-                      id: member.id,
-                      login: member.login,
-                    },
-                  },
-                  $setOnInsert: {
-                    created: new Date(),
-                  },
+              mongoStores.orgMembers.upsertOne({
+                _id: `${org.id}_${member.id}`,
+                org: orgEmbed,
+                user: {
+                  id: member.id,
+                  login: member.login,
                 },
-              ),
+              }),
               mongoStores.users.upsertOne({
                 _id: member.id as any,
                 login: member.login,
