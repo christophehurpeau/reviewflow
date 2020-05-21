@@ -132,20 +132,22 @@ export default function prComment(
           );
         });
 
-        mongoStores.users
-          .findAll({ login: { $in: mentions } })
-          .then((users) => {
-            users.forEach((u) => {
-              postSlackMessageWithSecondaryBlock(
-                repoContext,
-                'pr-comment-mention',
-                u._id as any, // TODO _id is number
-                u.login,
-                createMessage(false),
-                body,
-              );
+        if (mentions.length !== 0) {
+          mongoStores.users
+            .findAll({ login: { $in: mentions } })
+            .then((users) => {
+              users.forEach((u) => {
+                postSlackMessageWithSecondaryBlock(
+                  repoContext,
+                  'pr-comment-mention',
+                  u._id as any, // TODO _id is number
+                  u.login,
+                  createMessage(false),
+                  body,
+                );
+              });
             });
-          });
+        }
       },
     ),
   );
