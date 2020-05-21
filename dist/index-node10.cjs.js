@@ -72,8 +72,6 @@ function init() {
   orgTeams.collection.then(coll => {
     coll.createIndex({
       'org.id': 1
-    }, {
-      unique: true
     });
   }); // return { connection, prEvents };
 

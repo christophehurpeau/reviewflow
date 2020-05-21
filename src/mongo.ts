@@ -95,7 +95,7 @@ export default function init(): MongoStores {
 
   const orgTeams = new MongoStore<OrgTeam>(connection, 'orgTeams');
   orgTeams.collection.then((coll) => {
-    coll.createIndex({ 'org.id': 1 }, { unique: true });
+    coll.createIndex({ 'org.id': 1 });
   });
 
   // return { connection, prEvents };
