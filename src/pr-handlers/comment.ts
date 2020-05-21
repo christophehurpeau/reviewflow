@@ -76,16 +76,20 @@ export default function prComment(
           getReviewersAndReviewStates(context, repoContext),
         ]);
 
-        const followers = commentByOwner
-          ? reviewers
-          : reviewers.filter((user) => user.login !== comment.user.login);
+        const followers = reviewers.filter(
+          (u) => u.id !== pr.user.id && u.id !== comment.user.id,
+        );
 
         const usersInThread = getUsersInThread(discussion).filter(
-          (u) => u.id !== pr.user.id && !followers.find((f) => f.id === u.id),
+          (u) =>
+            u.id !== pr.user.id &&
+            u.id !== comment.user.id &&
+            !followers.find((f) => f.id === u.id),
         );
         const mentions = getMentions(discussion).filter(
           (m) =>
             m !== pr.user.login &&
+            m !== comment.user.login &&
             !followers.find((f) => f.login === m) &&
             !usersInThread.find((u) => u.login === m),
         );

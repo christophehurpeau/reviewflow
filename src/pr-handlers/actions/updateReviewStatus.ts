@@ -22,7 +22,7 @@ export const updateReviewStatus = async <
     remove?: (GroupLabels | false | undefined)[];
   },
 ): Promise<LabelResponse[]> => {
-  context.log.info('updateReviewStatus', {
+  context.log.debug('updateReviewStatus', {
     reviewGroup,
     labelsToAdd,
     labelsToRemove,

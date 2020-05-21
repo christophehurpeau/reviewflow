@@ -128,7 +128,7 @@ async function initRepoContext<GroupNames extends string>(
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       lock(prIdOrIds, async (createReleaseCallback) => {
         const release = createReleaseCallback(() => {});
-        context.log.info('lock: lock acquired', logInfos);
+        context.log.info('lock: lock pr acquired', logInfos);
         try {
           await callback();
         } catch (err) {

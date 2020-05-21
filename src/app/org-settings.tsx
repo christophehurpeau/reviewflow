@@ -37,7 +37,10 @@ export default function orgSettings(
     const org = orgs.data.find((o) => o.login === req.params.org);
     if (!org) return res.redirect('/app/gh');
 
-    await syncOrg(mongoStores, user.api, org);
+    const o = await mongoStores.orgs.findByKey(org.id);
+    if (!o) return res.redirect('/app/gh');
+
+    await syncOrg(mongoStores, user.api, o.installationId as number, org);
     await syncTeams(mongoStores, user.api, org);
 
     res.redirect(`/app/gh/org/${req.params.org}`);

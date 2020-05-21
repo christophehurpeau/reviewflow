@@ -24,12 +24,14 @@ export interface User extends MongoModel {
 // TODO _id is number
 export interface Org extends MongoModel {
   login: string;
+  installationId?: number;
   slackToken?: string;
 }
 
-export interface OrgMembers extends MongoModel {
+export interface OrgMember extends MongoModel {
   org: { id: number; login: string };
   user: { id: number; login: string };
+  slack?: { id: string };
 }
 
 export interface OrgTeam extends MongoModel {
@@ -44,7 +46,7 @@ export interface MongoStores {
   userDmSettings: MongoStore<UserDmSettings>;
   users: MongoStore<User>;
   orgs: MongoStore<Org>;
-  orgMembers: MongoStore<OrgMembers>;
+  orgMembers: MongoStore<OrgMember>;
   orgTeams: MongoStore<OrgTeam>;
   // prEvents: MongoStore<PrEventsModel>;
 }
@@ -88,7 +90,7 @@ export default function init(): MongoStores {
     coll.createIndex({ login: 1 }, { unique: true });
   });
 
-  const orgMembers = new MongoStore<OrgMembers>(connection, 'orgMembers');
+  const orgMembers = new MongoStore<OrgMember>(connection, 'orgMembers');
   orgMembers.collection.then((coll) => {
     coll.createIndex({ 'user.id': 1, 'org.id': 1 }, { unique: true });
   });

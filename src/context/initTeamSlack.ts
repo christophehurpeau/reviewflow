@@ -1,10 +1,12 @@
 import Webhooks from '@octokit/webhooks';
 import { WebClient, KnownBlock } from '@slack/web-api';
 import { Context, Octokit } from 'probot';
-import { MongoStores } from '../mongo';
+import { createLink } from '../slack/utils';
+import { MongoStores, Org } from '../mongo';
 import { getUserDmSettings } from '../dm/getUserDmSettings';
 import { MessageCategory } from '../dm/MessageCategory';
 import { Config } from '../orgsConfigs';
+import * as slackHome from '../slack/home';
 import { getKeys } from './utils';
 
 interface SlackMessage {
@@ -31,6 +33,7 @@ export interface TeamSlack {
     pr: Octokit.PullsGetResponse,
     context: Context<T>,
   ) => string;
+  updateHome: (githubLogin: string) => void;
 }
 
 export const voidTeamSlack = (): TeamSlack => ({
@@ -38,17 +41,18 @@ export const voidTeamSlack = (): TeamSlack => ({
   link: (): string => '',
   postMessage: (): Promise<null> => Promise.resolve(null),
   prLink: (): string => '',
+  updateHome: (): void => undefined,
 });
 
 export const initTeamSlack = async <GroupNames extends string>(
   mongoStores: MongoStores,
   context: Context<any>,
   config: Config<GroupNames>,
-  slackToken?: string,
+  org: Org,
 ): Promise<TeamSlack> => {
   const owner = context.payload.repository.owner;
 
-  if (!slackToken) {
+  if (!org.slackToken) {
     return voidTeamSlack();
   }
 
@@ -60,22 +64,59 @@ export const initTeamSlack = async <GroupNames extends string>(
   }, {});
 
   const slackEmails = Object.values(githubLoginToSlackEmail);
-  const slackClient = new WebClient(slackToken);
-  const members: [string, { member: any; im: any }][] = [];
+  const slackClient = new WebClient(org.slackToken);
 
-  await slackClient.paginate('users.list', {}, (page: any) => {
-    page.members.forEach((member: any) => {
-      const email = member.profile && member.profile.email;
-      if (email && slackEmails.includes(email)) {
-        members.push([email, { member, im: undefined }]);
-      }
-    });
-    return false;
+  const membersInDb = await mongoStores.orgMembers.findAll({
+    'org.id': org._id,
   });
+
+  const members: [string, { member: any; im: any }][] = [];
+  const foundEmailMembers: string[] = [];
+
+  Object.entries(githubLoginToSlackEmail).forEach(([login, email]) => {
+    const member = membersInDb.find((m) => m.user.login === login);
+    if (member?.slack?.id) {
+      foundEmailMembers.push(email);
+      members.push([email, { member: { id: member.slack.id }, im: undefined }]);
+    }
+  });
+
+  if (foundEmailMembers.length !== slackEmails.length) {
+    const missingEmails = slackEmails.filter(
+      (email) => !foundEmailMembers.includes(email),
+    );
+
+    const memberEmailToMemberId = new Map<string, number>(
+      Object.entries(githubLoginToSlackEmail).map(([login, email]) => [
+        email,
+        membersInDb.find((m) => m.user.login === login)?._id as any,
+      ]),
+    );
+
+    await slackClient.paginate('users.list', {}, (page: any) => {
+      page.members.forEach((member: any) => {
+        const email = member.profile && member.profile.email;
+        if (email && missingEmails.includes(email)) {
+          members.push([email, { member, im: undefined }]);
+          if (memberEmailToMemberId.has(email)) {
+            mongoStores.orgMembers.partialUpdateMany(
+              {
+                _id: memberEmailToMemberId.get(email),
+              },
+              { $set: { slack: { id: member.id } } },
+            );
+          }
+        }
+      });
+      return false;
+    });
+  }
 
   for (const [, user] of members) {
     try {
-      const im: any = await slackClient.im.open({ user: user.member.id });
+      const im: any = await slackClient.conversations.open({
+        users: user.member.id,
+      });
       user.im = im.channel;
     } catch (err) {
       console.error(err);
@@ -129,14 +170,27 @@ export const initTeamSlack = async <GroupNames extends string>(
       if (!result.ok) return null;
       return { ts: result.ts as string };
     },
-    link: (url: string, text: string): string => {
-      return `<${url}|${text}>`;
-    },
+    link: createLink,
     prLink: <T extends { repository: Webhooks.PayloadRepository }>(
       pr: Octokit.PullsGetResponse,
       context: Context<T>,
     ): string => {
-      return `<${pr.html_url}|${context.payload.repository.name}#${pr.number}>`;
+      return createLink(
+        pr.html_url,
+        `${context.payload.repository.name}#${pr.number}`,
+      );
+    },
+
+    updateHome: (githubLogin: string): void => {
+      context.log.debug('update slack home', { githubLogin });
+      const user = getUserFromGithubLogin(githubLogin);
+      if (!user || !user.member) return;
+
+      slackHome.updateMember(mongoStores, context.github, slackClient, {
+        user: { id: null, login: githubLogin },
+        org: { id: org._id, login: org.login },
+        slack: { id: user.member.id },
+      } as any);
     },
   };
 };

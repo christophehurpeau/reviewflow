@@ -28,6 +28,9 @@ export default function reviewRequested(
             add: ['needsReview', !shouldWait && 'requested'],
             remove: ['approved'],
           });
+
+          repoContext.slack.updateHome(pr.user.login);
+          repoContext.slack.updateHome(reviewer.login);
         }
 
         if (sender.login === reviewer.login) return;

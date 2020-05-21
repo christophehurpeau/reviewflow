@@ -3,6 +3,7 @@ import { Probot, Application } from 'probot';
 import mongoInit from './mongo';
 import appRouter from './appRouter';
 import initApp from './initApp';
+import { updateAllOrgs } from './slack/home';
 
 if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = 'reviewflow';
 console.log({ name: process.env.REVIEWFLOW_NAME });
@@ -20,4 +21,5 @@ Probot.run((app: Application): void => {
   const mongoStores = mongoInit();
   appRouter(app, mongoStores);
   initApp(app, mongoStores);
+  updateAllOrgs(mongoStores, (id: number) => app.auth(id));
 });

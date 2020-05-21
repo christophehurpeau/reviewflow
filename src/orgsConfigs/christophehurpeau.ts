@@ -27,7 +27,6 @@ const config: Config<'dev', never> = {
   groups: {
     dev: {
       christophehurpeau: 'christophe@hurpeau.com',
-      'chris-reviewflow': 'christophe.hurpeau+reviewflow@gmail.com',
       tilap: 'jlavinh@gmail.com',
     },
   },

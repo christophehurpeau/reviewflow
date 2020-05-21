@@ -2,6 +2,7 @@ import { Config as ConfigType } from './types';
 import defaultConfig from './defaultConfig';
 import ornikar from './ornikar';
 import christophehurpeau from './christophehurpeau';
+import reviewflow from './reviewflow';
 
 export type Config<
   GroupNames extends string = any,
@@ -11,7 +12,7 @@ export type Config<
 export const orgsConfigs: { [owner: string]: Config } = {
   ornikar,
   christophehurpeau,
-  reviewflow: christophehurpeau,
+  reviewflow,
 };
 
 export { defaultConfig };

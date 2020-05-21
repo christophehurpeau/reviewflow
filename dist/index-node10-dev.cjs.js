@@ -346,12 +346,12 @@ const syncTeams = async (mongoStores, github, org) => {
     login: org.login
   };
   const teamIds = [];
-  await github.paginate(github.teams.list.endpoint.merge({
+  await Promise.all(await github.paginate(github.teams.list.endpoint.merge({
     org: org.login
-  }), async ({
+  }), ({
     data
-  }, done) => {
-    await Promise.all(data.map(team => {
+  }) => {
+    return Promise.all(data.map(team => {
       teamIds.push(team.id);
       return mongoStores.orgTeams.upsertOne({
         _id: team.id,
@@ -362,11 +362,10 @@ const syncTeams = async (mongoStores, github, org) => {
         description: team.description
       });
     }));
-    done();
-  });
-  await mongoStores.orgMembers.deleteMany({
+  }));
+  await mongoStores.orgTeams.deleteMany({
     'org.id': org.id,
-    'user.id': {
+    _id: {
       $not: {
         $in: teamIds
       }
@@ -374,30 +373,37 @@ const syncTeams = async (mongoStores, github, org) => {
   });
 };
 
-const syncOrg = async (mongoStores, github, org) => {
+const syncOrg = async (mongoStores, github, installationId, org) => {
   const orgInStore = await mongoStores.orgs.upsertOne({
     _id: org.id,
     // TODO _id is number
-    login: org.login
+    login: org.login,
+    installationId
   });
   const orgEmbed = {
     id: org.id,
     login: org.login
   };
   const memberIds = [];
-  await github.paginate(github.orgs.listMembers.endpoint.merge({
+  await Promise.all(await github.paginate(github.orgs.listMembers.endpoint.merge({
     org: org.login
-  }), async ({
+  }), ({
     data
-  }, done) => {
-    await Promise.all(data.map(member => {
+  }) => {
+    return Promise.all(data.map(async member => {
       memberIds.push(member.id);
-      return Promise.all([mongoStores.orgMembers.upsertOne({
-        _id: `${org.id}_${member.id}`,
-        org: orgEmbed,
-        user: {
-          id: member.id,
-          login: member.login
+      return Promise.all([(await mongoStores.orgMembers.collection).updateOne({
+        _id: `${org.id}_${member.id}`
+      }, {
+        $set: {
+          org: orgEmbed,
+          user: {
+            id: member.id,
+            login: member.login
+          }
+        },
+        $setOnInsert: {
+          created: new Date()
         }
       }), mongoStores.users.upsertOne({
         _id: member.id,
@@ -405,8 +411,7 @@ const syncOrg = async (mongoStores, github, org) => {
         type: member.type
       })]);
     }));
-    done();
-  });
+  }));
   await mongoStores.orgMembers.deleteMany({
     'org.id': org.id,
     'user.id': {
@@ -722,7 +727,6 @@ const config$2 = {
   groups: {
     dev: {
       christophehurpeau: 'christophe@hurpeau.com',
-      'chris-reviewflow': 'christophe.hurpeau+reviewflow@gmail.com',
       tilap: 'jlavinh@gmail.com'
     }
   },
@@ -793,10 +797,19 @@ const config$2 = {
   }
 };
 
+const config$3 = { ...config$2,
+  groups: {
+    dev: {
+      christophehurpeau: 'christophe@hurpeau.com',
+      'chris-reviewflow': 'christophe.hurpeau+reviewflow@gmail.com'
+    }
+  }
+};
+
 const orgsConfigs = {
   ornikar: config$1,
   christophehurpeau: config$2,
-  reviewflow: config$2
+  reviewflow: config$3
 };
 // export const getMembers = <GroupNames extends string = any>(
 //   groups: Record<GroupNames, Group>,
@@ -866,7 +879,9 @@ function orgSettings(router, api, mongoStores) {
     const orgs = await user.api.orgs.listForAuthenticatedUser();
     const org = orgs.data.find(o => o.login === req.params.org);
     if (!org) return res.redirect('/app/gh');
-    await syncOrg(mongoStores, user.api, org);
+    const o = await mongoStores.orgs.findByKey(org.id);
+    if (!o) return res.redirect('/app/gh');
+    await syncOrg(mongoStores, user.api, o.installationId, org);
     await syncTeams(mongoStores, user.api, org);
     res.redirect(`/app/gh/org/${req.params.org}`);
   });
@@ -1348,6 +1363,83 @@ const initRepoLabels = async (context, config) => {
   return finalLabels;
 };
 
+const createLink = (url, text) => {
+  return `<${url}|${text}>`;
+};
+
+const updateMember = async (mongoStores, github, slackClient, member) => {
+  if (!member.slack) return;
+  const [prsWithRequestedReviews, prsToMerge, prsWithRequestedChanges] = await Promise.all([github.search.issuesAndPullRequests({
+    q: `is:pr user:${member.org.login} is:open review-requested:${member.user.login} `,
+    sort: 'created',
+    order: 'desc'
+  }), github.search.issuesAndPullRequests({
+    q: `is:pr user:${member.org.login} is:open author:${member.user.login} label:":ok_hand: code/approved"`,
+    sort: 'created',
+    order: 'desc'
+  }), github.search.issuesAndPullRequests({
+    q: `is:pr user:${member.org.login} is:open author:${member.user.login} label:":ok_hand: code/changes-requested"`,
+    sort: 'created',
+    order: 'desc'
+  })]);
+  const blocks = [];
+
+  const buildBlocks = (title, results) => {
+    if (!results.total_count) return;
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `*${title}*`
+      }
+    }, {
+      type: 'divider'
+    }, ...results.items.map(pr => ({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `${createLink(pr.html_url, `${pr.html_url.replace(/^.*\/([^/]+)\/pull\/\d+$/, '$1')}#${pr.number}`)} ${pr.title}\nby ${pr.user.login}`
+      }
+    })));
+  };
+
+  buildBlocks('Requested Reviews', prsWithRequestedReviews.data);
+  buildBlocks('Ready to Merge', prsToMerge.data);
+  buildBlocks('Changes Requested', prsWithRequestedChanges.data);
+
+  if (blocks.length === 0) {
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: ":tada: It looks like you don't have any PR to review!"
+      }
+    });
+  }
+
+  slackClient.views.publish({
+    user_id: member.slack.id,
+    view: {
+      type: 'home',
+      blocks
+    }
+  });
+};
+const updateOrg = async (mongoStores, github, org, slackClient = new webApi.WebClient(org.slackToken)) => {
+  const cursor = await mongoStores.orgMembers.cursor();
+  cursor.forEach(member => {
+    updateMember(mongoStores, github, slackClient, member);
+  });
+};
+const updateAllOrgs = async (mongoStores, auth) => {
+  const cursor = await mongoStores.orgs.cursor();
+  cursor.forEach(async org => {
+    if (!org.slackToken || !org.installationId) return;
+    const github = await auth(org.installationId);
+    await updateOrg(mongoStores, github, org);
+  });
+};
+
 const getKeys = o => Object.keys(o);
 const contextIssue = (context, object) => {
   const payload = context.payload;
@@ -1366,12 +1458,13 @@ const voidTeamSlack = () => ({
   mention: () => '',
   link: () => '',
   postMessage: () => Promise.resolve(null),
-  prLink: () => ''
+  prLink: () => '',
+  updateHome: () => undefined
 });
-const initTeamSlack = async (mongoStores, context, config, slackToken) => {
+const initTeamSlack = async (mongoStores, context, config, org) => {
   const owner = context.payload.repository.owner;
 
-  if (!slackToken) {
+  if (!org.slackToken) {
     return voidTeamSlack();
   }
 
@@ -1380,26 +1473,66 @@ const initTeamSlack = async (mongoStores, context, config, slackToken) => {
     return acc;
   }, {});
   const slackEmails = Object.values(githubLoginToSlackEmail);
-  const slackClient = new webApi.WebClient(slackToken);
-  const members = [];
-  await slackClient.paginate('users.list', {}, page => {
-    page.members.forEach(member => {
-      const email = member.profile && member.profile.email;
-
-      if (email && slackEmails.includes(email)) {
-        members.push([email, {
-          member,
-          im: undefined
-        }]);
-      }
-    });
-    return false;
+  const slackClient = new webApi.WebClient(org.slackToken);
+  const membersInDb = await mongoStores.orgMembers.findAll({
+    'org.id': org._id
   });
+  const members = [];
+  const foundEmailMembers = [];
+  Object.entries(githubLoginToSlackEmail).forEach(([login, email]) => {
+    var _member$slack;
+
+    const member = membersInDb.find(m => m.user.login === login);
+
+    if (member === null || member === void 0 ? void 0 : (_member$slack = member.slack) === null || _member$slack === void 0 ? void 0 : _member$slack.id) {
+      foundEmailMembers.push(email);
+      members.push([email, {
+        member: {
+          id: member.slack.id
+        },
+        im: undefined
+      }]);
+    }
+  });
+
+  if (foundEmailMembers.length !== slackEmails.length) {
+    const missingEmails = slackEmails.filter(email => !foundEmailMembers.includes(email));
+    const memberEmailToMemberId = new Map(Object.entries(githubLoginToSlackEmail).map(([login, email]) => {
+      var _membersInDb$find;
+
+      return [email, (_membersInDb$find = membersInDb.find(m => m.user.login === login)) === null || _membersInDb$find === void 0 ? void 0 : _membersInDb$find._id];
+    }));
+    await slackClient.paginate('users.list', {}, page => {
+      page.members.forEach(member => {
+        const email = member.profile && member.profile.email;
+
+        if (email && missingEmails.includes(email)) {
+          members.push([email, {
+            member,
+            im: undefined
+          }]);
+
+          if (memberEmailToMemberId.has(email)) {
+            mongoStores.orgMembers.partialUpdateMany({
+              _id: memberEmailToMemberId.get(email)
+            }, {
+              $set: {
+                slack: {
+                  id: member.id
+                }
+              }
+            });
+          }
+        }
+      });
+      return false;
+    });
+  }
 
   for (const [, user] of members) {
     try {
-      const im = await slackClient.im.open({
-        user: user.member.id
+      const im = await slackClient.conversations.open({
+        users: user.member.id
       });
       user.im = im.channel;
     } catch (err) {
@@ -1447,26 +1580,46 @@ const initTeamSlack = async (mongoStores, context, config, slackToken) => {
         ts: result.ts
       };
     },
-    link: (url, text) => {
-      return `<${url}|${text}>`;
-    },
+    link: createLink,
     prLink: (pr, context) => {
-      return `<${pr.html_url}|${context.payload.repository.name}#${pr.number}>`;
+      return createLink(pr.html_url, `${context.payload.repository.name}#${pr.number}`);
+    },
+    updateHome: githubLogin => {
+      context.log.debug('update slack home', {
+        githubLogin
+      });
+      const user = getUserFromGithubLogin(githubLogin);
+      if (!user || !user.member) return;
+      updateMember(mongoStores, context.github, slackClient, {
+        user: {
+          id: null,
+          login: githubLogin
+        },
+        org: {
+          id: org._id,
+          login: org.login
+        },
+        slack: {
+          id: user.member.id
+        }
+      });
     }
   };
 };
 
-const getOrCreateOrg = async (mongoStores, github, orgInfo) => {
+const getOrCreateOrg = async (mongoStores, github, installationId, orgInfo) => {
+  var _org;
+
   let org = await mongoStores.orgs.findByKey(orgInfo.id);
-  if (org) return org;
-  org = await syncOrg(mongoStores, github, orgInfo);
+  if ((_org = org) === null || _org === void 0 ? void 0 : _org.installationId) return org;
+  org = await syncOrg(mongoStores, github, installationId, orgInfo);
   await syncTeams(mongoStores, github, orgInfo);
   return org;
 };
 
 const initTeamContext = async (mongoStores, context, config, orgInfo) => {
-  const org = await getOrCreateOrg(mongoStores, context.github, orgInfo);
-  const slackPromise = initTeamSlack(mongoStores, context, config, org.slackToken);
+  const org = await getOrCreateOrg(mongoStores, context.github, context.payload.installation.id, orgInfo);
+  const slackPromise = initTeamSlack(mongoStores, context, config, org);
   const githubLoginToGroup = new Map();
   getKeys(config.groups).forEach(groupName => {
     Object.keys(config.groups[groupName]).forEach(login => {
@@ -1596,7 +1749,7 @@ async function initRepoContext(mongoStores, context, config) {
 
     lock$1(prIdOrIds, async createReleaseCallback => {
       const release = createReleaseCallback(() => {});
-      context.log.info('lock: lock acquired', logInfos);
+      context.log.info('lock: lock pr acquired', logInfos);
 
       try {
         await callback();
@@ -2088,7 +2241,7 @@ const updateReviewStatus = async (pr, context, repoContext, reviewGroup, {
   add: labelsToAdd,
   remove: labelsToRemove
 }) => {
-  context.log.info('updateReviewStatus', {
+  context.log.debug('updateReviewStatus', {
     reviewGroup,
     labelsToAdd,
     labelsToRemove
@@ -2432,9 +2585,9 @@ function prComment(app, mongoStores) {
     const [discussion, {
       reviewers
     }] = await Promise.all([getDiscussion(context, comment), getReviewersAndReviewStates(context, repoContext)]);
-    const followers = commentByOwner ? reviewers : reviewers.filter(user => user.login !== comment.user.login);
-    const usersInThread = getUsersInThread(discussion).filter(u => u.id !== pr.user.id && !followers.find(f => f.id === u.id));
-    const mentions = getMentions(discussion).filter(m => m !== pr.user.login && !followers.find(f => f.login === m) && !usersInThread.find(u => u.login === m));
+    const followers = reviewers.filter(u => u.id !== pr.user.id && u.id !== comment.user.id);
+    const usersInThread = getUsersInThread(discussion).filter(u => u.id !== pr.user.id && u.id !== comment.user.id && !followers.find(f => f.id === u.id));
+    const mentions = getMentions(discussion).filter(m => m !== pr.user.login && m !== comment.user.login && !followers.find(f => f.login === m) && !usersInThread.find(u => u.login === m));
     const mention = repoContext.slack.mention(comment.user.login);
     const prUrl = repoContext.slack.prLink(pr, context);
     const ownerMention = repoContext.slack.mention(pr.user.login);
@@ -2485,6 +2638,8 @@ function reviewRequested(app, mongoStores) {
         add: ['needsReview', "requested"],
         remove: ['approved']
       });
+      repoContext.slack.updateHome(pr.user.login);
+      repoContext.slack.updateHome(reviewer.login);
     }
 
     if (sender.login === reviewer.login) return;
@@ -2520,6 +2675,8 @@ function reviewRequestRemoved(app, mongoStores) {
         // remove labels if has no other requests waiting
         remove: [approved && 'needsReview', !hasRequestedReviewsForGroup && 'requested']
       });
+      repoContext.slack.updateHome(pr.user.login);
+      repoContext.slack.updateHome(reviewer.login);
     }
 
     if (sender.login === reviewer.login) return;
@@ -2569,6 +2726,8 @@ function reviewSubmitted(app, mongoStores) {
         }
       }
 
+      repoContext.slack.updateHome(pr.user.login);
+      repoContext.slack.updateHome(reviewer.login);
       const mention = repoContext.slack.mention(reviewer.login);
       const prUrl = repoContext.slack.prLink(pr, context);
       const ownerMention = repoContext.slack.mention(pr.user.login);
@@ -2626,6 +2785,8 @@ function reviewDismissed(app, mongoStores) {
         add: [!hasApprovals && 'needsReview', hasApprovals && !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && 'approved'],
         remove: [!hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && 'requested', !hasChangesRequestedInReviews && 'changesRequested', !hasApprovals && 'approved']
       });
+      repoContext.slack.updateHome(pr.user.login);
+      repoContext.slack.updateHome(reviewer.login);
     }
 
     if (repoContext.slack) {
@@ -2831,8 +2992,8 @@ const createHandlerOrgChange = (mongoStores, callback) => context => {
 
 function initApp(app, mongoStores) {
   /* https://developer.github.com/webhooks/event-payloads/#organization */
-  app.on(['organization.member_added', 'organization.member_removed'], createHandlerOrgChange(mongoStores, async context => {
-    await syncOrg(mongoStores, context.github, context.payload.organization);
+  app.on(['organization.member_added', 'organization.member_removed'], createHandlerOrgChange(mongoStores, async (context, orgContext) => {
+    await syncOrg(mongoStores, context.github, orgContext.org.installationId, context.payload.organization);
   }));
   /* https://developer.github.com/webhooks/event-payloads/#team */
 
@@ -2895,5 +3056,6 @@ probot.Probot.run(app => {
   const mongoStores = init();
   appRouter(app, mongoStores);
   initApp(app, mongoStores);
+  updateAllOrgs(mongoStores, id => app.auth(id));
 });
 //# sourceMappingURL=index-node10-dev.cjs.js.map

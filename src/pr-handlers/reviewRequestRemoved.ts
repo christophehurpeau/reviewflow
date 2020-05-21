@@ -56,6 +56,9 @@ export default function reviewRequestRemoved(
               !hasRequestedReviewsForGroup && 'requested',
             ],
           });
+
+          repoContext.slack.updateHome(pr.user.login);
+          repoContext.slack.updateHome(reviewer.login);
         }
 
         if (sender.login === reviewer.login) return;

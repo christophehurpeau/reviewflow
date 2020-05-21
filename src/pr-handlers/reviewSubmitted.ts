@@ -89,6 +89,9 @@ export default function reviewSubmitted(
             }
           }
 
+          repoContext.slack.updateHome(pr.user.login);
+          repoContext.slack.updateHome(reviewer.login);
+
           const mention = repoContext.slack.mention(reviewer.login);
           const prUrl = repoContext.slack.prLink(pr, context);
           const ownerMention = repoContext.slack.mention(pr.user.login);

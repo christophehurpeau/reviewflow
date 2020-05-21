@@ -32,6 +32,7 @@ export default function initApp(
         await syncOrg(
           mongoStores,
           context.github,
+          orgContext.org.installationId as number,
           context.payload.organization,
         );
       },

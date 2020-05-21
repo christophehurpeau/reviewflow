@@ -33,11 +33,12 @@ export interface OrgContext<
 const getOrCreateOrg = async (
   mongoStores: MongoStores,
   github: Octokit,
+  installationId: number,
   orgInfo: { id: number; login: string },
 ): Promise<Org> => {
   let org = await mongoStores.orgs.findByKey(orgInfo.id);
-  if (org) return org;
-  org = await syncOrg(mongoStores, github, orgInfo);
+  if (org?.installationId) return org;
+  org = await syncOrg(mongoStores, github, installationId, orgInfo);
   await syncTeams(mongoStores, github, orgInfo);
   return org;
 };
@@ -48,13 +49,13 @@ const initTeamContext = async (
   config: Config,
   orgInfo: { id: number; login: string },
 ): Promise<OrgContext> => {
-  const org = await getOrCreateOrg(mongoStores, context.github, orgInfo);
-  const slackPromise = initTeamSlack(
+  const org = await getOrCreateOrg(
     mongoStores,
-    context,
-    config,
-    org.slackToken,
+    context.github,
+    context.payload.installation.id,
+    orgInfo,
   );
+  const slackPromise = initTeamSlack(mongoStores, context, config, org);
 
   const githubLoginToGroup = new Map<string, string>();
   getKeys(config.groups).forEach((groupName) => {

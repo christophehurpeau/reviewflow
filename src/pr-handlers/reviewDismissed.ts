@@ -48,6 +48,9 @@ export default function reviewDismissed(
               !hasApprovals && 'approved',
             ],
           });
+
+          repoContext.slack.updateHome(pr.user.login);
+          repoContext.slack.updateHome(reviewer.login);
         }
 
         if (repoContext.slack) {
