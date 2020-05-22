@@ -19,6 +19,7 @@ export const initializeProbotApp = (): Probot => {
   });
   const mockStores = {
     orgs: { findByKey: () => Promise.resolve({ installationId: 1 }) },
+    users: { findByKey: () => Promise.resolve({ installationId: 1 }) },
   } as any;
   probot.load((app) => initApp(app, mockStores));
 
