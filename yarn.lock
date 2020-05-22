@@ -1429,10 +1429,10 @@
     "@types/express-serve-static-core" "*"
     "@types/mime" "*"
 
-"@types/simple-oauth2@2.2.1":
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/@types/simple-oauth2/-/simple-oauth2-2.2.1.tgz#db961cac33fd273c43b10f19b52c272dcb6530fc"
-  integrity sha512-mlSYlFKMnQPjvSuG1KZmhhcz81PBR82TJtdGRkBD3F7aJo8PgKUd26lckbAr5O6kZPU2WiqJWMCIwTzb0+lXww==
+"@types/simple-oauth2@2.5.3":
+  version "2.5.3"
+  resolved "https://registry.yarnpkg.com/@types/simple-oauth2/-/simple-oauth2-2.5.3.tgz#c253ec4452847f1f8d095d50590963e2f61b3a5f"
+  integrity sha512-LM3KjCEHxiU3wkwGbKO0WVyJUrqDKZMVCZUhUy8qbPnReDfBZyOw5BToy9mE9EX54h+ZvwkSLuZG6xilX/O2PA==
 
 "@types/stack-utils@^1.0.1":
   version "1.0.1"
