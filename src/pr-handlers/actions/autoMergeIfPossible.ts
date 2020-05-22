@@ -94,7 +94,7 @@ export const autoMergeIfPossible = async (
   }
 
   const lockedPr = repoContext.getMergeLockedPr();
-  if (lockedPr && lockedPr.number !== pr.number) {
+  if (lockedPr && String(lockedPr.number) !== String(pr.number)) {
     context.log.info('automerge not possible: locked pr', {
       prId: pr.id,
       prNumber: pr.number,

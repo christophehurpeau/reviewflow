@@ -1,7 +1,7 @@
 import Webhooks from '@octokit/webhooks';
 import { Context, Octokit } from 'probot';
 import { LabelResponse } from '../../context/initRepoLabels';
-import { GroupLabels } from '../../orgsConfigs/types';
+import { GroupLabels } from '../../accountConfigs/types';
 import { RepoContext } from '../../context/repoContext';
 import { contextIssue } from '../../context/utils';
 import { updateStatusCheckFromLabels } from './updateStatusCheckFromLabels';

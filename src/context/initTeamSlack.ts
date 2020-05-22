@@ -2,10 +2,10 @@ import Webhooks from '@octokit/webhooks';
 import { WebClient, KnownBlock } from '@slack/web-api';
 import { Context, Octokit } from 'probot';
 import { createLink } from '../slack/utils';
-import { MongoStores, Org } from '../mongo';
+import { MongoStores, Org, User } from '../mongo';
 import { getUserDmSettings } from '../dm/getUserDmSettings';
 import { MessageCategory } from '../dm/MessageCategory';
-import { Config } from '../orgsConfigs';
+import { Config } from '../accountConfigs';
 import * as slackHome from '../slack/home';
 import { getKeys } from './utils';
 
@@ -48,11 +48,11 @@ export const initTeamSlack = async <GroupNames extends string>(
   mongoStores: MongoStores,
   context: Context<any>,
   config: Config<GroupNames>,
-  org: Org,
+  account: Org | User,
 ): Promise<TeamSlack> => {
   const owner = context.payload.repository.owner;
 
-  if (!org.slackToken) {
+  if (!(account as Org).slackToken) {
     return voidTeamSlack();
   }
 
@@ -64,10 +64,10 @@ export const initTeamSlack = async <GroupNames extends string>(
   }, {});
 
   const slackEmails = Object.values(githubLoginToSlackEmail);
-  const slackClient = new WebClient(org.slackToken);
+  const slackClient = new WebClient(account.slackToken);
 
   const membersInDb = await mongoStores.orgMembers.findAll({
-    'org.id': org._id,
+    'org.id': account._id,
   });
 
   const members: [string, { member: any; im: any }][] = [];
@@ -188,7 +188,7 @@ export const initTeamSlack = async <GroupNames extends string>(
 
       slackHome.updateMember(mongoStores, context.github, slackClient, {
         user: { id: null, login: githubLogin },
-        org: { id: org._id, login: org.login },
+        org: { id: account._id, login: account.login },
         slack: { id: user.member.id },
       } as any);
     },

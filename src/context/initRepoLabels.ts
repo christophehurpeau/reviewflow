@@ -1,5 +1,5 @@
 import { Context, Octokit } from 'probot';
-import { Config } from '../orgsConfigs';
+import { Config } from '../accountConfigs';
 
 export interface LabelResponse {
   id: number;

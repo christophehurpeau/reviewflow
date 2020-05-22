@@ -15,9 +15,9 @@ import checkrunCompleted from './pr-handlers/checkrunCompleted';
 import checksuiteCompleted from './pr-handlers/checksuiteCompleted';
 import status from './pr-handlers/status';
 import { MongoStores } from './mongo';
-import { createHandlerOrgChange } from './org-handlers/utils/handler';
-import { syncOrg } from './org-handlers/actions/syncOrg';
-import { syncTeams } from './org-handlers/actions/syncTeams';
+import { createHandlerOrgChange } from './account-handlers/utils/handler';
+import { syncOrg } from './account-handlers/actions/syncOrg';
+import { syncTeams } from './account-handlers/actions/syncTeams';
 
 export default function initApp(
   app: Application,
@@ -28,11 +28,11 @@ export default function initApp(
     ['organization.member_added', 'organization.member_removed'],
     createHandlerOrgChange<Webhooks.WebhookPayloadOrganization>(
       mongoStores,
-      async (context, orgContext) => {
+      async (context, accountContext) => {
         await syncOrg(
           mongoStores,
           context.github,
-          orgContext.org.installationId as number,
+          accountContext.account.installationId as number,
           context.payload.organization,
         );
       },
@@ -44,7 +44,7 @@ export default function initApp(
     ['team.created', 'team.deleted', 'team.edited'],
     createHandlerOrgChange<Webhooks.WebhookPayloadTeam>(
       mongoStores,
-      async (context, orgContext) => {
+      async (context, accountContext) => {
         await syncTeams(
           mongoStores,
           context.github,
@@ -59,7 +59,7 @@ export default function initApp(
   //   ['membership.added', 'membership.removed'],
   //   createHandlerOrgChange<Webhooks.WebhookPayloadMembership>(
   //     mongoStores,
-  //     async (context, orgContext) => {
+  //     async (context, accountContext) => {
   //       await syncTeamMembers(
   //         mongoStores,
   //         context.github,

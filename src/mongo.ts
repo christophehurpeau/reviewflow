@@ -16,15 +16,16 @@ export interface UserDmSettings extends MongoModel {
 }
 
 // TODO _id is number
-export interface User extends MongoModel {
+interface BaseAccount extends MongoModel {
   login: string;
+  installationId?: number;
+}
+
+export interface User extends BaseAccount {
   type: string;
 }
 
-// TODO _id is number
-export interface Org extends MongoModel {
-  login: string;
-  installationId?: number;
+export interface Org extends BaseAccount {
   slackToken?: string;
 }
 

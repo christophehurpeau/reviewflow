@@ -1,5 +1,5 @@
 import { MongoStores } from '../mongo';
-import { orgsConfigs, defaultConfig } from '../orgsConfigs';
+import { accountConfigs, defaultConfig } from '../accountConfigs';
 import { MessageCategory } from './MessageCategory';
 import { defaultDmSettings } from './defaultDmSettings';
 
@@ -7,9 +7,9 @@ export type UserDmSettings = Record<MessageCategory, boolean>;
 const cache = new Map<string, Map<number, UserDmSettings>>();
 
 const getDefaultDmSettings = (org: string): UserDmSettings => {
-  const orgConfig = orgsConfigs[org] || defaultConfig;
-  return orgConfig.defaultDmSettings
-    ? { ...defaultDmSettings, ...orgConfig.defaultDmSettings }
+  const accountConfig = accountConfigs[org] || defaultConfig;
+  return accountConfig.defaultDmSettings
+    ? { ...defaultDmSettings, ...accountConfig.defaultDmSettings }
     : defaultDmSettings;
 };
 

@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 import Webhooks from '@octokit/webhooks';
-import { StatusError, StatusInfo } from '../../orgsConfigs/types';
+import { StatusError, StatusInfo } from '../../accountConfigs/types';
 import { PRHandler } from '../utils';
 import { ExcludesFalsy } from '../../utils/ExcludesFalsy';
 import { cleanTitle } from './utils/cleanTitle';

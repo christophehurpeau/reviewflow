@@ -3,13 +3,13 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { GitHubAPI } from 'probot/lib/github';
 import bodyParser from 'body-parser';
-import { syncTeams } from '../org-handlers/actions/syncTeams';
-import { syncOrg } from '../org-handlers/actions/syncOrg';
+import { syncTeams } from '../account-handlers/actions/syncTeams';
+import { syncOrg } from '../account-handlers/actions/syncOrg';
 import { MessageCategory } from '../dm/MessageCategory';
 import { getUserDmSettings, updateCache } from '../dm/getUserDmSettings';
 import type { MongoStores } from '../mongo';
 import Layout from '../views/Layout';
-import { orgsConfigs } from '../orgsConfigs';
+import { accountConfigs } from '../accountConfigs';
 import { getUser } from './auth';
 
 const dmMessages: Record<MessageCategory, string> = {
@@ -79,7 +79,7 @@ export default function orgSettings(
       );
     }
 
-    const orgConfig = orgsConfigs[org.login];
+    const accountConfig = accountConfigs[org.login];
     const userDmSettings = await getUserDmSettings(
       mongoStores,
       org.login,
@@ -100,9 +100,9 @@ export default function orgSettings(
             <div style={{ display: 'flex' }}>
               <div style={{ flexGrow: 1 }}>
                 <h4>Information</h4>
-                {!orgConfig
-                  ? 'Default config is used: https://github.com/christophehurpeau/reviewflow/blob/master/src/orgsConfigs/defaultConfig.ts'
-                  : `Custom config: https://github.com/christophehurpeau/reviewflow/blob/master/src/orgsConfigs/${org.login}.ts`}
+                {!accountConfig
+                  ? 'Default config is used: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/defaultConfig.ts'
+                  : `Custom config: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/${org.login}.ts`}
               </div>
               <div style={{ width: '380px' }}>
                 <h4>My DM Settings</h4>

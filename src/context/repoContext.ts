@@ -3,12 +3,12 @@
 import { Lock } from 'lock';
 import { Context } from 'probot';
 import { MongoStores } from '../mongo';
-import { orgsConfigs, Config, defaultConfig } from '../orgsConfigs';
+import { accountConfigs, Config, defaultConfig } from '../accountConfigs';
 // eslint-disable-next-line import/no-cycle
 import { autoMergeIfPossible } from '../pr-handlers/actions/autoMergeIfPossible';
 import { ExcludesFalsy } from '../utils/ExcludesFalsy';
 import { initRepoLabels, LabelResponse, Labels } from './initRepoLabels';
-import { obtainOrgContext, OrgContext } from './orgContext';
+import { obtainAccountContext, AccountContext } from './accountContext';
 
 export interface LockedMergePr {
   id: number;
@@ -39,7 +39,7 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   pushAutomergeQueue(pr: LockedMergePr): void;
 }
 
-export type RepoContext<GroupNames extends string = any> = OrgContext<
+export type RepoContext<GroupNames extends string = any> = AccountContext<
   GroupNames
 > &
   RepoContextWithoutTeamContext<GroupNames>;
@@ -51,8 +51,13 @@ async function initRepoContext<GroupNames extends string>(
 ): Promise<RepoContext<GroupNames>> {
   const repo = context.payload.repository;
   const org = repo.owner;
-  const orgContext = await obtainOrgContext(mongoStores, context, config, org);
-  const repoContext = Object.create(orgContext);
+  const accountContext = await obtainAccountContext(
+    mongoStores,
+    context,
+    config,
+    org,
+  );
+  const repoContext = Object.create(accountContext);
 
   const labels = await initRepoLabels(context, config);
 
@@ -120,7 +125,7 @@ async function initRepoContext<GroupNames extends string>(
   ): Promise<void> =>
     new Promise((resolve, reject) => {
       const logInfos = {
-        repo: `${repo.owner.login}/${repo.name}`,
+        repo: repo.full_name,
         prIdOrIds,
         prNumberOrPrNumbers,
       };
@@ -182,16 +187,10 @@ async function initRepoContext<GroupNames extends string>(
       lockMergePr = pr;
     },
     removePrFromAutomergeQueue: (context, prNumber: number | string): void => {
-      context.log('merge lock: remove', {
-        repo: `${repo.owner.login}/${repo.name}`,
-        prNumber,
-      });
+      context.log(`merge lock: remove ${repo.full_name}#${prNumber}`);
       if (lockMergePr && String(lockMergePr.number) === String(prNumber)) {
         lockMergePr = automergeQueue.shift();
-        context.log('merge lock: next', {
-          repo: `${repo.owner.login}/${repo.name}`,
-          lockMergePr,
-        });
+        context.log(`merge lock: next ${repo.full_name}`, lockMergePr);
         if (lockMergePr) {
           reschedule(context, lockMergePr);
         }
@@ -203,7 +202,7 @@ async function initRepoContext<GroupNames extends string>(
     },
     pushAutomergeQueue: (pr: LockedMergePr): void => {
       console.log('merge lock: push queue', {
-        repo: `${repo.owner.login}/${repo.name}`,
+        repo: repo.full_name,
         pr,
         lockMergePr,
         automergeQueue,
@@ -223,11 +222,11 @@ const repoContexts = new Map<number, RepoContext>();
 
 export const shouldIgnoreRepo = (
   repoName: string,
-  orgConfig: Config<any, any>,
+  accountConfig: Config<any, any>,
 ): boolean => {
   const ignoreRepoRegexp =
-    orgConfig.ignoreRepoPattern &&
-    new RegExp(`^${orgConfig.ignoreRepoPattern}$`);
+    accountConfig.ignoreRepoPattern &&
+    new RegExp(`^${accountConfig.ignoreRepoPattern}$`);
 
   if (repoName === 'reviewflow-test') {
     return process.env.REVIEWFLOW_NAME !== 'reviewflow-test';
@@ -254,19 +253,19 @@ export const obtainRepoContext = (
   const existingPromise = repoContextsPromise.get(key);
   if (existingPromise) return Promise.resolve(existingPromise);
 
-  let orgConfig = orgsConfigs[owner.login];
+  let accountConfig = accountConfigs[owner.login];
 
-  if (!orgConfig) {
+  if (!accountConfig) {
     console.warn(`using default config for ${owner.login}`);
-    orgConfig = defaultConfig as Config<any, any>;
+    accountConfig = defaultConfig as Config<any, any>;
   }
 
-  if (shouldIgnoreRepo(repo.name, orgConfig)) {
+  if (shouldIgnoreRepo(repo.name, accountConfig)) {
     console.warn('repo ignored', { owner: repo.owner.login, name: repo.name });
     return null;
   }
 
-  const promise = initRepoContext(mongoStores, context, orgConfig);
+  const promise = initRepoContext(mongoStores, context, accountConfig);
   repoContextsPromise.set(key, promise);
 
   return promise.then((repoContext) => {

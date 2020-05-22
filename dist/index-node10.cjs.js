@@ -800,7 +800,7 @@ const config$3 = { ...config$2,
   }
 };
 
-const orgsConfigs = {
+const accountConfigs = {
   ornikar: config$1,
   christophehurpeau: config$2,
   reviewflow: config$3
@@ -825,9 +825,9 @@ const defaultDmSettings = {
 const cache = new Map();
 
 const getDefaultDmSettings = org => {
-  const orgConfig = orgsConfigs[org] || config;
-  return orgConfig.defaultDmSettings ? { ...defaultDmSettings,
-    ...orgConfig.defaultDmSettings
+  const accountConfig = accountConfigs[org] || config;
+  return accountConfig.defaultDmSettings ? { ...defaultDmSettings,
+    ...accountConfig.defaultDmSettings
   } : defaultDmSettings;
 };
 
@@ -900,7 +900,7 @@ function orgSettings(router, api, mongoStores) {
       }, "Github Configuration"), ' ', "to install it."))));
     }
 
-    const orgConfig = orgsConfigs[org.login];
+    const accountConfig = accountConfigs[org.login];
     const userDmSettings = await getUserDmSettings(mongoStores, org.login, org.id, user.authInfo.id);
     res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", null, process.env.REVIEWFLOW_NAME), /*#__PURE__*/React.createElement("div", {
       style: {
@@ -920,7 +920,7 @@ function orgSettings(router, api, mongoStores) {
       style: {
         flexGrow: 1
       }
-    }, /*#__PURE__*/React.createElement("h4", null, "Information"), !orgConfig ? 'Default config is used: https://github.com/christophehurpeau/reviewflow/blob/master/src/orgsConfigs/defaultConfig.ts' : `Custom config: https://github.com/christophehurpeau/reviewflow/blob/master/src/orgsConfigs/${org.login}.ts`), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("h4", null, "Information"), !accountConfig ? 'Default config is used: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/defaultConfig.ts' : `Custom config: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/${org.login}.ts`), /*#__PURE__*/React.createElement("div", {
       style: {
         width: '380px'
       }
@@ -974,7 +974,33 @@ function orgSettings(router, api, mongoStores) {
   });
 }
 
-function userSettings(router, api) {
+const syncUser = async (mongoStores, github, installationId, userInfo) => {
+  const user = await mongoStores.users.upsertOne({
+    _id: userInfo.id,
+    // TODO _id is number
+    login: userInfo.login,
+    installationId
+  });
+  return user;
+};
+
+function userSettings(router, api, mongoStores) {
+  router.get('/gh/user/force-sync', async (req, res) => {
+    const user = await getUser(req, res);
+    if (!user) return; // const { data: installation } = await api.apps
+    //   .getUserInstallation({
+    //     username: user.authInfo.login,
+    //   })
+    //   .catch((err) => {
+    //     return { status: err.status, data: undefined };
+    //   });
+    // console.log(installation);
+
+    const u = await mongoStores.users.findByKey(user.authInfo.id);
+    if (!u || !u.installationId) return res.redirect('/app/gh');
+    await syncUser(mongoStores, user.api, u.installationId, user.authInfo);
+    res.redirect(`/app/gh/user`);
+  });
   router.get('/gh/user', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
@@ -1011,7 +1037,7 @@ async function appRouter(app, mongoStores) {
   repository(router, api);
   home(router);
   orgSettings(router, api, mongoStores);
-  userSettings(router, api);
+  userSettings(router, api, mongoStores);
 }
 
 const options = ['featureBranch', 'autoMergeWithSkipCi', 'autoMerge', 'deleteAfterMerge'];
@@ -1166,7 +1192,7 @@ const autoMergeIfPossible = async (pr, context, repoContext, prLabels = pr.label
 
   const lockedPr = repoContext.getMergeLockedPr();
 
-  if (lockedPr && lockedPr.number !== pr.number) {
+  if (lockedPr && String(lockedPr.number) !== String(pr.number)) {
     context.log.info('automerge not possible: locked pr', {
       prId: pr.id,
       prNumber: pr.number
@@ -1455,10 +1481,10 @@ const voidTeamSlack = () => ({
   prLink: () => '',
   updateHome: () => undefined
 });
-const initTeamSlack = async (mongoStores, context, config, org) => {
+const initTeamSlack = async (mongoStores, context, config, account) => {
   const owner = context.payload.repository.owner;
 
-  if (!org.slackToken) {
+  if (!account.slackToken) {
     return voidTeamSlack();
   }
 
@@ -1467,9 +1493,9 @@ const initTeamSlack = async (mongoStores, context, config, org) => {
     return acc;
   }, {});
   const slackEmails = Object.values(githubLoginToSlackEmail);
-  const slackClient = new webApi.WebClient(org.slackToken);
+  const slackClient = new webApi.WebClient(account.slackToken);
   const membersInDb = await mongoStores.orgMembers.findAll({
-    'org.id': org._id
+    'org.id': account._id
   });
   const members = [];
   const foundEmailMembers = [];
@@ -1590,8 +1616,8 @@ const initTeamSlack = async (mongoStores, context, config, org) => {
           login: githubLogin
         },
         org: {
-          id: org._id,
-          login: org.login
+          id: account._id,
+          login: account.login
         },
         slack: {
           id: user.member.id
@@ -1601,19 +1627,36 @@ const initTeamSlack = async (mongoStores, context, config, org) => {
   };
 };
 
-const getOrCreateOrg = async (mongoStores, github, installationId, orgInfo) => {
-  var _org;
+const getOrCreateAccount = async (mongoStores, github, installationId, accountInfo) => {
+  var _org, _user;
 
-  let org = await mongoStores.orgs.findByKey(orgInfo.id);
-  if ((_org = org) === null || _org === void 0 ? void 0 : _org.installationId) return org;
-  org = await syncOrg(mongoStores, github, installationId, orgInfo);
-  await syncTeams(mongoStores, github, orgInfo);
-  return org;
+  switch (accountInfo.type) {
+    case 'Organization':
+      {
+        let org = await mongoStores.orgs.findByKey(accountInfo.id);
+        if ((_org = org) === null || _org === void 0 ? void 0 : _org.installationId) return org; // TODO diff org vs user...
+
+        org = await syncOrg(mongoStores, github, installationId, accountInfo);
+        await syncTeams(mongoStores, github, accountInfo);
+        return org;
+      }
+
+    case 'User':
+      {
+        let user = await mongoStores.users.findByKey(accountInfo.id);
+        if ((_user = user) === null || _user === void 0 ? void 0 : _user.installationId) return user;
+        user = await syncUser(mongoStores, github, installationId, accountInfo);
+        return user;
+      }
+
+    default:
+      throw new Error(`Account type not supported ${accountInfo.type}`);
+  }
 };
 
-const initTeamContext = async (mongoStores, context, config, orgInfo) => {
-  const org = await getOrCreateOrg(mongoStores, context.github, context.payload.installation.id, orgInfo);
-  const slackPromise = initTeamSlack(mongoStores, context, config, org);
+const initAccountContext = async (mongoStores, context, config, accountInfo) => {
+  const account = await getOrCreateAccount(mongoStores, context.github, context.payload.installation.id, accountInfo);
+  const slackPromise = initTeamSlack(mongoStores, context, config, account);
   const githubLoginToGroup = new Map();
   getKeys(config.groups).forEach(groupName => {
     Object.keys(config.groups[groupName]).forEach(login => {
@@ -1633,39 +1676,41 @@ const initTeamContext = async (mongoStores, context, config, orgInfo) => {
     });
   });
 
-  const getReviewerGroups = githubLogins => [...new Set(githubLogins.map(githubLogin => githubLoginToGroup.get(githubLogin)).filter(Boolean))];
+  const getReviewerGroups = githubLogins => [...new Set(githubLogins.map(githubLogin => githubLoginToGroup.get(githubLogin)).filter(ExcludesFalsy))];
 
   const lock$1 = lock.Lock();
   return {
     config,
+    account,
+    accountType: accountInfo.type,
     lock: callback => {
       return new Promise((resolve, reject) => {
         const logInfos = {
-          org: orgInfo.login
+          account: accountInfo.login
         };
-        context.log.info('lock: try to lock org', logInfos); // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        context.log.info('lock: try to lock account', logInfos); // eslint-disable-next-line @typescript-eslint/no-misused-promises
 
         lock$1('_', async createReleaseCallback => {
           const release = createReleaseCallback(() => {});
-          context.log.info('lock: lock org acquired', logInfos);
+          context.log.info('lock: lock account acquired', logInfos);
 
           try {
             await callback();
           } catch (err) {
-            context.log.info('lock: release org (with error)', logInfos);
+            context.log.info('lock: release account (with error)', logInfos);
             release();
             reject(err);
             return;
           }
 
-          context.log.info('lock: release org', logInfos);
+          context.log.info('lock: release account', logInfos);
           release();
           resolve();
         });
       });
     },
     getReviewerGroup: githubLogin => githubLoginToGroup.get(githubLogin),
-    getReviewerGroups: githubLogins => [...new Set(githubLogins.map(githubLogin => githubLoginToGroup.get(githubLogin)).filter(ExcludesFalsy))],
+    getReviewerGroups,
     getTeamsForLogin: githubLogin => githubLoginToTeams.get(githubLogin) || [],
     approveShouldWait: (reviewerGroup, requestedReviewers, {
       includesReviewerGroup,
@@ -1686,24 +1731,23 @@ const initTeamContext = async (mongoStores, context, config, orgInfo) => {
 
       return false;
     },
-    slack: await slackPromise,
-    org
+    slack: await slackPromise
   };
 };
 
-const orgContextsPromise = new Map();
-const orgContexts = new Map();
-const obtainOrgContext = (mongoStores, context, config, org) => {
-  const existingTeamContext = orgContexts.get(org.login);
-  if (existingTeamContext) return existingTeamContext;
-  const existingPromise = orgContextsPromise.get(org.login);
+const accountContextsPromise = new Map();
+const accountContexts = new Map();
+const obtainAccountContext = (mongoStores, context, config, accountInfo) => {
+  const existingAccountContext = accountContexts.get(accountInfo.login);
+  if (existingAccountContext) return existingAccountContext;
+  const existingPromise = accountContextsPromise.get(accountInfo.login);
   if (existingPromise) return Promise.resolve(existingPromise);
-  const promise = initTeamContext(mongoStores, context, config, org);
-  orgContextsPromise.set(org.login, promise);
-  return promise.then(orgContext => {
-    orgContextsPromise.delete(org.login);
-    orgContexts.set(org.login, orgContext);
-    return orgContext;
+  const promise = initAccountContext(mongoStores, context, config, accountInfo);
+  accountContextsPromise.set(accountInfo.login, promise);
+  return promise.then(accountContext => {
+    accountContextsPromise.delete(accountInfo.login);
+    accountContexts.set(accountInfo.login, accountContext);
+    return accountContext;
   });
 };
 
@@ -1712,8 +1756,8 @@ const obtainOrgContext = (mongoStores, context, config, org) => {
 async function initRepoContext(mongoStores, context, config) {
   const repo = context.payload.repository;
   const org = repo.owner;
-  const orgContext = await obtainOrgContext(mongoStores, context, config, org);
-  const repoContext = Object.create(orgContext);
+  const accountContext = await obtainAccountContext(mongoStores, context, config, org);
+  const repoContext = Object.create(accountContext);
   const labels = await initRepoLabels(context, config);
   const reviewGroupNames = Object.keys(config.groups);
   const needsReviewLabelIds = reviewGroupNames.map(key => config.labels.review[key].needsReview).filter(Boolean).map(name => labels[name].id);
@@ -1735,7 +1779,7 @@ async function initRepoContext(mongoStores, context, config) {
 
   const lockPROrPRS = (prIdOrIds, prNumberOrPrNumbers, callback) => new Promise((resolve, reject) => {
     const logInfos = {
-      repo: `${repo.owner.login}/${repo.name}`,
+      repo: repo.full_name,
       prIdOrIds,
       prNumberOrPrNumbers
     };
@@ -1798,17 +1842,11 @@ async function initRepoContext(mongoStores, context, config) {
       lockMergePr = pr;
     },
     removePrFromAutomergeQueue: (context, prNumber) => {
-      context.log('merge lock: remove', {
-        repo: `${repo.owner.login}/${repo.name}`,
-        prNumber
-      });
+      context.log(`merge lock: remove ${repo.full_name}#${prNumber}`);
 
       if (lockMergePr && String(lockMergePr.number) === String(prNumber)) {
         lockMergePr = automergeQueue.shift();
-        context.log('merge lock: next', {
-          repo: `${repo.owner.login}/${repo.name}`,
-          lockMergePr
-        });
+        context.log(`merge lock: next ${repo.full_name}`, lockMergePr);
 
         if (lockMergePr) {
           reschedule(context, lockMergePr);
@@ -1819,7 +1857,7 @@ async function initRepoContext(mongoStores, context, config) {
     },
     pushAutomergeQueue: pr => {
       console.log('merge lock: push queue', {
-        repo: `${repo.owner.login}/${repo.name}`,
+        repo: repo.full_name,
         pr,
         lockMergePr,
         automergeQueue
@@ -1836,8 +1874,8 @@ async function initRepoContext(mongoStores, context, config) {
 
 const repoContextsPromise = new Map();
 const repoContexts = new Map();
-const shouldIgnoreRepo = (repoName, orgConfig) => {
-  const ignoreRepoRegexp = orgConfig.ignoreRepoPattern && new RegExp(`^${orgConfig.ignoreRepoPattern}$`);
+const shouldIgnoreRepo = (repoName, accountConfig) => {
+  const ignoreRepoRegexp = accountConfig.ignoreRepoPattern && new RegExp(`^${accountConfig.ignoreRepoPattern}$`);
 
   if (repoName === 'reviewflow-test') {
     return process.env.REVIEWFLOW_NAME !== 'reviewflow-test';
@@ -1857,14 +1895,14 @@ const obtainRepoContext = (mongoStores, context) => {
   if (existingRepoContext) return existingRepoContext;
   const existingPromise = repoContextsPromise.get(key);
   if (existingPromise) return Promise.resolve(existingPromise);
-  let orgConfig = orgsConfigs[owner.login];
+  let accountConfig = accountConfigs[owner.login];
 
-  if (!orgConfig) {
+  if (!accountConfig) {
     console.warn(`using default config for ${owner.login}`);
-    orgConfig = config;
+    accountConfig = config;
   }
 
-  if (shouldIgnoreRepo(repo.name, orgConfig)) {
+  if (shouldIgnoreRepo(repo.name, accountConfig)) {
     console.warn('repo ignored', {
       owner: repo.owner.login,
       name: repo.name
@@ -1872,7 +1910,7 @@ const obtainRepoContext = (mongoStores, context) => {
     return null;
   }
 
-  const promise = initRepoContext(mongoStores, context, orgConfig);
+  const promise = initRepoContext(mongoStores, context, accountConfig);
   repoContextsPromise.set(key, promise);
   return promise.then(repoContext => {
     repoContextsPromise.delete(key);
@@ -2973,11 +3011,13 @@ function status(app, mongoStores) {
 
 const handlerOrgChange = async (mongoStores, context, callback) => {
   const org = context.payload.organization;
-  const config$1 = orgsConfigs[org.login] || config;
-  const orgContext = await obtainOrgContext(mongoStores, context, config$1, org);
-  if (!orgContext) return;
-  return orgContext.lock(async () => {
-    await callback(context, orgContext);
+  const config$1 = accountConfigs[org.login] || config;
+  const accountContext = await obtainAccountContext(mongoStores, context, config$1, { ...org,
+    type: 'Organization'
+  });
+  if (!accountContext) return;
+  return accountContext.lock(async () => {
+    await callback(context, accountContext);
   });
 };
 const createHandlerOrgChange = (mongoStores, callback) => context => {
@@ -2986,8 +3026,8 @@ const createHandlerOrgChange = (mongoStores, callback) => context => {
 
 function initApp(app, mongoStores) {
   /* https://developer.github.com/webhooks/event-payloads/#organization */
-  app.on(['organization.member_added', 'organization.member_removed'], createHandlerOrgChange(mongoStores, async (context, orgContext) => {
-    await syncOrg(mongoStores, context.github, orgContext.org.installationId, context.payload.organization);
+  app.on(['organization.member_added', 'organization.member_removed'], createHandlerOrgChange(mongoStores, async (context, accountContext) => {
+    await syncOrg(mongoStores, context.github, accountContext.account.installationId, context.payload.organization);
   }));
   /* https://developer.github.com/webhooks/event-payloads/#team */
 
@@ -2998,7 +3038,7 @@ function initApp(app, mongoStores) {
   //   ['membership.added', 'membership.removed'],
   //   createHandlerOrgChange<Webhooks.WebhookPayloadMembership>(
   //     mongoStores,
-  //     async (context, orgContext) => {
+  //     async (context, accountContext) => {
   //       await syncTeamMembers(
   //         mongoStores,
   //         context.github,

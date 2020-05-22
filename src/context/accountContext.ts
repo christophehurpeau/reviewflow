@@ -1,19 +1,21 @@
-import { Context, Octokit } from 'probot';
+import { Context } from 'probot';
 import { Lock } from 'lock';
-import { MongoStores, Org } from '../mongo';
-import { Config } from '../orgsConfigs';
+import { MongoStores, Org, User } from '../mongo';
+import { Config } from '../accountConfigs';
 import { ExcludesFalsy } from '../utils/ExcludesFalsy';
-import { syncOrg } from '../org-handlers/actions/syncOrg';
-import { syncTeams } from '../org-handlers/actions/syncTeams';
 import { initTeamSlack, TeamSlack } from './initTeamSlack';
 import { getKeys } from './utils';
+import { getOrCreateAccount, AccountInfo } from './getOrCreateAccount';
 
-export interface OrgContext<
+type AccountType = 'Organization' | 'User';
+
+export interface AccountContext<
   GroupNames extends string = any,
   TeamNames extends string = any
 > {
   config: Config<GroupNames, TeamNames>;
-  org: Org;
+  accountType: AccountType;
+  account: Org | User;
   slack: TeamSlack;
   getReviewerGroup: (githubLogin: string) => GroupNames | undefined;
   getReviewerGroups: (githubLogins: string[]) => GroupNames[];
@@ -30,32 +32,19 @@ export interface OrgContext<
   lock(callback: () => Promise<void> | void): Promise<void>;
 }
 
-const getOrCreateOrg = async (
-  mongoStores: MongoStores,
-  github: Octokit,
-  installationId: number,
-  orgInfo: { id: number; login: string },
-): Promise<Org> => {
-  let org = await mongoStores.orgs.findByKey(orgInfo.id);
-  if (org?.installationId) return org;
-  org = await syncOrg(mongoStores, github, installationId, orgInfo);
-  await syncTeams(mongoStores, github, orgInfo);
-  return org;
-};
-
-const initTeamContext = async (
+const initAccountContext = async (
   mongoStores: MongoStores,
   context: Context<any>,
   config: Config,
-  orgInfo: { id: number; login: string },
-): Promise<OrgContext> => {
-  const org = await getOrCreateOrg(
+  accountInfo: AccountInfo,
+): Promise<AccountContext> => {
+  const account = await getOrCreateAccount(
     mongoStores,
     context.github,
     context.payload.installation.id,
-    orgInfo,
+    accountInfo,
   );
-  const slackPromise = initTeamSlack(mongoStores, context, config, org);
+  const slackPromise = initTeamSlack(mongoStores, context, config, account);
 
   const githubLoginToGroup = new Map<string, string>();
   getKeys(config.groups).forEach((groupName) => {
@@ -78,11 +67,11 @@ const initTeamContext = async (
     );
   });
 
-  const getReviewerGroups = (githubLogins: string[]) => [
+  const getReviewerGroups = (githubLogins: string[]): string[] => [
     ...new Set(
       githubLogins
         .map((githubLogin) => githubLoginToGroup.get(githubLogin))
-        .filter(Boolean),
+        .filter(ExcludesFalsy),
     ),
   ];
 
@@ -90,45 +79,42 @@ const initTeamContext = async (
 
   return {
     config,
+    account,
+    accountType: accountInfo.type as AccountType,
     lock: (callback: () => Promise<void> | void): Promise<void> => {
       return new Promise((resolve, reject) => {
-        const logInfos = { org: orgInfo.login };
-        context.log.info('lock: try to lock org', logInfos);
+        const logInfos = { account: accountInfo.login };
+        context.log.info('lock: try to lock account', logInfos);
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         lock('_', async (createReleaseCallback) => {
           const release = createReleaseCallback(() => {});
-          context.log.info('lock: lock org acquired', logInfos);
+          context.log.info('lock: lock account acquired', logInfos);
           try {
             await callback();
           } catch (err) {
-            context.log.info('lock: release org (with error)', logInfos);
+            context.log.info('lock: release account (with error)', logInfos);
             release();
             reject(err);
             return;
           }
-          context.log.info('lock: release org', logInfos);
+          context.log.info('lock: release account', logInfos);
           release();
           resolve();
         });
       });
     },
-    getReviewerGroup: (githubLogin) => githubLoginToGroup.get(githubLogin),
-    getReviewerGroups: (githubLogins) => [
-      ...new Set(
-        githubLogins
-          .map((githubLogin) => githubLoginToGroup.get(githubLogin))
-          .filter(ExcludesFalsy),
-      ),
-    ],
+    getReviewerGroup: (githubLogin): string | undefined =>
+      githubLoginToGroup.get(githubLogin),
+    getReviewerGroups,
 
-    getTeamsForLogin: (githubLogin) =>
+    getTeamsForLogin: (githubLogin): string[] =>
       githubLoginToTeams.get(githubLogin) || [],
 
     approveShouldWait: (
       reviewerGroup,
       requestedReviewers,
       { includesReviewerGroup, includesWaitForGroups },
-    ) => {
+    ): boolean => {
       if (!reviewerGroup) return false;
 
       const requestedReviewerGroups = getReviewerGroups(
@@ -155,31 +141,30 @@ const initTeamContext = async (
     },
 
     slack: await slackPromise,
-    org,
   };
 };
 
-const orgContextsPromise = new Map();
-const orgContexts = new Map();
+const accountContextsPromise = new Map();
+const accountContexts = new Map();
 
-export const obtainOrgContext = (
+export const obtainAccountContext = (
   mongoStores: MongoStores,
   context: Context<any>,
   config: Config,
-  org: { id: number; login: string },
-): Promise<OrgContext> => {
-  const existingTeamContext = orgContexts.get(org.login);
-  if (existingTeamContext) return existingTeamContext;
+  accountInfo: AccountInfo,
+): Promise<AccountContext> => {
+  const existingAccountContext = accountContexts.get(accountInfo.login);
+  if (existingAccountContext) return existingAccountContext;
 
-  const existingPromise = orgContextsPromise.get(org.login);
+  const existingPromise = accountContextsPromise.get(accountInfo.login);
   if (existingPromise) return Promise.resolve(existingPromise);
 
-  const promise = initTeamContext(mongoStores, context, config, org);
-  orgContextsPromise.set(org.login, promise);
+  const promise = initAccountContext(mongoStores, context, config, accountInfo);
+  accountContextsPromise.set(accountInfo.login, promise);
 
-  return promise.then((orgContext) => {
-    orgContextsPromise.delete(org.login);
-    orgContexts.set(org.login, orgContext);
-    return orgContext;
+  return promise.then((accountContext) => {
+    accountContextsPromise.delete(accountInfo.login);
+    accountContexts.set(accountInfo.login, accountContext);
+    return accountContext;
   });
 };
