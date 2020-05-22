@@ -318,7 +318,7 @@ function repository(router, api) {
 }
 
 function home(router) {
-  router.get('/gh', async (req, res) => {
+  router.get('/', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
     const orgs = await user.api.orgs.listForAuthenticatedUser();

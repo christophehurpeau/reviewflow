@@ -11,7 +11,7 @@ export default function home(
   api: GitHubAPI,
   mongoStores: MongoStores,
 ): void {
-  router.get('/gh', async (req, res) => {
+  router.get('/', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
 
