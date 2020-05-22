@@ -29,17 +29,13 @@ describe('edited', (): void => {
   > => {
     const scope = nock('https://api.github.com')
       .get('/repos/reviewflow/reviewflow-test/pulls/30')
+      .times(1)
       .reply(200, pullRequestEdited.payload.pull_request)
 
       .get(
         '/repos/reviewflow/reviewflow-test/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da/check-runs',
       )
       .reply(200, { check_runs: [] })
-
-      .get(
-        '/repos/reviewflow/reviewflow-test/statuses/2ab411d5c55f25f3dc2de6a3244f290a804e33da',
-      )
-      .reply(200, [])
 
       .post(
         '/repos/reviewflow/reviewflow-test/statuses/2ab411d5c55f25f3dc2de6a3244f290a804e33da',
