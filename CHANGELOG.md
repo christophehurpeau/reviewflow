@@ -1,3 +1,12 @@
+## [1.46.2](https://github.com/christophehurpeau/reviewflow/compare/v1.46.1...v1.46.2) (2020-05-22)
+
+
+### Bug Fixes
+
+* prevent edit pr when only diff is newlines ([4467819](https://github.com/christophehurpeau/reviewflow/commit/44678190fa635b358817c159689594252dc9f5a9))
+
+
+
 ## [1.46.1](https://github.com/christophehurpeau/reviewflow/compare/v1.46.0...v1.46.1) (2020-05-22)
 
 
