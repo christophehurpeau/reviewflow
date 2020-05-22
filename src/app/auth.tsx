@@ -67,7 +67,7 @@ export const getUser = async (
 ): Promise<{ authInfo: AuthInfo; api: Octokit } | null> => {
   const authInfo = await getAuthInfoFromCookie(req, res);
   if (!authInfo) {
-    res.redirect('/app/gh/login');
+    res.redirect('/app/login');
     return null;
   }
 
@@ -78,9 +78,9 @@ export const getUser = async (
 };
 
 export default function auth(router: Router): void {
-  router.get('/gh/login', async (req: Request, res: Response) => {
+  router.get('/login', async (req: Request, res: Response) => {
     if (await getAuthInfoFromCookie(req, res)) {
-      return res.redirect('/app/gh');
+      return res.redirect('/app');
     }
 
     // const state = await randomHex(8);
@@ -105,7 +105,7 @@ export default function auth(router: Router): void {
     res.redirect(redirectUri);
   });
 
-  router.get('/gh/login-response', async (req, res) => {
+  router.get('/login-response', async (req, res) => {
     if (req.query.error) {
       res.send(req.query.error_description);
       return;
@@ -119,7 +119,7 @@ export default function auth(router: Router): void {
     // if (!cookie) {
     //   // res.redirect(`/${strategy}/login`);
     //   res.send(
-    //     '<html><body>No cookie for this state. <a href="/app/gh/login">Retry ?</a></body></html>',
+    //     '<html><body>No cookie for this state. <a href="/app/login">Retry ?</a></body></html>',
     //   );
     //   return;
     // }
@@ -135,7 +135,7 @@ export default function auth(router: Router): void {
         renderToStaticMarkup(
           <Layout>
             <div>
-              Could not get access token. <a href="/app/gh/login">Retry ?</a>
+              Could not get access token. <a href="/app/login">Retry ?</a>
             </div>
           </Layout>,
         ),
@@ -161,6 +161,6 @@ export default function auth(router: Router): void {
       secure,
     });
 
-    res.redirect('/app/gh');
+    res.redirect('/app');
   });
 }

@@ -6,7 +6,7 @@ import Layout from '../views/Layout';
 import { getUser } from './auth';
 
 export default function repository(router: Router, api: GitHubAPI): void {
-  router.get('/gh/repositories', async (req, res) => {
+  router.get('/repositories', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
     const { data } = await user.api.repos.list({ per_page: 100 });
@@ -19,9 +19,7 @@ export default function repository(router: Router, api: GitHubAPI): void {
             <ul>
               {data.map((repo: any) => (
                 <li key={repo.id}>
-                  <a
-                    href={`/app/gh/repository/${repo.owner.login}/${repo.name}`}
-                  >
+                  <a href={`/app/repository/${repo.owner.login}/${repo.name}`}>
                     {repo.name}
                   </a>
                 </li>
@@ -37,7 +35,7 @@ export default function repository(router: Router, api: GitHubAPI): void {
     );
   });
 
-  router.get('/gh/repository/:owner/:repository', async (req, res) => {
+  router.get('/repository/:owner/:repository', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
     const { data } = await user.api.repos.get({

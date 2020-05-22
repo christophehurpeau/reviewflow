@@ -12,7 +12,7 @@ export default function userSettings(
   api: GitHubAPI,
   mongoStores: MongoStores,
 ): void {
-  router.get('/gh/user/force-sync', async (req, res) => {
+  router.get('/user/force-sync', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
 
@@ -27,7 +27,7 @@ export default function userSettings(
     // console.log(installation);
 
     const u = await mongoStores.users.findByKey(user.authInfo.id);
-    if (!u || !u.installationId) return res.redirect('/app/gh');
+    if (!u || !u.installationId) return res.redirect('/app');
 
     await syncUser(
       mongoStores,
@@ -36,10 +36,10 @@ export default function userSettings(
       user.authInfo,
     );
 
-    res.redirect(`/app/gh/user`);
+    res.redirect(`/app/user`);
   });
 
-  router.get('/gh/user', async (req, res) => {
+  router.get('/user', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
 

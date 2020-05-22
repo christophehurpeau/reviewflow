@@ -18,10 +18,6 @@ export default async function appRouter(
 
   router.use(cookieParser());
 
-  router.get('/', (req, res) => {
-    res.redirect('/app/gh');
-  });
-
   auth(router);
   repository(router, api);
   home(router, api, mongoStores);

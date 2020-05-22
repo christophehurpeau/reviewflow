@@ -27,11 +27,11 @@ export default function home(
                 <h4>Choose your account</h4>
                 <ul>
                   <li>
-                    <a href="/app/gh/user">{user.authInfo.login}</a>
+                    <a href="/app/user">{user.authInfo.login}</a>
                   </li>
                   {orgs.data.map((org) => (
                     <li key={org.id}>
-                      <a href={`/app/gh/org/${org.login}`}>{org.login}</a>
+                      <a href={`/app/org/${org.login}`}>{org.login}</a>
                     </li>
                   ))}
                 </ul>

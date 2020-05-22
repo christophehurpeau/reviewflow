@@ -168,7 +168,7 @@ const getUser = async (req, res) => {
   const authInfo = await getAuthInfoFromCookie(req, res);
 
   if (!authInfo) {
-    res.redirect('/app/gh/login');
+    res.redirect('/app/login');
     return null;
   }
 
@@ -180,9 +180,9 @@ const getUser = async (req, res) => {
   };
 };
 function auth(router) {
-  router.get('/gh/login', async (req, res) => {
+  router.get('/login', async (req, res) => {
     if (await getAuthInfoFromCookie(req, res)) {
-      return res.redirect('/app/gh');
+      return res.redirect('/app');
     } // const state = await randomHex(8);
     // res.cookie(`auth_${strategy}_${state}`, strategy, {
     //   maxAge: 10 * 60 * 1000,
@@ -203,7 +203,7 @@ function auth(router) {
 
     res.redirect(redirectUri);
   });
-  router.get('/gh/login-response', async (req, res) => {
+  router.get('/login-response', async (req, res) => {
     if (req.query.error) {
       res.send(req.query.error_description);
       return;
@@ -215,7 +215,7 @@ function auth(router) {
     // if (!cookie) {
     //   // res.redirect(`/${strategy}/login`);
     //   res.send(
-    //     '<html><body>No cookie for this state. <a href="/app/gh/login">Retry ?</a></body></html>',
+    //     '<html><body>No cookie for this state. <a href="/app/login">Retry ?</a></body></html>',
     //   );
     //   return;
     // }
@@ -228,7 +228,7 @@ function auth(router) {
 
     if (!result) {
       res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, "Could not get access token. ", /*#__PURE__*/React.createElement("a", {
-        href: "/app/gh/login"
+        href: "/app/login"
       }, "Retry ?")))));
       return;
     }
@@ -255,12 +255,12 @@ function auth(router) {
       httpOnly: true,
       secure
     });
-    res.redirect('/app/gh');
+    res.redirect('/app');
   });
 }
 
 function repository(router, api) {
-  router.get('/gh/repositories', async (req, res) => {
+  router.get('/repositories', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
     const {
@@ -271,10 +271,10 @@ function repository(router, api) {
     res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", null, "Your repositories"), /*#__PURE__*/React.createElement("ul", null, data.map(repo => /*#__PURE__*/React.createElement("li", {
       key: repo.id
     }, /*#__PURE__*/React.createElement("a", {
-      href: `/app/gh/repository/${repo.owner.login}/${repo.name}`
+      href: `/app/repository/${repo.owner.login}/${repo.name}`
     }, repo.name)))), data.length === 100 && /*#__PURE__*/React.createElement("div", null, "We currently have a limit to 100 repositories")))));
   });
-  router.get('/gh/repository/:owner/:repository', async (req, res) => {
+  router.get('/repository/:owner/:repository', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
     const {
@@ -331,11 +331,11 @@ function home(router) {
         flexGrow: 1
       }
     }, /*#__PURE__*/React.createElement("h4", null, "Choose your account"), /*#__PURE__*/React.createElement("ul", null, /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("a", {
-      href: "/app/gh/user"
+      href: "/app/user"
     }, user.authInfo.login)), orgs.data.map(org => /*#__PURE__*/React.createElement("li", {
       key: org.id
     }, /*#__PURE__*/React.createElement("a", {
-      href: `/app/gh/org/${org.login}`
+      href: `/app/org/${org.login}`
     }, org.login))))))))));
   });
 }
@@ -867,24 +867,24 @@ const dmMessages = {
   'issue-comment-mention': 'Someone mentioned you in an issue (not implemented)'
 };
 function orgSettings(router, api, mongoStores) {
-  router.get('/gh/org/:org/force-sync', async (req, res) => {
+  router.get('/org/:org/force-sync', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
     const orgs = await user.api.orgs.listForAuthenticatedUser();
     const org = orgs.data.find(o => o.login === req.params.org);
-    if (!org) return res.redirect('/app/gh');
+    if (!org) return res.redirect('/app');
     const o = await mongoStores.orgs.findByKey(org.id);
-    if (!o) return res.redirect('/app/gh');
+    if (!o) return res.redirect('/app');
     await syncOrg(mongoStores, user.api, o.installationId, org);
     await syncTeams(mongoStores, user.api, org);
-    res.redirect(`/app/gh/org/${req.params.org}`);
+    res.redirect(`/app/org/${req.params.org}`);
   });
-  router.get('/gh/org/:org', async (req, res) => {
+  router.get('/org/:org', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
     const orgs = await user.api.orgs.listForAuthenticatedUser();
     const org = orgs.data.find(o => o.login === req.params.org);
-    if (!org) return res.redirect('/app/gh');
+    if (!org) return res.redirect('/app');
     const installation = await api.apps.getOrgInstallation({
       org: org.login
     }).catch(err => {
@@ -911,7 +911,7 @@ function orgSettings(router, api, mongoStores) {
         flexGrow: 1
       }
     }, org.login), /*#__PURE__*/React.createElement("a", {
-      href: "/app/gh/"
+      href: "/app"
     }, "Switch account")), /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex'
@@ -935,7 +935,7 @@ function orgSettings(router, api, mongoStores) {
       }
     }), name)))))))));
   });
-  router.patch('/gh/org/:org', bodyParser.json(), async (req, res) => {
+  router.patch('/org/:org', bodyParser.json(), async (req, res) => {
     if (!req.body) {
       res.status(400).send('not ok');
       return;
@@ -945,7 +945,7 @@ function orgSettings(router, api, mongoStores) {
     if (!user) return;
     const orgs = await user.api.orgs.listForAuthenticatedUser();
     const org = orgs.data.find(o => o.login === req.params.org);
-    if (!org) return res.redirect('/app/gh');
+    if (!org) return res.redirect('/app');
     (await mongoStores.userDmSettings.collection).updateOne({
       _id: `${org.id}_${user.authInfo.id}`
     }, {
@@ -985,7 +985,7 @@ const syncUser = async (mongoStores, github, installationId, userInfo) => {
 };
 
 function userSettings(router, api, mongoStores) {
-  router.get('/gh/user/force-sync', async (req, res) => {
+  router.get('/user/force-sync', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return; // const { data: installation } = await api.apps
     //   .getUserInstallation({
@@ -997,11 +997,11 @@ function userSettings(router, api, mongoStores) {
     // console.log(installation);
 
     const u = await mongoStores.users.findByKey(user.authInfo.id);
-    if (!u || !u.installationId) return res.redirect('/app/gh');
+    if (!u || !u.installationId) return res.redirect('/app');
     await syncUser(mongoStores, user.api, u.installationId, user.authInfo);
-    res.redirect(`/app/gh/user`);
+    res.redirect(`/app/user`);
   });
-  router.get('/gh/user', async (req, res) => {
+  router.get('/user', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
     const {
@@ -1030,9 +1030,6 @@ async function appRouter(app, mongoStores) {
   const router = app.route('/app');
   const api = await app.auth();
   router.use(cookieParser());
-  router.get('/', (req, res) => {
-    res.redirect('/app/gh');
-  });
   auth(router);
   repository(router, api);
   home(router);

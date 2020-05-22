@@ -29,30 +29,30 @@ export default function orgSettings(
   api: GitHubAPI,
   mongoStores: MongoStores,
 ): void {
-  router.get('/gh/org/:org/force-sync', async (req, res) => {
+  router.get('/org/:org/force-sync', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
 
     const orgs = await user.api.orgs.listForAuthenticatedUser();
     const org = orgs.data.find((o) => o.login === req.params.org);
-    if (!org) return res.redirect('/app/gh');
+    if (!org) return res.redirect('/app');
 
     const o = await mongoStores.orgs.findByKey(org.id);
-    if (!o) return res.redirect('/app/gh');
+    if (!o) return res.redirect('/app');
 
     await syncOrg(mongoStores, user.api, o.installationId as number, org);
     await syncTeams(mongoStores, user.api, org);
 
-    res.redirect(`/app/gh/org/${req.params.org}`);
+    res.redirect(`/app/org/${req.params.org}`);
   });
 
-  router.get('/gh/org/:org', async (req, res) => {
+  router.get('/org/:org', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
 
     const orgs = await user.api.orgs.listForAuthenticatedUser();
     const org = orgs.data.find((o) => o.login === req.params.org);
-    if (!org) return res.redirect('/app/gh');
+    if (!org) return res.redirect('/app');
 
     const installation = await api.apps
       .getOrgInstallation({ org: org.login })
@@ -94,7 +94,7 @@ export default function orgSettings(
             <h1>{process.env.REVIEWFLOW_NAME}</h1>
             <div style={{ display: 'flex' }}>
               <h2 style={{ flexGrow: 1 }}>{org.login}</h2>
-              <a href="/app/gh/">Switch account</a>
+              <a href="/app">Switch account</a>
             </div>
 
             <div style={{ display: 'flex' }}>
@@ -131,7 +131,7 @@ export default function orgSettings(
     );
   });
 
-  router.patch('/gh/org/:org', bodyParser.json(), async (req, res) => {
+  router.patch('/org/:org', bodyParser.json(), async (req, res) => {
     if (!req.body) {
       res.status(400).send('not ok');
       return;
@@ -142,7 +142,7 @@ export default function orgSettings(
 
     const orgs = await user.api.orgs.listForAuthenticatedUser();
     const org = orgs.data.find((o) => o.login === req.params.org);
-    if (!org) return res.redirect('/app/gh');
+    if (!org) return res.redirect('/app');
 
     (await mongoStores.userDmSettings.collection).updateOne(
       {
