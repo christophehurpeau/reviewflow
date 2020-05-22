@@ -18,7 +18,7 @@
     "dev": "PORT=3010 nodemon --exec \"node dist/index-node10-dev.cjs.js\"",
     "generate:test-coverage": "rm -Rf docs/coverage/ ; NODE_ENV=production BABEL_ENV=test jest --coverage --coverageReporters=pob-lcov-reporter --coverageDirectory=docs/coverage/",
     "lint": "tsc && eslint --ext .js,.ts,.tsx --quiet *.js src scripts",
-    "preversion": "yarn run lint && yarn run build && repository-check-dirty",
+    "preversion": "yarn run lint && yarn run build && yarn run test && repository-check-dirty",
     "release": "repository-check-dirty && pob-release",
     "start": "node dist/index-node10.cjs.js",
     "test": "node --async-stack-traces node_modules/.bin/jest",
