@@ -21,7 +21,7 @@
     "preversion": "yarn run lint && yarn run build && repository-check-dirty",
     "release": "repository-check-dirty && pob-release",
     "start": "node dist/index-node10.cjs.js",
-    "test": "jest",
+    "test": "node --async-stack-traces node_modules/.bin/jest",
     "test:watch": "jest",
     "version": "pob-version",
     "watch": "pob-watch"

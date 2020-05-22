@@ -16,9 +16,9 @@
       "message": "Update README.md",
       "tree": {
         "sha": "a1665f6ec36da00b0e9de635d8ecbfab1f7be69e",
-        "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/git/trees/a1665f6ec36da00b0e9de635d8ecbfab1f7be69e"
+        "url": "https://api.github.com/repos/reviewflow/reviewflow-test/git/trees/a1665f6ec36da00b0e9de635d8ecbfab1f7be69e"
       },
-      "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/git/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da",
+      "url": "https://api.github.com/repos/reviewflow/reviewflow-test/git/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da",
       "comment_count": 0,
       "verification": {
         "verified": true,
@@ -27,9 +27,9 @@
         "payload": "tree a1665f6ec36da00b0e9de635d8ecbfab1f7be69e\nparent 555c182f2a1353cac4b13af8f1f592640a146b1d\nauthor Christophe Hurpeau <christophe@hurpeau.com> 1570184018 +0200\ncommitter GitHub <noreply@github.com> 1570184018 +0200\n\nUpdate README.md"
       }
     },
-    "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da",
-    "html_url": "https://github.com/christophehurpeau/reviewflow-test/commit/2ab411d5c55f25f3dc2de6a3244f290a804e33da",
-    "comments_url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da/comments",
+    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da",
+    "html_url": "https://github.com/reviewflow/reviewflow-test/commit/2ab411d5c55f25f3dc2de6a3244f290a804e33da",
+    "comments_url": "https://api.github.com/repos/reviewflow/reviewflow-test/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da/comments",
     "author": {
       "login": "christophehurpeau",
       "id": 302891,
@@ -73,8 +73,8 @@
     "parents": [
       {
         "sha": "555c182f2a1353cac4b13af8f1f592640a146b1d",
-        "url": "https://api.github.com/repos/christophehurpeau/reviewflow-test/commits/555c182f2a1353cac4b13af8f1f592640a146b1d",
-        "html_url": "https://github.com/christophehurpeau/reviewflow-test/commit/555c182f2a1353cac4b13af8f1f592640a146b1d"
+        "url": "https://api.github.com/repos/reviewflow/reviewflow-test/commits/555c182f2a1353cac4b13af8f1f592640a146b1d",
+        "html_url": "https://github.com/reviewflow/reviewflow-test/commit/555c182f2a1353cac4b13af8f1f592640a146b1d"
       }
     ]
   }

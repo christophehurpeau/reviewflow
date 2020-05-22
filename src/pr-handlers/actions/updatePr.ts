@@ -8,6 +8,8 @@ interface UpdatePr {
   body?: string;
 }
 
+const cleanNewLines = (text: string): string => text.replace(/\r\n/g, '\n');
+
 export const updatePrIfNeeded = async <
   E extends Webhooks.WebhookPayloadPullRequest
 >(
@@ -17,7 +19,8 @@ export const updatePrIfNeeded = async <
   update: UpdatePr,
 ): Promise<void> => {
   const hasDiffInTitle = update.title && pr.title !== update.title;
-  const hasDiffInBody = update.body && pr.body !== update.body;
+  const hasDiffInBody =
+    update.body && cleanNewLines(pr.body) !== cleanNewLines(update.body);
 
   if (hasDiffInTitle || hasDiffInBody) {
     const diff: Partial<Record<'title' | 'body', string>> = {};

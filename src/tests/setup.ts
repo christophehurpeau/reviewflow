@@ -35,7 +35,7 @@ export const mockAccessToken = (): void => {
 
 export const mockLabels = (): void => {
   nock('https://api.github.com')
-    .get(`/repos/christophehurpeau/reviewflow-test/labels`)
+    .get(`/repos/reviewflow/reviewflow-test/labels`)
     .query(true)
     .reply(200, repoLabels);
 };
