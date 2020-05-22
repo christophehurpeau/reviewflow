@@ -1283,7 +1283,7 @@
   dependencies:
     "@types/node" "*"
 
-"@types/issue-parser@^3.0.0":
+"@types/issue-parser@3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@types/issue-parser/-/issue-parser-3.0.0.tgz#154dcdea73c3447b0e30d8ab3dfe2661a531884b"
   integrity sha512-wDi9vfrRlosge6GIjC8ToxeiyG7qYSNWRwZIxav0uPIn7LfGdo6RsKztAAFReXipFM5vDIYGgBiAEXcZ/EIniw==
@@ -4977,7 +4977,7 @@ isstream@~0.1.2:
   resolved "https://registry.yarnpkg.com/isstream/-/isstream-0.1.2.tgz#47e63f7af55afa6f92e1500e690eb8b8529c099a"
   integrity sha1-R+Y/evVa+m+S4VAOaQ64uFKcCZo=
 
-issue-parser@^6.0.0:
+issue-parser@6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/issue-parser/-/issue-parser-6.0.0.tgz#b1edd06315d4f2044a9755daf85fdafde9b4014a"
   integrity sha512-zKa/Dxq2lGsBIXQ7CUZWTHfvxPC2ej0KfO7fIPqLlHB9J2hJ7rGhZ5rilhuufylr4RXYPzJUeFjKxz305OsNlA==
