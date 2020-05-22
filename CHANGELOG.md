@@ -1,3 +1,26 @@
+## [1.46.1](https://github.com/christophehurpeau/reviewflow/compare/v1.46.0...v1.46.1) (2020-05-22)
+
+
+### Bug Fixes
+
+* path home ([5ce6799](https://github.com/christophehurpeau/reviewflow/commit/5ce67995bc1383ef63ee188cfb0fcbbd8e9915d8))
+
+
+
+# [1.46.0](https://github.com/christophehurpeau/reviewflow/compare/v1.45.1...v1.46.0) (2020-05-22)
+
+
+### Bug Fixes
+
+* account vs user vs org ([5e7b376](https://github.com/christophehurpeau/reviewflow/commit/5e7b376691c758fe04c4fdd8f5d2709bd49df44e))
+
+
+### Features
+
+* remove gh prefix in url ([4123975](https://github.com/christophehurpeau/reviewflow/commit/4123975c0ea220656148b3e04d9957395d308635))
+
+
+
 ## [1.45.1](https://github.com/christophehurpeau/reviewflow/compare/v1.45.0...v1.45.1) (2020-05-21)
 
 
