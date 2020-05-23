@@ -1,3 +1,13 @@
+## [1.47.1](https://github.com/christophehurpeau/reviewflow/compare/v1.47.0...v1.47.1) (2020-05-23)
+
+
+### Bug Fixes
+
+* feature branch merge should use default message ([f3f09b3](https://github.com/christophehurpeau/reviewflow/commit/f3f09b38fd23058bb6c68ed41e34d3011931b960))
+* try to automerge when automerge label is added ([f49f2ce](https://github.com/christophehurpeau/reviewflow/commit/f49f2ce00bc25e4775fac5e8a1967e0c87e8b219))
+
+
+
 # [1.47.0](https://github.com/christophehurpeau/reviewflow/compare/v1.46.2...v1.47.0) (2020-05-23)
 
 
