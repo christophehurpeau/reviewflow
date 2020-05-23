@@ -109,11 +109,9 @@ export default function labelsChanged(
             await updatePrBody(pr, context, repoContext, {
               [option]: context.payload.action === 'labeled',
             });
-          } else if (context.payload.action === 'labeled') {
-            if (
-              repoContext.labels['merge/automerge'] &&
-              label.id === repoContext.labels['merge/automerge'].id
-            ) {
+          } // not an else if
+          if (context.payload.action === 'labeled') {
+            if (automergeLabel && label.id === automergeLabel.id) {
               await autoMergeIfPossible(pr, context, repoContext);
             }
           }
