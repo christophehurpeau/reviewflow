@@ -1,5 +1,5 @@
 import { Application } from 'probot';
-import { MongoStores } from '../mongo';
+import { AppContext } from '../context/AppContext';
 import { createHandlerPullRequestChange } from './utils';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { updateStatusCheckFromLabels } from './actions/updateStatusCheckFromLabels';
@@ -8,12 +8,12 @@ import { readCommitsAndUpdateInfos } from './actions/readCommitsAndUpdateInfos';
 
 export default function synchronize(
   app: Application,
-  mongoStores: MongoStores,
+  appContext: AppContext,
 ): void {
   app.on(
     'pull_request.synchronize',
     createHandlerPullRequestChange(
-      mongoStores,
+      appContext,
       async (pr, context, repoContext): Promise<void> => {
         // old and new sha
         // const { before, after } = context.payload;

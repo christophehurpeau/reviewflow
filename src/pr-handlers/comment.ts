@@ -1,7 +1,7 @@
 import { Application, Octokit, Context } from 'probot';
 import { WebhookPayloadPullRequestReviewComment } from '@octokit/webhooks';
 import { contextPr } from '../context/utils';
-import { MongoStores } from '../mongo';
+import { AppContext } from '../context/AppContext';
 import { createHandlerPullRequestChange } from './utils';
 import { postSlackMessageWithSecondaryBlock } from './utils/postSlackMessageWithSecondaryBlock';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
@@ -53,7 +53,7 @@ const getUsersInThread = (
 
 export default function prComment(
   app: Application,
-  mongoStores: MongoStores,
+  appContext: AppContext,
 ): void {
   app.on(
     [
@@ -63,7 +63,7 @@ export default function prComment(
       'issue_comment.created',
     ],
     createHandlerPullRequestChange<WebhookPayloadPullRequestReviewComment>(
-      mongoStores,
+      appContext,
       async (pr, context, repoContext): Promise<void> => {
         const { comment } = context.payload;
 
@@ -141,7 +141,7 @@ export default function prComment(
         });
 
         if (mentions.length !== 0) {
-          mongoStores.users
+          appContext.mongoStores.users
             .findAll({ login: { $in: mentions } })
             .then((users) => {
               users.forEach((u) => {

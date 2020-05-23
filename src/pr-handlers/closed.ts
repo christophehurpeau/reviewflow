@@ -1,17 +1,14 @@
 import { Application } from 'probot';
-import { MongoStores } from '../mongo';
+import { AppContext } from '../context/AppContext';
 import { createHandlerPullRequestChange } from './utils';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { parseBodyWithOptions } from './actions/utils/parseBody';
 
-export default function closed(
-  app: Application,
-  mongoStores: MongoStores,
-): void {
+export default function closed(app: Application, appContext: AppContext): void {
   app.on(
     'pull_request.closed',
     createHandlerPullRequestChange(
-      mongoStores,
+      appContext,
       async (pr, context, repoContext): Promise<void> => {
         const repo = context.payload.repository;
 

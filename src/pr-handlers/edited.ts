@@ -1,17 +1,14 @@
 import { Application } from 'probot';
-import { MongoStores } from '../mongo';
+import { AppContext } from '../context/AppContext';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { createHandlerPullRequestChange } from './utils';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 
-export default function edited(
-  app: Application,
-  mongoStores: MongoStores,
-): void {
+export default function edited(app: Application, appContext: AppContext): void {
   app.on(
     'pull_request.edited',
     createHandlerPullRequestChange(
-      mongoStores,
+      appContext,
       async (pr, context, repoContext): Promise<void> => {
         const sender = context.payload.sender;
         if (

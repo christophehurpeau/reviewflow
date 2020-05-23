@@ -2,11 +2,11 @@
 
 import { Lock } from 'lock';
 import { Context } from 'probot';
-import { MongoStores } from '../mongo';
 import { accountConfigs, Config, defaultConfig } from '../accountConfigs';
 // eslint-disable-next-line import/no-cycle
 import { autoMergeIfPossible } from '../pr-handlers/actions/autoMergeIfPossible';
 import { ExcludesFalsy } from '../utils/ExcludesFalsy';
+import { AppContext } from './AppContext';
 import { initRepoLabels, LabelResponse, Labels } from './initRepoLabels';
 import { obtainAccountContext, AccountContext } from './accountContext';
 
@@ -45,14 +45,14 @@ export type RepoContext<GroupNames extends string = any> = AccountContext<
   RepoContextWithoutTeamContext<GroupNames>;
 
 async function initRepoContext<GroupNames extends string>(
-  mongoStores: MongoStores,
+  appContext: AppContext,
   context: Context<any>,
   config: Config<GroupNames>,
 ): Promise<RepoContext<GroupNames>> {
   const repo = context.payload.repository;
   const org = repo.owner;
   const accountContext = await obtainAccountContext(
-    mongoStores,
+    appContext,
     context,
     config,
     org,
@@ -240,7 +240,7 @@ export const shouldIgnoreRepo = (
 };
 
 export const obtainRepoContext = (
-  mongoStores: MongoStores,
+  appContext: AppContext,
   context: Context<any>,
 ): Promise<RepoContext> | RepoContext | null => {
   const repo = context.payload.repository;
@@ -265,7 +265,7 @@ export const obtainRepoContext = (
     return null;
   }
 
-  const promise = initRepoContext(mongoStores, context, accountConfig);
+  const promise = initRepoContext(appContext, context, accountConfig);
   repoContextsPromise.set(key, promise);
 
   return promise.then((repoContext) => {

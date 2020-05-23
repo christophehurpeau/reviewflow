@@ -1,6 +1,6 @@
 import Webhooks from '@octokit/webhooks';
 import { Application, Context } from 'probot';
-import { MongoStores } from '../mongo';
+import { AppContext } from '../context/AppContext';
 import { LockedMergePr } from '../context/repoContext';
 import { createHandlerPullRequestsChange } from './utils';
 
@@ -12,14 +12,11 @@ const isSameBranch = (
   return !!context.payload.branches.find((b) => b.name === lockedPr.branch);
 };
 
-export default function status(
-  app: Application,
-  mongoStores: MongoStores,
-): void {
+export default function status(app: Application, appContext: AppContext): void {
   app.on(
     'status',
     createHandlerPullRequestsChange(
-      mongoStores,
+      appContext,
       (context, repoContext): LockedMergePr[] => {
         const lockedPr = repoContext.getMergeLockedPr();
         if (!lockedPr) return [];

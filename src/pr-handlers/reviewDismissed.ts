@@ -1,17 +1,17 @@
 import { Application } from 'probot';
-import { MongoStores } from '../mongo';
+import { AppContext } from '../context/AppContext';
 import { createHandlerPullRequestChange } from './utils';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 
 export default function reviewDismissed(
   app: Application,
-  mongoStores: MongoStores,
+  appContext: AppContext,
 ): void {
   app.on(
     'pull_request_review.dismissed',
     createHandlerPullRequestChange(
-      mongoStores,
+      appContext,
       async (pr, context, repoContext): Promise<void> => {
         const sender = context.payload.sender;
         const reviewer = (context.payload as any).review.user;

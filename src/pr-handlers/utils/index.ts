@@ -1,5 +1,5 @@
 import { Context, Octokit } from 'probot';
-import { MongoStores } from '../../mongo';
+import { AppContext } from '../../context/AppContext';
 import { obtainRepoContext, RepoContext } from '../../context/repoContext';
 
 export type PRHandler<T = any, Result = void, FourthArgument = never> = (
@@ -17,7 +17,7 @@ export type CallbackWithPRAndRepoContext = (
 export const handlerPullRequestChange = async <
   T extends { pull_request: { id: number; number: number } }
 >(
-  mongoStores: MongoStores,
+  appContext: AppContext,
   context: Context<T>,
   callback: CallbackWithPRAndRepoContext,
 ): Promise<void> => {
@@ -32,7 +32,7 @@ export const handlerPullRequestChange = async <
   }
   if (!pullRequest) return;
 
-  const repoContext = await obtainRepoContext(mongoStores, context);
+  const repoContext = await obtainRepoContext(appContext, context);
   if (!repoContext) return;
 
   return repoContext.lockPROrPRS(
@@ -59,10 +59,10 @@ type CallbackPRAndContextAndRepoContext<T> = (
 export const createHandlerPullRequestChange = <
   T extends { pull_request: { id: number; number: number } }
 >(
-  mongoStores: MongoStores,
+  appContext: AppContext,
   callback: CallbackPRAndContextAndRepoContext<T>,
 ) => (context: Context<T>) => {
-  return handlerPullRequestChange(mongoStores, context, (pr, repoContext) =>
+  return handlerPullRequestChange(appContext, context, (pr, repoContext) =>
     callback(pr, context, repoContext),
   );
 };
@@ -73,14 +73,14 @@ type CallbackContextAndRepoContext<T> = (
 ) => void | Promise<void>;
 
 export const createHandlerPullRequestsChange = <T>(
-  mongoStores: MongoStores,
+  appContext: AppContext,
   getPullRequests: (
     context: Context<T>,
     repoContext: RepoContext,
   ) => { id: string | number; number: number }[],
   callback: CallbackContextAndRepoContext<T>,
 ) => async (context: Context<T>): Promise<void> => {
-  const repoContext = await obtainRepoContext(mongoStores, context);
+  const repoContext = await obtainRepoContext(appContext, context);
   if (!repoContext) return;
 
   const prs = getPullRequests(context, repoContext);

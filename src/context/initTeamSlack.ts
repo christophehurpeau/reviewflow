@@ -2,12 +2,12 @@ import Webhooks from '@octokit/webhooks';
 import { WebClient, KnownBlock } from '@slack/web-api';
 import { Context, Octokit } from 'probot';
 import { createLink } from '../slack/utils';
-import { MongoStores, Org, User } from '../mongo';
+import { Org, User } from '../mongo';
 import { getUserDmSettings } from '../dm/getUserDmSettings';
 import { MessageCategory } from '../dm/MessageCategory';
 import { Config } from '../accountConfigs';
-import * as slackHome from '../slack/home';
 import { getKeys } from './utils';
+import { AppContext } from './AppContext';
 
 interface SlackMessage {
   text: string;
@@ -45,7 +45,7 @@ export const voidTeamSlack = (): TeamSlack => ({
 });
 
 export const initTeamSlack = async <GroupNames extends string>(
-  mongoStores: MongoStores,
+  { mongoStores, slackHome }: AppContext,
   context: Context<any>,
   config: Config<GroupNames>,
   account: Org | User,
@@ -186,7 +186,7 @@ export const initTeamSlack = async <GroupNames extends string>(
       const user = getUserFromGithubLogin(githubLogin);
       if (!user || !user.member) return;
 
-      slackHome.updateMember(mongoStores, context.github, slackClient, {
+      slackHome.scheduleUpdateMember(context.github, slackClient, {
         user: { id: null, login: githubLogin },
         org: { id: account._id, login: account.login },
         slack: { id: user.member.id },

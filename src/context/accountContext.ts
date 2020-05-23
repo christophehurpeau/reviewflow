@@ -1,11 +1,12 @@
 import { Context } from 'probot';
 import { Lock } from 'lock';
-import { MongoStores, Org, User } from '../mongo';
+import { Org, User } from '../mongo';
 import { Config } from '../accountConfigs';
 import { ExcludesFalsy } from '../utils/ExcludesFalsy';
 import { initTeamSlack, TeamSlack } from './initTeamSlack';
 import { getKeys } from './utils';
 import { getOrCreateAccount, AccountInfo } from './getOrCreateAccount';
+import { AppContext } from './AppContext';
 
 type AccountType = 'Organization' | 'User';
 
@@ -33,18 +34,18 @@ export interface AccountContext<
 }
 
 const initAccountContext = async (
-  mongoStores: MongoStores,
+  appContext: AppContext,
   context: Context<any>,
   config: Config,
   accountInfo: AccountInfo,
 ): Promise<AccountContext> => {
   const account = await getOrCreateAccount(
-    mongoStores,
+    appContext,
     context.github,
     context.payload.installation.id,
     accountInfo,
   );
-  const slackPromise = initTeamSlack(mongoStores, context, config, account);
+  const slackPromise = initTeamSlack(appContext, context, config, account);
 
   const githubLoginToGroup = new Map<string, string>();
   getKeys(config.groups).forEach((groupName) => {
@@ -148,7 +149,7 @@ const accountContextsPromise = new Map();
 const accountContexts = new Map();
 
 export const obtainAccountContext = (
-  mongoStores: MongoStores,
+  appContext: AppContext,
   context: Context<any>,
   config: Config,
   accountInfo: AccountInfo,
@@ -159,7 +160,7 @@ export const obtainAccountContext = (
   const existingPromise = accountContextsPromise.get(accountInfo.login);
   if (existingPromise) return Promise.resolve(existingPromise);
 
-  const promise = initAccountContext(mongoStores, context, config, accountInfo);
+  const promise = initAccountContext(appContext, context, config, accountInfo);
   accountContextsPromise.set(accountInfo.login, promise);
 
   return promise.then((accountContext) => {

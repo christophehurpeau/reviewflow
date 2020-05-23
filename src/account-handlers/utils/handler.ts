@@ -1,10 +1,10 @@
 import { Context } from 'probot';
 import { accountConfigs, defaultConfig } from '../../accountConfigs';
-import { MongoStores } from '../../mongo';
 import {
   AccountContext,
   obtainAccountContext,
 } from '../../context/accountContext';
+import { AppContext } from '../../context/AppContext';
 
 type CallbackContextAndAccountContext<T> = (
   context: Context<T>,
@@ -14,14 +14,14 @@ type CallbackContextAndAccountContext<T> = (
 export const handlerOrgChange = async <
   T extends { organization: { id: number; login: string } }
 >(
-  mongoStores: MongoStores,
+  appContext: AppContext,
   context: Context<T>,
   callback: CallbackContextAndAccountContext<T>,
 ): Promise<void> => {
   const org = context.payload.organization;
   const config = accountConfigs[org.login] || defaultConfig;
   const accountContext = await obtainAccountContext(
-    mongoStores,
+    appContext,
     context,
     config,
     { ...org, type: 'Organization' },
@@ -36,8 +36,8 @@ export const handlerOrgChange = async <
 export const createHandlerOrgChange = <
   T extends { organization: { id: number; login: string } }
 >(
-  mongoStores: MongoStores,
+  appContext: AppContext,
   callback: CallbackContextAndAccountContext<T>,
 ) => (context: Context<T>) => {
-  return handlerOrgChange(mongoStores, context, callback);
+  return handlerOrgChange(appContext, context, callback);
 };

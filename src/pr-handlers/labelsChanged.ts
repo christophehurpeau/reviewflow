@@ -1,6 +1,6 @@
 import Webhooks from '@octokit/webhooks';
 import { Application, Context } from 'probot';
-import { MongoStores } from '../mongo';
+import { AppContext } from '../context/AppContext';
 import { contextPr, contextIssue } from '../context/utils';
 import { handlerPullRequestChange } from './utils';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
@@ -10,7 +10,7 @@ import hasLabelInPR from './actions/utils/hasLabelInPR';
 
 export default function labelsChanged(
   app: Application,
-  mongoStores: MongoStores,
+  appContext: AppContext,
 ): void {
   app.on(
     ['pull_request.labeled', 'pull_request.unlabeled'],
@@ -25,7 +25,7 @@ export default function labelsChanged(
       }
 
       await handlerPullRequestChange(
-        mongoStores,
+        appContext,
         context,
         async (pr, repoContext) => {
           const label = (context.payload as any).label;

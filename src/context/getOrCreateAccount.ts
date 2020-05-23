@@ -2,7 +2,8 @@ import { Octokit } from 'probot';
 import { syncOrg } from '../account-handlers/actions/syncOrg';
 import { syncTeams } from '../account-handlers/actions/syncTeams';
 import { syncUser } from '../account-handlers/actions/syncUser';
-import { MongoStores, Org, User } from '../mongo';
+import { Org, User } from '../mongo';
+import { AppContext } from './AppContext';
 
 export interface AccountInfo {
   id: number;
@@ -11,7 +12,7 @@ export interface AccountInfo {
 }
 
 export const getOrCreateAccount = async (
-  mongoStores: MongoStores,
+  { mongoStores }: AppContext,
   github: Octokit,
   installationId: number,
   accountInfo: AccountInfo,

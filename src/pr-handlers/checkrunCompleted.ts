@@ -1,16 +1,16 @@
 import { Application } from 'probot';
-import { MongoStores } from '../mongo';
+import { AppContext } from '../context/AppContext';
 import { createHandlerPullRequestsChange } from './utils';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 
 export default function checkrunCompleted(
   app: Application,
-  mongoStores: MongoStores,
+  appContext: AppContext,
 ): void {
   app.on(
     'check_run.completed',
     createHandlerPullRequestsChange(
-      mongoStores,
+      appContext,
       (context) => context.payload.check_run.pull_requests,
       async (context, repoContext) => {
         await Promise.all(

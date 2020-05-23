@@ -1,9 +1,10 @@
 import 'dotenv/config';
 import { Probot, Application } from 'probot';
+import { AppContext } from './context/AppContext';
 import mongoInit from './mongo';
 import appRouter from './appRouter';
 import initApp from './initApp';
-import { updateAllOrgs } from './slack/home';
+import { createSlackHomeWorker } from './slack/home';
 
 if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = 'reviewflow';
 console.log({ name: process.env.REVIEWFLOW_NAME });
@@ -19,7 +20,9 @@ console.log({ name: process.env.REVIEWFLOW_NAME });
 // eslint-disable-next-line import/no-commonjs
 Probot.run((app: Application): void => {
   const mongoStores = mongoInit();
-  appRouter(app, mongoStores);
-  initApp(app, mongoStores);
-  updateAllOrgs(mongoStores, (id: number) => app.auth(id));
+  const slackHome = createSlackHomeWorker(mongoStores);
+  const appContext: AppContext = { mongoStores, slackHome };
+  appRouter(app, appContext);
+  initApp(app, appContext);
+  slackHome.scheduleUpdateAllOrgs((id: number) => app.auth(id));
 });

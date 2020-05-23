@@ -2,7 +2,7 @@
 
 import { Application } from 'probot';
 import cookieParser from 'cookie-parser';
-import { MongoStores } from './mongo';
+import { AppContext } from './context/AppContext';
 import repository from './app/repository';
 import auth from './app/auth';
 import home from './app/home';
@@ -11,7 +11,7 @@ import userSettings from './app/user-settings';
 
 export default async function appRouter(
   app: Application,
-  mongoStores: MongoStores,
+  { mongoStores }: AppContext,
 ): Promise<void> {
   const router = app.route('/app');
   const api = await app.auth();

@@ -1026,7 +1026,9 @@ function userSettings(router, api, mongoStores) {
 }
 
 /* eslint-disable max-lines */
-async function appRouter(app, mongoStores) {
+async function appRouter(app, {
+  mongoStores
+}) {
   const router = app.route('/app');
   const api = await app.auth();
   router.use(cookieParser());
@@ -1384,79 +1386,6 @@ const createLink = (url, text) => {
   return `<${url}|${text}>`;
 };
 
-const updateMember = async (mongoStores, github, slackClient, member) => {
-  if (!member.slack) return;
-  const [prsWithRequestedReviews, prsToMerge, prsWithRequestedChanges] = await Promise.all([github.search.issuesAndPullRequests({
-    q: `is:pr user:${member.org.login} is:open review-requested:${member.user.login} `,
-    sort: 'created',
-    order: 'desc'
-  }), github.search.issuesAndPullRequests({
-    q: `is:pr user:${member.org.login} is:open author:${member.user.login} label:":ok_hand: code/approved"`,
-    sort: 'created',
-    order: 'desc'
-  }), github.search.issuesAndPullRequests({
-    q: `is:pr user:${member.org.login} is:open author:${member.user.login} label:":ok_hand: code/changes-requested"`,
-    sort: 'created',
-    order: 'desc'
-  })]);
-  const blocks = [];
-
-  const buildBlocks = (title, results) => {
-    if (!results.total_count) return;
-    blocks.push({
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: `*${title}*`
-      }
-    }, {
-      type: 'divider'
-    }, ...results.items.map(pr => ({
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: `${createLink(pr.html_url, `${pr.html_url.replace(/^.*\/([^/]+)\/pull\/\d+$/, '$1')}#${pr.number}`)} ${pr.title}\nby ${pr.user.login}`
-      }
-    })));
-  };
-
-  buildBlocks('Requested Reviews', prsWithRequestedReviews.data);
-  buildBlocks('Ready to Merge', prsToMerge.data);
-  buildBlocks('Changes Requested', prsWithRequestedChanges.data);
-
-  if (blocks.length === 0) {
-    blocks.push({
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: ":tada: It looks like you don't have any PR to review!"
-      }
-    });
-  }
-
-  slackClient.views.publish({
-    user_id: member.slack.id,
-    view: {
-      type: 'home',
-      blocks
-    }
-  });
-};
-const updateOrg = async (mongoStores, github, org, slackClient = new webApi.WebClient(org.slackToken)) => {
-  const cursor = await mongoStores.orgMembers.cursor();
-  cursor.forEach(member => {
-    updateMember(mongoStores, github, slackClient, member);
-  });
-};
-const updateAllOrgs = async (mongoStores, auth) => {
-  const cursor = await mongoStores.orgs.cursor();
-  cursor.forEach(async org => {
-    if (!org.slackToken || !org.installationId) return;
-    const github = await auth(org.installationId);
-    await updateOrg(mongoStores, github, org);
-  });
-};
-
 const getKeys = o => Object.keys(o);
 const contextIssue = (context, object) => {
   const payload = context.payload;
@@ -1478,7 +1407,10 @@ const voidTeamSlack = () => ({
   prLink: () => '',
   updateHome: () => undefined
 });
-const initTeamSlack = async (mongoStores, context, config, account) => {
+const initTeamSlack = async ({
+  mongoStores,
+  slackHome
+}, context, config, account) => {
   const owner = context.payload.repository.owner;
 
   if (!account.slackToken) {
@@ -1607,7 +1539,7 @@ const initTeamSlack = async (mongoStores, context, config, account) => {
       });
       const user = getUserFromGithubLogin(githubLogin);
       if (!user || !user.member) return;
-      updateMember(mongoStores, context.github, slackClient, {
+      slackHome.scheduleUpdateMember(context.github, slackClient, {
         user: {
           id: null,
           login: githubLogin
@@ -1624,7 +1556,9 @@ const initTeamSlack = async (mongoStores, context, config, account) => {
   };
 };
 
-const getOrCreateAccount = async (mongoStores, github, installationId, accountInfo) => {
+const getOrCreateAccount = async ({
+  mongoStores
+}, github, installationId, accountInfo) => {
   var _org, _user;
 
   switch (accountInfo.type) {
@@ -1651,9 +1585,9 @@ const getOrCreateAccount = async (mongoStores, github, installationId, accountIn
   }
 };
 
-const initAccountContext = async (mongoStores, context, config, accountInfo) => {
-  const account = await getOrCreateAccount(mongoStores, context.github, context.payload.installation.id, accountInfo);
-  const slackPromise = initTeamSlack(mongoStores, context, config, account);
+const initAccountContext = async (appContext, context, config, accountInfo) => {
+  const account = await getOrCreateAccount(appContext, context.github, context.payload.installation.id, accountInfo);
+  const slackPromise = initTeamSlack(appContext, context, config, account);
   const githubLoginToGroup = new Map();
   getKeys(config.groups).forEach(groupName => {
     Object.keys(config.groups[groupName]).forEach(login => {
@@ -1734,12 +1668,12 @@ const initAccountContext = async (mongoStores, context, config, accountInfo) => 
 
 const accountContextsPromise = new Map();
 const accountContexts = new Map();
-const obtainAccountContext = (mongoStores, context, config, accountInfo) => {
+const obtainAccountContext = (appContext, context, config, accountInfo) => {
   const existingAccountContext = accountContexts.get(accountInfo.login);
   if (existingAccountContext) return existingAccountContext;
   const existingPromise = accountContextsPromise.get(accountInfo.login);
   if (existingPromise) return Promise.resolve(existingPromise);
-  const promise = initAccountContext(mongoStores, context, config, accountInfo);
+  const promise = initAccountContext(appContext, context, config, accountInfo);
   accountContextsPromise.set(accountInfo.login, promise);
   return promise.then(accountContext => {
     accountContextsPromise.delete(accountInfo.login);
@@ -1750,10 +1684,10 @@ const obtainAccountContext = (mongoStores, context, config, accountInfo) => {
 
 /* eslint-disable max-lines */
 
-async function initRepoContext(mongoStores, context, config) {
+async function initRepoContext(appContext, context, config) {
   const repo = context.payload.repository;
   const org = repo.owner;
-  const accountContext = await obtainAccountContext(mongoStores, context, config, org);
+  const accountContext = await obtainAccountContext(appContext, context, config, org);
   const repoContext = Object.create(accountContext);
   const labels = await initRepoLabels(context, config);
   const reviewGroupNames = Object.keys(config.groups);
@@ -1884,7 +1818,7 @@ const shouldIgnoreRepo = (repoName, accountConfig) => {
 
   return false;
 };
-const obtainRepoContext = (mongoStores, context) => {
+const obtainRepoContext = (appContext, context) => {
   const repo = context.payload.repository;
   const owner = repo.owner;
   const key = repo.id;
@@ -1907,7 +1841,7 @@ const obtainRepoContext = (mongoStores, context) => {
     return null;
   }
 
-  const promise = initRepoContext(mongoStores, context, accountConfig);
+  const promise = initRepoContext(appContext, context, accountConfig);
   repoContextsPromise.set(key, promise);
   return promise.then(repoContext => {
     repoContextsPromise.delete(key);
@@ -1916,7 +1850,7 @@ const obtainRepoContext = (mongoStores, context) => {
   });
 };
 
-const handlerPullRequestChange = async (mongoStores, context, callback) => {
+const handlerPullRequestChange = async (appContext, context, callback) => {
   let pullRequest = context.payload.pull_request;
 
   if (!pullRequest) {
@@ -1928,7 +1862,7 @@ const handlerPullRequestChange = async (mongoStores, context, callback) => {
   }
 
   if (!pullRequest) return;
-  const repoContext = await obtainRepoContext(mongoStores, context);
+  const repoContext = await obtainRepoContext(appContext, context);
   if (!repoContext) return;
   return repoContext.lockPROrPRS(String(pullRequest.id), pullRequest.number, async () => {
     const prResult = await context.github.pulls.get(context.repo({
@@ -1937,11 +1871,11 @@ const handlerPullRequestChange = async (mongoStores, context, callback) => {
     await callback(prResult.data, repoContext);
   });
 };
-const createHandlerPullRequestChange = (mongoStores, callback) => context => {
-  return handlerPullRequestChange(mongoStores, context, (pr, repoContext) => callback(pr, context, repoContext));
+const createHandlerPullRequestChange = (appContext, callback) => context => {
+  return handlerPullRequestChange(appContext, context, (pr, repoContext) => callback(pr, context, repoContext));
 };
-const createHandlerPullRequestsChange = (mongoStores, getPullRequests, callback) => async context => {
-  const repoContext = await obtainRepoContext(mongoStores, context);
+const createHandlerPullRequestsChange = (appContext, getPullRequests, callback) => async context => {
+  const repoContext = await obtainRepoContext(appContext, context);
   if (!repoContext) return;
   const prs = getPullRequests(context, repoContext);
   if (prs.length === 0) return;
@@ -2442,8 +2376,8 @@ const readCommitsAndUpdateInfos = async (pr, context, repoContext) => {
   })]); // TODO auto update ! in front of : to signal a breaking change when https://github.com/conventional-changelog/commitlint/issues/658 is closed
 };
 
-function opened(app, mongoStores) {
-  app.on('pull_request.opened', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
+function opened(app, appContext) {
+  app.on('pull_request.opened', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
     const fromRenovate = pr.head.ref.startsWith('renovate/');
     await Promise.all([autoAssignPRToCreator(pr, context, repoContext), editOpenedPR(pr, context, repoContext).then(() => {
       return readCommitsAndUpdateInfos(pr, context, repoContext);
@@ -2460,8 +2394,8 @@ function opened(app, mongoStores) {
   }));
 }
 
-function closed(app, mongoStores) {
-  app.on('pull_request.closed', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
+function closed(app, appContext) {
+  app.on('pull_request.closed', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
     const repo = context.payload.repository;
 
     if (pr.merged) {
@@ -2477,8 +2411,8 @@ function closed(app, mongoStores) {
   }));
 }
 
-function closed$1(app, mongoStores) {
-  app.on('pull_request.reopened', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
+function closed$1(app, appContext) {
+  app.on('pull_request.reopened', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
     await Promise.all([updateReviewStatus(pr, context, repoContext, 'dev', {
       add: ['needsReview'],
       remove: ['approved']
@@ -2603,10 +2537,10 @@ const getUsersInThread = discussion => {
   return users;
 };
 
-function prComment(app, mongoStores) {
+function prComment(app, appContext) {
   app.on(['pull_request_review_comment.created', // comments without review and without path are sent with issue_comment.created.
   // createHandlerPullRequestChange checks if pull_request event is present, removing real issues comments.
-  'issue_comment.created'], createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
+  'issue_comment.created'], createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
     const {
       comment
     } = context.payload;
@@ -2641,7 +2575,7 @@ function prComment(app, mongoStores) {
     });
 
     if (mentions.length !== 0) {
-      mongoStores.users.findAll({
+      appContext.mongoStores.users.findAll({
         login: {
           $in: mentions
         }
@@ -2655,8 +2589,8 @@ function prComment(app, mongoStores) {
   }));
 }
 
-function reviewRequested(app, mongoStores) {
-  app.on('pull_request.review_requested', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
+function reviewRequested(app, appContext) {
+  app.on('pull_request.review_requested', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
     const sender = context.payload.sender; // ignore if sender is self (dismissed review rerequest review)
 
     if (sender.type === 'Bot') return;
@@ -2683,8 +2617,8 @@ function reviewRequested(app, mongoStores) {
   }));
 }
 
-function reviewRequestRemoved(app, mongoStores) {
-  app.on('pull_request.review_request_removed', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
+function reviewRequestRemoved(app, appContext) {
+  app.on('pull_request.review_request_removed', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
     const sender = context.payload.sender;
     const reviewer = context.payload.requested_reviewer;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
@@ -2720,8 +2654,8 @@ function reviewRequestRemoved(app, mongoStores) {
   }));
 }
 
-function reviewSubmitted(app, mongoStores) {
-  app.on('pull_request_review.submitted', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
+function reviewSubmitted(app, appContext) {
+  app.on('pull_request_review.submitted', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
     const {
       user: reviewer,
       state,
@@ -2797,8 +2731,8 @@ function reviewSubmitted(app, mongoStores) {
   }));
 }
 
-function reviewDismissed(app, mongoStores) {
-  app.on('pull_request_review.dismissed', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
+function reviewDismissed(app, appContext) {
+  app.on('pull_request_review.dismissed', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
     const sender = context.payload.sender;
     const reviewer = context.payload.review.user;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
@@ -2834,8 +2768,8 @@ function reviewDismissed(app, mongoStores) {
   }));
 }
 
-function synchronize(app, mongoStores) {
-  app.on('pull_request.synchronize', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
+function synchronize(app, appContext) {
+  app.on('pull_request.synchronize', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
     // old and new sha
     // const { before, after } = context.payload;
     const previousSha = context.payload.before;
@@ -2846,8 +2780,8 @@ function synchronize(app, mongoStores) {
   }));
 }
 
-function edited(app, mongoStores) {
-  app.on('pull_request.edited', createHandlerPullRequestChange(mongoStores, async (pr, context, repoContext) => {
+function edited(app, appContext) {
+  app.on('pull_request.edited', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
     const sender = context.payload.sender;
 
     if (sender.type === 'Bot' && sender.login === `${process.env.REVIEWFLOW_NAME}[bot]`) {
@@ -2870,7 +2804,7 @@ const updatePrBody = async (pr, context, repoContext, updateOptions) => {
   });
 };
 
-function labelsChanged(app, mongoStores) {
+function labelsChanged(app, appContext) {
   app.on(['pull_request.labeled', 'pull_request.unlabeled'], async context => {
     const sender = context.payload.sender;
     const fromRenovate = sender.type === 'Bot' && sender.login === 'renovate[bot]';
@@ -2880,7 +2814,7 @@ function labelsChanged(app, mongoStores) {
       return;
     }
 
-    await handlerPullRequestChange(mongoStores, context, async (pr, repoContext) => {
+    await handlerPullRequestChange(appContext, context, async (pr, repoContext) => {
       const label = context.payload.label;
 
       if (fromRenovate) {
@@ -2964,8 +2898,8 @@ function labelsChanged(app, mongoStores) {
   });
 }
 
-function checkrunCompleted(app, mongoStores) {
-  app.on('check_run.completed', createHandlerPullRequestsChange(mongoStores, context => context.payload.check_run.pull_requests, async (context, repoContext) => {
+function checkrunCompleted(app, appContext) {
+  app.on('check_run.completed', createHandlerPullRequestsChange(appContext, context => context.payload.check_run.pull_requests, async (context, repoContext) => {
     await Promise.all(context.payload.check_run.pull_requests.map(pr => context.github.pulls.get(context.repo({
       pull_number: pr.number
     })).then(prResult => {
@@ -2974,8 +2908,8 @@ function checkrunCompleted(app, mongoStores) {
   }));
 }
 
-function checksuiteCompleted(app, mongoStores) {
-  app.on('check_suite.completed', createHandlerPullRequestsChange(mongoStores, context => context.payload.check_suite.pull_requests, async (context, repoContext) => {
+function checksuiteCompleted(app, appContext) {
+  app.on('check_suite.completed', createHandlerPullRequestsChange(appContext, context => context.payload.check_suite.pull_requests, async (context, repoContext) => {
     await Promise.all(context.payload.check_suite.pull_requests.map(pr => context.github.pulls.get(context.repo({
       pull_number: pr.number
     })).then(prResult => {
@@ -2989,8 +2923,8 @@ const isSameBranch = (context, lockedPr) => {
   return !!context.payload.branches.find(b => b.name === lockedPr.branch);
 };
 
-function status(app, mongoStores) {
-  app.on('status', createHandlerPullRequestsChange(mongoStores, (context, repoContext) => {
+function status(app, appContext) {
+  app.on('status', createHandlerPullRequestsChange(appContext, (context, repoContext) => {
     const lockedPr = repoContext.getMergeLockedPr();
     if (!lockedPr) return [];
 
@@ -3008,10 +2942,10 @@ function status(app, mongoStores) {
   }));
 }
 
-const handlerOrgChange = async (mongoStores, context, callback) => {
+const handlerOrgChange = async (appContext, context, callback) => {
   const org = context.payload.organization;
   const config$1 = accountConfigs[org.login] || config;
-  const accountContext = await obtainAccountContext(mongoStores, context, config$1, { ...org,
+  const accountContext = await obtainAccountContext(appContext, context, config$1, { ...org,
     type: 'Organization'
   });
   if (!accountContext) return;
@@ -3019,19 +2953,19 @@ const handlerOrgChange = async (mongoStores, context, callback) => {
     await callback(context, accountContext);
   });
 };
-const createHandlerOrgChange = (mongoStores, callback) => context => {
-  return handlerOrgChange(mongoStores, context, callback);
+const createHandlerOrgChange = (appContext, callback) => context => {
+  return handlerOrgChange(appContext, context, callback);
 };
 
-function initApp(app, mongoStores) {
+function initApp(app, appContext) {
   /* https://developer.github.com/webhooks/event-payloads/#organization */
-  app.on(['organization.member_added', 'organization.member_removed'], createHandlerOrgChange(mongoStores, async (context, accountContext) => {
-    await syncOrg(mongoStores, context.github, accountContext.account.installationId, context.payload.organization);
+  app.on(['organization.member_added', 'organization.member_removed'], createHandlerOrgChange(appContext, async (context, accountContext) => {
+    await syncOrg(appContext.mongoStores, context.github, accountContext.account.installationId, context.payload.organization);
   }));
   /* https://developer.github.com/webhooks/event-payloads/#team */
 
-  app.on(['team.created', 'team.deleted', 'team.edited'], createHandlerOrgChange(mongoStores, async context => {
-    await syncTeams(mongoStores, context.github, context.payload.organization);
+  app.on(['team.created', 'team.deleted', 'team.edited'], createHandlerOrgChange(appContext, async context => {
+    await syncTeams(appContext.mongoStores, context.github, context.payload.organization);
   })); // /* https://developer.github.com/webhooks/event-payloads/#membership */
   // app.on(
   //   ['membership.added', 'membership.removed'],
@@ -3051,29 +2985,194 @@ function initApp(app, mongoStores) {
 
   /* https://developer.github.com/webhooks/event-payloads/#pull_request */
 
-  opened(app, mongoStores);
-  edited(app, mongoStores);
-  closed(app, mongoStores);
-  closed$1(app, mongoStores);
-  reviewRequested(app, mongoStores);
-  reviewRequestRemoved(app, mongoStores);
-  reviewSubmitted(app, mongoStores);
-  reviewDismissed(app, mongoStores);
-  labelsChanged(app, mongoStores);
-  synchronize(app, mongoStores);
+  opened(app, appContext);
+  edited(app, appContext);
+  closed(app, appContext);
+  closed$1(app, appContext);
+  reviewRequested(app, appContext);
+  reviewRequestRemoved(app, appContext);
+  reviewSubmitted(app, appContext);
+  reviewDismissed(app, appContext);
+  labelsChanged(app, appContext);
+  synchronize(app, appContext);
   /* https://developer.github.com/webhooks/event-payloads/#pull_request_review_comment */
 
-  prComment(app, mongoStores);
+  prComment(app, appContext);
   /* https://developer.github.com/webhooks/event-payloads/#check_run */
 
-  checkrunCompleted(app, mongoStores);
+  checkrunCompleted(app, appContext);
   /* https://developer.github.com/webhooks/event-payloads/#check_suite */
 
-  checksuiteCompleted(app, mongoStores);
+  checksuiteCompleted(app, appContext);
   /* https://developer.github.com/webhooks/event-payloads/#status */
 
-  status(app, mongoStores);
+  status(app, appContext);
 }
+
+/* eslint-disable max-lines */
+const createSlackHomeWorker = mongoStores => {
+  const updateMember = async (github, slackClient, member) => {
+    var _member$slack;
+
+    if (!((_member$slack = member.slack) === null || _member$slack === void 0 ? void 0 : _member$slack.id)) return; // console.log('update member', member.org.login, member.user.login);
+
+    /* search limit: 30 requests per minute = 10 update/min max */
+
+    const [prsWithRequestedReviews, prsToMerge, prsWithRequestedChanges] = await Promise.all([github.search.issuesAndPullRequests({
+      q: `is:pr user:${member.org.login} is:open review-requested:${member.user.login} `,
+      sort: 'created',
+      order: 'desc'
+    }), github.search.issuesAndPullRequests({
+      q: `is:pr user:${member.org.login} is:open author:${member.user.login} label:":ok_hand: code/approved"`,
+      sort: 'created',
+      order: 'desc'
+    }), github.search.issuesAndPullRequests({
+      q: `is:pr user:${member.org.login} is:open author:${member.user.login} label:":ok_hand: code/changes-requested"`,
+      sort: 'created',
+      order: 'desc'
+    })]);
+    const blocks = [];
+
+    const buildBlocks = (title, results) => {
+      if (!results.total_count) return;
+      blocks.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*${title}*`
+        }
+      }, {
+        type: 'divider'
+      }, ...results.items.map(pr => {
+        const repoName = pr.repository_url.slice(29);
+        const prFullName = `${repoName}#${pr.number}`;
+        return [{
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*${createLink(pr.html_url, pr.title)}*` //  ${pr.labels.map((l) => `{${l.name}}`).join(' · ')}
+
+          }
+        }, {
+          type: 'context',
+          elements: [{
+            type: 'mrkdwn',
+            text: `${createLink(pr.html_url, prFullName)} ${pr.draft ? '· _Draft_' : ''}`
+          }, {
+            type: 'image',
+            image_url: pr.user.avatar_url,
+            alt_text: pr.user.login
+          }, {
+            type: 'mrkdwn',
+            text: `${pr.user.login}`
+          }]
+        }];
+      }).flat(), {
+        type: 'context',
+        elements: [{
+          type: 'image',
+          image_url: 'https://api.slack.com/img/blocks/bkb_template_images/placeholder.png',
+          alt_text: 'placeholder'
+        }]
+      });
+    };
+
+    buildBlocks(':eyes: Requested Reviews', prsWithRequestedReviews.data);
+    buildBlocks(':white_check_mark: Ready to Merge', prsToMerge.data);
+    buildBlocks(':x: Changes Requested', prsWithRequestedChanges.data);
+
+    if (blocks.length === 0) {
+      blocks.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: ":tada: It looks like you don't have any PR to review!"
+        }
+      });
+    }
+
+    slackClient.views.publish({
+      user_id: member.slack.id,
+      view: {
+        type: 'home',
+        blocks
+      }
+    });
+  };
+
+  let workerInterval;
+  const queueKeys = new Set();
+  const queue = [];
+
+  const stop = () => {
+    if (workerInterval !== undefined) {
+      clearInterval(workerInterval);
+      workerInterval = undefined;
+    }
+  };
+
+  const start = () => {
+    if (workerInterval !== undefined) return;
+    workerInterval = setInterval(() => {
+      var _member$slack2;
+
+      const item = queue.shift();
+
+      if (!item) {
+        stop();
+        return;
+      }
+
+      const {
+        github,
+        slackClient,
+        member
+      } = item;
+      const memberId = (_member$slack2 = member.slack) === null || _member$slack2 === void 0 ? void 0 : _member$slack2.id;
+      const key = `${member.org.id}_${memberId}`;
+      queueKeys.delete(key);
+      updateMember(github, slackClient, member);
+    }, 8000); // 10/min 60s 1min = 1 ttes les 6s max
+  };
+
+  const scheduleUpdateMember = (github, slackClient, member) => {
+    var _member$slack3;
+
+    const memberId = (_member$slack3 = member.slack) === null || _member$slack3 === void 0 ? void 0 : _member$slack3.id;
+    if (!memberId) return;
+    const key = `${member.org.id}_${memberId}`;
+
+    if (!queueKeys.has(key)) {
+      queueKeys.add(key);
+      queue.push({
+        github,
+        slackClient,
+        member
+      });
+      start();
+    }
+  };
+
+  const scheduleUpdateOrg = async (github, org, slackClient = new webApi.WebClient(org.slackToken)) => {
+    const cursor = await mongoStores.orgMembers.cursor();
+    cursor.forEach(member => {
+      scheduleUpdateMember(github, slackClient, member);
+    });
+  };
+
+  return {
+    scheduleUpdateMember,
+    scheduleUpdateOrg,
+    scheduleUpdateAllOrgs: async auth => {
+      const cursor = await mongoStores.orgs.cursor();
+      cursor.forEach(async org => {
+        if (!org.slackToken || !org.installationId) return;
+        const github = await auth(org.installationId);
+        await scheduleUpdateOrg(github, org);
+      });
+    }
+  };
+};
 
 if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = 'reviewflow';
 console.log({
@@ -3087,8 +3186,13 @@ console.log({
 
 probot.Probot.run(app => {
   const mongoStores = init();
-  appRouter(app, mongoStores);
-  initApp(app, mongoStores);
-  updateAllOrgs(mongoStores, id => app.auth(id));
+  const slackHome = createSlackHomeWorker(mongoStores);
+  const appContext = {
+    mongoStores,
+    slackHome
+  };
+  appRouter(app, appContext);
+  initApp(app, appContext);
+  slackHome.scheduleUpdateAllOrgs(id => app.auth(id));
 });
 //# sourceMappingURL=index-node10.cjs.js.map

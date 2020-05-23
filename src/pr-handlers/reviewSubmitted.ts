@@ -1,5 +1,5 @@
 import { Application } from 'probot';
-import { MongoStores } from '../mongo';
+import { AppContext } from '../context/AppContext';
 import { createHandlerPullRequestChange } from './utils';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateReviewStatus } from './actions/updateReviewStatus';
@@ -8,12 +8,12 @@ import { postSlackMessageWithSecondaryBlock } from './utils/postSlackMessageWith
 
 export default function reviewSubmitted(
   app: Application,
-  mongoStores: MongoStores,
+  appContext: AppContext,
 ): void {
   app.on(
     'pull_request_review.submitted',
     createHandlerPullRequestChange(
-      mongoStores,
+      appContext,
       async (pr, context, repoContext): Promise<void> => {
         const {
           user: reviewer,
