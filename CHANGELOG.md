@@ -1,3 +1,12 @@
+# [1.47.0](https://github.com/christophehurpeau/reviewflow/compare/v1.46.2...v1.47.0) (2020-05-23)
+
+
+### Features
+
+* improve slack home and schedule updates to respect rate limits ([4dcce61](https://github.com/christophehurpeau/reviewflow/commit/4dcce61d7a31b4f400b7d40316ca4991381bf2fe))
+
+
+
 ## [1.46.2](https://github.com/christophehurpeau/reviewflow/compare/v1.46.1...v1.46.2) (2020-05-22)
 
 
