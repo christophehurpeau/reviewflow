@@ -1,3 +1,12 @@
+# [1.48.0](https://github.com/christophehurpeau/reviewflow/compare/v1.47.2...v1.48.0) (2020-05-24)
+
+
+### Features
+
+* deleted and edited comment sync ([c0dedeb](https://github.com/christophehurpeau/reviewflow/commit/c0dedebd6dcc3951a545bcab87759caa0bab3f4e))
+
+
+
 ## [1.47.2](https://github.com/christophehurpeau/reviewflow/compare/v1.47.1...v1.47.2) (2020-05-24)
 
 
