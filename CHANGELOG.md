@@ -1,3 +1,12 @@
+## [1.47.2](https://github.com/christophehurpeau/reviewflow/compare/v1.47.1...v1.47.2) (2020-05-24)
+
+
+### Bug Fixes
+
+* redirect_uri strategy ([77b9286](https://github.com/christophehurpeau/reviewflow/commit/77b92863a75877c5648120a68efd74940aaeb20a))
+
+
+
 ## [1.47.1](https://github.com/christophehurpeau/reviewflow/compare/v1.47.0...v1.47.1) (2020-05-23)
 
 
