@@ -138,7 +138,7 @@ export default function prCommentCreated(
         const ownerMention = repoContext.slack.mention(pr.user.login);
         const commentLink = repoContext.slack.link(
           comment.html_url,
-          'commented',
+          (comment as any).in_reply_to_id ? 'replied' : 'commented',
         );
 
         const createMessage = (toOwner?: boolean): string => {

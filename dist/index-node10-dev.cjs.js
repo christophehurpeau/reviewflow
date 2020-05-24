@@ -2648,7 +2648,7 @@ function prCommentCreated(app, appContext) {
     const mention = repoContext.slack.mention(comment.user.login);
     const prUrl = repoContext.slack.prLink(pr, context);
     const ownerMention = repoContext.slack.mention(pr.user.login);
-    const commentLink = repoContext.slack.link(comment.html_url, 'commented');
+    const commentLink = repoContext.slack.link(comment.html_url, comment.in_reply_to_id ? 'replied' : 'commented');
 
     const createMessage = toOwner => {
       const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR `;
