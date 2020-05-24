@@ -25,6 +25,7 @@ export interface TeamSlack {
     message: SlackMessage,
   ) => Promise<PostSlackMessageResult>;
   deleteMessage: (ts: string, channel: string) => Promise<void>;
+  addReaction: (ts: string, channel: string, name: string) => Promise<void>;
   prLink: <T extends { repository: Webhooks.PayloadRepository }>(
     pr: Octokit.PullsGetResponse,
     context: Context<T>,

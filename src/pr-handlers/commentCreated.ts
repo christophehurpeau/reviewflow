@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import { Application, Octokit, Context } from 'probot';
 import { WebhookPayloadPullRequestReviewComment } from '@octokit/webhooks';
 import { AccountEmbed } from '../mongo';

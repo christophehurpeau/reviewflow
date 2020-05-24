@@ -472,7 +472,6 @@ const config = {
   }
 };
 
-/* eslint-disable max-lines */
 const config$1 = {
   autoAssignToCreator: true,
   trimTitle: true,
@@ -1041,7 +1040,6 @@ function userSettings(router, api, mongoStores) {
   });
 }
 
-/* eslint-disable max-lines */
 async function appRouter(app, {
   mongoStores
 }) {
@@ -1138,7 +1136,7 @@ function hasLabelInPR(prLabels, label) {
   return prLabels.some(l => l.id === label.id);
 }
 
-/* eslint-disable max-lines */
+// eslint-disable-next-line import/no-cycle
 
 const hasFailedStatusOrChecks = async (pr, context) => {
   const checks = await context.github.checks.listForRef(context.repo({
@@ -1422,6 +1420,7 @@ const voidTeamSlack = () => ({
   postMessage: () => Promise.resolve(null),
   updateMessage: () => Promise.resolve(null),
   deleteMessage: () => Promise.resolve(undefined),
+  addReaction: () => Promise.resolve(undefined),
   prLink: () => '',
   updateHome: () => undefined
 });
@@ -1581,6 +1580,18 @@ const initTeamSlack = async ({
         channel
       });
     },
+    addReaction: async (ts, channel, name) => {
+      context.log.debug('slack: add reaction', {
+        ts,
+        channel,
+        name
+      });
+      await slackClient.reactions.add({
+        timestamp: ts,
+        channel,
+        name
+      });
+    },
     link: createLink,
     prLink: (pr, context) => {
       return createLink(pr.html_url, `${context.payload.repository.name}#${pr.number}`);
@@ -1738,8 +1749,6 @@ const obtainAccountContext = (appContext, context, config, accountInfo) => {
     return accountContext;
   });
 };
-
-/* eslint-disable max-lines */
 
 async function initRepoContext(appContext, context, config) {
   const repo = context.payload.repository;
@@ -2078,7 +2087,6 @@ async function createStatus(context, name, sha, type, description, url) {
   }));
 }
 
-/* eslint-disable max-lines */
 const editOpenedPR = async (pr, context, repoContext, previousSha) => {
   const repo = context.payload.repository; // do not lint pr from forks
 
@@ -2487,7 +2495,7 @@ function closed$1(app, appContext) {
   }));
 }
 
-const createTextSecondaryBlock = text => ({
+const createMrkdwnSectionBlock = text => ({
   type: 'section',
   text: {
     type: 'mrkdwn',
@@ -2504,7 +2512,7 @@ const createSlackMessageWithSecondaryBlock = (message, secondaryBlockText) => {
         text: message
       }
     }],
-    secondaryBlocks: !secondaryBlockText ? undefined : [createTextSecondaryBlock(secondaryBlockText)]
+    secondaryBlocks: !secondaryBlockText ? undefined : [createMrkdwnSectionBlock(secondaryBlockText)]
   };
 };
 
@@ -2573,8 +2581,6 @@ const parse = issueParser('github', {
 const parseMentions = body => {
   return parse(body).mentions.map(m => m.user);
 };
-
-/* eslint-disable max-lines */
 
 const getDiscussion = async (context, comment) => {
   if (!comment.in_reply_to_id) return [comment];
@@ -2704,7 +2710,7 @@ function prCommentEditedOrDeleted(app, appContext) {
     if (context.payload.action === 'deleted') {
       await Promise.all([Promise.all(sentMessages.map(sentMessage => Promise.all(sentMessage.sentTo.map(sentTo => repoContext.slack.deleteMessage(sentTo.ts, sentTo.channel))))), appContext.mongoStores.slackSentMessages.deleteMany(criteria)]);
     } else {
-      const secondaryBlocks = [createTextSecondaryBlock(comment.body)];
+      const secondaryBlocks = [createMrkdwnSectionBlock(comment.body)];
       await Promise.all([Promise.all(sentMessages.map(sentMessage => Promise.all(sentMessage.sentTo.map(sentTo => repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, { ...sentMessage.message,
         secondaryBlocks
       }))))), appContext.mongoStores.slackSentMessages.partialUpdateMany(criteria, {
@@ -2739,9 +2745,21 @@ function reviewRequested(app, appContext) {
     if (sender.login === reviewer.login) return;
 
     if (repoContext.slack) {
-      repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, {
-        text: `:eyes: ${repoContext.slack.mention(sender.login)} requests your review on ${repoContext.slack.prLink(pr, context)} !\n> ${pr.title}`
-      });
+      const text = `:eyes: ${repoContext.slack.mention(sender.login)} requests your review on ${repoContext.slack.prLink(pr, context)} !\n> ${pr.title}`;
+      const message = {
+        text
+      };
+      const result = await repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, message);
+
+      if (result) {
+        await appContext.mongoStores.slackSentMessages.insertOne({
+          type: 'review-requested',
+          typeId: `${pr.id}_${reviewer.id}`,
+          message,
+          account: repoContext.accountEmbed,
+          sentTo: [result]
+        });
+      }
     }
   }));
 }
@@ -2776,14 +2794,38 @@ function reviewRequestRemoved(app, appContext) {
     }
 
     if (sender.login === reviewer.login) return;
+    repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, {
+      text: `:skull_and_crossbones: ${repoContext.slack.mention(sender.login)} removed the request for your review on ${repoContext.slack.prLink(pr, context)}`
+    });
+    const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne({
+      'account.id': repoContext.account._id,
+      'account.type': repoContext.accountType,
+      type: 'review-requested',
+      typeId: `${pr.id}_${reviewer.id}`
+    });
 
-    if (repoContext.slack) {
-      repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, {
-        text: `:skull_and_crossbones: ${repoContext.slack.mention(sender.login)} removed the request for your review on ${repoContext.slack.prLink(pr, context)}`
-      });
+    if (sentMessageRequestedReview) {
+      const sentTo = sentMessageRequestedReview.sentTo[0];
+      const message = sentMessageRequestedReview.message;
+      await Promise.all([repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, { ...message,
+        text: message.text.split('\n').map(l => `~${l}~`).join('\n')
+      }), repoContext.slack.addReaction(sentTo.ts, sentTo.channel, 'skull_and_crossbones'), appContext.mongoStores.slackSentMessages.deleteOne(sentMessageRequestedReview)]);
     }
   }));
 }
+
+const getEmojiFromState = state => {
+  switch (state) {
+    case 'changes_requested':
+      return 'x';
+
+    case 'approved':
+      return 'white_check_mark';
+
+    default:
+      return 'speech_balloon';
+  }
+};
 
 function reviewSubmitted(app, appContext) {
   app.on('pull_request_review.submitted', createHandlerPullRequestChange(appContext, {
@@ -2832,27 +2874,43 @@ function reviewSubmitted(app, appContext) {
 
       repoContext.slack.updateHome(pr.user.login);
       repoContext.slack.updateHome(reviewer.login);
-      const mention = repoContext.slack.mention(reviewer.login);
-      const prUrl = repoContext.slack.prLink(pr, context);
-      const ownerMention = repoContext.slack.mention(pr.user.login);
+      const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne({
+        'account.id': repoContext.account._id,
+        'account.type': repoContext.accountType,
+        type: 'review-requested',
+        typeId: `${pr.id}_${reviewer.id}`
+      });
+      const emoji = getEmojiFromState(state);
+
+      if (sentMessageRequestedReview) {
+        const sentTo = sentMessageRequestedReview.sentTo[0];
+        const message = sentMessageRequestedReview.message;
+        await Promise.all([repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, { ...message,
+          text: message.text.split('\n').map(l => `~${l}~`).join('\n')
+        }), repoContext.slack.addReaction(sentTo.ts, sentTo.channel, emoji), appContext.mongoStores.slackSentMessages.deleteOne(sentMessageRequestedReview)]);
+      }
 
       if (!body && state !== 'changes_requested' && state !== 'approved') {
         return;
       }
 
+      const mention = repoContext.slack.mention(reviewer.login);
+      const prUrl = repoContext.slack.prLink(pr, context);
+      const ownerMention = repoContext.slack.mention(pr.user.login);
+
       const createMessage = toOwner => {
         const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR`;
 
         if (state === 'changes_requested') {
-          return `:x: ${mention} requests changes on ${ownerPart} ${prUrl}`;
+          return `:${emoji}: ${mention} requests changes on ${ownerPart} ${prUrl}`;
         }
 
         if (state === 'approved') {
-          return `${toOwner ? ':clap: ' : ''}:white_check_mark: ${mention} approves ${ownerPart} ${prUrl}${merged ? ' and PR is merged :tada:' : ''}`;
+          return `${toOwner ? ':clap: ' : ''}:${emoji}: ${mention} approves ${ownerPart} ${prUrl}${merged ? ' and PR is merged :tada:' : ''}`;
         }
 
         const commentLink = repoContext.slack.link(reviewUrl, 'commented');
-        return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
+        return `:${emoji}: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
       };
 
       repoContext.slack.postMessage('pr-review', pr.user.id, pr.user.login, createSlackMessageWithSecondaryBlock(createMessage(true), body));
@@ -3164,7 +3222,6 @@ function initApp(app, appContext) {
   status(app, appContext);
 }
 
-/* eslint-disable max-lines */
 const createSlackHomeWorker = mongoStores => {
   const updateMember = async (github, slackClient, member) => {
     var _member$slack;

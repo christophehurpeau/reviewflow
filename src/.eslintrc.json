@@ -18,7 +18,8 @@
         "properties": "never"
       }
     ],
-    "complexity": "off"
+    "complexity": "off",
+    "max-lines": ["error", 300]
   },
   "overrides": [
     {

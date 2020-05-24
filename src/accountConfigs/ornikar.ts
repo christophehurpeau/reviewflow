@@ -1,5 +1,3 @@
-/* eslint-disable max-lines */
-
 import { Config } from './types';
 
 const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {

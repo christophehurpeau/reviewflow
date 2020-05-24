@@ -64,20 +64,49 @@ export default function reviewRequestRemoved(
 
         if (sender.login === reviewer.login) return;
 
-        if (repoContext.slack) {
-          repoContext.slack.postMessage(
-            'pr-review',
-            reviewer.id,
-            reviewer.login,
-            {
-              text: `:skull_and_crossbones: ${repoContext.slack.mention(
-                sender.login,
-              )} removed the request for your review on ${repoContext.slack.prLink(
-                pr,
-                context,
-              )}`,
-            },
-          );
+        repoContext.slack.postMessage(
+          'pr-review',
+          reviewer.id,
+          reviewer.login,
+          {
+            text: `:skull_and_crossbones: ${repoContext.slack.mention(
+              sender.login,
+            )} removed the request for your review on ${repoContext.slack.prLink(
+              pr,
+              context,
+            )}`,
+          },
+        );
+
+        const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne(
+          {
+            'account.id': repoContext.account._id,
+            'account.type': repoContext.accountType,
+            type: 'review-requested',
+            typeId: `${pr.id}_${reviewer.id}`,
+          },
+        );
+
+        if (sentMessageRequestedReview) {
+          const sentTo = sentMessageRequestedReview.sentTo[0];
+          const message = sentMessageRequestedReview.message;
+          await Promise.all([
+            repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, {
+              ...message,
+              text: message.text
+                .split('\n')
+                .map((l) => `~${l}~`)
+                .join('\n'),
+            }),
+            repoContext.slack.addReaction(
+              sentTo.ts,
+              sentTo.channel,
+              'skull_and_crossbones',
+            ),
+            appContext.mongoStores.slackSentMessages.deleteOne(
+              sentMessageRequestedReview,
+            ),
+          ]);
         }
       },
     ),

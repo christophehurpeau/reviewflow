@@ -1,7 +1,7 @@
 import { KnownBlock } from '@slack/web-api';
 import { SlackMessage } from '../../context/SlackMessage';
 
-export const createTextSecondaryBlock = (text: string): KnownBlock => ({
+export const createMrkdwnSectionBlock = (text: string): KnownBlock => ({
   type: 'section' as const,
   text: {
     type: 'mrkdwn' as const,
@@ -26,6 +26,6 @@ export const createSlackMessageWithSecondaryBlock = (
     ],
     secondaryBlocks: !secondaryBlockText
       ? undefined
-      : [createTextSecondaryBlock(secondaryBlockText)],
+      : [createMrkdwnSectionBlock(secondaryBlockText)],
   };
 };

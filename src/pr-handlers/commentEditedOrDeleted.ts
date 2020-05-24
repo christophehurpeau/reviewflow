@@ -2,7 +2,7 @@ import { Application } from 'probot';
 import { WebhookPayloadPullRequestReviewComment } from '@octokit/webhooks';
 import { AppContext } from '../context/AppContext';
 import { createHandlerPullRequestChange } from './utils';
-import { createTextSecondaryBlock } from './utils/createSlackMessageWithSecondaryBlock';
+import { createMrkdwnSectionBlock } from './utils/createSlackMessageWithSecondaryBlock';
 
 export default function prCommentEditedOrDeleted(
   app: Application,
@@ -53,7 +53,7 @@ export default function prCommentEditedOrDeleted(
             appContext.mongoStores.slackSentMessages.deleteMany(criteria),
           ]);
         } else {
-          const secondaryBlocks = [createTextSecondaryBlock(comment.body)];
+          const secondaryBlocks = [createMrkdwnSectionBlock(comment.body)];
 
           await Promise.all([
             Promise.all(

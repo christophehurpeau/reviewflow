@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import { WebClient } from '@slack/web-api';
 import { Octokit } from 'probot';
 import { MongoStores, Org, OrgMember } from '../mongo';

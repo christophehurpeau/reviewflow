@@ -6,6 +6,17 @@ import { updateReviewStatus } from './actions/updateReviewStatus';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 import { createSlackMessageWithSecondaryBlock } from './utils/createSlackMessageWithSecondaryBlock';
 
+const getEmojiFromState = (state: string): string => {
+  switch (state) {
+    case 'changes_requested':
+      return 'x';
+    case 'approved':
+      return 'white_check_mark';
+    default:
+      return 'speech_balloon';
+  }
+};
+
 export default function reviewSubmitted(
   app: Application,
   appContext: AppContext,
@@ -29,8 +40,9 @@ export default function reviewSubmitted(
           repoContext,
         );
         const followers = reviewers.filter(
-          (user, index) => user.id !== reviewer.id && user.id !== pr.user.id,
+          (user) => user.id !== reviewer.id && user.id !== pr.user.id,
         );
+
         if (pr.requested_reviewers) {
           followers.push(
             ...pr.requested_reviewers.filter((rr) => {
@@ -104,30 +116,59 @@ export default function reviewSubmitted(
           repoContext.slack.updateHome(pr.user.login);
           repoContext.slack.updateHome(reviewer.login);
 
-          const mention = repoContext.slack.mention(reviewer.login);
-          const prUrl = repoContext.slack.prLink(pr, context);
-          const ownerMention = repoContext.slack.mention(pr.user.login);
+          const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne(
+            {
+              'account.id': repoContext.account._id,
+              'account.type': repoContext.accountType,
+              type: 'review-requested',
+              typeId: `${pr.id}_${reviewer.id}`,
+            },
+          );
+
+          const emoji = getEmojiFromState(state);
+
+          if (sentMessageRequestedReview) {
+            const sentTo = sentMessageRequestedReview.sentTo[0];
+            const message = sentMessageRequestedReview.message;
+            await Promise.all([
+              repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, {
+                ...message,
+                text: message.text
+                  .split('\n')
+                  .map((l) => `~${l}~`)
+                  .join('\n'),
+              }),
+              repoContext.slack.addReaction(sentTo.ts, sentTo.channel, emoji),
+              appContext.mongoStores.slackSentMessages.deleteOne(
+                sentMessageRequestedReview,
+              ),
+            ]);
+          }
 
           if (!body && state !== 'changes_requested' && state !== 'approved') {
             return;
           }
 
+          const mention = repoContext.slack.mention(reviewer.login);
+          const prUrl = repoContext.slack.prLink(pr, context);
+          const ownerMention = repoContext.slack.mention(pr.user.login);
+
           const createMessage = (toOwner?: boolean): string => {
             const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR`;
 
             if (state === 'changes_requested') {
-              return `:x: ${mention} requests changes on ${ownerPart} ${prUrl}`;
+              return `:${emoji}: ${mention} requests changes on ${ownerPart} ${prUrl}`;
             }
             if (state === 'approved') {
               return `${
                 toOwner ? ':clap: ' : ''
-              }:white_check_mark: ${mention} approves ${ownerPart} ${prUrl}${
+              }:${emoji}: ${mention} approves ${ownerPart} ${prUrl}${
                 merged ? ' and PR is merged :tada:' : ''
               }`;
             }
 
             const commentLink = repoContext.slack.link(reviewUrl, 'commented');
-            return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
+            return `:${emoji}: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
           };
 
           repoContext.slack.postMessage(
@@ -141,6 +182,7 @@ export default function reviewSubmitted(
             createMessage(false),
             body,
           );
+
           followers.forEach((follower) => {
             repoContext.slack.postMessage(
               'pr-review-follow',

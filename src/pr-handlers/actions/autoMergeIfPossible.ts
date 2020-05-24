@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import { Context, Octokit } from 'probot';
 // eslint-disable-next-line import/no-cycle
 import { RepoContext } from '../../context/repoContext';
@@ -9,7 +8,7 @@ import hasLabelInPR from './utils/hasLabelInPR';
 const hasFailedStatusOrChecks = async (
   pr: Octokit.PullsGetResponse,
   context: Context<any>,
-) => {
+): Promise<boolean> => {
   const checks = await context.github.checks.listForRef(
     context.repo({
       ref: pr.head.sha,

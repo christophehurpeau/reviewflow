@@ -1,5 +1,3 @@
-/* eslint-disable max-lines */
-
 import { Lock } from 'lock';
 import { Context } from 'probot';
 import { accountConfigs, Config, defaultConfig } from '../accountConfigs';

@@ -37,19 +37,28 @@ export default function reviewRequested(
         if (sender.login === reviewer.login) return;
 
         if (!shouldWait && repoContext.slack) {
-          repoContext.slack.postMessage(
+          const text = `:eyes: ${repoContext.slack.mention(
+            sender.login,
+          )} requests your review on ${repoContext.slack.prLink(
+            pr,
+            context,
+          )} !\n> ${pr.title}`;
+          const message = { text };
+          const result = await repoContext.slack.postMessage(
             'pr-review',
             reviewer.id,
             reviewer.login,
-            {
-              text: `:eyes: ${repoContext.slack.mention(
-                sender.login,
-              )} requests your review on ${repoContext.slack.prLink(
-                pr,
-                context,
-              )} !\n> ${pr.title}`,
-            },
+            message,
           );
+          if (result) {
+            await appContext.mongoStores.slackSentMessages.insertOne({
+              type: 'review-requested',
+              typeId: `${pr.id}_${reviewer.id}`,
+              message,
+              account: repoContext.accountEmbed,
+              sentTo: [result],
+            });
+          }
         }
       },
     ),

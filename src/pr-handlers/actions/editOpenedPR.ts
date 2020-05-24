@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import Webhooks from '@octokit/webhooks';
 import { StatusError, StatusInfo } from '../../accountConfigs/types';
 import { PRHandler } from '../utils';

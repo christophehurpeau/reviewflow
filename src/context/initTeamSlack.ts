@@ -171,6 +171,18 @@ export const initTeamSlack = async <GroupNames extends string>(
         channel,
       });
     },
+    addReaction: async (
+      ts: string,
+      channel: string,
+      name: string,
+    ): Promise<void> => {
+      context.log.debug('slack: add reaction', { ts, channel, name });
+      await slackClient.reactions.add({
+        timestamp: ts,
+        channel,
+        name,
+      });
+    },
     link: createLink,
     prLink: <T extends { repository: Webhooks.PayloadRepository }>(
       pr: Octokit.PullsGetResponse,

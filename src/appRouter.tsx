@@ -1,5 +1,3 @@
-/* eslint-disable max-lines */
-
 import { Application } from 'probot';
 import cookieParser from 'cookie-parser';
 import { AppContext } from './context/AppContext';
