@@ -1,3 +1,12 @@
+# [1.49.0](https://github.com/christophehurpeau/reviewflow/compare/v1.48.0...v1.49.0) (2020-05-24)
+
+
+### Features
+
+* diff comment vs reply ([9fd82f3](https://github.com/christophehurpeau/reviewflow/commit/9fd82f38eac764b2db61ccf52fa60533b3b79c33))
+
+
+
 # [1.48.0](https://github.com/christophehurpeau/reviewflow/compare/v1.47.2...v1.48.0) (2020-05-24)
 
 
