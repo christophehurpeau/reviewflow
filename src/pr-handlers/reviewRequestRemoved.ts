@@ -12,6 +12,7 @@ export default function reviewRequestRemoved(
     'pull_request.review_request_removed',
     createHandlerPullRequestChange(
       appContext,
+      { refetchPr: true },
       async (pr, context, repoContext): Promise<void> => {
         const sender = context.payload.sender;
         const reviewer = (context.payload as any).requested_reviewer;

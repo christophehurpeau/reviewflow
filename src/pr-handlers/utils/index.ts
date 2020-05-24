@@ -14,11 +14,16 @@ export type CallbackWithPRAndRepoContext = (
   repoContext: RepoContext,
 ) => void | Promise<void>;
 
+interface Options {
+  refetchPr: boolean;
+}
+
 export const handlerPullRequestChange = async <
   T extends { pull_request: { id: number; number: number } }
 >(
   appContext: AppContext,
   context: Context<T>,
+  options: Options,
   callback: CallbackWithPRAndRepoContext,
 ): Promise<void> => {
   let pullRequest = context.payload.pull_request;
@@ -39,6 +44,10 @@ export const handlerPullRequestChange = async <
     String(pullRequest.id),
     pullRequest.number,
     async () => {
+      if (!options.refetchPr) {
+        return callback(pullRequest as any, repoContext);
+      }
+
       const prResult = await context.github.pulls.get(
         context.repo({
           pull_number: pullRequest.number,
@@ -60,10 +69,14 @@ export const createHandlerPullRequestChange = <
   T extends { pull_request: { id: number; number: number } }
 >(
   appContext: AppContext,
+  options: Options,
   callback: CallbackPRAndContextAndRepoContext<T>,
 ) => (context: Context<T>) => {
-  return handlerPullRequestChange(appContext, context, (pr, repoContext) =>
-    callback(pr, context, repoContext),
+  return handlerPullRequestChange(
+    appContext,
+    context,
+    options,
+    (pr, repoContext) => callback(pr, context, repoContext),
   );
 };
 

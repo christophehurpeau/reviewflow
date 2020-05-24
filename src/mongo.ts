@@ -1,4 +1,5 @@
 import { MongoStore, MongoConnection, MongoModel } from 'liwi-mongo';
+import { SlackMessage } from './context/SlackMessage';
 import { MessageCategory } from './dm/MessageCategory';
 
 // export interface PrEventsModel extends MongoModel {
@@ -8,6 +9,16 @@ import { MessageCategory } from './dm/MessageCategory';
 //   prNumber: string;
 //   event: string;
 // }
+
+export type AccountType = 'Organization' | 'User';
+
+export interface AccountEmbed {
+  id: number;
+  login: string;
+  type: AccountType;
+}
+
+type AccountEmbedWithoutType = Omit<AccountEmbed, 'type'>;
 
 export interface UserDmSettings extends MongoModel {
   userId: number;
@@ -30,16 +41,33 @@ export interface Org extends BaseAccount {
 }
 
 export interface OrgMember extends MongoModel {
-  org: { id: number; login: string };
-  user: { id: number; login: string };
+  org: AccountEmbedWithoutType;
+  user: AccountEmbedWithoutType;
   slack?: { id: string };
 }
 
 export interface OrgTeam extends MongoModel {
-  org: { id: number; login: string };
+  org: AccountEmbedWithoutType;
   name: string;
   slug: string;
   description: string;
+}
+
+export type SlackMessageType =
+  | 'review-comment'
+  | 'issue-comment'
+  | 'review-submitted'
+  | 'review-requested';
+
+export interface SlackSentMessage extends MongoModel {
+  type: SlackMessageType;
+  typeId: number;
+  account: AccountEmbed;
+  message: SlackMessage;
+  sentTo: {
+    channel: string;
+    ts: string;
+  }[];
 }
 
 export interface MongoStores {
@@ -49,6 +77,7 @@ export interface MongoStores {
   orgs: MongoStore<Org>;
   orgMembers: MongoStore<OrgMember>;
   orgTeams: MongoStore<OrgTeam>;
+  slackSentMessages: MongoStore<SlackSentMessage>;
   // prEvents: MongoStore<PrEventsModel>;
 }
 
@@ -101,6 +130,31 @@ export default function init(): MongoStores {
     coll.createIndex({ 'org.id': 1 });
   });
 
+  const slackSentMessages = new MongoStore<SlackSentMessage>(
+    connection,
+    'slackSentMessages',
+  );
+  slackSentMessages.collection.then((coll) => {
+    coll.createIndex({
+      'account.id': 1,
+      'account.type': 1,
+      type: 1,
+      typeId: 1,
+    });
+    // remove older than 14 days
+    coll.deleteMany({
+      created: { $lt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) },
+    });
+  });
+
   // return { connection, prEvents };
-  return { connection, userDmSettings, users, orgs, orgMembers, orgTeams };
+  return {
+    connection,
+    userDmSettings,
+    users,
+    orgs,
+    orgMembers,
+    orgTeams,
+    slackSentMessages,
+  };
 }

@@ -9,6 +9,7 @@ export default function closed(app: Application, appContext: AppContext): void {
     'pull_request.reopened',
     createHandlerPullRequestChange(
       appContext,
+      { refetchPr: true },
       async (pr, context, repoContext): Promise<void> => {
         await Promise.all([
           updateReviewStatus(pr, context, repoContext, 'dev', {

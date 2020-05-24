@@ -1,14 +1,12 @@
 import { Context } from 'probot';
 import { Lock } from 'lock';
-import { Org, User } from '../mongo';
+import { Org, User, AccountEmbed, AccountType } from '../mongo';
 import { Config } from '../accountConfigs';
 import { ExcludesFalsy } from '../utils/ExcludesFalsy';
 import { initTeamSlack, TeamSlack } from './initTeamSlack';
 import { getKeys } from './utils';
 import { getOrCreateAccount, AccountInfo } from './getOrCreateAccount';
 import { AppContext } from './AppContext';
-
-type AccountType = 'Organization' | 'User';
 
 export interface AccountContext<
   GroupNames extends string = any,
@@ -17,6 +15,7 @@ export interface AccountContext<
   config: Config<GroupNames, TeamNames>;
   accountType: AccountType;
   account: Org | User;
+  accountEmbed: AccountEmbed;
   slack: TeamSlack;
   getReviewerGroup: (githubLogin: string) => GroupNames | undefined;
   getReviewerGroups: (githubLogins: string[]) => GroupNames[];
@@ -81,6 +80,11 @@ const initAccountContext = async (
   return {
     config,
     account,
+    accountEmbed: {
+      id: accountInfo.id,
+      login: accountInfo.login,
+      type: accountInfo.type as AccountType,
+    },
     accountType: accountInfo.type as AccountType,
     lock: (callback: () => Promise<void> | void): Promise<void> => {
       return new Promise((resolve, reject) => {

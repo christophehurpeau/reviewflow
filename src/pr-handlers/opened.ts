@@ -12,6 +12,7 @@ export default function opened(app: Application, appContext: AppContext): void {
     'pull_request.opened',
     createHandlerPullRequestChange(
       appContext,
+      { refetchPr: true },
       async (pr, context, repoContext): Promise<void> => {
         const fromRenovate = pr.head.ref.startsWith('renovate/');
 

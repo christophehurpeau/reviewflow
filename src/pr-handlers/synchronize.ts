@@ -14,6 +14,7 @@ export default function synchronize(
     'pull_request.synchronize',
     createHandlerPullRequestChange(
       appContext,
+      { refetchPr: true },
       async (pr, context, repoContext): Promise<void> => {
         // old and new sha
         // const { before, after } = context.payload;

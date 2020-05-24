@@ -8,10 +8,9 @@ import {
 import pullRequestEdited from '../../fixtures/pull_request_30.edited.json';
 // import pullRequestCommits from '../../fixtures/pull_request_30_commits.json';
 import * as initTeamSlack from '../context/initTeamSlack';
+import { voidTeamSlack } from '../context/voidTeamSlack';
 
-jest
-  .spyOn(initTeamSlack, 'initTeamSlack')
-  .mockResolvedValue(initTeamSlack.voidTeamSlack());
+jest.spyOn(initTeamSlack, 'initTeamSlack').mockResolvedValue(voidTeamSlack());
 
 nock.disableNetConnect();
 

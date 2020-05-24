@@ -3,7 +3,8 @@ import Webhooks from '@octokit/webhooks';
 import openedHandler from './pr-handlers/opened';
 import closedHandler from './pr-handlers/closed';
 import reopenedHandler from './pr-handlers/reopened';
-import comment from './pr-handlers/comment';
+import commentCreated from './pr-handlers/commentCreated';
+import commentEditedOrDeleted from './pr-handlers/commentEditedOrDeleted';
 import reviewRequestedHandler from './pr-handlers/reviewRequested';
 import reviewRequestRemovedHandler from './pr-handlers/reviewRequestRemoved';
 import reviewSubmittedHandler from './pr-handlers/reviewSubmitted';
@@ -85,7 +86,9 @@ export default function initApp(
   synchronizeHandler(app, appContext);
 
   /* https://developer.github.com/webhooks/event-payloads/#pull_request_review_comment */
-  comment(app, appContext);
+  /* https://developer.github.com/webhooks/event-payloads/#issue_comment */
+  commentCreated(app, appContext);
+  commentEditedOrDeleted(app, appContext);
 
   /* https://developer.github.com/webhooks/event-payloads/#check_run */
   checkrunCompleted(app, appContext);

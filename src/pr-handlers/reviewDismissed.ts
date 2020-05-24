@@ -12,6 +12,7 @@ export default function reviewDismissed(
     'pull_request_review.dismissed',
     createHandlerPullRequestChange(
       appContext,
+      { refetchPr: true },
       async (pr, context, repoContext): Promise<void> => {
         const sender = context.payload.sender;
         const reviewer = (context.payload as any).review.user;

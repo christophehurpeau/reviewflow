@@ -11,6 +11,7 @@ export default function reviewRequested(
     'pull_request.review_requested',
     createHandlerPullRequestChange(
       appContext,
+      { refetchPr: true },
       async (pr, context, repoContext): Promise<void> => {
         const sender = context.payload.sender;
 

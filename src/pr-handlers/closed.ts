@@ -9,6 +9,7 @@ export default function closed(app: Application, appContext: AppContext): void {
     'pull_request.closed',
     createHandlerPullRequestChange(
       appContext,
+      { refetchPr: true },
       async (pr, context, repoContext): Promise<void> => {
         const repo = context.payload.repository;
 

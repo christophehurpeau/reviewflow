@@ -4,7 +4,7 @@ import { createHandlerPullRequestChange } from './utils';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
-import { postSlackMessageWithSecondaryBlock } from './utils/postSlackMessageWithSecondaryBlock';
+import { createSlackMessageWithSecondaryBlock } from './utils/createSlackMessageWithSecondaryBlock';
 
 export default function reviewSubmitted(
   app: Application,
@@ -14,6 +14,7 @@ export default function reviewSubmitted(
     'pull_request_review.submitted',
     createHandlerPullRequestChange(
       appContext,
+      { refetchPr: true },
       async (pr, context, repoContext): Promise<void> => {
         const {
           user: reviewer,
@@ -30,6 +31,17 @@ export default function reviewSubmitted(
         const followers = reviewers.filter(
           (user, index) => user.id !== reviewer.id && user.id !== pr.user.id,
         );
+        if (pr.requested_reviewers) {
+          followers.push(
+            ...pr.requested_reviewers.filter((rr) => {
+              return (
+                !followers.find((f) => f.id === rr.id) &&
+                rr.id !== reviewer.id &&
+                rr.id !== pr.user.id
+              );
+            }),
+          );
+        }
 
         if (!reviewByOwner) {
           const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
@@ -118,23 +130,23 @@ export default function reviewSubmitted(
             return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
           };
 
-          postSlackMessageWithSecondaryBlock(
-            repoContext,
+          repoContext.slack.postMessage(
             'pr-review',
             pr.user.id,
             pr.user.login,
-            createMessage(true),
-            body,
+            createSlackMessageWithSecondaryBlock(createMessage(true), body),
           );
 
+          const message = createSlackMessageWithSecondaryBlock(
+            createMessage(false),
+            body,
+          );
           followers.forEach((follower) => {
-            postSlackMessageWithSecondaryBlock(
-              repoContext,
+            repoContext.slack.postMessage(
               'pr-review-follow',
               follower.id,
               follower.login,
-              createMessage(false),
-              body,
+              message,
             );
           });
         } else if (body) {
@@ -142,16 +154,18 @@ export default function reviewSubmitted(
           const prUrl = repoContext.slack.prLink(pr, context);
 
           const commentLink = repoContext.slack.link(reviewUrl, 'commented');
-          const message = `:speech_balloon: ${mention} ${commentLink} on his PR ${prUrl}`;
+
+          const message = createSlackMessageWithSecondaryBlock(
+            `:speech_balloon: ${mention} ${commentLink} on his PR ${prUrl}`,
+            body,
+          );
 
           followers.forEach((follower) => {
-            postSlackMessageWithSecondaryBlock(
-              repoContext,
+            repoContext.slack.postMessage(
               'pr-review-follow',
               follower.id,
               follower.login,
               message,
-              body,
             );
           });
         }

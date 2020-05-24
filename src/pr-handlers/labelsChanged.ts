@@ -27,6 +27,7 @@ export default function labelsChanged(
       await handlerPullRequestChange(
         appContext,
         context,
+        { refetchPr: true },
         async (pr, repoContext) => {
           const label = (context.payload as any).label;
           if (fromRenovate) {

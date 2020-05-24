@@ -1,9 +1,13 @@
+/* eslint-disable max-lines */
 import { Application, Octokit, Context } from 'probot';
 import { WebhookPayloadPullRequestReviewComment } from '@octokit/webhooks';
+import { AccountEmbed } from '../mongo';
+import { SlackMessage } from '../context/SlackMessage';
+import { PostSlackMessageResult } from '../context/TeamSlack';
 import { contextPr } from '../context/utils';
 import { AppContext } from '../context/AppContext';
 import { createHandlerPullRequestChange } from './utils';
-import { postSlackMessageWithSecondaryBlock } from './utils/postSlackMessageWithSecondaryBlock';
+import { createSlackMessageWithSecondaryBlock } from './utils/createSlackMessageWithSecondaryBlock';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 import { parseMentions } from './utils/parseMentions';
 
@@ -51,10 +55,29 @@ const getUsersInThread = (
   return users;
 };
 
-export default function prComment(
+export default function prCommentCreated(
   app: Application,
   appContext: AppContext,
 ): void {
+  const saveInDb = async (
+    type: 'review-comment' | 'issue-comment',
+    commentId: number,
+    accountEmbed: AccountEmbed,
+    results: PostSlackMessageResult[],
+    message: SlackMessage,
+  ): Promise<void> => {
+    const filtered = results.filter((res) => res !== null);
+    if (filtered.length === 0) return;
+
+    await appContext.mongoStores.slackSentMessages.insertOne({
+      type,
+      typeId: commentId,
+      message,
+      account: accountEmbed,
+      sentTo: filtered,
+    });
+  };
+
   app.on(
     [
       'pull_request_review_comment.created',
@@ -64,8 +87,12 @@ export default function prComment(
     ],
     createHandlerPullRequestChange<WebhookPayloadPullRequestReviewComment>(
       appContext,
+      { refetchPr: true },
       async (pr, context, repoContext): Promise<void> => {
         const { comment } = context.payload;
+        const type = comment.pull_request_review_id
+          ? 'review-comment'
+          : 'issue-comment';
 
         const body = comment.body;
         if (!body) return;
@@ -79,6 +106,18 @@ export default function prComment(
         const followers = reviewers.filter(
           (u) => u.id !== pr.user.id && u.id !== comment.user.id,
         );
+
+        if (pr.requested_reviewers) {
+          followers.push(
+            ...pr.requested_reviewers.filter((rr) => {
+              return (
+                !followers.find((f) => f.id === rr.id) &&
+                rr.id !== comment.user.id &&
+                rr.id !== pr.user.id
+              );
+            }),
+          );
+        }
 
         const usersInThread = getUsersInThread(discussion).filter(
           (u) =>
@@ -107,55 +146,91 @@ export default function prComment(
           return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
         };
 
+        const promisesOwner = [];
+        const promisesNotOwner = [];
+
         if (!commentByOwner) {
-          postSlackMessageWithSecondaryBlock(
-            repoContext,
-            'pr-comment',
-            pr.user.id,
-            pr.user.login,
+          const slackMessage = createSlackMessageWithSecondaryBlock(
             createMessage(true),
             body,
           );
+
+          promisesOwner.push(
+            repoContext.slack
+              .postMessage(
+                'pr-comment',
+                pr.user.id,
+                pr.user.login,
+                slackMessage,
+              )
+              .then((res) =>
+                saveInDb(
+                  type,
+                  comment.id,
+                  repoContext.accountEmbed,
+                  [res],
+                  slackMessage,
+                ),
+              ),
+          );
         }
 
-        followers.forEach((follower) => {
-          postSlackMessageWithSecondaryBlock(
-            repoContext,
-            'pr-comment-follow',
-            follower.id,
-            follower.login,
-            createMessage(false),
-            body,
-          );
-        });
+        const message = createSlackMessageWithSecondaryBlock(
+          createMessage(false),
+          body,
+        );
 
-        usersInThread.forEach((user) => {
-          postSlackMessageWithSecondaryBlock(
-            repoContext,
-            'pr-comment-thread',
-            user.id,
-            user.login,
-            createMessage(false),
-            body,
-          );
-        });
+        promisesNotOwner.push(
+          ...followers.map((follower) =>
+            repoContext.slack.postMessage(
+              'pr-comment-follow',
+              follower.id,
+              follower.login,
+              message,
+            ),
+          ),
+        );
+
+        promisesNotOwner.push(
+          ...usersInThread.map((user) =>
+            repoContext.slack.postMessage(
+              'pr-comment-thread',
+              user.id,
+              user.login,
+              message,
+            ),
+          ),
+        );
 
         if (mentions.length !== 0) {
-          appContext.mongoStores.users
+          await appContext.mongoStores.users
             .findAll({ login: { $in: mentions } })
             .then((users) => {
-              users.forEach((u) => {
-                postSlackMessageWithSecondaryBlock(
-                  repoContext,
-                  'pr-comment-mention',
-                  u._id as any, // TODO _id is number
-                  u.login,
-                  createMessage(false),
-                  body,
-                );
-              });
+              promisesNotOwner.push(
+                ...users.map((u) =>
+                  repoContext.slack.postMessage(
+                    'pr-comment-mention',
+                    u._id as any, // TODO _id is number
+                    u.login,
+                    message,
+                  ),
+                ),
+              );
             });
         }
+
+        await Promise.all([
+          Promise.all(promisesOwner),
+          Promise.all(promisesNotOwner).then((results) =>
+            saveInDb(
+              type,
+              comment.id,
+              repoContext.accountEmbed,
+              results,
+              message,
+            ),
+          ),
+        ]);
       },
     ),
   );

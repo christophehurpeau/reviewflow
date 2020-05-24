@@ -73,6 +73,21 @@ function init() {
     coll.createIndex({
       'org.id': 1
     });
+  });
+  const slackSentMessages = new liwiMongo.MongoStore(connection, 'slackSentMessages');
+  slackSentMessages.collection.then(coll => {
+    coll.createIndex({
+      'account.id': 1,
+      'account.type': 1,
+      type: 1,
+      typeId: 1
+    }); // remove older than 14 days
+
+    coll.deleteMany({
+      created: {
+        $lt: new Date(Date.now() - 1209600000)
+      }
+    });
   }); // return { connection, prEvents };
 
   return {
@@ -81,7 +96,8 @@ function init() {
     users,
     orgs,
     orgMembers,
-    orgTeams
+    orgTeams,
+    slackSentMessages
   };
 }
 
@@ -1404,9 +1420,12 @@ const voidTeamSlack = () => ({
   mention: () => '',
   link: () => '',
   postMessage: () => Promise.resolve(null),
+  updateMessage: () => Promise.resolve(null),
+  deleteMessage: () => Promise.resolve(undefined),
   prLink: () => '',
   updateHome: () => undefined
 });
+
 const initTeamSlack = async ({
   mongoStores,
   slackHome
@@ -1504,7 +1523,7 @@ const initTeamSlack = async ({
       return `<@${user.member.id}>`;
     },
     postMessage: async (category, githubId, githubLogin, message) => {
-      context.log.debug('send slack', {
+      context.log.debug('slack: post message', {
         category,
         githubLogin,
         message
@@ -1526,8 +1545,41 @@ const initTeamSlack = async ({
       });
       if (!result.ok) return null;
       return {
-        ts: result.ts
+        ts: result.ts,
+        channel: result.channel
       };
+    },
+    updateMessage: async (ts, channel, message) => {
+      context.log.debug('slack: update message', {
+        ts,
+        channel,
+        message
+      });
+      if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
+      const result = await slackClient.chat.update({
+        ts,
+        channel,
+        text: message.text,
+        blocks: message.blocks,
+        attachments: message.secondaryBlocks ? [{
+          blocks: message.secondaryBlocks
+        }] : undefined
+      });
+      if (!result.ok) return null;
+      return {
+        ts: result.ts,
+        channel: result.channel
+      };
+    },
+    deleteMessage: async (ts, channel) => {
+      context.log.debug('slack: delete message', {
+        ts,
+        channel
+      });
+      await slackClient.chat.delete({
+        ts,
+        channel
+      });
     },
     link: createLink,
     prLink: (pr, context) => {
@@ -1613,6 +1665,11 @@ const initAccountContext = async (appContext, context, config, accountInfo) => {
   return {
     config,
     account,
+    accountEmbed: {
+      id: accountInfo.id,
+      login: accountInfo.login,
+      type: accountInfo.type
+    },
     accountType: accountInfo.type,
     lock: callback => {
       return new Promise((resolve, reject) => {
@@ -1850,7 +1907,7 @@ const obtainRepoContext = (appContext, context) => {
   });
 };
 
-const handlerPullRequestChange = async (appContext, context, callback) => {
+const handlerPullRequestChange = async (appContext, context, options, callback) => {
   let pullRequest = context.payload.pull_request;
 
   if (!pullRequest) {
@@ -1865,14 +1922,18 @@ const handlerPullRequestChange = async (appContext, context, callback) => {
   const repoContext = await obtainRepoContext(appContext, context);
   if (!repoContext) return;
   return repoContext.lockPROrPRS(String(pullRequest.id), pullRequest.number, async () => {
+    if (!options.refetchPr) {
+      return callback(pullRequest, repoContext);
+    }
+
     const prResult = await context.github.pulls.get(context.repo({
       pull_number: pullRequest.number
     }));
     await callback(prResult.data, repoContext);
   });
 };
-const createHandlerPullRequestChange = (appContext, callback) => context => {
-  return handlerPullRequestChange(appContext, context, (pr, repoContext) => callback(pr, context, repoContext));
+const createHandlerPullRequestChange = (appContext, options, callback) => context => {
+  return handlerPullRequestChange(appContext, context, options, (pr, repoContext) => callback(pr, context, repoContext));
 };
 const createHandlerPullRequestsChange = (appContext, getPullRequests, callback) => async context => {
   const repoContext = await obtainRepoContext(appContext, context);
@@ -2377,7 +2438,9 @@ const readCommitsAndUpdateInfos = async (pr, context, repoContext) => {
 };
 
 function opened(app, appContext) {
-  app.on('pull_request.opened', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
+  app.on('pull_request.opened', createHandlerPullRequestChange(appContext, {
+    refetchPr: true
+  }, async (pr, context, repoContext) => {
     const fromRenovate = pr.head.ref.startsWith('renovate/');
     await Promise.all([autoAssignPRToCreator(pr, context, repoContext), editOpenedPR(pr, context, repoContext).then(() => {
       return readCommitsAndUpdateInfos(pr, context, repoContext);
@@ -2395,7 +2458,9 @@ function opened(app, appContext) {
 }
 
 function closed(app, appContext) {
-  app.on('pull_request.closed', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
+  app.on('pull_request.closed', createHandlerPullRequestChange(appContext, {
+    refetchPr: true
+  }, async (pr, context, repoContext) => {
     const repo = context.payload.repository;
 
     if (pr.merged) {
@@ -2412,7 +2477,9 @@ function closed(app, appContext) {
 }
 
 function closed$1(app, appContext) {
-  app.on('pull_request.reopened', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
+  app.on('pull_request.reopened', createHandlerPullRequestChange(appContext, {
+    refetchPr: true
+  }, async (pr, context, repoContext) => {
     await Promise.all([updateReviewStatus(pr, context, repoContext, 'dev', {
       add: ['needsReview'],
       remove: ['approved']
@@ -2420,8 +2487,15 @@ function closed$1(app, appContext) {
   }));
 }
 
-const postSlackMessageWithSecondaryBlock = (repoContext, category, userId, userLogin, message, secondaryBlockText) => {
-  return repoContext.slack.postMessage(category, userId, userLogin, {
+const createTextSecondaryBlock = text => ({
+  type: 'section',
+  text: {
+    type: 'mrkdwn',
+    text
+  }
+});
+const createSlackMessageWithSecondaryBlock = (message, secondaryBlockText) => {
+  return {
     text: message,
     blocks: [{
       type: 'section',
@@ -2430,14 +2504,8 @@ const postSlackMessageWithSecondaryBlock = (repoContext, category, userId, userL
         text: message
       }
     }],
-    secondaryBlocks: !secondaryBlockText ? undefined : [{
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: secondaryBlockText
-      }
-    }]
-  });
+    secondaryBlocks: !secondaryBlockText ? undefined : [createTextSecondaryBlock(secondaryBlockText)]
+  };
 };
 
 const getReviewersAndReviewStates = async (context, repoContext) => {
@@ -2506,6 +2574,8 @@ const parseMentions = body => {
   return parse(body).mentions.map(m => m.user);
 };
 
+/* eslint-disable max-lines */
+
 const getDiscussion = async (context, comment) => {
   if (!comment.in_reply_to_id) return [comment];
   return context.github.paginate(context.github.pulls.listComments.endpoint.merge(contextPr(context)), ({
@@ -2537,13 +2607,28 @@ const getUsersInThread = discussion => {
   return users;
 };
 
-function prComment(app, appContext) {
+function prCommentCreated(app, appContext) {
+  const saveInDb = async (type, commentId, accountEmbed, results, message) => {
+    const filtered = results.filter(res => res !== null);
+    if (filtered.length === 0) return;
+    await appContext.mongoStores.slackSentMessages.insertOne({
+      type,
+      typeId: commentId,
+      message,
+      account: accountEmbed,
+      sentTo: filtered
+    });
+  };
+
   app.on(['pull_request_review_comment.created', // comments without review and without path are sent with issue_comment.created.
   // createHandlerPullRequestChange checks if pull_request event is present, removing real issues comments.
-  'issue_comment.created'], createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
+  'issue_comment.created'], createHandlerPullRequestChange(appContext, {
+    refetchPr: true
+  }, async (pr, context, repoContext) => {
     const {
       comment
     } = context.payload;
+    const type = comment.pull_request_review_id ? 'review-comment' : 'issue-comment';
     const body = comment.body;
     if (!body) return;
     const commentByOwner = pr.user.login === comment.user.login;
@@ -2551,6 +2636,13 @@ function prComment(app, appContext) {
       reviewers
     }] = await Promise.all([getDiscussion(context, comment), getReviewersAndReviewStates(context, repoContext)]);
     const followers = reviewers.filter(u => u.id !== pr.user.id && u.id !== comment.user.id);
+
+    if (pr.requested_reviewers) {
+      followers.push(...pr.requested_reviewers.filter(rr => {
+        return !followers.find(f => f.id === rr.id) && rr.id !== comment.user.id && rr.id !== pr.user.id;
+      }));
+    }
+
     const usersInThread = getUsersInThread(discussion).filter(u => u.id !== pr.user.id && u.id !== comment.user.id && !followers.find(f => f.id === u.id));
     const mentions = getMentions(discussion).filter(m => m !== pr.user.login && m !== comment.user.login && !followers.find(f => f.login === m) && !usersInThread.find(u => u.login === m));
     const mention = repoContext.slack.mention(comment.user.login);
@@ -2563,34 +2655,71 @@ function prComment(app, appContext) {
       return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
     };
 
+    const promisesOwner = [];
+    const promisesNotOwner = [];
+
     if (!commentByOwner) {
-      postSlackMessageWithSecondaryBlock(repoContext, 'pr-comment', pr.user.id, pr.user.login, createMessage(true), body);
+      const slackMessage = createSlackMessageWithSecondaryBlock(createMessage(true), body);
+      promisesOwner.push(repoContext.slack.postMessage('pr-comment', pr.user.id, pr.user.login, slackMessage).then(res => saveInDb(type, comment.id, repoContext.accountEmbed, [res], slackMessage)));
     }
 
-    followers.forEach(follower => {
-      postSlackMessageWithSecondaryBlock(repoContext, 'pr-comment-follow', follower.id, follower.login, createMessage(false), body);
-    });
-    usersInThread.forEach(user => {
-      postSlackMessageWithSecondaryBlock(repoContext, 'pr-comment-thread', user.id, user.login, createMessage(false), body);
-    });
+    const message = createSlackMessageWithSecondaryBlock(createMessage(false), body);
+    promisesNotOwner.push(...followers.map(follower => repoContext.slack.postMessage('pr-comment-follow', follower.id, follower.login, message)));
+    promisesNotOwner.push(...usersInThread.map(user => repoContext.slack.postMessage('pr-comment-thread', user.id, user.login, message)));
 
     if (mentions.length !== 0) {
-      appContext.mongoStores.users.findAll({
+      await appContext.mongoStores.users.findAll({
         login: {
           $in: mentions
         }
       }).then(users => {
-        users.forEach(u => {
-          postSlackMessageWithSecondaryBlock(repoContext, 'pr-comment-mention', u._id, // TODO _id is number
-          u.login, createMessage(false), body);
-        });
+        promisesNotOwner.push(...users.map(u => repoContext.slack.postMessage('pr-comment-mention', u._id, // TODO _id is number
+        u.login, message)));
       });
+    }
+
+    await Promise.all([Promise.all(promisesOwner), Promise.all(promisesNotOwner).then(results => saveInDb(type, comment.id, repoContext.accountEmbed, results, message))]);
+  }));
+}
+
+function prCommentEditedOrDeleted(app, appContext) {
+  app.on(['pull_request_review_comment.edited', 'pull_request_review_comment.deleted', // comments without review and without path are sent with issue_comment.created.
+  // createHandlerPullRequestChange checks if pull_request event is present, removing real issues comments.
+  'issue_comment.edited', 'issue_comment.deleted'], createHandlerPullRequestChange(appContext, {
+    refetchPr: false
+  }, async (pr, context, repoContext) => {
+    const {
+      comment
+    } = context.payload;
+    const type = comment.pull_request_review_id ? 'review-comment' : 'issue-comment';
+    const criteria = {
+      'account.id': repoContext.account._id,
+      'account.type': repoContext.accountType,
+      type,
+      typeId: comment.id
+    };
+    const sentMessages = await appContext.mongoStores.slackSentMessages.findAll(criteria);
+    if (sentMessages.length === 0) return;
+
+    if (context.payload.action === 'deleted') {
+      await Promise.all([Promise.all(sentMessages.map(sentMessage => Promise.all(sentMessage.sentTo.map(sentTo => repoContext.slack.deleteMessage(sentTo.ts, sentTo.channel))))), appContext.mongoStores.slackSentMessages.deleteMany(criteria)]);
+    } else {
+      const secondaryBlocks = [createTextSecondaryBlock(comment.body)];
+      await Promise.all([Promise.all(sentMessages.map(sentMessage => Promise.all(sentMessage.sentTo.map(sentTo => repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, { ...sentMessage.message,
+        secondaryBlocks
+      }))))), appContext.mongoStores.slackSentMessages.partialUpdateMany(criteria, {
+        $set: {
+          'message.secondaryBlocks': secondaryBlocks
+        }
+      })]);
     }
   }));
 }
 
 function reviewRequested(app, appContext) {
-  app.on('pull_request.review_requested', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
+  app.on('pull_request.review_requested', createHandlerPullRequestChange(appContext, {
+    refetchPr: true
+  }, async (pr, context, repoContext) => {
     const sender = context.payload.sender; // ignore if sender is self (dismissed review rerequest review)
 
     if (sender.type === 'Bot') return;
@@ -2618,7 +2747,9 @@ function reviewRequested(app, appContext) {
 }
 
 function reviewRequestRemoved(app, appContext) {
-  app.on('pull_request.review_request_removed', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
+  app.on('pull_request.review_request_removed', createHandlerPullRequestChange(appContext, {
+    refetchPr: true
+  }, async (pr, context, repoContext) => {
     const sender = context.payload.sender;
     const reviewer = context.payload.requested_reviewer;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
@@ -2655,7 +2786,9 @@ function reviewRequestRemoved(app, appContext) {
 }
 
 function reviewSubmitted(app, appContext) {
-  app.on('pull_request_review.submitted', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
+  app.on('pull_request_review.submitted', createHandlerPullRequestChange(appContext, {
+    refetchPr: true
+  }, async (pr, context, repoContext) => {
     const {
       user: reviewer,
       state,
@@ -2668,6 +2801,12 @@ function reviewSubmitted(app, appContext) {
       reviewStates
     } = await getReviewersAndReviewStates(context, repoContext);
     const followers = reviewers.filter(user => user.id !== reviewer.id && user.id !== pr.user.id);
+
+    if (pr.requested_reviewers) {
+      followers.push(...pr.requested_reviewers.filter(rr => {
+        return !followers.find(f => f.id === rr.id) && rr.id !== reviewer.id && rr.id !== pr.user.id;
+      }));
+    }
 
     if (!reviewByOwner) {
       const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
@@ -2716,23 +2855,27 @@ function reviewSubmitted(app, appContext) {
         return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
       };
 
-      postSlackMessageWithSecondaryBlock(repoContext, 'pr-review', pr.user.id, pr.user.login, createMessage(true), body);
+      repoContext.slack.postMessage('pr-review', pr.user.id, pr.user.login, createSlackMessageWithSecondaryBlock(createMessage(true), body));
+      const message = createSlackMessageWithSecondaryBlock(createMessage(false), body);
       followers.forEach(follower => {
-        postSlackMessageWithSecondaryBlock(repoContext, 'pr-review-follow', follower.id, follower.login, createMessage(false), body);
+        repoContext.slack.postMessage('pr-review-follow', follower.id, follower.login, message);
       });
     } else if (body) {
       const mention = repoContext.slack.mention(reviewer.login);
       const prUrl = repoContext.slack.prLink(pr, context);
       const commentLink = repoContext.slack.link(reviewUrl, 'commented');
+      const message = createSlackMessageWithSecondaryBlock(`:speech_balloon: ${mention} ${commentLink} on his PR ${prUrl}`, body);
       followers.forEach(follower => {
-        postSlackMessageWithSecondaryBlock(repoContext, 'pr-review-follow', follower.id, follower.login, `:speech_balloon: ${mention} ${commentLink} on his PR ${prUrl}`, body);
+        repoContext.slack.postMessage('pr-review-follow', follower.id, follower.login, message);
       });
     }
   }));
 }
 
 function reviewDismissed(app, appContext) {
-  app.on('pull_request_review.dismissed', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
+  app.on('pull_request_review.dismissed', createHandlerPullRequestChange(appContext, {
+    refetchPr: true
+  }, async (pr, context, repoContext) => {
     const sender = context.payload.sender;
     const reviewer = context.payload.review.user;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
@@ -2769,7 +2912,9 @@ function reviewDismissed(app, appContext) {
 }
 
 function synchronize(app, appContext) {
-  app.on('pull_request.synchronize', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
+  app.on('pull_request.synchronize', createHandlerPullRequestChange(appContext, {
+    refetchPr: true
+  }, async (pr, context, repoContext) => {
     // old and new sha
     // const { before, after } = context.payload;
     const previousSha = context.payload.before;
@@ -2781,7 +2926,9 @@ function synchronize(app, appContext) {
 }
 
 function edited(app, appContext) {
-  app.on('pull_request.edited', createHandlerPullRequestChange(appContext, async (pr, context, repoContext) => {
+  app.on('pull_request.edited', createHandlerPullRequestChange(appContext, {
+    refetchPr: true
+  }, async (pr, context, repoContext) => {
     const sender = context.payload.sender;
 
     if (sender.type === 'Bot' && sender.login === `${process.env.REVIEWFLOW_NAME}[bot]`) {
@@ -2814,7 +2961,9 @@ function labelsChanged(app, appContext) {
       return;
     }
 
-    await handlerPullRequestChange(appContext, context, async (pr, repoContext) => {
+    await handlerPullRequestChange(appContext, context, {
+      refetchPr: true
+    }, async (pr, repoContext) => {
       const label = context.payload.label;
 
       if (fromRenovate) {
@@ -3000,7 +3149,10 @@ function initApp(app, appContext) {
   synchronize(app, appContext);
   /* https://developer.github.com/webhooks/event-payloads/#pull_request_review_comment */
 
-  prComment(app, appContext);
+  /* https://developer.github.com/webhooks/event-payloads/#issue_comment */
+
+  prCommentCreated(app, appContext);
+  prCommentEditedOrDeleted(app, appContext);
   /* https://developer.github.com/webhooks/event-payloads/#check_run */
 
   checkrunCompleted(app, appContext);
