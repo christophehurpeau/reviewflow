@@ -19,11 +19,11 @@ const verifyPromisified: any = promisify(verify);
 const secure =
   !!process.env.SECURE_COOKIE && process.env.SECURE_COOKIE !== 'false';
 
-const createRedirectUri = (req: Request, strategy: string): string => {
+const createRedirectUri = (req: Request): string => {
   const host = `http${secure ? 's' : ''}://${req.hostname}${
     req.hostname === 'localhost' ? `:${process.env.PORT}` : ''
   }`;
-  return `${host}/app/${strategy}/login-response`;
+  return `${host}/app/login-response`;
 };
 
 interface AuthInfo {
@@ -91,7 +91,7 @@ export default function auth(router: Router): void {
     // });
 
     const redirectUri = githubAuth.oauth2.authorizationCode.authorizeURL({
-      redirect_uri: createRedirectUri(req, 'gh'),
+      redirect_uri: createRedirectUri(req),
       scope: 'read:user,repo',
       // state,
       // grant_type: options.grantType,
@@ -127,7 +127,7 @@ export default function auth(router: Router): void {
 
     const result = await githubAuth.oauth2.authorizationCode.getToken({
       code,
-      redirect_uri: createRedirectUri(req, strategy),
+      redirect_uri: createRedirectUri(req),
     });
 
     if (!result) {

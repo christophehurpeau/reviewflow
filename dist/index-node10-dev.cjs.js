@@ -138,9 +138,9 @@ const signPromisified = util.promisify(jsonwebtoken.sign);
 const verifyPromisified = util.promisify(jsonwebtoken.verify);
 const secure = !!process.env.SECURE_COOKIE && process.env.SECURE_COOKIE !== 'false';
 
-const createRedirectUri = (req, strategy) => {
+const createRedirectUri = req => {
   const host = `http${secure ? 's' : ''}://${req.hostname}${req.hostname === 'localhost' ? `:${process.env.PORT}` : ''}`;
-  return `${host}/app/${strategy}/login-response`;
+  return `${host}/app/login-response`;
 };
 
 const readAuthCookie = (req, strategy) => {
@@ -192,7 +192,7 @@ function auth(router) {
 
 
     const redirectUri = oauth2.authorizationCode.authorizeURL({
-      redirect_uri: createRedirectUri(req, 'gh'),
+      redirect_uri: createRedirectUri(req),
       scope: 'read:user,repo' // state,
       // grant_type: options.grantType,
       // access_type: options.accessType,
@@ -223,7 +223,7 @@ function auth(router) {
 
     const result = await oauth2.authorizationCode.getToken({
       code,
-      redirect_uri: createRedirectUri(req, "gh")
+      redirect_uri: createRedirectUri(req)
     });
 
     if (!result) {
