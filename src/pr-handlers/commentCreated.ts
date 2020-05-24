@@ -142,7 +142,7 @@ export default function prCommentCreated(
         );
 
         const createMessage = (toOwner?: boolean): string => {
-          const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR `;
+          const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR`;
           return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
         };
 

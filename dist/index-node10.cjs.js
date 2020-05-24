@@ -2651,7 +2651,7 @@ function prCommentCreated(app, appContext) {
     const commentLink = repoContext.slack.link(comment.html_url, comment.in_reply_to_id ? 'replied' : 'commented');
 
     const createMessage = toOwner => {
-      const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR `;
+      const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR`;
       return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
     };
 
@@ -2841,7 +2841,7 @@ function reviewSubmitted(app, appContext) {
       }
 
       const createMessage = toOwner => {
-        const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR `;
+        const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR`;
 
         if (state === 'changes_requested') {
           return `:x: ${mention} requests changes on ${ownerPart} ${prUrl}`;

@@ -113,7 +113,7 @@ export default function reviewSubmitted(
           }
 
           const createMessage = (toOwner?: boolean): string => {
-            const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR `;
+            const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR`;
 
             if (state === 'changes_requested') {
               return `:x: ${mention} requests changes on ${ownerPart} ${prUrl}`;
