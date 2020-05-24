@@ -1,3 +1,17 @@
+# [1.50.0](https://github.com/christophehurpeau/reviewflow/compare/v1.49.0...v1.50.0) (2020-05-24)
+
+
+### Bug Fixes
+
+* double space ([bd0176c](https://github.com/christophehurpeau/reviewflow/commit/bd0176c0f766f02bfbd6b266e682fce99438ffdb))
+
+
+### Features
+
+* edit requested review message when pr was reviewed or request removed ([0bbbd67](https://github.com/christophehurpeau/reviewflow/commit/0bbbd67f6d754d2936c854b651724323edd435d7))
+
+
+
 # [1.49.0](https://github.com/christophehurpeau/reviewflow/compare/v1.48.0...v1.49.0) (2020-05-24)
 
 
