@@ -40,3 +40,11 @@ export const contextPr = <T>(
     pull_number: number;
   } & T;
 };
+
+export const getEmojiFromRepoDescription = (
+  description: string | null,
+): string => {
+  if (!description || !description.startsWith(':')) return '';
+  const [, emoji] = /^(:\w+:)/.exec(description) || [];
+  return emoji || '';
+};

@@ -1,5 +1,5 @@
 import { MessageCategory } from '../dm/MessageCategory';
-import { Options } from '../pr-handlers/actions/utils/prOptions';
+import { Options } from '../events/pr-handlers/actions/utils/prOptions';
 
 export interface StatusInfo {
   inBody?: true;

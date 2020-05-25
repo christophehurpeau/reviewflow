@@ -1063,7 +1063,7 @@ const optionsLabels = [{
   label: 'This PR is a feature branch'
 }, {
   name: 'autoMergeWithSkipCi',
-  label: 'Auto merge with `[skip ci]`'
+  label: 'Add `[skip ci]` on merge commit'
 }, {
   name: 'autoMerge',
   label: 'Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless "Update branch" triggers)'
@@ -1396,10 +1396,6 @@ const initRepoLabels = async (context, config) => {
   return finalLabels;
 };
 
-const createLink = (url, text) => {
-  return `<${url}|${text}>`;
-};
-
 const getKeys = o => Object.keys(o);
 const contextIssue = (context, object) => {
   const payload = context.payload;
@@ -1413,15 +1409,18 @@ const contextPr = (context, object) => {
     pull_number: (payload.issue || payload.pull_request || payload).number
   });
 };
+const getEmojiFromRepoDescription = description => {
+  if (!description || !description.startsWith(':')) return '';
+  const [, emoji] = /^(:\w+:)/.exec(description) || [];
+  return emoji || '';
+};
 
 const voidTeamSlack = () => ({
   mention: () => '',
-  link: () => '',
   postMessage: () => Promise.resolve(null),
   updateMessage: () => Promise.resolve(null),
   deleteMessage: () => Promise.resolve(undefined),
   addReaction: () => Promise.resolve(undefined),
-  prLink: () => '',
   updateHome: () => undefined
 });
 
@@ -1592,10 +1591,6 @@ const initTeamSlack = async ({
         name
       });
     },
-    link: createLink,
-    prLink: (pr, context) => {
-      return createLink(pr.html_url, `${context.payload.repository.name}#${pr.number}`);
-    },
     updateHome: githubLogin => {
       context.log.debug('update slack home', {
         githubLogin
@@ -1751,8 +1746,12 @@ const obtainAccountContext = (appContext, context, config, accountInfo) => {
 };
 
 async function initRepoContext(appContext, context, config) {
-  const repo = context.payload.repository;
-  const org = repo.owner;
+  const {
+    full_name: fullName,
+    owner: org,
+    description
+  } = context.payload.repository;
+  const repoEmoji = getEmojiFromRepoDescription(description);
   const accountContext = await obtainAccountContext(appContext, context, config, org);
   const repoContext = Object.create(accountContext);
   const labels = await initRepoLabels(context, config);
@@ -1776,7 +1775,7 @@ async function initRepoContext(appContext, context, config) {
 
   const lockPROrPRS = (prIdOrIds, prNumberOrPrNumbers, callback) => new Promise((resolve, reject) => {
     const logInfos = {
-      repo: repo.full_name,
+      repo: fullName,
       prIdOrIds,
       prNumberOrPrNumbers
     };
@@ -1818,6 +1817,8 @@ async function initRepoContext(appContext, context, config) {
 
   return Object.assign(repoContext, {
     labels,
+    repoFullName: fullName,
+    repoEmoji,
     protectedLabelIds,
     hasNeedsReview: labels => labels.some(label => needsReviewLabelIds.includes(label.id)),
     hasRequestedReview: labels => labels.some(label => requestedReviewLabelIds.includes(label.id)),
@@ -1827,7 +1828,7 @@ async function initRepoContext(appContext, context, config) {
     getMergeLockedPr: () => lockMergePr,
     addMergeLockPr: pr => {
       console.log('merge lock: lock', {
-        repo: `${repo.owner.login}/${repo.name}`,
+        repo: fullName,
         pr
       });
 
@@ -1839,11 +1840,11 @@ async function initRepoContext(appContext, context, config) {
       lockMergePr = pr;
     },
     removePrFromAutomergeQueue: (context, prNumber) => {
-      context.log(`merge lock: remove ${repo.full_name}#${prNumber}`);
+      context.log(`merge lock: remove ${fullName}#${prNumber}`);
 
       if (lockMergePr && String(lockMergePr.number) === String(prNumber)) {
         lockMergePr = automergeQueue.shift();
-        context.log(`merge lock: next ${repo.full_name}`, lockMergePr);
+        context.log(`merge lock: next ${fullName}`, lockMergePr);
 
         if (lockMergePr) {
           reschedule(context, lockMergePr);
@@ -1854,7 +1855,7 @@ async function initRepoContext(appContext, context, config) {
     },
     pushAutomergeQueue: pr => {
       console.log('merge lock: push queue', {
-        repo: repo.full_name,
+        repo: fullName,
         pr,
         lockMergePr,
         automergeQueue
@@ -2497,6 +2498,13 @@ function closed$1(app, appContext) {
   }));
 }
 
+const createLink = (url, text) => {
+  return `<${url}|${text}>`;
+};
+const createPrLink = (pr, repoContext) => {
+  return createLink(pr.html_url, `${repoContext.repoEmoji ? `${repoContext.repoEmoji} ` : ''}${repoContext.repoFullName}#${pr.number}`);
+};
+
 const createMrkdwnSectionBlock = text => ({
   type: 'section',
   text: {
@@ -2654,12 +2662,12 @@ function prCommentCreated(app, appContext) {
     const usersInThread = getUsersInThread(discussion).filter(u => u.id !== pr.user.id && u.id !== comment.user.id && !followers.find(f => f.id === u.id));
     const mentions = getMentions(discussion).filter(m => m !== pr.user.login && m !== comment.user.login && !followers.find(f => f.login === m) && !usersInThread.find(u => u.login === m));
     const mention = repoContext.slack.mention(comment.user.login);
-    const prUrl = repoContext.slack.prLink(pr, context);
+    const prUrl = createPrLink(pr, repoContext);
     const ownerMention = repoContext.slack.mention(pr.user.login);
-    const commentLink = repoContext.slack.link(comment.html_url, comment.in_reply_to_id ? 'replied' : 'commented');
+    const commentLink = createLink(comment.html_url, comment.in_reply_to_id ? 'replied' : 'commented');
 
     const createMessage = toOwner => {
-      const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR`;
+      const ownerPart = toOwner ? 'your PR' : `${pr.user.id === comment.user.id ? 'his' : `${ownerMention}'s`} PR`;
       return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
     };
 
@@ -2747,7 +2755,7 @@ function reviewRequested(app, appContext) {
     if (sender.login === reviewer.login) return;
 
     if (repoContext.slack) {
-      const text = `:eyes: ${repoContext.slack.mention(sender.login)} requests your review on ${repoContext.slack.prLink(pr, context)} !\n> ${pr.title}`;
+      const text = `:eyes: ${repoContext.slack.mention(sender.login)} requests your review on ${createPrLink(pr, repoContext)} !\n> ${pr.title}`;
       const message = {
         text
       };
@@ -2797,7 +2805,7 @@ function reviewRequestRemoved(app, appContext) {
 
     if (sender.login === reviewer.login) return;
     repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, {
-      text: `:skull_and_crossbones: ${repoContext.slack.mention(sender.login)} removed the request for your review on ${repoContext.slack.prLink(pr, context)}`
+      text: `:skull_and_crossbones: ${repoContext.slack.mention(sender.login)} removed the request for your review on ${createPrLink(pr, repoContext)}`
     });
     const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne({
       'account.id': repoContext.account._id,
@@ -2897,7 +2905,7 @@ function reviewSubmitted(app, appContext) {
       }
 
       const mention = repoContext.slack.mention(reviewer.login);
-      const prUrl = repoContext.slack.prLink(pr, context);
+      const prUrl = createPrLink(pr, repoContext);
       const ownerMention = repoContext.slack.mention(pr.user.login);
 
       const createMessage = toOwner => {
@@ -2911,7 +2919,7 @@ function reviewSubmitted(app, appContext) {
           return `${toOwner ? ':clap: ' : ''}:${emoji}: ${mention} approves ${ownerPart} ${prUrl}${merged ? ' and PR is merged :tada:' : ''}`;
         }
 
-        const commentLink = repoContext.slack.link(reviewUrl, 'commented');
+        const commentLink = createLink(reviewUrl, 'commented');
         return `:${emoji}: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
       };
 
@@ -2922,8 +2930,8 @@ function reviewSubmitted(app, appContext) {
       });
     } else if (body) {
       const mention = repoContext.slack.mention(reviewer.login);
-      const prUrl = repoContext.slack.prLink(pr, context);
-      const commentLink = repoContext.slack.link(reviewUrl, 'commented');
+      const prUrl = createPrLink(pr, repoContext);
+      const commentLink = createLink(reviewUrl, 'commented');
       const message = createSlackMessageWithSecondaryBlock(`:speech_balloon: ${mention} ${commentLink} on his PR ${prUrl}`, body);
       followers.forEach(follower => {
         repoContext.slack.postMessage('pr-review-follow', follower.id, follower.login, message);
@@ -2960,11 +2968,11 @@ function reviewDismissed(app, appContext) {
     if (repoContext.slack) {
       if (sender.login === reviewer.login) {
         repoContext.slack.postMessage('pr-review', pr.user.id, pr.user.login, {
-          text: `:skull: ${repoContext.slack.mention(reviewer.login)} dismissed his review on ${repoContext.slack.prLink(pr, context)}`
+          text: `:skull: ${repoContext.slack.mention(reviewer.login)} dismissed his review on ${createPrLink(pr, repoContext)}`
         });
       } else {
         repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, {
-          text: `:skull: ${repoContext.slack.mention(sender.login)} dismissed your review on ${repoContext.slack.prLink(pr, context)}`
+          text: `:skull: ${repoContext.slack.mention(sender.login)} dismissed your review on ${createPrLink(pr, repoContext)}`
         });
       }
     }
@@ -3169,6 +3177,16 @@ const createHandlerOrgChange = (appContext, callback) => context => {
   return handlerOrgChange(appContext, context, callback);
 };
 
+function repoEdited(app, appContext) {
+  app.on('repository.edited', createHandlerOrgChange(appContext, async context => {
+    const repoContext = await obtainRepoContext(appContext, context);
+    if (!repoContext) return;
+    const repo = context.payload.repository;
+    repoContext.repoFullName = repo.full_name;
+    repoContext.repoEmoji = getEmojiFromRepoDescription(repo.description);
+  }));
+}
+
 function initApp(app, appContext) {
   /* https://developer.github.com/webhooks/event-payloads/#organization */
   app.on(['organization.member_added', 'organization.member_removed'], createHandlerOrgChange(appContext, async (context, accountContext) => {
@@ -3193,7 +3211,11 @@ function initApp(app, appContext) {
   //     },
   //   ),
   // );
-  // PR
+  // Repo
+
+  /* https://developer.github.com/webhooks/event-payloads/#repository */
+
+  repoEdited(app, appContext); // PR
 
   /* https://developer.github.com/webhooks/event-payloads/#pull_request */
 

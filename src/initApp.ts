@@ -1,23 +1,24 @@
 import { Application } from 'probot';
 import Webhooks from '@octokit/webhooks';
-import openedHandler from './pr-handlers/opened';
-import closedHandler from './pr-handlers/closed';
-import reopenedHandler from './pr-handlers/reopened';
-import commentCreated from './pr-handlers/commentCreated';
-import commentEditedOrDeleted from './pr-handlers/commentEditedOrDeleted';
-import reviewRequestedHandler from './pr-handlers/reviewRequested';
-import reviewRequestRemovedHandler from './pr-handlers/reviewRequestRemoved';
-import reviewSubmittedHandler from './pr-handlers/reviewSubmitted';
-import reviewDismissedHandler from './pr-handlers/reviewDismissed';
-import synchronizeHandler from './pr-handlers/synchronize';
-import editedHandler from './pr-handlers/edited';
-import labelsChanged from './pr-handlers/labelsChanged';
-import checkrunCompleted from './pr-handlers/checkrunCompleted';
-import checksuiteCompleted from './pr-handlers/checksuiteCompleted';
-import status from './pr-handlers/status';
-import { createHandlerOrgChange } from './account-handlers/utils/handler';
-import { syncOrg } from './account-handlers/actions/syncOrg';
-import { syncTeams } from './account-handlers/actions/syncTeams';
+import openedHandler from './events/pr-handlers/opened';
+import closedHandler from './events/pr-handlers/closed';
+import reopenedHandler from './events/pr-handlers/reopened';
+import commentCreated from './events/pr-handlers/commentCreated';
+import commentEditedOrDeleted from './events/pr-handlers/commentEditedOrDeleted';
+import reviewRequestedHandler from './events/pr-handlers/reviewRequested';
+import reviewRequestRemovedHandler from './events/pr-handlers/reviewRequestRemoved';
+import reviewSubmittedHandler from './events/pr-handlers/reviewSubmitted';
+import reviewDismissedHandler from './events/pr-handlers/reviewDismissed';
+import synchronizeHandler from './events/pr-handlers/synchronize';
+import editedHandler from './events/pr-handlers/edited';
+import labelsChanged from './events/pr-handlers/labelsChanged';
+import checkrunCompleted from './events/pr-handlers/checkrunCompleted';
+import checksuiteCompleted from './events/pr-handlers/checksuiteCompleted';
+import status from './events/pr-handlers/status';
+import { createHandlerOrgChange } from './events/account-handlers/utils/handler';
+import repoEdited from './events/repository-handlers/repoEdited';
+import { syncOrg } from './events/account-handlers/actions/syncOrg';
+import { syncTeams } from './events/account-handlers/actions/syncTeams';
 import { AppContext } from './context/AppContext';
 
 export default function initApp(
@@ -70,6 +71,10 @@ export default function initApp(
   //     },
   //   ),
   // );
+
+  // Repo
+  /* https://developer.github.com/webhooks/event-payloads/#repository */
+  repoEdited(app, appContext);
 
   // PR
   /* https://developer.github.com/webhooks/event-payloads/#pull_request */

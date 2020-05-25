@@ -2,7 +2,7 @@ import type { Router } from 'express';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { GitHubAPI } from 'probot/lib/github';
-import { syncUser } from '../account-handlers/actions/syncUser';
+import { syncUser } from '../events/account-handlers/actions/syncUser';
 import type { MongoStores } from '../mongo';
 import Layout from '../views/Layout';
 import { getUser } from './auth';

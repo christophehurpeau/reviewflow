@@ -19,6 +19,7 @@
       }
     ],
     "complexity": "off",
+    "import/no-cycle": "off",
     "max-lines": ["error", 300]
   },
   "overrides": [

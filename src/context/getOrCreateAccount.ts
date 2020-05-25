@@ -1,7 +1,7 @@
 import { Octokit } from 'probot';
-import { syncOrg } from '../account-handlers/actions/syncOrg';
-import { syncTeams } from '../account-handlers/actions/syncTeams';
-import { syncUser } from '../account-handlers/actions/syncUser';
+import { syncOrg } from '../events/account-handlers/actions/syncOrg';
+import { syncTeams } from '../events/account-handlers/actions/syncTeams';
+import { syncUser } from '../events/account-handlers/actions/syncUser';
 import { Org, User } from '../mongo';
 import { AppContext } from './AppContext';
 

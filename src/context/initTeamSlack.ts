@@ -1,7 +1,5 @@
-import Webhooks from '@octokit/webhooks';
 import { WebClient } from '@slack/web-api';
-import { Context, Octokit } from 'probot';
-import { createLink } from '../slack/utils';
+import { Context } from 'probot';
 import { Org, User } from '../mongo';
 import { getUserDmSettings } from '../dm/getUserDmSettings';
 import { MessageCategory } from '../dm/MessageCategory';
@@ -182,16 +180,6 @@ export const initTeamSlack = async <GroupNames extends string>(
         channel,
         name,
       });
-    },
-    link: createLink,
-    prLink: <T extends { repository: Webhooks.PayloadRepository }>(
-      pr: Octokit.PullsGetResponse,
-      context: Context<T>,
-    ): string => {
-      return createLink(
-        pr.html_url,
-        `${context.payload.repository.name}#${pr.number}`,
-      );
     },
 
     updateHome: (githubLogin: string): void => {

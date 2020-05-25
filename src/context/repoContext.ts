@@ -2,11 +2,12 @@ import { Lock } from 'lock';
 import { Context } from 'probot';
 import { accountConfigs, Config, defaultConfig } from '../accountConfigs';
 // eslint-disable-next-line import/no-cycle
-import { autoMergeIfPossible } from '../pr-handlers/actions/autoMergeIfPossible';
+import { autoMergeIfPossible } from '../events/pr-handlers/actions/autoMergeIfPossible';
 import { ExcludesFalsy } from '../utils/ExcludesFalsy';
 import { AppContext } from './AppContext';
 import { initRepoLabels, LabelResponse, Labels } from './initRepoLabels';
 import { obtainAccountContext, AccountContext } from './accountContext';
+import { getEmojiFromRepoDescription } from './utils';
 
 export interface LockedMergePr {
   id: number;
@@ -15,6 +16,8 @@ export interface LockedMergePr {
 }
 
 interface RepoContextWithoutTeamContext<GroupNames extends string> {
+  repoFullName: string;
+  repoEmoji: string | undefined;
   labels: Labels;
   protectedLabelIds: readonly LabelResponse['id'][];
 
@@ -47,8 +50,13 @@ async function initRepoContext<GroupNames extends string>(
   context: Context<any>,
   config: Config<GroupNames>,
 ): Promise<RepoContext<GroupNames>> {
-  const repo = context.payload.repository;
-  const org = repo.owner;
+  const {
+    full_name: fullName,
+    owner: org,
+    description,
+  } = context.payload.repository;
+  const repoEmoji = getEmojiFromRepoDescription(description);
+
   const accountContext = await obtainAccountContext(
     appContext,
     context,
@@ -123,7 +131,7 @@ async function initRepoContext<GroupNames extends string>(
   ): Promise<void> =>
     new Promise((resolve, reject) => {
       const logInfos = {
-        repo: repo.full_name,
+        repo: fullName,
         prIdOrIds,
         prNumberOrPrNumbers,
       };
@@ -165,6 +173,8 @@ async function initRepoContext<GroupNames extends string>(
 
   return Object.assign(repoContext, {
     labels,
+    repoFullName: fullName,
+    repoEmoji,
     protectedLabelIds,
     hasNeedsReview,
     hasRequestedReview,
@@ -175,7 +185,7 @@ async function initRepoContext<GroupNames extends string>(
     getMergeLockedPr: () => lockMergePr,
     addMergeLockPr: (pr: LockedMergePr): void => {
       console.log('merge lock: lock', {
-        repo: `${repo.owner.login}/${repo.name}`,
+        repo: fullName,
         pr,
       });
       if (lockMergePr && String(lockMergePr.number) === String(pr.number)) {
@@ -185,10 +195,10 @@ async function initRepoContext<GroupNames extends string>(
       lockMergePr = pr;
     },
     removePrFromAutomergeQueue: (context, prNumber: number | string): void => {
-      context.log(`merge lock: remove ${repo.full_name}#${prNumber}`);
+      context.log(`merge lock: remove ${fullName}#${prNumber}`);
       if (lockMergePr && String(lockMergePr.number) === String(prNumber)) {
         lockMergePr = automergeQueue.shift();
-        context.log(`merge lock: next ${repo.full_name}`, lockMergePr);
+        context.log(`merge lock: next ${fullName}`, lockMergePr);
         if (lockMergePr) {
           reschedule(context, lockMergePr);
         }
@@ -200,7 +210,7 @@ async function initRepoContext<GroupNames extends string>(
     },
     pushAutomergeQueue: (pr: LockedMergePr): void => {
       console.log('merge lock: push queue', {
-        repo: repo.full_name,
+        repo: fullName,
         pr,
         lockMergePr,
         automergeQueue,
