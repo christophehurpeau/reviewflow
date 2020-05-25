@@ -32,7 +32,7 @@ if (!process.env.SLACK_TOKEN) {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: '<https://github.com/ornikar/www/pull/2945|www#2945>',
+          text: '👨‍🎓<https://github.com/ornikar/www/pull/2945|www#2945>',
         },
       },
     ],

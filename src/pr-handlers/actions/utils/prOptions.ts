@@ -21,7 +21,7 @@ export const optionsLabels: { name: Options; label: string }[] = [
   { name: 'featureBranch', label: 'This PR is a feature branch' },
   {
     name: 'autoMergeWithSkipCi',
-    label: 'Auto merge with `[skip ci]`',
+    label: 'Add `[skip ci]` on merge commit',
   },
   {
     name: 'autoMerge',
