@@ -1,3 +1,12 @@
+# [1.51.0](https://github.com/christophehurpeau/reviewflow/compare/v1.50.0...v1.51.0) (2020-05-25)
+
+
+### Features
+
+* update slack home on pr closed/merged ([deaabdf](https://github.com/christophehurpeau/reviewflow/commit/deaabdfcb6a02d5c2f65b85c2b9eda992e589871))
+
+
+
 # [1.50.0](https://github.com/christophehurpeau/reviewflow/compare/v1.49.0...v1.50.0) (2020-05-24)
 
 
