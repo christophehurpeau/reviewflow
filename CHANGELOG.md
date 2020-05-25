@@ -1,3 +1,13 @@
+# [1.52.0](https://github.com/christophehurpeau/reviewflow/compare/v1.51.0...v1.52.0) (2020-05-25)
+
+
+### Features
+
+* add repo emoji ([9d76521](https://github.com/christophehurpeau/reviewflow/commit/9d76521e3855eff027678587f0b79882b00509d5))
+* improve label option autoMergeWithSkipCi ([5cdab46](https://github.com/christophehurpeau/reviewflow/commit/5cdab467c910b05e80507f1d689495b452b15445))
+
+
+
 # [1.51.0](https://github.com/christophehurpeau/reviewflow/compare/v1.50.0...v1.51.0) (2020-05-25)
 
 
