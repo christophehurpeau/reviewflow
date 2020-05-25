@@ -2481,6 +2481,8 @@ function closed(app, appContext) {
         remove: ['needsReview']
       })]);
     }
+
+    repoContext.slack.updateHome(pr.user.login);
   }));
 }
 

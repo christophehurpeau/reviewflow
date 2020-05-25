@@ -38,6 +38,8 @@ export default function closed(app: Application, appContext: AppContext): void {
             }),
           ]);
         }
+
+        repoContext.slack.updateHome(pr.user.login);
       },
     ),
   );
