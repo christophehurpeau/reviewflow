@@ -111,7 +111,7 @@
     "husky": "4.2.5",
     "jest": "24.7.1",
     "jest-junit-reporter": "1.1.0",
-    "nock": "11.7.2",
+    "nock": "11.9.1",
     "nodemon": "2.0.4",
     "pob-babel": "24.8.1",
     "pob-lcov-reporter": "1.2.0",
