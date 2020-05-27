@@ -1,3 +1,12 @@
+## [1.54.2](https://github.com/christophehurpeau/reviewflow/compare/v1.54.1...v1.54.2) (2020-05-27)
+
+
+### Bug Fixes
+
+* **deps:** pin dependencies [skip ci] ([#98](https://github.com/christophehurpeau/reviewflow/issues/98)) ([fa4214e](https://github.com/christophehurpeau/reviewflow/commit/fa4214e1fd0034cef10fb0520f42256e32fb394a))
+
+
+
 ## [1.54.1](https://github.com/christophehurpeau/reviewflow/compare/v1.54.0...v1.54.1) (2020-05-27)
 
 
