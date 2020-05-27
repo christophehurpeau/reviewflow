@@ -16,6 +16,7 @@ const lock = require('lock');
 const webApi = require('@slack/web-api');
 const createEmojiRegex = _interopDefault(require('emoji-regex'));
 const parse$1 = _interopDefault(require('@commitlint/parse'));
+const slackifyMarkdown = _interopDefault(require('slackify-markdown'));
 const issueParser = _interopDefault(require('issue-parser'));
 
 if (!process.env.MONGO_DB) {
@@ -2682,13 +2683,14 @@ function prCommentCreated(app, appContext) {
 
     const promisesOwner = [];
     const promisesNotOwner = [];
+    const slackifiedBody = slackifyMarkdown(body);
 
     if (!commentByOwner) {
-      const slackMessage = createSlackMessageWithSecondaryBlock(createMessage(true), body);
+      const slackMessage = createSlackMessageWithSecondaryBlock(createMessage(true), slackifiedBody);
       promisesOwner.push(repoContext.slack.postMessage('pr-comment', pr.user.id, pr.user.login, slackMessage).then(res => saveInDb(type, comment.id, repoContext.accountEmbed, [res], slackMessage)));
     }
 
-    const message = createSlackMessageWithSecondaryBlock(createMessage(false), body);
+    const message = createSlackMessageWithSecondaryBlock(createMessage(false), slackifiedBody);
     promisesNotOwner.push(...followers.map(follower => repoContext.slack.postMessage('pr-comment-follow', follower.id, follower.login, message)));
     promisesNotOwner.push(...usersInThread.map(user => repoContext.slack.postMessage('pr-comment-thread', user.id, user.login, message)));
 
@@ -2729,7 +2731,7 @@ function prCommentEditedOrDeleted(app, appContext) {
     if (context.payload.action === 'deleted') {
       await Promise.all([Promise.all(sentMessages.map(sentMessage => Promise.all(sentMessage.sentTo.map(sentTo => repoContext.slack.deleteMessage(sentTo.ts, sentTo.channel))))), appContext.mongoStores.slackSentMessages.deleteMany(criteria)]);
     } else {
-      const secondaryBlocks = [createMrkdwnSectionBlock(comment.body)];
+      const secondaryBlocks = [createMrkdwnSectionBlock(slackifyMarkdown(comment.body))];
       await Promise.all([Promise.all(sentMessages.map(sentMessage => Promise.all(sentMessage.sentTo.map(sentTo => repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, { ...sentMessage.message,
         secondaryBlocks
       }))))), appContext.mongoStores.slackSentMessages.partialUpdateMany(criteria, {
@@ -2932,8 +2934,9 @@ function reviewSubmitted(app, appContext) {
         return `:${emoji}: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
       };
 
-      repoContext.slack.postMessage('pr-review', pr.user.id, pr.user.login, createSlackMessageWithSecondaryBlock(createMessage(true), body));
-      const message = createSlackMessageWithSecondaryBlock(createMessage(false), body);
+      const slackifiedBody = slackifyMarkdown(body);
+      repoContext.slack.postMessage('pr-review', pr.user.id, pr.user.login, createSlackMessageWithSecondaryBlock(createMessage(true), slackifiedBody));
+      const message = createSlackMessageWithSecondaryBlock(createMessage(false), slackifiedBody);
       followers.forEach(follower => {
         repoContext.slack.postMessage('pr-review-follow', follower.id, follower.login, message);
       });

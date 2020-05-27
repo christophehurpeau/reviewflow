@@ -1,5 +1,6 @@
 import { Application, Octokit, Context } from 'probot';
 import { WebhookPayloadPullRequestReviewComment } from '@octokit/webhooks';
+import slackifyMarkdown from 'slackify-markdown';
 import * as slackUtils from '../../slack/utils';
 import { AccountEmbed } from '../../mongo';
 import { SlackMessage } from '../../context/SlackMessage';
@@ -152,11 +153,12 @@ export default function prCommentCreated(
 
         const promisesOwner = [];
         const promisesNotOwner = [];
+        const slackifiedBody = slackifyMarkdown(body);
 
         if (!commentByOwner) {
           const slackMessage = createSlackMessageWithSecondaryBlock(
             createMessage(true),
-            body,
+            slackifiedBody,
           );
 
           promisesOwner.push(
@@ -181,7 +183,7 @@ export default function prCommentCreated(
 
         const message = createSlackMessageWithSecondaryBlock(
           createMessage(false),
-          body,
+          slackifiedBody,
         );
 
         promisesNotOwner.push(

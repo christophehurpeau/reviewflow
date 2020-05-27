@@ -1,4 +1,5 @@
 import { Application } from 'probot';
+import slackifyMarkdown from 'slackify-markdown';
 import { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
 import { createHandlerPullRequestChange } from './utils';
@@ -172,16 +173,21 @@ export default function reviewSubmitted(
             return `:${emoji}: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
           };
 
+          const slackifiedBody = slackifyMarkdown(body);
+
           repoContext.slack.postMessage(
             'pr-review',
             pr.user.id,
             pr.user.login,
-            createSlackMessageWithSecondaryBlock(createMessage(true), body),
+            createSlackMessageWithSecondaryBlock(
+              createMessage(true),
+              slackifiedBody,
+            ),
           );
 
           const message = createSlackMessageWithSecondaryBlock(
             createMessage(false),
-            body,
+            slackifiedBody,
           );
 
           followers.forEach((follower) => {

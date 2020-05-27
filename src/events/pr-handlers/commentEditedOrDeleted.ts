@@ -1,5 +1,6 @@
 import { Application } from 'probot';
 import { WebhookPayloadPullRequestReviewComment } from '@octokit/webhooks';
+import slackifyMarkdown from 'slackify-markdown';
 import { AppContext } from '../../context/AppContext';
 import { createHandlerPullRequestChange } from './utils';
 import { createMrkdwnSectionBlock } from './utils/createSlackMessageWithSecondaryBlock';
@@ -53,7 +54,9 @@ export default function prCommentEditedOrDeleted(
             appContext.mongoStores.slackSentMessages.deleteMany(criteria),
           ]);
         } else {
-          const secondaryBlocks = [createMrkdwnSectionBlock(comment.body)];
+          const secondaryBlocks = [
+            createMrkdwnSectionBlock(slackifyMarkdown(comment.body)),
+          ];
 
           await Promise.all([
             Promise.all(
