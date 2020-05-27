@@ -14,11 +14,13 @@ import { getUser } from './auth';
 
 const dmMessages: Record<MessageCategory, string> = {
   'pr-review': 'You are assigned to a review, someone reviewed your PR',
-  'pr-review-follow': "Someone reviewed a PR you're also reviewing (NEW!)",
-  'pr-comment': 'Someone commented on your PR (NEW!)',
-  'pr-comment-follow': "Someone commented on a PR you're reviewing (NEW!)",
-  'pr-comment-mention': 'Someone mentioned you in a PR (NEW!)',
-  'pr-comment-thread': "Someone replied to a discussion you're in (NEW!)",
+  'pr-review-follow': "Someone reviewed a PR you're also reviewing",
+  'pr-comment': 'Someone commented on your PR',
+  'pr-comment-bots': 'A bot commented on your PR',
+  'pr-comment-follow': "Someone commented on a PR you're reviewing",
+  'pr-comment-follow-bots': "A bot commented on a PR you're reviewing",
+  'pr-comment-mention': 'Someone mentioned you in a PR',
+  'pr-comment-thread': "Someone replied to a discussion you're in",
   'pr-merge-conflicts': 'Your PR has a merge conflict (not implemented)',
   'issue-comment-mention':
     'Someone mentioned you in an issue (not implemented)',

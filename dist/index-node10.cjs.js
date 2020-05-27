@@ -832,7 +832,9 @@ const defaultDmSettings = {
   'pr-review': true,
   'pr-review-follow': true,
   'pr-comment': true,
+  'pr-comment-bots': true,
   'pr-comment-follow': true,
+  'pr-comment-follow-bots': false,
   'pr-comment-mention': true,
   'pr-comment-thread': true,
   'pr-merge-conflicts': true,
@@ -875,11 +877,13 @@ const getUserDmSettings = async (mongoStores, org, orgId, userId) => {
 
 const dmMessages = {
   'pr-review': 'You are assigned to a review, someone reviewed your PR',
-  'pr-review-follow': "Someone reviewed a PR you're also reviewing (NEW!)",
-  'pr-comment': 'Someone commented on your PR (NEW!)',
-  'pr-comment-follow': "Someone commented on a PR you're reviewing (NEW!)",
-  'pr-comment-mention': 'Someone mentioned you in a PR (NEW!)',
-  'pr-comment-thread': "Someone replied to a discussion you're in (NEW!)",
+  'pr-review-follow': "Someone reviewed a PR you're also reviewing",
+  'pr-comment': 'Someone commented on your PR',
+  'pr-comment-bots': 'A bot commented on your PR',
+  'pr-comment-follow': "Someone commented on a PR you're reviewing",
+  'pr-comment-follow-bots': "A bot commented on a PR you're reviewing",
+  'pr-comment-mention': 'Someone mentioned you in a PR',
+  'pr-comment-thread': "Someone replied to a discussion you're in",
   'pr-merge-conflicts': 'Your PR has a merge conflict (not implemented)',
   'issue-comment-mention': 'Someone mentioned you in an issue (not implemented)'
 };
@@ -2687,11 +2691,11 @@ function prCommentCreated(app, appContext) {
 
     if (!commentByOwner) {
       const slackMessage = createSlackMessageWithSecondaryBlock(createMessage(true), slackifiedBody);
-      promisesOwner.push(repoContext.slack.postMessage('pr-comment', pr.user.id, pr.user.login, slackMessage).then(res => saveInDb(type, comment.id, repoContext.accountEmbed, [res], slackMessage)));
+      promisesOwner.push(repoContext.slack.postMessage(pr.user.type === 'Bot' ? 'pr-comment-bots' : 'pr-comment', pr.user.id, pr.user.login, slackMessage).then(res => saveInDb(type, comment.id, repoContext.accountEmbed, [res], slackMessage)));
     }
 
     const message = createSlackMessageWithSecondaryBlock(createMessage(false), slackifiedBody);
-    promisesNotOwner.push(...followers.map(follower => repoContext.slack.postMessage('pr-comment-follow', follower.id, follower.login, message)));
+    promisesNotOwner.push(...followers.map(follower => repoContext.slack.postMessage(pr.user.type === 'Bot' ? 'pr-comment-follow-bots' : 'pr-comment-follow', follower.id, follower.login, message)));
     promisesNotOwner.push(...usersInThread.map(user => repoContext.slack.postMessage('pr-comment-thread', user.id, user.login, message)));
 
     if (mentions.length !== 0) {

@@ -164,7 +164,7 @@ export default function prCommentCreated(
           promisesOwner.push(
             repoContext.slack
               .postMessage(
-                'pr-comment',
+                pr.user.type === 'Bot' ? 'pr-comment-bots' : 'pr-comment',
                 pr.user.id,
                 pr.user.login,
                 slackMessage,
@@ -189,7 +189,9 @@ export default function prCommentCreated(
         promisesNotOwner.push(
           ...followers.map((follower) =>
             repoContext.slack.postMessage(
-              'pr-comment-follow',
+              pr.user.type === 'Bot'
+                ? 'pr-comment-follow-bots'
+                : 'pr-comment-follow',
               follower.id,
               follower.login,
               message,
