@@ -14,6 +14,7 @@ const simpleOauth2 = require('simple-oauth2');
 const bodyParser = _interopDefault(require('body-parser'));
 const lock = require('lock');
 const webApi = require('@slack/web-api');
+const createEmojiRegex = _interopDefault(require('emoji-regex'));
 const parse$1 = _interopDefault(require('@commitlint/parse'));
 const issueParser = _interopDefault(require('issue-parser'));
 
@@ -1409,10 +1410,18 @@ const contextPr = (context, object) => {
     pull_number: (payload.issue || payload.pull_request || payload).number
   });
 };
+const emojiRegex = createEmojiRegex();
 const getEmojiFromRepoDescription = description => {
-  if (!description || !description.startsWith(':')) return '';
-  const [, emoji] = /^(:\w+:)/.exec(description) || [];
-  return emoji || '';
+  if (!description) return '';
+
+  if (description.startsWith(':')) {
+    const [, emoji] = /^(:\w+:)/.exec(description) || [];
+    return emoji || '';
+  }
+
+  const match = emojiRegex.exec(description);
+  if (match && description.startsWith(match[0])) return match[0];
+  return '';
 };
 
 const voidTeamSlack = () => ({

@@ -1,4 +1,5 @@
 import { Context } from 'probot';
+import createEmojiRegex from 'emoji-regex';
 
 export const getKeys = <T extends {}>(o: T): (keyof T)[] =>
   Object.keys(o) as (keyof T)[];
@@ -41,10 +42,17 @@ export const contextPr = <T>(
   } & T;
 };
 
+const emojiRegex = createEmojiRegex();
+
 export const getEmojiFromRepoDescription = (
   description: string | null,
 ): string => {
-  if (!description || !description.startsWith(':')) return '';
-  const [, emoji] = /^(:\w+:)/.exec(description) || [];
-  return emoji || '';
+  if (!description) return '';
+  if (description.startsWith(':')) {
+    const [, emoji] = /^(:\w+:)/.exec(description) || [];
+    return emoji || '';
+  }
+  const match = emojiRegex.exec(description);
+  if (match && description.startsWith(match[0])) return match[0];
+  return '';
 };
