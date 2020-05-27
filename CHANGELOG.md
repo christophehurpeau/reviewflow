@@ -1,3 +1,12 @@
+# [1.54.0](https://github.com/christophehurpeau/reviewflow/compare/v1.53.0...v1.54.0) (2020-05-27)
+
+
+### Features
+
+* add special bot config ([2bdbe52](https://github.com/christophehurpeau/reviewflow/commit/2bdbe52b01e206aea7e120ab284b46631fa40061))
+
+
+
 # [1.53.0](https://github.com/christophehurpeau/reviewflow/compare/v1.52.0...v1.53.0) (2020-05-27)
 
 
