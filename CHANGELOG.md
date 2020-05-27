@@ -1,3 +1,13 @@
+# [1.53.0](https://github.com/christophehurpeau/reviewflow/compare/v1.52.0...v1.53.0) (2020-05-27)
+
+
+### Features
+
+* also support unicode emojis ([6e9c7f8](https://github.com/christophehurpeau/reviewflow/commit/6e9c7f80270d985c2f7c53e069dff91b966fb41b))
+* slackify markdown ([70ae698](https://github.com/christophehurpeau/reviewflow/commit/70ae698b6e251eb9df1c8c41ef0ed1df663d5f2f))
+
+
+
 # [1.52.0](https://github.com/christophehurpeau/reviewflow/compare/v1.51.0...v1.52.0) (2020-05-25)
 
 
