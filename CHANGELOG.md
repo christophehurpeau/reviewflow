@@ -1,3 +1,12 @@
+## [1.54.1](https://github.com/christophehurpeau/reviewflow/compare/v1.54.0...v1.54.1) (2020-05-27)
+
+
+### Bug Fixes
+
+* renovate changed its checkbox to <!-- rebase-check --> ([1d476e5](https://github.com/christophehurpeau/reviewflow/commit/1d476e5fcdef924eca68fa51889e2e24a2118e57))
+
+
+
 # [1.54.0](https://github.com/christophehurpeau/reviewflow/compare/v1.53.0...v1.54.0) (2020-05-27)
 
 
