@@ -76,7 +76,7 @@
     "probot": "9.9.4",
     "react": "16.13.1",
     "react-dom": "16.13.1",
-    "simple-oauth2": "2.5.2",
+    "simple-oauth2": "3.4.0",
     "slackify-markdown": "2.1.0"
   },
   "devDependencies": {
