@@ -23,7 +23,11 @@ export default function closed(app: Application, appContext: AppContext): void {
               : null;
 
           await Promise.all([
-            repoContext.removePrFromAutomergeQueue(context, pr.number),
+            repoContext.removePrFromAutomergeQueue(
+              context,
+              pr.number,
+              'pr closed',
+            ),
             parsedBody?.options.deleteAfterMerge
               ? context.github.git
                   .deleteRef(context.repo({ ref: `heads/${pr.head.ref}` }))
@@ -32,7 +36,11 @@ export default function closed(app: Application, appContext: AppContext): void {
           ]);
         } else {
           await Promise.all([
-            repoContext.removePrFromAutomergeQueue(context, pr.number),
+            repoContext.removePrFromAutomergeQueue(
+              context,
+              pr.number,
+              'pr closed',
+            ),
             updateReviewStatus(pr, context, repoContext, 'dev', {
               remove: ['needsReview'],
             }),

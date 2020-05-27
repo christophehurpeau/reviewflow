@@ -195,7 +195,11 @@ export const editOpenedPR: PRHandler<
               await autoMergeIfPossible(pr, context, repoContext, prLabels);
             },
             onRemove: () => {
-              repoContext.removePrFromAutomergeQueue(context, pr.number);
+              repoContext.removePrFromAutomergeQueue(
+                context,
+                pr.number,
+                'label removed',
+              );
             },
           },
         ),

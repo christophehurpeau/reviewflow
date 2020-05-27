@@ -35,7 +35,11 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
 
   getMergeLockedPr(): LockedMergePr;
   addMergeLockPr(pr: LockedMergePr): void;
-  removePrFromAutomergeQueue(context: Context<any>, prNumber: number): void;
+  removePrFromAutomergeQueue(
+    context: Context<any>,
+    prNumber: number,
+    reason: string,
+  ): void;
   reschedule(context: Context<any>, pr: LockedMergePr): void;
   pushAutomergeQueue(pr: LockedMergePr): void;
 }
@@ -194,22 +198,30 @@ async function initRepoContext<GroupNames extends string>(
       if (lockMergePr) throw new Error('Already have lock');
       lockMergePr = pr;
     },
-    removePrFromAutomergeQueue: (context, prNumber: number | string): void => {
-      context.log(`merge lock: remove ${fullName}#${prNumber}`);
+    removePrFromAutomergeQueue: (
+      context,
+      prNumber: number | string,
+      reason: string,
+    ): void => {
       if (lockMergePr && String(lockMergePr.number) === String(prNumber)) {
         lockMergePr = automergeQueue.shift();
+        context.log(`merge lock: remove ${fullName}#${prNumber}: ${reason}`);
         context.log(`merge lock: next ${fullName}`, lockMergePr);
         if (lockMergePr) {
           reschedule(context, lockMergePr);
         }
       } else {
+        const previousLength = automergeQueue.length;
         automergeQueue = automergeQueue.filter(
           (value) => String(value.number) !== String(prNumber),
         );
+        if (automergeQueue.length !== previousLength) {
+          context.log(`merge lock: remove ${fullName}#${prNumber}: ${reason}`);
+        }
       }
     },
     pushAutomergeQueue: (pr: LockedMergePr): void => {
-      console.log('merge lock: push queue', {
+      context.log('merge lock: push queue', {
         repo: fullName,
         pr,
         lockMergePr,
