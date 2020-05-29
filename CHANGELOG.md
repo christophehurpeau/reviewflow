@@ -1,3 +1,12 @@
+# [1.55.0](https://github.com/christophehurpeau/reviewflow/compare/v1.54.2...v1.55.0) (2020-05-29)
+
+
+### Features
+
+* add optional botUsers in config, check comment user ([0728acc](https://github.com/christophehurpeau/reviewflow/commit/0728acc7bbabec161f174b37408fea7cf0a55826))
+
+
+
 ## [1.54.2](https://github.com/christophehurpeau/reviewflow/compare/v1.54.1...v1.54.2) (2020-05-27)
 
 
