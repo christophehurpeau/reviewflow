@@ -16,9 +16,6 @@ export default function reviewRequested(
       async (pr, context, repoContext): Promise<void> => {
         const sender = context.payload.sender;
 
-        // ignore if sender is self (dismissed review rerequest review)
-        if (sender.type === 'Bot') return;
-
         const reviewer = (context.payload as any).requested_reviewer;
 
         const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);

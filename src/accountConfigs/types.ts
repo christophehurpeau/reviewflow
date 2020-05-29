@@ -67,6 +67,7 @@ export interface Config<GroupNames extends string, TeamNames extends string> {
   parsePR: ParsePR;
   prDefaultOptions: Record<Options, boolean>;
 
+  botUsers?: string[];
   groups: Record<GroupNames, Group>;
   teams: Record<TeamNames, Team>;
   waitForGroups?: Record<GroupNames, GroupNames[]>;

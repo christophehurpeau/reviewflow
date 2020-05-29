@@ -11,6 +11,7 @@ import { createHandlerPullRequestChange } from './utils';
 import { createSlackMessageWithSecondaryBlock } from './utils/createSlackMessageWithSecondaryBlock';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 import { parseMentions } from './utils/parseMentions';
+import { checkIfUserIsBot } from './utils/isBotUser';
 
 const getDiscussion = async (
   context: Context,
@@ -154,6 +155,7 @@ export default function prCommentCreated(
         const promisesOwner = [];
         const promisesNotOwner = [];
         const slackifiedBody = slackifyMarkdown(body);
+        const isBotUser = checkIfUserIsBot(repoContext, comment.user);
 
         if (!commentByOwner) {
           const slackMessage = createSlackMessageWithSecondaryBlock(
@@ -164,7 +166,7 @@ export default function prCommentCreated(
           promisesOwner.push(
             repoContext.slack
               .postMessage(
-                pr.user.type === 'Bot' ? 'pr-comment-bots' : 'pr-comment',
+                isBotUser ? 'pr-comment-bots' : 'pr-comment',
                 pr.user.id,
                 pr.user.login,
                 slackMessage,
@@ -189,9 +191,7 @@ export default function prCommentCreated(
         promisesNotOwner.push(
           ...followers.map((follower) =>
             repoContext.slack.postMessage(
-              pr.user.type === 'Bot'
-                ? 'pr-comment-follow-bots'
-                : 'pr-comment-follow',
+              isBotUser ? 'pr-comment-follow-bots' : 'pr-comment-follow',
               follower.id,
               follower.login,
               message,

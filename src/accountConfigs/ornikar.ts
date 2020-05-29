@@ -50,6 +50,8 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
     ],
   },
 
+  botUsers: ['michael-robot'],
+
   groups: {
     dev: {
       /* ops */

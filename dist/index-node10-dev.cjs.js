@@ -520,6 +520,7 @@ const config$1 = {
       }
     }]
   },
+  botUsers: ['michael-robot'],
   groups: {
     dev: {
       /* ops */
@@ -2594,6 +2595,16 @@ const parseMentions = body => {
   return parse(body).mentions.map(m => m.user);
 };
 
+const checkIfUserIsBot = (repoContext, user) => {
+  if (user.type === 'Bot') return true;
+
+  if (repoContext.config.botUsers) {
+    return repoContext.config.botUsers.includes(user.login);
+  }
+
+  return false;
+};
+
 const getDiscussion = async (context, comment) => {
   if (!comment.in_reply_to_id) return [comment];
   return context.github.paginate(context.github.pulls.listComments.endpoint.merge(contextPr(context)), ({
@@ -2676,14 +2687,15 @@ function prCommentCreated(app, appContext) {
     const promisesOwner = [];
     const promisesNotOwner = [];
     const slackifiedBody = slackifyMarkdown(body);
+    const isBotUser = checkIfUserIsBot(repoContext, comment.user);
 
     if (!commentByOwner) {
       const slackMessage = createSlackMessageWithSecondaryBlock(createMessage(true), slackifiedBody);
-      promisesOwner.push(repoContext.slack.postMessage(pr.user.type === 'Bot' ? 'pr-comment-bots' : 'pr-comment', pr.user.id, pr.user.login, slackMessage).then(res => saveInDb(type, comment.id, repoContext.accountEmbed, [res], slackMessage)));
+      promisesOwner.push(repoContext.slack.postMessage(isBotUser ? 'pr-comment-bots' : 'pr-comment', pr.user.id, pr.user.login, slackMessage).then(res => saveInDb(type, comment.id, repoContext.accountEmbed, [res], slackMessage)));
     }
 
     const message = createSlackMessageWithSecondaryBlock(createMessage(false), slackifiedBody);
-    promisesNotOwner.push(...followers.map(follower => repoContext.slack.postMessage(pr.user.type === 'Bot' ? 'pr-comment-follow-bots' : 'pr-comment-follow', follower.id, follower.login, message)));
+    promisesNotOwner.push(...followers.map(follower => repoContext.slack.postMessage(isBotUser ? 'pr-comment-follow-bots' : 'pr-comment-follow', follower.id, follower.login, message)));
     promisesNotOwner.push(...usersInThread.map(user => repoContext.slack.postMessage('pr-comment-thread', user.id, user.login, message)));
 
     if (mentions.length !== 0) {
@@ -2739,9 +2751,7 @@ function reviewRequested(app, appContext) {
   app.on('pull_request.review_requested', createHandlerPullRequestChange(appContext, {
     refetchPr: true
   }, async (pr, context, repoContext) => {
-    const sender = context.payload.sender; // ignore if sender is self (dismissed review rerequest review)
-
-    if (sender.type === 'Bot') return;
+    const sender = context.payload.sender;
     const reviewer = context.payload.requested_reviewer;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
