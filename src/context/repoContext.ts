@@ -172,7 +172,7 @@ async function initRepoContext<GroupNames extends string>(
           await autoMergeIfPossible(prResult.data, context, repoContext);
         });
       });
-    }, 1000);
+    }, 10000);
   };
 
   return Object.assign(repoContext, {
