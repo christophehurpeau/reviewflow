@@ -1,3 +1,13 @@
+## [1.55.1](https://github.com/christophehurpeau/reviewflow/compare/v1.55.0...v1.55.1) (2020-06-04)
+
+
+### Features
+
+* add automerge log ([83d4d27](https://github.com/christophehurpeau/reviewflow/commit/83d4d271b257de036bd58de750d9ced8abadc5bf))
+* increase reschedule timeout ([920eeda](https://github.com/christophehurpeau/reviewflow/commit/920eeda8645726468447bc6b7195dff0851fb417))
+
+
+
 # [1.55.0](https://github.com/christophehurpeau/reviewflow/compare/v1.54.2...v1.55.0) (2020-05-29)
 
 
