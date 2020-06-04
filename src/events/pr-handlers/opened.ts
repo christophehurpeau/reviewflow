@@ -17,12 +17,22 @@ export default function opened(app: Application, appContext: AppContext): void {
         const fromRenovate = pr.head.ref.startsWith('renovate/');
 
         await Promise.all<unknown>([
-          autoAssignPRToCreator(pr, context, repoContext),
-          editOpenedPR(pr, context, repoContext).then(() => {
-            return readCommitsAndUpdateInfos(pr, context, repoContext);
+          autoAssignPRToCreator(appContext, pr, context, repoContext),
+          editOpenedPR(appContext, pr, context, repoContext).then(() => {
+            return readCommitsAndUpdateInfos(
+              appContext,
+              pr,
+              context,
+              repoContext,
+            );
           }),
           fromRenovate
-            ? autoApproveAndAutoMerge(pr, context, repoContext).then(
+            ? autoApproveAndAutoMerge(
+                appContext,
+                pr,
+                context,
+                repoContext,
+              ).then(
                 async (approved: boolean): Promise<void> => {
                   if (!approved) {
                     await updateReviewStatus(pr, context, repoContext, 'dev', {

@@ -107,6 +107,7 @@ export default function reviewSubmitted(
 
             if (approved && !hasChangesRequestedInReviews) {
               merged = await autoMergeIfPossible(
+                appContext,
                 pr,
                 context,
                 repoContext,

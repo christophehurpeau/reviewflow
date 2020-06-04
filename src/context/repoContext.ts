@@ -169,7 +169,12 @@ async function initRepoContext<GroupNames extends string>(
               pull_number: pr.number,
             }),
           );
-          await autoMergeIfPossible(prResult.data, context, repoContext);
+          await autoMergeIfPossible(
+            appContext,
+            prResult.data,
+            context,
+            repoContext,
+          );
         });
       });
     }, 10000);

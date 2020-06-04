@@ -22,7 +22,12 @@ export default function checkrunCompleted(
                 }),
               )
               .then((prResult) => {
-                return autoMergeIfPossible(prResult.data, context, repoContext);
+                return autoMergeIfPossible(
+                  appContext,
+                  prResult.data,
+                  context,
+                  repoContext,
+                );
               }),
           ),
         );

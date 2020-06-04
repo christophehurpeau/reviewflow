@@ -72,7 +72,7 @@ export default function labelsChanged(
                     : repoContext.config.prDefaultOptions.autoMergeWithSkipCi,
                 });
               }
-              await autoMergeIfPossible(pr, context, repoContext);
+              await autoMergeIfPossible(appContext, pr, context, repoContext);
             }
             return;
           }
@@ -111,9 +111,15 @@ export default function labelsChanged(
               [option]: context.payload.action === 'labeled',
             });
           } // not an else if
-          if (context.payload.action === 'labeled') {
-            if (automergeLabel && label.id === automergeLabel.id) {
-              await autoMergeIfPossible(pr, context, repoContext);
+          if (automergeLabel && label.id === automergeLabel.id) {
+            if (context.payload.action === 'labeled') {
+              await autoMergeIfPossible(appContext, pr, context, repoContext);
+            } else {
+              repoContext.removePrFromAutomergeQueue(
+                context,
+                pr.number,
+                'automerge label removed',
+              );
             }
           }
         },

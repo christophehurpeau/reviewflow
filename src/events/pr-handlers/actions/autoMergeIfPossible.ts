@@ -1,5 +1,7 @@
 import { Context, Octokit } from 'probot';
 // eslint-disable-next-line import/no-cycle
+import { AutomergeLog } from '../../../mongo';
+import { AppContext } from '../../../context/AppContext';
 import { RepoContext } from '../../../context/repoContext';
 import { LabelResponse } from '../../../context/initRepoLabels';
 import { parseBodyWithOptions } from './utils/parseBody';
@@ -50,6 +52,7 @@ const hasFailedStatusOrChecks = async (
 };
 
 export const autoMergeIfPossible = async (
+  appContext: AppContext,
   pr: Octokit.PullsGetResponse,
   context: Context<any>,
   repoContext: RepoContext,
@@ -66,6 +69,8 @@ export const autoMergeIfPossible = async (
     return false;
   }
 
+  const isRenovatePr = pr.head.ref.startsWith('renovate/');
+
   const createMergeLockPrFromPr = () => ({
     id: pr.id,
     number: pr.number,
@@ -80,6 +85,25 @@ export const autoMergeIfPossible = async (
     );
   }
 
+  const addLog = (
+    type: AutomergeLog['type'],
+    action: AutomergeLog['action'],
+  ): void => {
+    const repoFullName = pr.head.repo.full_name;
+    context.log.info(`automerge: ${repoFullName}#${pr.id} ${type}`);
+    appContext.mongoStores.automergeLogs.insertOne({
+      account: repoContext.accountEmbed,
+      repoFullName,
+      pr: {
+        id: pr.id,
+        number: pr.number,
+        isRenovate: isRenovatePr,
+        mergeableState: pr.mergeable_state,
+      },
+      type,
+    });
+  };
+
   if (
     repoContext.hasNeedsReview(prLabels) ||
     repoContext.hasRequestedReview(prLabels)
@@ -88,6 +112,15 @@ export const autoMergeIfPossible = async (
       context,
       pr.number,
       'blocking labels',
+    );
+    return false;
+  }
+
+  if (pr.requested_reviewers.length !== 0) {
+    repoContext.removePrFromAutomergeQueue(
+      context,
+      pr.number,
+      'still has requested reviewers',
     );
     return false;
   }
@@ -114,6 +147,7 @@ export const autoMergeIfPossible = async (
   }
 
   if (pr.merged) {
+    addLog('already merged', 'remove');
     repoContext.removePrFromAutomergeQueue(
       context,
       pr.number,
@@ -135,19 +169,17 @@ export const autoMergeIfPossible = async (
     )
   ) {
     if (!pr.mergeable_state || pr.mergeable_state === 'unknown') {
-      context.log.info(`automerge not possible: rescheduling ${pr.id}`);
+      addLog('unknown mergeable_state', 'reschedule');
       // GitHub is determining whether the pull request is mergeable
       repoContext.reschedule(context, createMergeLockPrFromPr());
       return false;
     }
 
-    if (pr.head.ref.startsWith('renovate/')) {
+    if (isRenovatePr) {
       if (pr.mergeable_state === 'behind' || pr.mergeable_state === 'dirty') {
-        context.log.info(
-          `automerge not possible: rebase renovate branch pr ${pr.id}`,
-        );
-        // TODO check if has commits not made by renovate https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
+        addLog('rebase-renovate', 'wait');
 
+        // TODO check if has commits not made by renovate https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
         if (pr.body.includes('<!-- rebase-check -->')) {
           if (pr.body.includes('[x] <!-- rebase-check -->')) {
             return false;
@@ -176,6 +208,7 @@ export const autoMergeIfPossible = async (
       }
 
       if (await hasFailedStatusOrChecks(pr, context)) {
+        addLog('failed status or checks', 'remove');
         repoContext.removePrFromAutomergeQueue(
           context,
           pr.number,
@@ -183,6 +216,7 @@ export const autoMergeIfPossible = async (
         );
         return false;
       } else if (pr.mergeable_state === 'blocked') {
+        addLog('blocked mergeable_state', 'wait');
         // waiting for reschedule in status (pr-handler/status.ts)
         return false;
       }
@@ -195,6 +229,7 @@ export const autoMergeIfPossible = async (
 
     if (pr.mergeable_state === 'blocked') {
       if (await hasFailedStatusOrChecks(pr, context)) {
+        addLog('failed status or checks', 'remove');
         repoContext.removePrFromAutomergeQueue(
           context,
           pr.number,
@@ -202,12 +237,14 @@ export const autoMergeIfPossible = async (
         );
         return false;
       } else {
+        addLog('blocked mergeable_state', 'wait');
         // waiting for reschedule in status (pr-handler/status.ts)
         return false;
       }
     }
 
     if (pr.mergeable_state === 'behind') {
+      addLog('behind mergeable_state', 'update branch');
       context.log.info('automerge not possible: update branch', {
         head: pr.head.ref,
         base: pr.base.ref,
@@ -223,6 +260,7 @@ export const autoMergeIfPossible = async (
       return false;
     }
 
+    addLog('not mergeable', 'remove');
     repoContext.removePrFromAutomergeQueue(
       context,
       pr.number,

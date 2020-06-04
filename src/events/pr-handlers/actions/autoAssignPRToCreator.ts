@@ -3,6 +3,7 @@ import { PRHandler } from '../utils';
 import { contextIssue } from '../../../context/utils';
 
 export const autoAssignPRToCreator: PRHandler<Webhooks.WebhookPayloadPullRequest> = async (
+  appContext,
   pr,
   context,
   repoContext,

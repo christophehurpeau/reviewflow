@@ -90,6 +90,23 @@ function init() {
         $lt: new Date(Date.now() - 1209600000)
       }
     });
+  });
+  const automergeLogs = new liwiMongo.MongoStore(connection, 'automergeLogs');
+  automergeLogs.collection.then(coll => {
+    coll.createIndex({
+      repoFullName: 1,
+      type: 1
+    });
+    coll.createIndex({
+      repoFullName: 1,
+      'pr.number': 1
+    }); // remove older than 30 days
+
+    coll.deleteMany({
+      created: {
+        $lt: new Date(Date.now() - 2592000000)
+      }
+    });
   }); // return { connection, prEvents };
 
   return {
@@ -99,7 +116,8 @@ function init() {
     orgs,
     orgMembers,
     orgTeams,
-    slackSentMessages
+    slackSentMessages,
+    automergeLogs
   };
 }
 
@@ -1175,13 +1193,15 @@ const hasFailedStatusOrChecks = async (pr, context) => {
   return false;
 };
 
-const autoMergeIfPossible = async (pr, context, repoContext, prLabels = pr.labels) => {
+const autoMergeIfPossible = async (appContext, pr, context, repoContext, prLabels = pr.labels) => {
   const autoMergeLabel = repoContext.labels['merge/automerge'];
 
   if (!hasLabelInPR(prLabels, autoMergeLabel)) {
     repoContext.removePrFromAutomergeQueue(context, pr.number, 'no automerge label');
     return false;
   }
+
+  const isRenovatePr = pr.head.ref.startsWith('renovate/');
 
   const createMergeLockPrFromPr = () => ({
     id: pr.id,
@@ -1193,8 +1213,29 @@ const autoMergeIfPossible = async (pr, context, repoContext, prLabels = pr.label
     repoContext.removePrFromAutomergeQueue(context, pr.number, 'pr is not opened');
   }
 
+  const addLog = type => {
+    const repoFullName = pr.head.repo.full_name;
+    context.log.info(`automerge: ${repoFullName}#${pr.id} ${type}`);
+    appContext.mongoStores.automergeLogs.insertOne({
+      account: repoContext.accountEmbed,
+      repoFullName,
+      pr: {
+        id: pr.id,
+        number: pr.number,
+        isRenovate: isRenovatePr,
+        mergeableState: pr.mergeable_state
+      },
+      type
+    });
+  };
+
   if (repoContext.hasNeedsReview(prLabels) || repoContext.hasRequestedReview(prLabels)) {
     repoContext.removePrFromAutomergeQueue(context, pr.number, 'blocking labels');
+    return false;
+  }
+
+  if (pr.requested_reviewers.length !== 0) {
+    repoContext.removePrFromAutomergeQueue(context, pr.number, 'still has requested reviewers');
     return false;
   }
 
@@ -1219,6 +1260,7 @@ const autoMergeIfPossible = async (pr, context, repoContext, prLabels = pr.label
   }
 
   if (pr.merged) {
+    addLog('already merged');
     repoContext.removePrFromAutomergeQueue(context, pr.number, 'pr already merged');
     return false;
   }
@@ -1227,15 +1269,15 @@ const autoMergeIfPossible = async (pr, context, repoContext, prLabels = pr.label
 
   if (!(pr.mergeable_state === 'clean' || pr.mergeable_state === 'has_hooks' || pr.mergeable_state === 'unstable')) {
     if (!pr.mergeable_state || pr.mergeable_state === 'unknown') {
-      context.log.info(`automerge not possible: rescheduling ${pr.id}`); // GitHub is determining whether the pull request is mergeable
+      addLog('unknown mergeable_state'); // GitHub is determining whether the pull request is mergeable
 
       repoContext.reschedule(context, createMergeLockPrFromPr());
       return false;
     }
 
-    if (pr.head.ref.startsWith('renovate/')) {
+    if (isRenovatePr) {
       if (pr.mergeable_state === 'behind' || pr.mergeable_state === 'dirty') {
-        context.log.info(`automerge not possible: rebase renovate branch pr ${pr.id}`); // TODO check if has commits not made by renovate https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
+        addLog('rebase-renovate'); // TODO check if has commits not made by renovate https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
 
         if (pr.body.includes('<!-- rebase-check -->')) {
           if (pr.body.includes('[x] <!-- rebase-check -->')) {
@@ -1258,10 +1300,12 @@ const autoMergeIfPossible = async (pr, context, repoContext, prLabels = pr.label
       }
 
       if (await hasFailedStatusOrChecks(pr, context)) {
+        addLog('failed status or checks');
         repoContext.removePrFromAutomergeQueue(context, pr.number, 'failed status or checks');
         return false;
       } else if (pr.mergeable_state === 'blocked') {
-        // waiting for reschedule in status (pr-handler/status.ts)
+        addLog('blocked mergeable_state'); // waiting for reschedule in status (pr-handler/status.ts)
+
         return false;
       }
 
@@ -1271,15 +1315,18 @@ const autoMergeIfPossible = async (pr, context, repoContext, prLabels = pr.label
 
     if (pr.mergeable_state === 'blocked') {
       if (await hasFailedStatusOrChecks(pr, context)) {
+        addLog('failed status or checks');
         repoContext.removePrFromAutomergeQueue(context, pr.number, 'failed status or checks');
         return false;
       } else {
-        // waiting for reschedule in status (pr-handler/status.ts)
+        addLog('blocked mergeable_state'); // waiting for reschedule in status (pr-handler/status.ts)
+
         return false;
       }
     }
 
     if (pr.mergeable_state === 'behind') {
+      addLog('behind mergeable_state');
       context.log.info('automerge not possible: update branch', {
         head: pr.head.ref,
         base: pr.base.ref
@@ -1293,6 +1340,7 @@ const autoMergeIfPossible = async (pr, context, repoContext, prLabels = pr.label
       return false;
     }
 
+    addLog('not mergeable');
     repoContext.removePrFromAutomergeQueue(context, pr.number, `mergeable_state=${pr.mergeable_state}`);
     context.log.info(`automerge not possible: not mergeable mergeable_state=${pr.mergeable_state}`);
     return false;
@@ -1808,10 +1856,10 @@ async function initRepoContext(appContext, context, config) {
           const prResult = await context.github.pulls.get(context.repo({
             pull_number: pr.number
           }));
-          await autoMergeIfPossible(prResult.data, context, repoContext);
+          await autoMergeIfPossible(appContext, prResult.data, context, repoContext);
         });
       });
-    }, 1000);
+    }, 10000);
   };
 
   return Object.assign(repoContext, {
@@ -1956,7 +2004,7 @@ const createHandlerPullRequestsChange = (appContext, getPullRequests, callback) 
   return repoContext.lockPROrPRS(prs.map(pr => String(pr.id)), prs.map(pr => pr.number), () => callback(context, repoContext));
 };
 
-const autoAssignPRToCreator = async (pr, context, repoContext) => {
+const autoAssignPRToCreator = async (appContext, pr, context, repoContext) => {
   if (!repoContext.config.autoAssignToCreator) return;
   if (pr.assignees.length !== 0) return;
   if (pr.user.type === 'Bot') return;
@@ -2091,7 +2139,7 @@ async function createStatus(context, name, sha, type, description, url) {
   }));
 }
 
-const editOpenedPR = async (pr, context, repoContext, previousSha) => {
+const editOpenedPR = async (appContext, pr, context, repoContext, previousSha) => {
   const repo = context.payload.repository; // do not lint pr from forks
 
   if (pr.head.repo.id !== repo.id) return {
@@ -2172,7 +2220,7 @@ const editOpenedPR = async (pr, context, repoContext, previousSha) => {
   if (options && (featureBranchLabel || automergeLabel)) {
     await Promise.all([featureBranchLabel && syncLabel(pr, context, options.featureBranch, featureBranchLabel, prHasFeatureBranchLabel), skipCiLabel && syncLabel(pr, context, options.autoMergeWithSkipCi, skipCiLabel, prHasSkipCiLabel), automergeLabel && syncLabel(pr, context, options.autoMerge, automergeLabel, prHasAutoMergeLabel, {
       onAdd: async prLabels => {
-        await autoMergeIfPossible(pr, context, repoContext, prLabels);
+        await autoMergeIfPossible(appContext, pr, context, repoContext, prLabels);
       },
       onRemove: () => {
         repoContext.removePrFromAutomergeQueue(context, pr.number, 'label removed');
@@ -2404,7 +2452,7 @@ const updateReviewStatus = async (pr, context, repoContext, reviewGroup, {
   return prLabels;
 };
 
-const autoApproveAndAutoMerge = async (pr, context, repoContext) => {
+const autoApproveAndAutoMerge = async (appContext, pr, context, repoContext) => {
   // const autoMergeLabel = repoContext.labels['merge/automerge'];
   const codeApprovedLabel = repoContext.labels['code/approved'];
 
@@ -2412,14 +2460,14 @@ const autoApproveAndAutoMerge = async (pr, context, repoContext) => {
     await context.github.pulls.createReview(contextPr(context, {
       event: 'APPROVE'
     }));
-    await autoMergeIfPossible(pr, context, repoContext);
+    await autoMergeIfPossible(appContext, pr, context, repoContext);
     return true;
   }
 
   return false;
 };
 
-const readCommitsAndUpdateInfos = async (pr, context, repoContext) => {
+const readCommitsAndUpdateInfos = async (appContext, pr, context, repoContext) => {
   // tmp.data[0].sha
   // tmp.data[0].commit.message
   const commits = await context.github.paginate(context.github.pulls.listCommits.endpoint.merge(contextPr(context, {
@@ -2454,9 +2502,9 @@ function opened(app, appContext) {
     refetchPr: true
   }, async (pr, context, repoContext) => {
     const fromRenovate = pr.head.ref.startsWith('renovate/');
-    await Promise.all([autoAssignPRToCreator(pr, context, repoContext), editOpenedPR(pr, context, repoContext).then(() => {
-      return readCommitsAndUpdateInfos(pr, context, repoContext);
-    }), fromRenovate ? autoApproveAndAutoMerge(pr, context, repoContext).then(async approved => {
+    await Promise.all([autoAssignPRToCreator(appContext, pr, context, repoContext), editOpenedPR(appContext, pr, context, repoContext).then(() => {
+      return readCommitsAndUpdateInfos(appContext, pr, context, repoContext);
+    }), fromRenovate ? autoApproveAndAutoMerge(appContext, pr, context, repoContext).then(async approved => {
       if (!approved) {
         await updateReviewStatus(pr, context, repoContext, 'dev', {
           add: ['needsReview']
@@ -2497,7 +2545,7 @@ function closed$1(app, appContext) {
     await Promise.all([updateReviewStatus(pr, context, repoContext, 'dev', {
       add: ['needsReview'],
       remove: ['approved']
-    }), readCommitsAndUpdateInfos(pr, context, repoContext)]);
+    }), readCommitsAndUpdateInfos(appContext, pr, context, repoContext)]);
   }));
 }
 
@@ -2891,7 +2939,7 @@ function reviewSubmitted(app, appContext) {
         });
 
         if (approved && !hasChangesRequestedInReviews) {
-          merged = await autoMergeIfPossible(pr, context, repoContext, newLabels);
+          merged = await autoMergeIfPossible(appContext, pr, context, repoContext, newLabels);
         }
       }
 
@@ -3000,10 +3048,10 @@ function synchronize(app, appContext) {
     // old and new sha
     // const { before, after } = context.payload;
     const previousSha = context.payload.before;
-    await Promise.all([editOpenedPR(pr, context, repoContext, previousSha), // addStatusCheckToLatestCommit
-    updateStatusCheckFromLabels(pr, context, repoContext, pr.labels, previousSha), readCommitsAndUpdateInfos(pr, context, repoContext)]); // call autoMergeIfPossible to re-add to the queue when push is fixed
+    await Promise.all([editOpenedPR(appContext, pr, context, repoContext, previousSha), // addStatusCheckToLatestCommit
+    updateStatusCheckFromLabels(pr, context, repoContext, pr.labels, previousSha), readCommitsAndUpdateInfos(appContext, pr, context, repoContext)]); // call autoMergeIfPossible to re-add to the queue when push is fixed
 
-    await autoMergeIfPossible(pr, context, repoContext);
+    await autoMergeIfPossible(appContext, pr, context, repoContext);
   }));
 }
 
@@ -3019,8 +3067,8 @@ function edited(app, appContext) {
 
     const {
       skipAutoMerge
-    } = await editOpenedPR(pr, context, repoContext);
-    if (!skipAutoMerge) await autoMergeIfPossible(pr, context, repoContext);
+    } = await editOpenedPR(appContext, pr, context, repoContext);
+    if (!skipAutoMerge) await autoMergeIfPossible(appContext, pr, context, repoContext);
   }));
 }
 
@@ -3084,7 +3132,7 @@ function labelsChanged(app, appContext) {
             });
           }
 
-          await autoMergeIfPossible(pr, context, repoContext);
+          await autoMergeIfPossible(appContext, pr, context, repoContext);
         }
 
         return;
@@ -3123,9 +3171,11 @@ function labelsChanged(app, appContext) {
       } // not an else if
 
 
-      if (context.payload.action === 'labeled') {
-        if (automergeLabel && label.id === automergeLabel.id) {
-          await autoMergeIfPossible(pr, context, repoContext);
+      if (automergeLabel && label.id === automergeLabel.id) {
+        if (context.payload.action === 'labeled') {
+          await autoMergeIfPossible(appContext, pr, context, repoContext);
+        } else {
+          repoContext.removePrFromAutomergeQueue(context, pr.number, 'automerge label removed');
         }
       }
     });
@@ -3137,7 +3187,7 @@ function checkrunCompleted(app, appContext) {
     await Promise.all(context.payload.check_run.pull_requests.map(pr => context.github.pulls.get(context.repo({
       pull_number: pr.number
     })).then(prResult => {
-      return autoMergeIfPossible(prResult.data, context, repoContext);
+      return autoMergeIfPossible(appContext, prResult.data, context, repoContext);
     })));
   }));
 }
@@ -3147,7 +3197,7 @@ function checksuiteCompleted(app, appContext) {
     await Promise.all(context.payload.check_suite.pull_requests.map(pr => context.github.pulls.get(context.repo({
       pull_number: pr.number
     })).then(prResult => {
-      return autoMergeIfPossible(prResult.data, context, repoContext);
+      return autoMergeIfPossible(appContext, prResult.data, context, repoContext);
     })));
   }));
 }

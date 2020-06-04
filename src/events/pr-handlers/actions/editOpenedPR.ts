@@ -28,7 +28,7 @@ export const editOpenedPR: PRHandler<
   Webhooks.WebhookPayloadPullRequest,
   { skipAutoMerge: boolean },
   string
-> = async (pr, context, repoContext, previousSha) => {
+> = async (appContext, pr, context, repoContext, previousSha) => {
   const repo = context.payload.repository;
 
   // do not lint pr from forks
@@ -192,7 +192,13 @@ export const editOpenedPR: PRHandler<
           prHasAutoMergeLabel,
           {
             onAdd: async (prLabels) => {
-              await autoMergeIfPossible(pr, context, repoContext, prLabels);
+              await autoMergeIfPossible(
+                appContext,
+                pr,
+                context,
+                repoContext,
+                prLabels,
+              );
             },
             onRemove: () => {
               repoContext.removePrFromAutomergeQueue(

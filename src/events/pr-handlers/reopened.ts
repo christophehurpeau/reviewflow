@@ -16,7 +16,7 @@ export default function closed(app: Application, appContext: AppContext): void {
             add: ['needsReview'],
             remove: ['approved'],
           }),
-          readCommitsAndUpdateInfos(pr, context, repoContext),
+          readCommitsAndUpdateInfos(appContext, pr, context, repoContext),
         ]);
       },
     ),

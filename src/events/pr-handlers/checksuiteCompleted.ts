@@ -22,7 +22,12 @@ export default function checksuiteCompleted(
                 }),
               )
               .then((prResult) => {
-                return autoMergeIfPossible(prResult.data, context, repoContext);
+                return autoMergeIfPossible(
+                  appContext,
+                  prResult.data,
+                  context,
+                  repoContext,
+                );
               }),
           ),
         );

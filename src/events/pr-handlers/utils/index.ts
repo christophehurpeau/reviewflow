@@ -3,6 +3,7 @@ import { AppContext } from '../../../context/AppContext';
 import { obtainRepoContext, RepoContext } from '../../../context/repoContext';
 
 export type PRHandler<T = any, Result = void, FourthArgument = never> = (
+  appContext: AppContext,
   pr: Octokit.PullsGetResponse,
   context: Context<T>,
   repoContext: RepoContext,

@@ -7,6 +7,7 @@ import { updateBodyCommitsNotes } from './utils/updateBody';
 import { updatePrIfNeeded } from './updatePr';
 
 export const readCommitsAndUpdateInfos: PRHandler<Webhooks.WebhookPayloadPullRequest> = async (
+  appContext,
   pr,
   context,
   repoContext,

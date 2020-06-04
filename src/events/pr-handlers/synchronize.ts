@@ -21,7 +21,7 @@ export default function synchronize(
         const previousSha = (context.payload as any).before as string;
 
         await Promise.all([
-          editOpenedPR(pr, context, repoContext, previousSha),
+          editOpenedPR(appContext, pr, context, repoContext, previousSha),
           // addStatusCheckToLatestCommit
           updateStatusCheckFromLabels(
             pr,
@@ -31,11 +31,11 @@ export default function synchronize(
             previousSha,
           ),
 
-          readCommitsAndUpdateInfos(pr, context, repoContext),
+          readCommitsAndUpdateInfos(appContext, pr, context, repoContext),
         ]);
 
         // call autoMergeIfPossible to re-add to the queue when push is fixed
-        await autoMergeIfPossible(pr, context, repoContext);
+        await autoMergeIfPossible(appContext, pr, context, repoContext);
       },
     ),
   );

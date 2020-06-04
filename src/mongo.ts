@@ -70,6 +70,26 @@ export interface SlackSentMessage extends MongoModel {
   }[];
 }
 
+export interface AutomergeLog extends MongoModel {
+  account: AccountEmbed;
+  repoFullName: string;
+  pr: {
+    id: number;
+    number: number;
+    isRenovate: boolean;
+    mergeableState: string;
+  };
+  type:
+    | 'rebase-renovate'
+    | 'unknown mergeable_state'
+    | 'blocked mergeable_state'
+    | 'behind mergeable_state'
+    | 'not mergeable'
+    | 'failed status or checks'
+    | 'already merged';
+  action: 'remove' | 'reschedule' | 'wait' | 'update branch';
+}
+
 export interface MongoStores {
   connection: MongoConnection;
   userDmSettings: MongoStore<UserDmSettings>;
@@ -78,6 +98,7 @@ export interface MongoStores {
   orgMembers: MongoStore<OrgMember>;
   orgTeams: MongoStore<OrgTeam>;
   slackSentMessages: MongoStore<SlackSentMessage>;
+  automergeLogs: MongoStore<AutomergeLog>;
   // prEvents: MongoStore<PrEventsModel>;
 }
 
@@ -147,6 +168,25 @@ export default function init(): MongoStores {
     });
   });
 
+  const automergeLogs = new MongoStore<AutomergeLog>(
+    connection,
+    'automergeLogs',
+  );
+  automergeLogs.collection.then((coll) => {
+    coll.createIndex({
+      repoFullName: 1,
+      type: 1,
+    });
+    coll.createIndex({
+      repoFullName: 1,
+      'pr.number': 1,
+    });
+    // remove older than 30 days
+    coll.deleteMany({
+      created: { $lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+    });
+  });
+
   // return { connection, prEvents };
   return {
     connection,
@@ -156,5 +196,6 @@ export default function init(): MongoStores {
     orgMembers,
     orgTeams,
     slackSentMessages,
+    automergeLogs,
   };
 }

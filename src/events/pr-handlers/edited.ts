@@ -19,8 +19,14 @@ export default function edited(app: Application, appContext: AppContext): void {
           return;
         }
 
-        const { skipAutoMerge } = await editOpenedPR(pr, context, repoContext);
-        if (!skipAutoMerge) await autoMergeIfPossible(pr, context, repoContext);
+        const { skipAutoMerge } = await editOpenedPR(
+          appContext,
+          pr,
+          context,
+          repoContext,
+        );
+        if (!skipAutoMerge)
+          await autoMergeIfPossible(appContext, pr, context, repoContext);
       },
     ),
   );
