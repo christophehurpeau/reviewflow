@@ -1056,12 +1056,12 @@
     eslint-config-airbnb-base "^14.1.0"
     eslint-plugin-prefer-class-properties "^1.0.0"
 
-"@pob/eslint-config-babel-node@37.0.2":
-  version "37.0.2"
-  resolved "https://registry.yarnpkg.com/@pob/eslint-config-babel-node/-/eslint-config-babel-node-37.0.2.tgz#6ab8c8729ca3daa688f4cb162672eee1ed89e6a0"
-  integrity sha512-7b/bBk2i3RPX9GZGbd+f1YwEC5fXCgyeaaSatqVF58wMzWAFmC+SKLDv1U5JIGZrbEGUe48Dph+BHiNfSIOAFQ==
+"@pob/eslint-config-babel-node@37.2.0":
+  version "37.2.0"
+  resolved "https://registry.yarnpkg.com/@pob/eslint-config-babel-node/-/eslint-config-babel-node-37.2.0.tgz#0ebab963346981fc302231ff60bdae49ad126231"
+  integrity sha512-SNYnN6p87uBOfnRbXcorTjsdNTpR+4Zpms6uTX2S0Z7sjyyftq2u5yJ6dkv57U632ivwWvXAvK0UytVdmG8Jvg==
   dependencies:
-    "@pob/use-eslint-plugin" "^37.0.2"
+    "@pob/use-eslint-plugin" "^37.2.0"
     eslint-plugin-node "^11.0.0"
 
 "@pob/eslint-config-node@37.0.2":
@@ -1128,10 +1128,10 @@
     yarn-deduplicate "2.0.0"
     yarnhook "^0.4.3"
 
-"@pob/use-eslint-plugin@^37.0.2":
-  version "37.0.2"
-  resolved "https://registry.yarnpkg.com/@pob/use-eslint-plugin/-/use-eslint-plugin-37.0.2.tgz#534658296d55cd849661e8e3b684ce29f8e4d8ce"
-  integrity sha512-QBNM+oLCLyiW0oya2kIvfCare+tmEQrfJ/k4QRv+zmmNzEoBVWgnajl47PZtJm4thQmaqzEtjKzqh/rLQCdsWQ==
+"@pob/use-eslint-plugin@^37.0.2", "@pob/use-eslint-plugin@^37.2.0":
+  version "37.2.0"
+  resolved "https://registry.yarnpkg.com/@pob/use-eslint-plugin/-/use-eslint-plugin-37.2.0.tgz#38be232f71082e05dcc7fefd240c61e5e0c3e08f"
+  integrity sha512-m5Imht2peetGgaJhrfQZ7SuLp9CNCMsp4jXazdSiDIUyYZcUYRtkQmL6pC25YdcpU7PebrQkxV0NpKQKZSq8Sg==
 
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
