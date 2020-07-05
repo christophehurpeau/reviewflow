@@ -1,3 +1,12 @@
+# [1.56.0](https://github.com/christophehurpeau/reviewflow/compare/v1.55.1...v1.56.0) (2020-07-05)
+
+
+### Features
+
+* use comment instead of body for infos, options, commit notes ([5af7489](https://github.com/christophehurpeau/reviewflow/commit/5af7489e8616159729901043a6bb7faeb38fb531))
+
+
+
 ## [1.55.1](https://github.com/christophehurpeau/reviewflow/compare/v1.55.0...v1.55.1) (2020-06-04)
 
 
