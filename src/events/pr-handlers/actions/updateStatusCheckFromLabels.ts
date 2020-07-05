@@ -1,17 +1,29 @@
 import Webhooks from '@octokit/webhooks';
 import { Context, Octokit } from 'probot';
-import { LabelResponse } from '../../../context/initRepoLabels';
-import { RepoContext } from '../../../context/repoContext';
+import { LabelResponse } from 'context/initRepoLabels';
+import {
+  PrContext,
+  PrContextWithUpdatedPr,
+} from '../utils/createPullRequestContext';
+import { PullRequestWithDecentDataFromWebhook } from '../utils/PullRequestData';
 import createStatus from './utils/createStatus';
 
 const addStatusCheck = async function <
-  E extends Webhooks.WebhookPayloadPullRequest
+  T extends { repository: Webhooks.PayloadRepository }
 >(
-  pr: Octokit.PullsGetResponse,
-  context: Context<E>,
+  prContext:
+    | PrContext<PullRequestWithDecentDataFromWebhook>
+    | PrContext<Octokit.PullsGetResponse>
+    | PrContextWithUpdatedPr,
+  context: Context<T>,
   { state, description }: { state: 'failure' | 'success'; description: string },
   previousSha?: string,
 ): Promise<void> {
+  const pr: Octokit.PullsGetResponse | PullRequestWithDecentDataFromWebhook =
+    prContext.updatedPr ||
+    (prContext as
+      | PrContext<PullRequestWithDecentDataFromWebhook>
+      | PrContext<Octokit.PullsGetResponse>).pr;
   const hasPrCheck = (
     await context.github.checks.listForRef(
       context.repo({
@@ -53,13 +65,22 @@ const addStatusCheck = async function <
   }
 };
 
-export const updateStatusCheckFromLabels = (
-  pr: Octokit.PullsGetResponse,
-  context: Context<any>,
-  repoContext: RepoContext,
+export const updateStatusCheckFromLabels = <
+  T extends { repository: Webhooks.PayloadRepository }
+>(
+  prContext:
+    | PrContext<Webhooks.WebhookPayloadPullRequest['pull_request']>
+    | PrContext<Octokit.PullsGetResponse>
+    | PrContextWithUpdatedPr,
+  pr:
+    | Webhooks.WebhookPayloadPullRequest['pull_request']
+    | Octokit.PullsGetResponse,
+  context: Context<T>,
   labels: LabelResponse[] = pr.labels || [],
   previousSha?: string,
 ): Promise<void> => {
+  const { repoContext } = prContext;
+
   context.log.debug('updateStatusCheckFromLabels', {
     labels: labels.map((l) => l?.name),
     hasNeedsReview: repoContext.hasNeedsReview(labels),
@@ -68,7 +89,7 @@ export const updateStatusCheckFromLabels = (
 
   const createFailedStatusCheck = (description: string): Promise<void> =>
     addStatusCheck(
-      pr,
+      prContext,
       context,
       {
         state: 'failure',
@@ -79,7 +100,9 @@ export const updateStatusCheckFromLabels = (
 
   if (pr.requested_reviewers.length !== 0) {
     return createFailedStatusCheck(
-      `Awaiting review from: ${pr.requested_reviewers
+      // TODO remove `as`
+      // https://github.com/probot/probot/issues/1219
+      `Awaiting review from: ${(pr.requested_reviewers as Octokit.PullsGetResponse['requested_reviewers'][])
         .map((rr: any) => rr.login)
         .join(', ')}`,
     );
@@ -123,7 +146,7 @@ export const updateStatusCheckFromLabels = (
   // return  createInProgressStatusCheck(context);
   // } else if (repoContext.hasApprovesReview(labels)) {
   return addStatusCheck(
-    pr,
+    prContext,
     context,
     {
       state: 'success',

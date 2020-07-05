@@ -1,9 +1,10 @@
 import { Application } from 'probot';
 import { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
-import { createHandlerPullRequestChange } from './utils';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
+import { fetchPullRequestAndCreateContext } from './utils/createPullRequestContext';
 
 export default function reviewDismissed(
   app: Application,
@@ -11,10 +12,15 @@ export default function reviewDismissed(
 ): void {
   app.on(
     'pull_request_review.dismissed',
-    createHandlerPullRequestChange(
+    createPullRequestHandler(
       appContext,
-      { refetchPr: true },
-      async (pr, context, repoContext): Promise<void> => {
+      (payload) => payload.pull_request,
+      async (prContext, context, repoContext): Promise<void> => {
+        const updatedPrContext = await fetchPullRequestAndCreateContext(
+          context,
+          prContext,
+        );
+        const pr = updatedPrContext.updatedPr;
         const sender = context.payload.sender;
         const reviewer = (context.payload as any).review.user;
 
@@ -34,7 +40,7 @@ export default function reviewDismissed(
             { includesReviewerGroup: true },
           );
 
-          await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
+          await updateReviewStatus(updatedPrContext, context, reviewerGroup, {
             add: [
               !hasApprovals && 'needsReview',
               hasApprovals &&

@@ -21,6 +21,6 @@ If needed, explain here the solution you chose for this
 
 Some ending lines.
 This is the case with renovate for example.
-`;
+`.trim();
 
 // [ONK-0000](https://a;dlkas;dlkas;dk)

@@ -11,6 +11,13 @@
     "@pob/eslint-config-babel-node",
     "@pob/eslint-config-typescript-react"
   ],
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "paths": ["./node_modules", "./src"]
+      }
+    }
+  },
   "rules": {
     "@typescript-eslint/camelcase": [
       "error",

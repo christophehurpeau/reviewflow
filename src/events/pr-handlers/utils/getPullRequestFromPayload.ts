@@ -1,0 +1,45 @@
+import Webhooks from '@octokit/webhooks';
+
+type WebhookPr =
+  | Webhooks.WebhookPayloadPullRequest['pull_request']
+  | Webhooks.WebhookPayloadPullRequestReviewPullRequest;
+
+type PullRequestHandlerAllowedPayloads =
+  | {
+      repository: Webhooks.PayloadRepository;
+      pull_request: WebhookPr;
+    }
+  | {
+      repository: Webhooks.PayloadRepository;
+      issue: Webhooks.WebhookPayloadIssueCommentIssue;
+    };
+
+export type PullRequestFromPayload<
+  T extends PullRequestHandlerAllowedPayloads
+> = T extends { pull_request: WebhookPr }
+  ? T['pull_request']
+  : T extends { issue: Webhooks.WebhookPayloadIssueCommentIssue }
+  ? T['issue'] /* & T['issue']['pull_request'] */
+  : never;
+
+/** deprecated */
+export const getPullRequestFromPayload = <
+  T extends PullRequestHandlerAllowedPayloads
+>(
+  payload: T,
+): PullRequestFromPayload<T> => {
+  const pullRequest: WebhookPr = (payload as any).pull_request;
+  if (pullRequest) {
+    return pullRequest as PullRequestFromPayload<T>;
+  }
+
+  const issue = (payload as any).issue;
+  if (issue?.pull_request) {
+    return {
+      ...issue,
+      ...issue.pull_request,
+    };
+  }
+
+  throw new Error('No pull_request in payload');
+};

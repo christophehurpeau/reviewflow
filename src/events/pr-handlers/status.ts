@@ -2,38 +2,35 @@ import Webhooks from '@octokit/webhooks';
 import { Application, Context } from 'probot';
 import { AppContext } from '../../context/AppContext';
 import { LockedMergePr } from '../../context/repoContext';
-import { createHandlerPullRequestsChange } from './utils';
+import { createPullRequestsHandler } from './utils/createPullRequestHandler';
 
 const isSameBranch = (
-  context: Context<Webhooks.WebhookPayloadStatus>,
+  payload: Context<Webhooks.WebhookPayloadStatus>['payload'],
   lockedPr: LockedMergePr,
 ): boolean => {
   if (!lockedPr) return false;
-  return !!context.payload.branches.find((b) => b.name === lockedPr.branch);
+  return !!payload.branches.find((b) => b.name === lockedPr.branch);
 };
 
 export default function status(app: Application, appContext: AppContext): void {
   app.on(
     'status',
-    createHandlerPullRequestsChange(
+    createPullRequestsHandler(
       appContext,
-      (context, repoContext): LockedMergePr[] => {
+      (payload, repoContext): LockedMergePr[] => {
         const lockedPr = repoContext.getMergeLockedPr();
         if (!lockedPr) return [];
 
-        if (
-          context.payload.state !== 'loading' &&
-          isSameBranch(context, lockedPr)
-        ) {
+        if (payload.state !== 'loading' && isSameBranch(payload, lockedPr)) {
           return [lockedPr];
         }
 
         return [];
       },
-      (context, repoContext): void => {
+      (pr, context, repoContext): void => {
         const lockedPr = repoContext.getMergeLockedPr();
         // check if changed
-        if (isSameBranch(context, lockedPr)) {
+        if (isSameBranch(context.payload, lockedPr)) {
           repoContext.reschedule(context, lockedPr);
         }
       },

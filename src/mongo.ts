@@ -18,6 +18,15 @@ export interface AccountEmbed {
   type: AccountType;
 }
 
+interface RepoEmbed {
+  id: number;
+  name: string;
+}
+
+interface PrEmbed {
+  number: number;
+}
+
 type AccountEmbedWithoutType = Omit<AccountEmbed, 'type'>;
 
 export interface UserDmSettings extends MongoModel {
@@ -90,6 +99,13 @@ export interface AutomergeLog extends MongoModel {
   action: 'remove' | 'reschedule' | 'wait' | 'update branch';
 }
 
+export interface ReviewflowPr extends MongoModel {
+  account: AccountEmbed;
+  repo: RepoEmbed;
+  pr: PrEmbed;
+  commentId: number;
+}
+
 export interface MongoStores {
   connection: MongoConnection;
   userDmSettings: MongoStore<UserDmSettings>;
@@ -99,6 +115,7 @@ export interface MongoStores {
   orgTeams: MongoStore<OrgTeam>;
   slackSentMessages: MongoStore<SlackSentMessage>;
   automergeLogs: MongoStore<AutomergeLog>;
+  prs: MongoStore<ReviewflowPr>;
   // prEvents: MongoStore<PrEventsModel>;
 }
 
@@ -187,6 +204,22 @@ export default function init(): MongoStores {
     });
   });
 
+  const prs = new MongoStore<ReviewflowPr>(connection, 'prs');
+  prs.collection.then((coll) => {
+    coll.createIndex(
+      {
+        'account.id': 1,
+        'repo.id': 1,
+        'pr.number': 1,
+      },
+      { unique: true },
+    );
+    // remove older than 12 * 30 days
+    coll.deleteMany({
+      created: { $lt: new Date(Date.now() - 12 * 30 * 24 * 60 * 60 * 1000) },
+    });
+  });
+
   // return { connection, prEvents };
   return {
     connection,
@@ -197,5 +230,6 @@ export default function init(): MongoStores {
     orgTeams,
     slackSentMessages,
     automergeLogs,
+    prs,
   };
 }

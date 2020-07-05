@@ -6,7 +6,6 @@ import {
   nock,
 } from '../../tests/setup';
 import pullRequestEdited from '../../../fixtures/pull_request_30.edited.json';
-// import pullRequestCommits from '../../fixtures/pull_request_30_commits.json';
 import * as initTeamSlack from '../../context/initTeamSlack';
 import { voidTeamSlack } from '../../context/voidTeamSlack';
 
@@ -23,13 +22,23 @@ describe('edited', (): void => {
     mockLabels();
   });
 
-  test('edits the pull request when pull request is opened', async (): Promise<
+  test('edits the pull request when pull request is edited', async (): Promise<
     void
   > => {
     const scope = nock('https://api.github.com')
       .get('/repos/reviewflow/reviewflow-test/pulls/30')
       .times(1)
       .reply(200, pullRequestEdited.payload.pull_request)
+
+      .get(
+        '/repos/reviewflow/reviewflow-test/issues/comments/1?issue_number=30',
+      )
+      .times(1)
+      .reply(200, {
+        id: 1,
+        body:
+          '#### Options:\n- [ ] <!-- reviewflow-featureBranch -->This PR is a feature branch\n- [ ] <!-- reviewflow-autoMergeWithSkipCi -->Add `[skip ci]` on merge commit\n- [ ] <!-- reviewflow-autoMerge -->Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless "Update branch" triggers)\n- [x] <!-- reviewflow-deleteAfterMerge -->Automatic branch delete after this PR is merged',
+      })
 
       .get(
         '/repos/reviewflow/reviewflow-test/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da/check-runs',

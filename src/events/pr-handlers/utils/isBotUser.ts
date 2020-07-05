@@ -10,3 +10,12 @@ export const checkIfUserIsBot = (
   }
   return false;
 };
+
+export const checkIfIsThisBot = (user: {
+  login: string;
+  type: string;
+}): boolean => {
+  return (
+    user.type === 'Bot' && user.login === `${process.env.REVIEWFLOW_NAME}[bot]`
+  );
+};

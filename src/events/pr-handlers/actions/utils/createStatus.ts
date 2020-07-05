@@ -2,7 +2,7 @@ import Webhooks from '@octokit/webhooks';
 import { Context } from 'probot';
 
 export default async function createStatus<
-  T extends Webhooks.WebhookPayloadPullRequest
+  T extends { repository: Webhooks.PayloadRepository }
 >(
   context: Context<T>,
   name: string,

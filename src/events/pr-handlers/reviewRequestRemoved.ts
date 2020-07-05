@@ -1,7 +1,7 @@
 import { Application } from 'probot';
 import { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
-import { createHandlerPullRequestChange } from './utils';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 
@@ -11,10 +11,11 @@ export default function reviewRequestRemoved(
 ): void {
   app.on(
     'pull_request.review_request_removed',
-    createHandlerPullRequestChange(
+    createPullRequestHandler(
       appContext,
-      { refetchPr: true },
-      async (pr, context, repoContext): Promise<void> => {
+      (payload) => payload.pull_request,
+      async (prContext, context, repoContext): Promise<void> => {
+        const { pr } = prContext;
         const sender = context.payload.sender;
         const reviewer = (context.payload as any).requested_reviewer;
 
@@ -45,7 +46,7 @@ export default function reviewRequestRemoved(
             !hasChangesRequestedInReviews &&
             hasApprovedInReviews;
 
-          await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
+          await updateReviewStatus(prContext, context, reviewerGroup, {
             add: [
               // if changes requested by the one which requests was removed (should still be in changed requested anyway, but we never know)
               hasChangesRequestedInReviews && 'changesRequested',

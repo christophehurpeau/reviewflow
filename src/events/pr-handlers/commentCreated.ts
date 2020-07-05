@@ -1,5 +1,8 @@
 import { Application, Octokit, Context } from 'probot';
-import { WebhookPayloadPullRequestReviewComment } from '@octokit/webhooks';
+import {
+  WebhookPayloadPullRequestReviewComment,
+  WebhookPayloadIssueComment,
+} from '@octokit/webhooks';
 import slackifyMarkdown from 'slackify-markdown';
 import * as slackUtils from '../../slack/utils';
 import { AccountEmbed } from '../../mongo';
@@ -7,11 +10,16 @@ import { SlackMessage } from '../../context/SlackMessage';
 import { PostSlackMessageResult } from '../../context/TeamSlack';
 import { contextPr } from '../../context/utils';
 import { AppContext } from '../../context/AppContext';
-import { createHandlerPullRequestChange } from './utils';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { createSlackMessageWithSecondaryBlock } from './utils/createSlackMessageWithSecondaryBlock';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 import { parseMentions } from './utils/parseMentions';
-import { checkIfUserIsBot } from './utils/isBotUser';
+import {
+  getPullRequestFromPayload,
+  PullRequestFromPayload,
+} from './utils/getPullRequestFromPayload';
+import { checkIfUserIsBot, checkIfIsThisBot } from './utils/isBotUser';
+import { fetchPr } from './utils/fetchPr';
 
 const getDiscussion = async (
   context: Context,
@@ -87,12 +95,25 @@ export default function prCommentCreated(
       // createHandlerPullRequestChange checks if pull_request event is present, removing real issues comments.
       'issue_comment.created',
     ],
-    createHandlerPullRequestChange<WebhookPayloadPullRequestReviewComment>(
+    createPullRequestHandler<
+      WebhookPayloadPullRequestReviewComment | WebhookPayloadIssueComment,
+      | PullRequestFromPayload<
+          WebhookPayloadPullRequestReviewComment | WebhookPayloadIssueComment
+        >
+      | any
+    >(
       appContext,
-      { refetchPr: true },
-      async (pr, context, repoContext): Promise<void> => {
+      (payload, context) => {
+        if (checkIfIsThisBot(payload.comment.user)) {
+          // ignore comments from this bot
+          return null;
+        }
+        return getPullRequestFromPayload(payload);
+      },
+      async (prContext, context, repoContext): Promise<void> => {
+        const pr = await fetchPr(context, prContext.pr.number);
         const { comment } = context.payload;
-        const type = comment.pull_request_review_id
+        const type = (comment as any).pull_request_review_id
           ? 'review-comment'
           : 'issue-comment';
 

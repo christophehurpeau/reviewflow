@@ -17,4 +17,4 @@ This will be auto filled by reviewflow.
 
 Some ending lines.
 This is the case with renovate for example.
-`;
+`.trim();

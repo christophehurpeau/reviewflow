@@ -2,17 +2,22 @@ import Webhooks from '@octokit/webhooks';
 import { Context, Octokit } from 'probot';
 import { LabelResponse } from '../../../context/initRepoLabels';
 import { GroupLabels } from '../../../accountConfigs/types';
-import { RepoContext } from '../../../context/repoContext';
 import { contextIssue } from '../../../context/utils';
+import {
+  PrContext,
+  PrContextWithUpdatedPr,
+} from '../utils/createPullRequestContext';
 import { updateStatusCheckFromLabels } from './updateStatusCheckFromLabels';
 
 export const updateReviewStatus = async <
   E extends { repository: Webhooks.PayloadRepository },
   GroupNames extends string = any
 >(
-  pr: Octokit.PullsGetResponse,
+  prContext:
+    | PrContext<Webhooks.WebhookPayloadPullRequest['pull_request']>
+    | PrContext<Octokit.PullsGetResponse>
+    | PrContextWithUpdatedPr,
   context: Context<E>,
-  repoContext: RepoContext,
   reviewGroup: GroupNames,
   {
     add: labelsToAdd,
@@ -22,6 +27,12 @@ export const updateReviewStatus = async <
     remove?: (GroupLabels | false | undefined)[];
   },
 ): Promise<LabelResponse[]> => {
+  const { repoContext } = prContext;
+  const pr =
+    prContext.updatedPr ||
+    (prContext as
+      | PrContext<Webhooks.WebhookPayloadPullRequest['pull_request']>
+      | PrContext<Octokit.PullsGetResponse>).pr;
   context.log.debug('updateReviewStatus', {
     reviewGroup,
     labelsToAdd,
@@ -97,7 +108,7 @@ export const updateReviewStatus = async <
 
   if (toAdd.size !== 0 || toDelete.size !== 0) {
     if (toDelete.size === 0 || toDelete.size < 4) {
-      context.log.info('updateReviewStatus', {
+      context.log.debug('updateReviewStatus', {
         reviewGroup,
         toAdd: [...toAdd],
         toDelete: [...toDelete],
@@ -133,7 +144,7 @@ export const updateReviewStatus = async <
     } else {
       const newLabelNamesArray = [...newLabelNames];
 
-      context.log.info('updateReviewStatus', {
+      context.log.debug('updateReviewStatus', {
         reviewGroup,
         toAdd: [...toAdd],
         toDelete: [...toDelete],
@@ -156,7 +167,7 @@ export const updateReviewStatus = async <
   //   toDelete.has('needsReview') ||
   //   (prLabels.length === 0 && toAdd.size === 1 && toAdd.has('approved'))
   // ) {
-  await updateStatusCheckFromLabels(pr, context, repoContext, prLabels);
+  await updateStatusCheckFromLabels(prContext, pr, context, prLabels);
   // }
 
   return prLabels;

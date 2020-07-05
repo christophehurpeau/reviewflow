@@ -2,8 +2,15 @@ import { Application } from 'probot';
 import { WebhookPayloadPullRequestReviewComment } from '@octokit/webhooks';
 import slackifyMarkdown from 'slackify-markdown';
 import { AppContext } from '../../context/AppContext';
-import { createHandlerPullRequestChange } from './utils';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { createMrkdwnSectionBlock } from './utils/createSlackMessageWithSecondaryBlock';
+import {
+  getPullRequestFromPayload,
+  PullRequestFromPayload,
+} from './utils/getPullRequestFromPayload';
+import { checkIfIsThisBot } from './utils/isBotUser';
+import { syncLabelsAfterCommentBodyEdited } from './actions/syncLabelsAfterCommentBodyEdited';
+import { fetchPullRequestAndCreateContext } from './utils/createPullRequestContext';
 
 export default function prCommentEditedOrDeleted(
   app: Application,
@@ -18,11 +25,41 @@ export default function prCommentEditedOrDeleted(
       'issue_comment.edited',
       'issue_comment.deleted',
     ],
-    createHandlerPullRequestChange<WebhookPayloadPullRequestReviewComment>(
+    createPullRequestHandler<
+      WebhookPayloadPullRequestReviewComment,
+      PullRequestFromPayload<WebhookPayloadPullRequestReviewComment>
+    >(
       appContext,
-      { refetchPr: false },
-      async (pr, context, repoContext): Promise<void> => {
+      (payload) => {
+        if (checkIfIsThisBot(payload.sender)) {
+          // ignore edits made from this bot
+          return null;
+        }
+        return getPullRequestFromPayload(payload);
+      },
+      async (prContext, context, repoContext): Promise<void> => {
         const { comment } = context.payload;
+
+        if (
+          context.payload.action === 'edited' &&
+          checkIfIsThisBot(comment.user)
+        ) {
+          const updatedPrContext = await fetchPullRequestAndCreateContext(
+            context,
+            prContext,
+          );
+          if (!updatedPrContext.updatedPr.closed_at) {
+            await syncLabelsAfterCommentBodyEdited(
+              appContext,
+              repoContext,
+              updatedPrContext.updatedPr,
+              context,
+              updatedPrContext,
+            );
+          }
+          return;
+        }
+
         const type = comment.pull_request_review_id
           ? 'review-comment'
           : 'issue-comment';

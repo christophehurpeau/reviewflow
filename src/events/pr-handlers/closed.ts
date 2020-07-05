@@ -1,26 +1,25 @@
 import { Application } from 'probot';
 import { AppContext } from '../../context/AppContext';
-import { createHandlerPullRequestChange } from './utils';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { updateReviewStatus } from './actions/updateReviewStatus';
-import { parseBodyWithOptions } from './actions/utils/parseBody';
+import { parseOptions } from './actions/utils/body/parseBody';
 
 export default function closed(app: Application, appContext: AppContext): void {
   app.on(
     'pull_request.closed',
-    createHandlerPullRequestChange(
+    createPullRequestHandler(
       appContext,
-      { refetchPr: true },
-      async (pr, context, repoContext): Promise<void> => {
+      (payload) => payload.pull_request,
+      async (prContext, context, repoContext) => {
+        const { pr, commentBody } = prContext;
         const repo = context.payload.repository;
 
         if (pr.merged) {
-          const parsedBody =
-            pr.head.repo.id === repo.id
-              ? parseBodyWithOptions(
-                  pr.body,
-                  repoContext.config.prDefaultOptions,
-                )
-              : null;
+          const isNotFork = pr.head.repo.id === repo.id;
+          const options = parseOptions(
+            commentBody,
+            repoContext.config.prDefaultOptions,
+          );
 
           await Promise.all([
             repoContext.removePrFromAutomergeQueue(
@@ -28,7 +27,7 @@ export default function closed(app: Application, appContext: AppContext): void {
               pr.number,
               'pr closed',
             ),
-            parsedBody?.options.deleteAfterMerge
+            isNotFork && options.deleteAfterMerge
               ? context.github.git
                   .deleteRef(context.repo({ ref: `heads/${pr.head.ref}` }))
                   .catch(() => {})
@@ -41,7 +40,7 @@ export default function closed(app: Application, appContext: AppContext): void {
               pr.number,
               'pr closed',
             ),
-            updateReviewStatus(pr, context, repoContext, 'dev', {
+            updateReviewStatus(prContext, context, 'dev', {
               remove: ['needsReview'],
             }),
           ]);

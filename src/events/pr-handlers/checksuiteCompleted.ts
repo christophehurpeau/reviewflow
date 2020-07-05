@@ -1,7 +1,9 @@
 import { Application } from 'probot';
 import { AppContext } from '../../context/AppContext';
-import { createHandlerPullRequestsChange } from './utils';
+import { createPullRequestsHandler } from './utils/createPullRequestHandler';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
+import { fetchPr } from './utils/fetchPr';
+import { createPullRequestContextFromPullResponse } from './utils/createPullRequestContext';
 
 export default function checksuiteCompleted(
   app: Application,
@@ -9,28 +11,20 @@ export default function checksuiteCompleted(
 ): void {
   app.on(
     'check_suite.completed',
-    createHandlerPullRequestsChange(
+    createPullRequestsHandler(
       appContext,
-      (context) => context.payload.check_suite.pull_requests,
-      async (context, repoContext) => {
-        await Promise.all(
-          context.payload.check_suite.pull_requests.map((pr) =>
-            context.github.pulls
-              .get(
-                context.repo({
-                  pull_number: pr.number,
-                }),
-              )
-              .then((prResult) => {
-                return autoMergeIfPossible(
-                  appContext,
-                  prResult.data,
-                  context,
-                  repoContext,
-                );
-              }),
-          ),
+      (payload) => payload.check_suite.pull_requests,
+      async (pr, context, repoContext) => {
+        const pullRequest = await fetchPr(context, pr.number);
+        const prContext = await createPullRequestContextFromPullResponse(
+          appContext,
+          repoContext,
+          context,
+          pullRequest,
+          {},
         );
+
+        await autoMergeIfPossible(prContext, context);
       },
     ),
   );

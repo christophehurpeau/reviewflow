@@ -1,8 +1,9 @@
 import { Lock } from 'lock';
 import { Context } from 'probot';
+import { fetchPr } from '../events/pr-handlers/utils/fetchPr';
 import { accountConfigs, Config, defaultConfig } from '../accountConfigs';
 // eslint-disable-next-line import/no-cycle
-import { autoMergeIfPossible } from '../events/pr-handlers/actions/autoMergeIfPossible';
+import { autoMergeIfPossibleOptionalPrContext } from '../events/pr-handlers/actions/autoMergeIfPossible';
 import { ExcludesFalsy } from '../utils/ExcludesFalsy';
 import { AppContext } from './AppContext';
 import { initRepoLabels, LabelResponse, Labels } from './initRepoLabels';
@@ -17,6 +18,7 @@ export interface LockedMergePr {
 
 interface RepoContextWithoutTeamContext<GroupNames extends string> {
   repoFullName: string;
+  repoEmbed: { id: number; name: string };
   repoEmoji: string | undefined;
   labels: Labels;
   protectedLabelIds: readonly LabelResponse['id'][];
@@ -27,9 +29,9 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   hasApprovesReview: (labels: LabelResponse[]) => boolean;
   getNeedsReviewGroupNames: (labels: LabelResponse[]) => GroupNames[];
 
-  lockPROrPRS(
-    prIdOrIds: string | string[],
-    prNumberOrPrNumbers: number | number[],
+  lockPR(
+    prId: string,
+    prNumber: number,
     callback: () => Promise<void> | void,
   ): Promise<void>;
 
@@ -55,6 +57,8 @@ async function initRepoContext<GroupNames extends string>(
   config: Config<GroupNames>,
 ): Promise<RepoContext<GroupNames>> {
   const {
+    id,
+    name,
     full_name: fullName,
     owner: org,
     description,
@@ -128,20 +132,20 @@ async function initRepoContext<GroupNames extends string>(
   let lockMergePr: LockedMergePr | undefined;
   let automergeQueue: LockedMergePr[] = [];
 
-  const lockPROrPRS = (
-    prIdOrIds: string | string[],
-    prNumberOrPrNumbers: number | number[],
+  const lockPR = (
+    prOPrIssueId: string,
+    prNumber: number,
     callback: () => Promise<void> | void,
   ): Promise<void> =>
     new Promise((resolve, reject) => {
       const logInfos = {
         repo: fullName,
-        prIdOrIds,
-        prNumberOrPrNumbers,
+        prOPrIssueId,
+        prNumber,
       };
-      context.log.info('lock: try to lock pr', logInfos);
+      context.log.debug('lock: try to lock pr', logInfos);
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      lock(prIdOrIds, async (createReleaseCallback) => {
+      lock(String(prNumber), async (createReleaseCallback) => {
         const release = createReleaseCallback(() => {});
         context.log.info('lock: lock pr acquired', logInfos);
         try {
@@ -162,18 +166,14 @@ async function initRepoContext<GroupNames extends string>(
     if (!pr) throw new Error('Cannot reschedule undefined');
     context.log.info('reschedule', pr);
     setTimeout(() => {
-      lockPROrPRS('reschedule', pr.number, () => {
-        return lockPROrPRS(String(pr.id), pr.number, async () => {
-          const prResult = await context.github.pulls.get(
-            context.repo({
-              pull_number: pr.number,
-            }),
-          );
-          await autoMergeIfPossible(
+      lockPR('reschedule', pr.number, () => {
+        return lockPR(String(pr.id), pr.number, async () => {
+          const updatedPr = await fetchPr(context, pr.number);
+          await autoMergeIfPossibleOptionalPrContext(
             appContext,
-            prResult.data,
-            context,
             repoContext,
+            updatedPr,
+            context,
           );
         });
       });
@@ -183,6 +183,7 @@ async function initRepoContext<GroupNames extends string>(
   return Object.assign(repoContext, {
     labels,
     repoFullName: fullName,
+    repoEmbed: { id, name },
     repoEmoji,
     protectedLabelIds,
     hasNeedsReview,
@@ -238,7 +239,7 @@ async function initRepoContext<GroupNames extends string>(
     },
     reschedule,
 
-    lockPROrPRS,
+    lockPR,
   } as RepoContextWithoutTeamContext<GroupNames>);
 }
 
@@ -254,7 +255,7 @@ export const shouldIgnoreRepo = (
     new RegExp(`^${accountConfig.ignoreRepoPattern}$`);
 
   if (repoName === 'reviewflow-test') {
-    return process.env.REVIEWFLOW_NAME !== 'reviewflow-test';
+    return process.env.REVIEWFLOW_NAME !== 'reviewflow-dev';
   }
 
   if (ignoreRepoRegexp) {

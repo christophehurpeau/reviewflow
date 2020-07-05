@@ -1,17 +1,21 @@
 import Webhooks from '@octokit/webhooks';
 import parse from '@commitlint/parse';
-import { PRHandler } from '../utils';
+import { Context, Octokit } from 'probot';
 import { contextPr } from '../../../context/utils';
+import { PrContext } from '../utils/createPullRequestContext';
 import syncLabel from './utils/syncLabel';
-import { updateBodyCommitsNotes } from './utils/updateBody';
+import { updateCommentBodyCommitsNotes } from './utils/body/updateBody';
 import { updatePrIfNeeded } from './updatePr';
 
-export const readCommitsAndUpdateInfos: PRHandler<Webhooks.WebhookPayloadPullRequest> = async (
-  appContext,
-  pr,
-  context,
-  repoContext,
-) => {
+export const readCommitsAndUpdateInfos = async <
+  E extends Webhooks.WebhookPayloadPullRequest
+>(
+  prContext: PrContext<E['pull_request'] | Octokit.PullsGetResponse>,
+  context: Context<E>,
+  commentBody = prContext.commentBody,
+): Promise<void> => {
+  const pr = prContext.updatedPr || prContext.pr;
+  const { repoContext } = prContext;
   // tmp.data[0].sha
   // tmp.data[0].commit.message
 
@@ -44,8 +48,8 @@ export const readCommitsAndUpdateInfos: PRHandler<Webhooks.WebhookPayloadPullReq
   );
 
   const breakingChangesLabel = repoContext.labels['breaking-changes'];
-  const newBody = updateBodyCommitsNotes(
-    pr.body,
+  const newCommentBody = updateCommentBodyCommitsNotes(
+    commentBody,
     breakingChangesCommits.length === 0
       ? ''
       : `Breaking Changes:\n${breakingChangesCommits
@@ -65,7 +69,7 @@ export const readCommitsAndUpdateInfos: PRHandler<Webhooks.WebhookPayloadPullReq
       breakingChangesCommits.length !== 0,
       breakingChangesLabel,
     ),
-    updatePrIfNeeded(pr, context, repoContext, { body: newBody }),
+    updatePrIfNeeded(prContext, context, { commentBody: newCommentBody }),
   ]);
 
   // TODO auto update ! in front of : to signal a breaking change when https://github.com/conventional-changelog/commitlint/issues/658 is closed

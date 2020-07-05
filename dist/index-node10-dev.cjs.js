@@ -107,6 +107,22 @@ function init() {
         $lt: new Date(Date.now() - 2592000000)
       }
     });
+  });
+  const prs = new liwiMongo.MongoStore(connection, 'prs');
+  prs.collection.then(coll => {
+    coll.createIndex({
+      'account.id': 1,
+      'repo.id': 1,
+      'pr.number': 1
+    }, {
+      unique: true
+    }); // remove older than 12 * 30 days
+
+    coll.deleteMany({
+      created: {
+        $lt: new Date(Date.now() - 31104000000)
+      }
+    });
   }); // return { connection, prEvents };
 
   return {
@@ -117,7 +133,8 @@ function init() {
     orgMembers,
     orgTeams,
     slackSentMessages,
-    automergeLogs
+    automergeLogs,
+    prs
   };
 }
 
@@ -1078,81 +1095,223 @@ async function appRouter(app, {
   userSettings(router, api, mongoStores);
 }
 
+const fetchPr = async (context, prNumber) => {
+  const prResult = await context.github.pulls.get(context.repo({
+    pull_number: prNumber
+  }));
+  return prResult.data;
+};
+
 const options = ['featureBranch', 'autoMergeWithSkipCi', 'autoMerge', 'deleteAfterMerge'];
 const optionsRegexps = options.map(option => ({
-  name: option,
+  key: option,
   regexp: new RegExp(`\\[([ xX]?)]\\s*<!-- reviewflow-${option} -->`)
 }));
 const optionsLabels = [{
-  name: 'featureBranch',
+  key: 'featureBranch',
   label: 'This PR is a feature branch'
 }, {
-  name: 'autoMergeWithSkipCi',
+  key: 'autoMergeWithSkipCi',
   label: 'Add `[skip ci]` on merge commit'
 }, {
-  name: 'autoMerge',
+  key: 'autoMerge',
   label: 'Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless "Update branch" triggers)'
 }, {
-  name: 'deleteAfterMerge',
+  key: 'deleteAfterMerge',
   label: 'Automatic branch delete after this PR is merged'
 }];
 
-const commentStart = '<!-- do not edit after this -->';
-const commentEnd = "<!-- end - don't add anything after this -->";
-const regexpCols = /^(.*)(<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->)(.*)$/is;
-const regexpReviewflowCol = /^(\s*<!---? do not edit after this -?--><\/td><td [^>]*>)\s*(.*)\s*(<\/td><\/tr><\/table>\s*<!---? end - don't add anything after this -?-->)\s*$/is;
-
-const parseOptions = (content, defaultConfig) => {
+const parseOptions = (content, defaultOptions) => {
   return optionsRegexps.reduce((acc, {
-    name,
+    key,
     regexp
   }) => {
     const match = regexp.exec(content);
-    acc[name] = !match ? defaultConfig[name] || false : match[1] === 'x' || match[1] === 'X';
+    acc[key] = !match ? defaultOptions[key] || false : match[1] === 'x' || match[1] === 'X';
     return acc;
   }, {});
 };
+const parseCommitNotes = content => {
+  const commitNotes = content.replace(/^.*#### Commits Notes:(.*)#### Options:.*$/s, '$1');
 
-const parseBody = description => {
-  const match = regexpCols.exec(description);
-  if (!match) return null;
-  const [, content, reviewFlowCol, reviewflowContent, ending] = match;
-  const reviewFlowColMatch = regexpReviewflowCol.exec(reviewFlowCol);
+  if (commitNotes === content) {
+    return '';
+  } else {
+    return commitNotes.trim();
+  }
+};
+const parseBody = (content, defaultOptions) => {
+  return {
+    options: parseOptions(content, defaultOptions),
+    commitNotes: parseCommitNotes(content)
+  };
+};
 
-  if (!reviewFlowColMatch) {
+const defaultCommentBody = 'This will be auto filled by reviewflow.';
+
+const toMarkdownOptions = options => {
+  return optionsLabels.map(({
+    key,
+    label
+  }) => `- [${options[key] ? 'x' : ' '}] <!-- reviewflow-${key} -->${label}`).join('\n');
+};
+
+const toMarkdownInfos = infos => {
+  return infos.map(info => {
+    if (info.url) return `[${info.title}](${info.url})`;
+    return info.title;
+  }).join('\n');
+};
+
+const getReplacement = infos => {
+  if (!infos) return '$1$2';
+  return infos.length !== 0 ? `#### Infos:\n${toMarkdownInfos(infos)}\n$2` : '$2';
+};
+
+const updateOptions = (options, optionsToUpdate) => {
+  if (!optionsToUpdate) return options;
+  return { ...options,
+    ...optionsToUpdate
+  };
+};
+
+const internalUpdateBodyOptionsAndInfos = (body, options, infos) => {
+  const infosAndCommitNotesParagraph = body.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
+  /^\s*(?:(#### Infos:.*)?(#### Commits Notes:.*)?#### Options:)?.*$/s, getReplacement(infos));
+  return `${infosAndCommitNotesParagraph}#### Options:\n${toMarkdownOptions(options)}`;
+};
+
+const createCommentBody = (defaultOptions, infos) => {
+  return internalUpdateBodyOptionsAndInfos('', defaultOptions, infos);
+};
+const updateCommentOptions = (commentBody, defaultOptions, optionsToUpdate) => {
+  const options = parseOptions(commentBody, defaultOptions);
+  const updatedOptions = updateOptions(options, optionsToUpdate);
+  return {
+    options: updatedOptions,
+    commentBody: internalUpdateBodyOptionsAndInfos(commentBody, updatedOptions)
+  };
+};
+const updateCommentBodyInfos = (commentBody, infos) => {
+  return commentBody.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
+  /^\s*(?:(#### Infos:.*)?(#### Commits Notes:.*)?(#### Options:.*)?)?$/s, `${getReplacement(infos)}$3`);
+};
+const updateCommentBodyCommitsNotes = (commentBody, commitNotes) => {
+  return commentBody.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
+  /(?:#### Commits Notes:.*)?(#### Options:)/s, // eslint-disable-next-line no-nested-ternary
+  !commitNotes ? '$1' : `#### Commits Notes:\n\n${commitNotes}\n\n$1`);
+};
+const removeDeprecatedReviewflowInPrBody = prBody => {
+  return prBody.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
+  /^(.*)<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->(.*)$/is, // eslint-disable-next-line no-nested-ternary
+  '$1$3');
+};
+
+const createReviewflowComment = (context, pr, body) => {
+  return context.github.issues.createComment(context.repo({
+    issue_number: pr.number,
+    body
+  })).then(({
+    data
+  }) => data);
+};
+const getReviewflowCommentById = (context, pr, commentId) => {
+  return context.github.issues.getComment(context.repo({
+    issue_number: pr.number,
+    comment_id: commentId
+  })).then(({
+    data
+  }) => data, () => null);
+};
+
+const getReviewflowPr = async (appContext, repoContext, context, pr, reviewflowCommentPromise) => {
+  const prEmbed = {
+    number: pr.number
+  };
+
+  if (reviewflowCommentPromise) {
+    const comment = await reviewflowCommentPromise;
+    const reviewflowPr = await appContext.mongoStores.prs.insertOne({
+      account: repoContext.accountEmbed,
+      repo: repoContext.repoEmbed,
+      pr: prEmbed,
+      commentId: comment.id
+    });
     return {
-      content,
-      ending,
-      reviewflowContentCol: reviewflowContent,
-      reviewflowContentColPrefix: commentStart,
-      reviewflowContentColSuffix: commentEnd
+      reviewflowPr,
+      commentBody: comment.body
     };
   }
 
-  const [, reviewflowContentColPrefix, reviewflowContentCol, reviewflowContentColSuffix] = reviewFlowColMatch;
-  return {
-    content,
-    ending,
-    reviewflowContentCol,
-    reviewflowContentColPrefix,
-    reviewflowContentColSuffix
-  };
-};
-const parseBodyWithOptions = (description, defaultConfig) => {
-  const parsedBody = parseBody(description);
-  if (parsedBody === null) return null; // console.log(parsedBody.reviewflowContentCol);
+  const existing = await appContext.mongoStores.prs.findOne({
+    'account.id': repoContext.accountEmbed.id,
+    'repo.id': repoContext.repoEmbed.id,
+    'pr.number': pr.number
+  });
+  const comment = existing && (await getReviewflowCommentById(context, pr, existing.commentId));
 
-  let breakingChanges = parsedBody.reviewflowContentCol.replace(/^.*#### Commits Notes:(.*)#### Options:.*$/s, '$1');
+  if (!comment || !existing) {
+    const comment = await createReviewflowComment(context, pr, defaultCommentBody);
 
-  if (breakingChanges === parsedBody.reviewflowContentCol) {
-    breakingChanges = '';
-  } else {
-    breakingChanges = breakingChanges.trim();
+    if (!existing) {
+      const reviewflowPr = await appContext.mongoStores.prs.insertOne({
+        account: repoContext.accountEmbed,
+        repo: repoContext.repoEmbed,
+        pr: prEmbed,
+        commentId: comment.id
+      });
+      return {
+        reviewflowPr,
+        commentBody: comment.body
+      };
+    } else {
+      await appContext.mongoStores.prs.partialUpdateByKey(existing._id, {
+        $set: {
+          commentId: comment.id
+        }
+      });
+    }
   }
 
-  return { ...parsedBody,
-    options: parseOptions(parsedBody.reviewflowContentCol, defaultConfig),
-    breakingChanges
+  return {
+    reviewflowPr: existing,
+    commentBody: comment.body
+  };
+};
+
+const createPullRequestContextFromWebhook = async (appContext, repoContext, context, pr, options) => {
+  const {
+    reviewflowPr,
+    commentBody
+  } = await getReviewflowPr(appContext, repoContext, context, pr, options.reviewflowCommentPromise);
+  return {
+    appContext,
+    repoContext,
+    pr,
+    reviewflowPr,
+    commentBody,
+    updatedPr: null
+  };
+};
+const createPullRequestContextFromPullResponse = async (appContext, repoContext, context, pr, options) => {
+  console.log('createPullRequestContextFromPullResponse', pr.number);
+  const {
+    reviewflowPr,
+    commentBody
+  } = await getReviewflowPr(appContext, repoContext, context, pr, options.reviewflowCommentPromise);
+  return {
+    appContext,
+    repoContext,
+    pr,
+    reviewflowPr,
+    commentBody,
+    updatedPr: pr
+  };
+};
+const fetchPullRequestAndCreateContext = async (context, prContext) => {
+  const updatedPr = await fetchPr(context, prContext.pr.number);
+  return { ...prContext,
+    updatedPr
   };
 };
 
@@ -1160,8 +1319,6 @@ function hasLabelInPR(prLabels, label) {
   if (!label) return false;
   return prLabels.some(l => l.id === label.id);
 }
-
-// eslint-disable-next-line import/no-cycle
 
 const hasFailedStatusOrChecks = async (pr, context) => {
   const checks = await context.github.checks.listForRef(context.repo({
@@ -1193,7 +1350,7 @@ const hasFailedStatusOrChecks = async (pr, context) => {
   return false;
 };
 
-const autoMergeIfPossible = async (appContext, pr, context, repoContext, prLabels = pr.labels) => {
+const autoMergeIfPossibleOptionalPrContext = async (appContext, repoContext, pr, context, prContext, prLabels = pr.labels) => {
   const autoMergeLabel = repoContext.labels['merge/automerge'];
 
   if (!hasLabelInPR(prLabels, autoMergeLabel)) {
@@ -1252,7 +1409,7 @@ const autoMergeIfPossible = async (appContext, pr, context, repoContext, prLabel
 
   repoContext.addMergeLockPr(createMergeLockPrFromPr());
 
-  if (pr.mergeable === undefined) {
+  if (pr.mergeable == null) {
     const prResult = await context.github.pulls.get(context.repo({
       pull_number: pr.number
     }));
@@ -1348,7 +1505,8 @@ const autoMergeIfPossible = async (appContext, pr, context, repoContext, prLabel
 
   try {
     context.log.info(`automerge pr #${pr.number}`);
-    const parsedBody = parseBodyWithOptions(pr.body, repoContext.config.prDefaultOptions);
+    if (!prContext) prContext = await createPullRequestContextFromPullResponse(appContext, repoContext, context, pr, {});
+    const parsedBody = parseBody(prContext.commentBody, repoContext.config.prDefaultOptions);
     const options = (parsedBody === null || parsedBody === void 0 ? void 0 : parsedBody.options) || repoContext.config.prDefaultOptions;
     const mergeResult = await context.github.pulls.merge({
       merge_method: options.featureBranch ? 'merge' : 'squash',
@@ -1367,6 +1525,10 @@ const autoMergeIfPossible = async (appContext, pr, context, repoContext, prLabel
     repoContext.reschedule(context, createMergeLockPrFromPr());
     return false;
   }
+};
+const autoMergeIfPossible = async (prContext, context, prLabels) => {
+  const pr = prContext.updatedPr || prContext.pr;
+  return autoMergeIfPossibleOptionalPrContext(prContext.appContext, prContext.repoContext, pr, context, prContext, prLabels);
 };
 
 const ExcludesFalsy = Boolean;
@@ -1794,6 +1956,8 @@ const obtainAccountContext = (appContext, context, config, accountInfo) => {
 
 async function initRepoContext(appContext, context, config) {
   const {
+    id,
+    name,
     full_name: fullName,
     owner: org,
     description
@@ -1820,15 +1984,15 @@ async function initRepoContext(appContext, context, config) {
   let lockMergePr;
   let automergeQueue = [];
 
-  const lockPROrPRS = (prIdOrIds, prNumberOrPrNumbers, callback) => new Promise((resolve, reject) => {
+  const lockPR = (prOPrIssueId, prNumber, callback) => new Promise((resolve, reject) => {
     const logInfos = {
       repo: fullName,
-      prIdOrIds,
-      prNumberOrPrNumbers
+      prOPrIssueId,
+      prNumber
     };
-    context.log.info('lock: try to lock pr', logInfos); // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    context.log.debug('lock: try to lock pr', logInfos); // eslint-disable-next-line @typescript-eslint/no-misused-promises
 
-    lock$1(prIdOrIds, async createReleaseCallback => {
+    lock$1(String(prNumber), async createReleaseCallback => {
       const release = createReleaseCallback(() => {});
       context.log.info('lock: lock pr acquired', logInfos);
 
@@ -1851,12 +2015,10 @@ async function initRepoContext(appContext, context, config) {
     if (!pr) throw new Error('Cannot reschedule undefined');
     context.log.info('reschedule', pr);
     setTimeout(() => {
-      lockPROrPRS('reschedule', pr.number, () => {
-        return lockPROrPRS(String(pr.id), pr.number, async () => {
-          const prResult = await context.github.pulls.get(context.repo({
-            pull_number: pr.number
-          }));
-          await autoMergeIfPossible(appContext, prResult.data, context, repoContext);
+      lockPR('reschedule', pr.number, () => {
+        return lockPR(String(pr.id), pr.number, async () => {
+          const updatedPr = await fetchPr(context, pr.number);
+          await autoMergeIfPossibleOptionalPrContext(appContext, repoContext, updatedPr, context);
         });
       });
     }, 10000);
@@ -1865,6 +2027,10 @@ async function initRepoContext(appContext, context, config) {
   return Object.assign(repoContext, {
     labels,
     repoFullName: fullName,
+    repoEmbed: {
+      id,
+      name
+    },
     repoEmoji,
     protectedLabelIds,
     hasNeedsReview: labels => labels.some(label => needsReviewLabelIds.includes(label.id)),
@@ -1917,7 +2083,7 @@ async function initRepoContext(appContext, context, config) {
       }
     },
     reschedule,
-    lockPROrPRS
+    lockPR
   });
 }
 
@@ -1927,7 +2093,7 @@ const shouldIgnoreRepo = (repoName, accountConfig) => {
   const ignoreRepoRegexp = accountConfig.ignoreRepoPattern && new RegExp(`^${accountConfig.ignoreRepoPattern}$`);
 
   if (repoName === 'reviewflow-test') {
-    return process.env.REVIEWFLOW_NAME !== 'reviewflow-test';
+    return process.env.REVIEWFLOW_NAME !== 'reviewflow-dev';
   }
 
   if (ignoreRepoRegexp) {
@@ -1968,43 +2134,40 @@ const obtainRepoContext = (appContext, context) => {
   });
 };
 
-const handlerPullRequestChange = async (appContext, context, options, callback) => {
-  let pullRequest = context.payload.pull_request;
+const createRepoHandler = (appContext, callback) => {
+  return async context => {
+    const repoContext = await obtainRepoContext(appContext, context);
+    if (!repoContext) return;
+    return callback(context, repoContext);
+  };
+};
 
-  if (!pullRequest) {
-    const issue = context.payload.issue;
-    if (!issue) return;
-    pullRequest = { ...issue,
-      ...issue.pull_request
-    };
-  }
-
-  if (!pullRequest) return;
-  const repoContext = await obtainRepoContext(appContext, context);
-  if (!repoContext) return;
-  return repoContext.lockPROrPRS(String(pullRequest.id), pullRequest.number, async () => {
-    if (!options.refetchPr) {
-      return callback(pullRequest, repoContext);
-    }
-
-    const prResult = await context.github.pulls.get(context.repo({
-      pull_number: pullRequest.number
-    }));
-    await callback(prResult.data, repoContext);
+const createPullRequestHandler = (appContext, getPullRequestInPayload, callbackPr, callbackBeforeLock) => {
+  return createRepoHandler(appContext, async (context, repoContext) => {
+    const pullRequest = getPullRequestInPayload(context.payload, context);
+    if (pullRequest === null) return;
+    const options = callbackBeforeLock ? callbackBeforeLock(pullRequest, context, repoContext) : {};
+    await repoContext.lockPR(String(pullRequest.id), pullRequest.number, async () => {
+      const prContext = await createPullRequestContextFromWebhook(appContext, repoContext, context, pullRequest, options);
+      return callbackPr(prContext, context, repoContext);
+    });
   });
 };
-const createHandlerPullRequestChange = (appContext, options, callback) => context => {
-  return handlerPullRequestChange(appContext, context, options, (pr, repoContext) => callback(pr, context, repoContext));
-};
-const createHandlerPullRequestsChange = (appContext, getPullRequests, callback) => async context => {
-  const repoContext = await obtainRepoContext(appContext, context);
-  if (!repoContext) return;
-  const prs = getPullRequests(context, repoContext);
-  if (prs.length === 0) return;
-  return repoContext.lockPROrPRS(prs.map(pr => String(pr.id)), prs.map(pr => pr.number), () => callback(context, repoContext));
+const createPullRequestsHandler = (appContext, getPrs, callbackPr) => {
+  return createRepoHandler(appContext, async (context, repoContext) => {
+    const prs = getPrs(context.payload, repoContext);
+    if (prs.length === 0) return;
+    await Promise.all(prs.map(pr => repoContext.lockPR(String(pr.id), pr.number, async () => {
+      return callbackPr(pr, context, repoContext);
+    })));
+  });
 };
 
-const autoAssignPRToCreator = async (appContext, pr, context, repoContext) => {
+const autoAssignPRToCreator = async (prContext, context) => {
+  const {
+    pr,
+    repoContext
+  } = prContext;
   if (!repoContext.config.autoAssignToCreator) return;
   if (pr.assignees.length !== 0) return;
   if (pr.user.type === 'Bot') return;
@@ -2016,99 +2179,64 @@ const autoAssignPRToCreator = async (appContext, pr, context, repoContext) => {
 const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*([A-Za-z][\dA-Za-z]+)[ -](\d+)\s*]?\s*$/, (s, arg1, arg2) => ` ${arg1.toUpperCase()}-${arg2}`).replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `).replace(/^Revert "([^"]+)"$/, 'revert: $1').replace(/\s+[[\]]\s*no\s*issue\s*[[\]]$/i, ' [no issue]') // eslint-disable-next-line unicorn/no-unsafe-regex
 .replace(/^(revert:.*)(\s+\(#\d+\))$/, '$1');
 
-const toMarkdownOptions = options => {
-  return optionsLabels.map(({
-    name,
-    label
-  }) => `- [${options[name] ? 'x' : ' '}] <!-- reviewflow-${name} -->${label}`).join('\n');
-};
-
-const toMarkdownInfos = infos => {
-  return infos.map(info => {
-    if (info.url) return `[${info.title}](${info.url})`;
-    return info.title;
-  }).join('\n');
-};
-
-const getReplacement = infos => {
-  if (!infos) return '$1$2';
-  return infos.length !== 0 ? `#### Infos:\n${toMarkdownInfos(infos)}\n$2` : '$2';
-};
-
-const updateBody = (body, defaultConfig, infos, updateOptions) => {
-  const parsed = parseBodyWithOptions(body, defaultConfig);
-
-  if (!parsed) {
-    console.info('could not parse body');
-    return {
-      body
-    };
-  }
-
-  const {
-    content,
-    ending,
-    reviewflowContentCol,
-    reviewflowContentColPrefix,
-    reviewflowContentColSuffix,
-    options
-  } = parsed;
-  const infosAndCommitNotesParagraph = reviewflowContentCol.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
-  /^\s*(?:(#### Infos:.*)?(#### Commits Notes:.*)?#### Options:)?.*$/s, getReplacement(infos));
-  const updatedOptions = !updateOptions ? options : { ...options,
-    ...updateOptions
-  };
-  return {
-    options: updatedOptions,
-    body: `${content}${reviewflowContentColPrefix}
-${infosAndCommitNotesParagraph}#### Options:
-${toMarkdownOptions(updatedOptions)}
-${reviewflowContentColSuffix}${ending || ''}`
-  };
-};
-const updateBodyCommitsNotes = (body, commitNotes) => {
-  const parsed = parseBody(body);
-
-  if (!parsed) {
-    console.info('could not parse body');
-    return body;
-  }
-
-  const {
-    content,
-    ending,
-    reviewflowContentCol,
-    reviewflowContentColPrefix,
-    reviewflowContentColSuffix
-  } = parsed;
-  const reviewflowContentColReplaced = reviewflowContentCol.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
-  /(?:#### Commits Notes:.*)?(#### Options:)/s, // eslint-disable-next-line no-nested-ternary
-  !commitNotes ? '$1' : `#### Commits Notes:\n\n${commitNotes}\n\n$1`);
-  return `${content}${reviewflowContentColPrefix}${reviewflowContentColReplaced}${reviewflowContentColSuffix}${ending || ''}`;
-};
-
 const cleanNewLines = text => text.replace(/\r\n/g, '\n');
 
-const updatePrIfNeeded = async (pr, context, repoContext, update) => {
-  const hasDiffInTitle = update.title && pr.title !== update.title;
-  const hasDiffInBody = update.body && cleanNewLines(pr.body) !== cleanNewLines(update.body);
+const checkIfHasDiff = (text1, text2) => cleanNewLines(text1) !== cleanNewLines(text2);
+
+const updatePrIfNeeded = async (prContext, context, update) => {
+  const hasDiffInTitle = update.title && prContext.pr.title !== update.title;
+  const hasDiffInBody = update.body && checkIfHasDiff(prContext.pr.body, update.body);
+  const promises = [];
 
   if (hasDiffInTitle || hasDiffInBody) {
     const diff = {};
 
     if (hasDiffInTitle) {
       diff.title = update.title;
-      pr.title = update.title;
+      prContext.pr.title = update.title;
     }
 
     if (hasDiffInBody) {
+      console.log({
+        diff,
+        originalTitle: prContext.pr.title,
+        originalBody: cleanNewLines(prContext.pr.body),
+        updatedBody: update.body && cleanNewLines(update.body),
+        hasBodyDiff: hasDiffInBody
+      });
       diff.body = update.body;
-      pr.body = update.body;
+      prContext.pr.body = update.body;
     }
 
-    await context.github.issues.update(contextIssue(context, diff));
+    promises.push(context.github.pulls.update(context.repo({
+      pull_number: prContext.pr.number,
+      ...diff
+    })));
   }
+
+  if (update.commentBody && checkIfHasDiff(prContext.commentBody, update.commentBody)) {
+    if (update.commentBody.includes('Explain here why this PR')) {
+      throw new Error('Not valid comment body');
+    }
+
+    promises.push(context.github.issues.updateComment(context.repo({
+      comment_id: prContext.reviewflowPr.commentId,
+      body: update.commentBody
+    })));
+  }
+
+  await Promise.all(promises);
 };
+
+async function createStatus(context, name, sha, type, description, url) {
+  await context.github.repos.createStatus(context.repo({
+    context: name === '' ? process.env.REVIEWFLOW_NAME : `${process.env.REVIEWFLOW_NAME}/${name}`,
+    sha,
+    state: type,
+    description,
+    target_url: url
+  }));
+}
 
 async function syncLabel(pr, context, shouldHaveLabel, label, prHasLabel = hasLabelInPR(pr.labels, label), {
   onRemove,
@@ -2129,22 +2257,85 @@ async function syncLabel(pr, context, shouldHaveLabel, label, prHasLabel = hasLa
   }
 }
 
-async function createStatus(context, name, sha, type, description, url) {
-  await context.github.repos.createStatus(context.repo({
-    context: name === '' ? process.env.REVIEWFLOW_NAME : `${process.env.REVIEWFLOW_NAME}/${name}`,
-    sha,
-    state: type,
-    description,
-    target_url: url
-  }));
-}
-
-const editOpenedPR = async (appContext, pr, context, repoContext, previousSha) => {
-  const repo = context.payload.repository; // do not lint pr from forks
-
-  if (pr.head.repo.id !== repo.id) return {
-    skipAutoMerge: true
+const calcDefaultOptions = (repoContext, pr) => {
+  const featureBranchLabel = repoContext.labels['feature-branch'];
+  const automergeLabel = repoContext.labels['merge/automerge'];
+  const skipCiLabel = repoContext.labels['merge/skip-ci'];
+  const prHasFeatureBranchLabel = hasLabelInPR(pr.labels, featureBranchLabel);
+  const prHasSkipCiLabel = hasLabelInPR(pr.labels, skipCiLabel);
+  const prHasAutoMergeLabel = hasLabelInPR(pr.labels, automergeLabel);
+  return { ...repoContext.config.prDefaultOptions,
+    featureBranch: prHasFeatureBranchLabel,
+    autoMergeWithSkipCi: prHasSkipCiLabel,
+    autoMerge: prHasAutoMergeLabel
   };
+};
+const syncLabelsAfterCommentBodyEdited = async (appContext, repoContext, pr, context, prContext) => {
+  const featureBranchLabel = repoContext.labels['feature-branch'];
+  const automergeLabel = repoContext.labels['merge/automerge'];
+  const skipCiLabel = repoContext.labels['merge/skip-ci'];
+  const prHasFeatureBranchLabel = hasLabelInPR(pr.labels, featureBranchLabel);
+  const prHasSkipCiLabel = hasLabelInPR(pr.labels, skipCiLabel);
+  const prHasAutoMergeLabel = hasLabelInPR(pr.labels, automergeLabel);
+  const {
+    commentBody,
+    options
+  } = updateCommentOptions(prContext.commentBody, calcDefaultOptions(repoContext, pr));
+  await updatePrIfNeeded(prContext, context, {
+    commentBody
+  });
+
+  if (options && (featureBranchLabel || automergeLabel)) {
+    await Promise.all([featureBranchLabel && syncLabel(pr, context, options.featureBranch, featureBranchLabel, prHasFeatureBranchLabel), skipCiLabel && syncLabel(pr, context, options.autoMergeWithSkipCi, skipCiLabel, prHasSkipCiLabel), automergeLabel && syncLabel(pr, context, options.autoMerge, automergeLabel, prHasAutoMergeLabel, {
+      onAdd: async prLabels => {
+        await autoMergeIfPossible(prContext, context, prLabels);
+      },
+      onRemove: () => {
+        repoContext.removePrFromAutomergeQueue(context, pr.number, 'label removed');
+      }
+    })]);
+  }
+};
+
+const readCommitsAndUpdateInfos = async (prContext, context, commentBody = prContext.commentBody) => {
+  const pr = prContext.updatedPr || prContext.pr;
+  const {
+    repoContext
+  } = prContext; // tmp.data[0].sha
+  // tmp.data[0].commit.message
+
+  const commits = await context.github.paginate(context.github.pulls.listCommits.endpoint.merge(contextPr(context, {
+    // A custom page size up to 100. Default is 30.
+    per_page: 100
+  })), res => res.data);
+  const conventionalCommits = await Promise.all(commits.map(c => parse$1(c.commit.message)));
+  const breakingChangesCommits = conventionalCommits.reduce((acc, c, index) => {
+    const breakingChangesNotes = c.notes.filter(note => note.title === 'BREAKING CHANGE');
+
+    if (breakingChangesNotes.length !== 0) {
+      acc.push({
+        commit: commits[index],
+        breakingChangesNotes
+      });
+    }
+
+    return acc;
+  }, []);
+  const breakingChangesLabel = repoContext.labels['breaking-changes'];
+  const newCommentBody = updateCommentBodyCommitsNotes(commentBody, breakingChangesCommits.length === 0 ? '' : `Breaking Changes:\n${breakingChangesCommits.map(({
+    commit,
+    breakingChangesNotes
+  }) => breakingChangesNotes.map(note => `- ${note.text.replace('\n', ' ')} (${commit.sha})`)).join('')}`);
+  await Promise.all([syncLabel(pr, context, breakingChangesCommits.length !== 0, breakingChangesLabel), updatePrIfNeeded(prContext, context, {
+    commentBody: newCommentBody
+  })]); // TODO auto update ! in front of : to signal a breaking change when https://github.com/conventional-changelog/commitlint/issues/658 is closed
+};
+
+const editOpenedPR = async (prContext, context, shouldUpdateCommentBodyInfos, previousSha) => {
+  const {
+    repoContext
+  } = prContext;
+  const pr = prContext.updatedPr || prContext.pr;
   const title = repoContext.config.trimTitle ? cleanTitle(pr.title) : pr.title;
   const isPrFromBot = pr.user.type === 'Bot';
   const statuses = [];
@@ -2177,7 +2368,7 @@ const editOpenedPR = async (appContext, pr, context, repoContext, previousSha) =
   const hasLintPrCheck = (await context.github.checks.listForRef(context.repo({
     ref: pr.head.sha
   }))).data.check_runs.find(check => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`);
-  await Promise.all([...statuses.map(({
+  const promises = Promise.all([...statuses.map(({
     name,
     error,
     info
@@ -2197,52 +2388,30 @@ const editOpenedPR = async (appContext, pr, context, repoContext, previousSha) =
       summary: ''
     }
   })), !hasLintPrCheck && previousSha && errorRule ? createStatus(context, 'lint-pr', previousSha, 'success', 'New commits have been pushed') : undefined, !hasLintPrCheck && createStatus(context, 'lint-pr', pr.head.sha, errorRule ? 'failure' : 'success', errorRule ? errorRule.error.title : '✓ Your PR is valid')].filter(ExcludesFalsy));
-  const featureBranchLabel = repoContext.labels['feature-branch'];
-  const automergeLabel = repoContext.labels['merge/automerge'];
-  const skipCiLabel = repoContext.labels['merge/skip-ci'];
-  const prHasFeatureBranchLabel = hasLabelInPR(pr.labels, featureBranchLabel);
-  const prHasSkipCiLabel = hasLabelInPR(pr.labels, skipCiLabel);
-  const prHasAutoMergeLabel = hasLabelInPR(pr.labels, automergeLabel);
-  const defaultOptions = { ...repoContext.config.prDefaultOptions,
-    featureBranch: prHasFeatureBranchLabel,
-    autoMergeWithSkipCi: prHasSkipCiLabel,
-    autoMerge: prHasAutoMergeLabel
-  };
-  const {
-    body,
-    options
-  } = updateBody(pr.body, defaultOptions, statuses.filter(status => status.info && status.info.inBody).map(status => status.info));
-  await updatePrIfNeeded(pr, context, repoContext, {
-    title,
-    body
-  });
+  const commentBodyInfos = statuses.filter(status => status.info && status.info.inBody).map(status => status.info);
+  const shouldCreateCommentBody = prContext.commentBody === defaultCommentBody;
+  const commentBody = shouldCreateCommentBody ? createCommentBody(calcDefaultOptions(repoContext, pr), commentBodyInfos) : updateCommentBodyInfos(prContext.commentBody, commentBodyInfos);
+  const body = removeDeprecatedReviewflowInPrBody(pr.body);
 
-  if (options && (featureBranchLabel || automergeLabel)) {
-    await Promise.all([featureBranchLabel && syncLabel(pr, context, options.featureBranch, featureBranchLabel, prHasFeatureBranchLabel), skipCiLabel && syncLabel(pr, context, options.autoMergeWithSkipCi, skipCiLabel, prHasSkipCiLabel), automergeLabel && syncLabel(pr, context, options.autoMerge, automergeLabel, prHasAutoMergeLabel, {
-      onAdd: async prLabels => {
-        await autoMergeIfPossible(appContext, pr, context, repoContext, prLabels);
-      },
-      onRemove: () => {
-        repoContext.removePrFromAutomergeQueue(context, pr.number, 'label removed');
-      }
+  if (shouldCreateCommentBody || shouldUpdateCommentBodyInfos) {
+    await Promise.all([promises, updatePrIfNeeded(prContext, context, {
+      title,
+      body
+    }), readCommitsAndUpdateInfos(prContext, context, commentBody)]);
+  } else {
+    await Promise.all([promises, updatePrIfNeeded(prContext, context, {
+      title,
+      body,
+      commentBody
     })]);
-
-    if (!automergeLabel) {
-      return {
-        skipAutoMerge: true
-      };
-    }
   }
-
-  return {
-    skipAutoMerge: false
-  };
 };
 
-const addStatusCheck = async function (pr, context, {
+const addStatusCheck = async function (prContext, context, {
   state,
   description
 }, previousSha) {
+  const pr = prContext.updatedPr || prContext.pr;
   const hasPrCheck = (await context.github.checks.listForRef(context.repo({
     ref: pr.head.sha
   }))).data.check_runs.find(check => check.name === process.env.REVIEWFLOW_NAME);
@@ -2272,20 +2441,25 @@ const addStatusCheck = async function (pr, context, {
   }
 };
 
-const updateStatusCheckFromLabels = (pr, context, repoContext, labels = pr.labels || [], previousSha) => {
+const updateStatusCheckFromLabels = (prContext, pr, context, labels = pr.labels || [], previousSha) => {
+  const {
+    repoContext
+  } = prContext;
   context.log.debug('updateStatusCheckFromLabels', {
     labels: labels.map(l => l === null || l === void 0 ? void 0 : l.name),
     hasNeedsReview: repoContext.hasNeedsReview(labels),
     hasApprovesReview: repoContext.hasApprovesReview(labels)
   });
 
-  const createFailedStatusCheck = description => addStatusCheck(pr, context, {
+  const createFailedStatusCheck = description => addStatusCheck(prContext, context, {
     state: 'failure',
     description
   }, previousSha);
 
   if (pr.requested_reviewers.length !== 0) {
-    return createFailedStatusCheck(`Awaiting review from: ${pr.requested_reviewers.map(rr => rr.login).join(', ')}`);
+    return createFailedStatusCheck( // TODO remove `as`
+    // https://github.com/probot/probot/issues/1219
+    `Awaiting review from: ${pr.requested_reviewers.map(rr => rr.login).join(', ')}`);
   }
 
   if (repoContext.hasChangesRequestedReview(labels)) {
@@ -2317,16 +2491,20 @@ const updateStatusCheckFromLabels = (pr, context, repoContext, labels = pr.label
   // } else if (repoContext.hasApprovesReview(labels)) {
 
 
-  return addStatusCheck(pr, context, {
+  return addStatusCheck(prContext, context, {
     state: 'success',
     description: '✓ PR ready to merge !'
   }, previousSha); // }
 };
 
-const updateReviewStatus = async (pr, context, repoContext, reviewGroup, {
+const updateReviewStatus = async (prContext, context, reviewGroup, {
   add: labelsToAdd,
   remove: labelsToRemove
 }) => {
+  const {
+    repoContext
+  } = prContext;
+  const pr = prContext.updatedPr || prContext.pr;
   context.log.debug('updateReviewStatus', {
     reviewGroup,
     labelsToAdd,
@@ -2396,7 +2574,7 @@ const updateReviewStatus = async (pr, context, repoContext, reviewGroup, {
 
   if (toAdd.size !== 0 || toDelete.size !== 0) {
     if (toDelete.size === 0 || toDelete.size < 4) {
-      context.log.info('updateReviewStatus', {
+      context.log.debug('updateReviewStatus', {
         reviewGroup,
         toAdd: [...toAdd],
         toDelete: [...toDelete],
@@ -2427,7 +2605,7 @@ const updateReviewStatus = async (pr, context, repoContext, reviewGroup, {
       }
     } else {
       const newLabelNamesArray = [...newLabelNames];
-      context.log.info('updateReviewStatus', {
+      context.log.debug('updateReviewStatus', {
         reviewGroup,
         toAdd: [...toAdd],
         toDelete: [...toDelete],
@@ -2447,89 +2625,65 @@ const updateReviewStatus = async (pr, context, repoContext, reviewGroup, {
   // ) {
 
 
-  await updateStatusCheckFromLabels(pr, context, repoContext, prLabels); // }
+  await updateStatusCheckFromLabels(prContext, pr, context, prLabels); // }
 
   return prLabels;
 };
 
-const autoApproveAndAutoMerge = async (appContext, pr, context, repoContext) => {
+const autoApproveAndAutoMerge = async (prContext, context) => {
   // const autoMergeLabel = repoContext.labels['merge/automerge'];
-  const codeApprovedLabel = repoContext.labels['code/approved'];
+  const codeApprovedLabel = prContext.repoContext.labels['code/approved'];
 
-  if (hasLabelInPR(pr.labels, codeApprovedLabel)) {
+  if (hasLabelInPR(prContext.pr.labels, codeApprovedLabel)) {
     await context.github.pulls.createReview(contextPr(context, {
       event: 'APPROVE'
     }));
-    await autoMergeIfPossible(appContext, pr, context, repoContext);
+    await autoMergeIfPossible(prContext, context);
     return true;
   }
 
   return false;
 };
 
-const readCommitsAndUpdateInfos = async (appContext, pr, context, repoContext) => {
-  // tmp.data[0].sha
-  // tmp.data[0].commit.message
-  const commits = await context.github.paginate(context.github.pulls.listCommits.endpoint.merge(contextPr(context, {
-    // A custom page size up to 100. Default is 30.
-    per_page: 100
-  })), res => res.data);
-  const conventionalCommits = await Promise.all(commits.map(c => parse$1(c.commit.message)));
-  const breakingChangesCommits = conventionalCommits.reduce((acc, c, index) => {
-    const breakingChangesNotes = c.notes.filter(note => note.title === 'BREAKING CHANGE');
-
-    if (breakingChangesNotes.length !== 0) {
-      acc.push({
-        commit: commits[index],
-        breakingChangesNotes
-      });
-    }
-
-    return acc;
-  }, []);
-  const breakingChangesLabel = repoContext.labels['breaking-changes'];
-  const newBody = updateBodyCommitsNotes(pr.body, breakingChangesCommits.length === 0 ? '' : `Breaking Changes:\n${breakingChangesCommits.map(({
-    commit,
-    breakingChangesNotes
-  }) => breakingChangesNotes.map(note => `- ${note.text.replace('\n', ' ')} (${commit.sha})`)).join('')}`);
-  await Promise.all([syncLabel(pr, context, breakingChangesCommits.length !== 0, breakingChangesLabel), updatePrIfNeeded(pr, context, repoContext, {
-    body: newBody
-  })]); // TODO auto update ! in front of : to signal a breaking change when https://github.com/conventional-changelog/commitlint/issues/658 is closed
-};
-
 function opened(app, appContext) {
-  app.on('pull_request.opened', createHandlerPullRequestChange(appContext, {
-    refetchPr: true
-  }, async (pr, context, repoContext) => {
+  app.on('pull_request.opened', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context) => {
+    const {
+      pr
+    } = prContext;
     const fromRenovate = pr.head.ref.startsWith('renovate/');
-    await Promise.all([autoAssignPRToCreator(appContext, pr, context, repoContext), editOpenedPR(appContext, pr, context, repoContext).then(() => {
-      return readCommitsAndUpdateInfos(appContext, pr, context, repoContext);
-    }), fromRenovate ? autoApproveAndAutoMerge(appContext, pr, context, repoContext).then(async approved => {
+    await Promise.all([autoAssignPRToCreator(prContext, context), editOpenedPR(prContext, context, true), fromRenovate ? autoApproveAndAutoMerge(prContext, context).then(async approved => {
       if (!approved) {
-        await updateReviewStatus(pr, context, repoContext, 'dev', {
+        await updateReviewStatus(prContext, context, 'dev', {
           add: ['needsReview']
         });
       }
-    }) : updateReviewStatus(pr, context, repoContext, 'dev', {
+    }) : updateReviewStatus(prContext, context, 'dev', {
       add: ['needsReview'],
       remove: ['approved', 'changesRequested']
     })]);
+  }, (pr, context) => {
+    return {
+      reviewflowCommentPromise: createReviewflowComment(context, pr, defaultCommentBody)
+    };
   }));
 }
 
 function closed(app, appContext) {
-  app.on('pull_request.closed', createHandlerPullRequestChange(appContext, {
-    refetchPr: true
-  }, async (pr, context, repoContext) => {
+  app.on('pull_request.closed', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context, repoContext) => {
+    const {
+      pr,
+      commentBody
+    } = prContext;
     const repo = context.payload.repository;
 
     if (pr.merged) {
-      const parsedBody = pr.head.repo.id === repo.id ? parseBodyWithOptions(pr.body, repoContext.config.prDefaultOptions) : null;
-      await Promise.all([repoContext.removePrFromAutomergeQueue(context, pr.number, 'pr closed'), (parsedBody === null || parsedBody === void 0 ? void 0 : parsedBody.options.deleteAfterMerge) ? context.github.git.deleteRef(context.repo({
+      const isNotFork = pr.head.repo.id === repo.id;
+      const options = parseOptions(commentBody, repoContext.config.prDefaultOptions);
+      await Promise.all([repoContext.removePrFromAutomergeQueue(context, pr.number, 'pr closed'), isNotFork && options.deleteAfterMerge ? context.github.git.deleteRef(context.repo({
         ref: `heads/${pr.head.ref}`
       })).catch(() => {}) : undefined]);
     } else {
-      await Promise.all([repoContext.removePrFromAutomergeQueue(context, pr.number, 'pr closed'), updateReviewStatus(pr, context, repoContext, 'dev', {
+      await Promise.all([repoContext.removePrFromAutomergeQueue(context, pr.number, 'pr closed'), updateReviewStatus(prContext, context, 'dev', {
         remove: ['needsReview']
       })]);
     }
@@ -2539,13 +2693,11 @@ function closed(app, appContext) {
 }
 
 function closed$1(app, appContext) {
-  app.on('pull_request.reopened', createHandlerPullRequestChange(appContext, {
-    refetchPr: true
-  }, async (pr, context, repoContext) => {
-    await Promise.all([updateReviewStatus(pr, context, repoContext, 'dev', {
+  app.on('pull_request.reopened', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context) => {
+    await Promise.all([updateReviewStatus(prContext, context, 'dev', {
       add: ['needsReview'],
       remove: ['approved']
-    }), readCommitsAndUpdateInfos(appContext, pr, context, repoContext)]);
+    }), editOpenedPR(prContext, context, true)]);
   }));
 }
 
@@ -2643,6 +2795,25 @@ const parseMentions = body => {
   return parse(body).mentions.map(m => m.user);
 };
 
+/** deprecated */
+const getPullRequestFromPayload = payload => {
+  const pullRequest = payload.pull_request;
+
+  if (pullRequest) {
+    return pullRequest;
+  }
+
+  const issue = payload.issue;
+
+  if (issue === null || issue === void 0 ? void 0 : issue.pull_request) {
+    return { ...issue,
+      ...issue.pull_request
+    };
+  }
+
+  throw new Error('No pull_request in payload');
+};
+
 const checkIfUserIsBot = (repoContext, user) => {
   if (user.type === 'Bot') return true;
 
@@ -2651,6 +2822,9 @@ const checkIfUserIsBot = (repoContext, user) => {
   }
 
   return false;
+};
+const checkIfIsThisBot = user => {
+  return user.type === 'Bot' && user.login === `${process.env.REVIEWFLOW_NAME}[bot]`;
 };
 
 const getDiscussion = async (context, comment) => {
@@ -2699,9 +2873,15 @@ function prCommentCreated(app, appContext) {
 
   app.on(['pull_request_review_comment.created', // comments without review and without path are sent with issue_comment.created.
   // createHandlerPullRequestChange checks if pull_request event is present, removing real issues comments.
-  'issue_comment.created'], createHandlerPullRequestChange(appContext, {
-    refetchPr: true
-  }, async (pr, context, repoContext) => {
+  'issue_comment.created'], createPullRequestHandler(appContext, payload => {
+    if (checkIfIsThisBot(payload.comment.user)) {
+      // ignore comments from this bot
+      return null;
+    }
+
+    return getPullRequestFromPayload(payload);
+  }, async (prContext, context, repoContext) => {
+    const pr = await fetchPr(context, prContext.pr.number);
     const {
       comment
     } = context.payload;
@@ -2764,12 +2944,28 @@ function prCommentCreated(app, appContext) {
 function prCommentEditedOrDeleted(app, appContext) {
   app.on(['pull_request_review_comment.edited', 'pull_request_review_comment.deleted', // comments without review and without path are sent with issue_comment.created.
   // createHandlerPullRequestChange checks if pull_request event is present, removing real issues comments.
-  'issue_comment.edited', 'issue_comment.deleted'], createHandlerPullRequestChange(appContext, {
-    refetchPr: false
-  }, async (pr, context, repoContext) => {
+  'issue_comment.edited', 'issue_comment.deleted'], createPullRequestHandler(appContext, payload => {
+    if (checkIfIsThisBot(payload.sender)) {
+      // ignore edits made from this bot
+      return null;
+    }
+
+    return getPullRequestFromPayload(payload);
+  }, async (prContext, context, repoContext) => {
     const {
       comment
     } = context.payload;
+
+    if (context.payload.action === 'edited' && checkIfIsThisBot(comment.user)) {
+      const updatedPrContext = await fetchPullRequestAndCreateContext(context, prContext);
+
+      if (!updatedPrContext.updatedPr.closed_at) {
+        await syncLabelsAfterCommentBodyEdited(appContext, repoContext, updatedPrContext.updatedPr, context, updatedPrContext);
+      }
+
+      return;
+    }
+
     const type = comment.pull_request_review_id ? 'review-comment' : 'issue-comment';
     const criteria = {
       'account.id': repoContext.account._id,
@@ -2796,16 +2992,17 @@ function prCommentEditedOrDeleted(app, appContext) {
 }
 
 function reviewRequested(app, appContext) {
-  app.on('pull_request.review_requested', createHandlerPullRequestChange(appContext, {
-    refetchPr: true
-  }, async (pr, context, repoContext) => {
+  app.on('pull_request.review_requested', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context, repoContext) => {
+    const {
+      pr
+    } = prContext;
     const sender = context.payload.sender;
     const reviewer = context.payload.requested_reviewer;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
     // repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, { includesWaitForGroups: true });
     if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
-      await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
+      await updateReviewStatus(prContext, context, reviewerGroup, {
         add: ['needsReview', "requested"],
         remove: ['approved']
       });
@@ -2836,9 +3033,10 @@ function reviewRequested(app, appContext) {
 }
 
 function reviewRequestRemoved(app, appContext) {
-  app.on('pull_request.review_request_removed', createHandlerPullRequestChange(appContext, {
-    refetchPr: true
-  }, async (pr, context, repoContext) => {
+  app.on('pull_request.review_request_removed', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context, repoContext) => {
+    const {
+      pr
+    } = prContext;
     const sender = context.payload.sender;
     const reviewer = context.payload.requested_reviewer;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
@@ -2853,7 +3051,7 @@ function reviewRequestRemoved(app, appContext) {
       const hasChangesRequestedInReviews = reviewStates[reviewerGroup].changesRequested !== 0;
       const hasApprovedInReviews = reviewStates[reviewerGroup].approved !== 0;
       const approved = !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && hasApprovedInReviews;
-      await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
+      await updateReviewStatus(prContext, context, reviewerGroup, {
         add: [// if changes requested by the one which requests was removed (should still be in changed requested anyway, but we never know)
         hasChangesRequestedInReviews && 'changesRequested', // if was already approved by another member in the group and has no other requests waiting
         approved && 'approved'],
@@ -2899,9 +3097,11 @@ const getEmojiFromState = state => {
 };
 
 function reviewSubmitted(app, appContext) {
-  app.on('pull_request_review.submitted', createHandlerPullRequestChange(appContext, {
-    refetchPr: true
-  }, async (pr, context, repoContext) => {
+  app.on('pull_request_review.submitted', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context) => {
+    const {
+      pr,
+      repoContext
+    } = prContext;
     const {
       user: reviewer,
       state,
@@ -2933,13 +3133,14 @@ function reviewSubmitted(app, appContext) {
         });
         const hasChangesRequestedInReviews = reviewStates[reviewerGroup].changesRequested !== 0;
         const approved = !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && state === 'approved';
-        const newLabels = await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
+        const updatedPrContext = await fetchPullRequestAndCreateContext(context, prContext);
+        const newLabels = await updateReviewStatus(updatedPrContext, context, reviewerGroup, {
           add: [approved && 'approved', state === 'changes_requested' && 'needsReview', state === 'changes_requested' && 'changesRequested'],
           remove: [approved && 'needsReview', !hasRequestedReviewsForGroup && 'requested', state === 'approved' && !hasChangesRequestedInReviews && 'changesRequested', state === 'changes_requested' && 'approved']
         });
 
         if (approved && !hasChangesRequestedInReviews) {
-          merged = await autoMergeIfPossible(appContext, pr, context, repoContext, newLabels);
+          merged = await autoMergeIfPossible(updatedPrContext, context, newLabels);
         }
       }
 
@@ -3003,9 +3204,9 @@ function reviewSubmitted(app, appContext) {
 }
 
 function reviewDismissed(app, appContext) {
-  app.on('pull_request_review.dismissed', createHandlerPullRequestChange(appContext, {
-    refetchPr: true
-  }, async (pr, context, repoContext) => {
+  app.on('pull_request_review.dismissed', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context, repoContext) => {
+    const updatedPrContext = await fetchPullRequestAndCreateContext(context, prContext);
+    const pr = updatedPrContext.updatedPr;
     const sender = context.payload.sender;
     const reviewer = context.payload.review.user;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
@@ -3019,7 +3220,7 @@ function reviewDismissed(app, appContext) {
       const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, {
         includesReviewerGroup: true
       });
-      await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
+      await updateReviewStatus(updatedPrContext, context, reviewerGroup, {
         add: [!hasApprovals && 'needsReview', hasApprovals && !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && 'approved'],
         remove: [!hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && 'requested', !hasChangesRequestedInReviews && 'changesRequested', !hasApprovals && 'approved']
       });
@@ -3042,185 +3243,180 @@ function reviewDismissed(app, appContext) {
 }
 
 function synchronize(app, appContext) {
-  app.on('pull_request.synchronize', createHandlerPullRequestChange(appContext, {
-    refetchPr: true
-  }, async (pr, context, repoContext) => {
-    // old and new sha
+  app.on('pull_request.synchronize', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context) => {
+    const updatedPrContext = await fetchPullRequestAndCreateContext(context, prContext); // old and new sha
     // const { before, after } = context.payload;
-    const previousSha = context.payload.before;
-    await Promise.all([editOpenedPR(appContext, pr, context, repoContext, previousSha), // addStatusCheckToLatestCommit
-    updateStatusCheckFromLabels(pr, context, repoContext, pr.labels, previousSha), readCommitsAndUpdateInfos(appContext, pr, context, repoContext)]); // call autoMergeIfPossible to re-add to the queue when push is fixed
 
-    await autoMergeIfPossible(appContext, pr, context, repoContext);
+    const previousSha = context.payload.before;
+    await Promise.all([editOpenedPR(updatedPrContext, context, true, previousSha), // addStatusCheckToLatestCommit
+    updateStatusCheckFromLabels(updatedPrContext, updatedPrContext.updatedPr, context, updatedPrContext.updatedPr.labels, previousSha)]); // call autoMergeIfPossible to re-add to the queue when push is fixed
+
+    await autoMergeIfPossible(updatedPrContext, context);
   }));
 }
 
 function edited(app, appContext) {
-  app.on('pull_request.edited', createHandlerPullRequestChange(appContext, {
-    refetchPr: true
-  }, async (pr, context, repoContext) => {
+  app.on('pull_request.edited', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context) => {
+    const prContextUpdated = await fetchPullRequestAndCreateContext(context, prContext);
     const sender = context.payload.sender;
 
-    if (sender.type === 'Bot' && sender.login === `${process.env.REVIEWFLOW_NAME}[bot]`) {
+    if (checkIfIsThisBot(sender)) {
       return;
     }
 
-    const {
-      skipAutoMerge
-    } = await editOpenedPR(appContext, pr, context, repoContext);
-    if (!skipAutoMerge) await autoMergeIfPossible(appContext, pr, context, repoContext);
+    await editOpenedPR(prContextUpdated, context, false);
+    await autoMergeIfPossible(prContextUpdated, context);
   }));
 }
 
-const updatePrBody = async (pr, context, repoContext, updateOptions) => {
+const updatePrCommentBody = async (prContext, context, updateOptions) => {
   const {
-    body
-  } = updateBody(pr.body, repoContext.config.prDefaultOptions, undefined, updateOptions);
-  await updatePrIfNeeded(pr, context, repoContext, {
-    body
+    commentBody: newBody
+  } = updateCommentOptions(prContext.commentBody, prContext.repoContext.config.prDefaultOptions, updateOptions);
+  await updatePrIfNeeded(prContext, context, {
+    commentBody: newBody
   });
 };
 
-function labelsChanged(app, appContext) {
-  app.on(['pull_request.labeled', 'pull_request.unlabeled'], async context => {
-    const sender = context.payload.sender;
-    const fromRenovate = sender.type === 'Bot' && sender.login === 'renovate[bot]';
-    context.payload.pull_request.head.ref.startsWith('renovate/');
+const isFromRenovate = payload => {
+  const sender = payload.sender;
+  return sender.type === 'Bot' && sender.login === 'renovate[bot]' && payload.pull_request.head.ref.startsWith('renovate/');
+};
 
-    if (sender.type === 'Bot' && !fromRenovate) {
+function labelsChanged(app, appContext) {
+  app.on(['pull_request.labeled', 'pull_request.unlabeled'], createPullRequestHandler(appContext, payload => {
+    if (payload.sender.type === 'Bot' && !isFromRenovate(payload)) {
+      return null;
+    }
+
+    return payload.pull_request;
+  }, async (prContext, context, repoContext) => {
+    const fromRenovate = isFromRenovate(context.payload);
+    const updatedPrContext = await fetchPullRequestAndCreateContext(context, prContext);
+    const {
+      updatedPr: pr
+    } = updatedPrContext;
+    const label = context.payload.label;
+
+    if (fromRenovate) {
+      const codeApprovedLabel = repoContext.labels['code/approved'];
+      const autoMergeLabel = repoContext.labels['merge/automerge'];
+      const autoMergeSkipCiLabel = repoContext.labels['merge/skip-ci'];
+
+      if (context.payload.action === 'labeled') {
+        if (codeApprovedLabel && label.id === codeApprovedLabel.id) {
+          // const { data: reviews } = await context.github.pulls.listReviews(
+          //   contextPr(context, { per_page: 1 }),
+          // );
+          // if (reviews.length !== 0) {
+          await context.github.pulls.createReview(contextPr(context, {
+            event: 'APPROVE'
+          }));
+
+          if (autoMergeSkipCiLabel) {
+            await context.github.issues.addLabels(contextIssue(context, {
+              labels: [autoMergeSkipCiLabel.name]
+            }));
+          }
+
+          await updateStatusCheckFromLabels(updatedPrContext, pr, context);
+          await updatePrCommentBody(updatedPrContext, context, {
+            autoMergeWithSkipCi: true,
+            // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
+            autoMerge: hasLabelInPR(pr.labels, autoMergeLabel) ? true : repoContext.config.prDefaultOptions.autoMerge
+          }); // }
+        } else if (autoMergeLabel && label.id === autoMergeLabel.id) {
+          await updatePrCommentBody(updatedPrContext, context, {
+            autoMerge: true,
+            // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
+            // Note: si c'est renovate qui ajoute le label autoMerge, le label codeApprovedLabel n'aurait pu etre ajouté que par renovate également (on est a quelques secondes de l'ouverture de la pr par renovate)
+            autoMergeWithSkipCi: hasLabelInPR(pr.labels, codeApprovedLabel) ? true : repoContext.config.prDefaultOptions.autoMergeWithSkipCi
+          });
+        }
+
+        await autoMergeIfPossible(updatedPrContext, context);
+      }
+
       return;
     }
 
-    await handlerPullRequestChange(appContext, context, {
-      refetchPr: true
-    }, async (pr, repoContext) => {
-      const label = context.payload.label;
-
-      if (fromRenovate) {
-        const codeApprovedLabel = repoContext.labels['code/approved'];
-        const autoMergeLabel = repoContext.labels['merge/automerge'];
-        const autoMergeSkipCiLabel = repoContext.labels['merge/skip-ci'];
-
-        if (context.payload.action === 'labeled') {
-          if (codeApprovedLabel && label.id === codeApprovedLabel.id) {
-            // const { data: reviews } = await context.github.pulls.listReviews(
-            //   contextPr(context, { per_page: 1 }),
-            // );
-            // if (reviews.length !== 0) {
-            await context.github.pulls.createReview(contextPr(context, {
-              event: 'APPROVE'
-            }));
-
-            if (autoMergeSkipCiLabel) {
-              await context.github.issues.addLabels(contextIssue(context, {
-                labels: [autoMergeSkipCiLabel.name]
-              }));
-            }
-
-            await updateStatusCheckFromLabels(pr, context, repoContext);
-            await updatePrBody(pr, context, repoContext, {
-              autoMergeWithSkipCi: true,
-              // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
-              autoMerge: hasLabelInPR(pr.labels, autoMergeLabel) ? true : repoContext.config.prDefaultOptions.autoMerge
-            }); // }
-          } else if (autoMergeLabel && label.id === autoMergeLabel.id) {
-            await updatePrBody(pr, context, repoContext, {
-              autoMerge: true,
-              // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
-              // Note: si c'est renovate qui ajoute le label autoMerge, le label codeApprovedLabel n'aurait pu etre ajouté que par renovate également (on est a quelques secondes de l'ouverture de la pr par renovate)
-              autoMergeWithSkipCi: hasLabelInPR(pr.labels, codeApprovedLabel) ? true : repoContext.config.prDefaultOptions.autoMergeWithSkipCi
-            });
-          }
-
-          await autoMergeIfPossible(appContext, pr, context, repoContext);
-        }
-
-        return;
+    if (repoContext.protectedLabelIds.includes(label.id)) {
+      if (context.payload.action === 'labeled') {
+        await context.github.issues.removeLabel(contextIssue(context, {
+          name: label.name
+        }));
+      } else {
+        await context.github.issues.addLabels(contextIssue(context, {
+          labels: [label.name]
+        }));
       }
 
-      if (repoContext.protectedLabelIds.includes(label.id)) {
-        if (context.payload.action === 'labeled') {
-          await context.github.issues.removeLabel(contextIssue(context, {
-            name: label.name
-          }));
-        } else {
-          await context.github.issues.addLabels(contextIssue(context, {
-            labels: [label.name]
-          }));
-        }
+      return;
+    }
 
-        return;
+    await updateStatusCheckFromLabels(updatedPrContext, pr, context);
+    const featureBranchLabel = repoContext.labels['feature-branch'];
+    const automergeLabel = repoContext.labels['merge/automerge'];
+    const skipCiLabel = repoContext.labels['merge/skip-ci'];
+
+    const option = (() => {
+      if (featureBranchLabel && label.id === featureBranchLabel.id) return 'featureBranch';
+      if (automergeLabel && label.id === automergeLabel.id) return 'autoMerge';
+      if (skipCiLabel && label.id === skipCiLabel.id) return 'autoMergeWithSkipCi';
+      return null;
+    })();
+
+    if (option) {
+      await updatePrCommentBody(updatedPrContext, context, {
+        [option]: context.payload.action === 'labeled'
+      });
+    } // not an else if
+
+
+    if (automergeLabel && label.id === automergeLabel.id) {
+      if (context.payload.action === 'labeled') {
+        await autoMergeIfPossible(updatedPrContext, context);
+      } else {
+        repoContext.removePrFromAutomergeQueue(context, pr.number, 'automerge label removed');
       }
-
-      await updateStatusCheckFromLabels(pr, context, repoContext);
-      const featureBranchLabel = repoContext.labels['feature-branch'];
-      const automergeLabel = repoContext.labels['merge/automerge'];
-      const skipCiLabel = repoContext.labels['merge/skip-ci'];
-
-      const option = (() => {
-        if (featureBranchLabel && label.id === featureBranchLabel.id) return 'featureBranch';
-        if (automergeLabel && label.id === automergeLabel.id) return 'autoMerge';
-        if (skipCiLabel && label.id === skipCiLabel.id) return 'autoMergeWithSkipCi';
-        return null;
-      })();
-
-      if (option) {
-        await updatePrBody(pr, context, repoContext, {
-          [option]: context.payload.action === 'labeled'
-        });
-      } // not an else if
-
-
-      if (automergeLabel && label.id === automergeLabel.id) {
-        if (context.payload.action === 'labeled') {
-          await autoMergeIfPossible(appContext, pr, context, repoContext);
-        } else {
-          repoContext.removePrFromAutomergeQueue(context, pr.number, 'automerge label removed');
-        }
-      }
-    });
-  });
+    }
+  }));
 }
 
 function checkrunCompleted(app, appContext) {
-  app.on('check_run.completed', createHandlerPullRequestsChange(appContext, context => context.payload.check_run.pull_requests, async (context, repoContext) => {
-    await Promise.all(context.payload.check_run.pull_requests.map(pr => context.github.pulls.get(context.repo({
-      pull_number: pr.number
-    })).then(prResult => {
-      return autoMergeIfPossible(appContext, prResult.data, context, repoContext);
-    })));
+  app.on('check_run.completed', createPullRequestsHandler(appContext, payload => payload.check_run.pull_requests, async (pr, context, repoContext) => {
+    const pullRequest = await fetchPr(context, pr.number);
+    await autoMergeIfPossibleOptionalPrContext(appContext, repoContext, pullRequest, context);
   }));
 }
 
 function checksuiteCompleted(app, appContext) {
-  app.on('check_suite.completed', createHandlerPullRequestsChange(appContext, context => context.payload.check_suite.pull_requests, async (context, repoContext) => {
-    await Promise.all(context.payload.check_suite.pull_requests.map(pr => context.github.pulls.get(context.repo({
-      pull_number: pr.number
-    })).then(prResult => {
-      return autoMergeIfPossible(appContext, prResult.data, context, repoContext);
-    })));
+  app.on('check_suite.completed', createPullRequestsHandler(appContext, payload => payload.check_suite.pull_requests, async (pr, context, repoContext) => {
+    const pullRequest = await fetchPr(context, pr.number);
+    const prContext = await createPullRequestContextFromPullResponse(appContext, repoContext, context, pullRequest, {});
+    await autoMergeIfPossible(prContext, context);
   }));
 }
 
-const isSameBranch = (context, lockedPr) => {
+const isSameBranch = (payload, lockedPr) => {
   if (!lockedPr) return false;
-  return !!context.payload.branches.find(b => b.name === lockedPr.branch);
+  return !!payload.branches.find(b => b.name === lockedPr.branch);
 };
 
 function status(app, appContext) {
-  app.on('status', createHandlerPullRequestsChange(appContext, (context, repoContext) => {
+  app.on('status', createPullRequestsHandler(appContext, (payload, repoContext) => {
     const lockedPr = repoContext.getMergeLockedPr();
     if (!lockedPr) return [];
 
-    if (context.payload.state !== 'loading' && isSameBranch(context, lockedPr)) {
+    if (payload.state !== 'loading' && isSameBranch(payload, lockedPr)) {
       return [lockedPr];
     }
 
     return [];
-  }, (context, repoContext) => {
+  }, (pr, context, repoContext) => {
     const lockedPr = repoContext.getMergeLockedPr(); // check if changed
 
-    if (isSameBranch(context, lockedPr)) {
+    if (isSameBranch(context.payload, lockedPr)) {
       repoContext.reschedule(context, lockedPr);
     }
   }));

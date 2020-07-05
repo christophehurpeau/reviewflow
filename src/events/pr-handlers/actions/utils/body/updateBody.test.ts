@@ -1,9 +1,10 @@
-import { updateBody, updateBodyCommitsNotes } from './updateBody';
-import initialSimple from './mocks/body/initial-simple';
-import initialAfterEditSimple from './mocks/body/initialAfterEdit-simple';
-import initialAfterEditSimpleWithInfos from './mocks/body/initialAfterEdit-simpleWithInfos';
-import initialTable from './mocks/body/initial-table';
-import initialAfterEditTable from './mocks/body/initialAfterEdit-table';
+import {
+  updateCommentOptions,
+  updateCommentBodyCommitsNotes,
+} from './updateBody';
+import initialSimple from './mocks/commentBody-initial-simple';
+import initialAfterEditSimple from './mocks/commentBody-initialAfterEdit-simple';
+import initialAfterEditSimpleWithInfos from './mocks/commentBody-initialAfterEdit-simpleWithInfos';
 
 const defaultConfig = {
   featureBranch: false,
@@ -14,22 +15,23 @@ const defaultConfig = {
 
 describe('simple', () => {
   it('should update initial description', () => {
-    expect(updateBody(initialSimple, defaultConfig).body).toEqual(
-      initialAfterEditSimple,
-    );
+    expect(
+      updateCommentOptions(initialSimple, defaultConfig).commentBody,
+    ).toEqual(initialAfterEditSimple);
   });
 
   it('should keep infos on update', () => {
     expect(
-      updateBody(initialAfterEditSimpleWithInfos, defaultConfig).body,
+      updateCommentOptions(initialAfterEditSimpleWithInfos, defaultConfig)
+        .commentBody,
     ).toEqual(initialAfterEditSimpleWithInfos);
   });
 
   it('should update options', () => {
     expect(
-      updateBody(initialAfterEditSimpleWithInfos, defaultConfig, undefined, {
+      updateCommentOptions(initialAfterEditSimpleWithInfos, defaultConfig, {
         featureBranch: true,
-      }).body,
+      }).commentBody,
     ).toEqual(
       initialAfterEditSimpleWithInfos.replace(
         '- [ ] <!-- reviewflow-featureBranch -->',
@@ -39,7 +41,7 @@ describe('simple', () => {
   });
   it('should update commit notes', () => {
     expect(
-      updateBodyCommitsNotes(
+      updateCommentBodyCommitsNotes(
         initialAfterEditSimpleWithInfos,
         'Some commits Notes',
       ),
@@ -52,7 +54,7 @@ describe('simple', () => {
   });
   it('should remove commit notes', () => {
     expect(
-      updateBodyCommitsNotes(
+      updateCommentBodyCommitsNotes(
         initialAfterEditSimpleWithInfos.replace(
           '#### Options:',
           '#### Commits Notes:\n\nSome commits Notes\n\n#### Options:',
@@ -60,13 +62,5 @@ describe('simple', () => {
         '',
       ),
     ).toEqual(initialAfterEditSimpleWithInfos);
-  });
-});
-
-describe('table', () => {
-  it('should update initial description', () => {
-    expect(updateBody(initialTable, defaultConfig).body).toEqual(
-      initialAfterEditTable,
-    );
   });
 });

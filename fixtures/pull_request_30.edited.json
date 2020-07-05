@@ -35,7 +35,7 @@
         "type": "User",
         "site_admin": false
       },
-      "body": "### Context\r\n\r\nSee pr https://github.com/reviewflow/reviewflow-test/pull/30\r\n\r\n### Solution\r\nIf needed, explain here the solution you chose for this\r\n\r\n<!-- Uncomment this if you need a testing plan\r\n### Testing plan\r\n- [ ] Test this\r\n- [ ] Test that\r\n-->\r\n\r\n<!-- do not edit after this -->\r\n#### Options:\r\n- [ ] <!-- reviewflow-featureBranch -->This PR is a feature branch\r\n- [ ] <!-- reviewflow-autoMergeWithSkipCi -->Add `[skip ci]` on merge commit\r\n- [ ] <!-- reviewflow-autoMerge -->Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless \"Update branch\" triggers)\r\n- [x] <!-- reviewflow-deleteAfterMerge -->Automatic branch delete after this PR is merged\r\n<!-- end - don't add anything after this -->\r\n",
+      "body": "### Context\r\n\r\nSee pr https://github.com/reviewflow/reviewflow-test/pull/30\r\n\r\n### Solution\r\nIf needed, explain here the solution you chose for this\r\n\r\n<!-- Uncomment this if you need a testing plan\r\n### Testing plan\r\n- [ ] Test this\r\n- [ ] Test that\r\n-->\r\n",
       "created_at": "2019-10-04T10:13:46Z",
       "updated_at": "2020-05-22T12:38:13Z",
       "closed_at": null,
@@ -383,7 +383,7 @@
     },
     "changes": {
       "body": {
-        "from": "### Context\r\n\r\n### Solution\r\nIf needed, explain here the solution you chose for this\r\n\r\n<!-- Uncomment this if you need a testing plan\r\n### Testing plan\r\n- [ ] Test this\r\n- [ ] Test that\r\n-->\r\n\r\n<!-- do not edit after this -->\r\n#### Options:\r\n- [ ] <!-- reviewflow-featureBranch -->This PR is a feature branch\r\n- [ ] <!-- reviewflow-autoMergeWithSkipCi -->Add `[skip ci]` on merge commit\r\n- [ ] <!-- reviewflow-autoMerge -->Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless \"Update branch\" triggers)\r\n- [x] <!-- reviewflow-deleteAfterMerge -->Automatic branch delete after this PR is merged\r\n<!-- end - don't add anything after this -->\r\n"
+        "from": "### Context\r\n\r\n### Solution\r\nIf needed, explain here the solution you chose for this\r\n\r\n<!-- Uncomment this if you need a testing plan\r\n### Testing plan\r\n- [ ] Test this\r\n- [ ] Test that\r\n-->\r\n"
       }
     },
     "repository": {

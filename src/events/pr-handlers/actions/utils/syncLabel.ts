@@ -12,7 +12,7 @@ interface SyncLabelOptions {
 export default async function syncLabel<
   T extends Webhooks.WebhookPayloadPullRequest
 >(
-  pr: Octokit.PullsGetResponse,
+  pr: Octokit.PullsGetResponse | T['pull_request'],
   context: Context<T>,
   shouldHaveLabel: boolean,
   label: LabelResponse,

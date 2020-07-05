@@ -1,5 +1,5 @@
 import { MessageCategory } from '../dm/MessageCategory';
-import { Options } from '../events/pr-handlers/actions/utils/prOptions';
+import { Options } from '../events/pr-handlers/actions/utils/body/prOptions';
 
 export interface StatusInfo {
   inBody?: true;
@@ -65,7 +65,7 @@ export interface Config<GroupNames extends string, TeamNames extends string> {
   ignoreRepoPattern?: string;
   requiresReviewRequest?: boolean;
   parsePR: ParsePR;
-  prDefaultOptions: Record<Options, boolean>;
+  prDefaultOptions: Options;
 
   botUsers?: string[];
   groups: Record<GroupNames, Group>;

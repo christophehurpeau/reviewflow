@@ -7,19 +7,30 @@ export { nock };
 
 jest.setTimeout(30000);
 
-process.env.REVIEWFLOW_NAME = 'reviewflow-test';
+process.env.REVIEWFLOW_NAME = 'reviewflow-dev';
 const APP_ID = 1;
 nock.disableNetConnect();
 
-export const initializeProbotApp = (): Probot => {
+export const initializeProbotApp = ({
+  orgs,
+  users,
+  prs,
+}: Partial<any> = {}): Probot => {
   const probot = createProbot({
     id: APP_ID,
     cert: 'test',
     githubToken: 'test',
   });
   const mockStores = {
-    orgs: { findByKey: () => Promise.resolve({ installationId: 1 }) },
-    users: { findByKey: () => Promise.resolve({ installationId: 1 }) },
+    orgs: { findByKey: () => Promise.resolve({ installationId: 1 }), ...orgs },
+    users: {
+      findByKey: () => Promise.resolve({ installationId: 1 }),
+      ...users,
+    },
+    prs: {
+      findOne: () => Promise.resolve({ commentId: 1 }),
+      ...prs,
+    },
   };
   probot.load((app) => initApp(app, { mongoStores: mockStores } as any));
 

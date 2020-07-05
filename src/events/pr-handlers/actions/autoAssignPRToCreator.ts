@@ -1,13 +1,15 @@
 import Webhooks from '@octokit/webhooks';
-import { PRHandler } from '../utils';
+import { Context, Octokit } from 'probot';
 import { contextIssue } from '../../../context/utils';
+import { PrContext } from '../utils/createPullRequestContext';
 
-export const autoAssignPRToCreator: PRHandler<Webhooks.WebhookPayloadPullRequest> = async (
-  appContext,
-  pr,
-  context,
-  repoContext,
-) => {
+export const autoAssignPRToCreator = async <
+  E extends Webhooks.WebhookPayloadPullRequest
+>(
+  prContext: PrContext<E['pull_request'] | Octokit.PullsGetResponse>,
+  context: Context<E>,
+): Promise<void> => {
+  const { pr, repoContext } = prContext;
   if (!repoContext.config.autoAssignToCreator) return;
   if (pr.assignees.length !== 0) return;
   if (pr.user.type === 'Bot') return;

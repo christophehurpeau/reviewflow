@@ -1,14 +1,20 @@
 import { Context, Octokit } from 'probot';
-// eslint-disable-next-line import/no-cycle
-import { AutomergeLog } from '../../../mongo';
-import { AppContext } from '../../../context/AppContext';
-import { RepoContext } from '../../../context/repoContext';
-import { LabelResponse } from '../../../context/initRepoLabels';
-import { parseBodyWithOptions } from './utils/parseBody';
+import Webhooks from '@octokit/webhooks';
+import { AutomergeLog } from 'mongo';
+import { AppContext } from 'context/AppContext';
+import { RepoContext } from 'context/repoContext';
+import { LabelResponse } from 'context/initRepoLabels';
+import {
+  PrContext,
+  PrContextWithUpdatedPr,
+  createPullRequestContextFromPullResponse,
+} from '../utils/createPullRequestContext';
+import { PullRequestData } from '../utils/PullRequestData';
+import { parseBody } from './utils/body/parseBody';
 import hasLabelInPR from './utils/hasLabelInPR';
 
 const hasFailedStatusOrChecks = async (
-  pr: Octokit.PullsGetResponse,
+  pr: PullRequestData,
   context: Context<any>,
 ): Promise<boolean> => {
   const checks = await context.github.checks.listForRef(
@@ -51,11 +57,17 @@ const hasFailedStatusOrChecks = async (
   return false;
 };
 
-export const autoMergeIfPossible = async (
+export const autoMergeIfPossibleOptionalPrContext = async (
   appContext: AppContext,
-  pr: Octokit.PullsGetResponse,
-  context: Context<any>,
   repoContext: RepoContext,
+  pr:
+    | Octokit.PullsGetResponse
+    | Webhooks.WebhookPayloadPullRequest['pull_request'],
+  context: Context<any>,
+  prContext?:
+    | PrContext<Octokit.PullsGetResponse>
+    | PrContext<Webhooks.WebhookPayloadPullRequest['pull_request']>
+    | PrContextWithUpdatedPr,
   prLabels: LabelResponse[] = pr.labels,
 ): Promise<boolean> => {
   const autoMergeLabel = repoContext.labels['merge/automerge'];
@@ -137,7 +149,7 @@ export const autoMergeIfPossible = async (
 
   repoContext.addMergeLockPr(createMergeLockPrFromPr());
 
-  if (pr.mergeable === undefined) {
+  if (pr.mergeable == null) {
     const prResult = await context.github.pulls.get(
       context.repo({
         pull_number: pr.number,
@@ -274,9 +286,17 @@ export const autoMergeIfPossible = async (
 
   try {
     context.log.info(`automerge pr #${pr.number}`);
+    if (!prContext)
+      prContext = await createPullRequestContextFromPullResponse(
+        appContext,
+        repoContext,
+        context,
+        pr,
+        {},
+      );
 
-    const parsedBody = parseBodyWithOptions(
-      pr.body,
+    const parsedBody = parseBody(
+      prContext.commentBody,
       repoContext.config.prDefaultOptions,
     );
     const options = parsedBody?.options || repoContext.config.prDefaultOptions;
@@ -301,4 +321,29 @@ export const autoMergeIfPossible = async (
     repoContext.reschedule(context, createMergeLockPrFromPr());
     return false;
   }
+};
+
+export const autoMergeIfPossible = async (
+  prContext:
+    | PrContext<Octokit.PullsGetResponse>
+    | PrContext<Webhooks.WebhookPayloadPullRequest['pull_request']>
+    | PrContextWithUpdatedPr,
+  context: Context<any>,
+  prLabels?: LabelResponse[],
+): Promise<boolean> => {
+  const pr:
+    | Octokit.PullsGetResponse
+    | Webhooks.WebhookPayloadPullRequest['pull_request'] =
+    prContext.updatedPr ||
+    (prContext as
+      | PrContext<Octokit.PullsGetResponse>
+      | PrContext<Webhooks.WebhookPayloadPullRequest['pull_request']>).pr;
+  return autoMergeIfPossibleOptionalPrContext(
+    prContext.appContext,
+    prContext.repoContext,
+    pr,
+    context,
+    prContext,
+    prLabels,
+  );
 };

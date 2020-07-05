@@ -1,4 +1,4 @@
-import { shouldIgnoreRepo } from '../context/repoContext';
+import { shouldIgnoreRepo } from 'context/repoContext';
 import ornikarConfig from './ornikar';
 
 describe('ignoreRepoPattern', () => {

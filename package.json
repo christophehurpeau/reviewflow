@@ -44,6 +44,9 @@
     ],
     "collectCoverageFrom": [
       "src/**/*.ts"
+    ],
+    "modulePaths": [
+      "<rootDir>/src/"
     ]
   },
   "pob": {
@@ -111,9 +114,9 @@
     "husky": "4.2.5",
     "jest": "24.7.1",
     "jest-junit-reporter": "1.1.0",
-    "nock": "11.9.1",
+    "nock": "13.0.2",
     "nodemon": "2.0.4",
-    "pob-babel": "24.8.1",
+    "pob-babel": "24.13.0",
     "pob-lcov-reporter": "1.2.0",
     "pob-release": "4.13.1",
     "prettier": "2.0.5",

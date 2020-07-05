@@ -1,4 +1,4 @@
-import { Options, optionsRegexps } from './prOptions';
+import { parseBody, Options } from './parseBody';
 
 const commentStart = '<!-- do not edit after this -->';
 const commentEnd = "<!-- end - don't add anything after this -->";
@@ -6,19 +6,7 @@ const commentEnd = "<!-- end - don't add anything after this -->";
 const regexpCols = /^(.*)(<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->)(.*)$/is;
 const regexpReviewflowCol = /^(\s*<!---? do not edit after this -?--><\/td><td [^>]*>)\s*(.*)\s*(<\/td><\/tr><\/table>\s*<!---? end - don't add anything after this -?-->)\s*$/is;
 
-type Config = Record<Options, boolean>;
-
-const parseOptions = (content: string, defaultConfig: Config): Config => {
-  return optionsRegexps.reduce((acc, { name, regexp }) => {
-    const match = regexp.exec(content);
-    acc[name] = !match
-      ? defaultConfig[name] || false
-      : match[1] === 'x' || match[1] === 'X';
-    return acc;
-  }, {} as any) as Config;
-};
-
-interface ParseBodyResultWithoutOptions {
+interface ParsePrBodyResultWithoutOptions {
   content: string;
   ending: string;
   reviewflowContentCol: string;
@@ -26,14 +14,14 @@ interface ParseBodyResultWithoutOptions {
   reviewflowContentColSuffix: string;
 }
 
-interface ParseBodyResultWithOptions extends ParseBodyResultWithoutOptions {
-  options: Config;
-  breakingChanges: string;
+interface ParsePrBodyResultWithOptions extends ParsePrBodyResultWithoutOptions {
+  options: Options;
+  commitNotes: string;
 }
 
-export const parseBody = (
+export const parsePrBody = (
   description: string,
-): ParseBodyResultWithoutOptions | null => {
+): ParsePrBodyResultWithoutOptions | null => {
   const match = regexpCols.exec(description);
   if (!match) return null;
   const [, content, reviewFlowCol, reviewflowContent, ending] = match;
@@ -63,28 +51,15 @@ export const parseBody = (
   };
 };
 
-export const parseBodyWithOptions = (
+export const parsePrBodyWithOptions = (
   description: string,
-  defaultConfig: Config,
-): ParseBodyResultWithOptions | null => {
-  const parsedBody = parseBody(description);
-  if (parsedBody === null) return null;
-
-  // console.log(parsedBody.reviewflowContentCol);
-  let breakingChanges = parsedBody.reviewflowContentCol.replace(
-    /^.*#### Commits Notes:(.*)#### Options:.*$/s,
-    '$1',
-  );
-
-  if (breakingChanges === parsedBody.reviewflowContentCol) {
-    breakingChanges = '';
-  } else {
-    breakingChanges = breakingChanges.trim();
-  }
+  defaultOptions: Options,
+): ParsePrBodyResultWithOptions | null => {
+  const parsedPrBody = parsePrBody(description);
+  if (parsedPrBody === null) return null;
 
   return {
-    ...parsedBody,
-    options: parseOptions(parsedBody.reviewflowContentCol, defaultConfig),
-    breakingChanges,
+    ...parsedPrBody,
+    ...parseBody(parsedPrBody.reviewflowContentCol, defaultOptions),
   };
 };

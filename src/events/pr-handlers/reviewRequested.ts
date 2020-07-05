@@ -1,7 +1,7 @@
 import { Application } from 'probot';
 import { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
-import { createHandlerPullRequestChange } from './utils';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 
 export default function reviewRequested(
@@ -10,10 +10,11 @@ export default function reviewRequested(
 ): void {
   app.on(
     'pull_request.review_requested',
-    createHandlerPullRequestChange(
+    createPullRequestHandler(
       appContext,
-      { refetchPr: true },
-      async (pr, context, repoContext): Promise<void> => {
+      (payload) => payload.pull_request,
+      async (prContext, context, repoContext): Promise<void> => {
+        const { pr } = prContext;
         const sender = context.payload.sender;
 
         const reviewer = (context.payload as any).requested_reviewer;
@@ -23,7 +24,7 @@ export default function reviewRequested(
         // repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, { includesWaitForGroups: true });
 
         if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
-          await updateReviewStatus(pr, context, repoContext, reviewerGroup, {
+          await updateReviewStatus(prContext, context, reviewerGroup, {
             add: ['needsReview', !shouldWait && 'requested'],
             remove: ['approved'],
           });

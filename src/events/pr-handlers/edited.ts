@@ -1,32 +1,29 @@
 import { Application } from 'probot';
 import { AppContext } from '../../context/AppContext';
 import { editOpenedPR } from './actions/editOpenedPR';
-import { createHandlerPullRequestChange } from './utils';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
+import { fetchPullRequestAndCreateContext } from './utils/createPullRequestContext';
+import { checkIfIsThisBot } from './utils/isBotUser';
 
 export default function edited(app: Application, appContext: AppContext): void {
   app.on(
     'pull_request.edited',
-    createHandlerPullRequestChange(
+    createPullRequestHandler(
       appContext,
-      { refetchPr: true },
-      async (pr, context, repoContext): Promise<void> => {
+      (payload) => payload.pull_request,
+      async (prContext, context, repoContext): Promise<void> => {
+        const prContextUpdated = await fetchPullRequestAndCreateContext(
+          context,
+          prContext,
+        );
         const sender = context.payload.sender;
-        if (
-          sender.type === 'Bot' &&
-          sender.login === `${process.env.REVIEWFLOW_NAME}[bot]`
-        ) {
+        if (checkIfIsThisBot(sender)) {
           return;
         }
 
-        const { skipAutoMerge } = await editOpenedPR(
-          appContext,
-          pr,
-          context,
-          repoContext,
-        );
-        if (!skipAutoMerge)
-          await autoMergeIfPossible(appContext, pr, context, repoContext);
+        await editOpenedPR(prContextUpdated, context, false);
+        await autoMergeIfPossible(prContextUpdated, context);
       },
     ),
   );

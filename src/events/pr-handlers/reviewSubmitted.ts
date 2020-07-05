@@ -2,11 +2,12 @@ import { Application } from 'probot';
 import slackifyMarkdown from 'slackify-markdown';
 import { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
-import { createHandlerPullRequestChange } from './utils';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 import { createSlackMessageWithSecondaryBlock } from './utils/createSlackMessageWithSecondaryBlock';
+import { fetchPullRequestAndCreateContext } from './utils/createPullRequestContext';
 
 const getEmojiFromState = (state: string): string => {
   switch (state) {
@@ -25,10 +26,11 @@ export default function reviewSubmitted(
 ): void {
   app.on(
     'pull_request_review.submitted',
-    createHandlerPullRequestChange(
+    createPullRequestHandler(
       appContext,
-      { refetchPr: true },
-      async (pr, context, repoContext): Promise<void> => {
+      (payload) => payload.pull_request,
+      async (prContext, context): Promise<void> => {
+        const { pr, repoContext } = prContext;
         const {
           user: reviewer,
           state,
@@ -83,10 +85,14 @@ export default function reviewSubmitted(
               !hasChangesRequestedInReviews &&
               state === 'approved';
 
-            const newLabels = await updateReviewStatus(
-              pr,
+            const updatedPrContext = await fetchPullRequestAndCreateContext(
               context,
-              repoContext,
+              prContext,
+            );
+
+            const newLabels = await updateReviewStatus(
+              updatedPrContext,
+              context,
               reviewerGroup,
               {
                 add: [
@@ -107,10 +113,8 @@ export default function reviewSubmitted(
 
             if (approved && !hasChangesRequestedInReviews) {
               merged = await autoMergeIfPossible(
-                appContext,
-                pr,
+                updatedPrContext,
                 context,
-                repoContext,
                 newLabels,
               );
             }

@@ -1,14 +1,19 @@
+import { Context, Octokit } from 'probot';
 import Webhooks from '@octokit/webhooks';
 import { StatusError, StatusInfo } from '../../../accountConfigs/types';
-import { PRHandler } from '../utils';
 import { ExcludesFalsy } from '../../../utils/ExcludesFalsy';
+import { PrContext } from '../utils/createPullRequestContext';
 import { cleanTitle } from './utils/cleanTitle';
-import { updateBody } from './utils/updateBody';
-import { autoMergeIfPossible } from './autoMergeIfPossible';
 import { updatePrIfNeeded } from './updatePr';
-import hasLabelInPR from './utils/hasLabelInPR';
-import syncLabel from './utils/syncLabel';
 import createStatus from './utils/createStatus';
+import {
+  updateCommentBodyInfos,
+  defaultCommentBody,
+  createCommentBody,
+  removeDeprecatedReviewflowInPrBody,
+} from './utils/body/updateBody';
+import { calcDefaultOptions } from './syncLabelsAfterCommentBodyEdited';
+import { readCommitsAndUpdateInfos } from './readCommitsAndUpdateInfos';
 
 interface StatusWithInfo {
   name: string;
@@ -24,15 +29,16 @@ interface StatusWithError {
 
 type Status = StatusWithInfo | StatusWithError;
 
-export const editOpenedPR: PRHandler<
-  Webhooks.WebhookPayloadPullRequest,
-  { skipAutoMerge: boolean },
-  string
-> = async (appContext, pr, context, repoContext, previousSha) => {
-  const repo = context.payload.repository;
-
-  // do not lint pr from forks
-  if (pr.head.repo.id !== repo.id) return { skipAutoMerge: true };
+export const editOpenedPR = async <
+  E extends Webhooks.WebhookPayloadPullRequest
+>(
+  prContext: PrContext<E['pull_request'] | Octokit.PullsGetResponse>,
+  context: Context<E>,
+  shouldUpdateCommentBodyInfos: boolean,
+  previousSha?: string,
+): Promise<void> => {
+  const { repoContext } = prContext;
+  const pr = prContext.updatedPr || prContext.pr;
 
   const title = repoContext.config.trimTitle ? cleanTitle(pr.title) : pr.title;
 
@@ -74,7 +80,7 @@ export const editOpenedPR: PRHandler<
     (check): boolean => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`,
   );
 
-  await Promise.all<any>(
+  const promises = Promise.all<any>(
     [
       ...statuses.map(
         ({ name, error, info }): Promise<void> =>
@@ -141,80 +147,28 @@ export const editOpenedPR: PRHandler<
     ].filter(ExcludesFalsy),
   );
 
-  const featureBranchLabel = repoContext.labels['feature-branch'];
-  const automergeLabel = repoContext.labels['merge/automerge'];
-  const skipCiLabel = repoContext.labels['merge/skip-ci'];
+  const commentBodyInfos = statuses
+    .filter((status) => status.info && status.info.inBody)
+    .map((status) => status.info) as StatusInfo[];
 
-  const prHasFeatureBranchLabel = hasLabelInPR(pr.labels, featureBranchLabel);
-  const prHasSkipCiLabel = hasLabelInPR(pr.labels, skipCiLabel);
-  const prHasAutoMergeLabel = hasLabelInPR(pr.labels, automergeLabel);
+  const shouldCreateCommentBody = prContext.commentBody === defaultCommentBody;
 
-  const defaultOptions = {
-    ...repoContext.config.prDefaultOptions,
-    featureBranch: prHasFeatureBranchLabel,
-    autoMergeWithSkipCi: prHasSkipCiLabel,
-    autoMerge: prHasAutoMergeLabel,
-  };
+  const commentBody = shouldCreateCommentBody
+    ? createCommentBody(calcDefaultOptions(repoContext, pr), commentBodyInfos)
+    : updateCommentBodyInfos(prContext.commentBody, commentBodyInfos);
 
-  const { body, options } = updateBody(
-    pr.body,
-    defaultOptions,
-    statuses
-      .filter((status) => status.info && status.info.inBody)
-      .map((status) => status.info) as StatusInfo[],
-  );
-  await updatePrIfNeeded(pr, context, repoContext, { title, body });
+  const body = removeDeprecatedReviewflowInPrBody(pr.body);
 
-  if (options && (featureBranchLabel || automergeLabel)) {
+  if (shouldCreateCommentBody || shouldUpdateCommentBodyInfos) {
     await Promise.all([
-      featureBranchLabel &&
-        syncLabel(
-          pr,
-          context,
-          options.featureBranch,
-          featureBranchLabel,
-          prHasFeatureBranchLabel,
-        ),
-      skipCiLabel &&
-        syncLabel(
-          pr,
-          context,
-          options.autoMergeWithSkipCi,
-          skipCiLabel,
-          prHasSkipCiLabel,
-        ),
-      automergeLabel &&
-        syncLabel(
-          pr,
-          context,
-          options.autoMerge,
-          automergeLabel,
-          prHasAutoMergeLabel,
-          {
-            onAdd: async (prLabels) => {
-              await autoMergeIfPossible(
-                appContext,
-                pr,
-                context,
-                repoContext,
-                prLabels,
-              );
-            },
-            onRemove: () => {
-              repoContext.removePrFromAutomergeQueue(
-                context,
-                pr.number,
-                'label removed',
-              );
-            },
-          },
-        ),
+      promises,
+      updatePrIfNeeded(prContext, context, { title, body }),
+      readCommitsAndUpdateInfos(prContext, context, commentBody),
     ]);
-
-    if (!automergeLabel) {
-      return { skipAutoMerge: true };
-    }
+  } else {
+    await Promise.all([
+      promises,
+      updatePrIfNeeded(prContext, context, { title, body, commentBody }),
+    ]);
   }
-
-  return { skipAutoMerge: false };
 };

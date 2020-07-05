@@ -1,22 +1,22 @@
 import { Application } from 'probot';
 import { AppContext } from '../../context/AppContext';
-import { createHandlerPullRequestChange } from './utils';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { updateReviewStatus } from './actions/updateReviewStatus';
-import { readCommitsAndUpdateInfos } from './actions/readCommitsAndUpdateInfos';
+import { editOpenedPR } from './actions/editOpenedPR';
 
 export default function closed(app: Application, appContext: AppContext): void {
   app.on(
     'pull_request.reopened',
-    createHandlerPullRequestChange(
+    createPullRequestHandler(
       appContext,
-      { refetchPr: true },
-      async (pr, context, repoContext): Promise<void> => {
+      (payload) => payload.pull_request,
+      async (prContext, context, repoContext): Promise<void> => {
         await Promise.all([
-          updateReviewStatus(pr, context, repoContext, 'dev', {
+          updateReviewStatus(prContext, context, 'dev', {
             add: ['needsReview'],
             remove: ['approved'],
           }),
-          readCommitsAndUpdateInfos(appContext, pr, context, repoContext),
+          editOpenedPR(prContext, context, true),
         ]);
       },
     ),

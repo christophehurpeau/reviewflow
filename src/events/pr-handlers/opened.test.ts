@@ -16,9 +16,14 @@ nock.disableNetConnect();
 
 describe('opened', (): void => {
   let probot: Probot;
+  const insertOnePr = jest.fn().mockResolvedValue({ commentId: 1 });
 
   beforeEach(() => {
-    probot = initializeProbotApp();
+    probot = initializeProbotApp({
+      prs: {
+        insertOne: insertOnePr,
+      },
+    });
     mockAccessToken();
     mockLabels();
   });
@@ -27,8 +32,20 @@ describe('opened', (): void => {
     void
   > => {
     const scope = nock('https://api.github.com')
-      .get('/repos/reviewflow/reviewflow-test/pulls/30')
-      .reply(200, pullRequestOpened.payload.pull_request)
+      .post(
+        '/repos/reviewflow/reviewflow-test/issues/30/comments',
+        '{"body":"This will be auto filled by reviewflow."}',
+      )
+      .reply(200, (uri, body) => body)
+
+      .patch('/repos/reviewflow/reviewflow-test/issues/comments/1', (body) => {
+        expect(body).toEqual({
+          body:
+            '#### Options:\n- [ ] <!-- reviewflow-featureBranch -->This PR is a feature branch\n- [ ] <!-- reviewflow-autoMergeWithSkipCi -->Add `[skip ci]` on merge commit\n- [ ] <!-- reviewflow-autoMerge -->Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless "Update branch" triggers)\n- [x] <!-- reviewflow-deleteAfterMerge -->Automatic branch delete after this PR is merged',
+        });
+        return true;
+      })
+      .reply(200, (uri, body) => body)
 
       .get('/repos/reviewflow/reviewflow-test/pulls/30/commits?per_page=100')
       .reply(200, pullRequestCommits)
@@ -64,19 +81,13 @@ describe('opened', (): void => {
 
       .post(
         '/repos/reviewflow/reviewflow-test/statuses/2ab411d5c55f25f3dc2de6a3244f290a804e33da',
-        '{"context":"reviewflow-test/lint-pr","state":"success","description":"✓ Your PR is valid"}',
+        '{"context":"reviewflow-dev/lint-pr","state":"success","description":"✓ Your PR is valid"}',
       )
       .reply(200, {})
 
       .post(
         '/repos/reviewflow/reviewflow-test/statuses/2ab411d5c55f25f3dc2de6a3244f290a804e33da',
-        '{"context":"reviewflow-test","state":"failure","description":"Awaiting review from: dev. Perhaps request someone ?"}',
-      )
-      .reply(200, {})
-
-      .patch(
-        '/repos/reviewflow/reviewflow-test/issues/30',
-        '{"body":"### Context\\r\\nExplain here why this PR is needed\\r\\n\\r\\n### Solution\\r\\nIf needed, explain here the solution you chose for this\\r\\n\\r\\n<!-- Uncomment this if you need a testing plan\\r\\n### Testing plan\\r\\n- [ ] Test this\\r\\n- [ ] Test that\\r\\n-->\\r\\n\\r\\n<!-- do not edit after this -->\\n#### Options:\\n- [ ] <!-- reviewflow-featureBranch -->This PR is a feature branch\\n- [ ] <!-- reviewflow-autoMergeWithSkipCi -->Add `[skip ci]` on merge commit\\n- [ ] <!-- reviewflow-autoMerge -->Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless \\"Update branch\\" triggers)\\n- [x] <!-- reviewflow-deleteAfterMerge -->Automatic branch delete after this PR is merged\\n<!-- end - don\'t add anything after this -->\\r\\n"}',
+        '{"context":"reviewflow-dev","state":"failure","description":"Awaiting review from: dev. Perhaps request someone ?"}',
       )
       .reply(200, {});
 
@@ -86,6 +97,7 @@ describe('opened', (): void => {
       payload: pullRequestOpened.payload,
     });
 
+    expect(insertOnePr).toHaveBeenCalled();
     expect(scope.isDone()).toBe(true);
   });
 });

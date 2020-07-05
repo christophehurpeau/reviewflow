@@ -1,18 +1,18 @@
-import { parseBodyWithOptions } from './parseBody';
-import initialSimple from './mocks/body/initial-simple';
-import initialTable from './mocks/body/initial-table';
-import initialAfterEditSimple from './mocks/body/initialAfterEdit-simple';
+import { parsePrBodyWithOptions } from './parsePrBody';
+import initialSimple from './mocks/prBody-initial-simple';
+import initialTable from './mocks/prBody-initial-table';
+import simple from './mocks/prBody-simple';
 
 describe('simple', () => {
   it('should parse default description', () => {
-    const defaultConfig = {
+    const defaultOptions = {
       featureBranch: false,
       autoMergeWithSkipCi: false,
       autoMerge: false,
       deleteAfterMerge: true,
     };
 
-    const parsed = parseBodyWithOptions(initialSimple, defaultConfig);
+    const parsed = parsePrBodyWithOptions(initialSimple, defaultOptions);
 
     expect(parsed).not.toBeFalsy();
     expect(parsed?.options).toEqual({
@@ -21,23 +21,23 @@ describe('simple', () => {
       autoMerge: false,
       deleteAfterMerge: true,
     });
-    expect(parsed?.breakingChanges).toBe('');
+    expect(parsed?.commitNotes).toBe('');
   });
 
   it('should parse breaking changes', () => {
-    const defaultConfig = {
+    const defaultOptions = {
       featureBranch: false,
       autoMergeWithSkipCi: false,
       autoMerge: false,
       deleteAfterMerge: true,
     };
 
-    const parsed = parseBodyWithOptions(
-      initialAfterEditSimple.replace(
+    const parsed = parsePrBodyWithOptions(
+      simple.replace(
         '#### Options:',
         '#### Commits Notes:\n\nSome commits Notes\n\n#### Options:',
       ),
-      defaultConfig,
+      defaultOptions,
     );
 
     expect(parsed).not.toBeFalsy();
@@ -47,20 +47,20 @@ describe('simple', () => {
       autoMerge: false,
       deleteAfterMerge: true,
     });
-    expect(parsed?.breakingChanges).toBe('Some commits Notes');
+    expect(parsed?.commitNotes).toBe('Some commits Notes');
   });
 });
 
 describe('table', () => {
   it('should parse default description', () => {
-    const defaultConfig = {
+    const defaultOptions = {
       featureBranch: false,
       autoMergeWithSkipCi: false,
       autoMerge: false,
       deleteAfterMerge: true,
     };
 
-    const parsed = parseBodyWithOptions(initialTable, defaultConfig);
+    const parsed = parsePrBodyWithOptions(initialTable, defaultOptions);
 
     expect(parsed).not.toBeFalsy();
     expect(parsed?.options).toEqual({
@@ -69,20 +69,20 @@ describe('table', () => {
       autoMerge: false,
       deleteAfterMerge: true,
     });
-    expect(parsed?.breakingChanges).toBe('');
+    expect(parsed?.commitNotes).toBe('');
   });
 });
 
 describe('table', () => {
   it('should parse edited description', () => {
-    const defaultConfig = {
+    const defaultOptions = {
       featureBranch: true,
       autoMergeWithSkipCi: false,
       autoMerge: false,
       deleteAfterMerge: true,
     };
 
-    const parsed = parseBodyWithOptions(initialAfterEditSimple, defaultConfig);
+    const parsed = parsePrBodyWithOptions(simple, defaultOptions);
 
     expect(parsed).not.toBeFalsy();
     expect(parsed?.options).toEqual({
@@ -91,6 +91,6 @@ describe('table', () => {
       autoMerge: false,
       deleteAfterMerge: true,
     });
-    expect(parsed?.breakingChanges).toBe('');
+    expect(parsed?.commitNotes).toBe('');
   });
 });

@@ -15,4 +15,4 @@ If needed, explain here the solution you chose for this
 
 <!-- do not edit after this --></td><td width="200" valign="top">This will be auto filled by reviewflow.</td></tr></table>
 <!-- end - don't add anything after this -->
-`;
+`.trim();
