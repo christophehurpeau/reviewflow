@@ -60,7 +60,11 @@ export default function reviewRequestRemoved(
             ],
           });
 
-          repoContext.slack.updateHome(pr.user.login);
+          if (pr.assignees) {
+            pr.assignees.forEach((assignee) => {
+              repoContext.slack.updateHome(assignee.login);
+            });
+          }
           repoContext.slack.updateHome(reviewer.login);
         }
 

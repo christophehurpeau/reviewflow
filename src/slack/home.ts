@@ -30,12 +30,12 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
         order: 'desc',
       }),
       github.search.issuesAndPullRequests({
-        q: `is:pr user:${member.org.login} is:open author:${member.user.login} label:":ok_hand: code/approved"`,
+        q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} label:":ok_hand: code/approved"`,
         sort: 'created',
         order: 'desc',
       }),
       github.search.issuesAndPullRequests({
-        q: `is:pr user:${member.org.login} is:open author:${member.user.login} label:":ok_hand: code/changes-requested"`,
+        q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} label:":ok_hand: code/changes-requested"`,
         sort: 'created',
         order: 'desc',
       }),

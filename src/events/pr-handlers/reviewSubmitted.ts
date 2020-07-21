@@ -120,7 +120,11 @@ export default function reviewSubmitted(
             }
           }
 
-          repoContext.slack.updateHome(pr.user.login);
+          if (pr.assignees) {
+            pr.assignees.forEach((assignee) => {
+              repoContext.slack.updateHome(assignee.login);
+            });
+          }
           repoContext.slack.updateHome(reviewer.login);
 
           const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne(

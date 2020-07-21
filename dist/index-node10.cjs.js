@@ -2688,7 +2688,11 @@ function closed(app, appContext) {
       })]);
     }
 
-    repoContext.slack.updateHome(pr.user.login);
+    if (pr.assignees) {
+      pr.assignees.forEach(assignee => {
+        repoContext.slack.updateHome(assignee.login);
+      });
+    }
   }));
 }
 
@@ -3006,7 +3010,13 @@ function reviewRequested(app, appContext) {
         add: ['needsReview', "requested"],
         remove: ['approved']
       });
-      repoContext.slack.updateHome(pr.user.login);
+
+      if (pr.assignees) {
+        pr.assignees.forEach(assignee => {
+          repoContext.slack.updateHome(assignee.login);
+        });
+      }
+
       repoContext.slack.updateHome(reviewer.login);
     }
 
@@ -3058,7 +3068,13 @@ function reviewRequestRemoved(app, appContext) {
         // remove labels if has no other requests waiting
         remove: [approved && 'needsReview', !hasRequestedReviewsForGroup && 'requested']
       });
-      repoContext.slack.updateHome(pr.user.login);
+
+      if (pr.assignees) {
+        pr.assignees.forEach(assignee => {
+          repoContext.slack.updateHome(assignee.login);
+        });
+      }
+
       repoContext.slack.updateHome(reviewer.login);
     }
 
@@ -3144,7 +3160,12 @@ function reviewSubmitted(app, appContext) {
         }
       }
 
-      repoContext.slack.updateHome(pr.user.login);
+      if (pr.assignees) {
+        pr.assignees.forEach(assignee => {
+          repoContext.slack.updateHome(assignee.login);
+        });
+      }
+
       repoContext.slack.updateHome(reviewer.login);
       const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne({
         'account.id': repoContext.account._id,
@@ -3224,7 +3245,13 @@ function reviewDismissed(app, appContext) {
         add: [!hasApprovals && 'needsReview', hasApprovals && !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && 'approved'],
         remove: [!hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && 'requested', !hasChangesRequestedInReviews && 'changesRequested', !hasApprovals && 'approved']
       });
-      repoContext.slack.updateHome(pr.user.login);
+
+      if (pr.assignees) {
+        pr.assignees.forEach(assignee => {
+          repoContext.slack.updateHome(assignee.login);
+        });
+      }
+
       repoContext.slack.updateHome(reviewer.login);
     }
 
@@ -3519,11 +3546,11 @@ const createSlackHomeWorker = mongoStores => {
       sort: 'created',
       order: 'desc'
     }), github.search.issuesAndPullRequests({
-      q: `is:pr user:${member.org.login} is:open author:${member.user.login} label:":ok_hand: code/approved"`,
+      q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} label:":ok_hand: code/approved"`,
       sort: 'created',
       order: 'desc'
     }), github.search.issuesAndPullRequests({
-      q: `is:pr user:${member.org.login} is:open author:${member.user.login} label:":ok_hand: code/changes-requested"`,
+      q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} label:":ok_hand: code/changes-requested"`,
       sort: 'created',
       order: 'desc'
     })]);
