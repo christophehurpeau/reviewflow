@@ -1,3 +1,12 @@
+## [1.56.1](https://github.com/christophehurpeau/reviewflow/compare/v1.56.0...v1.56.1) (2020-07-21)
+
+
+### Bug Fixes
+
+* use assignee instead of author ([328deba](https://github.com/christophehurpeau/reviewflow/commit/328deba8788ef2717deab627e48626b8a04e66f1))
+
+
+
 # [1.56.0](https://github.com/christophehurpeau/reviewflow/compare/v1.55.1...v1.56.0) (2020-07-05)
 
 
