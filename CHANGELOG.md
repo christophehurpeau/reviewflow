@@ -1,3 +1,18 @@
+# [1.57.0](https://github.com/christophehurpeau/reviewflow/compare/v1.56.1...v1.57.0) (2020-08-05)
+
+
+### Bug Fixes
+
+* dont add needsReview if config says it doesnt requires review request ([533d790](https://github.com/christophehurpeau/reviewflow/commit/533d790b652dac721fe13640da9f29586c04d1b6))
+
+
+### Features
+
+* add option autoMergeRenovateWithSkipCi, now disabled by default ([09c0353](https://github.com/christophehurpeau/reviewflow/commit/09c03538c26835125b6e92ef1364a68edab3882d))
+* also requires review request in reviewflow ([c16e353](https://github.com/christophehurpeau/reviewflow/commit/c16e3530aee0af87f12c56f0b0313d46a5ab1b8e))
+
+
+
 ## [1.56.1](https://github.com/christophehurpeau/reviewflow/compare/v1.56.0...v1.56.1) (2020-07-21)
 
 
