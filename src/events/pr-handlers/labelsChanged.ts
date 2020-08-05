@@ -59,18 +59,29 @@ export default function labelsChanged(
               await context.github.pulls.createReview(
                 contextPr(context, { event: 'APPROVE' }),
               );
-              if (autoMergeSkipCiLabel) {
-                await context.github.issues.addLabels(
+
+              let labels = pr.labels;
+              const autoMergeWithSkipCi =
+                autoMergeSkipCiLabel &&
+                repoContext.config.autoMergeRenovateWithSkipCi;
+              if (autoMergeWithSkipCi) {
+                const result = await context.github.issues.addLabels(
                   contextIssue(context, {
                     labels: [autoMergeSkipCiLabel.name],
                   }),
                 );
+                labels = result.data;
               }
-              await updateStatusCheckFromLabels(updatedPrContext, pr, context);
+              await updateStatusCheckFromLabels(
+                updatedPrContext,
+                pr,
+                context,
+                labels,
+              );
               await updatePrCommentBody(updatedPrContext, context, {
-                autoMergeWithSkipCi: true,
+                autoMergeWithSkipCi,
                 // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
-                autoMerge: hasLabelInPR(pr.labels, autoMergeLabel)
+                autoMerge: hasLabelInPR(labels, autoMergeLabel)
                   ? true
                   : repoContext.config.prDefaultOptions.autoMerge,
               });

@@ -5,6 +5,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
   trimTitle: true,
   ignoreRepoPattern: '(infra-.*|devenv)',
   requiresReviewRequest: true,
+  autoMergeRenovateWithSkipCi: true,
   prDefaultOptions: {
     featureBranch: false,
     autoMergeWithSkipCi: false,
