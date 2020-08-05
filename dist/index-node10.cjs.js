@@ -846,6 +846,7 @@ const config$2 = {
 };
 
 const config$3 = { ...config$2,
+  requiresReviewRequest: true,
   groups: {
     dev: {
       christophehurpeau: 'christophe@hurpeau.com',
