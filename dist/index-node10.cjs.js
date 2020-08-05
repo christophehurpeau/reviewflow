@@ -514,6 +514,7 @@ const config$1 = {
   trimTitle: true,
   ignoreRepoPattern: '(infra-.*|devenv)',
   requiresReviewRequest: true,
+  autoMergeRenovateWithSkipCi: true,
   prDefaultOptions: {
     featureBranch: false,
     autoMergeWithSkipCi: false,
@@ -2652,13 +2653,13 @@ function opened(app, appContext) {
     } = prContext;
     const fromRenovate = pr.head.ref.startsWith('renovate/');
     await Promise.all([autoAssignPRToCreator(prContext, context), editOpenedPR(prContext, context, true), fromRenovate ? autoApproveAndAutoMerge(prContext, context).then(async approved => {
-      if (!approved) {
+      if (!approved && prContext.repoContext.config.requiresReviewRequest) {
         await updateReviewStatus(prContext, context, 'dev', {
           add: ['needsReview']
         });
       }
     }) : updateReviewStatus(prContext, context, 'dev', {
-      add: ['needsReview'],
+      add: prContext.repoContext.config.requiresReviewRequest ? ['needsReview'] : [],
       remove: ['approved', 'changesRequested']
     })]);
   }, (pr, context) => {
@@ -3339,18 +3340,21 @@ function labelsChanged(app, appContext) {
           await context.github.pulls.createReview(contextPr(context, {
             event: 'APPROVE'
           }));
+          let labels = pr.labels;
+          const autoMergeWithSkipCi = autoMergeSkipCiLabel && repoContext.config.autoMergeRenovateWithSkipCi;
 
-          if (autoMergeSkipCiLabel) {
-            await context.github.issues.addLabels(contextIssue(context, {
+          if (autoMergeWithSkipCi) {
+            const result = await context.github.issues.addLabels(contextIssue(context, {
               labels: [autoMergeSkipCiLabel.name]
             }));
+            labels = result.data;
           }
 
-          await updateStatusCheckFromLabels(updatedPrContext, pr, context);
+          await updateStatusCheckFromLabels(updatedPrContext, pr, context, labels);
           await updatePrCommentBody(updatedPrContext, context, {
-            autoMergeWithSkipCi: true,
+            autoMergeWithSkipCi,
             // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
-            autoMerge: hasLabelInPR(pr.labels, autoMergeLabel) ? true : repoContext.config.prDefaultOptions.autoMerge
+            autoMerge: hasLabelInPR(labels, autoMergeLabel) ? true : repoContext.config.prDefaultOptions.autoMerge
           }); // }
         } else if (autoMergeLabel && label.id === autoMergeLabel.id) {
           await updatePrCommentBody(updatedPrContext, context, {
