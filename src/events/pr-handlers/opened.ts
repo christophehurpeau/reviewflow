@@ -24,7 +24,10 @@ export default function opened(app: Application, appContext: AppContext): void {
           fromRenovate
             ? autoApproveAndAutoMerge(prContext, context).then(
                 async (approved: boolean): Promise<void> => {
-                  if (!approved) {
+                  if (
+                    !approved &&
+                    prContext.repoContext.config.requiresReviewRequest
+                  ) {
                     await updateReviewStatus(prContext, context, 'dev', {
                       add: ['needsReview'],
                     });
@@ -32,7 +35,9 @@ export default function opened(app: Application, appContext: AppContext): void {
                 },
               )
             : updateReviewStatus(prContext, context, 'dev', {
-                add: ['needsReview'],
+                add: prContext.repoContext.config.requiresReviewRequest
+                  ? ['needsReview']
+                  : [],
                 remove: ['approved', 'changesRequested'],
               }),
         ]);
