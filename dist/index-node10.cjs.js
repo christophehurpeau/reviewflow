@@ -2017,7 +2017,7 @@ async function initRepoContext(appContext, context, config) {
     if (!pr) throw new Error('Cannot reschedule undefined');
     context.log.info('reschedule', pr);
     setTimeout(() => {
-      lockPR('reschedule', pr.number, () => {
+      lockPR('reschedule', -1, () => {
         return lockPR(String(pr.id), pr.number, async () => {
           const updatedPr = await fetchPr(context, pr.number);
           await autoMergeIfPossibleOptionalPrContext(appContext, repoContext, updatedPr, context);
