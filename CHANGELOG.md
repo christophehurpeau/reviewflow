@@ -1,3 +1,12 @@
+## [1.57.1](https://github.com/christophehurpeau/reviewflow/compare/v1.57.0...v1.57.1) (2020-08-08)
+
+
+### Bug Fixes
+
+* rescheduling ([8e361f5](https://github.com/christophehurpeau/reviewflow/commit/8e361f53c82df9a545b9a2272e308279eb09b37e))
+
+
+
 # [1.57.0](https://github.com/christophehurpeau/reviewflow/compare/v1.56.1...v1.57.0) (2020-08-05)
 
 
