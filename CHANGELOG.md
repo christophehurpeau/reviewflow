@@ -1,3 +1,12 @@
+# [1.58.0](https://github.com/christophehurpeau/reviewflow/compare/v1.57.1...v1.58.0) (2020-08-11)
+
+
+### Features
+
+* add draft prs in slack app home ([f50d402](https://github.com/christophehurpeau/reviewflow/commit/f50d4028518d66569cfb2cf6144fb645c7e64d72))
+
+
+
 ## [1.57.1](https://github.com/christophehurpeau/reviewflow/compare/v1.57.0...v1.57.1) (2020-08-08)
 
 
@@ -263,11 +272,7 @@
 
 
 
-## [1.42.1](https://github.com/christophehurpeau/reviewflow/compare/v1.42.0...v1.42.1) (2020-05-21)
-
-
-
-# [1.42.0](https://github.com/christophehurpeau/reviewflow/compare/v1.41.2...v1.42.0) (2020-05-21)
+## [1.42.1](https://github.com/christophehurpeau/reviewflow/compare/v1.41.2...v1.42.1) (2020-05-21)
 
 
 ### Bug Fixes
