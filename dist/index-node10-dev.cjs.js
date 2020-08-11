@@ -3544,9 +3544,9 @@ const createSlackHomeWorker = mongoStores => {
 
     if (!((_member$slack = member.slack) === null || _member$slack === void 0 ? void 0 : _member$slack.id)) return; // console.log('update member', member.org.login, member.user.login);
 
-    /* search limit: 30 requests per minute = 10 update/min max */
+    /* search limit: 30 requests per minute = 7 update/min max */
 
-    const [prsWithRequestedReviews, prsToMerge, prsWithRequestedChanges] = await Promise.all([github.search.issuesAndPullRequests({
+    const [prsWithRequestedReviews, prsToMerge, prsWithRequestedChanges, prsInDraft] = await Promise.all([github.search.issuesAndPullRequests({
       q: `is:pr user:${member.org.login} is:open review-requested:${member.user.login} `,
       sort: 'created',
       order: 'desc'
@@ -3558,6 +3558,11 @@ const createSlackHomeWorker = mongoStores => {
       q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} label:":ok_hand: code/changes-requested"`,
       sort: 'created',
       order: 'desc'
+    }), github.search.issuesAndPullRequests({
+      q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} draft:true`,
+      sort: 'created',
+      order: 'desc',
+      per_page: 5
     })]);
     const blocks = [];
 
@@ -3608,6 +3613,7 @@ const createSlackHomeWorker = mongoStores => {
     buildBlocks(':eyes: Requested Reviews', prsWithRequestedReviews.data);
     buildBlocks(':white_check_mark: Ready to Merge', prsToMerge.data);
     buildBlocks(':x: Changes Requested', prsWithRequestedChanges.data);
+    buildBlocks(':construction: Drafts', prsInDraft.data);
 
     if (blocks.length === 0) {
       blocks.push({
@@ -3660,7 +3666,7 @@ const createSlackHomeWorker = mongoStores => {
       const key = `${member.org.id}_${memberId}`;
       queueKeys.delete(key);
       updateMember(github, slackClient, member);
-    }, 8000); // 10/min 60s 1min = 1 ttes les 6s max
+    }, 9000); // 7/min 60s 1min = 1 ttes les 8.5s max
   };
 
   const scheduleUpdateMember = (github, slackClient, member) => {
