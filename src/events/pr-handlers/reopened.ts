@@ -9,7 +9,10 @@ export default function closed(app: Application, appContext: AppContext): void {
     'pull_request.reopened',
     createPullRequestHandler(
       appContext,
-      (payload) => payload.pull_request,
+      (payload, context, repoContext) => {
+        if (repoContext.shouldIgnore) return null;
+        return payload.pull_request;
+      },
       async (prContext, context, repoContext): Promise<void> => {
         await Promise.all([
           updateReviewStatus(prContext, context, 'dev', {

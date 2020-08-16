@@ -14,7 +14,10 @@ export default function synchronize(
     'pull_request.synchronize',
     createPullRequestHandler(
       appContext,
-      (payload) => payload.pull_request,
+      (payload, context, repoContext) => {
+        if (repoContext.shouldIgnore) return null;
+        return payload.pull_request;
+      },
       async (prContext, context): Promise<void> => {
         const updatedPrContext = await fetchPullRequestAndCreateContext(
           context,

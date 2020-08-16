@@ -24,6 +24,7 @@ export const createPullRequestHandler = <
   getPullRequestInPayload: (
     payload: Context<T>['payload'],
     context: Context<T>,
+    repoContext: RepoContext,
   ) => U | null,
   callbackPr: (
     prContext: PrContext<U>,
@@ -40,6 +41,7 @@ export const createPullRequestHandler = <
     const pullRequest: U | null = getPullRequestInPayload(
       context.payload,
       context,
+      repoContext,
     );
     if (pullRequest === null) return;
     const options = callbackBeforeLock

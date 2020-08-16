@@ -12,38 +12,41 @@ export default function closed(app: Application, appContext: AppContext): void {
       (payload) => payload.pull_request,
       async (prContext, context, repoContext) => {
         const { pr, commentBody } = prContext;
-        const repo = context.payload.repository;
 
-        if (pr.merged) {
-          const isNotFork = pr.head.repo.id === repo.id;
-          const options = parseOptions(
-            commentBody,
-            repoContext.config.prDefaultOptions,
-          );
+        if (!repoContext.shouldIgnore) {
+          const repo = context.payload.repository;
 
-          await Promise.all([
-            repoContext.removePrFromAutomergeQueue(
-              context,
-              pr.number,
-              'pr closed',
-            ),
-            isNotFork && options.deleteAfterMerge
-              ? context.github.git
-                  .deleteRef(context.repo({ ref: `heads/${pr.head.ref}` }))
-                  .catch(() => {})
-              : undefined,
-          ]);
-        } else {
-          await Promise.all([
-            repoContext.removePrFromAutomergeQueue(
-              context,
-              pr.number,
-              'pr closed',
-            ),
-            updateReviewStatus(prContext, context, 'dev', {
-              remove: ['needsReview'],
-            }),
-          ]);
+          if (pr.merged) {
+            const isNotFork = pr.head.repo.id === repo.id;
+            const options = parseOptions(
+              commentBody,
+              repoContext.config.prDefaultOptions,
+            );
+
+            await Promise.all([
+              repoContext.removePrFromAutomergeQueue(
+                context,
+                pr.number,
+                'pr closed',
+              ),
+              isNotFork && options.deleteAfterMerge
+                ? context.github.git
+                    .deleteRef(context.repo({ ref: `heads/${pr.head.ref}` }))
+                    .catch(() => {})
+                : undefined,
+            ]);
+          } else {
+            await Promise.all([
+              repoContext.removePrFromAutomergeQueue(
+                context,
+                pr.number,
+                'pr closed',
+              ),
+              updateReviewStatus(prContext, context, 'dev', {
+                remove: ['needsReview'],
+              }),
+            ]);
+          }
         }
 
         if (pr.assignees) {

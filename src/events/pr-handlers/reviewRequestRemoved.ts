@@ -21,7 +21,11 @@ export default function reviewRequestRemoved(
 
         const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
-        if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
+        if (
+          !repoContext.shouldIgnore &&
+          reviewerGroup &&
+          repoContext.config.labels.review[reviewerGroup]
+        ) {
           const hasRequestedReviewsForGroup = repoContext.approveShouldWait(
             reviewerGroup,
             pr.requested_reviewers,
@@ -65,7 +69,11 @@ export default function reviewRequestRemoved(
               repoContext.slack.updateHome(assignee.login);
             });
           }
-          repoContext.slack.updateHome(reviewer.login);
+          if (
+            !pr.assignees.find((assignee) => assignee.login === reviewer.login)
+          ) {
+            repoContext.slack.updateHome(reviewer.login);
+          }
         }
 
         if (sender.login === reviewer.login) return;

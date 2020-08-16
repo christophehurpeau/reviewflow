@@ -13,7 +13,10 @@ export default function opened(app: Application, appContext: AppContext): void {
     'pull_request.opened',
     createPullRequestHandler(
       appContext,
-      (payload) => payload.pull_request,
+      (payload, context, repoContext) => {
+        if (repoContext.shouldIgnore) return null;
+        return payload.pull_request;
+      },
       async (prContext, context) => {
         const { pr } = prContext;
         const fromRenovate = pr.head.ref.startsWith('renovate/');

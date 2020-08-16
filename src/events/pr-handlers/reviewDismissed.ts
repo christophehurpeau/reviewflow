@@ -16,17 +16,21 @@ export default function reviewDismissed(
       appContext,
       (payload) => payload.pull_request,
       async (prContext, context, repoContext): Promise<void> => {
-        const updatedPrContext = await fetchPullRequestAndCreateContext(
-          context,
-          prContext,
-        );
-        const pr = updatedPrContext.updatedPr;
         const sender = context.payload.sender;
         const reviewer = (context.payload as any).review.user;
-
         const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
-        if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
+        if (
+          !repoContext.shouldIgnore &&
+          reviewerGroup &&
+          repoContext.config.labels.review[reviewerGroup]
+        ) {
+          const updatedPrContext = await fetchPullRequestAndCreateContext(
+            context,
+            prContext,
+          );
+          const pr = updatedPrContext.updatedPr;
+
           const { reviewStates } = await getReviewersAndReviewStates(
             context,
             repoContext,
@@ -62,24 +66,30 @@ export default function reviewDismissed(
               repoContext.slack.updateHome(assignee.login);
             });
           }
-          repoContext.slack.updateHome(reviewer.login);
+          if (
+            !pr.assignees.find((assignee) => assignee.login === reviewer.login)
+          ) {
+            repoContext.slack.updateHome(reviewer.login);
+          }
         }
 
         if (repoContext.slack) {
           if (sender.login === reviewer.login) {
-            repoContext.slack.postMessage(
-              'pr-review',
-              pr.user.id,
-              pr.user.login,
-              {
-                text: `:skull: ${repoContext.slack.mention(
-                  reviewer.login,
-                )} dismissed his review on ${slackUtils.createPrLink(
-                  pr,
-                  repoContext,
-                )}`,
-              },
-            );
+            prContext.pr.assignees.forEach((assignee) => {
+              repoContext.slack.postMessage(
+                'pr-review',
+                assignee.id,
+                assignee.login,
+                {
+                  text: `:skull: ${repoContext.slack.mention(
+                    reviewer.login,
+                  )} dismissed his review on ${slackUtils.createPrLink(
+                    prContext.pr,
+                    repoContext,
+                  )}`,
+                },
+              );
+            });
           } else {
             repoContext.slack.postMessage(
               'pr-review',
@@ -89,7 +99,7 @@ export default function reviewDismissed(
                 text: `:skull: ${repoContext.slack.mention(
                   sender.login,
                 )} dismissed your review on ${slackUtils.createPrLink(
-                  pr,
+                  prContext.pr,
                   repoContext,
                 )}`,
               },

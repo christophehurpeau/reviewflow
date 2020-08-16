@@ -93,6 +93,16 @@ export const createPullRequestContextFromWebhook = async <
   pr: U,
   options: CreatePrContextOptions,
 ): Promise<PrContext<U>> => {
+  if (repoContext.shouldIgnore) {
+    return {
+      appContext,
+      repoContext,
+      pr,
+      reviewflowPr: null as any, // TODO fix typings to allow null
+      commentBody: '',
+      updatedPr: null,
+    };
+  }
   const { reviewflowPr, commentBody } = await getReviewflowPr(
     appContext,
     repoContext,

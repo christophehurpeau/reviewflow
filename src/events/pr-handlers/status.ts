@@ -18,6 +18,8 @@ export default function status(app: Application, appContext: AppContext): void {
     createPullRequestsHandler(
       appContext,
       (payload, repoContext): LockedMergePr[] => {
+        if (repoContext.shouldIgnore) return [];
+
         const lockedPr = repoContext.getMergeLockedPr();
         if (!lockedPr) return [];
 

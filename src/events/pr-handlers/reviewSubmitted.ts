@@ -64,6 +64,7 @@ export default function reviewSubmitted(
           let merged: boolean;
 
           if (
+            !repoContext.shouldIgnore &&
             reviewerGroup &&
             repoContext.config.labels.review[reviewerGroup]
           ) {
@@ -125,7 +126,11 @@ export default function reviewSubmitted(
               repoContext.slack.updateHome(assignee.login);
             });
           }
-          repoContext.slack.updateHome(reviewer.login);
+          if (
+            !pr.assignees.find((assignee) => assignee.login === reviewer.login)
+          ) {
+            repoContext.slack.updateHome(reviewer.login);
+          }
 
           const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne(
             {

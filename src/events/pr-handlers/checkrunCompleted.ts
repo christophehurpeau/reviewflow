@@ -12,7 +12,10 @@ export default function checkrunCompleted(
     'check_run.completed',
     createPullRequestsHandler(
       appContext,
-      (payload) => payload.check_run.pull_requests,
+      (payload, repoContext) => {
+        if (repoContext.shouldIgnore) return [];
+        return payload.check_run.pull_requests;
+      },
       async (pr, context, repoContext) => {
         const pullRequest = await fetchPr(context, pr.number);
 

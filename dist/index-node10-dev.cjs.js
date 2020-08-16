@@ -1282,6 +1282,18 @@ const getReviewflowPr = async (appContext, repoContext, context, pr, reviewflowC
 };
 
 const createPullRequestContextFromWebhook = async (appContext, repoContext, context, pr, options) => {
+  if (repoContext.shouldIgnore) {
+    return {
+      appContext,
+      repoContext,
+      pr,
+      reviewflowPr: null,
+      // TODO fix typings to allow null
+      commentBody: '',
+      updatedPr: null
+    };
+  }
+
   const {
     reviewflowPr,
     commentBody
@@ -1956,6 +1968,20 @@ const obtainAccountContext = (appContext, context, config, accountInfo) => {
   });
 };
 
+const shouldIgnoreRepo = (repoName, accountConfig) => {
+  const ignoreRepoRegexp = accountConfig.ignoreRepoPattern && new RegExp(`^${accountConfig.ignoreRepoPattern}$`);
+
+  if (repoName === 'reviewflow-test') {
+    return process.env.REVIEWFLOW_NAME !== 'reviewflow-dev';
+  }
+
+  if (ignoreRepoRegexp) {
+    return ignoreRepoRegexp.test(repoName);
+  }
+
+  return false;
+};
+
 async function initRepoContext(appContext, context, config) {
   const {
     id,
@@ -2035,6 +2061,7 @@ async function initRepoContext(appContext, context, config) {
     },
     repoEmoji,
     protectedLabelIds,
+    shouldIgnore: shouldIgnoreRepo(name, config),
     hasNeedsReview: labels => labels.some(label => needsReviewLabelIds.includes(label.id)),
     hasRequestedReview: labels => labels.some(label => requestedReviewLabelIds.includes(label.id)),
     hasChangesRequestedReview: labels => labels.some(label => changesRequestedLabelIds.includes(label.id)),
@@ -2091,19 +2118,6 @@ async function initRepoContext(appContext, context, config) {
 
 const repoContextsPromise = new Map();
 const repoContexts = new Map();
-const shouldIgnoreRepo = (repoName, accountConfig) => {
-  const ignoreRepoRegexp = accountConfig.ignoreRepoPattern && new RegExp(`^${accountConfig.ignoreRepoPattern}$`);
-
-  if (repoName === 'reviewflow-test') {
-    return process.env.REVIEWFLOW_NAME !== 'reviewflow-dev';
-  }
-
-  if (ignoreRepoRegexp) {
-    return ignoreRepoRegexp.test(repoName);
-  }
-
-  return false;
-};
 const obtainRepoContext = (appContext, context) => {
   const repo = context.payload.repository;
   const owner = repo.owner;
@@ -2117,14 +2131,6 @@ const obtainRepoContext = (appContext, context) => {
   if (!accountConfig) {
     console.warn(`using default config for ${owner.login}`);
     accountConfig = config;
-  }
-
-  if (shouldIgnoreRepo(repo.name, accountConfig)) {
-    console.warn('repo ignored', {
-      owner: repo.owner.login,
-      name: repo.name
-    });
-    return null;
   }
 
   const promise = initRepoContext(appContext, context, accountConfig);
@@ -2146,7 +2152,7 @@ const createRepoHandler = (appContext, callback) => {
 
 const createPullRequestHandler = (appContext, getPullRequestInPayload, callbackPr, callbackBeforeLock) => {
   return createRepoHandler(appContext, async (context, repoContext) => {
-    const pullRequest = getPullRequestInPayload(context.payload, context);
+    const pullRequest = getPullRequestInPayload(context.payload, context, repoContext);
     if (pullRequest === null) return;
     const options = callbackBeforeLock ? callbackBeforeLock(pullRequest, context, repoContext) : {};
     await repoContext.lockPR(String(pullRequest.id), pullRequest.number, async () => {
@@ -2648,7 +2654,10 @@ const autoApproveAndAutoMerge = async (prContext, context) => {
 };
 
 function opened(app, appContext) {
-  app.on('pull_request.opened', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context) => {
+  app.on('pull_request.opened', createPullRequestHandler(appContext, (payload, context, repoContext) => {
+    if (repoContext.shouldIgnore) return null;
+    return payload.pull_request;
+  }, async (prContext, context) => {
     const {
       pr
     } = prContext;
@@ -2676,18 +2685,21 @@ function closed(app, appContext) {
       pr,
       commentBody
     } = prContext;
-    const repo = context.payload.repository;
 
-    if (pr.merged) {
-      const isNotFork = pr.head.repo.id === repo.id;
-      const options = parseOptions(commentBody, repoContext.config.prDefaultOptions);
-      await Promise.all([repoContext.removePrFromAutomergeQueue(context, pr.number, 'pr closed'), isNotFork && options.deleteAfterMerge ? context.github.git.deleteRef(context.repo({
-        ref: `heads/${pr.head.ref}`
-      })).catch(() => {}) : undefined]);
-    } else {
-      await Promise.all([repoContext.removePrFromAutomergeQueue(context, pr.number, 'pr closed'), updateReviewStatus(prContext, context, 'dev', {
-        remove: ['needsReview']
-      })]);
+    if (!repoContext.shouldIgnore) {
+      const repo = context.payload.repository;
+
+      if (pr.merged) {
+        const isNotFork = pr.head.repo.id === repo.id;
+        const options = parseOptions(commentBody, repoContext.config.prDefaultOptions);
+        await Promise.all([repoContext.removePrFromAutomergeQueue(context, pr.number, 'pr closed'), isNotFork && options.deleteAfterMerge ? context.github.git.deleteRef(context.repo({
+          ref: `heads/${pr.head.ref}`
+        })).catch(() => {}) : undefined]);
+      } else {
+        await Promise.all([repoContext.removePrFromAutomergeQueue(context, pr.number, 'pr closed'), updateReviewStatus(prContext, context, 'dev', {
+          remove: ['needsReview']
+        })]);
+      }
     }
 
     if (pr.assignees) {
@@ -2699,7 +2711,10 @@ function closed(app, appContext) {
 }
 
 function closed$1(app, appContext) {
-  app.on('pull_request.reopened', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context) => {
+  app.on('pull_request.reopened', createPullRequestHandler(appContext, (payload, context, repoContext) => {
+    if (repoContext.shouldIgnore) return null;
+    return payload.pull_request;
+  }, async (prContext, context) => {
     await Promise.all([updateReviewStatus(prContext, context, 'dev', {
       add: ['needsReview'],
       remove: ['approved']
@@ -3007,7 +3022,7 @@ function reviewRequested(app, appContext) {
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
     // repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, { includesWaitForGroups: true });
-    if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
+    if (!repoContext.shouldIgnore && reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
       await updateReviewStatus(prContext, context, reviewerGroup, {
         add: ['needsReview', "requested"],
         remove: ['approved']
@@ -3019,7 +3034,9 @@ function reviewRequested(app, appContext) {
         });
       }
 
-      repoContext.slack.updateHome(reviewer.login);
+      if (!pr.assignees.find(assignee => assignee.login === reviewer.login)) {
+        repoContext.slack.updateHome(reviewer.login);
+      }
     }
 
     if (sender.login === reviewer.login) return;
@@ -3053,7 +3070,7 @@ function reviewRequestRemoved(app, appContext) {
     const reviewer = context.payload.requested_reviewer;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
-    if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
+    if (!repoContext.shouldIgnore && reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
       const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, {
         includesReviewerGroup: true
       });
@@ -3077,7 +3094,9 @@ function reviewRequestRemoved(app, appContext) {
         });
       }
 
-      repoContext.slack.updateHome(reviewer.login);
+      if (!pr.assignees.find(assignee => assignee.login === reviewer.login)) {
+        repoContext.slack.updateHome(reviewer.login);
+      }
     }
 
     if (sender.login === reviewer.login) return;
@@ -3143,7 +3162,7 @@ function reviewSubmitted(app, appContext) {
       const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
       let merged;
 
-      if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
+      if (!repoContext.shouldIgnore && reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
         const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, {
           includesReviewerGroup: true // TODO reenable this when accepted can notify request review to slack (dev accepted => design requested) and flag to disable for label (approved design ; still waiting for dev ?)
           // includesWaitForGroups: true,
@@ -3168,7 +3187,10 @@ function reviewSubmitted(app, appContext) {
         });
       }
 
-      repoContext.slack.updateHome(reviewer.login);
+      if (!pr.assignees.find(assignee => assignee.login === reviewer.login)) {
+        repoContext.slack.updateHome(reviewer.login);
+      }
+
       const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne({
         'account.id': repoContext.account._id,
         'account.type': repoContext.accountType,
@@ -3228,13 +3250,13 @@ function reviewSubmitted(app, appContext) {
 
 function reviewDismissed(app, appContext) {
   app.on('pull_request_review.dismissed', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context, repoContext) => {
-    const updatedPrContext = await fetchPullRequestAndCreateContext(context, prContext);
-    const pr = updatedPrContext.updatedPr;
     const sender = context.payload.sender;
     const reviewer = context.payload.review.user;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
-    if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
+    if (!repoContext.shouldIgnore && reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
+      const updatedPrContext = await fetchPullRequestAndCreateContext(context, prContext);
+      const pr = updatedPrContext.updatedPr;
       const {
         reviewStates
       } = await getReviewersAndReviewStates(context, repoContext);
@@ -3254,17 +3276,21 @@ function reviewDismissed(app, appContext) {
         });
       }
 
-      repoContext.slack.updateHome(reviewer.login);
+      if (!pr.assignees.find(assignee => assignee.login === reviewer.login)) {
+        repoContext.slack.updateHome(reviewer.login);
+      }
     }
 
     if (repoContext.slack) {
       if (sender.login === reviewer.login) {
-        repoContext.slack.postMessage('pr-review', pr.user.id, pr.user.login, {
-          text: `:skull: ${repoContext.slack.mention(reviewer.login)} dismissed his review on ${createPrLink(pr, repoContext)}`
+        prContext.pr.assignees.forEach(assignee => {
+          repoContext.slack.postMessage('pr-review', assignee.id, assignee.login, {
+            text: `:skull: ${repoContext.slack.mention(reviewer.login)} dismissed his review on ${createPrLink(prContext.pr, repoContext)}`
+          });
         });
       } else {
         repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, {
-          text: `:skull: ${repoContext.slack.mention(sender.login)} dismissed your review on ${createPrLink(pr, repoContext)}`
+          text: `:skull: ${repoContext.slack.mention(sender.login)} dismissed your review on ${createPrLink(prContext.pr, repoContext)}`
         });
       }
     }
@@ -3272,7 +3298,10 @@ function reviewDismissed(app, appContext) {
 }
 
 function synchronize(app, appContext) {
-  app.on('pull_request.synchronize', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context) => {
+  app.on('pull_request.synchronize', createPullRequestHandler(appContext, (payload, context, repoContext) => {
+    if (repoContext.shouldIgnore) return null;
+    return payload.pull_request;
+  }, async (prContext, context) => {
     const updatedPrContext = await fetchPullRequestAndCreateContext(context, prContext); // old and new sha
     // const { before, after } = context.payload;
 
@@ -3285,7 +3314,10 @@ function synchronize(app, appContext) {
 }
 
 function edited(app, appContext) {
-  app.on('pull_request.edited', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context) => {
+  app.on('pull_request.edited', createPullRequestHandler(appContext, (payload, context, repoContext) => {
+    if (repoContext.shouldIgnore) return null;
+    return payload.pull_request;
+  }, async (prContext, context) => {
     const prContextUpdated = await fetchPullRequestAndCreateContext(context, prContext);
     const sender = context.payload.sender;
 
@@ -3313,11 +3345,12 @@ const isFromRenovate = payload => {
 };
 
 function labelsChanged(app, appContext) {
-  app.on(['pull_request.labeled', 'pull_request.unlabeled'], createPullRequestHandler(appContext, payload => {
+  app.on(['pull_request.labeled', 'pull_request.unlabeled'], createPullRequestHandler(appContext, (payload, context, repoContext) => {
     if (payload.sender.type === 'Bot' && !isFromRenovate(payload)) {
       return null;
     }
 
+    if (repoContext.shouldIgnore) return null;
     return payload.pull_request;
   }, async (prContext, context, repoContext) => {
     const fromRenovate = isFromRenovate(context.payload);
@@ -3416,14 +3449,20 @@ function labelsChanged(app, appContext) {
 }
 
 function checkrunCompleted(app, appContext) {
-  app.on('check_run.completed', createPullRequestsHandler(appContext, payload => payload.check_run.pull_requests, async (pr, context, repoContext) => {
+  app.on('check_run.completed', createPullRequestsHandler(appContext, (payload, repoContext) => {
+    if (repoContext.shouldIgnore) return [];
+    return payload.check_run.pull_requests;
+  }, async (pr, context, repoContext) => {
     const pullRequest = await fetchPr(context, pr.number);
     await autoMergeIfPossibleOptionalPrContext(appContext, repoContext, pullRequest, context);
   }));
 }
 
 function checksuiteCompleted(app, appContext) {
-  app.on('check_suite.completed', createPullRequestsHandler(appContext, payload => payload.check_suite.pull_requests, async (pr, context, repoContext) => {
+  app.on('check_suite.completed', createPullRequestsHandler(appContext, (payload, repoContext) => {
+    if (repoContext.shouldIgnore) return [];
+    return payload.check_suite.pull_requests;
+  }, async (pr, context, repoContext) => {
     const pullRequest = await fetchPr(context, pr.number);
     const prContext = await createPullRequestContextFromPullResponse(appContext, repoContext, context, pullRequest, {});
     await autoMergeIfPossible(prContext, context);
@@ -3437,6 +3476,7 @@ const isSameBranch = (payload, lockedPr) => {
 
 function status(app, appContext) {
   app.on('status', createPullRequestsHandler(appContext, (payload, repoContext) => {
+    if (repoContext.shouldIgnore) return [];
     const lockedPr = repoContext.getMergeLockedPr();
     if (!lockedPr) return [];
 

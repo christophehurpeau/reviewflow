@@ -23,7 +23,11 @@ export default function reviewRequested(
         const shouldWait = false;
         // repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, { includesWaitForGroups: true });
 
-        if (reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
+        if (
+          !repoContext.shouldIgnore &&
+          reviewerGroup &&
+          repoContext.config.labels.review[reviewerGroup]
+        ) {
           await updateReviewStatus(prContext, context, reviewerGroup, {
             add: ['needsReview', !shouldWait && 'requested'],
             remove: ['approved'],
@@ -34,7 +38,11 @@ export default function reviewRequested(
               repoContext.slack.updateHome(assignee.login);
             });
           }
-          repoContext.slack.updateHome(reviewer.login);
+          if (
+            !pr.assignees.find((assignee) => assignee.login === reviewer.login)
+          ) {
+            repoContext.slack.updateHome(reviewer.login);
+          }
         }
 
         if (sender.login === reviewer.login) return;

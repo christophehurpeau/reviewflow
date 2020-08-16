@@ -31,10 +31,13 @@ export default function labelsChanged(
       Webhooks.WebhookPayloadPullRequest['pull_request']
     >(
       appContext,
-      (payload) => {
+      (payload, context, repoContext) => {
         if (payload.sender.type === 'Bot' && !isFromRenovate(payload)) {
           return null;
         }
+
+        if (repoContext.shouldIgnore) return null;
+
         return payload.pull_request;
       },
       async (prContext, context, repoContext) => {

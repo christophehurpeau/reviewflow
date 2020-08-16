@@ -22,6 +22,7 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   repoEmoji: string | undefined;
   labels: Labels;
   protectedLabelIds: readonly LabelResponse['id'][];
+  shouldIgnore: boolean;
 
   hasNeedsReview: (labels: LabelResponse[]) => boolean;
   hasRequestedReview: (labels: LabelResponse[]) => boolean;
@@ -50,6 +51,25 @@ export type RepoContext<GroupNames extends string = any> = AccountContext<
   GroupNames
 > &
   RepoContextWithoutTeamContext<GroupNames>;
+
+export const shouldIgnoreRepo = (
+  repoName: string,
+  accountConfig: Config<any, any>,
+): boolean => {
+  const ignoreRepoRegexp =
+    accountConfig.ignoreRepoPattern &&
+    new RegExp(`^${accountConfig.ignoreRepoPattern}$`);
+
+  if (repoName === 'reviewflow-test') {
+    return process.env.REVIEWFLOW_NAME !== 'reviewflow-dev';
+  }
+
+  if (ignoreRepoRegexp) {
+    return ignoreRepoRegexp.test(repoName);
+  }
+
+  return false;
+};
 
 async function initRepoContext<GroupNames extends string>(
   appContext: AppContext,
@@ -186,6 +206,7 @@ async function initRepoContext<GroupNames extends string>(
     repoEmbed: { id, name },
     repoEmoji,
     protectedLabelIds,
+    shouldIgnore: shouldIgnoreRepo(name, config),
     hasNeedsReview,
     hasRequestedReview,
     hasChangesRequestedReview,
@@ -246,25 +267,6 @@ async function initRepoContext<GroupNames extends string>(
 const repoContextsPromise = new Map<number, Promise<RepoContext>>();
 const repoContexts = new Map<number, RepoContext>();
 
-export const shouldIgnoreRepo = (
-  repoName: string,
-  accountConfig: Config<any, any>,
-): boolean => {
-  const ignoreRepoRegexp =
-    accountConfig.ignoreRepoPattern &&
-    new RegExp(`^${accountConfig.ignoreRepoPattern}$`);
-
-  if (repoName === 'reviewflow-test') {
-    return process.env.REVIEWFLOW_NAME !== 'reviewflow-dev';
-  }
-
-  if (ignoreRepoRegexp) {
-    return ignoreRepoRegexp.test(repoName);
-  }
-
-  return false;
-};
-
 export const obtainRepoContext = (
   appContext: AppContext,
   context: Context<any>,
@@ -284,11 +286,6 @@ export const obtainRepoContext = (
   if (!accountConfig) {
     console.warn(`using default config for ${owner.login}`);
     accountConfig = defaultConfig as Config<any, any>;
-  }
-
-  if (shouldIgnoreRepo(repo.name, accountConfig)) {
-    console.warn('repo ignored', { owner: repo.owner.login, name: repo.name });
-    return null;
   }
 
   const promise = initRepoContext(appContext, context, accountConfig);

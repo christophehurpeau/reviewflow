@@ -11,7 +11,10 @@ export default function edited(app: Application, appContext: AppContext): void {
     'pull_request.edited',
     createPullRequestHandler(
       appContext,
-      (payload) => payload.pull_request,
+      (payload, context, repoContext) => {
+        if (repoContext.shouldIgnore) return null;
+        return payload.pull_request;
+      },
       async (prContext, context, repoContext): Promise<void> => {
         const prContextUpdated = await fetchPullRequestAndCreateContext(
           context,
