@@ -113,6 +113,7 @@ export const autoMergeIfPossibleOptionalPrContext = async (
         mergeableState: pr.mergeable_state,
       },
       type,
+      action,
     });
   };
 
@@ -215,7 +216,6 @@ export const autoMergeIfPossibleOptionalPrContext = async (
             }),
           );
         }
-
         return false;
       }
 

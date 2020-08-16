@@ -19,8 +19,9 @@ export const initTeamSlack = async <GroupNames extends string>(
   account: Org | User,
 ): Promise<TeamSlack> => {
   const owner = context.payload.repository.owner;
+  const slackToken = 'slackToken' in account && account.slackToken;
 
-  if (!(account as Org).slackToken) {
+  if (!slackToken) {
     return voidTeamSlack();
   }
 
@@ -32,7 +33,7 @@ export const initTeamSlack = async <GroupNames extends string>(
   }, {});
 
   const slackEmails = Object.values(githubLoginToSlackEmail);
-  const slackClient = new WebClient(account.slackToken);
+  const slackClient = new WebClient(slackToken);
 
   const membersInDb = await mongoStores.orgMembers.findAll({
     'org.id': account._id,

@@ -13,8 +13,9 @@ export const syncUser = async (
   userInfo: UserInfo,
 ): Promise<User> => {
   const user = await mongoStores.users.upsertOne({
-    _id: userInfo.id as any, // TODO _id is number
+    _id: userInfo.id,
     login: userInfo.login,
+    type: 'User',
     installationId,
   });
 

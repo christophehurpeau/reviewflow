@@ -4,7 +4,7 @@ import { fetchPr } from '../events/pr-handlers/utils/fetchPr';
 import { accountConfigs, Config, defaultConfig } from '../accountConfigs';
 // eslint-disable-next-line import/no-cycle
 import { autoMergeIfPossibleOptionalPrContext } from '../events/pr-handlers/actions/autoMergeIfPossible';
-import { ExcludesFalsy } from '../utils/ExcludesFalsy';
+import { ExcludesFalsy } from '../utils/Excludes';
 import { AppContext } from './AppContext';
 import { initRepoLabels, LabelResponse, Labels } from './initRepoLabels';
 import { obtainAccountContext, AccountContext } from './accountContext';

@@ -2,7 +2,7 @@ import { Context } from 'probot';
 import { Lock } from 'lock';
 import { Org, User, AccountEmbed, AccountType } from '../mongo';
 import { Config } from '../accountConfigs';
-import { ExcludesFalsy } from '../utils/ExcludesFalsy';
+import { ExcludesFalsy } from '../utils/Excludes';
 import { initTeamSlack, TeamSlack } from './initTeamSlack';
 import { getKeys } from './utils';
 import { getOrCreateAccount, AccountInfo } from './getOrCreateAccount';

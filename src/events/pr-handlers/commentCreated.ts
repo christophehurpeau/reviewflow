@@ -4,6 +4,7 @@ import {
   WebhookPayloadIssueComment,
 } from '@octokit/webhooks';
 import slackifyMarkdown from 'slackify-markdown';
+import { ExcludesNullish } from 'utils/Excludes';
 import * as slackUtils from '../../slack/utils';
 import { AccountEmbed } from '../../mongo';
 import { SlackMessage } from '../../context/SlackMessage';
@@ -76,7 +77,7 @@ export default function prCommentCreated(
     results: PostSlackMessageResult[],
     message: SlackMessage,
   ): Promise<void> => {
-    const filtered = results.filter((res) => res !== null);
+    const filtered = results.filter(ExcludesNullish);
     if (filtered.length === 0) return;
 
     await appContext.mongoStores.slackSentMessages.insertOne({

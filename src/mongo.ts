@@ -1,4 +1,4 @@
-import { MongoStore, MongoConnection, MongoModel } from 'liwi-mongo';
+import { MongoStore, MongoConnection, MongoBaseModel } from 'liwi-mongo';
 import { SlackMessage } from './context/SlackMessage';
 import { MessageCategory } from './dm/MessageCategory';
 
@@ -29,14 +29,14 @@ interface PrEmbed {
 
 type AccountEmbedWithoutType = Omit<AccountEmbed, 'type'>;
 
-export interface UserDmSettings extends MongoModel {
+export interface UserDmSettings extends MongoBaseModel {
   userId: number;
   orgId: number;
   settings: Record<MessageCategory, boolean>;
 }
 
 // TODO _id is number
-interface BaseAccount extends MongoModel {
+interface BaseAccount extends MongoBaseModel<number> {
   login: string;
   installationId?: number;
 }
@@ -49,13 +49,13 @@ export interface Org extends BaseAccount {
   slackToken?: string;
 }
 
-export interface OrgMember extends MongoModel {
+export interface OrgMember extends MongoBaseModel {
   org: AccountEmbedWithoutType;
   user: AccountEmbedWithoutType;
   slack?: { id: string };
 }
 
-export interface OrgTeam extends MongoModel {
+export interface OrgTeam extends MongoBaseModel {
   org: AccountEmbedWithoutType;
   name: string;
   slug: string;
@@ -68,9 +68,9 @@ export type SlackMessageType =
   | 'review-submitted'
   | 'review-requested';
 
-export interface SlackSentMessage extends MongoModel {
+export interface SlackSentMessage extends MongoBaseModel {
   type: SlackMessageType;
-  typeId: number;
+  typeId: number | string;
   account: AccountEmbed;
   message: SlackMessage;
   sentTo: {
@@ -79,7 +79,7 @@ export interface SlackSentMessage extends MongoModel {
   }[];
 }
 
-export interface AutomergeLog extends MongoModel {
+export interface AutomergeLog extends MongoBaseModel {
   account: AccountEmbed;
   repoFullName: string;
   pr: {
@@ -99,7 +99,7 @@ export interface AutomergeLog extends MongoModel {
   action: 'remove' | 'reschedule' | 'wait' | 'update branch';
 }
 
-export interface ReviewflowPr extends MongoModel {
+export interface ReviewflowPr extends MongoBaseModel {
   account: AccountEmbed;
   repo: RepoEmbed;
   pr: PrEmbed;

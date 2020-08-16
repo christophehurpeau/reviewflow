@@ -1,7 +1,7 @@
 import { Context, Octokit } from 'probot';
 import Webhooks from '@octokit/webhooks';
 import { StatusError, StatusInfo } from '../../../accountConfigs/types';
-import { ExcludesFalsy } from '../../../utils/ExcludesFalsy';
+import { ExcludesFalsy } from '../../../utils/Excludes';
 import { PrContext } from '../utils/createPullRequestContext';
 import { cleanTitle } from './utils/cleanTitle';
 import { updatePrIfNeeded } from './updatePr';
