@@ -76,7 +76,7 @@
     "jsonwebtoken": "8.5.1",
     "liwi-mongo": "7.4.2",
     "lock": "1.1.0",
-    "probot": "9.9.4",
+    "probot": "9.15.1",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "simple-oauth2": "2.5.2",
