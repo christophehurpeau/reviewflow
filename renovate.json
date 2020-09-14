@@ -1,6 +1,5 @@
 {
   "extends": [
-    "config:js-app",
-    "@pob"
+    "config:base"
   ]
 }
