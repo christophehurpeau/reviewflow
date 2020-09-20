@@ -1036,8 +1036,8 @@ function orgSettings(router, api, mongoStores) {
 const syncUser = async (mongoStores, github, installationId, userInfo) => {
   const user = await mongoStores.users.upsertOne({
     _id: userInfo.id,
-    // TODO _id is number
     login: userInfo.login,
+    type: 'User',
     installationId
   });
   return user;
@@ -1384,7 +1384,7 @@ const autoMergeIfPossibleOptionalPrContext = async (appContext, repoContext, pr,
     repoContext.removePrFromAutomergeQueue(context, pr.number, 'pr is not opened');
   }
 
-  const addLog = type => {
+  const addLog = (type, action) => {
     const repoFullName = pr.head.repo.full_name;
     context.log.info(`automerge: ${repoFullName}#${pr.id} ${type}`);
     appContext.mongoStores.automergeLogs.insertOne({
@@ -1396,7 +1396,8 @@ const autoMergeIfPossibleOptionalPrContext = async (appContext, repoContext, pr,
         isRenovate: isRenovatePr,
         mergeableState: pr.mergeable_state
       },
-      type
+      type,
+      action
     });
   };
 
@@ -1431,7 +1432,7 @@ const autoMergeIfPossibleOptionalPrContext = async (appContext, repoContext, pr,
   }
 
   if (pr.merged) {
-    addLog('already merged');
+    addLog('already merged', 'remove');
     repoContext.removePrFromAutomergeQueue(context, pr.number, 'pr already merged');
     return false;
   }
@@ -1440,7 +1441,7 @@ const autoMergeIfPossibleOptionalPrContext = async (appContext, repoContext, pr,
 
   if (!(pr.mergeable_state === 'clean' || pr.mergeable_state === 'has_hooks' || pr.mergeable_state === 'unstable')) {
     if (!pr.mergeable_state || pr.mergeable_state === 'unknown') {
-      addLog('unknown mergeable_state'); // GitHub is determining whether the pull request is mergeable
+      addLog('unknown mergeable_state', 'reschedule'); // GitHub is determining whether the pull request is mergeable
 
       repoContext.reschedule(context, createMergeLockPrFromPr());
       return false;
@@ -1448,7 +1449,7 @@ const autoMergeIfPossibleOptionalPrContext = async (appContext, repoContext, pr,
 
     if (isRenovatePr) {
       if (pr.mergeable_state === 'behind' || pr.mergeable_state === 'dirty') {
-        addLog('rebase-renovate'); // TODO check if has commits not made by renovate https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
+        addLog('rebase-renovate', 'wait'); // TODO check if has commits not made by renovate https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
 
         if (pr.body.includes('<!-- rebase-check -->')) {
           if (pr.body.includes('[x] <!-- rebase-check -->')) {
@@ -1471,11 +1472,11 @@ const autoMergeIfPossibleOptionalPrContext = async (appContext, repoContext, pr,
       }
 
       if (await hasFailedStatusOrChecks(pr, context)) {
-        addLog('failed status or checks');
+        addLog('failed status or checks', 'remove');
         repoContext.removePrFromAutomergeQueue(context, pr.number, 'failed status or checks');
         return false;
       } else if (pr.mergeable_state === 'blocked') {
-        addLog('blocked mergeable_state'); // waiting for reschedule in status (pr-handler/status.ts)
+        addLog('blocked mergeable_state', 'wait'); // waiting for reschedule in status (pr-handler/status.ts)
 
         return false;
       }
@@ -1486,18 +1487,18 @@ const autoMergeIfPossibleOptionalPrContext = async (appContext, repoContext, pr,
 
     if (pr.mergeable_state === 'blocked') {
       if (await hasFailedStatusOrChecks(pr, context)) {
-        addLog('failed status or checks');
+        addLog('failed status or checks', 'remove');
         repoContext.removePrFromAutomergeQueue(context, pr.number, 'failed status or checks');
         return false;
       } else {
-        addLog('blocked mergeable_state'); // waiting for reschedule in status (pr-handler/status.ts)
+        addLog('blocked mergeable_state', 'wait'); // waiting for reschedule in status (pr-handler/status.ts)
 
         return false;
       }
     }
 
     if (pr.mergeable_state === 'behind') {
-      addLog('behind mergeable_state');
+      addLog('behind mergeable_state', 'update branch');
       context.log.info('automerge not possible: update branch', {
         head: pr.head.ref,
         base: pr.base.ref
@@ -1511,7 +1512,7 @@ const autoMergeIfPossibleOptionalPrContext = async (appContext, repoContext, pr,
       return false;
     }
 
-    addLog('not mergeable');
+    addLog('not mergeable', 'remove');
     repoContext.removePrFromAutomergeQueue(context, pr.number, `mergeable_state=${pr.mergeable_state}`);
     context.log.info(`automerge not possible: not mergeable mergeable_state=${pr.mergeable_state}`);
     return false;
@@ -1546,6 +1547,7 @@ const autoMergeIfPossible = async (prContext, context, prLabels) => {
 };
 
 const ExcludesFalsy = Boolean;
+const ExcludesNullish = res => res !== null;
 
 const getLabelsForRepo = async context => {
   const {
@@ -1652,8 +1654,9 @@ const initTeamSlack = async ({
   slackHome
 }, context, config, account) => {
   const owner = context.payload.repository.owner;
+  const slackToken = 'slackToken' in account && account.slackToken;
 
-  if (!account.slackToken) {
+  if (!slackToken) {
     return voidTeamSlack();
   }
 
@@ -1662,7 +1665,7 @@ const initTeamSlack = async ({
     return acc;
   }, {});
   const slackEmails = Object.values(githubLoginToSlackEmail);
-  const slackClient = new webApi.WebClient(account.slackToken);
+  const slackClient = new webApi.WebClient(slackToken);
   const membersInDb = await mongoStores.orgMembers.findAll({
     'org.id': account._id
   });
@@ -1982,6 +1985,11 @@ const shouldIgnoreRepo = (repoName, accountConfig) => {
   return false;
 };
 
+const createGetReviewLabelIds = (shouldIgnore, config, reviewGroupNames, labels) => {
+  if (shouldIgnore) return () => [];
+  return labelKey => reviewGroupNames.map(key => config.labels.review[key][labelKey]).filter(Boolean).map(name => labels[name].id);
+};
+
 async function initRepoContext(appContext, context, config) {
   const {
     id,
@@ -1993,12 +2001,14 @@ async function initRepoContext(appContext, context, config) {
   const repoEmoji = getEmojiFromRepoDescription(description);
   const accountContext = await obtainAccountContext(appContext, context, config, org);
   const repoContext = Object.create(accountContext);
-  const labels = await initRepoLabels(context, config);
+  const shouldIgnore = shouldIgnoreRepo(name, config);
+  const labels = shouldIgnore ? {} : await initRepoLabels(context, config);
   const reviewGroupNames = Object.keys(config.groups);
-  const needsReviewLabelIds = reviewGroupNames.map(key => config.labels.review[key].needsReview).filter(Boolean).map(name => labels[name].id);
-  const requestedReviewLabelIds = reviewGroupNames.map(key => config.labels.review[key].requested).filter(Boolean).map(name => labels[name].id);
-  const changesRequestedLabelIds = reviewGroupNames.map(key => config.labels.review[key].changesRequested).filter(Boolean).map(name => labels[name].id);
-  const approvedReviewLabelIds = reviewGroupNames.map(key => config.labels.review[key].approved).filter(Boolean).map(name => labels[name].id);
+  const getReviewLabelIds = createGetReviewLabelIds(shouldIgnore, config, reviewGroupNames, labels);
+  const needsReviewLabelIds = getReviewLabelIds('needsReview');
+  const requestedReviewLabelIds = getReviewLabelIds('requested');
+  const changesRequestedLabelIds = getReviewLabelIds('changesRequested');
+  const approvedReviewLabelIds = getReviewLabelIds('approved');
   const protectedLabelIds = [...requestedReviewLabelIds, ...changesRequestedLabelIds, ...approvedReviewLabelIds];
   const labelIdToGroupName = new Map();
   reviewGroupNames.forEach(key => {
@@ -2061,7 +2071,7 @@ async function initRepoContext(appContext, context, config) {
     },
     repoEmoji,
     protectedLabelIds,
-    shouldIgnore: shouldIgnoreRepo(name, config),
+    shouldIgnore,
     hasNeedsReview: labels => labels.some(label => needsReviewLabelIds.includes(label.id)),
     hasRequestedReview: labels => labels.some(label => requestedReviewLabelIds.includes(label.id)),
     hasChangesRequestedReview: labels => labels.some(label => changesRequestedLabelIds.includes(label.id)),
@@ -2881,7 +2891,7 @@ const getUsersInThread = discussion => {
 
 function prCommentCreated(app, appContext) {
   const saveInDb = async (type, commentId, accountEmbed, results, message) => {
-    const filtered = results.filter(res => res !== null);
+    const filtered = results.filter(ExcludesNullish);
     if (filtered.length === 0) return;
     await appContext.mongoStores.slackSentMessages.insertOne({
       type,

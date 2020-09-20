@@ -2,6 +2,7 @@ import { Lock } from 'lock';
 import { Context } from 'probot';
 import { fetchPr } from '../events/pr-handlers/utils/fetchPr';
 import { accountConfigs, Config, defaultConfig } from '../accountConfigs';
+import { GroupLabels } from '../accountConfigs/types';
 // eslint-disable-next-line import/no-cycle
 import { autoMergeIfPossibleOptionalPrContext } from '../events/pr-handlers/actions/autoMergeIfPossible';
 import { ExcludesFalsy } from '../utils/Excludes';
@@ -71,6 +72,20 @@ export const shouldIgnoreRepo = (
   return false;
 };
 
+const createGetReviewLabelIds = <GroupNames extends string>(
+  shouldIgnore: boolean,
+  config: Config<GroupNames>,
+  reviewGroupNames: GroupNames[],
+  labels: Labels,
+): ((labelKey: GroupLabels) => number[]) => {
+  if (shouldIgnore) return (labelKey: GroupLabels): number[] => [];
+  return (labelKey: GroupLabels): number[] =>
+    reviewGroupNames
+      .map((key) => config.labels.review[key][labelKey])
+      .filter(Boolean)
+      .map((name) => labels[name].id);
+};
+
 async function initRepoContext<GroupNames extends string>(
   appContext: AppContext,
   context: Context<any>,
@@ -93,29 +108,23 @@ async function initRepoContext<GroupNames extends string>(
   );
   const repoContext = Object.create(accountContext);
 
-  const labels = await initRepoLabels(context, config);
+  const shouldIgnore = shouldIgnoreRepo(name, config);
+
+  const labels = shouldIgnore ? {} : await initRepoLabels(context, config);
 
   const reviewGroupNames = Object.keys(config.groups) as GroupNames[];
 
-  const needsReviewLabelIds = reviewGroupNames
-    .map((key: GroupNames) => config.labels.review[key].needsReview)
-    .filter(Boolean)
-    .map((name) => labels[name].id);
+  const getReviewLabelIds = createGetReviewLabelIds(
+    shouldIgnore,
+    config,
+    reviewGroupNames,
+    labels,
+  );
 
-  const requestedReviewLabelIds = reviewGroupNames
-    .map((key) => config.labels.review[key].requested)
-    .filter(Boolean)
-    .map((name) => labels[name].id);
-
-  const changesRequestedLabelIds = reviewGroupNames
-    .map((key) => config.labels.review[key].changesRequested)
-    .filter(Boolean)
-    .map((name) => labels[name].id);
-
-  const approvedReviewLabelIds = reviewGroupNames
-    .map((key) => config.labels.review[key].approved)
-    .filter(Boolean)
-    .map((name) => labels[name].id);
+  const needsReviewLabelIds = getReviewLabelIds('needsReview');
+  const requestedReviewLabelIds = getReviewLabelIds('requested');
+  const changesRequestedLabelIds = getReviewLabelIds('changesRequested');
+  const approvedReviewLabelIds = getReviewLabelIds('approved');
 
   const protectedLabelIds = [
     ...requestedReviewLabelIds,
@@ -206,7 +215,7 @@ async function initRepoContext<GroupNames extends string>(
     repoEmbed: { id, name },
     repoEmoji,
     protectedLabelIds,
-    shouldIgnore: shouldIgnoreRepo(name, config),
+    shouldIgnore,
     hasNeedsReview,
     hasRequestedReview,
     hasChangesRequestedReview,
