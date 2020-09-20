@@ -4,6 +4,7 @@ import { AppContext } from '../../context/AppContext';
 import { contextPr, contextIssue } from '../../context/utils';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
+import { updateBranch } from './actions/updateBranch';
 import { updateStatusCheckFromLabels } from './actions/updateStatusCheckFromLabels';
 import { updatePrCommentBody } from './actions/updatePrCommentBody';
 import hasLabelInPR from './actions/utils/hasLabelInPR';
@@ -119,6 +120,7 @@ export default function labelsChanged(
 
         await updateStatusCheckFromLabels(updatedPrContext, pr, context);
 
+        const updateBranchLabel = repoContext.labels['merge/update-branch'];
         const featureBranchLabel = repoContext.labels['feature-branch'];
         const automergeLabel = repoContext.labels['merge/automerge'];
         const skipCiLabel = repoContext.labels['merge/skip-ci'];
@@ -146,6 +148,18 @@ export default function labelsChanged(
               context,
               pr.number,
               'automerge label removed',
+            );
+          }
+        }
+        if (updateBranchLabel && label.id === updateBranchLabel.id) {
+          if (context.payload.action === 'labeled') {
+            await updateBranch(
+              updatedPrContext,
+              context,
+              context.payload.sender.login,
+            );
+            await context.github.issues.removeLabel(
+              contextIssue(context, { name: label.name }),
             );
           }
         }

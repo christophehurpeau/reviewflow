@@ -194,6 +194,10 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         name: 'automerge/skip-ci',
         color: '#e1e8ed',
       },
+      'merge/update-branch': {
+        name: ':arrows_counterclockwise: update branch',
+        color: '#e1e8ed',
+      },
 
       /* feature-branch */
       'feature-branch': {

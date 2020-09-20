@@ -68,6 +68,10 @@ const config: Config<'dev', never> = {
         name: 'automerge/skip-ci',
         color: '#e1e8ed',
       },
+      'merge/update-branch': {
+        name: ':arrows_counterclockwise: update branch',
+        color: '#64DD17',
+      },
 
       /* feature-branch */
       'feature-branch': {

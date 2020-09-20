@@ -676,6 +676,10 @@ const config$1 = {
         name: 'automerge/skip-ci',
         color: '#e1e8ed'
       },
+      'merge/update-branch': {
+        name: ':arrows_counterclockwise: update branch',
+        color: '#e1e8ed'
+      },
 
       /* feature-branch */
       'feature-branch': {
@@ -815,6 +819,10 @@ const config$2 = {
       'merge/skip-ci': {
         name: 'automerge/skip-ci',
         color: '#e1e8ed'
+      },
+      'merge/update-branch': {
+        name: ':arrows_counterclockwise: update branch',
+        color: '#64DD17'
       },
 
       /* feature-branch */
@@ -3340,6 +3348,49 @@ function edited(app, appContext) {
   }));
 }
 
+const updateBranch = async (updatedPrContext, context, login) => {
+  const pr = updatedPrContext.updatedPr;
+  context.log.info('update branch', {
+    head: pr.head.ref,
+    base: pr.base.ref
+  });
+  const result = await context.github.repos.merge({
+    owner: pr.head.repo.owner.login,
+    repo: pr.head.repo.name,
+    head: pr.base.ref,
+    base: pr.head.ref
+  }).catch(err => ({
+    error: err
+  }));
+  context.log.info('update branch result', {
+    status: result.status,
+    sha: result.data && result.data.sha,
+    error: result.error
+  });
+
+  if (result.status === 204) {
+    context.github.issues.createComment(context.repo({
+      issue_number: pr.number,
+      body: `@${login} could not update branch: base already contains the head, nothing to merge.`
+    }));
+  } else if (result.status === 409) {
+    context.github.issues.createComment(context.repo({
+      issue_number: pr.number,
+      body: `@${login} could not update branch: merge conflict. Please resolve manually.`
+    }));
+  } else if (!result || !result.data || !result.data.sha) {
+    context.github.issues.createComment(context.repo({
+      issue_number: pr.number,
+      body: `@${login} could not update branch (unknown error)`
+    }));
+  } else {
+    context.github.issues.createComment(context.repo({
+      issue_number: pr.number,
+      body: `@${login} branch updated: ${result.data.sha}`
+    }));
+  }
+};
+
 const updatePrCommentBody = async (prContext, context, updateOptions) => {
   const {
     commentBody: newBody
@@ -3430,6 +3481,7 @@ function labelsChanged(app, appContext) {
     }
 
     await updateStatusCheckFromLabels(updatedPrContext, pr, context);
+    const updateBranchLabel = repoContext.labels['merge/update-branch'];
     const featureBranchLabel = repoContext.labels['feature-branch'];
     const automergeLabel = repoContext.labels['merge/automerge'];
     const skipCiLabel = repoContext.labels['merge/skip-ci'];
@@ -3453,6 +3505,15 @@ function labelsChanged(app, appContext) {
         await autoMergeIfPossible(updatedPrContext, context);
       } else {
         repoContext.removePrFromAutomergeQueue(context, pr.number, 'automerge label removed');
+      }
+    }
+
+    if (updateBranchLabel && label.id === updateBranchLabel.id) {
+      if (context.payload.action === 'labeled') {
+        await updateBranch(updatedPrContext, context, context.payload.sender.login);
+        await context.github.issues.removeLabel(contextIssue(context, {
+          name: label.name
+        }));
       }
     }
   }));
