@@ -63,6 +63,15 @@
     "description": "Synced by reviewflow for merge/automerge"
   },
   {
+    "id": 1285313521,
+    "node_id": "MDU6TGFiZWwxMjg1MzEzNTIx",
+    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/::arrows_counterclockwise:%20update%20branch",
+    "name": ":arrows_counterclockwise: update branch",
+    "color": "64DD17",
+    "default": false,
+    "description": "Synced by reviewflow for merge/update-branch"
+  },
+  {
     "id": 1526652856,
     "node_id": "MDU6TGFiZWwxNTI2NjUyODU2",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:warning:%20Breaking%20Changes",
