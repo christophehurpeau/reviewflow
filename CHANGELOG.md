@@ -1,3 +1,19 @@
+# [1.59.0](https://github.com/christophehurpeau/reviewflow/compare/v1.58.0...v1.59.0) (2020-09-20)
+
+
+### Bug Fixes
+
+* dont sync labels on ignored repos ([93363a3](https://github.com/christophehurpeau/reviewflow/commit/93363a35ab144a4a5aba1f505d0d3be27b5f08a5))
+
+
+### Features
+
+* new label to update branch ([60640ea](https://github.com/christophehurpeau/reviewflow/commit/60640ea795aa3c5503fbf7f61a86d94bd7e7da22))
+* send slack notifications even for ignored repos ([cfd4d32](https://github.com/christophehurpeau/reviewflow/commit/cfd4d32d671b34ec82339ceeb232e12534aef3ba))
+* update liwi-mongo with better typings ([c690a89](https://github.com/christophehurpeau/reviewflow/commit/c690a894f1351d8f52fe528b2c03d8c738645c60))
+
+
+
 # [1.58.0](https://github.com/christophehurpeau/reviewflow/compare/v1.57.1...v1.58.0) (2020-08-11)
 
 
@@ -272,7 +288,11 @@
 
 
 
-## [1.42.1](https://github.com/christophehurpeau/reviewflow/compare/v1.41.2...v1.42.1) (2020-05-21)
+## [1.42.1](https://github.com/christophehurpeau/reviewflow/compare/v1.42.0...v1.42.1) (2020-05-21)
+
+
+
+# [1.42.0](https://github.com/christophehurpeau/reviewflow/compare/v1.41.2...v1.42.0) (2020-05-21)
 
 
 ### Bug Fixes
