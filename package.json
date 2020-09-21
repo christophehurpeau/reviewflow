@@ -87,7 +87,7 @@
     "@babel/preset-react": "7.9.4",
     "@pob/commitlint-config": "1.1.1",
     "@pob/eslint-config": "37.0.2",
-    "@pob/eslint-config-babel-node": "37.0.2",
+    "@pob/eslint-config-babel-node": "37.2.0",
     "@pob/eslint-config-node": "37.0.2",
     "@pob/eslint-config-typescript": "37.0.2",
     "@pob/eslint-config-typescript-react": "37.0.2",
