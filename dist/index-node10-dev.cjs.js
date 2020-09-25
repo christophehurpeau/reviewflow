@@ -1175,7 +1175,7 @@ const toMarkdownInfos = infos => {
 
 const getReplacement = infos => {
   if (!infos) return '$1$2';
-  return infos.length !== 0 ? `#### Infos:\n${toMarkdownInfos(infos)}\n$2` : '$2';
+  return infos.length !== 0 ? `#### Infos:\n\n${toMarkdownInfos(infos)}\n\n$2` : '$2';
 };
 
 const updateOptions = (options, optionsToUpdate) => {
@@ -1203,12 +1203,14 @@ const updateCommentOptions = (commentBody, defaultOptions, optionsToUpdate) => {
   };
 };
 const updateCommentBodyInfos = (commentBody, infos) => {
-  return commentBody.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
-  /^\s*(?:(#### Infos:.*)?(#### Commits Notes:.*)?(#### Options:.*)?)?$/s, `${getReplacement(infos)}$3`);
+  return commentBody.replace( // *  - zero or more
+  // *? - zero or more (non-greedy)
+  // eslint-disable-next-line unicorn/no-unsafe-regex
+  /^\s*(?:(#### Infos:.*?)?(#### Commits Notes:.*?)?(#### Options:.*?)?)?$/s, `${getReplacement(infos)}$3`);
 };
 const updateCommentBodyCommitsNotes = (commentBody, commitNotes) => {
   return commentBody.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
-  /(?:#### Commits Notes:.*)?(#### Options:)/s, // eslint-disable-next-line no-nested-ternary
+  /(?:#### Commits Notes:.*?)?(#### Options:)/s, // eslint-disable-next-line no-nested-ternary
   !commitNotes ? '$1' : `#### Commits Notes:\n\n${commitNotes}\n\n$1`);
 };
 const removeDeprecatedReviewflowInPrBody = prBody => {
@@ -2019,12 +2021,16 @@ async function initRepoContext(appContext, context, config) {
   const approvedReviewLabelIds = getReviewLabelIds('approved');
   const protectedLabelIds = [...requestedReviewLabelIds, ...changesRequestedLabelIds, ...approvedReviewLabelIds];
   const labelIdToGroupName = new Map();
-  reviewGroupNames.forEach(key => {
-    const reviewGroupLabels = config.labels.review[key];
-    Object.keys(reviewGroupLabels).forEach(labelKey => {
-      labelIdToGroupName.set(labels[reviewGroupLabels[labelKey]].id, key);
+
+  if (!shouldIgnore) {
+    reviewGroupNames.forEach(key => {
+      const reviewGroupLabels = config.labels.review[key];
+      Object.keys(reviewGroupLabels).forEach(labelKey => {
+        labelIdToGroupName.set(labels[reviewGroupLabels[labelKey]].id, key);
+      });
     });
-  }); // const updateStatusCheck = (context, reviewGroup, statusInfo) => {};
+  } // const updateStatusCheck = (context, reviewGroup, statusInfo) => {};
+
 
   const lock$1 = lock.Lock();
   let lockMergePr;
