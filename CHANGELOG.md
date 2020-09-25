@@ -1,3 +1,13 @@
+## [1.59.1](https://github.com/christophehurpeau/reviewflow/compare/v1.59.0...v1.59.1) (2020-09-25)
+
+
+### Bug Fixes
+
+* ignore creating labelIdToGroupName Map when repo is ignored ([3644d62](https://github.com/christophehurpeau/reviewflow/commit/3644d624f587b304627557515f39650246b8475c))
+* ungreedy regexp for commment update ([fbd1024](https://github.com/christophehurpeau/reviewflow/commit/fbd102426eb7e325a4330cd2357c23fdc450e30c))
+
+
+
 # [1.59.0](https://github.com/christophehurpeau/reviewflow/compare/v1.58.0...v1.59.0) (2020-09-20)
 
 
