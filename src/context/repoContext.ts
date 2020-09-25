@@ -133,12 +133,14 @@ async function initRepoContext<GroupNames extends string>(
   ];
 
   const labelIdToGroupName = new Map<LabelResponse['id'], GroupNames>();
-  reviewGroupNames.forEach((key) => {
-    const reviewGroupLabels = config.labels.review[key] as any;
-    Object.keys(reviewGroupLabels).forEach((labelKey: string) => {
-      labelIdToGroupName.set(labels[reviewGroupLabels[labelKey]].id, key);
+  if (!shouldIgnore) {
+    reviewGroupNames.forEach((key) => {
+      const reviewGroupLabels = config.labels.review[key] as any;
+      Object.keys(reviewGroupLabels).forEach((labelKey: string) => {
+        labelIdToGroupName.set(labels[reviewGroupLabels[labelKey]].id, key);
+      });
     });
-  });
+  }
 
   // const updateStatusCheck = (context, reviewGroup, statusInfo) => {};
 
