@@ -30,7 +30,7 @@ interface UpdatedBodyWithOptions {
 const getReplacement = (infos?: StatusInfo[]): string => {
   if (!infos) return '$1$2';
   return infos.length !== 0
-    ? `#### Infos:\n${toMarkdownInfos(infos)}\n$2`
+    ? `#### Infos:\n\n${toMarkdownInfos(infos)}\n\n$2`
     : '$2';
 };
 
@@ -84,8 +84,10 @@ export const updateCommentBodyInfos = (
   infos?: StatusInfo[],
 ): string => {
   return commentBody.replace(
+    // *  - zero or more
+    // *? - zero or more (non-greedy)
     // eslint-disable-next-line unicorn/no-unsafe-regex
-    /^\s*(?:(#### Infos:.*)?(#### Commits Notes:.*)?(#### Options:.*)?)?$/s,
+    /^\s*(?:(#### Infos:.*?)?(#### Commits Notes:.*?)?(#### Options:.*?)?)?$/s,
     `${getReplacement(infos)}$3`,
   );
 };
@@ -96,7 +98,7 @@ export const updateCommentBodyCommitsNotes = (
 ): string => {
   return commentBody.replace(
     // eslint-disable-next-line unicorn/no-unsafe-regex
-    /(?:#### Commits Notes:.*)?(#### Options:)/s,
+    /(?:#### Commits Notes:.*?)?(#### Options:)/s,
     // eslint-disable-next-line no-nested-ternary
     !commitNotes ? '$1' : `#### Commits Notes:\n\n${commitNotes}\n\n$1`,
   );

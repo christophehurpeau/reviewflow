@@ -1,6 +1,7 @@
 import {
   updateCommentOptions,
   updateCommentBodyCommitsNotes,
+  updateCommentBodyInfos,
 } from './updateBody';
 import initialSimple from './mocks/commentBody-initial-simple';
 import initialAfterEditSimple from './mocks/commentBody-initialAfterEdit-simple';
@@ -39,6 +40,7 @@ describe('simple', () => {
       ),
     );
   });
+
   it('should update commit notes', () => {
     expect(
       updateCommentBodyCommitsNotes(
@@ -52,6 +54,7 @@ describe('simple', () => {
       ),
     );
   });
+
   it('should remove commit notes', () => {
     expect(
       updateCommentBodyCommitsNotes(
@@ -62,5 +65,59 @@ describe('simple', () => {
         '',
       ),
     ).toEqual(initialAfterEditSimpleWithInfos);
+  });
+
+  it('should add infos when there is none', () => {
+    expect(
+      updateCommentBodyInfos(initialAfterEditSimple, [
+        {
+          inBody: true,
+          title: 'Test',
+          url: 'http://test.com',
+          summary: 'Test summary',
+        },
+      ]),
+    ).toEqual(
+      initialAfterEditSimple.replace(
+        '#### Options:',
+        '#### Infos:\n\n[Test](http://test.com)\n\n#### Options:',
+      ),
+    );
+  });
+
+  it('should update infos', () => {
+    expect(
+      updateCommentBodyInfos(
+        initialAfterEditSimple.replace(
+          '#### Options:',
+          '#### Infos:\n\n[Test](http://test.com)\n\n#### Options:',
+        ),
+        [
+          {
+            inBody: true,
+            title: 'Test Updated',
+            url: 'http://test.com',
+            summary: 'Test summary',
+          },
+        ],
+      ),
+    ).toEqual(
+      initialAfterEditSimple.replace(
+        '#### Options:',
+        '#### Infos:\n\n[Test Updated](http://test.com)\n\n#### Options:',
+      ),
+    );
+  });
+
+  it('should remove infos', () => {
+    expect(
+      updateCommentBodyInfos(
+        initialAfterEditSimple.replace(
+          '#### Options:',
+          '#### Infos:\n\n[Test](http://test.com)\n\n#### Options:',
+        ),
+        [],
+      ),
+    ).toEqual(initialAfterEditSimple);
   });
 });
