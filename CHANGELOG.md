@@ -1,3 +1,12 @@
+# [1.60.0](https://github.com/christophehurpeau/reviewflow/compare/v1.59.1...v1.60.0) (2020-09-28)
+
+
+### Features
+
+* better support of suggestions comments ([051ae13](https://github.com/christophehurpeau/reviewflow/commit/051ae1373f34cc069c32f82e8a4c1544706421e7))
+
+
+
 ## [1.59.1](https://github.com/christophehurpeau/reviewflow/compare/v1.59.0...v1.59.1) (2020-09-25)
 
 
