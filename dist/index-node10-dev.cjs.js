@@ -16,8 +16,8 @@ const lock = require('lock');
 const webApi = require('@slack/web-api');
 const createEmojiRegex = _interopDefault(require('emoji-regex'));
 const parse$1 = _interopDefault(require('@commitlint/parse'));
-const slackifyMarkdown = _interopDefault(require('slackify-markdown'));
 const issueParser = _interopDefault(require('issue-parser'));
+const slackifyMarkdown = _interopDefault(require('slackify-markdown'));
 
 if (!process.env.MONGO_DB) {
   throw new Error('MONGO_DB is missing in process.env');
@@ -2872,6 +2872,10 @@ const checkIfIsThisBot = user => {
   return user.type === 'Bot' && user.login === `${process.env.REVIEWFLOW_NAME}[bot]`;
 };
 
+const slackifyCommentBody = (body, multipleLines) => {
+  return slackifyMarkdown(body.replace('```suggestion', '_Suggested change:_\n```suggestion').replace('```suggestion\r\n```', `_Suggestion to remove line${multipleLines ? 's' : ''}._\n`));
+};
+
 const getDiscussion = async (context, comment) => {
   if (!comment.in_reply_to_id) return [comment];
   return context.github.paginate(context.github.pulls.listComments.endpoint.merge(contextPr(context)), ({
@@ -2959,7 +2963,7 @@ function prCommentCreated(app, appContext) {
 
     const promisesOwner = [];
     const promisesNotOwner = [];
-    const slackifiedBody = slackifyMarkdown(body);
+    const slackifiedBody = slackifyCommentBody(comment.body, comment.start_line !== null);
     const isBotUser = checkIfUserIsBot(repoContext, comment.user);
 
     if (!commentByOwner) {
@@ -3024,7 +3028,7 @@ function prCommentEditedOrDeleted(app, appContext) {
     if (context.payload.action === 'deleted') {
       await Promise.all([Promise.all(sentMessages.map(sentMessage => Promise.all(sentMessage.sentTo.map(sentTo => repoContext.slack.deleteMessage(sentTo.ts, sentTo.channel))))), appContext.mongoStores.slackSentMessages.deleteMany(criteria)]);
     } else {
-      const secondaryBlocks = [createMrkdwnSectionBlock(slackifyMarkdown(comment.body))];
+      const secondaryBlocks = [createMrkdwnSectionBlock(slackifyCommentBody(comment.body, comment.start_line !== null))];
       await Promise.all([Promise.all(sentMessages.map(sentMessage => Promise.all(sentMessage.sentTo.map(sentTo => repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, { ...sentMessage.message,
         secondaryBlocks
       }))))), appContext.mongoStores.slackSentMessages.partialUpdateMany(criteria, {

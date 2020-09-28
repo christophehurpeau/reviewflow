@@ -1,6 +1,5 @@
 import { Application } from 'probot';
 import { WebhookPayloadPullRequestReviewComment } from '@octokit/webhooks';
-import slackifyMarkdown from 'slackify-markdown';
 import { AppContext } from '../../context/AppContext';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { createMrkdwnSectionBlock } from './utils/createSlackMessageWithSecondaryBlock';
@@ -11,6 +10,7 @@ import {
 import { checkIfIsThisBot } from './utils/isBotUser';
 import { syncLabelsAfterCommentBodyEdited } from './actions/syncLabelsAfterCommentBodyEdited';
 import { fetchPullRequestAndCreateContext } from './utils/createPullRequestContext';
+import { slackifyCommentBody } from './utils/slackifyCommentBody';
 
 export default function prCommentEditedOrDeleted(
   app: Application,
@@ -92,7 +92,12 @@ export default function prCommentEditedOrDeleted(
           ]);
         } else {
           const secondaryBlocks = [
-            createMrkdwnSectionBlock(slackifyMarkdown(comment.body)),
+            createMrkdwnSectionBlock(
+              slackifyCommentBody(
+                comment.body,
+                (comment as any).start_line !== null,
+              ),
+            ),
           ];
 
           await Promise.all([

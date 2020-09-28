@@ -3,7 +3,6 @@ import {
   WebhookPayloadPullRequestReviewComment,
   WebhookPayloadIssueComment,
 } from '@octokit/webhooks';
-import slackifyMarkdown from 'slackify-markdown';
 import { ExcludesNullish } from 'utils/Excludes';
 import * as slackUtils from '../../slack/utils';
 import { AccountEmbed } from '../../mongo';
@@ -21,6 +20,7 @@ import {
 } from './utils/getPullRequestFromPayload';
 import { checkIfUserIsBot, checkIfIsThisBot } from './utils/isBotUser';
 import { fetchPr } from './utils/fetchPr';
+import { slackifyCommentBody } from './utils/slackifyCommentBody';
 
 const getDiscussion = async (
   context: Context,
@@ -176,7 +176,10 @@ export default function prCommentCreated(
 
         const promisesOwner = [];
         const promisesNotOwner = [];
-        const slackifiedBody = slackifyMarkdown(body);
+        const slackifiedBody = slackifyCommentBody(
+          comment.body,
+          (comment as any).start_line !== null,
+        );
         const isBotUser = checkIfUserIsBot(repoContext, comment.user);
 
         if (!commentByOwner) {
