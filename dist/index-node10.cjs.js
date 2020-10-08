@@ -561,23 +561,19 @@ const config$1 = {
     dev: {
       /* ops */
       JulienBreux: `julien.breux${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      'Alan-pad': null,
-      CamilSadiki: null,
-      busser: null,
+      TheR3aLp3nGuinJM: `jean-michel${process.env.ORNIKAR_EMAIL_DOMAIN}`,
 
       /* back */
       abarreir: `alexandre${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      arthurflachs: `arthur${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       damienorny: `damien.orny${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       'Thierry-girod': `thierry${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       darame07: `kevin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       Pixy: `pierre-alexis${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      Radyum: `romain.reynaud${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      machartier: `marie-anne${process.env.ORNIKAR_EMAIL_DOMAIN}`,
 
       /* front */
       christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       HugoGarrido: `hugo${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      LentnerStefan: `stefan${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       CorentinAndre: `corentin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       Mxime: `maxime${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       vlbr: `valerian${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -588,8 +584,7 @@ const config$1 = {
     design: {
       jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       CoralineColasse: `coraline${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      Lenamari: `lena${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      'AlexisRiols-Ornikar': `alexis.riols${process.env.ORNIKAR_EMAIL_DOMAIN}`
+      Lenamari: `lena${process.env.ORNIKAR_EMAIL_DOMAIN}`
     }
   },
   teams: {
