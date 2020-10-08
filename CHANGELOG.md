@@ -1,3 +1,12 @@
+# [1.61.0](https://github.com/christophehurpeau/reviewflow/compare/v1.60.0...v1.61.0) (2020-10-08)
+
+
+### Features
+
+* update ornikar members ([1ceb9d6](https://github.com/christophehurpeau/reviewflow/commit/1ceb9d6b40be58be786fbee6f54f541b8aa7a0d8))
+
+
+
 # [1.60.0](https://github.com/christophehurpeau/reviewflow/compare/v1.59.1...v1.60.0) (2020-09-28)
 
 
@@ -307,11 +316,7 @@
 
 
 
-## [1.42.1](https://github.com/christophehurpeau/reviewflow/compare/v1.42.0...v1.42.1) (2020-05-21)
-
-
-
-# [1.42.0](https://github.com/christophehurpeau/reviewflow/compare/v1.41.2...v1.42.0) (2020-05-21)
+## [1.42.1](https://github.com/christophehurpeau/reviewflow/compare/v1.41.2...v1.42.1) (2020-05-21)
 
 
 ### Bug Fixes
