@@ -579,7 +579,8 @@ const config$1 = {
       vlbr: `valerian${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       'budet-b': `benjamin.budet${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       mdcarter: `maxime.dehaye${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      ChibiBlasphem: `christopher${process.env.ORNIKAR_EMAIL_DOMAIN}`
+      ChibiBlasphem: `christopher${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      PSniezak: `paul.sniezak${process.env.ORNIKAR_EMAIL_DOMAIN}`
     },
     design: {
       jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -597,7 +598,7 @@ const config$1 = {
       labels: ['teams/backend']
     },
     frontends: {
-      logins: ['christophehurpeau', 'HugoGarrido', 'LentnerStefan', 'CorentinAndre', 'Mxime', 'vlbr', 'budet-b', 'mdcarter', 'ChibiBlasphem'],
+      logins: ['christophehurpeau', 'HugoGarrido', 'LentnerStefan', 'CorentinAndre', 'Mxime', 'vlbr', 'budet-b', 'mdcarter', 'ChibiBlasphem', 'PSniezak'],
       labels: ['teams/frontend']
     }
   },
