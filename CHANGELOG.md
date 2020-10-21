@@ -1,3 +1,12 @@
+# [1.62.0](https://github.com/christophehurpeau/reviewflow/compare/v1.61.0...v1.62.0) (2020-10-21)
+
+
+### Features
+
+* add new member in ornikar team ([32e6b4c](https://github.com/christophehurpeau/reviewflow/commit/32e6b4c0cbfa410a1c134a29f276cc16218c77ce))
+
+
+
 # [1.61.0](https://github.com/christophehurpeau/reviewflow/compare/v1.60.0...v1.61.0) (2020-10-08)
 
 
