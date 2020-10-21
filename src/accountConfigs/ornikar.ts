@@ -76,6 +76,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       'budet-b': `benjamin.budet${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       mdcarter: `maxime.dehaye${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       ChibiBlasphem: `christopher${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      PSniezak: `paul.sniezak${process.env.ORNIKAR_EMAIL_DOMAIN}`,
     },
     design: {
       jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -114,6 +115,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         'budet-b',
         'mdcarter',
         'ChibiBlasphem',
+        'PSniezak',
       ],
       labels: ['teams/frontend'],
     },
