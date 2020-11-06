@@ -1,3 +1,12 @@
+# [1.63.0](https://github.com/christophehurpeau/reviewflow/compare/v1.62.0...v1.63.0) (2020-11-06)
+
+
+### Features
+
+* add loicleser in ornikar config ([d5a3a1d](https://github.com/christophehurpeau/reviewflow/commit/d5a3a1da2f80f0d095afaabea5ec940df231c65c))
+
+
+
 # [1.62.0](https://github.com/christophehurpeau/reviewflow/compare/v1.61.0...v1.62.0) (2020-10-21)
 
 
