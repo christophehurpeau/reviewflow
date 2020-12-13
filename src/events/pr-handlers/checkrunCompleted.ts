@@ -1,11 +1,12 @@
-import { Application } from 'probot';
-import { AppContext } from '../../context/AppContext';
+import type { Probot } from 'probot';
+import type { AppContext } from '../../context/AppContext';
+import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
+import { getReviewflowPrContext } from './utils/createPullRequestContext';
 import { createPullRequestsHandler } from './utils/createPullRequestHandler';
-import { autoMergeIfPossibleOptionalPrContext } from './actions/autoMergeIfPossible';
 import { fetchPr } from './utils/fetchPr';
 
 export default function checkrunCompleted(
-  app: Application,
+  app: Probot,
   appContext: AppContext,
 ): void {
   app.on(
@@ -16,14 +17,17 @@ export default function checkrunCompleted(
         if (repoContext.shouldIgnore) return [];
         return payload.check_run.pull_requests;
       },
-      async (pr, context, repoContext) => {
-        const pullRequest = await fetchPr(context, pr.number);
+      async (pullRequest, context, repoContext) => {
+        const [updatedPr, reviewflowPrContext] = await Promise.all([
+          fetchPr(context, pullRequest.number),
+          getReviewflowPrContext(pullRequest.number, context, repoContext),
+        ]);
 
-        await autoMergeIfPossibleOptionalPrContext(
-          appContext,
-          repoContext,
-          pullRequest,
+        await autoMergeIfPossible(
+          updatedPr,
           context,
+          repoContext,
+          reviewflowPrContext,
         );
       },
     ),

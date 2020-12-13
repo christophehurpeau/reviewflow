@@ -1,15 +1,12 @@
-import { Application } from 'probot';
-import { AppContext } from '../../context/AppContext';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
+import type { Probot } from 'probot';
+import type { AppContext } from '../../context/AppContext';
+import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { updateStatusCheckFromLabels } from './actions/updateStatusCheckFromLabels';
-import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
-import { fetchPullRequestAndCreateContext } from './utils/createPullRequestContext';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
+import { fetchPr } from './utils/fetchPr';
 
-export default function synchronize(
-  app: Application,
-  appContext: AppContext,
-): void {
+export default function synchronize(app: Probot, appContext: AppContext): void {
   app.on(
     'pull_request.synchronize',
     createPullRequestHandler(
@@ -18,29 +15,45 @@ export default function synchronize(
         if (repoContext.shouldIgnore) return null;
         return payload.pull_request;
       },
-      async (prContext, context): Promise<void> => {
-        const updatedPrContext = await fetchPullRequestAndCreateContext(
-          context,
-          prContext,
-        );
+      async (
+        pullRequest,
+        context,
+        repoContext,
+        reviewflowPrContext,
+      ): Promise<void> => {
+        if (!reviewflowPrContext) return;
+
+        const updatedPr = await fetchPr(context, pullRequest.number);
         // old and new sha
         // const { before, after } = context.payload;
         const previousSha = (context.payload as any).before as string;
 
         await Promise.all([
-          editOpenedPR(updatedPrContext, context, true, previousSha),
+          editOpenedPR(
+            updatedPr,
+            context,
+            repoContext,
+            reviewflowPrContext,
+            true,
+            previousSha,
+          ),
           // addStatusCheckToLatestCommit
           updateStatusCheckFromLabels(
-            updatedPrContext,
-            updatedPrContext.updatedPr,
+            updatedPr,
             context,
-            updatedPrContext.updatedPr.labels,
+            repoContext,
+            updatedPr.labels,
             previousSha,
           ),
         ]);
 
         // call autoMergeIfPossible to re-add to the queue when push is fixed
-        await autoMergeIfPossible(updatedPrContext, context);
+        await autoMergeIfPossible(
+          updatedPr,
+          context,
+          repoContext,
+          reviewflowPrContext,
+        );
       },
     ),
   );

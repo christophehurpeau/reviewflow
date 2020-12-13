@@ -1,31 +1,31 @@
-import { Octokit, Context } from 'probot';
-import Webhooks from '@octokit/webhooks';
-import { RepoContext } from 'context/repoContext';
-import { AppContext } from 'context/AppContext';
-import {
-  PrContext,
-  PrContextWithUpdatedPr,
-} from '../utils/createPullRequestContext';
+import type { Context } from 'probot';
+import type { RepoContext } from 'context/repoContext';
+import type {
+  PullRequestFromRestEndpoint,
+  PullRequestWithDecentData,
+} from '../utils/PullRequestData';
+import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
+import { autoMergeIfPossible } from './autoMergeIfPossible';
+import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
+import type { Options } from './utils/body/prOptions';
+import { updateCommentOptions } from './utils/body/updateBody';
 import hasLabelInPR from './utils/hasLabelInPR';
 import syncLabel from './utils/syncLabel';
-import { updateCommentOptions } from './utils/body/updateBody';
-import { autoMergeIfPossible } from './autoMergeIfPossible';
-import { Options } from './utils/body/prOptions';
-import { updatePrIfNeeded } from './updatePr';
 
 export const calcDefaultOptions = (
   repoContext: RepoContext,
-  pr:
-    | Octokit.PullsGetResponse
-    | Webhooks.WebhookPayloadPullRequest['pull_request'],
+  pullRequest: PullRequestWithDecentData,
 ): Options => {
   const featureBranchLabel = repoContext.labels['feature-branch'];
   const automergeLabel = repoContext.labels['merge/automerge'];
   const skipCiLabel = repoContext.labels['merge/skip-ci'];
 
-  const prHasFeatureBranchLabel = hasLabelInPR(pr.labels, featureBranchLabel);
-  const prHasSkipCiLabel = hasLabelInPR(pr.labels, skipCiLabel);
-  const prHasAutoMergeLabel = hasLabelInPR(pr.labels, automergeLabel);
+  const prHasFeatureBranchLabel = hasLabelInPR(
+    pullRequest.labels,
+    featureBranchLabel,
+  );
+  const prHasSkipCiLabel = hasLabelInPR(pullRequest.labels, skipCiLabel);
+  const prHasAutoMergeLabel = hasLabelInPR(pullRequest.labels, automergeLabel);
 
   return {
     ...repoContext.config.prDefaultOptions,
@@ -36,37 +36,34 @@ export const calcDefaultOptions = (
 };
 
 export const syncLabelsAfterCommentBodyEdited = async (
-  appContext: AppContext,
-  repoContext: RepoContext,
-  pr:
-    | Octokit.PullsGetResponse
-    | Webhooks.WebhookPayloadPullRequest['pull_request'],
+  pullRequest: PullRequestFromRestEndpoint,
   context: Context<any>,
-  prContext:
-    | PrContext<Octokit.PullsGetResponse>
-    | PrContext<Webhooks.WebhookPayloadPullRequest['pull_request']>
-    | PrContextWithUpdatedPr,
+  repoContext: RepoContext,
+  reviewflowPrContext: ReviewflowPrContext,
 ): Promise<void> => {
   const featureBranchLabel = repoContext.labels['feature-branch'];
   const automergeLabel = repoContext.labels['merge/automerge'];
   const skipCiLabel = repoContext.labels['merge/skip-ci'];
 
-  const prHasFeatureBranchLabel = hasLabelInPR(pr.labels, featureBranchLabel);
-  const prHasSkipCiLabel = hasLabelInPR(pr.labels, skipCiLabel);
-  const prHasAutoMergeLabel = hasLabelInPR(pr.labels, automergeLabel);
+  const prHasFeatureBranchLabel = hasLabelInPR(
+    pullRequest.labels,
+    featureBranchLabel,
+  );
+  const prHasSkipCiLabel = hasLabelInPR(pullRequest.labels, skipCiLabel);
+  const prHasAutoMergeLabel = hasLabelInPR(pullRequest.labels, automergeLabel);
 
   const { commentBody, options } = updateCommentOptions(
-    prContext.commentBody,
-    calcDefaultOptions(repoContext, pr),
+    reviewflowPrContext.commentBody,
+    calcDefaultOptions(repoContext, pullRequest),
   );
 
-  await updatePrIfNeeded(prContext, context, { commentBody });
+  await updatePrCommentBodyIfNeeded(context, reviewflowPrContext, commentBody);
 
   if (options && (featureBranchLabel || automergeLabel)) {
     await Promise.all([
       featureBranchLabel &&
         syncLabel(
-          pr,
+          pullRequest,
           context,
           options.featureBranch,
           featureBranchLabel,
@@ -74,7 +71,7 @@ export const syncLabelsAfterCommentBodyEdited = async (
         ),
       skipCiLabel &&
         syncLabel(
-          pr,
+          pullRequest,
           context,
           options.autoMergeWithSkipCi,
           skipCiLabel,
@@ -82,19 +79,25 @@ export const syncLabelsAfterCommentBodyEdited = async (
         ),
       automergeLabel &&
         syncLabel(
-          pr,
+          pullRequest,
           context,
           options.autoMerge,
           automergeLabel,
           prHasAutoMergeLabel,
           {
             onAdd: async (prLabels) => {
-              await autoMergeIfPossible(prContext, context, prLabels);
+              await autoMergeIfPossible(
+                pullRequest,
+                context,
+                repoContext,
+                reviewflowPrContext,
+                prLabels,
+              );
             },
             onRemove: () => {
               repoContext.removePrFromAutomergeQueue(
                 context,
-                pr.number,
+                pullRequest.number,
                 'label removed',
               );
             },

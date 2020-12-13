@@ -1,19 +1,17 @@
-import { Application } from 'probot';
-import { WebhookPayloadPullRequestReviewComment } from '@octokit/webhooks';
-import { AppContext } from '../../context/AppContext';
+import type { EventPayloads } from '@octokit/webhooks';
+import type { Probot } from 'probot';
+import type { AppContext } from '../../context/AppContext';
+import { syncLabelsAfterCommentBodyEdited } from './actions/syncLabelsAfterCommentBodyEdited';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { createMrkdwnSectionBlock } from './utils/createSlackMessageWithSecondaryBlock';
-import {
-  getPullRequestFromPayload,
-  PullRequestFromPayload,
-} from './utils/getPullRequestFromPayload';
+import { fetchPr } from './utils/fetchPr';
+import type { PullRequestFromPayload } from './utils/getPullRequestFromPayload';
+import { getPullRequestFromPayload } from './utils/getPullRequestFromPayload';
 import { checkIfIsThisBot } from './utils/isBotUser';
-import { syncLabelsAfterCommentBodyEdited } from './actions/syncLabelsAfterCommentBodyEdited';
-import { fetchPullRequestAndCreateContext } from './utils/createPullRequestContext';
 import { slackifyCommentBody } from './utils/slackifyCommentBody';
 
 export default function prCommentEditedOrDeleted(
-  app: Application,
+  app: Probot,
   appContext: AppContext,
 ): void {
   app.on(
@@ -26,8 +24,13 @@ export default function prCommentEditedOrDeleted(
       'issue_comment.deleted',
     ],
     createPullRequestHandler<
-      WebhookPayloadPullRequestReviewComment,
-      PullRequestFromPayload<WebhookPayloadPullRequestReviewComment>
+      | EventPayloads.WebhookPayloadPullRequestReviewComment
+      | EventPayloads.WebhookPayloadIssueComment,
+      | PullRequestFromPayload<
+          | EventPayloads.WebhookPayloadPullRequestReviewComment
+          | EventPayloads.WebhookPayloadIssueComment
+        >
+      | any
     >(
       appContext,
       (payload) => {
@@ -37,30 +40,32 @@ export default function prCommentEditedOrDeleted(
         }
         return getPullRequestFromPayload(payload);
       },
-      async (prContext, context, repoContext): Promise<void> => {
+      async (
+        pullRequest,
+        context,
+        repoContext,
+        reviewflowPrContext,
+      ): Promise<void> => {
         const { comment } = context.payload;
 
         if (
+          reviewflowPrContext !== null &&
           context.payload.action === 'edited' &&
           checkIfIsThisBot(comment.user)
         ) {
-          const updatedPrContext = await fetchPullRequestAndCreateContext(
-            context,
-            prContext,
-          );
-          if (!updatedPrContext.updatedPr.closed_at) {
+          const updatedPr = await fetchPr(context, pullRequest.number);
+          if (!updatedPr.closed_at) {
             await syncLabelsAfterCommentBodyEdited(
-              appContext,
-              repoContext,
-              updatedPrContext.updatedPr,
+              updatedPr,
               context,
-              updatedPrContext,
+              repoContext,
+              reviewflowPrContext,
             );
           }
           return;
         }
 
-        const type = comment.pull_request_review_id
+        const type = (comment as any).pull_request_review_id
           ? 'review-comment'
           : 'issue-comment';
 

@@ -1,13 +1,13 @@
-import { Probot } from 'probot';
+import type { Probot } from 'probot';
+import pullRequestEdited from '../../../fixtures/pull_request_30.edited.json';
+import * as initTeamSlack from '../../context/initTeamSlack';
+import { voidTeamSlack } from '../../context/voidTeamSlack';
 import {
   initializeProbotApp,
   mockAccessToken,
   mockLabels,
   nock,
 } from '../../tests/setup';
-import pullRequestEdited from '../../../fixtures/pull_request_30.edited.json';
-import * as initTeamSlack from '../../context/initTeamSlack';
-import { voidTeamSlack } from '../../context/voidTeamSlack';
 
 jest.spyOn(initTeamSlack, 'initTeamSlack').mockResolvedValue(voidTeamSlack());
 
@@ -52,10 +52,11 @@ describe('edited', (): void => {
 
     await probot.receive({
       id: '1',
-      name: pullRequestEdited.event,
+      name: pullRequestEdited.event as any,
       payload: pullRequestEdited.payload,
     });
 
-    expect(scope.isDone()).toBe(true);
+    expect(scope.pendingMocks()).toEqual([]);
+    expect(scope.activeMocks()).toEqual([]);
   });
 });

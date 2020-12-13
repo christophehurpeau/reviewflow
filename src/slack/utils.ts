@@ -1,4 +1,4 @@
-import { RepoContext } from '../context/repoContext';
+import type { RepoContext } from '../context/repoContext';
 
 export const createLink = (url: string, text: string): string => {
   return `<${url}|${text}>`;

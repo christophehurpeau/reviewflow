@@ -1,19 +1,22 @@
-import { Context, Octokit } from 'probot';
-import Webhooks from '@octokit/webhooks';
-import { StatusError, StatusInfo } from '../../../accountConfigs/types';
+import type { EventPayloads } from '@octokit/webhooks';
+import type { Context } from 'probot';
+import type { RepoContext } from 'context/repoContext';
+import type { StatusError, StatusInfo } from '../../../accountConfigs/types';
 import { ExcludesFalsy } from '../../../utils/Excludes';
-import { PrContext } from '../utils/createPullRequestContext';
-import { cleanTitle } from './utils/cleanTitle';
+import type { PullRequestWithDecentData } from '../utils/PullRequestData';
+import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
+import { readCommitsAndUpdateInfos } from './readCommitsAndUpdateInfos';
+import { calcDefaultOptions } from './syncLabelsAfterCommentBodyEdited';
 import { updatePrIfNeeded } from './updatePr';
-import createStatus from './utils/createStatus';
+import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
 import {
   updateCommentBodyInfos,
   defaultCommentBody,
   createCommentBody,
   removeDeprecatedReviewflowInPrBody,
 } from './utils/body/updateBody';
-import { calcDefaultOptions } from './syncLabelsAfterCommentBodyEdited';
-import { readCommitsAndUpdateInfos } from './readCommitsAndUpdateInfos';
+import { cleanTitle } from './utils/cleanTitle';
+import createStatus from './utils/createStatus';
 
 interface StatusWithInfo {
   name: string;
@@ -30,19 +33,22 @@ interface StatusWithError {
 type Status = StatusWithInfo | StatusWithError;
 
 export const editOpenedPR = async <
-  E extends Webhooks.WebhookPayloadPullRequest
+  E extends EventPayloads.WebhookPayloadPullRequest
 >(
-  prContext: PrContext<E['pull_request'] | Octokit.PullsGetResponse>,
+  pullRequest: PullRequestWithDecentData,
   context: Context<E>,
+  repoContext: RepoContext,
+  reviewflowPrContext: ReviewflowPrContext | null,
   shouldUpdateCommentBodyInfos: boolean,
   previousSha?: string,
 ): Promise<void> => {
-  const { repoContext } = prContext;
-  const pr = prContext.updatedPr || prContext.pr;
+  if (reviewflowPrContext === null) return;
 
-  const title = repoContext.config.trimTitle ? cleanTitle(pr.title) : pr.title;
+  const title = repoContext.config.trimTitle
+    ? cleanTitle(pullRequest.title)
+    : pullRequest.title;
 
-  const isPrFromBot = pr.user.type === 'Bot';
+  const isPrFromBot = pullRequest.user.type === 'Bot';
 
   const statuses: Status[] = [];
 
@@ -71,104 +77,112 @@ export const editOpenedPR = async <
   const date = new Date().toISOString();
 
   const hasLintPrCheck = (
-    await context.github.checks.listForRef(
+    await context.octokit.checks.listForRef(
       context.repo({
-        ref: pr.head.sha,
+        ref: pullRequest.head.sha,
       }),
     )
   ).data.check_runs.find(
     (check): boolean => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`,
   );
 
-  const promises = Promise.all<any>(
-    [
-      ...statuses.map(
-        ({ name, error, info }): Promise<void> =>
-          createStatus(
-            context,
-            name,
-            pr.head.sha,
-            error ? 'failure' : 'success',
-            error ? error.title : (info as StatusInfo).title,
-            error ? undefined : (info as StatusInfo).url,
-          ),
-      ),
-      ...(previousSha
-        ? statuses
-            .map(({ name, error, info }): Promise<void> | undefined =>
-              error
-                ? createStatus(
-                    context,
-                    name,
-                    previousSha,
-                    'success',
-                    'New commits have been pushed',
-                  )
-                : undefined,
-            )
-            .filter(ExcludesFalsy)
-        : []),
-      hasLintPrCheck &&
-        context.github.checks.create(
-          context.repo({
-            name: `${process.env.REVIEWFLOW_NAME}/lint-pr`,
-            head_sha: pr.head.sha,
-            status: 'completed' as 'completed',
-            conclusion: (errorRule ? 'failure' : 'success') as
-              | 'failure'
-              | 'success',
-            started_at: date,
-            completed_at: date,
-            output: errorRule
-              ? errorRule.error
-              : {
-                  title: '✓ Your PR is valid',
-                  summary: '',
-                },
-          }),
-        ),
-      !hasLintPrCheck && previousSha && errorRule
-        ? createStatus(
-            context,
-            'lint-pr',
-            previousSha,
-            'success',
-            'New commits have been pushed',
-          )
-        : undefined,
-      !hasLintPrCheck &&
+  const promises: Promise<unknown>[] = [
+    ...statuses.map(
+      ({ name, error, info }): Promise<void> =>
         createStatus(
           context,
-          'lint-pr',
-          pr.head.sha,
-          errorRule ? 'failure' : 'success',
-          errorRule ? errorRule.error.title : '✓ Your PR is valid',
+          name,
+          pullRequest.head.sha,
+          error ? 'failure' : 'success',
+          error ? error.title : (info as StatusInfo).title,
+          error ? undefined : (info as StatusInfo).url,
         ),
-    ].filter(ExcludesFalsy),
-  );
+    ),
+    ...(previousSha
+      ? statuses
+          .map(({ name, error, info }): Promise<void> | undefined =>
+            error
+              ? createStatus(
+                  context,
+                  name,
+                  previousSha,
+                  'success',
+                  'New commits have been pushed',
+                )
+              : undefined,
+          )
+          .filter(ExcludesFalsy)
+      : []),
+    hasLintPrCheck &&
+      context.octokit.checks.create(
+        context.repo({
+          name: `${process.env.REVIEWFLOW_NAME}/lint-pr`,
+          head_sha: pullRequest.head.sha,
+          status: 'completed' as const,
+          conclusion: (errorRule ? 'failure' : 'success') as
+            | 'failure'
+            | 'success',
+          started_at: date,
+          completed_at: date,
+          output: errorRule
+            ? errorRule.error
+            : {
+                title: '✓ Your PR is valid',
+                summary: '',
+              },
+        }),
+      ),
+    !hasLintPrCheck && previousSha && errorRule
+      ? createStatus(
+          context,
+          'lint-pr',
+          previousSha,
+          'success',
+          'New commits have been pushed',
+        )
+      : undefined,
+    !hasLintPrCheck &&
+      createStatus(
+        context,
+        'lint-pr',
+        pullRequest.head.sha,
+        errorRule ? 'failure' : 'success',
+        errorRule ? errorRule.error.title : '✓ Your PR is valid',
+      ),
+  ].filter(ExcludesFalsy);
+
+  const body = removeDeprecatedReviewflowInPrBody(pullRequest.body);
+  promises.push(updatePrIfNeeded(pullRequest, context, { title, body }));
 
   const commentBodyInfos = statuses
-    .filter((status) => status.info && status.info.inBody)
+    .filter((status) => status.info?.inBody)
     .map((status) => status.info) as StatusInfo[];
 
-  const shouldCreateCommentBody = prContext.commentBody === defaultCommentBody;
+  const shouldCreateCommentBody =
+    reviewflowPrContext.commentBody === defaultCommentBody;
 
-  const commentBody = shouldCreateCommentBody
-    ? createCommentBody(calcDefaultOptions(repoContext, pr), commentBodyInfos)
-    : updateCommentBodyInfos(prContext.commentBody, commentBodyInfos);
-
-  const body = removeDeprecatedReviewflowInPrBody(pr.body);
+  const newBody = shouldCreateCommentBody
+    ? createCommentBody(
+        calcDefaultOptions(repoContext, pullRequest),
+        commentBodyInfos,
+      )
+    : updateCommentBodyInfos(reviewflowPrContext.commentBody, commentBodyInfos);
 
   if (shouldCreateCommentBody || shouldUpdateCommentBodyInfos) {
-    await Promise.all([
-      promises,
-      updatePrIfNeeded(prContext, context, { title, body }),
-      readCommitsAndUpdateInfos(prContext, context, commentBody),
-    ]);
+    promises.push(
+      readCommitsAndUpdateInfos(
+        pullRequest,
+        context,
+        repoContext,
+        reviewflowPrContext,
+        newBody,
+      ),
+    );
   } else {
-    await Promise.all([
-      promises,
-      updatePrIfNeeded(prContext, context, { title, body, commentBody }),
-    ]);
+    promises.push(
+      updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newBody),
+    );
   }
+
+  await Promise.all(promises);
 };

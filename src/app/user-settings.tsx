@@ -1,7 +1,7 @@
 import type { Router } from 'express';
+import type { ProbotOctokit } from 'probot';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { GitHubAPI } from 'probot/lib/github';
 import { syncUser } from '../events/account-handlers/actions/syncUser';
 import type { MongoStores } from '../mongo';
 import Layout from '../views/Layout';
@@ -9,7 +9,7 @@ import { getUser } from './auth';
 
 export default function userSettings(
   router: Router,
-  api: GitHubAPI,
+  octokitApp: InstanceType<typeof ProbotOctokit>,
   mongoStores: MongoStores,
 ): void {
   router.get('/user/force-sync', async (req, res) => {
@@ -36,14 +36,14 @@ export default function userSettings(
       user.authInfo,
     );
 
-    res.redirect(`/app/user`);
+    res.redirect('/app/user');
   });
 
   router.get('/user', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
 
-    const { data: installation } = await api.apps
+    const { data: installation } = await octokitApp.apps
       .getUserInstallation({
         username: user.authInfo.login,
       })

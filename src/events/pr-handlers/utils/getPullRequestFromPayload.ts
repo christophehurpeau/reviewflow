@@ -1,24 +1,24 @@
-import Webhooks from '@octokit/webhooks';
+import type { EventPayloads } from '@octokit/webhooks';
 
 type WebhookPr =
-  | Webhooks.WebhookPayloadPullRequest['pull_request']
-  | Webhooks.WebhookPayloadPullRequestReviewPullRequest;
+  | EventPayloads.WebhookPayloadPullRequest['pull_request']
+  | EventPayloads.WebhookPayloadPullRequestReviewPullRequest;
 
 type PullRequestHandlerAllowedPayloads =
   | {
-      repository: Webhooks.PayloadRepository;
+      repository: EventPayloads.PayloadRepository;
       pull_request: WebhookPr;
     }
   | {
-      repository: Webhooks.PayloadRepository;
-      issue: Webhooks.WebhookPayloadIssueCommentIssue;
+      repository: EventPayloads.PayloadRepository;
+      issue: EventPayloads.WebhookPayloadIssueCommentIssue;
     };
 
 export type PullRequestFromPayload<
   T extends PullRequestHandlerAllowedPayloads
 > = T extends { pull_request: WebhookPr }
   ? T['pull_request']
-  : T extends { issue: Webhooks.WebhookPayloadIssueCommentIssue }
+  : T extends { issue: EventPayloads.WebhookPayloadIssueCommentIssue }
   ? T['issue'] /* & T['issue']['pull_request'] */
   : never;
 

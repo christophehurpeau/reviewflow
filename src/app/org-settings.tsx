@@ -1,15 +1,15 @@
+import bodyParser from 'body-parser';
 import type { Router } from 'express';
+import type { ProbotOctokit } from 'probot';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { GitHubAPI } from 'probot/lib/github';
-import bodyParser from 'body-parser';
-import { syncTeams } from '../events/account-handlers/actions/syncTeams';
-import { syncOrg } from '../events/account-handlers/actions/syncOrg';
-import { MessageCategory } from '../dm/MessageCategory';
+import { accountConfigs } from '../accountConfigs';
+import type { MessageCategory } from '../dm/MessageCategory';
 import { getUserDmSettings, updateCache } from '../dm/getUserDmSettings';
+import { syncOrg } from '../events/account-handlers/actions/syncOrg';
+import { syncTeams } from '../events/account-handlers/actions/syncTeams';
 import type { MongoStores } from '../mongo';
 import Layout from '../views/Layout';
-import { accountConfigs } from '../accountConfigs';
 import { getUser } from './auth';
 
 const dmMessages: Record<MessageCategory, string> = {
@@ -28,7 +28,7 @@ const dmMessages: Record<MessageCategory, string> = {
 
 export default function orgSettings(
   router: Router,
-  api: GitHubAPI,
+  octokitApp: InstanceType<typeof ProbotOctokit>,
   mongoStores: MongoStores,
 ): void {
   router.get('/org/:org/force-sync', async (req, res) => {
@@ -56,7 +56,7 @@ export default function orgSettings(
     const org = orgs.data.find((o) => o.login === req.params.org);
     if (!org) return res.redirect('/app');
 
-    const installation = await api.apps
+    const installation = await octokitApp.apps
       .getOrgInstallation({ org: org.login })
       .catch((err) => {
         return { status: err.status, data: undefined };

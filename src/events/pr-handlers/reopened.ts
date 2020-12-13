@@ -1,10 +1,10 @@
-import { Application } from 'probot';
-import { AppContext } from '../../context/AppContext';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
-import { updateReviewStatus } from './actions/updateReviewStatus';
+import type { Probot } from 'probot';
+import type { AppContext } from '../../context/AppContext';
 import { editOpenedPR } from './actions/editOpenedPR';
+import { updateReviewStatus } from './actions/updateReviewStatus';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
 
-export default function closed(app: Application, appContext: AppContext): void {
+export default function closed(app: Probot, appContext: AppContext): void {
   app.on(
     'pull_request.reopened',
     createPullRequestHandler(
@@ -13,13 +13,24 @@ export default function closed(app: Application, appContext: AppContext): void {
         if (repoContext.shouldIgnore) return null;
         return payload.pull_request;
       },
-      async (prContext, context, repoContext): Promise<void> => {
+      async (
+        pullRequest,
+        context,
+        repoContext,
+        reviewflowPrContext,
+      ): Promise<void> => {
         await Promise.all([
-          updateReviewStatus(prContext, context, 'dev', {
+          updateReviewStatus(pullRequest, context, repoContext, 'dev', {
             add: ['needsReview'],
             remove: ['approved'],
           }),
-          editOpenedPR(prContext, context, true),
+          editOpenedPR(
+            pullRequest,
+            context,
+            repoContext,
+            reviewflowPrContext,
+            true,
+          ),
         ]);
       },
     ),

@@ -1,6 +1,6 @@
+import type { Octokit } from '@octokit/core';
 import { WebClient } from '@slack/web-api';
-import { Octokit } from 'probot';
-import { MongoStores, Org, OrgMember } from '../mongo';
+import type { MongoStores, Org, OrgMember } from '../mongo';
 import { createLink } from './utils';
 
 interface QueueItem {

@@ -1,16 +1,17 @@
+import type { ReactElement, ReactNode } from 'react';
 import React from 'react';
 
 interface LayoutProps {
   lang?: string;
   title?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export default function Layout({
   lang = 'en',
   title = process.env.REVIEWFLOW_NAME,
   children,
-}: LayoutProps) {
+}: LayoutProps): ReactElement {
   return (
     <html lang={lang}>
       <head>

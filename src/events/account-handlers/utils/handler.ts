@@ -1,10 +1,8 @@
-import { Context } from 'probot';
+import type { Context } from 'probot';
 import { accountConfigs, defaultConfig } from '../../../accountConfigs';
-import {
-  AccountContext,
-  obtainAccountContext,
-} from '../../../context/accountContext';
-import { AppContext } from '../../../context/AppContext';
+import type { AppContext } from '../../../context/AppContext';
+import type { AccountContext } from '../../../context/accountContext';
+import { obtainAccountContext } from '../../../context/accountContext';
 
 type CallbackContextAndAccountContext<T> = (
   context: Context<T>,
@@ -12,13 +10,14 @@ type CallbackContextAndAccountContext<T> = (
 ) => void | Promise<void>;
 
 export const handlerOrgChange = async <
-  T extends { organization: { id: number; login: string } }
+  T extends { organization?: { id: number; login: string } }
 >(
   appContext: AppContext,
   context: Context<T>,
   callback: CallbackContextAndAccountContext<T>,
 ): Promise<void> => {
   const org = context.payload.organization;
+  if (!org) return;
   const config = accountConfigs[org.login] || defaultConfig;
   const accountContext = await obtainAccountContext(
     appContext,
@@ -34,7 +33,7 @@ export const handlerOrgChange = async <
 };
 
 export const createHandlerOrgChange = <
-  T extends { organization: { id: number; login: string } }
+  T extends { organization?: { id: number; login: string } }
 >(
   appContext: AppContext,
   callback: CallbackContextAndAccountContext<T>,

@@ -1,5 +1,5 @@
-import { MessageCategory } from '../dm/MessageCategory';
-import { SlackMessage } from './SlackMessage';
+import type { MessageCategory } from '../dm/MessageCategory';
+import type { SlackMessage } from './SlackMessage';
 
 export interface SlackMessageResult {
   ts: string;

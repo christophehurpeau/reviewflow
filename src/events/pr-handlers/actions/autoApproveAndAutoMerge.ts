@@ -1,23 +1,28 @@
-import Webhooks from '@octokit/webhooks';
-import { Context, Octokit } from 'probot';
-import { contextPr } from '../../../context/utils';
-import { PrContext } from '../utils/createPullRequestContext';
+import type { Context } from 'probot';
+import type { RepoContext } from 'context/repoContext';
+import type { PullRequestFromRestEndpoint } from '../utils/PullRequestData';
+import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { autoMergeIfPossible } from './autoMergeIfPossible';
 import hasLabelInPR from './utils/hasLabelInPR';
 
-export const autoApproveAndAutoMerge = async <
-  E extends Webhooks.WebhookPayloadPullRequest
->(
-  prContext: PrContext<E['pull_request']> | PrContext<Octokit.PullsGetResponse>,
-  context: Context<E>,
+export const autoApproveAndAutoMerge = async (
+  pullRequest: PullRequestFromRestEndpoint,
+  context: Context<any>,
+  repoContext: RepoContext,
+  reviewflowPrContext: ReviewflowPrContext,
 ): Promise<boolean> => {
   // const autoMergeLabel = repoContext.labels['merge/automerge'];
-  const codeApprovedLabel = prContext.repoContext.labels['code/approved'];
-  if (hasLabelInPR(prContext.pr.labels, codeApprovedLabel)) {
-    await context.github.pulls.createReview(
-      contextPr(context, { event: 'APPROVE' }),
+  const codeApprovedLabel = repoContext.labels['code/approved'];
+  if (hasLabelInPR(pullRequest.labels, codeApprovedLabel)) {
+    await context.octokit.pulls.createReview(
+      context.pullRequest({ event: 'APPROVE' }),
     );
-    await autoMergeIfPossible(prContext, context);
+    await autoMergeIfPossible(
+      pullRequest,
+      context,
+      repoContext,
+      reviewflowPrContext,
+    );
     return true;
   }
 

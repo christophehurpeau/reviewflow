@@ -1,4 +1,4 @@
-import { TeamSlack } from './TeamSlack';
+import type { TeamSlack } from './TeamSlack';
 
 export const voidTeamSlack = (): TeamSlack => ({
   mention: (): string => '',

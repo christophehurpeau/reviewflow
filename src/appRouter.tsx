@@ -1,24 +1,28 @@
-import { Application } from 'probot';
 import cookieParser from 'cookie-parser';
-import { AppContext } from './context/AppContext';
-import repository from './app/repository';
+import type { Probot, run } from 'probot';
 import auth from './app/auth';
 import home from './app/home';
 import orgSettings from './app/org-settings';
+import repository from './app/repository';
 import userSettings from './app/user-settings';
+import type { AppContext } from './context/AppContext';
 
 export default async function appRouter(
-  app: Application,
+  app: Probot,
+  getRouter: Parameters<
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    Extract<Parameters<typeof run>[0], Function>
+  >[0]['getRouter'],
   { mongoStores }: AppContext,
 ): Promise<void> {
-  const router = app.route('/app');
-  const api = await app.auth();
+  const router = getRouter('/app');
+  const octokitApp = await app.auth();
 
   router.use(cookieParser());
 
   auth(router);
-  repository(router, api);
-  home(router, api, mongoStores);
-  orgSettings(router, api, mongoStores);
-  userSettings(router, api, mongoStores);
+  repository(router, octokitApp);
+  home(router, octokitApp, mongoStores);
+  orgSettings(router, octokitApp, mongoStores);
+  userSettings(router, octokitApp, mongoStores);
 }

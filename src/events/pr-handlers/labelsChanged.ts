@@ -1,17 +1,16 @@
-import Webhooks from '@octokit/webhooks';
-import { Application } from 'probot';
-import { AppContext } from '../../context/AppContext';
-import { contextPr, contextIssue } from '../../context/utils';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
+import type { EventPayloads } from '@octokit/webhooks';
+import type { Probot } from 'probot';
+import type { AppContext } from '../../context/AppContext';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateBranch } from './actions/updateBranch';
+import { updatePrCommentBodyOptions } from './actions/updatePrCommentBody';
 import { updateStatusCheckFromLabels } from './actions/updateStatusCheckFromLabels';
-import { updatePrCommentBody } from './actions/updatePrCommentBody';
 import hasLabelInPR from './actions/utils/hasLabelInPR';
-import { fetchPullRequestAndCreateContext } from './utils/createPullRequestContext';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
+import { fetchPr } from './utils/fetchPr';
 
 const isFromRenovate = (
-  payload: Webhooks.WebhookPayloadPullRequest,
+  payload: EventPayloads.WebhookPayloadPullRequest,
 ): boolean => {
   const sender = payload.sender;
   return (
@@ -22,14 +21,14 @@ const isFromRenovate = (
 };
 
 export default function labelsChanged(
-  app: Application,
+  app: Probot,
   appContext: AppContext,
 ): void {
   app.on(
     ['pull_request.labeled', 'pull_request.unlabeled'],
     createPullRequestHandler<
-      Webhooks.WebhookPayloadPullRequest,
-      Webhooks.WebhookPayloadPullRequest['pull_request']
+      EventPayloads.WebhookPayloadPullRequest,
+      EventPayloads.WebhookPayloadPullRequest['pull_request']
     >(
       appContext,
       (payload, context, repoContext) => {
@@ -41,13 +40,11 @@ export default function labelsChanged(
 
         return payload.pull_request;
       },
-      async (prContext, context, repoContext) => {
+      async (pullRequest, context, repoContext, reviewflowPrContext) => {
+        if (reviewflowPrContext === null) return;
+
         const fromRenovate = isFromRenovate(context.payload);
-        const updatedPrContext = await fetchPullRequestAndCreateContext(
-          context,
-          prContext,
-        );
-        const { updatedPr: pr } = updatedPrContext;
+        const updatedPr = await fetchPr(context, pullRequest.number);
 
         const label = (context.payload as any).label;
         if (fromRenovate) {
@@ -56,69 +53,87 @@ export default function labelsChanged(
           const autoMergeSkipCiLabel = repoContext.labels['merge/skip-ci'];
           if (context.payload.action === 'labeled') {
             if (codeApprovedLabel && label.id === codeApprovedLabel.id) {
-              // const { data: reviews } = await context.github.pulls.listReviews(
-              //   contextPr(context, { per_page: 1 }),
+              // const { data: reviews } = await context.octokit.pulls.listReviews(
+              //   context.pullRequest({ per_page: 1 }),
               // );
               // if (reviews.length !== 0) {
-              await context.github.pulls.createReview(
-                contextPr(context, { event: 'APPROVE' }),
+              await context.octokit.pulls.createReview(
+                context.pullRequest({ event: 'APPROVE' }),
               );
 
-              let labels = pr.labels;
+              let labels = updatedPr.labels;
               const autoMergeWithSkipCi =
                 autoMergeSkipCiLabel &&
                 repoContext.config.autoMergeRenovateWithSkipCi;
               if (autoMergeWithSkipCi) {
-                const result = await context.github.issues.addLabels(
-                  contextIssue(context, {
+                const result = await context.octokit.issues.addLabels(
+                  context.issue({
                     labels: [autoMergeSkipCiLabel.name],
                   }),
                 );
                 labels = result.data;
               }
               await updateStatusCheckFromLabels(
-                updatedPrContext,
-                pr,
+                updatedPr,
                 context,
+                repoContext,
                 labels,
               );
-              await updatePrCommentBody(updatedPrContext, context, {
-                autoMergeWithSkipCi,
-                // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
-                autoMerge: hasLabelInPR(labels, autoMergeLabel)
-                  ? true
-                  : repoContext.config.prDefaultOptions.autoMerge,
-              });
+              await updatePrCommentBodyOptions(
+                context,
+                repoContext,
+                reviewflowPrContext,
+                {
+                  autoMergeWithSkipCi,
+                  // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
+                  autoMerge: hasLabelInPR(labels, autoMergeLabel)
+                    ? true
+                    : repoContext.config.prDefaultOptions.autoMerge,
+                },
+              );
               // }
             } else if (autoMergeLabel && label.id === autoMergeLabel.id) {
-              await updatePrCommentBody(updatedPrContext, context, {
-                autoMerge: true,
-                // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
-                // Note: si c'est renovate qui ajoute le label autoMerge, le label codeApprovedLabel n'aurait pu etre ajouté que par renovate également (on est a quelques secondes de l'ouverture de la pr par renovate)
-                autoMergeWithSkipCi: hasLabelInPR(pr.labels, codeApprovedLabel)
-                  ? true
-                  : repoContext.config.prDefaultOptions.autoMergeWithSkipCi,
-              });
+              await updatePrCommentBodyOptions(
+                context,
+                repoContext,
+                reviewflowPrContext,
+                {
+                  autoMerge: true,
+                  // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
+                  // Note: si c'est renovate qui ajoute le label autoMerge, le label codeApprovedLabel n'aurait pu etre ajouté que par renovate également (on est a quelques secondes de l'ouverture de la pr par renovate)
+                  autoMergeWithSkipCi: hasLabelInPR(
+                    pullRequest.labels,
+                    codeApprovedLabel,
+                  )
+                    ? true
+                    : repoContext.config.prDefaultOptions.autoMergeWithSkipCi,
+                },
+              );
             }
-            await autoMergeIfPossible(updatedPrContext, context);
+            await autoMergeIfPossible(
+              updatedPr,
+              context,
+              repoContext,
+              reviewflowPrContext,
+            );
           }
           return;
         }
 
         if (repoContext.protectedLabelIds.includes(label.id)) {
           if (context.payload.action === 'labeled') {
-            await context.github.issues.removeLabel(
-              contextIssue(context, { name: label.name }),
+            await context.octokit.issues.removeLabel(
+              context.issue({ name: label.name }),
             );
           } else {
-            await context.github.issues.addLabels(
-              contextIssue(context, { labels: [label.name] }),
+            await context.octokit.issues.addLabels(
+              context.issue({ labels: [label.name] }),
             );
           }
           return;
         }
 
-        await updateStatusCheckFromLabels(updatedPrContext, pr, context);
+        await updateStatusCheckFromLabels(updatedPr, context, repoContext);
 
         const updateBranchLabel = repoContext.labels['merge/update-branch'];
         const featureBranchLabel = repoContext.labels['feature-branch'];
@@ -126,27 +141,40 @@ export default function labelsChanged(
         const skipCiLabel = repoContext.labels['merge/skip-ci'];
 
         const option = (() => {
-          if (featureBranchLabel && label.id === featureBranchLabel.id)
+          if (featureBranchLabel && label.id === featureBranchLabel.id) {
             return 'featureBranch';
-          if (automergeLabel && label.id === automergeLabel.id)
+          }
+          if (automergeLabel && label.id === automergeLabel.id) {
             return 'autoMerge';
-          if (skipCiLabel && label.id === skipCiLabel.id)
+          }
+          if (skipCiLabel && label.id === skipCiLabel.id) {
             return 'autoMergeWithSkipCi';
+          }
           return null;
         })();
 
         if (option) {
-          await updatePrCommentBody(updatedPrContext, context, {
-            [option]: context.payload.action === 'labeled',
-          });
+          await updatePrCommentBodyOptions(
+            context,
+            repoContext,
+            reviewflowPrContext,
+            {
+              [option]: context.payload.action === 'labeled',
+            },
+          );
         } // not an else if
         if (automergeLabel && label.id === automergeLabel.id) {
           if (context.payload.action === 'labeled') {
-            await autoMergeIfPossible(updatedPrContext, context);
+            await autoMergeIfPossible(
+              updatedPr,
+              context,
+              repoContext,
+              reviewflowPrContext,
+            );
           } else {
             repoContext.removePrFromAutomergeQueue(
               context,
-              pr.number,
+              pullRequest.number,
               'automerge label removed',
             );
           }
@@ -154,12 +182,12 @@ export default function labelsChanged(
         if (updateBranchLabel && label.id === updateBranchLabel.id) {
           if (context.payload.action === 'labeled') {
             await updateBranch(
-              updatedPrContext,
+              updatedPr,
               context,
               context.payload.sender.login,
             );
-            await context.github.issues.removeLabel(
-              contextIssue(context, { name: label.name }),
+            await context.octokit.issues.removeLabel(
+              context.issue({ name: label.name }),
             );
           }
         }

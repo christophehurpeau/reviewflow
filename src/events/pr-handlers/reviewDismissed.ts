@@ -1,13 +1,13 @@
-import { Application } from 'probot';
-import { AppContext } from '../../context/AppContext';
+import type { Probot } from 'probot';
+import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { updateReviewStatus } from './actions/updateReviewStatus';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
+import { fetchPr } from './utils/fetchPr';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
-import { fetchPullRequestAndCreateContext } from './utils/createPullRequestContext';
 
 export default function reviewDismissed(
-  app: Application,
+  app: Probot,
   appContext: AppContext,
 ): void {
   app.on(
@@ -15,7 +15,12 @@ export default function reviewDismissed(
     createPullRequestHandler(
       appContext,
       (payload) => payload.pull_request,
-      async (prContext, context, repoContext): Promise<void> => {
+      async (
+        pullRequest,
+        context,
+        repoContext,
+        reviewflowPrContext,
+      ): Promise<void> => {
         const sender = context.payload.sender;
         const reviewer = (context.payload as any).review.user;
         const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
@@ -25,11 +30,7 @@ export default function reviewDismissed(
           reviewerGroup &&
           repoContext.config.labels.review[reviewerGroup]
         ) {
-          const updatedPrContext = await fetchPullRequestAndCreateContext(
-            context,
-            prContext,
-          );
-          const pr = updatedPrContext.updatedPr;
+          const updatedPr = await fetchPr(context, pullRequest.number);
 
           const { reviewStates } = await getReviewersAndReviewStates(
             context,
@@ -40,34 +41,42 @@ export default function reviewDismissed(
           const hasApprovals = reviewStates[reviewerGroup].approved !== 0;
           const hasRequestedReviewsForGroup = repoContext.approveShouldWait(
             reviewerGroup,
-            pr.requested_reviewers,
+            updatedPr.requested_reviewers,
             { includesReviewerGroup: true },
           );
 
-          await updateReviewStatus(updatedPrContext, context, reviewerGroup, {
-            add: [
-              !hasApprovals && 'needsReview',
-              hasApprovals &&
+          await updateReviewStatus(
+            updatedPr,
+            context,
+            repoContext,
+            reviewerGroup,
+            {
+              add: [
+                !hasApprovals && 'needsReview',
+                hasApprovals &&
+                  !hasRequestedReviewsForGroup &&
+                  !hasChangesRequestedInReviews &&
+                  'approved',
+              ],
+              remove: [
                 !hasRequestedReviewsForGroup &&
-                !hasChangesRequestedInReviews &&
-                'approved',
-            ],
-            remove: [
-              !hasRequestedReviewsForGroup &&
-                !hasChangesRequestedInReviews &&
-                'requested',
-              !hasChangesRequestedInReviews && 'changesRequested',
-              !hasApprovals && 'approved',
-            ],
-          });
+                  !hasChangesRequestedInReviews &&
+                  'requested',
+                !hasChangesRequestedInReviews && 'changesRequested',
+                !hasApprovals && 'approved',
+              ],
+            },
+          );
 
-          if (pr.assignees) {
-            pr.assignees.forEach((assignee) => {
+          if (updatedPr.assignees) {
+            updatedPr.assignees.forEach((assignee) => {
               repoContext.slack.updateHome(assignee.login);
             });
           }
           if (
-            !pr.assignees.find((assignee) => assignee.login === reviewer.login)
+            !updatedPr.assignees.find(
+              (assignee) => assignee.login === reviewer.login,
+            )
           ) {
             repoContext.slack.updateHome(reviewer.login);
           }
@@ -75,7 +84,7 @@ export default function reviewDismissed(
 
         if (repoContext.slack) {
           if (sender.login === reviewer.login) {
-            prContext.pr.assignees.forEach((assignee) => {
+            pullRequest.assignees.forEach((assignee) => {
               repoContext.slack.postMessage(
                 'pr-review',
                 assignee.id,
@@ -84,7 +93,7 @@ export default function reviewDismissed(
                   text: `:skull: ${repoContext.slack.mention(
                     reviewer.login,
                   )} dismissed his review on ${slackUtils.createPrLink(
-                    prContext.pr,
+                    pullRequest,
                     repoContext,
                   )}`,
                 },
@@ -99,7 +108,7 @@ export default function reviewDismissed(
                 text: `:skull: ${repoContext.slack.mention(
                   sender.login,
                 )} dismissed your review on ${slackUtils.createPrLink(
-                  prContext.pr,
+                  pullRequest,
                   repoContext,
                 )}`,
               },

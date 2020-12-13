@@ -1,5 +1,5 @@
-import { Octokit } from 'probot';
-import { MongoStores, User } from '../../../mongo';
+import type { Octokit } from '@octokit/core';
+import type { MongoStores, User } from '../../../mongo';
 
 interface UserInfo {
   login: string;

@@ -1,5 +1,5 @@
-import { Octokit } from 'probot';
-import { MongoStores } from '../../../mongo';
+import type { Octokit } from '@octokit/core';
+import type { MongoStores } from '../../../mongo';
 
 export const syncTeamMembers = async (
   mongoStores: MongoStores,

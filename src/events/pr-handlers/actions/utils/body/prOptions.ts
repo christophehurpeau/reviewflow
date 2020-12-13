@@ -1,10 +1,10 @@
-export type Options = Record<OptionsKeys, boolean>;
-
 export type OptionsKeys =
   | 'featureBranch'
   | 'autoMergeWithSkipCi'
   | 'autoMerge'
   | 'deleteAfterMerge';
+
+export type Options = Record<OptionsKeys, boolean>;
 
 export const options: OptionsKeys[] = [
   'featureBranch',

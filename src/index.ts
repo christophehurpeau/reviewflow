@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import 'dotenv/config';
-import { Probot, Application } from 'probot';
-import { AppContext } from './context/AppContext';
-import mongoInit from './mongo';
+import { run } from 'probot';
 import appRouter from './appRouter';
+import type { AppContext } from './context/AppContext';
 import initApp from './initApp';
+import mongoInit from './mongo';
 import { createSlackHomeWorker } from './slack/home';
 
 if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = 'reviewflow';
@@ -17,12 +18,11 @@ console.log({ name: process.env.REVIEWFLOW_NAME });
 
 // let config = await getConfig(context, 'reviewflow.yml');
 
-// eslint-disable-next-line import/no-commonjs
-Probot.run((app: Application): void => {
+run(({ app, getRouter }) => {
   const mongoStores = mongoInit();
   const slackHome = createSlackHomeWorker(mongoStores);
   const appContext: AppContext = { mongoStores, slackHome };
-  appRouter(app, appContext);
+  appRouter(app, getRouter, appContext);
   initApp(app, appContext);
   slackHome.scheduleUpdateAllOrgs((id: number) => app.auth(id));
 });

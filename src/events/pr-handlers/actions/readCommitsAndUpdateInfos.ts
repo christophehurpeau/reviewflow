@@ -1,31 +1,38 @@
-import Webhooks from '@octokit/webhooks';
+import type { CommitNote } from '@commitlint/parse';
 import parse from '@commitlint/parse';
-import { Context, Octokit } from 'probot';
-import { contextPr } from '../../../context/utils';
-import { PrContext } from '../utils/createPullRequestContext';
-import syncLabel from './utils/syncLabel';
+import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
+import type { EventPayloads } from '@octokit/webhooks';
+import type { Context } from 'probot';
+import type { RepoContext } from 'context/repoContext';
+import type { PullRequestWithDecentData } from '../utils/PullRequestData';
+import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
+import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
 import { updateCommentBodyCommitsNotes } from './utils/body/updateBody';
-import { updatePrIfNeeded } from './updatePr';
+import syncLabel from './utils/syncLabel';
+
+interface BreakingChangesCommits {
+  commit: RestEndpointMethodTypes['pulls']['listCommits']['response']['data'][number];
+  breakingChangesNotes: CommitNote[];
+}
 
 export const readCommitsAndUpdateInfos = async <
-  E extends Webhooks.WebhookPayloadPullRequest
+  E extends EventPayloads.WebhookPayloadPullRequest
 >(
-  prContext: PrContext<E['pull_request'] | Octokit.PullsGetResponse>,
+  pullRequest: PullRequestWithDecentData,
   context: Context<E>,
-  commentBody = prContext.commentBody,
+  repoContext: RepoContext,
+  reviewflowPrContext: ReviewflowPrContext,
+  commentBody = reviewflowPrContext.commentBody,
 ): Promise<void> => {
-  const pr = prContext.updatedPr || prContext.pr;
-  const { repoContext } = prContext;
   // tmp.data[0].sha
   // tmp.data[0].commit.message
 
-  const commits = await context.github.paginate(
-    context.github.pulls.listCommits.endpoint.merge(
-      contextPr(context, {
-        // A custom page size up to 100. Default is 30.
-        per_page: 100,
-      }),
-    ),
+  const commits = await context.octokit.paginate(
+    context.octokit.pulls.listCommits,
+    context.pullRequest({
+      // A custom page size up to 100. Default is 30.
+      per_page: 100,
+    }),
     (res) => res.data,
   );
 
@@ -33,19 +40,18 @@ export const readCommitsAndUpdateInfos = async <
     commits.map((c) => parse(c.commit.message)),
   );
 
-  const breakingChangesCommits: any = conventionalCommits.reduce(
-    (acc, c, index) => {
-      const breakingChangesNotes = c.notes.filter(
-        (note: any) => note.title === 'BREAKING CHANGE',
-      );
-      if (breakingChangesNotes.length !== 0) {
-        acc.push({ commit: commits[index], breakingChangesNotes });
-      }
-
-      return acc;
-    },
-    [],
-  );
+  const breakingChangesCommits: BreakingChangesCommits[] = [];
+  conventionalCommits.forEach((c, index) => {
+    const breakingChangesNotes = c.notes.filter(
+      (note) => note.title === 'BREAKING CHANGE',
+    );
+    if (breakingChangesNotes.length > 0) {
+      breakingChangesCommits.push({
+        commit: commits[index],
+        breakingChangesNotes,
+      });
+    }
+  });
 
   const breakingChangesLabel = repoContext.labels['breaking-changes'];
   const newCommentBody = updateCommentBodyCommitsNotes(
@@ -53,10 +59,9 @@ export const readCommitsAndUpdateInfos = async <
     breakingChangesCommits.length === 0
       ? ''
       : `Breaking Changes:\n${breakingChangesCommits
-          .map(({ commit, breakingChangesNotes }: any) =>
+          .map(({ commit, breakingChangesNotes }) =>
             breakingChangesNotes.map(
-              (note: any) =>
-                `- ${note.text.replace('\n', ' ')} (${commit.sha})`,
+              (note) => `- ${note.text.replace('\n', ' ')} (${commit.sha})`,
             ),
           )
           .join('')}`,
@@ -64,12 +69,12 @@ export const readCommitsAndUpdateInfos = async <
 
   await Promise.all([
     syncLabel(
-      pr,
+      pullRequest,
       context,
       breakingChangesCommits.length !== 0,
       breakingChangesLabel,
     ),
-    updatePrIfNeeded(prContext, context, { commentBody: newCommentBody }),
+    updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newCommentBody),
   ]);
 
   // TODO auto update ! in front of : to signal a breaking change when https://github.com/conventional-changelog/commitlint/issues/658 is closed

@@ -1,23 +1,20 @@
-import Webhooks from '@octokit/webhooks';
-import { Context, Octokit } from 'probot';
-import { LabelResponse } from '../../../context/initRepoLabels';
-import { GroupLabels } from '../../../accountConfigs/types';
-import { contextIssue } from '../../../context/utils';
-import {
-  PrContext,
-  PrContextWithUpdatedPr,
-} from '../utils/createPullRequestContext';
+import type { EventPayloads } from '@octokit/webhooks';
+import type { Context } from 'probot';
+import type { RepoContext } from 'context/repoContext';
+import type { GroupLabels } from '../../../accountConfigs/types';
+import type {
+  PullRequestLabels,
+  PullRequestWithDecentData,
+} from '../utils/PullRequestData';
 import { updateStatusCheckFromLabels } from './updateStatusCheckFromLabels';
 
 export const updateReviewStatus = async <
-  E extends { repository: Webhooks.PayloadRepository },
+  E extends { repository: EventPayloads.PayloadRepository },
   GroupNames extends string = any
 >(
-  prContext:
-    | PrContext<Webhooks.WebhookPayloadPullRequest['pull_request']>
-    | PrContext<Octokit.PullsGetResponse>
-    | PrContextWithUpdatedPr,
+  pullRequest: PullRequestWithDecentData,
   context: Context<E>,
+  repoContext: RepoContext,
   reviewGroup: GroupNames,
   {
     add: labelsToAdd,
@@ -26,25 +23,17 @@ export const updateReviewStatus = async <
     add?: (GroupLabels | false | undefined)[];
     remove?: (GroupLabels | false | undefined)[];
   },
-): Promise<LabelResponse[]> => {
-  const { repoContext } = prContext;
-  const pr =
-    prContext.updatedPr ||
-    (prContext as
-      | PrContext<Webhooks.WebhookPayloadPullRequest['pull_request']>
-      | PrContext<Octokit.PullsGetResponse>).pr;
+): Promise<PullRequestLabels> => {
   context.log.debug('updateReviewStatus', {
     reviewGroup,
     labelsToAdd,
     labelsToRemove,
   });
 
-  let prLabels: LabelResponse[] = pr.labels || [];
+  let prLabels: PullRequestLabels = pullRequest.labels || [];
   if (!reviewGroup) return prLabels;
 
-  const newLabelNames = new Set<string>(
-    prLabels.map((label: LabelResponse) => label.name),
-  );
+  const newLabelNames = new Set<string>(prLabels.map((label) => label.name));
 
   const toAdd = new Set<GroupLabels | string>();
   const toAddNames = new Set<string>();
@@ -52,7 +41,9 @@ export const updateReviewStatus = async <
   const toDeleteNames = new Set<string>();
   const labels = repoContext.labels;
 
-  const getLabelFromKey = (key: GroupLabels): undefined | LabelResponse => {
+  const getLabelFromKey = (
+    key: GroupLabels,
+  ): undefined | PullRequestLabels[number] => {
     const reviewConfig = repoContext.config.labels.review[reviewGroup];
     if (!reviewConfig) return undefined;
 
@@ -90,7 +81,7 @@ export const updateReviewStatus = async <
 
   // TODO move that elsewhere
 
-  repoContext.getTeamsForLogin(pr.user.login).forEach((teamName) => {
+  repoContext.getTeamsForLogin(pullRequest.user.login).forEach((teamName) => {
     const team = repoContext.config.teams[teamName];
     if (team.labels) {
       team.labels.forEach((labelKey) => {
@@ -117,8 +108,8 @@ export const updateReviewStatus = async <
       });
 
       if (toAdd.size !== 0) {
-        const result = await context.github.issues.addLabels(
-          contextIssue(context, {
+        const result = await context.octokit.issues.addLabels(
+          context.issue({
             labels: [...toAddNames],
           }),
         );
@@ -128,8 +119,8 @@ export const updateReviewStatus = async <
       if (toDelete.size !== 0) {
         for (const toDeleteName of [...toDeleteNames]) {
           try {
-            const result = await context.github.issues.removeLabel(
-              contextIssue(context, {
+            const result = await context.octokit.issues.removeLabel(
+              context.issue({
                 name: toDeleteName,
               }),
             );
@@ -148,12 +139,12 @@ export const updateReviewStatus = async <
         reviewGroup,
         toAdd: [...toAdd],
         toDelete: [...toDelete],
-        oldLabels: prLabels.map((l: LabelResponse) => l.name),
+        oldLabels: prLabels.map((l) => l.name),
         newLabelNames: newLabelNamesArray,
       });
 
-      const result = await context.github.issues.replaceLabels(
-        contextIssue(context, {
+      const result = await context.octokit.issues.setLabels(
+        context.issue({
           labels: newLabelNamesArray,
         }),
       );
@@ -167,7 +158,12 @@ export const updateReviewStatus = async <
   //   toDelete.has('needsReview') ||
   //   (prLabels.length === 0 && toAdd.size === 1 && toAdd.has('approved'))
   // ) {
-  await updateStatusCheckFromLabels(prContext, pr, context, prLabels);
+  await updateStatusCheckFromLabels(
+    pullRequest,
+    context,
+    repoContext,
+    prLabels,
+  );
   // }
 
   return prLabels;

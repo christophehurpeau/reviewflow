@@ -1,6 +1,7 @@
-import { Context, Octokit } from 'probot';
-import { RepoContext } from '../../../context/repoContext';
-import { contextPr, getKeys } from '../../../context/utils';
+import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
+import type { Context } from 'probot';
+import type { RepoContext } from '../../../context/repoContext';
+import { getKeys } from '../../../context/utils';
 
 type ReviewState = 'CHANGES_REQUESTED' | 'APPROVED' | 'DISMISSED';
 
@@ -14,9 +15,7 @@ interface Reviewer {
   login: string;
 }
 
-export const getReviewersAndReviewStates = async <
-  GroupNames extends string = any
->(
+export const getReviewersAndReviewStates = async <GroupNames extends string>(
   context: Context,
   repoContext: RepoContext<GroupNames>,
 ): Promise<{
@@ -27,9 +26,12 @@ export const getReviewersAndReviewStates = async <
   const reviewers: Reviewer[] = [];
   const reviewStatesByUser = new Map<number, ReviewState>();
 
-  await context.github.paginate(
-    context.github.pulls.listReviews.endpoint.merge(contextPr(context)),
-    ({ data: reviews }: Octokit.Response<Octokit.PullsListReviewsResponse>) => {
+  await context.octokit.paginate(
+    context.octokit.pulls.listReviews,
+    context.pullRequest(),
+    ({
+      data: reviews,
+    }: RestEndpointMethodTypes['pulls']['listReviews']['response']) => {
       reviews.forEach((review) => {
         if (!userIds.has(review.user.id)) {
           userIds.add(review.user.id);
@@ -40,6 +42,8 @@ export const getReviewersAndReviewStates = async <
           reviewStatesByUser.set(review.user.id, state as ReviewState);
         }
       });
+
+      return [];
     },
   );
 

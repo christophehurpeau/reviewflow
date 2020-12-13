@@ -1,16 +1,22 @@
-import { Octokit } from 'probot';
-import Webhooks from '@octokit/webhooks';
+import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
+import type { EventPayloads } from '@octokit/webhooks';
 
 export type PullRequestWithDecentDataFromWebhook =
-  | Webhooks.WebhookPayloadPullRequest['pull_request']
-  | Webhooks.WebhookPayloadPullRequestReviewPullRequest;
+  | EventPayloads.WebhookPayloadPullRequest['pull_request']
+  | EventPayloads.WebhookPayloadPullRequestReviewPullRequest;
+
+export type PullRequestLabels = EventPayloads.WebhookPayloadPullRequest['pull_request']['labels'];
 
 export type PullRequestFromWebhook =
   | PullRequestWithDecentDataFromWebhook
-  | Webhooks.WebhookPayloadCheckRunCheckRunPullRequestsItem;
+  | EventPayloads.WebhookPayloadCheckRunCheckRunPullRequestsItem;
 
-export type PullRequestData = Octokit.PullsGetResponse | PullRequestFromWebhook;
+export type PullRequestFromRestEndpoint = RestEndpointMethodTypes['pulls']['get']['response']['data'];
+
+export type PullRequestData =
+  | PullRequestFromRestEndpoint
+  | PullRequestFromWebhook;
 
 export type PullRequestWithDecentData =
-  | Octokit.PullsGetResponse
+  | PullRequestFromRestEndpoint
   | PullRequestWithDecentDataFromWebhook;
