@@ -1,3 +1,20 @@
+# Changelog
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [1.65.0](https://github.com/christophehurpeau/reviewflow/compare/v1.64.0...v1.65.0) (2020-12-19)
+
+
+### Features
+
+* add GaelFerrand in ornikar config ([#121](https://github.com/christophehurpeau/reviewflow/issues/121)) ([d3f5584](https://github.com/christophehurpeau/reviewflow/commit/d3f5584b4860cfc17cf7f5e18cf2e9f8f1b72a7a))
+
+
+### Bug Fixes
+
+* logs ([89643ad](https://github.com/christophehurpeau/reviewflow/commit/89643ad01287c0ad2b5e6c58936e8e658c795ffc))
+* missing return false when pr is not opened ([ac23426](https://github.com/christophehurpeau/reviewflow/commit/ac23426297426d215f6cf838934c571dbfba41b7))
+
 # [1.64.0](https://github.com/christophehurpeau/reviewflow/compare/v1.63.0...v1.64.0) (2020-12-19)
 
 
@@ -1490,6 +1507,3 @@
 * trim title ([5b89981](https://github.com/christophehurpeau/reviewflow/commit/5b89981cefe824d316f0148637f0622a7b855cb0))
 * use kitt colors ([6abedd4](https://github.com/christophehurpeau/reviewflow/commit/6abedd4d948796ea234a5c0e96472ae145ad8b60))
 * wording ([9f60523](https://github.com/christophehurpeau/reviewflow/commit/9f60523f14a0757cb531f091751d7ab83a0c03dc))
-
-
-
