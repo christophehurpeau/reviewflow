@@ -3044,8 +3044,8 @@ function opened(app, appContext) {
     if (repoContext.shouldIgnore) return null;
     return payload.pull_request;
   }, async (pullRequest, context, repoContext, reviewflowPrContext) => {
-    const fromRenovate = pullRequest.head.ref.startsWith('renovate/');
     if (reviewflowPrContext === null) return;
+    const fromRenovate = pullRequest.head.ref.startsWith('renovate/');
     await Promise.all([autoAssignPRToCreator(pullRequest, context, repoContext), editOpenedPR(pullRequest, context, repoContext, reviewflowPrContext, true), fromRenovate ? fetchPr(context, pullRequest.number).then(updatedPr => autoApproveAndAutoMerge(updatedPr, context, repoContext, reviewflowPrContext).then(async approved => {
       if (!approved && repoContext.config.requiresReviewRequest) {
         await updateReviewStatus(pullRequest, context, repoContext, 'dev', {

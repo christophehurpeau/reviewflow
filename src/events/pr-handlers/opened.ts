@@ -19,8 +19,8 @@ export default function opened(app: Probot, appContext: AppContext): void {
         return payload.pull_request;
       },
       async (pullRequest, context, repoContext, reviewflowPrContext) => {
-        const fromRenovate = pullRequest.head.ref.startsWith('renovate/');
         if (reviewflowPrContext === null) return;
+        const fromRenovate = pullRequest.head.ref.startsWith('renovate/');
 
         await Promise.all<unknown>([
           autoAssignPRToCreator(pullRequest, context, repoContext),
