@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.66.0](https://github.com/christophehurpeau/reviewflow/compare/v1.65.0...v1.66.0) (2020-12-19)
+
+
+### Features
+
+* update merge emoji ([ca8782c](https://github.com/christophehurpeau/reviewflow/commit/ca8782c091000f53c9ec0ded0ebc4936e8deb6a9))
+
+
+### Bug Fixes
+
+* dont use context.payload.repository.owner but account instead ([e4dfdb3](https://github.com/christophehurpeau/reviewflow/commit/e4dfdb39200d825ad9533626f7f601ff2fbfca15))
+* update conventional config link ([b954c1f](https://github.com/christophehurpeau/reviewflow/commit/b954c1f4a99ea044adfc70bd0d4e0c038ae76828))
+
 ## [1.65.0](https://github.com/christophehurpeau/reviewflow/compare/v1.64.0...v1.65.0) (2020-12-19)
 
 
