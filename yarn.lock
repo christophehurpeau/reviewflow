@@ -7189,10 +7189,10 @@ pluralize@^8.0.0:
   resolved "https://registry.yarnpkg.com/pluralize/-/pluralize-8.0.0.tgz#1a6fa16a38d12a1901e0320fa017051c539ce3b1"
   integrity sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==
 
-pob-babel@26.2.0:
-  version "26.2.0"
-  resolved "https://registry.yarnpkg.com/pob-babel/-/pob-babel-26.2.0.tgz#b2482e1f493c2e41145f4f8a99fd9044fdce4cfb"
-  integrity sha512-hUw4aIW4Nufy2Ype0lN1Tnpu0acEEW35M7iF2ZSN4eq8xrqnsA3Ai1lzk6tQ/AIUOdbRC0TYWpogxj7v+uJABQ==
+pob-babel@26.2.1:
+  version "26.2.1"
+  resolved "https://registry.yarnpkg.com/pob-babel/-/pob-babel-26.2.1.tgz#1291de1b92c8275abfaf01c4bbb87867e83ffe93"
+  integrity sha512-bJjzfMFM2GQ5vD4qzJ66+8kYKaLsp9mXAfpyesOOzBtw2ZUII+/G5N8HXuM6hCMr2hghxIuJ7uq3hQpm1R+5+Q==
   dependencies:
     "@babel/plugin-transform-runtime" "^7.12.10"
     "@rollup/plugin-babel" "^5.2.2"
