@@ -57,7 +57,7 @@
     "id": 1285313520,
     "node_id": "MDU6TGFiZWwxMjg1MzEzNTIw",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:soon:%20automerge",
-    "name": ":soon: automerge",
+    "name": ":vertical_traffic_light: automerge",
     "color": "64DD17",
     "default": false,
     "description": "Synced by reviewflow for merge/automerge"

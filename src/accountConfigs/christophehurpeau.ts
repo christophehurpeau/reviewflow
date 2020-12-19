@@ -61,7 +61,7 @@ const config: Config<'dev', never> = {
 
       /* auto merge */
       'merge/automerge': {
-        name: ':soon: automerge',
+        name: ':vertical_traffic_light: automerge',
         color: '#64DD17',
       },
       'merge/skip-ci': {
