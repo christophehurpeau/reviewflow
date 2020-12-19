@@ -1495,7 +1495,8 @@ const autoMergeIfPossible = async (pullRequest, context, repoContext, reviewflow
   if (lockedPr && String(lockedPr.number) !== String(pullRequest.number)) {
     context.log.info({
       prId: pullRequest.id,
-      prNumber: pullRequest.number
+      prNumber: pullRequest.number,
+      lockedPrNumber: lockedPr.number
     }, 'automerge not possible: locked pr');
     repoContext.pushAutomergeQueue(createMergeLockPrFromPr());
     return false;

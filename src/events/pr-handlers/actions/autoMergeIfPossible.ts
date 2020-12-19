@@ -144,6 +144,7 @@ export const autoMergeIfPossible = async (
       {
         prId: pullRequest.id,
         prNumber: pullRequest.number,
+        lockedPrNumber: lockedPr.number,
       },
       'automerge not possible: locked pr',
     );
