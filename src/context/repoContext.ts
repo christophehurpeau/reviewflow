@@ -3,7 +3,6 @@ import type { Context } from 'probot';
 import type { Config } from '../accountConfigs';
 import { accountConfigs, defaultConfig } from '../accountConfigs';
 import type { GroupLabels } from '../accountConfigs/types';
-// eslint-disable-next-line import/no-cycle
 import { autoMergeIfPossible } from '../events/pr-handlers/actions/autoMergeIfPossible';
 import type {
   PullRequestData,

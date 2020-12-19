@@ -8,5 +8,4 @@ export const cleanTitle = (title: string): string =>
     .replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `)
     .replace(/^Revert "([^"]+)"$/, 'revert: $1')
     .replace(/\s+[[\]]\s*no\s*issue\s*[[\]]$/i, ' [no issue]')
-    // eslint-disable-next-line unicorn/no-unsafe-regex
     .replace(/^(revert:.*)(\s+\(#\d+\))$/, '$1');

@@ -100,16 +100,13 @@ export const updateCommentBodyCommitsNotes = (
   return commentBody.replace(
     // eslint-disable-next-line unicorn/no-unsafe-regex
     /(?:#### Commits Notes:.*?)?(#### Options:)/s,
-    // eslint-disable-next-line no-nested-ternary
     !commitNotes ? '$1' : `#### Commits Notes:\n\n${commitNotes}\n\n$1`,
   );
 };
 
 export const removeDeprecatedReviewflowInPrBody = (prBody: string): string => {
   return prBody.replace(
-    // eslint-disable-next-line unicorn/no-unsafe-regex
     /^(.*)<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->(.*)$/is,
-    // eslint-disable-next-line no-nested-ternary
     '$1$3',
   );
 };
