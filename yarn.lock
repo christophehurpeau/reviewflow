@@ -2907,19 +2907,10 @@ conventional-changelog-config-spec@2.1.0:
   resolved "https://registry.yarnpkg.com/conventional-changelog-config-spec/-/conventional-changelog-config-spec-2.1.0.tgz#874a635287ef8b581fd8558532bf655d4fb59f2d"
   integrity sha512-IpVePh16EbbB02V+UA+HQnnPIohgXvJRxHcS5+Uwk4AT5LjzCZJm5sp/yqs5C6KZJ1jMsV4paEV13BN1pvDuxQ==
 
-conventional-changelog-conventionalcommits@4.4.0:
+conventional-changelog-conventionalcommits@4.4.0, conventional-changelog-conventionalcommits@^4.3.1, conventional-changelog-conventionalcommits@^4.4.0:
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/conventional-changelog-conventionalcommits/-/conventional-changelog-conventionalcommits-4.4.0.tgz#8d96687141c9bbd725a89b95c04966d364194cd4"
   integrity sha512-ybvx76jTh08tpaYrYn/yd0uJNLt5yMrb1BphDe4WBredMlvPisvMghfpnJb6RmRNcqXeuhR6LfGZGewbkRm9yA==
-  dependencies:
-    compare-func "^2.0.0"
-    lodash "^4.17.15"
-    q "^1.5.1"
-
-conventional-changelog-conventionalcommits@^4.3.1, conventional-changelog-conventionalcommits@^4.4.0:
-  version "4.5.0"
-  resolved "https://registry.yarnpkg.com/conventional-changelog-conventionalcommits/-/conventional-changelog-conventionalcommits-4.5.0.tgz#a02e0b06d11d342fdc0f00c91d78265ed0bc0a62"
-  integrity sha512-buge9xDvjjOxJlyxUnar/+6i/aVEVGA7EEh4OafBCXPlLUQPGbRUBhBUveWRxzvR8TEjhKEP4BdepnpG2FSZXw==
   dependencies:
     compare-func "^2.0.0"
     lodash "^4.17.15"
@@ -7198,10 +7189,10 @@ pluralize@^8.0.0:
   resolved "https://registry.yarnpkg.com/pluralize/-/pluralize-8.0.0.tgz#1a6fa16a38d12a1901e0320fa017051c539ce3b1"
   integrity sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==
 
-pob-babel@26.2.0:
-  version "26.2.0"
-  resolved "https://registry.yarnpkg.com/pob-babel/-/pob-babel-26.2.0.tgz#b2482e1f493c2e41145f4f8a99fd9044fdce4cfb"
-  integrity sha512-hUw4aIW4Nufy2Ype0lN1Tnpu0acEEW35M7iF2ZSN4eq8xrqnsA3Ai1lzk6tQ/AIUOdbRC0TYWpogxj7v+uJABQ==
+pob-babel@26.2.1:
+  version "26.2.1"
+  resolved "https://registry.yarnpkg.com/pob-babel/-/pob-babel-26.2.1.tgz#1291de1b92c8275abfaf01c4bbb87867e83ffe93"
+  integrity sha512-bJjzfMFM2GQ5vD4qzJ66+8kYKaLsp9mXAfpyesOOzBtw2ZUII+/G5N8HXuM6hCMr2hghxIuJ7uq3hQpm1R+5+Q==
   dependencies:
     "@babel/plugin-transform-runtime" "^7.12.10"
     "@rollup/plugin-babel" "^5.2.2"

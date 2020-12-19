@@ -128,7 +128,7 @@
     "jest": "26.6.3",
     "nock": "13.0.4",
     "nodemon": "2.0.4",
-    "pob-babel": "26.2.0",
+    "pob-babel": "26.2.1",
     "pob-lcov-reporter": "4.0.1",
     "prettier": "2.2.1",
     "rollup": "2.35.1",
