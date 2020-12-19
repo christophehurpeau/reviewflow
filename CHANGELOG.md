@@ -1,3 +1,12 @@
+# [1.64.0](https://github.com/christophehurpeau/reviewflow/compare/v1.63.0...v1.64.0) (2020-12-19)
+
+
+### Features
+
+* upgrade to probot 10 ([d11c7e1](https://github.com/christophehurpeau/reviewflow/commit/d11c7e1ea8ceb3cc10ef365436ad780c06ca3292))
+
+
+
 # [1.63.0](https://github.com/christophehurpeau/reviewflow/compare/v1.62.0...v1.63.0) (2020-11-06)
 
 
@@ -334,7 +343,11 @@
 
 
 
-## [1.42.1](https://github.com/christophehurpeau/reviewflow/compare/v1.41.2...v1.42.1) (2020-05-21)
+## [1.42.1](https://github.com/christophehurpeau/reviewflow/compare/v1.42.0...v1.42.1) (2020-05-21)
+
+
+
+# [1.42.0](https://github.com/christophehurpeau/reviewflow/compare/v1.41.2...v1.42.0) (2020-05-21)
 
 
 ### Bug Fixes
