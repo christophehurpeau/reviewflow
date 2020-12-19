@@ -244,7 +244,7 @@ const config = {
       /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([/a-z-]*)\))?(!)?:\s/,
       error: {
         title: 'Title does not match commitlint conventional',
-        summary: 'https://github.com/marionebl/commitlint/tree/master/%40commitlint/config-conventional'
+        summary: 'https://www.npmjs.com/package/@commitlint/config-conventional'
       }
     }]
   },
@@ -382,7 +382,7 @@ const config$2 = {
       /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([/a-z-]*)\))?:\s/,
       error: {
         title: 'Title does not match commitlint conventional',
-        summary: 'https://github.com/marionebl/commitlint/tree/master/%40commitlint/config-conventional'
+        summary: 'https://www.npmjs.com/package/@commitlint/config-conventional'
       }
     }, {
       bot: false,

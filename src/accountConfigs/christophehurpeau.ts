@@ -19,7 +19,7 @@ const config: Config<'dev', never> = {
         error: {
           title: 'Title does not match commitlint conventional',
           summary:
-            'https://github.com/marionebl/commitlint/tree/master/%40commitlint/config-conventional',
+            'https://www.npmjs.com/package/@commitlint/config-conventional',
         },
       },
     ],
