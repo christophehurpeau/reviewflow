@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.67.0](https://github.com/christophehurpeau/reviewflow/compare/v1.66.1...v1.67.0) (2020-12-19)
+
+
+### Features
+
+* add lockedPrNumber ([7b0f2d8](https://github.com/christophehurpeau/reviewflow/commit/7b0f2d8988e1cf614a526df60227f5c95f8b3f05))
+
+
+### Bug Fixes
+
+* revert change in ornikar config ([89c73b7](https://github.com/christophehurpeau/reviewflow/commit/89c73b72699ae56a3772d4a81fbc7ce5be9a40ea))
+
 ### [1.66.1](https://github.com/christophehurpeau/reviewflow/compare/v1.66.0...v1.66.1) (2020-12-19)
 
 
