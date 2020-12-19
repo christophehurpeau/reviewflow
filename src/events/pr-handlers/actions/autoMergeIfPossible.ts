@@ -94,6 +94,7 @@ export const autoMergeIfPossible = async (
       pullRequest.number,
       'pr is not opened',
     );
+    return false;
   }
 
   const addLog = (
