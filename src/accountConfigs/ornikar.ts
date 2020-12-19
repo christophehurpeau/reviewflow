@@ -77,6 +77,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       mdcarter: `maxime.dehaye${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       ChibiBlasphem: `christopher${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       PSniezak: `paul.sniezak${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      GaelFerrand: 'gael.ferrand@othrys.dev',
     },
     design: {
       jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
