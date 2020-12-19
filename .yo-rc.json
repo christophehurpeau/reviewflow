@@ -5,26 +5,6 @@
       "authorEmail": "christophe@hurpeau.com",
       "authorUrl": "https://christophe.hurpeau.com"
     },
-    "pob-config": {
-      "entries": [
-        "index"
-      ],
-      "documentation": false,
-      "testing": {
-        "circleci": true,
-        "codecov": false
-      },
-      "envs": [
-        {
-          "target": "node",
-          "version": "10",
-          "formats": [
-            "cjs"
-          ]
-        }
-      ],
-      "withReact": false
-    },
     "renovate": {
       "enable": true
     },
@@ -32,8 +12,10 @@
       "type": "app",
       "yarn2": false
     },
-    "app": {
-      "type": "node"
+    "pob-app-config": {
+      "type": "node",
+      "testing": true,
+      "ci": true
     }
   }
 }

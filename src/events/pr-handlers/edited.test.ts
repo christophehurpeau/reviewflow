@@ -22,9 +22,7 @@ describe('edited', (): void => {
     mockLabels();
   });
 
-  test('edits the pull request when pull request is edited', async (): Promise<
-    void
-  > => {
+  test('edits the pull request when pull request is edited', async (): Promise<void> => {
     const scope = nock('https://api.github.com')
       .get('/repos/reviewflow/reviewflow-test/pulls/30')
       .times(1)

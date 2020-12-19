@@ -28,9 +28,7 @@ describe('opened', (): void => {
     mockLabels();
   });
 
-  test('edits the pull request when pull request is opened', async (): Promise<
-    void
-  > => {
+  test('edits the pull request when pull request is opened', async (): Promise<void> => {
     const scope = nock('https://api.github.com')
       .post(
         '/repos/reviewflow/reviewflow-test/issues/30/comments',
