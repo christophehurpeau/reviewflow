@@ -86,8 +86,8 @@ export const initRepoLabels = async <GroupNames extends string>(
 
       const result = await context.octokit.issues.updateLabel(
         context.repo({
-          current_name: existingLabel.name,
-          name: labelConfig.name,
+          name: existingLabel.name,
+          new_name: labelConfig.name,
           color: labelColor,
           description,
         }),

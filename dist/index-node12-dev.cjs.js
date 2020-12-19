@@ -1811,8 +1811,8 @@ const initRepoLabels = async (context, config) => {
         description: existingLabel.description !== description && description
       }, 'Needs to update label');
       const result = await context.octokit.issues.updateLabel(context.repo({
-        current_name: existingLabel.name,
-        name: labelConfig.name,
+        name: existingLabel.name,
+        new_name: labelConfig.name,
         color: labelColor,
         description
       }));
