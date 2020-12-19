@@ -1150,11 +1150,11 @@ const initTeamSlack = async ({
       return `<@${user.member.id}>`;
     },
     postMessage: async (category, githubId, githubLogin, message) => {
-      context.log.debug('slack: post message', {
+      context.log.debug({
         category,
         githubLogin,
         message
-      });
+      }, 'slack: post message');
       if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
       const userDmSettings = await getUserDmSettings(mongoStores, owner.login, owner.id, githubId);
       if (!userDmSettings[category]) return null;
@@ -1177,11 +1177,11 @@ const initTeamSlack = async ({
       };
     },
     updateMessage: async (ts, channel, message) => {
-      context.log.debug('slack: update message', {
+      context.log.debug({
         ts,
         channel,
         message
-      });
+      }, 'slack: update message');
       if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
       const result = await slackClient.chat.update({
         ts,
@@ -1199,21 +1199,21 @@ const initTeamSlack = async ({
       };
     },
     deleteMessage: async (ts, channel) => {
-      context.log.debug('slack: delete message', {
+      context.log.debug({
         ts,
         channel
-      });
+      }, 'slack: delete message');
       await slackClient.chat.delete({
         ts,
         channel
       });
     },
     addReaction: async (ts, channel, name) => {
-      context.log.debug('slack: add reaction', {
+      context.log.debug({
         ts,
         channel,
         name
-      });
+      }, 'slack: add reaction');
       await slackClient.reactions.add({
         timestamp: ts,
         channel,
@@ -1221,9 +1221,9 @@ const initTeamSlack = async ({
       });
     },
     updateHome: githubLogin => {
-      context.log.debug('update slack home', {
+      context.log.debug({
         githubLogin
-      });
+      }, 'update slack home');
       const user = getUserFromGithubLogin(githubLogin);
       if (!user || !user.member) return;
       slackHome.scheduleUpdateMember(context.octokit, slackClient, {
@@ -1282,22 +1282,22 @@ const initAccountContext = async (appContext, context, config, accountInfo) => {
         const logInfos = {
           account: accountInfo.login
         };
-        context.log.info('lock: try to lock account', logInfos); // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        context.log.info(logInfos, 'lock: try to lock account'); // eslint-disable-next-line @typescript-eslint/no-misused-promises
 
         lock$1('_', async createReleaseCallback => {
           const release = createReleaseCallback(() => {});
-          context.log.info('lock: lock account acquired', logInfos);
+          context.log.info(logInfos, 'lock: lock account acquired');
 
           try {
             await callback();
           } catch (err) {
-            context.log.info('lock: release account (with error)', logInfos);
+            context.log.info(logInfos, 'lock: release account (with error)');
             release();
             reject(err);
             return;
           }
 
-          context.log.info('lock: release account', logInfos);
+          context.log.info(logInfos, 'lock: release account');
           release();
           resolve();
         });
@@ -1419,9 +1419,9 @@ const hasFailedStatusOrChecks = async (pr, context) => {
   const failedChecks = checks.data.check_runs.filter(check => check.conclusion === 'failure');
 
   if (failedChecks.length > 0) {
-    context.log.info(`automerge not possible: failed check pr ${pr.id}`, {
+    context.log.info({
       checks: failedChecks.map(check => check.name)
-    });
+    }, `automerge not possible: failed check pr ${pr.id}`);
     return true;
   }
 
@@ -1432,9 +1432,9 @@ const hasFailedStatusOrChecks = async (pr, context) => {
 
   if (combinedStatus.data.state === 'failure') {
     const failedStatuses = combinedStatus.data.statuses.filter(status => status.state === 'failure' || status.state === 'error');
-    context.log.info(`automerge not possible: failed status pr ${pr.id}`, {
+    context.log.info({
       statuses: failedStatuses.map(status => status.context)
-    });
+    }, `automerge not possible: failed status pr ${pr.id}`);
     return true;
   }
 
@@ -1492,10 +1492,10 @@ const autoMergeIfPossible = async (pullRequest, context, repoContext, reviewflow
   const lockedPr = repoContext.getMergeLockedPr();
 
   if (lockedPr && String(lockedPr.number) !== String(pullRequest.number)) {
-    context.log.info('automerge not possible: locked pr', {
+    context.log.info({
       prId: pullRequest.id,
       prNumber: pullRequest.number
-    });
+    }, 'automerge not possible: locked pr');
     repoContext.pushAutomergeQueue(createMergeLockPrFromPr());
     return false;
   }
@@ -1577,10 +1577,10 @@ const autoMergeIfPossible = async (pullRequest, context, repoContext, reviewflow
 
     if (pullRequest.mergeable_state === 'behind') {
       addLog('behind mergeable_state', 'update branch');
-      context.log.info('automerge not possible: update branch', {
+      context.log.info({
         head: pullRequest.head.ref,
         base: pullRequest.base.ref
-      });
+      }, 'automerge not possible: update branch');
       await context.octokit.repos.merge({
         owner: pullRequest.head.repo.owner.login,
         repo: pullRequest.head.repo.name,
@@ -1609,11 +1609,13 @@ const autoMergeIfPossible = async (pullRequest, context, repoContext, reviewflow
       commit_message: options.featureBranch ? undefined : '' // TODO add BC
 
     });
-    context.log.debug('merge result:', mergeResult.data);
+    context.log.debug(mergeResult.data, 'merge result:');
     repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'merged');
     return Boolean('merged' in mergeResult.data && mergeResult.data.merged);
   } catch (err) {
-    context.log.info('could not merge:', err.message);
+    context.log.info({
+      errorMessage: err.message
+    }, 'could not merge:');
     repoContext.reschedule(context, createMergeLockPrFromPr());
     return false;
   }
@@ -1804,12 +1806,12 @@ const initRepoLabels = async (context, config) => {
       }));
       finalLabels[labelKey] = result.data;
     } else if (existingLabel.name !== labelConfig.name || existingLabel.color !== labelColor || existingLabel.description !== description) {
-      context.log.info('Needs to update label', {
+      context.log.info({
         current_name: existingLabel.name,
         name: existingLabel.name !== labelConfig.name && labelConfig.name,
         color: existingLabel.color !== labelColor && labelColor,
         description: existingLabel.description !== description && description
-      });
+      }, 'Needs to update label');
       const result = await context.octokit.issues.updateLabel(context.repo({
         current_name: existingLabel.name,
         name: labelConfig.name,
@@ -1886,22 +1888,22 @@ async function initRepoContext(appContext, context, config) {
       prOrPrIssueId,
       prNumber
     };
-    context.log.debug('lock: try to lock pr', logInfos); // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    context.log.debug(logInfos, 'lock: try to lock pr'); // eslint-disable-next-line @typescript-eslint/no-misused-promises
 
     lock$1(String(prNumber), async createReleaseCallback => {
       const release = createReleaseCallback(() => {});
-      context.log.info('lock: lock pr acquired', logInfos);
+      context.log.info(logInfos, 'lock: lock pr acquired');
 
       try {
         await callback();
       } catch (err) {
-        context.log.info('lock: release pr (with error)', logInfos);
+        context.log.info(logInfos, 'lock: release pr (with error)');
         release();
         reject(err);
         return;
       }
 
-      context.log.info('lock: release pr', logInfos);
+      context.log.info(logInfos, 'lock: release pr');
       release();
       resolve();
     });
@@ -1909,7 +1911,7 @@ async function initRepoContext(appContext, context, config) {
 
   const reschedule = (context, pr) => {
     if (!pr) throw new Error('Cannot reschedule undefined');
-    context.log.info('reschedule', pr);
+    context.log.info(pr, 'reschedule');
     setTimeout(() => {
       lockPR('reschedule', -1, () => {
         return lockPR(String(pr.id), pr.number, async () => {
@@ -1954,7 +1956,12 @@ async function initRepoContext(appContext, context, config) {
       if (lockMergePr && String(lockMergePr.number) === String(prNumber)) {
         lockMergePr = automergeQueue.shift();
         context.log(`merge lock: remove ${fullName}#${prNumber}: ${reason}`);
-        context.log(`merge lock: next ${fullName}`, lockMergePr);
+
+        if (lockMergePr) {
+          context.log(lockMergePr, `merge lock: next ${fullName}`);
+        } else {
+          context.log(`merge lock: nothing next ${fullName}`);
+        }
 
         if (lockMergePr) {
           reschedule(context, lockMergePr);
@@ -1969,12 +1976,12 @@ async function initRepoContext(appContext, context, config) {
       }
     },
     pushAutomergeQueue: pr => {
-      context.log('merge lock: push queue', {
+      context.log({
         repo: fullName,
         pr,
         lockMergePr,
         automergeQueue
-      });
+      }, 'merge lock: push queue');
 
       if (!automergeQueue.some(p => p.number === pr.number)) {
         automergeQueue.push(pr);
@@ -2084,11 +2091,11 @@ const addStatusCheck = async function (pullRequest, context, {
   const hasPrCheck = (await context.octokit.checks.listForRef(context.repo({
     ref: pullRequest.head.sha
   }))).data.check_runs.find(check => check.name === process.env.REVIEWFLOW_NAME);
-  context.log.debug('add status check', {
+  context.log.debug({
     hasPrCheck,
     state,
     description
-  });
+  }, 'add status check');
 
   if (hasPrCheck) {
     await context.octokit.checks.create(context.repo({
@@ -2111,11 +2118,11 @@ const addStatusCheck = async function (pullRequest, context, {
 };
 
 const updateStatusCheckFromLabels = (pullRequest, context, repoContext, labels = pullRequest.labels || [], previousSha) => {
-  context.log.debug('updateStatusCheckFromLabels', {
+  context.log.debug({
     labels: labels.map(l => l === null || l === void 0 ? void 0 : l.name),
     hasNeedsReview: repoContext.hasNeedsReview(labels),
     hasApprovesReview: repoContext.hasApprovesReview(labels)
-  });
+  }, 'updateStatusCheckFromLabels');
 
   const createFailedStatusCheck = description => addStatusCheck(pullRequest, context, {
     state: 'failure',
@@ -2167,11 +2174,11 @@ const updateReviewStatus = async (pullRequest, context, repoContext, reviewGroup
   add: labelsToAdd,
   remove: labelsToRemove
 }) => {
-  context.log.debug('updateReviewStatus', {
+  context.log.debug({
     reviewGroup,
     labelsToAdd,
     labelsToRemove
-  });
+  }, 'updateReviewStatus');
   let prLabels = pullRequest.labels || [];
   if (!reviewGroup) return prLabels;
   const newLabelNames = new Set(prLabels.map(label => label.name));
@@ -2236,13 +2243,13 @@ const updateReviewStatus = async (pullRequest, context, repoContext, reviewGroup
 
   if (toAdd.size !== 0 || toDelete.size !== 0) {
     if (toDelete.size === 0 || toDelete.size < 4) {
-      context.log.debug('updateReviewStatus', {
+      context.log.debug({
         reviewGroup,
         toAdd: [...toAdd],
         toDelete: [...toDelete],
         toAddNames: [...toAddNames],
         toDeleteNames: [...toDeleteNames]
-      });
+      }, 'updateReviewStatus');
 
       if (toAdd.size !== 0) {
         const result = await context.octokit.issues.addLabels(context.issue({
@@ -2259,21 +2266,21 @@ const updateReviewStatus = async (pullRequest, context, repoContext, reviewGroup
             }));
             prLabels = result.data;
           } catch (err) {
-            context.log.warn('error removing label', {
+            context.log.warn({
               err: err === null || err === void 0 ? void 0 : err.message
-            });
+            }, 'error removing label');
           }
         }
       }
     } else {
       const newLabelNamesArray = [...newLabelNames];
-      context.log.debug('updateReviewStatus', {
+      context.log.debug({
         reviewGroup,
         toAdd: [...toAdd],
         toDelete: [...toDelete],
         oldLabels: prLabels.map(l => l.name),
         newLabelNames: newLabelNamesArray
-      });
+      }, 'updateReviewStatus');
       const result = await context.octokit.issues.setLabels(context.issue({
         labels: newLabelNamesArray
       }));
@@ -2856,11 +2863,11 @@ const updateBranch = async (pullRequest, context, login) => {
   }).catch(err => ({
     error: err
   }));
-  context.log.info('update branch result', {
+  context.log.info({
     status: result.status,
     sha: (_result$data = result.data) === null || _result$data === void 0 ? void 0 : _result$data.sha,
     error: result.error
-  });
+  }, 'update branch result');
 
   if (result.status === 204) {
     context.octokit.issues.createComment(context.repo({

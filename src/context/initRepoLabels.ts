@@ -74,12 +74,15 @@ export const initRepoLabels = async <GroupNames extends string>(
       existingLabel.color !== labelColor ||
       existingLabel.description !== description
     ) {
-      context.log.info('Needs to update label', {
-        current_name: existingLabel.name,
-        name: existingLabel.name !== labelConfig.name && labelConfig.name,
-        color: existingLabel.color !== labelColor && labelColor,
-        description: existingLabel.description !== description && description,
-      });
+      context.log.info(
+        {
+          current_name: existingLabel.name,
+          name: existingLabel.name !== labelConfig.name && labelConfig.name,
+          color: existingLabel.color !== labelColor && labelColor,
+          description: existingLabel.description !== description && description,
+        },
+        'Needs to update label',
+      );
 
       const result = await context.octokit.issues.updateLabel(
         context.repo({

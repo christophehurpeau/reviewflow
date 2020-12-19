@@ -24,11 +24,14 @@ export const updateReviewStatus = async <
     remove?: (GroupLabels | false | undefined)[];
   },
 ): Promise<PullRequestLabels> => {
-  context.log.debug('updateReviewStatus', {
-    reviewGroup,
-    labelsToAdd,
-    labelsToRemove,
-  });
+  context.log.debug(
+    {
+      reviewGroup,
+      labelsToAdd,
+      labelsToRemove,
+    },
+    'updateReviewStatus',
+  );
 
   let prLabels: PullRequestLabels = pullRequest.labels || [];
   if (!reviewGroup) return prLabels;
@@ -99,13 +102,16 @@ export const updateReviewStatus = async <
 
   if (toAdd.size !== 0 || toDelete.size !== 0) {
     if (toDelete.size === 0 || toDelete.size < 4) {
-      context.log.debug('updateReviewStatus', {
-        reviewGroup,
-        toAdd: [...toAdd],
-        toDelete: [...toDelete],
-        toAddNames: [...toAddNames],
-        toDeleteNames: [...toDeleteNames],
-      });
+      context.log.debug(
+        {
+          reviewGroup,
+          toAdd: [...toAdd],
+          toDelete: [...toDelete],
+          toAddNames: [...toAddNames],
+          toDeleteNames: [...toDeleteNames],
+        },
+        'updateReviewStatus',
+      );
 
       if (toAdd.size !== 0) {
         const result = await context.octokit.issues.addLabels(
@@ -126,22 +132,28 @@ export const updateReviewStatus = async <
             );
             prLabels = result.data;
           } catch (err) {
-            context.log.warn('error removing label', {
-              err: err?.message,
-            });
+            context.log.warn(
+              {
+                err: err?.message,
+              },
+              'error removing label',
+            );
           }
         }
       }
     } else {
       const newLabelNamesArray = [...newLabelNames];
 
-      context.log.debug('updateReviewStatus', {
-        reviewGroup,
-        toAdd: [...toAdd],
-        toDelete: [...toDelete],
-        oldLabels: prLabels.map((l) => l.name),
-        newLabelNames: newLabelNamesArray,
-      });
+      context.log.debug(
+        {
+          reviewGroup,
+          toAdd: [...toAdd],
+          toDelete: [...toDelete],
+          oldLabels: prLabels.map((l) => l.name),
+          newLabelNames: newLabelNamesArray,
+        },
+        'updateReviewStatus',
+      );
 
       const result = await context.octokit.issues.setLabels(
         context.issue({

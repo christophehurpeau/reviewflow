@@ -112,11 +112,14 @@ export const initTeamSlack = async <GroupNames extends string>(
       githubLogin: string,
       message: SlackMessage,
     ): Promise<PostSlackMessageResult> => {
-      context.log.debug('slack: post message', {
-        category,
-        githubLogin,
-        message,
-      });
+      context.log.debug(
+        {
+          category,
+          githubLogin,
+          message,
+        },
+        'slack: post message',
+      );
       if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
 
       const userDmSettings = await getUserDmSettings(
@@ -148,7 +151,7 @@ export const initTeamSlack = async <GroupNames extends string>(
       channel: string,
       message: SlackMessage,
     ): Promise<PostSlackMessageResult> => {
-      context.log.debug('slack: update message', { ts, channel, message });
+      context.log.debug({ ts, channel, message }, 'slack: update message');
       if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
 
       const result = await slackClient.chat.update({
@@ -164,7 +167,7 @@ export const initTeamSlack = async <GroupNames extends string>(
       return { ts: result.ts as string, channel: result.channel as string };
     },
     deleteMessage: async (ts: string, channel: string): Promise<void> => {
-      context.log.debug('slack: delete message', { ts, channel });
+      context.log.debug({ ts, channel }, 'slack: delete message');
       await slackClient.chat.delete({
         ts,
         channel,
@@ -175,7 +178,7 @@ export const initTeamSlack = async <GroupNames extends string>(
       channel: string,
       name: string,
     ): Promise<void> => {
-      context.log.debug('slack: add reaction', { ts, channel, name });
+      context.log.debug({ ts, channel, name }, 'slack: add reaction');
       await slackClient.reactions.add({
         timestamp: ts,
         channel,
@@ -184,7 +187,7 @@ export const initTeamSlack = async <GroupNames extends string>(
     },
 
     updateHome: (githubLogin: string): void => {
-      context.log.debug('update slack home', { githubLogin });
+      context.log.debug({ githubLogin }, 'update slack home');
       const user = getUserFromGithubLogin(githubLogin);
       if (!user || !user.member) return;
 

@@ -20,11 +20,14 @@ export const updateBranch = async (
     })
     .catch((err) => ({ error: err } as any));
 
-  context.log.info('update branch result', {
-    status: result.status,
-    sha: result.data?.sha,
-    error: result.error,
-  });
+  context.log.info(
+    {
+      status: result.status,
+      sha: result.data?.sha,
+      error: result.error,
+    },
+    'update branch result',
+  );
 
   if (result.status === 204) {
     context.octokit.issues.createComment(

@@ -26,9 +26,12 @@ const hasFailedStatusOrChecks = async (
   );
 
   if (failedChecks.length > 0) {
-    context.log.info(`automerge not possible: failed check pr ${pr.id}`, {
-      checks: failedChecks.map((check) => check.name),
-    });
+    context.log.info(
+      {
+        checks: failedChecks.map((check) => check.name),
+      },
+      `automerge not possible: failed check pr ${pr.id}`,
+    );
     return true;
   }
 
@@ -44,9 +47,12 @@ const hasFailedStatusOrChecks = async (
       (status) => status.state === 'failure' || status.state === 'error',
     );
 
-    context.log.info(`automerge not possible: failed status pr ${pr.id}`, {
-      statuses: failedStatuses.map((status) => status.context),
-    });
+    context.log.info(
+      {
+        statuses: failedStatuses.map((status) => status.context),
+      },
+      `automerge not possible: failed status pr ${pr.id}`,
+    );
 
     return true;
   }
@@ -133,10 +139,13 @@ export const autoMergeIfPossible = async (
 
   const lockedPr = repoContext.getMergeLockedPr();
   if (lockedPr && String(lockedPr.number) !== String(pullRequest.number)) {
-    context.log.info('automerge not possible: locked pr', {
-      prId: pullRequest.id,
-      prNumber: pullRequest.number,
-    });
+    context.log.info(
+      {
+        prId: pullRequest.id,
+        prNumber: pullRequest.number,
+      },
+      'automerge not possible: locked pr',
+    );
     repoContext.pushAutomergeQueue(createMergeLockPrFromPr());
     return false;
   }
@@ -256,10 +265,13 @@ export const autoMergeIfPossible = async (
 
     if (pullRequest.mergeable_state === 'behind') {
       addLog('behind mergeable_state', 'update branch');
-      context.log.info('automerge not possible: update branch', {
-        head: pullRequest.head.ref,
-        base: pullRequest.base.ref,
-      });
+      context.log.info(
+        {
+          head: pullRequest.head.ref,
+          base: pullRequest.base.ref,
+        },
+        'automerge not possible: update branch',
+      );
 
       await context.octokit.repos.merge({
         owner: pullRequest.head.repo.owner.login,
@@ -304,7 +316,7 @@ export const autoMergeIfPossible = async (
           } (#${pullRequest.number})`,
       commit_message: options.featureBranch ? undefined : '', // TODO add BC
     });
-    context.log.debug('merge result:', mergeResult.data);
+    context.log.debug(mergeResult.data, 'merge result:');
     repoContext.removePrFromAutomergeQueue(
       context,
       pullRequest.number,
@@ -312,7 +324,7 @@ export const autoMergeIfPossible = async (
     );
     return Boolean('merged' in mergeResult.data && mergeResult.data.merged);
   } catch (err) {
-    context.log.info('could not merge:', err.message);
+    context.log.info({ errorMessage: err.message }, 'could not merge:');
     repoContext.reschedule(context, createMergeLockPrFromPr());
     return false;
   }

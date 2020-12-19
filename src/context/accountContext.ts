@@ -91,20 +91,20 @@ const initAccountContext = async (
     lock: (callback: () => Promise<void> | void): Promise<void> => {
       return new Promise((resolve, reject) => {
         const logInfos = { account: accountInfo.login };
-        context.log.info('lock: try to lock account', logInfos);
+        context.log.info(logInfos, 'lock: try to lock account');
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         lock('_', async (createReleaseCallback) => {
           const release = createReleaseCallback(() => {});
-          context.log.info('lock: lock account acquired', logInfos);
+          context.log.info(logInfos, 'lock: lock account acquired');
           try {
             await callback();
           } catch (err) {
-            context.log.info('lock: release account (with error)', logInfos);
+            context.log.info(logInfos, 'lock: release account (with error)');
             release();
             reject(err);
             return;
           }
-          context.log.info('lock: release account', logInfos);
+          context.log.info(logInfos, 'lock: release account');
           release();
           resolve();
         });

@@ -190,20 +190,20 @@ async function initRepoContext<GroupNames extends string>(
         prOrPrIssueId,
         prNumber,
       };
-      context.log.debug('lock: try to lock pr', logInfos);
+      context.log.debug(logInfos, 'lock: try to lock pr');
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       lock(String(prNumber), async (createReleaseCallback) => {
         const release = createReleaseCallback(() => {});
-        context.log.info('lock: lock pr acquired', logInfos);
+        context.log.info(logInfos, 'lock: lock pr acquired');
         try {
           await callback();
         } catch (err) {
-          context.log.info('lock: release pr (with error)', logInfos);
+          context.log.info(logInfos, 'lock: release pr (with error)');
           release();
           reject(err);
           return;
         }
-        context.log.info('lock: release pr', logInfos);
+        context.log.info(logInfos, 'lock: release pr');
         release();
         resolve();
       });
@@ -218,7 +218,7 @@ async function initRepoContext<GroupNames extends string>(
 
   const reschedule = (context: Context<any>, pr: LockedMergePr): void => {
     if (!pr) throw new Error('Cannot reschedule undefined');
-    context.log.info('reschedule', pr);
+    context.log.info(pr, 'reschedule');
     setTimeout(() => {
       lockPR('reschedule', -1, () => {
         return lockPR(String(pr.id), pr.number, async () => {
@@ -271,7 +271,11 @@ async function initRepoContext<GroupNames extends string>(
       if (lockMergePr && String(lockMergePr.number) === String(prNumber)) {
         lockMergePr = automergeQueue.shift();
         context.log(`merge lock: remove ${fullName}#${prNumber}: ${reason}`);
-        context.log(`merge lock: next ${fullName}`, lockMergePr);
+        if (lockMergePr) {
+          context.log(lockMergePr, `merge lock: next ${fullName}`);
+        } else {
+          context.log(`merge lock: nothing next ${fullName}`);
+        }
         if (lockMergePr) {
           reschedule(context, lockMergePr);
         }
@@ -286,12 +290,15 @@ async function initRepoContext<GroupNames extends string>(
       }
     },
     pushAutomergeQueue: (pr: LockedMergePr): void => {
-      context.log('merge lock: push queue', {
-        repo: fullName,
-        pr,
-        lockMergePr,
-        automergeQueue,
-      });
+      context.log(
+        {
+          repo: fullName,
+          pr,
+          lockMergePr,
+          automergeQueue,
+        },
+        'merge lock: push queue',
+      );
       if (!automergeQueue.some((p) => p.number === pr.number)) {
         automergeQueue.push(pr);
       }

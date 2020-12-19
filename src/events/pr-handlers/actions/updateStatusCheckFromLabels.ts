@@ -23,7 +23,7 @@ const addStatusCheck = async function <
     )
   ).data.check_runs.find((check) => check.name === process.env.REVIEWFLOW_NAME);
 
-  context.log.debug('add status check', { hasPrCheck, state, description });
+  context.log.debug({ hasPrCheck, state, description }, 'add status check');
 
   if (hasPrCheck) {
     await context.octokit.checks.create(
@@ -65,11 +65,14 @@ export const updateStatusCheckFromLabels = <
   labels: PullRequestLabels = pullRequest.labels || [],
   previousSha?: string,
 ): Promise<void> => {
-  context.log.debug('updateStatusCheckFromLabels', {
-    labels: labels.map((l) => l?.name),
-    hasNeedsReview: repoContext.hasNeedsReview(labels),
-    hasApprovesReview: repoContext.hasApprovesReview(labels),
-  });
+  context.log.debug(
+    {
+      labels: labels.map((l) => l?.name),
+      hasNeedsReview: repoContext.hasNeedsReview(labels),
+      hasApprovesReview: repoContext.hasApprovesReview(labels),
+    },
+    'updateStatusCheckFromLabels',
+  );
 
   const createFailedStatusCheck = (description: string): Promise<void> =>
     addStatusCheck(
