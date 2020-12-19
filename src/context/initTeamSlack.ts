@@ -18,7 +18,6 @@ export const initTeamSlack = async <GroupNames extends string>(
   config: Config<GroupNames>,
   account: Org | User,
 ): Promise<TeamSlack> => {
-  const owner = context.payload.repository.owner;
   const slackToken = 'slackToken' in account && account.slackToken;
 
   if (!slackToken) {
@@ -124,8 +123,8 @@ export const initTeamSlack = async <GroupNames extends string>(
 
       const userDmSettings = await getUserDmSettings(
         mongoStores,
-        owner.login,
-        owner.id,
+        account.login,
+        account._id,
         githubId,
       );
 

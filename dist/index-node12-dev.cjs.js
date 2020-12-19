@@ -1055,7 +1055,6 @@ const initTeamSlack = async ({
   mongoStores,
   slackHome
 }, context, config, account) => {
-  const owner = context.payload.repository.owner;
   const slackToken = 'slackToken' in account && account.slackToken;
 
   if (!slackToken) {
@@ -1157,7 +1156,7 @@ const initTeamSlack = async ({
         message
       }, 'slack: post message');
       if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
-      const userDmSettings = await getUserDmSettings(mongoStores, owner.login, owner.id, githubId);
+      const userDmSettings = await getUserDmSettings(mongoStores, account.login, account._id, githubId);
       if (!userDmSettings[category]) return null;
       const user = getUserFromGithubLogin(githubLogin);
       if (!user || !user.im) return null;
