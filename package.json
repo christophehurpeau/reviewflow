@@ -14,7 +14,6 @@
   "scripts": {
     "build": "pob-build",
     "clean": "rm -Rf dist",
-    "dev": "PORT=3010 nodemon --exec \"node --async-stack-traces dist/index-node10-dev.cjs.js\"",
     "generate:test-coverage": "rm -Rf docs/coverage/ ; NODE_ENV=production BABEL_ENV=test jest --coverage --coverageReporters=pob-lcov-reporter --coverageDirectory=docs/coverage/",
     "lint": "yarn run lint:prettier && tsc && yarn run lint:eslint",
     "lint:eslint": "eslint --ext .js,.ts,.tsx --report-unused-disable-directives --quiet *.js src scripts",
@@ -22,7 +21,7 @@
     "preversion": "yarn run lint && yarn run build && yarn run test && repository-check-dirty",
     "release": "repository-check-dirty && yarn preversion && standard-version -a -m 'chore(release): %s [skip ci]' && git push --follow-tags origin master",
     "start": "node dist/index-node10.cjs.js",
-    "test": "node --async-stack-traces node_modules/.bin/jest",
+    "test": "jest",
     "test:watch": "jest",
     "version": "pob-version",
     "watch": "pob-watch"
@@ -70,6 +69,7 @@
         ]
       }
     ],
+    "jsx": true,
     "entries": [
       "index"
     ]
@@ -105,6 +105,7 @@
     "@pob/eslint-config-typescript-node": "41.1.0",
     "@pob/eslint-config-typescript-react": "41.1.1",
     "@pob/root": "3.0.3",
+    "@rollup/plugin-run": "2.0.2",
     "@types/cookie-parser": "1.4.2",
     "@types/express": "4.17.6",
     "@types/issue-parser": "3.0.0",
@@ -127,8 +128,7 @@
     "husky": "4.3.6",
     "jest": "26.6.3",
     "nock": "13.0.4",
-    "nodemon": "2.0.4",
-    "pob-babel": "26.2.1",
+    "pob-babel": "26.3.0",
     "pob-lcov-reporter": "4.0.1",
     "prettier": "2.2.1",
     "rollup": "2.35.1",
