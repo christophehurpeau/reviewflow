@@ -7202,10 +7202,10 @@ pretty-format@^26.0.0, pretty-format@^26.6.2:
     ansi-styles "^4.0.0"
     react-is "^17.0.1"
 
-probot@10.18.0:
-  version "10.18.0"
-  resolved "https://registry.yarnpkg.com/probot/-/probot-10.18.0.tgz#f45b9aa08592b8b7fab6f86f241ef560d784b874"
-  integrity sha512-zuAHLXKv5+g+X+Sh5R1xg5RsHkp2o7F3m92raBudQSC597meg7J/7UlZzqJ1q7X8hwN8fU/87rleppwmYYiJSA==
+probot@10.19.0:
+  version "10.19.0"
+  resolved "https://registry.yarnpkg.com/probot/-/probot-10.19.0.tgz#cb2b2cb77394a05d56d8c90cb094660fc2087ac4"
+  integrity sha512-j6kP8cBq/6S0BUR5QfmpMQPWHkJn/FTvvA5akgZAEcdg2/V+rtwCW9DGTy0RD6C7MLOD5GN5Z20yi1diTR+nXQ==
   dependencies:
     "@octokit/core" "^3.2.1"
     "@octokit/graphql" "^4.2.0"
