@@ -411,7 +411,7 @@
     "@babel/helper-plugin-utils" "^7.10.4"
     "@babel/plugin-syntax-typescript" "^7.12.1"
 
-"@babel/preset-react@^7.12.10":
+"@babel/preset-react@7.12.10":
   version "7.12.10"
   resolved "https://registry.yarnpkg.com/@babel/preset-react/-/preset-react-7.12.10.tgz#4fed65f296cbb0f5fb09de6be8cddc85cc909be9"
   integrity sha512-vtQNjaHRl4DUpp+t+g4wvTHsLQuye+n0H/wsXIZRn69oz/fvNC7gQ4IK73zGJBaxvHoxElDvnYCthMcT7uzFoQ==
@@ -1038,7 +1038,7 @@
     once "^1.4.0"
     universal-user-agent "^6.0.0"
 
-"@octokit/rest@^18.0.12":
+"@octokit/rest@18.0.12":
   version "18.0.12"
   resolved "https://registry.yarnpkg.com/@octokit/rest/-/rest-18.0.12.tgz#278bd41358c56d87c201e787e8adc0cac132503a"
   integrity sha512-hNRCZfKPpeaIjOVuNJzkEL6zacfZlBPV8vw8ReNeyUkVvbuCvvrrx8K8Gw2eyHHsmd4dPlAxIXIZ9oHhJfkJpw==
@@ -1547,7 +1547,7 @@
   dependencies:
     nock "*"
 
-"@types/node@*", "@types/node@>= 8", "@types/node@>=10.0.0", "@types/node@>=12.0.0", "@types/node@>=8.9.0":
+"@types/node@*", "@types/node@14.14.14", "@types/node@>= 8", "@types/node@>=10.0.0", "@types/node@>=8.9.0":
   version "14.14.14"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.14.14.tgz#f7fd5f3cc8521301119f63910f0fb965c7d761ae"
   integrity sha512-UHnOPWVWV1z+VV8k6L1HhG7UbGBgIdghqF3l9Ny9ApPghbjICXkUJSd/b9gOgQfjM1r+37cipdw/HJ3F6ICEnQ==
