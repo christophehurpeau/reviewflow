@@ -186,7 +186,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
 
       /* auto merge */
       'merge/automerge': {
-        name: ':vertical_traffic_light: automerge',
+        name: ':soon: automerge',
         color: '#64DD17',
       },
       'merge/skip-ci': {
