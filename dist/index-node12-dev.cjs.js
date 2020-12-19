@@ -1461,6 +1461,7 @@ const autoMergeIfPossible = async (pullRequest, context, repoContext, reviewflow
 
   if (pullRequest.state !== 'open') {
     repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'pr is not opened');
+    return false;
   }
 
   const addLog = (type, action) => {
@@ -1675,13 +1676,10 @@ const updateCommentBodyInfos = (commentBody, infos) => {
 };
 const updateCommentBodyCommitsNotes = (commentBody, commitNotes) => {
   return commentBody.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
-  /(?:#### Commits Notes:.*?)?(#### Options:)/s, // eslint-disable-next-line no-nested-ternary
-  !commitNotes ? '$1' : `#### Commits Notes:\n\n${commitNotes}\n\n$1`);
+  /(?:#### Commits Notes:.*?)?(#### Options:)/s, !commitNotes ? '$1' : `#### Commits Notes:\n\n${commitNotes}\n\n$1`);
 };
 const removeDeprecatedReviewflowInPrBody = prBody => {
-  return prBody.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
-  /^(.*)<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->(.*)$/is, // eslint-disable-next-line no-nested-ternary
-  '$1$3');
+  return prBody.replace(/^(.*)<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->(.*)$/is, '$1$3');
 };
 
 const createReviewflowComment = (pullRequestNumber, context, body) => {
@@ -2752,8 +2750,7 @@ const updatePrIfNeeded = async (pullRequest, context, update) => {
   }
 };
 
-const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*([A-Za-z][\dA-Za-z]+)[ -](\d+)\s*]?\s*$/, (s, arg1, arg2) => ` ${arg1.toUpperCase()}-${arg2}`).replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `).replace(/^Revert "([^"]+)"$/, 'revert: $1').replace(/\s+[[\]]\s*no\s*issue\s*[[\]]$/i, ' [no issue]') // eslint-disable-next-line unicorn/no-unsafe-regex
-.replace(/^(revert:.*)(\s+\(#\d+\))$/, '$1');
+const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*([A-Za-z][\dA-Za-z]+)[ -](\d+)\s*]?\s*$/, (s, arg1, arg2) => ` ${arg1.toUpperCase()}-${arg2}`).replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `).replace(/^Revert "([^"]+)"$/, 'revert: $1').replace(/\s+[[\]]\s*no\s*issue\s*[[\]]$/i, ' [no issue]').replace(/^(revert:.*)(\s+\(#\d+\))$/, '$1');
 
 const editOpenedPR = async (pullRequest, context, repoContext, reviewflowPrContext, shouldUpdateCommentBodyInfos, previousSha) => {
   if (reviewflowPrContext === null) return;
@@ -3785,4 +3782,4 @@ probot.run(({
   initApp(app, appContext);
   slackHome.scheduleUpdateAllOrgs(id => app.auth(id));
 });
-//# sourceMappingURL=index-node10-dev.cjs.js.map
+//# sourceMappingURL=index-node12-dev.cjs.js.map
