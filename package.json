@@ -84,7 +84,7 @@
     "body-parser": "1.19.0",
     "cookie-parser": "1.4.5",
     "dotenv": "8.2.0",
-    "emoji-regex": "9.0.0",
+    "emoji-regex": "9.2.0",
     "issue-parser": "6.0.0",
     "jsonwebtoken": "8.5.1",
     "liwi-mongo": "7.4.2",
