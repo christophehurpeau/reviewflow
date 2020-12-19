@@ -1,12 +1,12 @@
-import { Application } from 'probot';
-import { AppContext } from '../../context/AppContext';
+import type { Probot } from 'probot';
+import type { AppContext } from '../../context/AppContext';
+import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
-import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
-import { fetchPullRequestAndCreateContext } from './utils/createPullRequestContext';
+import { fetchPr } from './utils/fetchPr';
 import { checkIfIsThisBot } from './utils/isBotUser';
 
-export default function edited(app: Application, appContext: AppContext): void {
+export default function edited(app: Probot, appContext: AppContext): void {
   app.on(
     'pull_request.edited',
     createPullRequestHandler(
@@ -15,18 +15,37 @@ export default function edited(app: Application, appContext: AppContext): void {
         if (repoContext.shouldIgnore) return null;
         return payload.pull_request;
       },
-      async (prContext, context, repoContext): Promise<void> => {
-        const prContextUpdated = await fetchPullRequestAndCreateContext(
-          context,
-          prContext,
-        );
+      async (
+        pullRequest,
+        context,
+        repoContext,
+        reviewflowPrContext,
+      ): Promise<void> => {
+        if (reviewflowPrContext == null) return;
+
         const sender = context.payload.sender;
         if (checkIfIsThisBot(sender)) {
           return;
         }
 
-        await editOpenedPR(prContextUpdated, context, false);
-        await autoMergeIfPossible(prContextUpdated, context);
+        const updatedPullRequest = await fetchPr(
+          context,
+          context.payload.pull_request.number,
+        );
+
+        await editOpenedPR(
+          updatedPullRequest,
+          context,
+          repoContext,
+          reviewflowPrContext,
+          false,
+        );
+        await autoMergeIfPossible(
+          updatedPullRequest,
+          context,
+          repoContext,
+          reviewflowPrContext,
+        );
       },
     ),
   );

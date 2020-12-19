@@ -1,13 +1,10 @@
-import { Application } from 'probot';
-import { createHandlerOrgChange } from '../account-handlers/utils/handler';
-import { getEmojiFromRepoDescription } from '../../context/utils';
-import { AppContext } from '../../context/AppContext';
+import type { Probot } from 'probot';
+import type { AppContext } from '../../context/AppContext';
 import { obtainRepoContext } from '../../context/repoContext';
+import { getEmojiFromRepoDescription } from '../../context/utils';
+import { createHandlerOrgChange } from '../account-handlers/utils/handler';
 
-export default function repoEdited(
-  app: Application,
-  appContext: AppContext,
-): void {
+export default function repoEdited(app: Probot, appContext: AppContext): void {
   app.on(
     'repository.edited',
     createHandlerOrgChange(

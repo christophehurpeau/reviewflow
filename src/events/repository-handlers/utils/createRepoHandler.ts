@@ -1,10 +1,13 @@
-import { PayloadRepository } from '@octokit/webhooks';
-import { Context } from 'probot';
-import { OnCallback } from 'probot/lib/application';
-import { RepoContext, obtainRepoContext } from 'context/repoContext';
-import { AppContext } from 'context/AppContext';
+import type { EventPayloads } from '@octokit/webhooks';
+import type { Context } from 'probot';
+import type { OnCallback } from 'probot/lib/application';
+import type { AppContext } from '../../../context/AppContext';
+import type { RepoContext } from '../../../context/repoContext';
+import { obtainRepoContext } from '../../../context/repoContext';
 
-export const createRepoHandler = <T extends { repository: PayloadRepository }>(
+export const createRepoHandler = <
+  T extends { repository: EventPayloads.PayloadRepository }
+>(
   appContext: AppContext,
   callback: (
     context: Context<T>,

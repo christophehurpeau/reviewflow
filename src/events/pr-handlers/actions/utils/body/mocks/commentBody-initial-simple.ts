@@ -1,1 +1,1 @@
-export default `This will be auto filled by reviewflow.`;
+export default 'This will be auto filled by reviewflow.';

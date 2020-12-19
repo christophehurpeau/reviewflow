@@ -1,15 +1,20 @@
 import type { Router } from 'express';
+import type { ProbotOctokit } from 'probot';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { GitHubAPI } from 'probot/lib/github';
 import Layout from '../views/Layout';
 import { getUser } from './auth';
 
-export default function repository(router: Router, api: GitHubAPI): void {
+export default function repository(
+  router: Router,
+  octokitApp: InstanceType<typeof ProbotOctokit>,
+): void {
   router.get('/repositories', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
-    const { data } = await user.api.repos.list({ per_page: 100 });
+    const { data } = await user.api.repos.listForAuthenticatedUser({
+      per_page: 100,
+    });
 
     res.send(
       renderToStaticMarkup(
@@ -54,7 +59,7 @@ export default function repository(router: Router, api: GitHubAPI): void {
       return;
     }
 
-    if (!data.permissions.admin) {
+    if (!data.permissions || !data.permissions.admin) {
       res.status(401).send(
         renderToStaticMarkup(
           <Layout>
@@ -67,7 +72,7 @@ export default function repository(router: Router, api: GitHubAPI): void {
       return;
     }
 
-    const { data: data2 } = await api.apps
+    const { data: data2 } = await octokitApp.apps
       .getRepoInstallation({
         owner: req.params.owner,
         repo: req.params.repository,

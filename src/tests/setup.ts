@@ -1,11 +1,11 @@
-import { Probot, createProbot } from 'probot';
 import nock from 'nock';
-import initApp from '../initApp';
+import { Probot } from 'probot';
 import repoLabels from '../../fixtures/labels.json';
+import initApp from '../initApp';
 
 export { nock };
 
-jest.setTimeout(30000);
+jest.setTimeout(30_000);
 
 process.env.REVIEWFLOW_NAME = 'reviewflow-dev';
 const APP_ID = 1;
@@ -16,9 +16,9 @@ export const initializeProbotApp = ({
   users,
   prs,
 }: Partial<any> = {}): Probot => {
-  const probot = createProbot({
-    id: APP_ID,
-    cert: 'test',
+  const probot = new Probot({
+    appId: APP_ID,
+    privateKey: 'test',
     githubToken: 'test',
   });
   const mockStores = {
@@ -32,7 +32,7 @@ export const initializeProbotApp = ({
       ...prs,
     },
   };
-  probot.load((app) => initApp(app, { mongoStores: mockStores } as any));
+  probot.load(({ app }) => initApp(app, { mongoStores: mockStores } as any));
 
   return probot;
 };
@@ -46,7 +46,7 @@ export const mockAccessToken = (): void => {
 
 export const mockLabels = (): void => {
   nock('https://api.github.com')
-    .get(`/repos/reviewflow/reviewflow-test/labels`)
+    .get('/repos/reviewflow/reviewflow-test/labels')
     .query(true)
     .reply(200, repoLabels);
 };

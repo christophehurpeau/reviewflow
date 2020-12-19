@@ -2,9 +2,7 @@
   "env": {
     "test": {
       "only": ["src/"],
-      "presets": [
-        ["pob-babel/preset"]
-      ]
+      "presets": [["pob-babel/preset"]]
     }
   }
 }

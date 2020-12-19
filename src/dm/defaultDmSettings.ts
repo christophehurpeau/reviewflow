@@ -1,4 +1,4 @@
-import { MessageCategory } from './MessageCategory';
+import type { MessageCategory } from './MessageCategory';
 
 export const defaultDmSettings: Record<MessageCategory, boolean> = {
   'pr-review': true,

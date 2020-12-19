@@ -1,6 +1,8 @@
-import { MongoStore, MongoConnection, MongoBaseModel } from 'liwi-mongo';
-import { SlackMessage } from './context/SlackMessage';
-import { MessageCategory } from './dm/MessageCategory';
+/* eslint-disable @typescript-eslint/no-floating-promises */
+import type { MongoBaseModel } from 'liwi-mongo';
+import { MongoStore, MongoConnection } from 'liwi-mongo';
+import type { SlackMessage } from './context/SlackMessage';
+import type { MessageCategory } from './dm/MessageCategory';
 
 // export interface PrEventsModel extends MongoModel {
 //   owner: string;
@@ -55,7 +57,7 @@ export interface OrgMember extends MongoBaseModel {
   slack?: { id: string };
 }
 
-export interface OrgTeam extends MongoBaseModel {
+export interface OrgTeam extends MongoBaseModel<number> {
   org: AccountEmbedWithoutType;
   name: string;
   slug: string;

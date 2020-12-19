@@ -1,13 +1,13 @@
-import { Application } from 'probot';
+import type { Probot } from 'probot';
 import slackifyMarkdown from 'slackify-markdown';
-import { AppContext } from '../../context/AppContext';
+import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateReviewStatus } from './actions/updateReviewStatus';
-import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { createSlackMessageWithSecondaryBlock } from './utils/createSlackMessageWithSecondaryBlock';
-import { fetchPullRequestAndCreateContext } from './utils/createPullRequestContext';
+import { fetchPr } from './utils/fetchPr';
+import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 
 const getEmojiFromState = (state: string): string => {
   switch (state) {
@@ -21,7 +21,7 @@ const getEmojiFromState = (state: string): string => {
 };
 
 export default function reviewSubmitted(
-  app: Application,
+  app: Probot,
   appContext: AppContext,
 ): void {
   app.on(
@@ -29,31 +29,37 @@ export default function reviewSubmitted(
     createPullRequestHandler(
       appContext,
       (payload) => payload.pull_request,
-      async (prContext, context): Promise<void> => {
-        const { pr, repoContext } = prContext;
+      async (
+        pullRequest,
+        context,
+        repoContext,
+        reviewflowPrContext,
+      ): Promise<void> => {
+        const { payload } = context;
+
         const {
           user: reviewer,
           state,
           body,
           html_url: reviewUrl,
-        } = (context.payload as any).review;
+        } = payload.review;
 
-        const reviewByOwner = pr.user.login === reviewer.login;
+        const reviewByOwner = pullRequest.user.login === reviewer.login;
         const { reviewers, reviewStates } = await getReviewersAndReviewStates(
           context,
           repoContext,
         );
         const followers = reviewers.filter(
-          (user) => user.id !== reviewer.id && user.id !== pr.user.id,
+          (user) => user.id !== reviewer.id && user.id !== pullRequest.user.id,
         );
 
-        if (pr.requested_reviewers) {
+        if (pullRequest.requested_reviewers) {
           followers.push(
-            ...pr.requested_reviewers.filter((rr) => {
+            ...pullRequest.requested_reviewers.filter((rr) => {
               return (
                 !followers.find((f) => f.id === rr.id) &&
                 rr.id !== reviewer.id &&
-                rr.id !== pr.user.id
+                rr.id !== pullRequest.user.id
               );
             }),
           );
@@ -64,13 +70,14 @@ export default function reviewSubmitted(
           let merged: boolean;
 
           if (
+            reviewflowPrContext &&
             !repoContext.shouldIgnore &&
             reviewerGroup &&
             repoContext.config.labels.review[reviewerGroup]
           ) {
             const hasRequestedReviewsForGroup = repoContext.approveShouldWait(
               reviewerGroup,
-              pr.requested_reviewers,
+              pullRequest.requested_reviewers,
               {
                 includesReviewerGroup: true,
                 // TODO reenable this when accepted can notify request review to slack (dev accepted => design requested) and flag to disable for label (approved design ; still waiting for dev ?)
@@ -86,14 +93,12 @@ export default function reviewSubmitted(
               !hasChangesRequestedInReviews &&
               state === 'approved';
 
-            const updatedPrContext = await fetchPullRequestAndCreateContext(
-              context,
-              prContext,
-            );
+            const updatedPr = await fetchPr(context, pullRequest.number);
 
             const newLabels = await updateReviewStatus(
-              updatedPrContext,
+              updatedPr,
               context,
+              repoContext,
               reviewerGroup,
               {
                 add: [
@@ -114,20 +119,24 @@ export default function reviewSubmitted(
 
             if (approved && !hasChangesRequestedInReviews) {
               merged = await autoMergeIfPossible(
-                updatedPrContext,
+                updatedPr,
                 context,
+                repoContext,
+                reviewflowPrContext,
                 newLabels,
               );
             }
           }
 
-          if (pr.assignees) {
-            pr.assignees.forEach((assignee) => {
+          if (pullRequest.assignees) {
+            pullRequest.assignees.forEach((assignee) => {
               repoContext.slack.updateHome(assignee.login);
             });
           }
           if (
-            !pr.assignees.find((assignee) => assignee.login === reviewer.login)
+            !pullRequest.assignees.find(
+              (assignee) => assignee.login === reviewer.login,
+            )
           ) {
             repoContext.slack.updateHome(reviewer.login);
           }
@@ -137,7 +146,7 @@ export default function reviewSubmitted(
               'account.id': repoContext.account._id,
               'account.type': repoContext.accountType,
               type: 'review-requested',
-              typeId: `${pr.id}_${reviewer.id}`,
+              typeId: `${pullRequest.id}_${reviewer.id}`,
             },
           );
 
@@ -166,8 +175,10 @@ export default function reviewSubmitted(
           }
 
           const mention = repoContext.slack.mention(reviewer.login);
-          const prUrl = slackUtils.createPrLink(pr, repoContext);
-          const ownerMention = repoContext.slack.mention(pr.user.login);
+          const prUrl = slackUtils.createPrLink(pullRequest, repoContext);
+          const ownerMention = repoContext.slack.mention(
+            pullRequest.user.login,
+          );
 
           const createMessage = (toOwner?: boolean): string => {
             const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR`;
@@ -187,12 +198,12 @@ export default function reviewSubmitted(
             return `:${emoji}: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
           };
 
-          const slackifiedBody = slackifyMarkdown(body);
+          const slackifiedBody = slackifyMarkdown((body as unknown) as string);
 
           repoContext.slack.postMessage(
             'pr-review',
-            pr.user.id,
-            pr.user.login,
+            pullRequest.user.id,
+            pullRequest.user.login,
             createSlackMessageWithSecondaryBlock(
               createMessage(true),
               slackifiedBody,
@@ -214,7 +225,7 @@ export default function reviewSubmitted(
           });
         } else if (body) {
           const mention = repoContext.slack.mention(reviewer.login);
-          const prUrl = slackUtils.createPrLink(pr, repoContext);
+          const prUrl = slackUtils.createPrLink(pullRequest, repoContext);
           const commentLink = slackUtils.createLink(reviewUrl, 'commented');
 
           const message = createSlackMessageWithSecondaryBlock(

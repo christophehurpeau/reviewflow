@@ -1,11 +1,11 @@
-import { Application } from 'probot';
-import { AppContext } from '../../context/AppContext';
+import type { Probot } from 'probot';
+import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { updateReviewStatus } from './actions/updateReviewStatus';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
 
 export default function reviewRequested(
-  app: Application,
+  app: Probot,
   appContext: AppContext,
 ): void {
   app.on(
@@ -13,8 +13,12 @@ export default function reviewRequested(
     createPullRequestHandler(
       appContext,
       (payload) => payload.pull_request,
-      async (prContext, context, repoContext): Promise<void> => {
-        const { pr } = prContext;
+      async (
+        pullRequest,
+        context,
+        repoContext,
+        reviewflowPrContext,
+      ): Promise<void> => {
         const sender = context.payload.sender;
 
         const reviewer = (context.payload as any).requested_reviewer;
@@ -28,18 +32,26 @@ export default function reviewRequested(
           reviewerGroup &&
           repoContext.config.labels.review[reviewerGroup]
         ) {
-          await updateReviewStatus(prContext, context, reviewerGroup, {
-            add: ['needsReview', !shouldWait && 'requested'],
-            remove: ['approved'],
-          });
+          await updateReviewStatus(
+            pullRequest,
+            context,
+            repoContext,
+            reviewerGroup,
+            {
+              add: ['needsReview', !shouldWait && 'requested'],
+              remove: ['approved'],
+            },
+          );
 
-          if (pr.assignees) {
-            pr.assignees.forEach((assignee) => {
+          if (pullRequest.assignees) {
+            pullRequest.assignees.forEach((assignee) => {
               repoContext.slack.updateHome(assignee.login);
             });
           }
           if (
-            !pr.assignees.find((assignee) => assignee.login === reviewer.login)
+            !pullRequest.assignees.find(
+              (assignee) => assignee.login === reviewer.login,
+            )
           ) {
             repoContext.slack.updateHome(reviewer.login);
           }
@@ -51,9 +63,9 @@ export default function reviewRequested(
           const text = `:eyes: ${repoContext.slack.mention(
             sender.login,
           )} requests your review on ${slackUtils.createPrLink(
-            pr,
+            pullRequest,
             repoContext,
-          )} !\n> ${pr.title}`;
+          )} !\n> ${pullRequest.title}`;
           const message = { text };
           const result = await repoContext.slack.postMessage(
             'pr-review',
@@ -64,7 +76,7 @@ export default function reviewRequested(
           if (result) {
             await appContext.mongoStores.slackSentMessages.insertOne({
               type: 'review-requested',
-              typeId: `${pr.id}_${reviewer.id}`,
+              typeId: `${pullRequest.id}_${reviewer.id}`,
               message,
               account: repoContext.accountEmbed,
               sentTo: [result],

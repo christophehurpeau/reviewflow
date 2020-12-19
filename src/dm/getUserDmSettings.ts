@@ -1,6 +1,6 @@
-import { MongoStores } from '../mongo';
 import { accountConfigs, defaultConfig } from '../accountConfigs';
-import { MessageCategory } from './MessageCategory';
+import type { MongoStores } from '../mongo';
+import type { MessageCategory } from './MessageCategory';
 import { defaultDmSettings } from './defaultDmSettings';
 
 export type UserDmSettings = Record<MessageCategory, boolean>;

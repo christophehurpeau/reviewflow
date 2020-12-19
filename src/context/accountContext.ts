@@ -1,12 +1,14 @@
-import { Context } from 'probot';
 import { Lock } from 'lock';
-import { Org, User, AccountEmbed, AccountType } from '../mongo';
-import { Config } from '../accountConfigs';
+import type { Context } from 'probot';
+import type { Config } from '../accountConfigs';
+import type { Org, User, AccountEmbed, AccountType } from '../mongo';
 import { ExcludesFalsy } from '../utils/Excludes';
-import { initTeamSlack, TeamSlack } from './initTeamSlack';
+import type { AppContext } from './AppContext';
+import type { AccountInfo } from './getOrCreateAccount';
+import { getOrCreateAccount } from './getOrCreateAccount';
+import type { TeamSlack } from './initTeamSlack';
+import { initTeamSlack } from './initTeamSlack';
 import { getKeys } from './utils';
-import { getOrCreateAccount, AccountInfo } from './getOrCreateAccount';
-import { AppContext } from './AppContext';
 
 export interface AccountContext<
   GroupNames extends string = any,
@@ -29,7 +31,7 @@ export interface AccountContext<
     }: { includesReviewerGroup?: boolean; includesWaitForGroups?: boolean },
   ) => boolean;
 
-  lock(callback: () => Promise<void> | void): Promise<void>;
+  lock: (callback: () => Promise<void> | void) => Promise<void>;
 }
 
 const initAccountContext = async (
@@ -40,7 +42,7 @@ const initAccountContext = async (
 ): Promise<AccountContext> => {
   const account = await getOrCreateAccount(
     appContext,
-    context.github,
+    context.octokit,
     context.payload.installation.id,
     accountInfo,
   );

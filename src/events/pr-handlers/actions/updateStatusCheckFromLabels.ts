@@ -1,33 +1,24 @@
-import Webhooks from '@octokit/webhooks';
-import { Context, Octokit } from 'probot';
-import { LabelResponse } from 'context/initRepoLabels';
-import {
-  PrContext,
-  PrContextWithUpdatedPr,
-} from '../utils/createPullRequestContext';
-import { PullRequestWithDecentDataFromWebhook } from '../utils/PullRequestData';
+import type { EventPayloads } from '@octokit/webhooks';
+import type { Context } from 'probot';
+import type { RepoContext } from 'context/repoContext';
+import type {
+  PullRequestLabels,
+  PullRequestWithDecentData,
+} from '../utils/PullRequestData';
 import createStatus from './utils/createStatus';
 
 const addStatusCheck = async function <
-  T extends { repository: Webhooks.PayloadRepository }
+  T extends { repository: EventPayloads.PayloadRepository }
 >(
-  prContext:
-    | PrContext<PullRequestWithDecentDataFromWebhook>
-    | PrContext<Octokit.PullsGetResponse>
-    | PrContextWithUpdatedPr,
+  pullRequest: PullRequestWithDecentData,
   context: Context<T>,
   { state, description }: { state: 'failure' | 'success'; description: string },
   previousSha?: string,
 ): Promise<void> {
-  const pr: Octokit.PullsGetResponse | PullRequestWithDecentDataFromWebhook =
-    prContext.updatedPr ||
-    (prContext as
-      | PrContext<PullRequestWithDecentDataFromWebhook>
-      | PrContext<Octokit.PullsGetResponse>).pr;
   const hasPrCheck = (
-    await context.github.checks.listForRef(
+    await context.octokit.checks.listForRef(
       context.repo({
-        ref: pr.head.sha,
+        ref: pullRequest.head.sha,
       }),
     )
   ).data.check_runs.find((check) => check.name === process.env.REVIEWFLOW_NAME);
@@ -35,11 +26,11 @@ const addStatusCheck = async function <
   context.log.debug('add status check', { hasPrCheck, state, description });
 
   if (hasPrCheck) {
-    await context.github.checks.create(
+    await context.octokit.checks.create(
       context.repo({
         name: process.env.REVIEWFLOW_NAME as string,
-        head_sha: pr.head.sha,
-        started_at: pr.created_at,
+        head_sha: pullRequest.head.sha,
+        started_at: pullRequest.created_at,
         status: 'completed',
         conclusion: state,
         completed_at: new Date().toISOString(),
@@ -58,29 +49,22 @@ const addStatusCheck = async function <
         'success',
         'New commits have been pushed',
       ),
-      createStatus(context, '', pr.head.sha, state, description),
+      createStatus(context, '', pullRequest.head.sha, state, description),
     ]);
   } else {
-    await createStatus(context, '', pr.head.sha, state, description);
+    await createStatus(context, '', pullRequest.head.sha, state, description);
   }
 };
 
 export const updateStatusCheckFromLabels = <
-  T extends { repository: Webhooks.PayloadRepository }
+  T extends { repository: EventPayloads.PayloadRepository }
 >(
-  prContext:
-    | PrContext<Webhooks.WebhookPayloadPullRequest['pull_request']>
-    | PrContext<Octokit.PullsGetResponse>
-    | PrContextWithUpdatedPr,
-  pr:
-    | Webhooks.WebhookPayloadPullRequest['pull_request']
-    | Octokit.PullsGetResponse,
+  pullRequest: PullRequestWithDecentData,
   context: Context<T>,
-  labels: LabelResponse[] = pr.labels || [],
+  repoContext: RepoContext,
+  labels: PullRequestLabels = pullRequest.labels || [],
   previousSha?: string,
 ): Promise<void> => {
-  const { repoContext } = prContext;
-
   context.log.debug('updateStatusCheckFromLabels', {
     labels: labels.map((l) => l?.name),
     hasNeedsReview: repoContext.hasNeedsReview(labels),
@@ -89,7 +73,7 @@ export const updateStatusCheckFromLabels = <
 
   const createFailedStatusCheck = (description: string): Promise<void> =>
     addStatusCheck(
-      prContext,
+      pullRequest,
       context,
       {
         state: 'failure',
@@ -98,11 +82,11 @@ export const updateStatusCheckFromLabels = <
       previousSha,
     );
 
-  if (pr.requested_reviewers.length !== 0) {
+  if (pullRequest.requested_reviewers.length > 0) {
     return createFailedStatusCheck(
       // TODO remove `as`
       // https://github.com/probot/probot/issues/1219
-      `Awaiting review from: ${(pr.requested_reviewers as Octokit.PullsGetResponse['requested_reviewers'][])
+      `Awaiting review from: ${pullRequest.requested_reviewers
         .map((rr: any) => rr.login)
         .join(', ')}`,
     );
@@ -116,7 +100,7 @@ export const updateStatusCheckFromLabels = <
 
   const needsReviewGroupNames = repoContext.getNeedsReviewGroupNames(labels);
 
-  if (needsReviewGroupNames.length !== 0) {
+  if (needsReviewGroupNames.length > 0) {
     return createFailedStatusCheck(
       `Awaiting review from: ${needsReviewGroupNames.join(
         ', ',
@@ -146,7 +130,7 @@ export const updateStatusCheckFromLabels = <
   // return  createInProgressStatusCheck(context);
   // } else if (repoContext.hasApprovesReview(labels)) {
   return addStatusCheck(
-    prContext,
+    pullRequest,
     context,
     {
       state: 'success',

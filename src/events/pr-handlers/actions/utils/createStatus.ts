@@ -1,8 +1,8 @@
-import Webhooks from '@octokit/webhooks';
-import { Context } from 'probot';
+import type { EventPayloads } from '@octokit/webhooks';
+import type { Context } from 'probot';
 
 export default async function createStatus<
-  T extends { repository: Webhooks.PayloadRepository }
+  T extends { repository: EventPayloads.PayloadRepository }
 >(
   context: Context<T>,
   name: string,
@@ -11,7 +11,7 @@ export default async function createStatus<
   description: string,
   url?: string,
 ): Promise<void> {
-  await context.github.repos.createStatus(
+  await context.octokit.repos.createCommitStatus(
     context.repo({
       context:
         name === ''

@@ -1,5 +1,6 @@
-import { Octokit } from 'probot';
-import { MongoStores } from '../../../mongo';
+import type { Octokit } from '@octokit/core';
+import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
+import type { MongoStores } from '../../../mongo';
 
 export const syncTeams = async (
   mongoStores: MongoStores,
@@ -15,12 +16,12 @@ export const syncTeams = async (
       github.teams.list.endpoint.merge({
         org: org.login,
       }),
-      ({ data }: Octokit.Response<Octokit.TeamsListResponse>) => {
+      ({ data }: RestEndpointMethodTypes['teams']['list']['response']) => {
         return Promise.all(
           data.map((team) => {
             teamIds.push(team.id);
             return mongoStores.orgTeams.upsertOne({
-              _id: team.id as any, // TODO _id number
+              _id: team.id,
               org: orgEmbed,
               name: team.name,
               slug: team.slug,

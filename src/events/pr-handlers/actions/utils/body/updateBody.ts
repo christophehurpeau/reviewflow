@@ -1,5 +1,6 @@
-import { StatusInfo } from 'accountConfigs/types';
-import { Options, parseOptions } from './parseBody';
+import type { StatusInfo } from 'accountConfigs/types';
+import type { Options } from './parseBody';
+import { parseOptions } from './parseBody';
 import { optionsLabels } from './prOptions';
 
 export const defaultCommentBody = 'This will be auto filled by reviewflow.';
@@ -29,7 +30,7 @@ interface UpdatedBodyWithOptions {
 
 const getReplacement = (infos?: StatusInfo[]): string => {
   if (!infos) return '$1$2';
-  return infos.length !== 0
+  return infos.length > 0
     ? `#### Infos:\n\n${toMarkdownInfos(infos)}\n\n$2`
     : '$2';
 };

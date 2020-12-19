@@ -1,25 +1,30 @@
-import { Context, Octokit } from 'probot';
-import { PullRequestData } from './PullRequestData';
+import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
+import type { Context } from 'probot';
+import type { PullRequestWithDecentDataFromWebhook } from './PullRequestData';
 
-export const createReviewflowComment = <T, U extends PullRequestData>(
+export const createReviewflowComment = <T>(
+  pullRequestNumber: PullRequestWithDecentDataFromWebhook['number'],
   context: Context<T>,
-  pr: U,
   body: string,
-): Promise<Octokit.IssuesCreateCommentResponse> => {
-  return context.github.issues
-    .createComment(context.repo({ issue_number: pr.number, body }))
+): Promise<
+  RestEndpointMethodTypes['issues']['createComment']['response']['data']
+> => {
+  return context.octokit.issues
+    .createComment(context.repo({ issue_number: pullRequestNumber, body }))
     .then(({ data }) => data);
 };
 
-export const getReviewflowCommentById = <T, U extends PullRequestData>(
+export const getReviewflowCommentById = <T>(
+  pullRequestNumber: PullRequestWithDecentDataFromWebhook['number'],
   context: Context<T>,
-  pr: U,
   commentId: number,
-): Promise<Octokit.IssuesGetCommentResponse | null> => {
-  return context.github.issues
+): Promise<
+  RestEndpointMethodTypes['issues']['getComment']['response']['data'] | null
+> => {
+  return context.octokit.issues
     .getComment(
       context.repo({
-        issue_number: pr.number,
+        issue_number: pullRequestNumber,
         comment_id: commentId,
       }),
     )

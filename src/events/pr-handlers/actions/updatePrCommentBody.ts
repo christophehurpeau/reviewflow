@@ -1,22 +1,51 @@
-import Webhooks from '@octokit/webhooks';
-import { Context, Octokit } from 'probot';
-import { PrContext } from '../utils/createPullRequestContext';
+import type { EventPayloads } from '@octokit/webhooks';
+import type { Context } from 'probot';
+import type { RepoContext } from 'context/repoContext';
+import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
+import type { Options } from './utils/body/prOptions';
 import { updateCommentOptions } from './utils/body/updateBody';
-import { Options } from './utils/body/prOptions';
-import { updatePrIfNeeded } from './updatePr';
 
-export const updatePrCommentBody = async <
-  E extends Webhooks.WebhookPayloadPullRequest
+const updatePrCommentBody = async <
+  E extends EventPayloads.WebhookPayloadPullRequest
 >(
-  prContext: PrContext<E['pull_request'] | Octokit.PullsGetResponse>,
   context: Context<E>,
+  reviewflowPrContext: ReviewflowPrContext,
+  newBody: string,
+): Promise<void> => {
+  await context.octokit.issues.updateComment(
+    context.repo({
+      comment_id: reviewflowPrContext.reviewflowPr.commentId,
+      body: newBody,
+    }),
+  );
+  reviewflowPrContext.commentBody = newBody;
+};
+
+export const updatePrCommentBodyIfNeeded = async <
+  E extends EventPayloads.WebhookPayloadPullRequest
+>(
+  context: Context<E>,
+  reviewflowPrContext: ReviewflowPrContext,
+  newBody: string,
+): Promise<void> => {
+  if (reviewflowPrContext.commentBody !== newBody) {
+    await updatePrCommentBody(context, reviewflowPrContext, newBody);
+  }
+};
+
+export const updatePrCommentBodyOptions = async <
+  E extends EventPayloads.WebhookPayloadPullRequest
+>(
+  context: Context<E>,
+  repoContext: RepoContext,
+  reviewflowPrContext: ReviewflowPrContext,
   updateOptions: Partial<Options>,
 ): Promise<void> => {
   const { commentBody: newBody } = updateCommentOptions(
-    prContext.commentBody,
-    prContext.repoContext.config.prDefaultOptions,
+    reviewflowPrContext.commentBody,
+    repoContext.config.prDefaultOptions,
     updateOptions,
   );
 
-  await updatePrIfNeeded(prContext, context, { commentBody: newBody });
+  await updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newBody);
 };

@@ -1,9 +1,9 @@
-import { Octokit } from 'probot';
+import type { Octokit } from '@octokit/core';
 import { syncOrg } from '../events/account-handlers/actions/syncOrg';
 import { syncTeams } from '../events/account-handlers/actions/syncTeams';
 import { syncUser } from '../events/account-handlers/actions/syncUser';
-import { Org, User } from '../mongo';
-import { AppContext } from './AppContext';
+import type { Org, User } from '../mongo';
+import type { AppContext } from './AppContext';
 
 export interface AccountInfo {
   id: number;

@@ -1,12 +1,12 @@
-import { Application } from 'probot';
-import { AppContext } from '../../context/AppContext';
-import { createPullRequestsHandler } from './utils/createPullRequestHandler';
+import type { Probot } from 'probot';
+import type { AppContext } from '../../context/AppContext';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
+import { getReviewflowPrContext } from './utils/createPullRequestContext';
+import { createPullRequestsHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
-import { createPullRequestContextFromPullResponse } from './utils/createPullRequestContext';
 
 export default function checksuiteCompleted(
-  app: Application,
+  app: Probot,
   appContext: AppContext,
 ): void {
   app.on(
@@ -17,17 +17,18 @@ export default function checksuiteCompleted(
         if (repoContext.shouldIgnore) return [];
         return payload.check_suite.pull_requests;
       },
-      async (pr, context, repoContext) => {
-        const pullRequest = await fetchPr(context, pr.number);
-        const prContext = await createPullRequestContextFromPullResponse(
-          appContext,
-          repoContext,
-          context,
-          pullRequest,
-          {},
-        );
+      async (pullRequest, context, repoContext) => {
+        const [updatedPr, reviewflowPrContext] = await Promise.all([
+          fetchPr(context, pullRequest.number),
+          getReviewflowPrContext(pullRequest.number, context, repoContext),
+        ]);
 
-        await autoMergeIfPossible(prContext, context);
+        await autoMergeIfPossible(
+          updatedPr,
+          context,
+          repoContext,
+          reviewflowPrContext,
+        );
       },
     ),
   );

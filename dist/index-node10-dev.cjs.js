@@ -1,166 +1,32 @@
 'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
 require('dotenv/config');
 const probot = require('probot');
-const liwiMongo = require('liwi-mongo');
-const cookieParser = _interopDefault(require('cookie-parser'));
-const React = _interopDefault(require('react'));
-const server = require('react-dom/server');
+const cookieParser = require('cookie-parser');
 const util = require('util');
+const rest = require('@octokit/rest');
 const jsonwebtoken = require('jsonwebtoken');
+const React = require('react');
+const server = require('react-dom/server');
 const simpleOauth2 = require('simple-oauth2');
-const bodyParser = _interopDefault(require('body-parser'));
+const bodyParser = require('body-parser');
 const lock = require('lock');
 const webApi = require('@slack/web-api');
-const createEmojiRegex = _interopDefault(require('emoji-regex'));
-const parse$1 = _interopDefault(require('@commitlint/parse'));
-const issueParser = _interopDefault(require('issue-parser'));
-const slackifyMarkdown = _interopDefault(require('slackify-markdown'));
+const createEmojiRegex = require('emoji-regex');
+const issueParser = require('issue-parser');
+const slackifyMarkdown = require('slackify-markdown');
+const parse$1 = require('@commitlint/parse');
+const liwiMongo = require('liwi-mongo');
 
-if (!process.env.MONGO_DB) {
-  throw new Error('MONGO_DB is missing in process.env');
-}
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e['default'] : e; }
 
-function init() {
-  const config = new Map([['host', process.env.MONGO_HOST || 'localhost'], ['port', process.env.MONGO_PORT || '27017'], ['database', process.env.MONGO_DB]]);
-
-  if (process.env.MONGO_USER) {
-    config.set('user', process.env.MONGO_USER);
-    config.set('password', process.env.MONGO_PASSWORD);
-  }
-
-  const connection = new liwiMongo.MongoConnection(config); // const prEvents = new MongoStore<PrEventsModel>(connection, 'prEvents');
-  // prEvents.collection.then((coll) => {
-  //   coll.createIndex({ owner: 1, repo: 1, ???: 1 });
-  // });
-
-  const userDmSettings = new liwiMongo.MongoStore(connection, 'userDmSettings');
-  userDmSettings.collection.then(coll => {
-    coll.createIndex({
-      userId: 1,
-      orgId: 1
-    }, {
-      unique: true
-    });
-  });
-  const users = new liwiMongo.MongoStore(connection, 'users');
-  users.collection.then(coll => {
-    coll.createIndex({
-      login: 1
-    }, {
-      unique: true
-    });
-  });
-  const orgs = new liwiMongo.MongoStore(connection, 'orgs');
-  orgs.collection.then(coll => {
-    coll.createIndex({
-      login: 1
-    }, {
-      unique: true
-    });
-  });
-  const orgMembers = new liwiMongo.MongoStore(connection, 'orgMembers');
-  orgMembers.collection.then(coll => {
-    coll.createIndex({
-      'user.id': 1,
-      'org.id': 1
-    }, {
-      unique: true
-    });
-  });
-  const orgTeams = new liwiMongo.MongoStore(connection, 'orgTeams');
-  orgTeams.collection.then(coll => {
-    coll.createIndex({
-      'org.id': 1
-    });
-  });
-  const slackSentMessages = new liwiMongo.MongoStore(connection, 'slackSentMessages');
-  slackSentMessages.collection.then(coll => {
-    coll.createIndex({
-      'account.id': 1,
-      'account.type': 1,
-      type: 1,
-      typeId: 1
-    }); // remove older than 14 days
-
-    coll.deleteMany({
-      created: {
-        $lt: new Date(Date.now() - 1209600000)
-      }
-    });
-  });
-  const automergeLogs = new liwiMongo.MongoStore(connection, 'automergeLogs');
-  automergeLogs.collection.then(coll => {
-    coll.createIndex({
-      repoFullName: 1,
-      type: 1
-    });
-    coll.createIndex({
-      repoFullName: 1,
-      'pr.number': 1
-    }); // remove older than 30 days
-
-    coll.deleteMany({
-      created: {
-        $lt: new Date(Date.now() - 2592000000)
-      }
-    });
-  });
-  const prs = new liwiMongo.MongoStore(connection, 'prs');
-  prs.collection.then(coll => {
-    coll.createIndex({
-      'account.id': 1,
-      'repo.id': 1,
-      'pr.number': 1
-    }, {
-      unique: true
-    }); // remove older than 12 * 30 days
-
-    coll.deleteMany({
-      created: {
-        $lt: new Date(Date.now() - 31104000000)
-      }
-    });
-  }); // return { connection, prEvents };
-
-  return {
-    connection,
-    userDmSettings,
-    users,
-    orgs,
-    orgMembers,
-    orgTeams,
-    slackSentMessages,
-    automergeLogs,
-    prs
-  };
-}
-
-function Layout({
-  lang = 'en',
-  title = process.env.REVIEWFLOW_NAME,
-  children
-}) {
-  return /*#__PURE__*/React.createElement("html", {
-    lang: lang
-  }, /*#__PURE__*/React.createElement("head", null, /*#__PURE__*/React.createElement("meta", {
-    charSet: "UTF-8"
-  }), /*#__PURE__*/React.createElement("meta", {
-    name: "robots",
-    content: "noindex"
-  }), /*#__PURE__*/React.createElement("title", null, title), /*#__PURE__*/React.createElement("link", {
-    rel: "stylesheet",
-    type: "text/css",
-    href: "https://christophe.hurpeau.com/index.css"
-  }), /*#__PURE__*/React.createElement("style", null, `html,body,html body
-            #container{height:100%} footer{position:absolute;bottom:5px;left:0;right:0;}`)), /*#__PURE__*/React.createElement("body", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '24px 48px'
-    }
-  }, children)));
-}
+const cookieParser__default = /*#__PURE__*/_interopDefaultLegacy(cookieParser);
+const React__default = /*#__PURE__*/_interopDefaultLegacy(React);
+const bodyParser__default = /*#__PURE__*/_interopDefaultLegacy(bodyParser);
+const createEmojiRegex__default = /*#__PURE__*/_interopDefaultLegacy(createEmojiRegex);
+const issueParser__default = /*#__PURE__*/_interopDefaultLegacy(issueParser);
+const slackifyMarkdown__default = /*#__PURE__*/_interopDefaultLegacy(slackifyMarkdown);
+const parse__default = /*#__PURE__*/_interopDefaultLegacy(parse$1);
 
 if (!process.env.GITHUB_CLIENT_ID) {
   throw new Error('Missing env variable: GITHUB_CLIENT_ID');
@@ -181,6 +47,30 @@ const oauth2 = simpleOauth2.create({
     authorizePath: '/login/oauth/authorize'
   }
 });
+
+function Layout({
+  lang = 'en',
+  title = process.env.REVIEWFLOW_NAME,
+  children
+}) {
+  return /*#__PURE__*/React__default.createElement("html", {
+    lang: lang
+  }, /*#__PURE__*/React__default.createElement("head", null, /*#__PURE__*/React__default.createElement("meta", {
+    charSet: "UTF-8"
+  }), /*#__PURE__*/React__default.createElement("meta", {
+    name: "robots",
+    content: "noindex"
+  }), /*#__PURE__*/React__default.createElement("title", null, title), /*#__PURE__*/React__default.createElement("link", {
+    rel: "stylesheet",
+    type: "text/css",
+    href: "https://christophe.hurpeau.com/index.css"
+  }), /*#__PURE__*/React__default.createElement("style", null, `html,body,html body
+            #container{height:100%} footer{position:absolute;bottom:5px;left:0;right:0;}`)), /*#__PURE__*/React__default.createElement("body", null, /*#__PURE__*/React__default.createElement("div", {
+    style: {
+      padding: '24px 48px'
+    }
+  }, children)));
+}
 
 if (!process.env.AUTH_SECRET_KEY) {
   throw new Error('Missing env variable: AUTH_SECRET_KEY');
@@ -209,13 +99,19 @@ const getAuthInfoFromCookie = async (req, res) => {
   // req.params.strategy
   const authInfo = await readAuthCookie(req, "gh");
 
-  if (authInfo === null || authInfo === void 0 ? void 0 : authInfo.id) {
+  if (authInfo !== null && authInfo !== void 0 && authInfo.id) {
     return authInfo;
   }
 
   res.clearCookie(`auth_${"gh"}`);
   return undefined;
 };
+
+function createApi(accessToken) {
+  return new rest.Octokit({
+    auth: accessToken
+  });
+}
 
 const getUser = async (req, res) => {
   const authInfo = await getAuthInfoFromCookie(req, res);
@@ -225,11 +121,10 @@ const getUser = async (req, res) => {
     return null;
   }
 
+  const api = createApi(authInfo.accessToken);
   return {
     authInfo,
-    api: new probot.Octokit({
-      auth: `token ${authInfo.accessToken}`
-    })
+    api
   };
 };
 function auth(router) {
@@ -280,17 +175,15 @@ function auth(router) {
     });
 
     if (!result) {
-      res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, "Could not get access token. ", /*#__PURE__*/React.createElement("a", {
+      res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, "Could not get access token. ", /*#__PURE__*/React__default.createElement("a", {
         href: "/app/login"
       }, "Retry ?")))));
       return;
     }
 
     const accessToken = result.access_token;
-    const octokit = new probot.Octokit({
-      auth: `token ${accessToken}`
-    });
-    const user = await octokit.users.getAuthenticated({});
+    const api = createApi(accessToken);
+    const user = await api.users.getAuthenticated({});
     const id = user.data.id;
     const login = user.data.login;
     const authInfo = {
@@ -312,165 +205,127 @@ function auth(router) {
   });
 }
 
-function repository(router, api) {
-  router.get('/repositories', async (req, res) => {
-    const user = await getUser(req, res);
-    if (!user) return;
-    const {
-      data
-    } = await user.api.repos.list({
-      per_page: 100
-    });
-    res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", null, "Your repositories"), /*#__PURE__*/React.createElement("ul", null, data.map(repo => /*#__PURE__*/React.createElement("li", {
-      key: repo.id
-    }, /*#__PURE__*/React.createElement("a", {
-      href: `/app/repository/${repo.owner.login}/${repo.name}`
-    }, repo.name)))), data.length === 100 && /*#__PURE__*/React.createElement("div", null, "We currently have a limit to 100 repositories")))));
-  });
-  router.get('/repository/:owner/:repository', async (req, res) => {
-    const user = await getUser(req, res);
-    if (!user) return;
-    const {
-      data
-    } = await user.api.repos.get({
-      owner: req.params.owner,
-      repo: req.params.repository
-    });
-
-    if (!data) {
-      res.status(404).send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, "repo not found"))));
-      return;
-    }
-
-    if (!data.permissions.admin) {
-      res.status(401).send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, "not authorized to see this repo, you need to have admin permission"))));
-      return;
-    }
-
-    const {
-      data: data2
-    } = await api.apps.getRepoInstallation({
-      owner: req.params.owner,
-      repo: req.params.repository
-    }).catch(err => {
-      return {
-        status: err.status,
-        data: undefined
-      };
-    });
-
-    if (!data2) {
-      res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed on this repo. Go to ", /*#__PURE__*/React.createElement("a", {
-        href: `https://github.com/apps/${process.env.REVIEWFLOW_NAME}/installations/new`
-      }, "Github Configuration"), ' ', "to add it."))));
-      return;
-    }
-
-    res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", null, req.params.repository)))));
-  });
-}
-
 function home(router) {
   router.get('/', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
     const orgs = await user.api.orgs.listForAuthenticatedUser();
-    res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", null, process.env.REVIEWFLOW_NAME), /*#__PURE__*/React.createElement("div", {
+    res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("h1", null, process.env.REVIEWFLOW_NAME), /*#__PURE__*/React__default.createElement("div", {
       style: {
         display: 'flex'
       }
-    }, /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React__default.createElement("div", {
       style: {
         flexGrow: 1
       }
-    }, /*#__PURE__*/React.createElement("h4", null, "Choose your account"), /*#__PURE__*/React.createElement("ul", null, /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("a", {
+    }, /*#__PURE__*/React__default.createElement("h4", null, "Choose your account"), /*#__PURE__*/React__default.createElement("ul", null, /*#__PURE__*/React__default.createElement("li", null, /*#__PURE__*/React__default.createElement("a", {
       href: "/app/user"
-    }, user.authInfo.login)), orgs.data.map(org => /*#__PURE__*/React.createElement("li", {
+    }, user.authInfo.login)), orgs.data.map(org => /*#__PURE__*/React__default.createElement("li", {
       key: org.id
-    }, /*#__PURE__*/React.createElement("a", {
+    }, /*#__PURE__*/React__default.createElement("a", {
       href: `/app/org/${org.login}`
     }, org.login))))))))));
   });
 }
 
-const syncTeams = async (mongoStores, github, org) => {
-  const orgEmbed = {
-    id: org.id,
-    login: org.login
-  };
-  const teamIds = [];
-  await Promise.all(await github.paginate(github.teams.list.endpoint.merge({
-    org: org.login
-  }), ({
-    data
-  }) => {
-    return Promise.all(data.map(team => {
-      teamIds.push(team.id);
-      return mongoStores.orgTeams.upsertOne({
-        _id: team.id,
-        // TODO _id number
-        org: orgEmbed,
-        name: team.name,
-        slug: team.slug,
-        description: team.description
-      });
-    }));
-  }));
-  await mongoStores.orgTeams.deleteMany({
-    'org.id': org.id,
-    _id: {
-      $not: {
-        $in: teamIds
-      }
-    }
-  });
-};
-
-const syncOrg = async (mongoStores, github, installationId, org) => {
-  const orgInStore = await mongoStores.orgs.upsertOne({
-    _id: org.id,
-    // TODO _id is number
-    login: org.login,
-    installationId
-  });
-  const orgEmbed = {
-    id: org.id,
-    login: org.login
-  };
-  const memberIds = [];
-  await Promise.all(await github.paginate(github.orgs.listMembers.endpoint.merge({
-    org: org.login
-  }), ({
-    data
-  }) => {
-    return Promise.all(data.map(async member => {
-      memberIds.push(member.id);
-      return Promise.all([mongoStores.orgMembers.upsertOne({
-        _id: `${org.id}_${member.id}`,
-        org: orgEmbed,
-        user: {
-          id: member.id,
-          login: member.login
-        }
-      }), mongoStores.users.upsertOne({
-        _id: member.id,
-        login: member.login,
-        type: member.type
-      })]);
-    }));
-  }));
-  await mongoStores.orgMembers.deleteMany({
-    'org.id': org.id,
-    'user.id': {
-      $not: {
-        $in: memberIds
-      }
-    }
-  });
-  return orgInStore;
-};
-
 const config = {
+  autoAssignToCreator: true,
+  trimTitle: true,
+  requiresReviewRequest: false,
+  prDefaultOptions: {
+    featureBranch: false,
+    autoMergeWithSkipCi: false,
+    autoMerge: false,
+    deleteAfterMerge: true
+  },
+  parsePR: {
+    title: [{
+      regExp: // eslint-disable-next-line unicorn/no-unsafe-regex
+      /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([/a-z-]*)\))?(!)?:\s/,
+      error: {
+        title: 'Title does not match commitlint conventional',
+        summary: 'https://github.com/marionebl/commitlint/tree/master/%40commitlint/config-conventional'
+      }
+    }]
+  },
+  groups: {
+    dev: {
+      christophehurpeau: 'christophe@hurpeau.com',
+      tilap: 'jlavinh@gmail.com'
+    }
+  },
+  waitForGroups: {
+    dev: []
+  },
+  teams: {},
+  labels: {
+    list: {
+      // /* ci */
+      // 'ci/in-progress': { name: ':green_heart: ci/in-progress', color: '#0052cc' },
+      // 'ci/fail': { name: ':green_heart: ci/fail', color: '#e11d21' },
+      // 'ci/passed': { name: ':green_heart: ci/passed', color: '#86f9b4' },
+
+      /* code */
+      'code/needs-review': {
+        name: ':ok_hand: code/needs-review',
+        color: '#FFD57F'
+      },
+      'code/review-requested': {
+        name: ':ok_hand: code/review-requested',
+        color: '#B2E1FF'
+      },
+      'code/changes-requested': {
+        name: ':ok_hand: code/changes-requested',
+        color: '#e11d21'
+      },
+      'code/approved': {
+        name: ':ok_hand: code/approved',
+        color: '#64DD17'
+      },
+
+      /* auto merge */
+      'merge/automerge': {
+        name: ':soon: automerge',
+        color: '#64DD17'
+      },
+      'merge/skip-ci': {
+        name: 'automerge/skip-ci',
+        color: '#e1e8ed'
+      },
+      'merge/update-branch': {
+        name: ':arrows_counterclockwise: update branch',
+        color: '#64DD17'
+      },
+
+      /* feature-branch */
+      'feature-branch': {
+        name: 'feature-branch',
+        color: '#7FCEFF'
+      },
+
+      /* infos */
+      'breaking-changes': {
+        name: ':warning: Breaking Changes',
+        color: '#ef7934'
+      }
+    },
+    review: {
+      ci: {
+        inProgress: 'ci/in-progress',
+        succeeded: 'ci/success',
+        failed: 'ci/fail'
+      },
+      dev: {
+        needsReview: 'code/needs-review',
+        requested: 'code/review-requested',
+        changesRequested: 'code/changes-requested',
+        approved: 'code/approved'
+      }
+    }
+  }
+};
+
+const config$1 = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: false,
@@ -509,12 +364,12 @@ const config = {
   }
 };
 
-const config$1 = {
+const config$2 = {
   autoAssignToCreator: true,
   trimTitle: true,
   ignoreRepoPattern: '(infra-.*|devenv)',
   requiresReviewRequest: true,
-  autoMergeRenovateWithSkipCi: true,
+  autoMergeRenovateWithSkipCi: false,
   prDefaultOptions: {
     featureBranch: false,
     autoMergeWithSkipCi: false,
@@ -753,104 +608,7 @@ const config$1 = {
   }
 };
 
-const config$2 = {
-  autoAssignToCreator: true,
-  trimTitle: true,
-  requiresReviewRequest: false,
-  prDefaultOptions: {
-    featureBranch: false,
-    autoMergeWithSkipCi: false,
-    autoMerge: false,
-    deleteAfterMerge: true
-  },
-  parsePR: {
-    title: [{
-      regExp: // eslint-disable-next-line unicorn/no-unsafe-regex
-      /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([/a-z-]*)\))?(!)?:\s/,
-      error: {
-        title: 'Title does not match commitlint conventional',
-        summary: 'https://github.com/marionebl/commitlint/tree/master/%40commitlint/config-conventional'
-      }
-    }]
-  },
-  groups: {
-    dev: {
-      christophehurpeau: 'christophe@hurpeau.com',
-      tilap: 'jlavinh@gmail.com'
-    }
-  },
-  waitForGroups: {
-    dev: []
-  },
-  teams: {},
-  labels: {
-    list: {
-      // /* ci */
-      // 'ci/in-progress': { name: ':green_heart: ci/in-progress', color: '#0052cc' },
-      // 'ci/fail': { name: ':green_heart: ci/fail', color: '#e11d21' },
-      // 'ci/passed': { name: ':green_heart: ci/passed', color: '#86f9b4' },
-
-      /* code */
-      'code/needs-review': {
-        name: ':ok_hand: code/needs-review',
-        color: '#FFD57F'
-      },
-      'code/review-requested': {
-        name: ':ok_hand: code/review-requested',
-        color: '#B2E1FF'
-      },
-      'code/changes-requested': {
-        name: ':ok_hand: code/changes-requested',
-        color: '#e11d21'
-      },
-      'code/approved': {
-        name: ':ok_hand: code/approved',
-        color: '#64DD17'
-      },
-
-      /* auto merge */
-      'merge/automerge': {
-        name: ':soon: automerge',
-        color: '#64DD17'
-      },
-      'merge/skip-ci': {
-        name: 'automerge/skip-ci',
-        color: '#e1e8ed'
-      },
-      'merge/update-branch': {
-        name: ':arrows_counterclockwise: update branch',
-        color: '#64DD17'
-      },
-
-      /* feature-branch */
-      'feature-branch': {
-        name: 'feature-branch',
-        color: '#7FCEFF'
-      },
-
-      /* infos */
-      'breaking-changes': {
-        name: ':warning: Breaking Changes',
-        color: '#ef7934'
-      }
-    },
-    review: {
-      ci: {
-        inProgress: 'ci/in-progress',
-        succeeded: 'ci/success',
-        failed: 'ci/fail'
-      },
-      dev: {
-        needsReview: 'code/needs-review',
-        requested: 'code/review-requested',
-        changesRequested: 'code/changes-requested',
-        approved: 'code/approved'
-      }
-    }
-  }
-};
-
-const config$3 = { ...config$2,
+const config$3 = { ...config,
   requiresReviewRequest: true,
   groups: {
     dev: {
@@ -861,8 +619,8 @@ const config$3 = { ...config$2,
 };
 
 const accountConfigs = {
-  ornikar: config$1,
-  christophehurpeau: config$2,
+  ornikar: config$2,
+  christophehurpeau: config,
   reviewflow: config$3
 };
 // export const getMembers = <GroupNames extends string = any>(
@@ -887,7 +645,7 @@ const defaultDmSettings = {
 const cache = new Map();
 
 const getDefaultDmSettings = org => {
-  const accountConfig = accountConfigs[org] || config;
+  const accountConfig = accountConfigs[org] || config$1;
   return accountConfig.defaultDmSettings ? { ...defaultDmSettings,
     ...accountConfig.defaultDmSettings
   } : defaultDmSettings;
@@ -918,6 +676,82 @@ const getUserDmSettings = async (mongoStores, org, orgId, userId) => {
   return config;
 };
 
+const syncOrg = async (mongoStores, github, installationId, org) => {
+  const orgInStore = await mongoStores.orgs.upsertOne({
+    _id: org.id,
+    // TODO _id is number
+    login: org.login,
+    installationId
+  });
+  const orgEmbed = {
+    id: org.id,
+    login: org.login
+  };
+  const memberIds = [];
+  await Promise.all(await github.paginate(github.orgs.listMembers.endpoint.merge({
+    org: org.login
+  }), ({
+    data
+  }) => {
+    return Promise.all(data.map(async member => {
+      memberIds.push(member.id);
+      return Promise.all([mongoStores.orgMembers.upsertOne({
+        _id: `${org.id}_${member.id}`,
+        org: orgEmbed,
+        user: {
+          id: member.id,
+          login: member.login
+        }
+      }), mongoStores.users.upsertOne({
+        _id: member.id,
+        login: member.login,
+        type: member.type
+      })]);
+    }));
+  }));
+  await mongoStores.orgMembers.deleteMany({
+    'org.id': org.id,
+    'user.id': {
+      $not: {
+        $in: memberIds
+      }
+    }
+  });
+  return orgInStore;
+};
+
+const syncTeams = async (mongoStores, github, org) => {
+  const orgEmbed = {
+    id: org.id,
+    login: org.login
+  };
+  const teamIds = [];
+  await Promise.all(await github.paginate(github.teams.list.endpoint.merge({
+    org: org.login
+  }), ({
+    data
+  }) => {
+    return Promise.all(data.map(team => {
+      teamIds.push(team.id);
+      return mongoStores.orgTeams.upsertOne({
+        _id: team.id,
+        org: orgEmbed,
+        name: team.name,
+        slug: team.slug,
+        description: team.description
+      });
+    }));
+  }));
+  await mongoStores.orgTeams.deleteMany({
+    'org.id': org.id,
+    _id: {
+      $not: {
+        $in: teamIds
+      }
+    }
+  });
+};
+
 const dmMessages = {
   'pr-review': 'You are assigned to a review, someone reviewed your PR',
   'pr-review-follow': "Someone reviewed a PR you're also reviewing",
@@ -930,7 +764,7 @@ const dmMessages = {
   'pr-merge-conflicts': 'Your PR has a merge conflict (not implemented)',
   'issue-comment-mention': 'Someone mentioned you in an issue (not implemented)'
 };
-function orgSettings(router, api, mongoStores) {
+function orgSettings(router, octokitApp, mongoStores) {
   router.get('/org/:org/force-sync', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
@@ -949,7 +783,7 @@ function orgSettings(router, api, mongoStores) {
     const orgs = await user.api.orgs.listForAuthenticatedUser();
     const org = orgs.data.find(o => o.login === req.params.org);
     if (!org) return res.redirect('/app');
-    const installation = await api.apps.getOrgInstallation({
+    const installation = await octokitApp.apps.getOrgInstallation({
       org: org.login
     }).catch(err => {
       return {
@@ -959,47 +793,47 @@ function orgSettings(router, api, mongoStores) {
     });
 
     if (!installation) {
-      return res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed for this user. Go to ", /*#__PURE__*/React.createElement("a", {
+      return res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed for this user. Go to ", /*#__PURE__*/React__default.createElement("a", {
         href: `https://github.com/settings/apps/${process.env.REVIEWFLOW_NAME}/installations/new`
       }, "Github Configuration"), ' ', "to install it."))));
     }
 
     const accountConfig = accountConfigs[org.login];
     const userDmSettings = await getUserDmSettings(mongoStores, org.login, org.id, user.authInfo.id);
-    res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", null, process.env.REVIEWFLOW_NAME), /*#__PURE__*/React.createElement("div", {
+    res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("h1", null, process.env.REVIEWFLOW_NAME), /*#__PURE__*/React__default.createElement("div", {
       style: {
         display: 'flex'
       }
-    }, /*#__PURE__*/React.createElement("h2", {
+    }, /*#__PURE__*/React__default.createElement("h2", {
       style: {
         flexGrow: 1
       }
-    }, org.login), /*#__PURE__*/React.createElement("a", {
+    }, org.login), /*#__PURE__*/React__default.createElement("a", {
       href: "/app"
-    }, "Switch account")), /*#__PURE__*/React.createElement("div", {
+    }, "Switch account")), /*#__PURE__*/React__default.createElement("div", {
       style: {
         display: 'flex'
       }
-    }, /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React__default.createElement("div", {
       style: {
         flexGrow: 1
       }
-    }, /*#__PURE__*/React.createElement("h4", null, "Information"), !accountConfig ? 'Default config is used: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/defaultConfig.ts' : `Custom config: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/${org.login}.ts`), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React__default.createElement("h4", null, "Information"), !accountConfig ? 'Default config is used: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/defaultConfig.ts' : `Custom config: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/${org.login}.ts`), /*#__PURE__*/React__default.createElement("div", {
       style: {
         width: '380px'
       }
-    }, /*#__PURE__*/React.createElement("h4", null, "My DM Settings"), Object.entries(dmMessages).map(([key, name]) => /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React__default.createElement("h4", null, "My DM Settings"), Object.entries(dmMessages).map(([key, name]) => /*#__PURE__*/React__default.createElement("div", {
       key: key
-    }, /*#__PURE__*/React.createElement("label", {
+    }, /*#__PURE__*/React__default.createElement("label", {
       htmlFor: key
-    }, /*#__PURE__*/React.createElement("span", {
+    }, /*#__PURE__*/React__default.createElement("span", {
       // eslint-disable-next-line react/no-danger
       dangerouslySetInnerHTML: {
         __html: `<input id="${key}" type="checkbox" autocomplete="off" ${userDmSettings[key] ? 'checked="checked" ' : ''}onclick="fetch(location.pathname, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: '${key}', value: event.currentTarget.checked }) })" />`
       }
     }), name)))))))));
   });
-  router.patch('/org/:org', bodyParser.json(), async (req, res) => {
+  router.patch('/org/:org', bodyParser__default.json(), async (req, res) => {
     if (!req.body) {
       res.status(400).send('not ok');
       return;
@@ -1038,6 +872,64 @@ function orgSettings(router, api, mongoStores) {
   });
 }
 
+function repository(router, octokitApp) {
+  router.get('/repositories', async (req, res) => {
+    const user = await getUser(req, res);
+    if (!user) return;
+    const {
+      data
+    } = await user.api.repos.listForAuthenticatedUser({
+      per_page: 100
+    });
+    res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("h4", null, "Your repositories"), /*#__PURE__*/React__default.createElement("ul", null, data.map(repo => /*#__PURE__*/React__default.createElement("li", {
+      key: repo.id
+    }, /*#__PURE__*/React__default.createElement("a", {
+      href: `/app/repository/${repo.owner.login}/${repo.name}`
+    }, repo.name)))), data.length === 100 && /*#__PURE__*/React__default.createElement("div", null, "We currently have a limit to 100 repositories")))));
+  });
+  router.get('/repository/:owner/:repository', async (req, res) => {
+    const user = await getUser(req, res);
+    if (!user) return;
+    const {
+      data
+    } = await user.api.repos.get({
+      owner: req.params.owner,
+      repo: req.params.repository
+    });
+
+    if (!data) {
+      res.status(404).send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, "repo not found"))));
+      return;
+    }
+
+    if (!data.permissions || !data.permissions.admin) {
+      res.status(401).send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, "not authorized to see this repo, you need to have admin permission"))));
+      return;
+    }
+
+    const {
+      data: data2
+    } = await octokitApp.apps.getRepoInstallation({
+      owner: req.params.owner,
+      repo: req.params.repository
+    }).catch(err => {
+      return {
+        status: err.status,
+        data: undefined
+      };
+    });
+
+    if (!data2) {
+      res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed on this repo. Go to ", /*#__PURE__*/React__default.createElement("a", {
+        href: `https://github.com/apps/${process.env.REVIEWFLOW_NAME}/installations/new`
+      }, "Github Configuration"), ' ', "to add it."))));
+      return;
+    }
+
+    res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("h4", null, req.params.repository)))));
+  });
+}
+
 const syncUser = async (mongoStores, github, installationId, userInfo) => {
   const user = await mongoStores.users.upsertOne({
     _id: userInfo.id,
@@ -1048,7 +940,7 @@ const syncUser = async (mongoStores, github, installationId, userInfo) => {
   return user;
 };
 
-function userSettings(router, api, mongoStores) {
+function userSettings(router, octokitApp, mongoStores) {
   router.get('/user/force-sync', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return; // const { data: installation } = await api.apps
@@ -1063,14 +955,14 @@ function userSettings(router, api, mongoStores) {
     const u = await mongoStores.users.findByKey(user.authInfo.id);
     if (!u || !u.installationId) return res.redirect('/app');
     await syncUser(mongoStores, user.api, u.installationId, user.authInfo);
-    res.redirect(`/app/user`);
+    res.redirect('/app/user');
   });
   router.get('/user', async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
     const {
       data: installation
-    } = await api.apps.getUserInstallation({
+    } = await octokitApp.apps.getUserInstallation({
       username: user.authInfo.login
     }).catch(err => {
       return {
@@ -1080,560 +972,62 @@ function userSettings(router, api, mongoStores) {
     });
 
     if (!installation) {
-      return res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed for this user. Go to ", /*#__PURE__*/React.createElement("a", {
+      return res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed for this user. Go to ", /*#__PURE__*/React__default.createElement("a", {
         href: `https://github.com/settings/apps/${process.env.REVIEWFLOW_NAME}/installations/new`
       }, "Github Configuration"), ' ', "to install it."))));
     }
 
-    return res.send(server.renderToStaticMarkup( /*#__PURE__*/React.createElement(Layout, null, /*#__PURE__*/React.createElement("div", null, process.env.REVIEWFLOW_NAME, " is installed for this user"))));
+    return res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, process.env.REVIEWFLOW_NAME, " is installed for this user"))));
   });
 }
 
-async function appRouter(app, {
+async function appRouter(app, getRouter, {
   mongoStores
 }) {
-  const router = app.route('/app');
-  const api = await app.auth();
-  router.use(cookieParser());
+  const router = getRouter('/app');
+  const octokitApp = await app.auth();
+  router.use(cookieParser__default());
   auth(router);
-  repository(router, api);
+  repository(router, octokitApp);
   home(router);
-  orgSettings(router, api, mongoStores);
-  userSettings(router, api, mongoStores);
+  orgSettings(router, octokitApp, mongoStores);
+  userSettings(router, octokitApp, mongoStores);
 }
-
-const fetchPr = async (context, prNumber) => {
-  const prResult = await context.github.pulls.get(context.repo({
-    pull_number: prNumber
-  }));
-  return prResult.data;
-};
-
-const options = ['featureBranch', 'autoMergeWithSkipCi', 'autoMerge', 'deleteAfterMerge'];
-const optionsRegexps = options.map(option => ({
-  key: option,
-  regexp: new RegExp(`\\[([ xX]?)]\\s*<!-- reviewflow-${option} -->`)
-}));
-const optionsLabels = [{
-  key: 'featureBranch',
-  label: 'This PR is a feature branch'
-}, {
-  key: 'autoMergeWithSkipCi',
-  label: 'Add `[skip ci]` on merge commit'
-}, {
-  key: 'autoMerge',
-  label: 'Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless "Update branch" triggers)'
-}, {
-  key: 'deleteAfterMerge',
-  label: 'Automatic branch delete after this PR is merged'
-}];
-
-const parseOptions = (content, defaultOptions) => {
-  return optionsRegexps.reduce((acc, {
-    key,
-    regexp
-  }) => {
-    const match = regexp.exec(content);
-    acc[key] = !match ? defaultOptions[key] || false : match[1] === 'x' || match[1] === 'X';
-    return acc;
-  }, {});
-};
-const parseCommitNotes = content => {
-  const commitNotes = content.replace(/^.*#### Commits Notes:(.*)#### Options:.*$/s, '$1');
-
-  if (commitNotes === content) {
-    return '';
-  } else {
-    return commitNotes.trim();
-  }
-};
-const parseBody = (content, defaultOptions) => {
-  return {
-    options: parseOptions(content, defaultOptions),
-    commitNotes: parseCommitNotes(content)
-  };
-};
-
-const defaultCommentBody = 'This will be auto filled by reviewflow.';
-
-const toMarkdownOptions = options => {
-  return optionsLabels.map(({
-    key,
-    label
-  }) => `- [${options[key] ? 'x' : ' '}] <!-- reviewflow-${key} -->${label}`).join('\n');
-};
-
-const toMarkdownInfos = infos => {
-  return infos.map(info => {
-    if (info.url) return `[${info.title}](${info.url})`;
-    return info.title;
-  }).join('\n');
-};
-
-const getReplacement = infos => {
-  if (!infos) return '$1$2';
-  return infos.length !== 0 ? `#### Infos:\n\n${toMarkdownInfos(infos)}\n\n$2` : '$2';
-};
-
-const updateOptions = (options, optionsToUpdate) => {
-  if (!optionsToUpdate) return options;
-  return { ...options,
-    ...optionsToUpdate
-  };
-};
-
-const internalUpdateBodyOptionsAndInfos = (body, options, infos) => {
-  const infosAndCommitNotesParagraph = body.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
-  /^\s*(?:(#### Infos:.*)?(#### Commits Notes:.*)?#### Options:)?.*$/s, getReplacement(infos));
-  return `${infosAndCommitNotesParagraph}#### Options:\n${toMarkdownOptions(options)}`;
-};
-
-const createCommentBody = (defaultOptions, infos) => {
-  return internalUpdateBodyOptionsAndInfos('', defaultOptions, infos);
-};
-const updateCommentOptions = (commentBody, defaultOptions, optionsToUpdate) => {
-  const options = parseOptions(commentBody, defaultOptions);
-  const updatedOptions = updateOptions(options, optionsToUpdate);
-  return {
-    options: updatedOptions,
-    commentBody: internalUpdateBodyOptionsAndInfos(commentBody, updatedOptions)
-  };
-};
-const updateCommentBodyInfos = (commentBody, infos) => {
-  return commentBody.replace( // *  - zero or more
-  // *? - zero or more (non-greedy)
-  // eslint-disable-next-line unicorn/no-unsafe-regex
-  /^\s*(?:(#### Infos:.*?)?(#### Commits Notes:.*?)?(#### Options:.*?)?)?$/s, `${getReplacement(infos)}$3`);
-};
-const updateCommentBodyCommitsNotes = (commentBody, commitNotes) => {
-  return commentBody.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
-  /(?:#### Commits Notes:.*?)?(#### Options:)/s, // eslint-disable-next-line no-nested-ternary
-  !commitNotes ? '$1' : `#### Commits Notes:\n\n${commitNotes}\n\n$1`);
-};
-const removeDeprecatedReviewflowInPrBody = prBody => {
-  return prBody.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
-  /^(.*)<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->(.*)$/is, // eslint-disable-next-line no-nested-ternary
-  '$1$3');
-};
-
-const createReviewflowComment = (context, pr, body) => {
-  return context.github.issues.createComment(context.repo({
-    issue_number: pr.number,
-    body
-  })).then(({
-    data
-  }) => data);
-};
-const getReviewflowCommentById = (context, pr, commentId) => {
-  return context.github.issues.getComment(context.repo({
-    issue_number: pr.number,
-    comment_id: commentId
-  })).then(({
-    data
-  }) => data, () => null);
-};
-
-const getReviewflowPr = async (appContext, repoContext, context, pr, reviewflowCommentPromise) => {
-  const prEmbed = {
-    number: pr.number
-  };
-
-  if (reviewflowCommentPromise) {
-    const comment = await reviewflowCommentPromise;
-    const reviewflowPr = await appContext.mongoStores.prs.insertOne({
-      account: repoContext.accountEmbed,
-      repo: repoContext.repoEmbed,
-      pr: prEmbed,
-      commentId: comment.id
-    });
-    return {
-      reviewflowPr,
-      commentBody: comment.body
-    };
-  }
-
-  const existing = await appContext.mongoStores.prs.findOne({
-    'account.id': repoContext.accountEmbed.id,
-    'repo.id': repoContext.repoEmbed.id,
-    'pr.number': pr.number
-  });
-  const comment = existing && (await getReviewflowCommentById(context, pr, existing.commentId));
-
-  if (!comment || !existing) {
-    const comment = await createReviewflowComment(context, pr, defaultCommentBody);
-
-    if (!existing) {
-      const reviewflowPr = await appContext.mongoStores.prs.insertOne({
-        account: repoContext.accountEmbed,
-        repo: repoContext.repoEmbed,
-        pr: prEmbed,
-        commentId: comment.id
-      });
-      return {
-        reviewflowPr,
-        commentBody: comment.body
-      };
-    } else {
-      await appContext.mongoStores.prs.partialUpdateByKey(existing._id, {
-        $set: {
-          commentId: comment.id
-        }
-      });
-    }
-  }
-
-  return {
-    reviewflowPr: existing,
-    commentBody: comment.body
-  };
-};
-
-const createPullRequestContextFromWebhook = async (appContext, repoContext, context, pr, options) => {
-  if (repoContext.shouldIgnore) {
-    return {
-      appContext,
-      repoContext,
-      pr,
-      reviewflowPr: null,
-      // TODO fix typings to allow null
-      commentBody: '',
-      updatedPr: null
-    };
-  }
-
-  const {
-    reviewflowPr,
-    commentBody
-  } = await getReviewflowPr(appContext, repoContext, context, pr, options.reviewflowCommentPromise);
-  return {
-    appContext,
-    repoContext,
-    pr,
-    reviewflowPr,
-    commentBody,
-    updatedPr: null
-  };
-};
-const createPullRequestContextFromPullResponse = async (appContext, repoContext, context, pr, options) => {
-  console.log('createPullRequestContextFromPullResponse', pr.number);
-  const {
-    reviewflowPr,
-    commentBody
-  } = await getReviewflowPr(appContext, repoContext, context, pr, options.reviewflowCommentPromise);
-  return {
-    appContext,
-    repoContext,
-    pr,
-    reviewflowPr,
-    commentBody,
-    updatedPr: pr
-  };
-};
-const fetchPullRequestAndCreateContext = async (context, prContext) => {
-  const updatedPr = await fetchPr(context, prContext.pr.number);
-  return { ...prContext,
-    updatedPr
-  };
-};
-
-function hasLabelInPR(prLabels, label) {
-  if (!label) return false;
-  return prLabels.some(l => l.id === label.id);
-}
-
-const hasFailedStatusOrChecks = async (pr, context) => {
-  const checks = await context.github.checks.listForRef(context.repo({
-    ref: pr.head.sha,
-    per_page: 100
-  }));
-  const failedChecks = checks.data.check_runs.filter(check => check.conclusion === 'failure');
-
-  if (failedChecks.length !== 0) {
-    context.log.info(`automerge not possible: failed check pr ${pr.id}`, {
-      checks: failedChecks.map(check => check.name)
-    });
-    return true;
-  }
-
-  const combinedStatus = await context.github.repos.getCombinedStatusForRef(context.repo({
-    ref: pr.head.sha,
-    per_page: 100
-  }));
-
-  if (combinedStatus.data.state === 'failure') {
-    const failedStatuses = combinedStatus.data.statuses.filter(status => status.state === 'failure' || status.state === 'error');
-    context.log.info(`automerge not possible: failed status pr ${pr.id}`, {
-      statuses: failedStatuses.map(status => status.context)
-    });
-    return true;
-  }
-
-  return false;
-};
-
-const autoMergeIfPossibleOptionalPrContext = async (appContext, repoContext, pr, context, prContext, prLabels = pr.labels) => {
-  const autoMergeLabel = repoContext.labels['merge/automerge'];
-
-  if (!hasLabelInPR(prLabels, autoMergeLabel)) {
-    repoContext.removePrFromAutomergeQueue(context, pr.number, 'no automerge label');
-    return false;
-  }
-
-  const isRenovatePr = pr.head.ref.startsWith('renovate/');
-
-  const createMergeLockPrFromPr = () => ({
-    id: pr.id,
-    number: pr.number,
-    branch: pr.head.ref
-  });
-
-  if (pr.state !== 'open') {
-    repoContext.removePrFromAutomergeQueue(context, pr.number, 'pr is not opened');
-  }
-
-  const addLog = (type, action) => {
-    const repoFullName = pr.head.repo.full_name;
-    context.log.info(`automerge: ${repoFullName}#${pr.id} ${type}`);
-    appContext.mongoStores.automergeLogs.insertOne({
-      account: repoContext.accountEmbed,
-      repoFullName,
-      pr: {
-        id: pr.id,
-        number: pr.number,
-        isRenovate: isRenovatePr,
-        mergeableState: pr.mergeable_state
-      },
-      type,
-      action
-    });
-  };
-
-  if (repoContext.hasNeedsReview(prLabels) || repoContext.hasRequestedReview(prLabels)) {
-    repoContext.removePrFromAutomergeQueue(context, pr.number, 'blocking labels');
-    return false;
-  }
-
-  if (pr.requested_reviewers.length !== 0) {
-    repoContext.removePrFromAutomergeQueue(context, pr.number, 'still has requested reviewers');
-    return false;
-  }
-
-  const lockedPr = repoContext.getMergeLockedPr();
-
-  if (lockedPr && String(lockedPr.number) !== String(pr.number)) {
-    context.log.info('automerge not possible: locked pr', {
-      prId: pr.id,
-      prNumber: pr.number
-    });
-    repoContext.pushAutomergeQueue(createMergeLockPrFromPr());
-    return false;
-  }
-
-  repoContext.addMergeLockPr(createMergeLockPrFromPr());
-
-  if (pr.mergeable == null) {
-    const prResult = await context.github.pulls.get(context.repo({
-      pull_number: pr.number
-    }));
-    pr = prResult.data;
-  }
-
-  if (pr.merged) {
-    addLog('already merged', 'remove');
-    repoContext.removePrFromAutomergeQueue(context, pr.number, 'pr already merged');
-    return false;
-  }
-
-  context.log.info(`automerge?: ${pr.id}, #${pr.number}, mergeable=${pr.mergeable} state=${pr.mergeable_state}`); // https://github.com/octokit/octokit.net/issues/1763
-
-  if (!(pr.mergeable_state === 'clean' || pr.mergeable_state === 'has_hooks' || pr.mergeable_state === 'unstable')) {
-    if (!pr.mergeable_state || pr.mergeable_state === 'unknown') {
-      addLog('unknown mergeable_state', 'reschedule'); // GitHub is determining whether the pull request is mergeable
-
-      repoContext.reschedule(context, createMergeLockPrFromPr());
-      return false;
-    }
-
-    if (isRenovatePr) {
-      if (pr.mergeable_state === 'behind' || pr.mergeable_state === 'dirty') {
-        addLog('rebase-renovate', 'wait'); // TODO check if has commits not made by renovate https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
-
-        if (pr.body.includes('<!-- rebase-check -->')) {
-          if (pr.body.includes('[x] <!-- rebase-check -->')) {
-            return false;
-          }
-
-          const renovateRebaseBody = pr.body.replace('[ ] <!-- rebase-check -->', '[x] <!-- rebase-check -->');
-          await context.github.issues.update(context.repo({
-            issue_number: pr.number,
-            body: renovateRebaseBody
-          }));
-        } else if (!pr.title.startsWith('rebase!')) {
-          await context.github.issues.update(context.repo({
-            issue_number: pr.number,
-            title: `rebase!${pr.title}`
-          }));
-        }
-
-        return false;
-      }
-
-      if (await hasFailedStatusOrChecks(pr, context)) {
-        addLog('failed status or checks', 'remove');
-        repoContext.removePrFromAutomergeQueue(context, pr.number, 'failed status or checks');
-        return false;
-      } else if (pr.mergeable_state === 'blocked') {
-        addLog('blocked mergeable_state', 'wait'); // waiting for reschedule in status (pr-handler/status.ts)
-
-        return false;
-      }
-
-      context.log.info(`automerge not possible: renovate with mergeable_state=${pr.mergeable_state}`);
-      return false;
-    }
-
-    if (pr.mergeable_state === 'blocked') {
-      if (await hasFailedStatusOrChecks(pr, context)) {
-        addLog('failed status or checks', 'remove');
-        repoContext.removePrFromAutomergeQueue(context, pr.number, 'failed status or checks');
-        return false;
-      } else {
-        addLog('blocked mergeable_state', 'wait'); // waiting for reschedule in status (pr-handler/status.ts)
-
-        return false;
-      }
-    }
-
-    if (pr.mergeable_state === 'behind') {
-      addLog('behind mergeable_state', 'update branch');
-      context.log.info('automerge not possible: update branch', {
-        head: pr.head.ref,
-        base: pr.base.ref
-      });
-      await context.github.repos.merge({
-        owner: pr.head.repo.owner.login,
-        repo: pr.head.repo.name,
-        head: pr.base.ref,
-        base: pr.head.ref
-      });
-      return false;
-    }
-
-    addLog('not mergeable', 'remove');
-    repoContext.removePrFromAutomergeQueue(context, pr.number, `mergeable_state=${pr.mergeable_state}`);
-    context.log.info(`automerge not possible: not mergeable mergeable_state=${pr.mergeable_state}`);
-    return false;
-  }
-
-  try {
-    context.log.info(`automerge pr #${pr.number}`);
-    if (!prContext) prContext = await createPullRequestContextFromPullResponse(appContext, repoContext, context, pr, {});
-    const parsedBody = parseBody(prContext.commentBody, repoContext.config.prDefaultOptions);
-    const options = (parsedBody === null || parsedBody === void 0 ? void 0 : parsedBody.options) || repoContext.config.prDefaultOptions;
-    const mergeResult = await context.github.pulls.merge({
-      merge_method: options.featureBranch ? 'merge' : 'squash',
-      owner: pr.head.repo.owner.login,
-      repo: pr.head.repo.name,
-      pull_number: pr.number,
-      commit_title: options.featureBranch ? undefined : `${pr.title}${options.autoMergeWithSkipCi ? ' [skip ci]' : ''} (#${pr.number})`,
-      commit_message: options.featureBranch ? undefined : '' // TODO add BC
-
-    });
-    context.log.debug('merge result:', mergeResult.data);
-    repoContext.removePrFromAutomergeQueue(context, pr.number, 'merged');
-    return Boolean(mergeResult.data.merged);
-  } catch (err) {
-    context.log.info('could not merge:', err.message);
-    repoContext.reschedule(context, createMergeLockPrFromPr());
-    return false;
-  }
-};
-const autoMergeIfPossible = async (prContext, context, prLabels) => {
-  const pr = prContext.updatedPr || prContext.pr;
-  return autoMergeIfPossibleOptionalPrContext(prContext.appContext, prContext.repoContext, pr, context, prContext, prLabels);
-};
 
 const ExcludesFalsy = Boolean;
 const ExcludesNullish = res => res !== null;
 
-const getLabelsForRepo = async context => {
-  const {
-    data: labels
-  } = await context.github.issues.listLabelsForRepo(context.repo({
-    per_page: 100
-  }));
-  return labels;
-};
-const initRepoLabels = async (context, config) => {
-  const labels = await getLabelsForRepo(context);
-  const finalLabels = {};
+const getOrCreateAccount = async ({
+  mongoStores
+}, github, installationId, accountInfo) => {
+  var _org, _user;
 
-  for (const [labelKey, labelConfig] of Object.entries(config.labels.list)) {
-    const labelColor = labelConfig.color.slice(1);
-    const description = labelConfig.description ? `${labelConfig.description} - Synced by reviewflow` : `Synced by reviewflow for ${labelKey}`;
-    let existingLabel = labels.find(label => label.name === labelConfig.name);
+  switch (accountInfo.type) {
+    case 'Organization':
+      {
+        let org = await mongoStores.orgs.findByKey(accountInfo.id);
+        if ((_org = org) !== null && _org !== void 0 && _org.installationId) return org; // TODO diff org vs user...
 
-    if (!existingLabel) {
-      existingLabel = labels.find(label => label.description === description);
-    }
-
-    if (!existingLabel) {
-      if (labelKey === 'design/needs-review') {
-        existingLabel = labels.find(label => label.name === 'needs-design-review');
+        org = await syncOrg(mongoStores, github, installationId, accountInfo);
+        await syncTeams(mongoStores, github, accountInfo);
+        return org;
       }
 
-      if (labelKey === 'design/approved') {
-        existingLabel = labels.find(label => label.name === 'design-reviewed');
+    case 'User':
+      {
+        let user = await mongoStores.users.findByKey(accountInfo.id);
+        if ((_user = user) !== null && _user !== void 0 && _user.installationId) return user;
+        user = await syncUser(mongoStores, github, installationId, accountInfo);
+        return user;
       }
 
-      if (labelKey === 'teams/ops') {
-        existingLabel = labels.find(label => label.name === 'archi');
-      }
-    }
-
-    if (!existingLabel) {
-      const result = await context.github.issues.createLabel(context.repo({
-        name: labelConfig.name,
-        color: labelColor,
-        description
-      }));
-      finalLabels[labelKey] = result.data;
-    } else if (existingLabel.name !== labelConfig.name || existingLabel.color !== labelColor || existingLabel.description !== description) {
-      context.log.info('Needs to update label', {
-        current_name: existingLabel.name,
-        name: existingLabel.name !== labelConfig.name && labelConfig.name,
-        color: existingLabel.color !== labelColor && labelColor,
-        description: existingLabel.description !== description && description
-      });
-      const result = await context.github.issues.updateLabel(context.repo({
-        current_name: existingLabel.name,
-        name: labelConfig.name,
-        color: labelColor,
-        description
-      }));
-      finalLabels[labelKey] = result.data;
-    } else {
-      finalLabels[labelKey] = existingLabel;
-    }
+    default:
+      throw new Error(`Account type not supported ${accountInfo.type}`);
   }
-
-  return finalLabels;
 };
 
 const getKeys = o => Object.keys(o);
-const contextIssue = (context, object) => {
-  const payload = context.payload;
-  return context.repo({ ...object,
-    issue_number: (payload.issue || payload.pull_request || payload).number
-  });
-};
-const contextPr = (context, object) => {
-  const payload = context.payload;
-  return context.repo({ ...object,
-    pull_number: (payload.issue || payload.pull_request || payload).number
-  });
-};
-const emojiRegex = createEmojiRegex();
+const emojiRegex = createEmojiRegex__default();
 const getEmojiFromRepoDescription = description => {
   if (!description) return '';
 
@@ -1683,7 +1077,7 @@ const initTeamSlack = async ({
 
     const member = membersInDb.find(m => m.user.login === login);
 
-    if (member === null || member === void 0 ? void 0 : (_member$slack = member.slack) === null || _member$slack === void 0 ? void 0 : _member$slack.id) {
+    if (member !== null && member !== void 0 && (_member$slack = member.slack) !== null && _member$slack !== void 0 && _member$slack.id) {
       foundEmailMembers.push(email);
       members.push([email, {
         member: {
@@ -1703,7 +1097,9 @@ const initTeamSlack = async ({
     }));
     await slackClient.paginate('users.list', {}, page => {
       page.members.forEach(member => {
-        const email = member.profile && member.profile.email;
+        var _member$profile;
+
+        const email = (_member$profile = member.profile) === null || _member$profile === void 0 ? void 0 : _member$profile.email;
 
         if (email && missingEmails.includes(email)) {
           members.push([email, {
@@ -1830,7 +1226,7 @@ const initTeamSlack = async ({
       });
       const user = getUserFromGithubLogin(githubLogin);
       if (!user || !user.member) return;
-      slackHome.scheduleUpdateMember(context.github, slackClient, {
+      slackHome.scheduleUpdateMember(context.octokit, slackClient, {
         user: {
           id: null,
           login: githubLogin
@@ -1847,37 +1243,8 @@ const initTeamSlack = async ({
   };
 };
 
-const getOrCreateAccount = async ({
-  mongoStores
-}, github, installationId, accountInfo) => {
-  var _org, _user;
-
-  switch (accountInfo.type) {
-    case 'Organization':
-      {
-        let org = await mongoStores.orgs.findByKey(accountInfo.id);
-        if ((_org = org) === null || _org === void 0 ? void 0 : _org.installationId) return org; // TODO diff org vs user...
-
-        org = await syncOrg(mongoStores, github, installationId, accountInfo);
-        await syncTeams(mongoStores, github, accountInfo);
-        return org;
-      }
-
-    case 'User':
-      {
-        let user = await mongoStores.users.findByKey(accountInfo.id);
-        if ((_user = user) === null || _user === void 0 ? void 0 : _user.installationId) return user;
-        user = await syncUser(mongoStores, github, installationId, accountInfo);
-        return user;
-      }
-
-    default:
-      throw new Error(`Account type not supported ${accountInfo.type}`);
-  }
-};
-
 const initAccountContext = async (appContext, context, config, accountInfo) => {
-  const account = await getOrCreateAccount(appContext, context.github, context.payload.installation.id, accountInfo);
+  const account = await getOrCreateAccount(appContext, context.octokit, context.payload.installation.id, accountInfo);
   const slackPromise = initTeamSlack(appContext, context, config, account);
   const githubLoginToGroup = new Map();
   getKeys(config.groups).forEach(groupName => {
@@ -1978,6 +1345,486 @@ const obtainAccountContext = (appContext, context, config, accountInfo) => {
   });
 };
 
+const handlerOrgChange = async (appContext, context, callback) => {
+  const org = context.payload.organization;
+  if (!org) return;
+  const config = accountConfigs[org.login] || config$1;
+  const accountContext = await obtainAccountContext(appContext, context, config, { ...org,
+    type: 'Organization'
+  });
+  if (!accountContext) return;
+  return accountContext.lock(async () => {
+    await callback(context, accountContext);
+  });
+};
+const createHandlerOrgChange = (appContext, callback) => context => {
+  return handlerOrgChange(appContext, context, callback);
+};
+
+const options = ['featureBranch', 'autoMergeWithSkipCi', 'autoMerge', 'deleteAfterMerge'];
+const optionsRegexps = options.map(option => ({
+  key: option,
+  regexp: new RegExp(`\\[([ xX]?)]\\s*<!-- reviewflow-${option} -->`)
+}));
+const optionsLabels = [{
+  key: 'featureBranch',
+  label: 'This PR is a feature branch'
+}, {
+  key: 'autoMergeWithSkipCi',
+  label: 'Add `[skip ci]` on merge commit'
+}, {
+  key: 'autoMerge',
+  label: 'Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless "Update branch" triggers)'
+}, {
+  key: 'deleteAfterMerge',
+  label: 'Automatic branch delete after this PR is merged'
+}];
+
+const parseOptions = (content, defaultOptions) => {
+  return optionsRegexps.reduce((acc, {
+    key,
+    regexp
+  }) => {
+    const match = regexp.exec(content);
+    acc[key] = !match ? defaultOptions[key] || false : match[1] === 'x' || match[1] === 'X';
+    return acc;
+  }, {});
+};
+const parseCommitNotes = content => {
+  const commitNotes = content.replace(/^.*#### Commits Notes:(.*)#### Options:.*$/s, '$1');
+
+  if (commitNotes === content) {
+    return '';
+  } else {
+    return commitNotes.trim();
+  }
+};
+const parseBody = (content, defaultOptions) => {
+  return {
+    options: parseOptions(content, defaultOptions),
+    commitNotes: parseCommitNotes(content)
+  };
+};
+
+function hasLabelInPR(prLabels, label) {
+  if (!label) return false;
+  return prLabels.some(l => l.id === label.id);
+}
+
+const hasFailedStatusOrChecks = async (pr, context) => {
+  const checks = await context.octokit.checks.listForRef(context.repo({
+    ref: pr.head.sha,
+    per_page: 100
+  }));
+  const failedChecks = checks.data.check_runs.filter(check => check.conclusion === 'failure');
+
+  if (failedChecks.length > 0) {
+    context.log.info(`automerge not possible: failed check pr ${pr.id}`, {
+      checks: failedChecks.map(check => check.name)
+    });
+    return true;
+  }
+
+  const combinedStatus = await context.octokit.repos.getCombinedStatusForRef(context.repo({
+    ref: pr.head.sha,
+    per_page: 100
+  }));
+
+  if (combinedStatus.data.state === 'failure') {
+    const failedStatuses = combinedStatus.data.statuses.filter(status => status.state === 'failure' || status.state === 'error');
+    context.log.info(`automerge not possible: failed status pr ${pr.id}`, {
+      statuses: failedStatuses.map(status => status.context)
+    });
+    return true;
+  }
+
+  return false;
+};
+
+const autoMergeIfPossible = async (pullRequest, context, repoContext, reviewflowPrContext, prLabels = pullRequest.labels) => {
+  if (reviewflowPrContext === null) return false;
+  const autoMergeLabel = repoContext.labels['merge/automerge'];
+
+  if (!hasLabelInPR(prLabels, autoMergeLabel)) {
+    repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'no automerge label');
+    return false;
+  }
+
+  const isRenovatePr = pullRequest.head.ref.startsWith('renovate/');
+
+  const createMergeLockPrFromPr = () => ({
+    id: pullRequest.id,
+    number: pullRequest.number,
+    branch: pullRequest.head.ref
+  });
+
+  if (pullRequest.state !== 'open') {
+    repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'pr is not opened');
+  }
+
+  const addLog = (type, action) => {
+    const repoFullName = pullRequest.head.repo.full_name;
+    context.log.info(`automerge: ${repoFullName}#${pullRequest.id} ${type}`);
+    repoContext.appContext.mongoStores.automergeLogs.insertOne({
+      account: repoContext.accountEmbed,
+      repoFullName,
+      pr: {
+        id: pullRequest.id,
+        number: pullRequest.number,
+        isRenovate: isRenovatePr,
+        mergeableState: pullRequest.mergeable_state
+      },
+      type,
+      action
+    });
+  };
+
+  if (repoContext.hasNeedsReview(prLabels) || repoContext.hasRequestedReview(prLabels)) {
+    repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'blocking labels');
+    return false;
+  }
+
+  if (pullRequest.requested_reviewers.length > 0) {
+    repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'still has requested reviewers');
+    return false;
+  }
+
+  const lockedPr = repoContext.getMergeLockedPr();
+
+  if (lockedPr && String(lockedPr.number) !== String(pullRequest.number)) {
+    context.log.info('automerge not possible: locked pr', {
+      prId: pullRequest.id,
+      prNumber: pullRequest.number
+    });
+    repoContext.pushAutomergeQueue(createMergeLockPrFromPr());
+    return false;
+  }
+
+  repoContext.addMergeLockPr(createMergeLockPrFromPr());
+
+  if (pullRequest.mergeable == null) {
+    const prResult = await context.octokit.pulls.get(context.repo({
+      pull_number: pullRequest.number
+    }));
+    pullRequest = prResult.data;
+  }
+
+  if (pullRequest.merged) {
+    addLog('already merged', 'remove');
+    repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'pr already merged');
+    return false;
+  }
+
+  context.log.info(`automerge?: ${pullRequest.id}, #${pullRequest.number}, mergeable=${pullRequest.mergeable} state=${pullRequest.mergeable_state}`); // https://github.com/octokit/octokit.net/issues/1763
+
+  if (!(pullRequest.mergeable_state === 'clean' || pullRequest.mergeable_state === 'has_hooks' || pullRequest.mergeable_state === 'unstable')) {
+    if (!pullRequest.mergeable_state || pullRequest.mergeable_state === 'unknown') {
+      addLog('unknown mergeable_state', 'reschedule'); // GitHub is determining whether the pull request is mergeable
+
+      repoContext.reschedule(context, createMergeLockPrFromPr());
+      return false;
+    }
+
+    if (isRenovatePr) {
+      if (pullRequest.mergeable_state === 'behind' || pullRequest.mergeable_state === 'dirty') {
+        addLog('rebase-renovate', 'wait'); // TODO check if has commits not made by renovate https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
+
+        if (pullRequest.body.includes('<!-- rebase-check -->')) {
+          if (pullRequest.body.includes('[x] <!-- rebase-check -->')) {
+            return false;
+          }
+
+          const renovateRebaseBody = pullRequest.body.replace('[ ] <!-- rebase-check -->', '[x] <!-- rebase-check -->');
+          await context.octokit.issues.update(context.repo({
+            issue_number: pullRequest.number,
+            body: renovateRebaseBody
+          }));
+        } else if (!pullRequest.title.startsWith('rebase!')) {
+          await context.octokit.issues.update(context.repo({
+            issue_number: pullRequest.number,
+            title: `rebase!${pullRequest.title}`
+          }));
+        }
+
+        return false;
+      }
+
+      if (await hasFailedStatusOrChecks(pullRequest, context)) {
+        addLog('failed status or checks', 'remove');
+        repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'failed status or checks');
+        return false;
+      } else if (pullRequest.mergeable_state === 'blocked') {
+        addLog('blocked mergeable_state', 'wait'); // waiting for reschedule in status (pr-handler/status.ts)
+
+        return false;
+      }
+
+      context.log.info(`automerge not possible: renovate with mergeable_state=${pullRequest.mergeable_state}`);
+      return false;
+    }
+
+    if (pullRequest.mergeable_state === 'blocked') {
+      if (await hasFailedStatusOrChecks(pullRequest, context)) {
+        addLog('failed status or checks', 'remove');
+        repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'failed status or checks');
+        return false;
+      } else {
+        addLog('blocked mergeable_state', 'wait'); // waiting for reschedule in status (pr-handler/status.ts)
+
+        return false;
+      }
+    }
+
+    if (pullRequest.mergeable_state === 'behind') {
+      addLog('behind mergeable_state', 'update branch');
+      context.log.info('automerge not possible: update branch', {
+        head: pullRequest.head.ref,
+        base: pullRequest.base.ref
+      });
+      await context.octokit.repos.merge({
+        owner: pullRequest.head.repo.owner.login,
+        repo: pullRequest.head.repo.name,
+        head: pullRequest.base.ref,
+        base: pullRequest.head.ref
+      });
+      return false;
+    }
+
+    addLog('not mergeable', 'remove');
+    repoContext.removePrFromAutomergeQueue(context, pullRequest.number, `mergeable_state=${pullRequest.mergeable_state}`);
+    context.log.info(`automerge not possible: not mergeable mergeable_state=${pullRequest.mergeable_state}`);
+    return false;
+  }
+
+  try {
+    context.log.info(`automerge pr #${pullRequest.number}`);
+    const parsedBody = parseBody(reviewflowPrContext.commentBody, repoContext.config.prDefaultOptions);
+    const options = (parsedBody === null || parsedBody === void 0 ? void 0 : parsedBody.options) || repoContext.config.prDefaultOptions;
+    const mergeResult = await context.octokit.pulls.merge({
+      merge_method: options.featureBranch ? 'merge' : 'squash',
+      owner: pullRequest.head.repo.owner.login,
+      repo: pullRequest.head.repo.name,
+      pull_number: pullRequest.number,
+      commit_title: options.featureBranch ? undefined : `${pullRequest.title}${options.autoMergeWithSkipCi ? ' [skip ci]' : ''} (#${pullRequest.number})`,
+      commit_message: options.featureBranch ? undefined : '' // TODO add BC
+
+    });
+    context.log.debug('merge result:', mergeResult.data);
+    repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'merged');
+    return Boolean('merged' in mergeResult.data && mergeResult.data.merged);
+  } catch (err) {
+    context.log.info('could not merge:', err.message);
+    repoContext.reschedule(context, createMergeLockPrFromPr());
+    return false;
+  }
+};
+
+const defaultCommentBody = 'This will be auto filled by reviewflow.';
+
+const toMarkdownOptions = options => {
+  return optionsLabels.map(({
+    key,
+    label
+  }) => `- [${options[key] ? 'x' : ' '}] <!-- reviewflow-${key} -->${label}`).join('\n');
+};
+
+const toMarkdownInfos = infos => {
+  return infos.map(info => {
+    if (info.url) return `[${info.title}](${info.url})`;
+    return info.title;
+  }).join('\n');
+};
+
+const getReplacement = infos => {
+  if (!infos) return '$1$2';
+  return infos.length > 0 ? `#### Infos:\n\n${toMarkdownInfos(infos)}\n\n$2` : '$2';
+};
+
+const updateOptions = (options, optionsToUpdate) => {
+  if (!optionsToUpdate) return options;
+  return { ...options,
+    ...optionsToUpdate
+  };
+};
+
+const internalUpdateBodyOptionsAndInfos = (body, options, infos) => {
+  const infosAndCommitNotesParagraph = body.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
+  /^\s*(?:(#### Infos:.*)?(#### Commits Notes:.*)?#### Options:)?.*$/s, getReplacement(infos));
+  return `${infosAndCommitNotesParagraph}#### Options:\n${toMarkdownOptions(options)}`;
+};
+
+const createCommentBody = (defaultOptions, infos) => {
+  return internalUpdateBodyOptionsAndInfos('', defaultOptions, infos);
+};
+const updateCommentOptions = (commentBody, defaultOptions, optionsToUpdate) => {
+  const options = parseOptions(commentBody, defaultOptions);
+  const updatedOptions = updateOptions(options, optionsToUpdate);
+  return {
+    options: updatedOptions,
+    commentBody: internalUpdateBodyOptionsAndInfos(commentBody, updatedOptions)
+  };
+};
+const updateCommentBodyInfos = (commentBody, infos) => {
+  return commentBody.replace( // *  - zero or more
+  // *? - zero or more (non-greedy)
+  // eslint-disable-next-line unicorn/no-unsafe-regex
+  /^\s*(?:(#### Infos:.*?)?(#### Commits Notes:.*?)?(#### Options:.*?)?)?$/s, `${getReplacement(infos)}$3`);
+};
+const updateCommentBodyCommitsNotes = (commentBody, commitNotes) => {
+  return commentBody.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
+  /(?:#### Commits Notes:.*?)?(#### Options:)/s, // eslint-disable-next-line no-nested-ternary
+  !commitNotes ? '$1' : `#### Commits Notes:\n\n${commitNotes}\n\n$1`);
+};
+const removeDeprecatedReviewflowInPrBody = prBody => {
+  return prBody.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
+  /^(.*)<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->(.*)$/is, // eslint-disable-next-line no-nested-ternary
+  '$1$3');
+};
+
+const createReviewflowComment = (pullRequestNumber, context, body) => {
+  return context.octokit.issues.createComment(context.repo({
+    issue_number: pullRequestNumber,
+    body
+  })).then(({
+    data
+  }) => data);
+};
+const getReviewflowCommentById = (pullRequestNumber, context, commentId) => {
+  return context.octokit.issues.getComment(context.repo({
+    issue_number: pullRequestNumber,
+    comment_id: commentId
+  })).then(({
+    data
+  }) => data, () => null);
+};
+
+const getReviewflowPrContext = async (pullRequestNumber, context, repoContext, reviewflowCommentPromise) => {
+  const appContext = repoContext.appContext;
+  const prEmbed = {
+    number: pullRequestNumber
+  };
+
+  if (reviewflowCommentPromise) {
+    const comment = await reviewflowCommentPromise;
+    const reviewflowPr = await appContext.mongoStores.prs.insertOne({
+      account: repoContext.accountEmbed,
+      repo: repoContext.repoEmbed,
+      pr: prEmbed,
+      commentId: comment.id
+    });
+    return {
+      reviewflowPr,
+      commentBody: comment.body
+    };
+  }
+
+  const existing = await appContext.mongoStores.prs.findOne({
+    'account.id': repoContext.accountEmbed.id,
+    'repo.id': repoContext.repoEmbed.id,
+    'pr.number': pullRequestNumber
+  });
+  const comment = existing && (await getReviewflowCommentById(pullRequestNumber, context, existing.commentId));
+
+  if (!comment || !existing) {
+    const comment = await createReviewflowComment(pullRequestNumber, context, defaultCommentBody);
+
+    if (!existing) {
+      const reviewflowPr = await appContext.mongoStores.prs.insertOne({
+        account: repoContext.accountEmbed,
+        repo: repoContext.repoEmbed,
+        pr: prEmbed,
+        commentId: comment.id
+      });
+      return {
+        reviewflowPr,
+        commentBody: comment.body
+      };
+    } else {
+      await appContext.mongoStores.prs.partialUpdateByKey(existing._id, {
+        $set: {
+          commentId: comment.id
+        }
+      });
+    }
+  }
+
+  return {
+    reviewflowPr: existing,
+    commentBody: comment.body
+  };
+};
+
+const fetchPr = async (context, prNumber) => {
+  const prResult = await context.octokit.pulls.get(context.repo({
+    pull_number: prNumber
+  }));
+  return prResult.data;
+};
+
+const getLabelsForRepo = async (context) => {
+  const {
+    data: labels
+  } = await context.octokit.issues.listLabelsForRepo(context.repo({
+    per_page: 100
+  }));
+  return labels;
+};
+const initRepoLabels = async (context, config) => {
+  const labels = await getLabelsForRepo(context);
+  const finalLabels = {};
+
+  for (const [labelKey, labelConfig] of Object.entries(config.labels.list)) {
+    const labelColor = labelConfig.color.slice(1);
+    const description = labelConfig.description ? `${labelConfig.description} - Synced by reviewflow` : `Synced by reviewflow for ${labelKey}`;
+    let existingLabel = labels.find(label => label.name === labelConfig.name);
+
+    if (!existingLabel) {
+      existingLabel = labels.find(label => label.description === description);
+    }
+
+    if (!existingLabel) {
+      if (labelKey === 'design/needs-review') {
+        existingLabel = labels.find(label => label.name === 'needs-design-review');
+      }
+
+      if (labelKey === 'design/approved') {
+        existingLabel = labels.find(label => label.name === 'design-reviewed');
+      }
+
+      if (labelKey === 'teams/ops') {
+        existingLabel = labels.find(label => label.name === 'archi');
+      }
+    }
+
+    if (!existingLabel) {
+      const result = await context.octokit.issues.createLabel(context.repo({
+        name: labelConfig.name,
+        color: labelColor,
+        description
+      }));
+      finalLabels[labelKey] = result.data;
+    } else if (existingLabel.name !== labelConfig.name || existingLabel.color !== labelColor || existingLabel.description !== description) {
+      context.log.info('Needs to update label', {
+        current_name: existingLabel.name,
+        name: existingLabel.name !== labelConfig.name && labelConfig.name,
+        color: existingLabel.color !== labelColor && labelColor,
+        description: existingLabel.description !== description && description
+      });
+      const result = await context.octokit.issues.updateLabel(context.repo({
+        current_name: existingLabel.name,
+        name: labelConfig.name,
+        color: labelColor,
+        description
+      }));
+      finalLabels[labelKey] = result.data;
+    } else {
+      finalLabels[labelKey] = existingLabel;
+    }
+  }
+
+  return finalLabels;
+};
+
 const shouldIgnoreRepo = (repoName, accountConfig) => {
   const ignoreRepoRegexp = accountConfig.ignoreRepoPattern && new RegExp(`^${accountConfig.ignoreRepoPattern}$`);
 
@@ -2033,10 +1880,10 @@ async function initRepoContext(appContext, context, config) {
   let lockMergePr;
   let automergeQueue = [];
 
-  const lockPR = (prOPrIssueId, prNumber, callback) => new Promise((resolve, reject) => {
+  const lockPR = (prOrPrIssueId, prNumber, callback) => new Promise((resolve, reject) => {
     const logInfos = {
       repo: fullName,
-      prOPrIssueId,
+      prOrPrIssueId,
       prNumber
     };
     context.log.debug('lock: try to lock pr', logInfos); // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -2066,14 +1913,15 @@ async function initRepoContext(appContext, context, config) {
     setTimeout(() => {
       lockPR('reschedule', -1, () => {
         return lockPR(String(pr.id), pr.number, async () => {
-          const updatedPr = await fetchPr(context, pr.number);
-          await autoMergeIfPossibleOptionalPrContext(appContext, repoContext, updatedPr, context);
+          const [pullRequest, reviewflowPrContext] = await Promise.all([fetchPr(context, pr.number), getReviewflowPrContext(pr.number, context, repoContext)]);
+          await autoMergeIfPossible(pullRequest, context, repoContext, reviewflowPrContext);
         });
       });
-    }, 10000);
+    }, 10_000);
   };
 
   return Object.assign(repoContext, {
+    appContext,
     labels,
     repoFullName: fullName,
     repoEmbed: {
@@ -2133,7 +1981,10 @@ async function initRepoContext(appContext, context, config) {
       }
     },
     reschedule,
-    lockPR
+    lockPR,
+    lockPullRequest: (pullRequest, callback) => {
+      return lockPR(String(pullRequest.id), pullRequest.number, callback);
+    }
   });
 }
 
@@ -2151,7 +2002,7 @@ const obtainRepoContext = (appContext, context) => {
 
   if (!accountConfig) {
     console.warn(`using default config for ${owner.login}`);
-    accountConfig = config;
+    accountConfig = config$1;
   }
 
   const promise = initRepoContext(appContext, context, accountConfig);
@@ -2176,9 +2027,13 @@ const createPullRequestHandler = (appContext, getPullRequestInPayload, callbackP
     const pullRequest = getPullRequestInPayload(context.payload, context, repoContext);
     if (pullRequest === null) return;
     const options = callbackBeforeLock ? callbackBeforeLock(pullRequest, context, repoContext) : {};
-    await repoContext.lockPR(String(pullRequest.id), pullRequest.number, async () => {
-      const prContext = await createPullRequestContextFromWebhook(appContext, repoContext, context, pullRequest, options);
-      return callbackPr(prContext, context, repoContext);
+    await repoContext.lockPullRequest(pullRequest, async () => {
+      /*
+       * When repo are ignored, only slack notifications are sent.
+       * PR is not linted, commented, nor auto merged.
+       */
+      const reviewflowPrContext = repoContext.shouldIgnore ? null : await getReviewflowPrContext(pullRequest.number, context, repoContext, options.reviewflowCommentPromise);
+      return callbackPr(pullRequest, context, repoContext, reviewflowPrContext);
     });
   });
 };
@@ -2192,73 +2047,28 @@ const createPullRequestsHandler = (appContext, getPrs, callbackPr) => {
   });
 };
 
-const autoAssignPRToCreator = async (prContext, context) => {
-  const {
-    pr,
-    repoContext
-  } = prContext;
-  if (!repoContext.config.autoAssignToCreator) return;
-  if (pr.assignees.length !== 0) return;
-  if (pr.user.type === 'Bot') return;
-  await context.github.issues.addAssignees(contextIssue(context, {
-    assignees: [pr.user.login]
+function checkrunCompleted(app, appContext) {
+  app.on('check_run.completed', createPullRequestsHandler(appContext, (payload, repoContext) => {
+    if (repoContext.shouldIgnore) return [];
+    return payload.check_run.pull_requests;
+  }, async (pullRequest, context, repoContext) => {
+    const [updatedPr, reviewflowPrContext] = await Promise.all([fetchPr(context, pullRequest.number), getReviewflowPrContext(pullRequest.number, context, repoContext)]);
+    await autoMergeIfPossible(updatedPr, context, repoContext, reviewflowPrContext);
   }));
-};
+}
 
-const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*([A-Za-z][\dA-Za-z]+)[ -](\d+)\s*]?\s*$/, (s, arg1, arg2) => ` ${arg1.toUpperCase()}-${arg2}`).replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `).replace(/^Revert "([^"]+)"$/, 'revert: $1').replace(/\s+[[\]]\s*no\s*issue\s*[[\]]$/i, ' [no issue]') // eslint-disable-next-line unicorn/no-unsafe-regex
-.replace(/^(revert:.*)(\s+\(#\d+\))$/, '$1');
-
-const cleanNewLines = text => text.replace(/\r\n/g, '\n');
-
-const checkIfHasDiff = (text1, text2) => cleanNewLines(text1) !== cleanNewLines(text2);
-
-const updatePrIfNeeded = async (prContext, context, update) => {
-  const hasDiffInTitle = update.title && prContext.pr.title !== update.title;
-  const hasDiffInBody = update.body && checkIfHasDiff(prContext.pr.body, update.body);
-  const promises = [];
-
-  if (hasDiffInTitle || hasDiffInBody) {
-    const diff = {};
-
-    if (hasDiffInTitle) {
-      diff.title = update.title;
-      prContext.pr.title = update.title;
-    }
-
-    if (hasDiffInBody) {
-      console.log({
-        diff,
-        originalTitle: prContext.pr.title,
-        originalBody: cleanNewLines(prContext.pr.body),
-        updatedBody: update.body && cleanNewLines(update.body),
-        hasBodyDiff: hasDiffInBody
-      });
-      diff.body = update.body;
-      prContext.pr.body = update.body;
-    }
-
-    promises.push(context.github.pulls.update(context.repo({
-      pull_number: prContext.pr.number,
-      ...diff
-    })));
-  }
-
-  if (update.commentBody && checkIfHasDiff(prContext.commentBody, update.commentBody)) {
-    if (update.commentBody.includes('Explain here why this PR')) {
-      throw new Error('Not valid comment body');
-    }
-
-    promises.push(context.github.issues.updateComment(context.repo({
-      comment_id: prContext.reviewflowPr.commentId,
-      body: update.commentBody
-    })));
-  }
-
-  await Promise.all(promises);
-};
+function checksuiteCompleted(app, appContext) {
+  app.on('check_suite.completed', createPullRequestsHandler(appContext, (payload, repoContext) => {
+    if (repoContext.shouldIgnore) return [];
+    return payload.check_suite.pull_requests;
+  }, async (pullRequest, context, repoContext) => {
+    const [updatedPr, reviewflowPrContext] = await Promise.all([fetchPr(context, pullRequest.number), getReviewflowPrContext(pullRequest.number, context, repoContext)]);
+    await autoMergeIfPossible(updatedPr, context, repoContext, reviewflowPrContext);
+  }));
+}
 
 async function createStatus(context, name, sha, type, description, url) {
-  await context.github.repos.createStatus(context.repo({
+  await context.octokit.repos.createCommitStatus(context.repo({
     context: name === '' ? process.env.REVIEWFLOW_NAME : `${process.env.REVIEWFLOW_NAME}/${name}`,
     sha,
     state: type,
@@ -2267,182 +2077,12 @@ async function createStatus(context, name, sha, type, description, url) {
   }));
 }
 
-async function syncLabel(pr, context, shouldHaveLabel, label, prHasLabel = hasLabelInPR(pr.labels, label), {
-  onRemove,
-  onAdd
-} = {}) {
-  if (prHasLabel && !shouldHaveLabel) {
-    await context.github.issues.removeLabel(contextIssue(context, {
-      name: label.name
-    }));
-    if (onRemove) await onRemove();
-  }
-
-  if (shouldHaveLabel && !prHasLabel) {
-    const response = await context.github.issues.addLabels(contextIssue(context, {
-      labels: [label.name]
-    }));
-    if (onAdd) await onAdd(response.data);
-  }
-}
-
-const calcDefaultOptions = (repoContext, pr) => {
-  const featureBranchLabel = repoContext.labels['feature-branch'];
-  const automergeLabel = repoContext.labels['merge/automerge'];
-  const skipCiLabel = repoContext.labels['merge/skip-ci'];
-  const prHasFeatureBranchLabel = hasLabelInPR(pr.labels, featureBranchLabel);
-  const prHasSkipCiLabel = hasLabelInPR(pr.labels, skipCiLabel);
-  const prHasAutoMergeLabel = hasLabelInPR(pr.labels, automergeLabel);
-  return { ...repoContext.config.prDefaultOptions,
-    featureBranch: prHasFeatureBranchLabel,
-    autoMergeWithSkipCi: prHasSkipCiLabel,
-    autoMerge: prHasAutoMergeLabel
-  };
-};
-const syncLabelsAfterCommentBodyEdited = async (appContext, repoContext, pr, context, prContext) => {
-  const featureBranchLabel = repoContext.labels['feature-branch'];
-  const automergeLabel = repoContext.labels['merge/automerge'];
-  const skipCiLabel = repoContext.labels['merge/skip-ci'];
-  const prHasFeatureBranchLabel = hasLabelInPR(pr.labels, featureBranchLabel);
-  const prHasSkipCiLabel = hasLabelInPR(pr.labels, skipCiLabel);
-  const prHasAutoMergeLabel = hasLabelInPR(pr.labels, automergeLabel);
-  const {
-    commentBody,
-    options
-  } = updateCommentOptions(prContext.commentBody, calcDefaultOptions(repoContext, pr));
-  await updatePrIfNeeded(prContext, context, {
-    commentBody
-  });
-
-  if (options && (featureBranchLabel || automergeLabel)) {
-    await Promise.all([featureBranchLabel && syncLabel(pr, context, options.featureBranch, featureBranchLabel, prHasFeatureBranchLabel), skipCiLabel && syncLabel(pr, context, options.autoMergeWithSkipCi, skipCiLabel, prHasSkipCiLabel), automergeLabel && syncLabel(pr, context, options.autoMerge, automergeLabel, prHasAutoMergeLabel, {
-      onAdd: async prLabels => {
-        await autoMergeIfPossible(prContext, context, prLabels);
-      },
-      onRemove: () => {
-        repoContext.removePrFromAutomergeQueue(context, pr.number, 'label removed');
-      }
-    })]);
-  }
-};
-
-const readCommitsAndUpdateInfos = async (prContext, context, commentBody = prContext.commentBody) => {
-  const pr = prContext.updatedPr || prContext.pr;
-  const {
-    repoContext
-  } = prContext; // tmp.data[0].sha
-  // tmp.data[0].commit.message
-
-  const commits = await context.github.paginate(context.github.pulls.listCommits.endpoint.merge(contextPr(context, {
-    // A custom page size up to 100. Default is 30.
-    per_page: 100
-  })), res => res.data);
-  const conventionalCommits = await Promise.all(commits.map(c => parse$1(c.commit.message)));
-  const breakingChangesCommits = conventionalCommits.reduce((acc, c, index) => {
-    const breakingChangesNotes = c.notes.filter(note => note.title === 'BREAKING CHANGE');
-
-    if (breakingChangesNotes.length !== 0) {
-      acc.push({
-        commit: commits[index],
-        breakingChangesNotes
-      });
-    }
-
-    return acc;
-  }, []);
-  const breakingChangesLabel = repoContext.labels['breaking-changes'];
-  const newCommentBody = updateCommentBodyCommitsNotes(commentBody, breakingChangesCommits.length === 0 ? '' : `Breaking Changes:\n${breakingChangesCommits.map(({
-    commit,
-    breakingChangesNotes
-  }) => breakingChangesNotes.map(note => `- ${note.text.replace('\n', ' ')} (${commit.sha})`)).join('')}`);
-  await Promise.all([syncLabel(pr, context, breakingChangesCommits.length !== 0, breakingChangesLabel), updatePrIfNeeded(prContext, context, {
-    commentBody: newCommentBody
-  })]); // TODO auto update ! in front of : to signal a breaking change when https://github.com/conventional-changelog/commitlint/issues/658 is closed
-};
-
-const editOpenedPR = async (prContext, context, shouldUpdateCommentBodyInfos, previousSha) => {
-  const {
-    repoContext
-  } = prContext;
-  const pr = prContext.updatedPr || prContext.pr;
-  const title = repoContext.config.trimTitle ? cleanTitle(pr.title) : pr.title;
-  const isPrFromBot = pr.user.type === 'Bot';
-  const statuses = [];
-  const errorRule = repoContext.config.parsePR.title.find(rule => {
-    if (rule.bot === false && isPrFromBot) return false;
-    const match = rule.regExp.exec(title);
-
-    if (match === null) {
-      if (rule.status) {
-        statuses.push({
-          name: rule.status,
-          error: rule.error
-        });
-      }
-
-      return true;
-    }
-
-    if (rule.status && rule.statusInfoFromMatch) {
-      statuses.push({
-        name: rule.status,
-        info: rule.statusInfoFromMatch(match)
-      });
-      return false;
-    }
-
-    return false;
-  });
-  const date = new Date().toISOString();
-  const hasLintPrCheck = (await context.github.checks.listForRef(context.repo({
-    ref: pr.head.sha
-  }))).data.check_runs.find(check => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`);
-  const promises = Promise.all([...statuses.map(({
-    name,
-    error,
-    info
-  }) => createStatus(context, name, pr.head.sha, error ? 'failure' : 'success', error ? error.title : info.title, error ? undefined : info.url)), ...(previousSha ? statuses.map(({
-    name,
-    error,
-    info
-  }) => error ? createStatus(context, name, previousSha, 'success', 'New commits have been pushed') : undefined).filter(ExcludesFalsy) : []), hasLintPrCheck && context.github.checks.create(context.repo({
-    name: `${process.env.REVIEWFLOW_NAME}/lint-pr`,
-    head_sha: pr.head.sha,
-    status: 'completed',
-    conclusion: errorRule ? 'failure' : 'success',
-    started_at: date,
-    completed_at: date,
-    output: errorRule ? errorRule.error : {
-      title: '✓ Your PR is valid',
-      summary: ''
-    }
-  })), !hasLintPrCheck && previousSha && errorRule ? createStatus(context, 'lint-pr', previousSha, 'success', 'New commits have been pushed') : undefined, !hasLintPrCheck && createStatus(context, 'lint-pr', pr.head.sha, errorRule ? 'failure' : 'success', errorRule ? errorRule.error.title : '✓ Your PR is valid')].filter(ExcludesFalsy));
-  const commentBodyInfos = statuses.filter(status => status.info && status.info.inBody).map(status => status.info);
-  const shouldCreateCommentBody = prContext.commentBody === defaultCommentBody;
-  const commentBody = shouldCreateCommentBody ? createCommentBody(calcDefaultOptions(repoContext, pr), commentBodyInfos) : updateCommentBodyInfos(prContext.commentBody, commentBodyInfos);
-  const body = removeDeprecatedReviewflowInPrBody(pr.body);
-
-  if (shouldCreateCommentBody || shouldUpdateCommentBodyInfos) {
-    await Promise.all([promises, updatePrIfNeeded(prContext, context, {
-      title,
-      body
-    }), readCommitsAndUpdateInfos(prContext, context, commentBody)]);
-  } else {
-    await Promise.all([promises, updatePrIfNeeded(prContext, context, {
-      title,
-      body,
-      commentBody
-    })]);
-  }
-};
-
-const addStatusCheck = async function (prContext, context, {
+const addStatusCheck = async function (pullRequest, context, {
   state,
   description
 }, previousSha) {
-  const pr = prContext.updatedPr || prContext.pr;
-  const hasPrCheck = (await context.github.checks.listForRef(context.repo({
-    ref: pr.head.sha
+  const hasPrCheck = (await context.octokit.checks.listForRef(context.repo({
+    ref: pullRequest.head.sha
   }))).data.check_runs.find(check => check.name === process.env.REVIEWFLOW_NAME);
   context.log.debug('add status check', {
     hasPrCheck,
@@ -2451,10 +2091,10 @@ const addStatusCheck = async function (prContext, context, {
   });
 
   if (hasPrCheck) {
-    await context.github.checks.create(context.repo({
+    await context.octokit.checks.create(context.repo({
       name: process.env.REVIEWFLOW_NAME,
-      head_sha: pr.head.sha,
-      started_at: pr.created_at,
+      head_sha: pullRequest.head.sha,
+      started_at: pullRequest.created_at,
       status: 'completed',
       conclusion: state,
       completed_at: new Date().toISOString(),
@@ -2464,31 +2104,28 @@ const addStatusCheck = async function (prContext, context, {
       }
     }));
   } else if (previousSha && state === 'failure') {
-    await Promise.all([createStatus(context, '', previousSha, 'success', 'New commits have been pushed'), createStatus(context, '', pr.head.sha, state, description)]);
+    await Promise.all([createStatus(context, '', previousSha, 'success', 'New commits have been pushed'), createStatus(context, '', pullRequest.head.sha, state, description)]);
   } else {
-    await createStatus(context, '', pr.head.sha, state, description);
+    await createStatus(context, '', pullRequest.head.sha, state, description);
   }
 };
 
-const updateStatusCheckFromLabels = (prContext, pr, context, labels = pr.labels || [], previousSha) => {
-  const {
-    repoContext
-  } = prContext;
+const updateStatusCheckFromLabels = (pullRequest, context, repoContext, labels = pullRequest.labels || [], previousSha) => {
   context.log.debug('updateStatusCheckFromLabels', {
     labels: labels.map(l => l === null || l === void 0 ? void 0 : l.name),
     hasNeedsReview: repoContext.hasNeedsReview(labels),
     hasApprovesReview: repoContext.hasApprovesReview(labels)
   });
 
-  const createFailedStatusCheck = description => addStatusCheck(prContext, context, {
+  const createFailedStatusCheck = description => addStatusCheck(pullRequest, context, {
     state: 'failure',
     description
   }, previousSha);
 
-  if (pr.requested_reviewers.length !== 0) {
+  if (pullRequest.requested_reviewers.length > 0) {
     return createFailedStatusCheck( // TODO remove `as`
     // https://github.com/probot/probot/issues/1219
-    `Awaiting review from: ${pr.requested_reviewers.map(rr => rr.login).join(', ')}`);
+    `Awaiting review from: ${pullRequest.requested_reviewers.map(rr => rr.login).join(', ')}`);
   }
 
   if (repoContext.hasChangesRequestedReview(labels)) {
@@ -2497,7 +2134,7 @@ const updateStatusCheckFromLabels = (prContext, pr, context, labels = pr.labels 
 
   const needsReviewGroupNames = repoContext.getNeedsReviewGroupNames(labels);
 
-  if (needsReviewGroupNames.length !== 0) {
+  if (needsReviewGroupNames.length > 0) {
     return createFailedStatusCheck(`Awaiting review from: ${needsReviewGroupNames.join(', ')}. Perhaps request someone ?`);
   }
 
@@ -2520,26 +2157,22 @@ const updateStatusCheckFromLabels = (prContext, pr, context, labels = pr.labels 
   // } else if (repoContext.hasApprovesReview(labels)) {
 
 
-  return addStatusCheck(prContext, context, {
+  return addStatusCheck(pullRequest, context, {
     state: 'success',
     description: '✓ PR ready to merge !'
   }, previousSha); // }
 };
 
-const updateReviewStatus = async (prContext, context, reviewGroup, {
+const updateReviewStatus = async (pullRequest, context, repoContext, reviewGroup, {
   add: labelsToAdd,
   remove: labelsToRemove
 }) => {
-  const {
-    repoContext
-  } = prContext;
-  const pr = prContext.updatedPr || prContext.pr;
   context.log.debug('updateReviewStatus', {
     reviewGroup,
     labelsToAdd,
     labelsToRemove
   });
-  let prLabels = pr.labels || [];
+  let prLabels = pullRequest.labels || [];
   if (!reviewGroup) return prLabels;
   const newLabelNames = new Set(prLabels.map(label => label.name));
   const toAdd = new Set();
@@ -2585,7 +2218,7 @@ const updateReviewStatus = async (prContext, context, reviewGroup, {
   } // TODO move that elsewhere
 
 
-  repoContext.getTeamsForLogin(pr.user.login).forEach(teamName => {
+  repoContext.getTeamsForLogin(pullRequest.user.login).forEach(teamName => {
     const team = repoContext.config.teams[teamName];
 
     if (team.labels) {
@@ -2612,7 +2245,7 @@ const updateReviewStatus = async (prContext, context, reviewGroup, {
       });
 
       if (toAdd.size !== 0) {
-        const result = await context.github.issues.addLabels(contextIssue(context, {
+        const result = await context.octokit.issues.addLabels(context.issue({
           labels: [...toAddNames]
         }));
         prLabels = result.data;
@@ -2621,7 +2254,7 @@ const updateReviewStatus = async (prContext, context, reviewGroup, {
       if (toDelete.size !== 0) {
         for (const toDeleteName of [...toDeleteNames]) {
           try {
-            const result = await context.github.issues.removeLabel(contextIssue(context, {
+            const result = await context.octokit.issues.removeLabel(context.issue({
               name: toDeleteName
             }));
             prLabels = result.data;
@@ -2641,7 +2274,7 @@ const updateReviewStatus = async (prContext, context, reviewGroup, {
         oldLabels: prLabels.map(l => l.name),
         newLabelNames: newLabelNamesArray
       });
-      const result = await context.github.issues.replaceLabels(contextIssue(context, {
+      const result = await context.octokit.issues.setLabels(context.issue({
         labels: newLabelNamesArray
       }));
       prLabels = result.data;
@@ -2654,92 +2287,34 @@ const updateReviewStatus = async (prContext, context, reviewGroup, {
   // ) {
 
 
-  await updateStatusCheckFromLabels(prContext, pr, context, prLabels); // }
+  await updateStatusCheckFromLabels(pullRequest, context, repoContext, prLabels); // }
 
   return prLabels;
 };
 
-const autoApproveAndAutoMerge = async (prContext, context) => {
-  // const autoMergeLabel = repoContext.labels['merge/automerge'];
-  const codeApprovedLabel = prContext.repoContext.labels['code/approved'];
-
-  if (hasLabelInPR(prContext.pr.labels, codeApprovedLabel)) {
-    await context.github.pulls.createReview(contextPr(context, {
-      event: 'APPROVE'
-    }));
-    await autoMergeIfPossible(prContext, context);
-    return true;
-  }
-
-  return false;
-};
-
-function opened(app, appContext) {
-  app.on('pull_request.opened', createPullRequestHandler(appContext, (payload, context, repoContext) => {
-    if (repoContext.shouldIgnore) return null;
-    return payload.pull_request;
-  }, async (prContext, context) => {
-    const {
-      pr
-    } = prContext;
-    const fromRenovate = pr.head.ref.startsWith('renovate/');
-    await Promise.all([autoAssignPRToCreator(prContext, context), editOpenedPR(prContext, context, true), fromRenovate ? autoApproveAndAutoMerge(prContext, context).then(async approved => {
-      if (!approved && prContext.repoContext.config.requiresReviewRequest) {
-        await updateReviewStatus(prContext, context, 'dev', {
-          add: ['needsReview']
-        });
-      }
-    }) : updateReviewStatus(prContext, context, 'dev', {
-      add: prContext.repoContext.config.requiresReviewRequest ? ['needsReview'] : [],
-      remove: ['approved', 'changesRequested']
-    })]);
-  }, (pr, context) => {
-    return {
-      reviewflowCommentPromise: createReviewflowComment(context, pr, defaultCommentBody)
-    };
-  }));
-}
-
 function closed(app, appContext) {
-  app.on('pull_request.closed', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context, repoContext) => {
-    const {
-      pr,
-      commentBody
-    } = prContext;
-
-    if (!repoContext.shouldIgnore) {
+  app.on('pull_request.closed', createPullRequestHandler(appContext, payload => payload.pull_request, async (pullRequest, context, repoContext, reviewflowPrContext) => {
+    if (!repoContext.shouldIgnore && reviewflowPrContext) {
       const repo = context.payload.repository;
 
-      if (pr.merged) {
-        const isNotFork = pr.head.repo.id === repo.id;
-        const options = parseOptions(commentBody, repoContext.config.prDefaultOptions);
-        await Promise.all([repoContext.removePrFromAutomergeQueue(context, pr.number, 'pr closed'), isNotFork && options.deleteAfterMerge ? context.github.git.deleteRef(context.repo({
-          ref: `heads/${pr.head.ref}`
+      if (pullRequest.merged) {
+        const isNotFork = pullRequest.head.repo.id === repo.id;
+        const options = parseOptions(reviewflowPrContext.commentBody, repoContext.config.prDefaultOptions);
+        await Promise.all([repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'pr closed'), isNotFork && options.deleteAfterMerge ? context.octokit.git.deleteRef(context.repo({
+          ref: `heads/${pullRequest.head.ref}`
         })).catch(() => {}) : undefined]);
       } else {
-        await Promise.all([repoContext.removePrFromAutomergeQueue(context, pr.number, 'pr closed'), updateReviewStatus(prContext, context, 'dev', {
+        await Promise.all([repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'pr closed'), updateReviewStatus(pullRequest, context, repoContext, 'dev', {
           remove: ['needsReview']
         })]);
       }
     }
 
-    if (pr.assignees) {
-      pr.assignees.forEach(assignee => {
+    if (pullRequest.assignees) {
+      pullRequest.assignees.forEach(assignee => {
         repoContext.slack.updateHome(assignee.login);
       });
     }
-  }));
-}
-
-function closed$1(app, appContext) {
-  app.on('pull_request.reopened', createPullRequestHandler(appContext, (payload, context, repoContext) => {
-    if (repoContext.shouldIgnore) return null;
-    return payload.pull_request;
-  }, async (prContext, context) => {
-    await Promise.all([updateReviewStatus(prContext, context, 'dev', {
-      add: ['needsReview'],
-      remove: ['approved']
-    }), editOpenedPR(prContext, context, true)]);
   }));
 }
 
@@ -2771,11 +2346,30 @@ const createSlackMessageWithSecondaryBlock = (message, secondaryBlockText) => {
   };
 };
 
+/** deprecated */
+const getPullRequestFromPayload = payload => {
+  const pullRequest = payload.pull_request;
+
+  if (pullRequest) {
+    return pullRequest;
+  }
+
+  const issue = payload.issue;
+
+  if (issue !== null && issue !== void 0 && issue.pull_request) {
+    return { ...issue,
+      ...issue.pull_request
+    };
+  }
+
+  throw new Error('No pull_request in payload');
+};
+
 const getReviewersAndReviewStates = async (context, repoContext) => {
   const userIds = new Set();
   const reviewers = [];
   const reviewStatesByUser = new Map();
-  await context.github.paginate(context.github.pulls.listReviews.endpoint.merge(contextPr(context)), ({
+  await context.octokit.paginate(context.octokit.pulls.listReviews, context.pullRequest(), ({
     data: reviews
   }) => {
     reviews.forEach(review => {
@@ -2793,6 +2387,7 @@ const getReviewersAndReviewStates = async (context, repoContext) => {
         reviewStatesByUser.set(review.user.id, state);
       }
     });
+    return [];
   });
   const reviewStates = {};
   getKeys(repoContext.config.groups).forEach(groupName => {
@@ -2829,33 +2424,6 @@ const getReviewersAndReviewStates = async (context, repoContext) => {
   };
 };
 
-const parse = issueParser('github', {
-  actions: {},
-  issuePrefixes: []
-});
-const parseMentions = body => {
-  return parse(body).mentions.map(m => m.user);
-};
-
-/** deprecated */
-const getPullRequestFromPayload = payload => {
-  const pullRequest = payload.pull_request;
-
-  if (pullRequest) {
-    return pullRequest;
-  }
-
-  const issue = payload.issue;
-
-  if (issue === null || issue === void 0 ? void 0 : issue.pull_request) {
-    return { ...issue,
-      ...issue.pull_request
-    };
-  }
-
-  throw new Error('No pull_request in payload');
-};
-
 const checkIfUserIsBot = (repoContext, user) => {
   if (user.type === 'Bot') return true;
 
@@ -2869,13 +2437,21 @@ const checkIfIsThisBot = user => {
   return user.type === 'Bot' && user.login === `${process.env.REVIEWFLOW_NAME}[bot]`;
 };
 
+const parse = issueParser__default('github', {
+  actions: {},
+  issuePrefixes: []
+});
+const parseMentions = body => {
+  return parse(body).mentions.map(m => m.user);
+};
+
 const slackifyCommentBody = (body, multipleLines) => {
-  return slackifyMarkdown(body.replace('```suggestion', '_Suggested change:_\n```suggestion').replace('```suggestion\r\n```', `_Suggestion to remove line${multipleLines ? 's' : ''}._\n`));
+  return slackifyMarkdown__default(body.replace('```suggestion', '_Suggested change:_\n```suggestion').replace('```suggestion\r\n```', `_Suggestion to remove line${multipleLines ? 's' : ''}._\n`));
 };
 
 const getDiscussion = async (context, comment) => {
   if (!comment.in_reply_to_id) return [comment];
-  return context.github.paginate(context.github.pulls.listComments.endpoint.merge(contextPr(context)), ({
+  return context.octokit.paginate(context.octokit.pulls.listComments.endpoint.merge(context.pullRequest()), ({
     data
   }) => {
     return data.filter(c => c.in_reply_to_id === comment.in_reply_to_id || c.id === comment.in_reply_to_id);
@@ -2926,8 +2502,8 @@ function prCommentCreated(app, appContext) {
     }
 
     return getPullRequestFromPayload(payload);
-  }, async (prContext, context, repoContext) => {
-    const pr = await fetchPr(context, prContext.pr.number);
+  }, async (pullRequest, context, repoContext) => {
+    const pr = await fetchPr(context, pullRequest.number);
     const {
       comment
     } = context.payload;
@@ -2972,20 +2548,96 @@ function prCommentCreated(app, appContext) {
     promisesNotOwner.push(...followers.map(follower => repoContext.slack.postMessage(isBotUser ? 'pr-comment-follow-bots' : 'pr-comment-follow', follower.id, follower.login, message)));
     promisesNotOwner.push(...usersInThread.map(user => repoContext.slack.postMessage('pr-comment-thread', user.id, user.login, message)));
 
-    if (mentions.length !== 0) {
+    if (mentions.length > 0) {
       await appContext.mongoStores.users.findAll({
         login: {
           $in: mentions
         }
       }).then(users => {
-        promisesNotOwner.push(...users.map(u => repoContext.slack.postMessage('pr-comment-mention', u._id, // TODO _id is number
-        u.login, message)));
+        promisesNotOwner.push(...users.map(u => repoContext.slack.postMessage('pr-comment-mention', u._id, u.login, message)));
       });
     }
 
     await Promise.all([Promise.all(promisesOwner), Promise.all(promisesNotOwner).then(results => saveInDb(type, comment.id, repoContext.accountEmbed, results, message))]);
   }));
 }
+
+const updatePrCommentBody = async (context, reviewflowPrContext, newBody) => {
+  await context.octokit.issues.updateComment(context.repo({
+    comment_id: reviewflowPrContext.reviewflowPr.commentId,
+    body: newBody
+  }));
+  reviewflowPrContext.commentBody = newBody;
+};
+
+const updatePrCommentBodyIfNeeded = async (context, reviewflowPrContext, newBody) => {
+  if (reviewflowPrContext.commentBody !== newBody) {
+    await updatePrCommentBody(context, reviewflowPrContext, newBody);
+  }
+};
+const updatePrCommentBodyOptions = async (context, repoContext, reviewflowPrContext, updateOptions) => {
+  const {
+    commentBody: newBody
+  } = updateCommentOptions(reviewflowPrContext.commentBody, repoContext.config.prDefaultOptions, updateOptions);
+  await updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newBody);
+};
+
+async function syncLabel(pullRequest, context, shouldHaveLabel, label, prHasLabel = hasLabelInPR(pullRequest.labels, label), {
+  onRemove,
+  onAdd
+} = {}) {
+  if (prHasLabel && !shouldHaveLabel) {
+    await context.octokit.issues.removeLabel(context.issue({
+      name: label.name
+    }));
+    if (onRemove) await onRemove();
+  }
+
+  if (shouldHaveLabel && !prHasLabel) {
+    const response = await context.octokit.issues.addLabels(context.issue({
+      labels: [label.name]
+    }));
+    if (onAdd) await onAdd(response.data);
+  }
+}
+
+const calcDefaultOptions = (repoContext, pullRequest) => {
+  const featureBranchLabel = repoContext.labels['feature-branch'];
+  const automergeLabel = repoContext.labels['merge/automerge'];
+  const skipCiLabel = repoContext.labels['merge/skip-ci'];
+  const prHasFeatureBranchLabel = hasLabelInPR(pullRequest.labels, featureBranchLabel);
+  const prHasSkipCiLabel = hasLabelInPR(pullRequest.labels, skipCiLabel);
+  const prHasAutoMergeLabel = hasLabelInPR(pullRequest.labels, automergeLabel);
+  return { ...repoContext.config.prDefaultOptions,
+    featureBranch: prHasFeatureBranchLabel,
+    autoMergeWithSkipCi: prHasSkipCiLabel,
+    autoMerge: prHasAutoMergeLabel
+  };
+};
+const syncLabelsAfterCommentBodyEdited = async (pullRequest, context, repoContext, reviewflowPrContext) => {
+  const featureBranchLabel = repoContext.labels['feature-branch'];
+  const automergeLabel = repoContext.labels['merge/automerge'];
+  const skipCiLabel = repoContext.labels['merge/skip-ci'];
+  const prHasFeatureBranchLabel = hasLabelInPR(pullRequest.labels, featureBranchLabel);
+  const prHasSkipCiLabel = hasLabelInPR(pullRequest.labels, skipCiLabel);
+  const prHasAutoMergeLabel = hasLabelInPR(pullRequest.labels, automergeLabel);
+  const {
+    commentBody,
+    options
+  } = updateCommentOptions(reviewflowPrContext.commentBody, calcDefaultOptions(repoContext, pullRequest));
+  await updatePrCommentBodyIfNeeded(context, reviewflowPrContext, commentBody);
+
+  if (options && (featureBranchLabel || automergeLabel)) {
+    await Promise.all([featureBranchLabel && syncLabel(pullRequest, context, options.featureBranch, featureBranchLabel, prHasFeatureBranchLabel), skipCiLabel && syncLabel(pullRequest, context, options.autoMergeWithSkipCi, skipCiLabel, prHasSkipCiLabel), automergeLabel && syncLabel(pullRequest, context, options.autoMerge, automergeLabel, prHasAutoMergeLabel, {
+      onAdd: async prLabels => {
+        await autoMergeIfPossible(pullRequest, context, repoContext, reviewflowPrContext, prLabels);
+      },
+      onRemove: () => {
+        repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'label removed');
+      }
+    })]);
+  }
+};
 
 function prCommentEditedOrDeleted(app, appContext) {
   app.on(['pull_request_review_comment.edited', 'pull_request_review_comment.deleted', // comments without review and without path are sent with issue_comment.created.
@@ -2997,16 +2649,16 @@ function prCommentEditedOrDeleted(app, appContext) {
     }
 
     return getPullRequestFromPayload(payload);
-  }, async (prContext, context, repoContext) => {
+  }, async (pullRequest, context, repoContext, reviewflowPrContext) => {
     const {
       comment
     } = context.payload;
 
-    if (context.payload.action === 'edited' && checkIfIsThisBot(comment.user)) {
-      const updatedPrContext = await fetchPullRequestAndCreateContext(context, prContext);
+    if (reviewflowPrContext !== null && context.payload.action === 'edited' && checkIfIsThisBot(comment.user)) {
+      const updatedPr = await fetchPr(context, pullRequest.number);
 
-      if (!updatedPrContext.updatedPr.closed_at) {
-        await syncLabelsAfterCommentBodyEdited(appContext, repoContext, updatedPrContext.updatedPr, context, updatedPrContext);
+      if (!updatedPr.closed_at) {
+        await syncLabelsAfterCommentBodyEdited(updatedPr, context, repoContext, reviewflowPrContext);
       }
 
       return;
@@ -3037,49 +2689,430 @@ function prCommentEditedOrDeleted(app, appContext) {
   }));
 }
 
-function reviewRequested(app, appContext) {
-  app.on('pull_request.review_requested', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context, repoContext) => {
-    const {
-      pr
-    } = prContext;
+const readCommitsAndUpdateInfos = async (pullRequest, context, repoContext, reviewflowPrContext, commentBody = reviewflowPrContext.commentBody) => {
+  // tmp.data[0].sha
+  // tmp.data[0].commit.message
+  const commits = await context.octokit.paginate(context.octokit.pulls.listCommits, context.pullRequest({
+    // A custom page size up to 100. Default is 30.
+    per_page: 100
+  }), res => res.data);
+  const conventionalCommits = await Promise.all(commits.map(c => parse__default(c.commit.message)));
+  const breakingChangesCommits = [];
+  conventionalCommits.forEach((c, index) => {
+    const breakingChangesNotes = c.notes.filter(note => note.title === 'BREAKING CHANGE');
+
+    if (breakingChangesNotes.length > 0) {
+      breakingChangesCommits.push({
+        commit: commits[index],
+        breakingChangesNotes
+      });
+    }
+  });
+  const breakingChangesLabel = repoContext.labels['breaking-changes'];
+  const newCommentBody = updateCommentBodyCommitsNotes(commentBody, breakingChangesCommits.length === 0 ? '' : `Breaking Changes:\n${breakingChangesCommits.map(({
+    commit,
+    breakingChangesNotes
+  }) => breakingChangesNotes.map(note => `- ${note.text.replace('\n', ' ')} (${commit.sha})`)).join('')}`);
+  await Promise.all([syncLabel(pullRequest, context, breakingChangesCommits.length !== 0, breakingChangesLabel), updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newCommentBody)]); // TODO auto update ! in front of : to signal a breaking change when https://github.com/conventional-changelog/commitlint/issues/658 is closed
+};
+
+const cleanNewLines = text => text.replace(/\r\n/g, '\n');
+
+const checkIfHasDiff = (text1, text2) => cleanNewLines(text1) !== cleanNewLines(text2);
+
+const updatePrIfNeeded = async (pullRequest, context, update) => {
+  const hasDiffInTitle = update.title && pullRequest.title !== update.title;
+  const hasDiffInBody = update.body && checkIfHasDiff(pullRequest.body, update.body);
+
+  if (hasDiffInTitle || hasDiffInBody) {
+    const diff = {};
+
+    if (hasDiffInTitle) {
+      diff.title = update.title;
+      pullRequest.title = update.title;
+    }
+
+    if (hasDiffInBody) {
+      diff.body = update.body;
+      pullRequest.body = update.body;
+    }
+
+    await context.octokit.pulls.update(context.repo({
+      pull_number: pullRequest.number,
+      ...diff
+    }));
+  }
+};
+
+const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*([A-Za-z][\dA-Za-z]+)[ -](\d+)\s*]?\s*$/, (s, arg1, arg2) => ` ${arg1.toUpperCase()}-${arg2}`).replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `).replace(/^Revert "([^"]+)"$/, 'revert: $1').replace(/\s+[[\]]\s*no\s*issue\s*[[\]]$/i, ' [no issue]') // eslint-disable-next-line unicorn/no-unsafe-regex
+.replace(/^(revert:.*)(\s+\(#\d+\))$/, '$1');
+
+const editOpenedPR = async (pullRequest, context, repoContext, reviewflowPrContext, shouldUpdateCommentBodyInfos, previousSha) => {
+  if (reviewflowPrContext === null) return;
+  const title = repoContext.config.trimTitle ? cleanTitle(pullRequest.title) : pullRequest.title;
+  const isPrFromBot = pullRequest.user.type === 'Bot';
+  const statuses = [];
+  const errorRule = repoContext.config.parsePR.title.find(rule => {
+    if (rule.bot === false && isPrFromBot) return false;
+    const match = rule.regExp.exec(title);
+
+    if (match === null) {
+      if (rule.status) {
+        statuses.push({
+          name: rule.status,
+          error: rule.error
+        });
+      }
+
+      return true;
+    }
+
+    if (rule.status && rule.statusInfoFromMatch) {
+      statuses.push({
+        name: rule.status,
+        info: rule.statusInfoFromMatch(match)
+      });
+      return false;
+    }
+
+    return false;
+  });
+  const date = new Date().toISOString();
+  const hasLintPrCheck = (await context.octokit.checks.listForRef(context.repo({
+    ref: pullRequest.head.sha
+  }))).data.check_runs.find(check => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`);
+  const promises = [...statuses.map(({
+    name,
+    error,
+    info
+  }) => createStatus(context, name, pullRequest.head.sha, error ? 'failure' : 'success', error ? error.title : info.title, error ? undefined : info.url)), ...(previousSha ? statuses.map(({
+    name,
+    error,
+    info
+  }) => error ? createStatus(context, name, previousSha, 'success', 'New commits have been pushed') : undefined).filter(ExcludesFalsy) : []), hasLintPrCheck && context.octokit.checks.create(context.repo({
+    name: `${process.env.REVIEWFLOW_NAME}/lint-pr`,
+    head_sha: pullRequest.head.sha,
+    status: 'completed',
+    conclusion: errorRule ? 'failure' : 'success',
+    started_at: date,
+    completed_at: date,
+    output: errorRule ? errorRule.error : {
+      title: '✓ Your PR is valid',
+      summary: ''
+    }
+  })), !hasLintPrCheck && previousSha && errorRule ? createStatus(context, 'lint-pr', previousSha, 'success', 'New commits have been pushed') : undefined, !hasLintPrCheck && createStatus(context, 'lint-pr', pullRequest.head.sha, errorRule ? 'failure' : 'success', errorRule ? errorRule.error.title : '✓ Your PR is valid')].filter(ExcludesFalsy);
+  const body = removeDeprecatedReviewflowInPrBody(pullRequest.body);
+  promises.push(updatePrIfNeeded(pullRequest, context, {
+    title,
+    body
+  }));
+  const commentBodyInfos = statuses.filter(status => {
+    var _status$info;
+
+    return (_status$info = status.info) === null || _status$info === void 0 ? void 0 : _status$info.inBody;
+  }).map(status => status.info);
+  const shouldCreateCommentBody = reviewflowPrContext.commentBody === defaultCommentBody;
+  const newBody = shouldCreateCommentBody ? createCommentBody(calcDefaultOptions(repoContext, pullRequest), commentBodyInfos) : updateCommentBodyInfos(reviewflowPrContext.commentBody, commentBodyInfos);
+
+  if (shouldCreateCommentBody || shouldUpdateCommentBodyInfos) {
+    promises.push(readCommitsAndUpdateInfos(pullRequest, context, repoContext, reviewflowPrContext, newBody));
+  } else {
+    promises.push(updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newBody));
+  }
+
+  await Promise.all(promises);
+};
+
+function edited(app, appContext) {
+  app.on('pull_request.edited', createPullRequestHandler(appContext, (payload, context, repoContext) => {
+    if (repoContext.shouldIgnore) return null;
+    return payload.pull_request;
+  }, async (pullRequest, context, repoContext, reviewflowPrContext) => {
+    if (reviewflowPrContext == null) return;
     const sender = context.payload.sender;
-    const reviewer = context.payload.requested_reviewer;
+
+    if (checkIfIsThisBot(sender)) {
+      return;
+    }
+
+    const updatedPullRequest = await fetchPr(context, context.payload.pull_request.number);
+    await editOpenedPR(updatedPullRequest, context, repoContext, reviewflowPrContext, false);
+    await autoMergeIfPossible(updatedPullRequest, context, repoContext, reviewflowPrContext);
+  }));
+}
+
+const updateBranch = async (pullRequest, context, login) => {
+  var _result$data;
+
+  context.log.info('update branch', {
+    head: pullRequest.head.ref,
+    base: pullRequest.base.ref
+  });
+  const result = await context.octokit.repos.merge({
+    owner: pullRequest.head.repo.owner.login,
+    repo: pullRequest.head.repo.name,
+    head: pullRequest.base.ref,
+    base: pullRequest.head.ref
+  }).catch(err => ({
+    error: err
+  }));
+  context.log.info('update branch result', {
+    status: result.status,
+    sha: (_result$data = result.data) === null || _result$data === void 0 ? void 0 : _result$data.sha,
+    error: result.error
+  });
+
+  if (result.status === 204) {
+    context.octokit.issues.createComment(context.repo({
+      issue_number: pullRequest.number,
+      body: `@${login} could not update branch: base already contains the head, nothing to merge.`
+    }));
+  } else if (result.status === 409) {
+    context.octokit.issues.createComment(context.repo({
+      issue_number: pullRequest.number,
+      body: `@${login} could not update branch: merge conflict. Please resolve manually.`
+    }));
+  } else if (!result || !result.data || !result.data.sha) {
+    context.octokit.issues.createComment(context.repo({
+      issue_number: pullRequest.number,
+      body: `@${login} could not update branch (unknown error)`
+    }));
+  } else {
+    context.octokit.issues.createComment(context.repo({
+      issue_number: pullRequest.number,
+      body: `@${login} branch updated: ${result.data.sha}`
+    }));
+  }
+};
+
+const isFromRenovate = payload => {
+  const sender = payload.sender;
+  return sender.type === 'Bot' && sender.login === 'renovate[bot]' && payload.pull_request.head.ref.startsWith('renovate/');
+};
+
+function labelsChanged(app, appContext) {
+  app.on(['pull_request.labeled', 'pull_request.unlabeled'], createPullRequestHandler(appContext, (payload, context, repoContext) => {
+    if (payload.sender.type === 'Bot' && !isFromRenovate(payload)) {
+      return null;
+    }
+
+    if (repoContext.shouldIgnore) return null;
+    return payload.pull_request;
+  }, async (pullRequest, context, repoContext, reviewflowPrContext) => {
+    if (reviewflowPrContext === null) return;
+    const fromRenovate = isFromRenovate(context.payload);
+    const updatedPr = await fetchPr(context, pullRequest.number);
+    const label = context.payload.label;
+
+    if (fromRenovate) {
+      const codeApprovedLabel = repoContext.labels['code/approved'];
+      const autoMergeLabel = repoContext.labels['merge/automerge'];
+      const autoMergeSkipCiLabel = repoContext.labels['merge/skip-ci'];
+
+      if (context.payload.action === 'labeled') {
+        if (codeApprovedLabel && label.id === codeApprovedLabel.id) {
+          // const { data: reviews } = await context.octokit.pulls.listReviews(
+          //   context.pullRequest({ per_page: 1 }),
+          // );
+          // if (reviews.length !== 0) {
+          await context.octokit.pulls.createReview(context.pullRequest({
+            event: 'APPROVE'
+          }));
+          let labels = updatedPr.labels;
+          const autoMergeWithSkipCi = autoMergeSkipCiLabel && repoContext.config.autoMergeRenovateWithSkipCi;
+
+          if (autoMergeWithSkipCi) {
+            const result = await context.octokit.issues.addLabels(context.issue({
+              labels: [autoMergeSkipCiLabel.name]
+            }));
+            labels = result.data;
+          }
+
+          await updateStatusCheckFromLabels(updatedPr, context, repoContext, labels);
+          await updatePrCommentBodyOptions(context, repoContext, reviewflowPrContext, {
+            autoMergeWithSkipCi,
+            // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
+            autoMerge: hasLabelInPR(labels, autoMergeLabel) ? true : repoContext.config.prDefaultOptions.autoMerge
+          }); // }
+        } else if (autoMergeLabel && label.id === autoMergeLabel.id) {
+          await updatePrCommentBodyOptions(context, repoContext, reviewflowPrContext, {
+            autoMerge: true,
+            // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
+            // Note: si c'est renovate qui ajoute le label autoMerge, le label codeApprovedLabel n'aurait pu etre ajouté que par renovate également (on est a quelques secondes de l'ouverture de la pr par renovate)
+            autoMergeWithSkipCi: hasLabelInPR(pullRequest.labels, codeApprovedLabel) ? true : repoContext.config.prDefaultOptions.autoMergeWithSkipCi
+          });
+        }
+
+        await autoMergeIfPossible(updatedPr, context, repoContext, reviewflowPrContext);
+      }
+
+      return;
+    }
+
+    if (repoContext.protectedLabelIds.includes(label.id)) {
+      if (context.payload.action === 'labeled') {
+        await context.octokit.issues.removeLabel(context.issue({
+          name: label.name
+        }));
+      } else {
+        await context.octokit.issues.addLabels(context.issue({
+          labels: [label.name]
+        }));
+      }
+
+      return;
+    }
+
+    await updateStatusCheckFromLabels(updatedPr, context, repoContext);
+    const updateBranchLabel = repoContext.labels['merge/update-branch'];
+    const featureBranchLabel = repoContext.labels['feature-branch'];
+    const automergeLabel = repoContext.labels['merge/automerge'];
+    const skipCiLabel = repoContext.labels['merge/skip-ci'];
+
+    const option = (() => {
+      if (featureBranchLabel && label.id === featureBranchLabel.id) {
+        return 'featureBranch';
+      }
+
+      if (automergeLabel && label.id === automergeLabel.id) {
+        return 'autoMerge';
+      }
+
+      if (skipCiLabel && label.id === skipCiLabel.id) {
+        return 'autoMergeWithSkipCi';
+      }
+
+      return null;
+    })();
+
+    if (option) {
+      await updatePrCommentBodyOptions(context, repoContext, reviewflowPrContext, {
+        [option]: context.payload.action === 'labeled'
+      });
+    } // not an else if
+
+
+    if (automergeLabel && label.id === automergeLabel.id) {
+      if (context.payload.action === 'labeled') {
+        await autoMergeIfPossible(updatedPr, context, repoContext, reviewflowPrContext);
+      } else {
+        repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'automerge label removed');
+      }
+    }
+
+    if (updateBranchLabel && label.id === updateBranchLabel.id) {
+      if (context.payload.action === 'labeled') {
+        await updateBranch(updatedPr, context, context.payload.sender.login);
+        await context.octokit.issues.removeLabel(context.issue({
+          name: label.name
+        }));
+      }
+    }
+  }));
+}
+
+const autoApproveAndAutoMerge = async (pullRequest, context, repoContext, reviewflowPrContext) => {
+  // const autoMergeLabel = repoContext.labels['merge/automerge'];
+  const codeApprovedLabel = repoContext.labels['code/approved'];
+
+  if (hasLabelInPR(pullRequest.labels, codeApprovedLabel)) {
+    await context.octokit.pulls.createReview(context.pullRequest({
+      event: 'APPROVE'
+    }));
+    await autoMergeIfPossible(pullRequest, context, repoContext, reviewflowPrContext);
+    return true;
+  }
+
+  return false;
+};
+
+const autoAssignPRToCreator = async (pullRequest, context, repoContext) => {
+  if (!repoContext.config.autoAssignToCreator) return;
+  if (pullRequest.assignees.length > 0) return;
+  if (pullRequest.user.type === 'Bot') return;
+  await context.octokit.issues.addAssignees(context.issue({
+    assignees: [pullRequest.user.login]
+  }));
+};
+
+function opened(app, appContext) {
+  app.on('pull_request.opened', createPullRequestHandler(appContext, (payload, context, repoContext) => {
+    if (repoContext.shouldIgnore) return null;
+    return payload.pull_request;
+  }, async (pullRequest, context, repoContext, reviewflowPrContext) => {
+    const fromRenovate = pullRequest.head.ref.startsWith('renovate/');
+    if (reviewflowPrContext === null) return;
+    await Promise.all([autoAssignPRToCreator(pullRequest, context, repoContext), editOpenedPR(pullRequest, context, repoContext, reviewflowPrContext, true), fromRenovate ? fetchPr(context, pullRequest.number).then(updatedPr => autoApproveAndAutoMerge(updatedPr, context, repoContext, reviewflowPrContext).then(async approved => {
+      if (!approved && repoContext.config.requiresReviewRequest) {
+        await updateReviewStatus(pullRequest, context, repoContext, 'dev', {
+          add: ['needsReview']
+        });
+      }
+    })) : updateReviewStatus(pullRequest, context, repoContext, 'dev', {
+      add: repoContext.config.requiresReviewRequest ? ['needsReview'] : [],
+      remove: ['approved', 'changesRequested']
+    })]);
+  }, (pullRequest, context) => {
+    return {
+      reviewflowCommentPromise: createReviewflowComment(pullRequest.number, context, defaultCommentBody)
+    };
+  }));
+}
+
+function closed$1(app, appContext) {
+  app.on('pull_request.reopened', createPullRequestHandler(appContext, (payload, context, repoContext) => {
+    if (repoContext.shouldIgnore) return null;
+    return payload.pull_request;
+  }, async (pullRequest, context, repoContext, reviewflowPrContext) => {
+    await Promise.all([updateReviewStatus(pullRequest, context, repoContext, 'dev', {
+      add: ['needsReview'],
+      remove: ['approved']
+    }), editOpenedPR(pullRequest, context, repoContext, reviewflowPrContext, true)]);
+  }));
+}
+
+function reviewDismissed(app, appContext) {
+  app.on('pull_request_review.dismissed', createPullRequestHandler(appContext, payload => payload.pull_request, async (pullRequest, context, repoContext) => {
+    const sender = context.payload.sender;
+    const reviewer = context.payload.review.user;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
-    // repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, { includesWaitForGroups: true });
     if (!repoContext.shouldIgnore && reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
-      await updateReviewStatus(prContext, context, reviewerGroup, {
-        add: ['needsReview', "requested"],
-        remove: ['approved']
+      const updatedPr = await fetchPr(context, pullRequest.number);
+      const {
+        reviewStates
+      } = await getReviewersAndReviewStates(context, repoContext);
+      const hasChangesRequestedInReviews = reviewStates[reviewerGroup].changesRequested !== 0;
+      const hasApprovals = reviewStates[reviewerGroup].approved !== 0;
+      const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, updatedPr.requested_reviewers, {
+        includesReviewerGroup: true
+      });
+      await updateReviewStatus(updatedPr, context, repoContext, reviewerGroup, {
+        add: [!hasApprovals && 'needsReview', hasApprovals && !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && 'approved'],
+        remove: [!hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && 'requested', !hasChangesRequestedInReviews && 'changesRequested', !hasApprovals && 'approved']
       });
 
-      if (pr.assignees) {
-        pr.assignees.forEach(assignee => {
+      if (updatedPr.assignees) {
+        updatedPr.assignees.forEach(assignee => {
           repoContext.slack.updateHome(assignee.login);
         });
       }
 
-      if (!pr.assignees.find(assignee => assignee.login === reviewer.login)) {
+      if (!updatedPr.assignees.find(assignee => assignee.login === reviewer.login)) {
         repoContext.slack.updateHome(reviewer.login);
       }
     }
 
-    if (sender.login === reviewer.login) return;
-
     if (repoContext.slack) {
-      const text = `:eyes: ${repoContext.slack.mention(sender.login)} requests your review on ${createPrLink(pr, repoContext)} !\n> ${pr.title}`;
-      const message = {
-        text
-      };
-      const result = await repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, message);
-
-      if (result) {
-        await appContext.mongoStores.slackSentMessages.insertOne({
-          type: 'review-requested',
-          typeId: `${pr.id}_${reviewer.id}`,
-          message,
-          account: repoContext.accountEmbed,
-          sentTo: [result]
+      if (sender.login === reviewer.login) {
+        pullRequest.assignees.forEach(assignee => {
+          repoContext.slack.postMessage('pr-review', assignee.id, assignee.login, {
+            text: `:skull: ${repoContext.slack.mention(reviewer.login)} dismissed his review on ${createPrLink(pullRequest, repoContext)}`
+          });
+        });
+      } else {
+        repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, {
+          text: `:skull: ${repoContext.slack.mention(sender.login)} dismissed your review on ${createPrLink(pullRequest, repoContext)}`
         });
       }
     }
@@ -3087,16 +3120,13 @@ function reviewRequested(app, appContext) {
 }
 
 function reviewRequestRemoved(app, appContext) {
-  app.on('pull_request.review_request_removed', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context, repoContext) => {
-    const {
-      pr
-    } = prContext;
+  app.on('pull_request.review_request_removed', createPullRequestHandler(appContext, payload => payload.pull_request, async (pullRequest, context, repoContext) => {
     const sender = context.payload.sender;
     const reviewer = context.payload.requested_reviewer;
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
     if (!repoContext.shouldIgnore && reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
-      const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, {
+      const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, pullRequest.requested_reviewers, {
         includesReviewerGroup: true
       });
       const {
@@ -3105,7 +3135,7 @@ function reviewRequestRemoved(app, appContext) {
       const hasChangesRequestedInReviews = reviewStates[reviewerGroup].changesRequested !== 0;
       const hasApprovedInReviews = reviewStates[reviewerGroup].approved !== 0;
       const approved = !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && hasApprovedInReviews;
-      await updateReviewStatus(prContext, context, reviewerGroup, {
+      await updateReviewStatus(pullRequest, context, repoContext, reviewerGroup, {
         add: [// if changes requested by the one which requests was removed (should still be in changed requested anyway, but we never know)
         hasChangesRequestedInReviews && 'changesRequested', // if was already approved by another member in the group and has no other requests waiting
         approved && 'approved'],
@@ -3113,26 +3143,26 @@ function reviewRequestRemoved(app, appContext) {
         remove: [approved && 'needsReview', !hasRequestedReviewsForGroup && 'requested']
       });
 
-      if (pr.assignees) {
-        pr.assignees.forEach(assignee => {
+      if (pullRequest.assignees) {
+        pullRequest.assignees.forEach(assignee => {
           repoContext.slack.updateHome(assignee.login);
         });
       }
 
-      if (!pr.assignees.find(assignee => assignee.login === reviewer.login)) {
+      if (!pullRequest.assignees.find(assignee => assignee.login === reviewer.login)) {
         repoContext.slack.updateHome(reviewer.login);
       }
     }
 
     if (sender.login === reviewer.login) return;
     repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, {
-      text: `:skull_and_crossbones: ${repoContext.slack.mention(sender.login)} removed the request for your review on ${createPrLink(pr, repoContext)}`
+      text: `:skull_and_crossbones: ${repoContext.slack.mention(sender.login)} removed the request for your review on ${createPrLink(pullRequest, repoContext)}`
     });
     const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne({
       'account.id': repoContext.account._id,
       'account.type': repoContext.accountType,
       type: 'review-requested',
-      typeId: `${pr.id}_${reviewer.id}`
+      typeId: `${pullRequest.id}_${reviewer.id}`
     });
 
     if (sentMessageRequestedReview) {
@@ -3141,6 +3171,52 @@ function reviewRequestRemoved(app, appContext) {
       await Promise.all([repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, { ...message,
         text: message.text.split('\n').map(l => `~${l}~`).join('\n')
       }), repoContext.slack.addReaction(sentTo.ts, sentTo.channel, 'skull_and_crossbones'), appContext.mongoStores.slackSentMessages.deleteOne(sentMessageRequestedReview)]);
+    }
+  }));
+}
+
+function reviewRequested(app, appContext) {
+  app.on('pull_request.review_requested', createPullRequestHandler(appContext, payload => payload.pull_request, async (pullRequest, context, repoContext) => {
+    const sender = context.payload.sender;
+    const reviewer = context.payload.requested_reviewer;
+    const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
+
+    // repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, { includesWaitForGroups: true });
+    if (!repoContext.shouldIgnore && reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
+      await updateReviewStatus(pullRequest, context, repoContext, reviewerGroup, {
+        add: ['needsReview', "requested"],
+        remove: ['approved']
+      });
+
+      if (pullRequest.assignees) {
+        pullRequest.assignees.forEach(assignee => {
+          repoContext.slack.updateHome(assignee.login);
+        });
+      }
+
+      if (!pullRequest.assignees.find(assignee => assignee.login === reviewer.login)) {
+        repoContext.slack.updateHome(reviewer.login);
+      }
+    }
+
+    if (sender.login === reviewer.login) return;
+
+    if (repoContext.slack) {
+      const text = `:eyes: ${repoContext.slack.mention(sender.login)} requests your review on ${createPrLink(pullRequest, repoContext)} !\n> ${pullRequest.title}`;
+      const message = {
+        text
+      };
+      const result = await repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, message);
+
+      if (result) {
+        await appContext.mongoStores.slackSentMessages.insertOne({
+          type: 'review-requested',
+          typeId: `${pullRequest.id}_${reviewer.id}`,
+          message,
+          account: repoContext.accountEmbed,
+          sentTo: [result]
+        });
+      }
     }
   }));
 }
@@ -3159,27 +3235,26 @@ const getEmojiFromState = state => {
 };
 
 function reviewSubmitted(app, appContext) {
-  app.on('pull_request_review.submitted', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context) => {
+  app.on('pull_request_review.submitted', createPullRequestHandler(appContext, payload => payload.pull_request, async (pullRequest, context, repoContext, reviewflowPrContext) => {
     const {
-      pr,
-      repoContext
-    } = prContext;
+      payload
+    } = context;
     const {
       user: reviewer,
       state,
       body,
       html_url: reviewUrl
-    } = context.payload.review;
-    const reviewByOwner = pr.user.login === reviewer.login;
+    } = payload.review;
+    const reviewByOwner = pullRequest.user.login === reviewer.login;
     const {
       reviewers,
       reviewStates
     } = await getReviewersAndReviewStates(context, repoContext);
-    const followers = reviewers.filter(user => user.id !== reviewer.id && user.id !== pr.user.id);
+    const followers = reviewers.filter(user => user.id !== reviewer.id && user.id !== pullRequest.user.id);
 
-    if (pr.requested_reviewers) {
-      followers.push(...pr.requested_reviewers.filter(rr => {
-        return !followers.find(f => f.id === rr.id) && rr.id !== reviewer.id && rr.id !== pr.user.id;
+    if (pullRequest.requested_reviewers) {
+      followers.push(...pullRequest.requested_reviewers.filter(rr => {
+        return !followers.find(f => f.id === rr.id) && rr.id !== reviewer.id && rr.id !== pullRequest.user.id;
       }));
     }
 
@@ -3187,32 +3262,32 @@ function reviewSubmitted(app, appContext) {
       const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
       let merged;
 
-      if (!repoContext.shouldIgnore && reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
-        const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, {
+      if (reviewflowPrContext && !repoContext.shouldIgnore && reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
+        const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, pullRequest.requested_reviewers, {
           includesReviewerGroup: true // TODO reenable this when accepted can notify request review to slack (dev accepted => design requested) and flag to disable for label (approved design ; still waiting for dev ?)
           // includesWaitForGroups: true,
 
         });
         const hasChangesRequestedInReviews = reviewStates[reviewerGroup].changesRequested !== 0;
         const approved = !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && state === 'approved';
-        const updatedPrContext = await fetchPullRequestAndCreateContext(context, prContext);
-        const newLabels = await updateReviewStatus(updatedPrContext, context, reviewerGroup, {
+        const updatedPr = await fetchPr(context, pullRequest.number);
+        const newLabels = await updateReviewStatus(updatedPr, context, repoContext, reviewerGroup, {
           add: [approved && 'approved', state === 'changes_requested' && 'needsReview', state === 'changes_requested' && 'changesRequested'],
           remove: [approved && 'needsReview', !hasRequestedReviewsForGroup && 'requested', state === 'approved' && !hasChangesRequestedInReviews && 'changesRequested', state === 'changes_requested' && 'approved']
         });
 
         if (approved && !hasChangesRequestedInReviews) {
-          merged = await autoMergeIfPossible(updatedPrContext, context, newLabels);
+          merged = await autoMergeIfPossible(updatedPr, context, repoContext, reviewflowPrContext, newLabels);
         }
       }
 
-      if (pr.assignees) {
-        pr.assignees.forEach(assignee => {
+      if (pullRequest.assignees) {
+        pullRequest.assignees.forEach(assignee => {
           repoContext.slack.updateHome(assignee.login);
         });
       }
 
-      if (!pr.assignees.find(assignee => assignee.login === reviewer.login)) {
+      if (!pullRequest.assignees.find(assignee => assignee.login === reviewer.login)) {
         repoContext.slack.updateHome(reviewer.login);
       }
 
@@ -3220,7 +3295,7 @@ function reviewSubmitted(app, appContext) {
         'account.id': repoContext.account._id,
         'account.type': repoContext.accountType,
         type: 'review-requested',
-        typeId: `${pr.id}_${reviewer.id}`
+        typeId: `${pullRequest.id}_${reviewer.id}`
       });
       const emoji = getEmojiFromState(state);
 
@@ -3237,8 +3312,8 @@ function reviewSubmitted(app, appContext) {
       }
 
       const mention = repoContext.slack.mention(reviewer.login);
-      const prUrl = createPrLink(pr, repoContext);
-      const ownerMention = repoContext.slack.mention(pr.user.login);
+      const prUrl = createPrLink(pullRequest, repoContext);
+      const ownerMention = repoContext.slack.mention(pullRequest.user.login);
 
       const createMessage = toOwner => {
         const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR`;
@@ -3255,295 +3330,21 @@ function reviewSubmitted(app, appContext) {
         return `:${emoji}: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
       };
 
-      const slackifiedBody = slackifyMarkdown(body);
-      repoContext.slack.postMessage('pr-review', pr.user.id, pr.user.login, createSlackMessageWithSecondaryBlock(createMessage(true), slackifiedBody));
+      const slackifiedBody = slackifyMarkdown__default(body);
+      repoContext.slack.postMessage('pr-review', pullRequest.user.id, pullRequest.user.login, createSlackMessageWithSecondaryBlock(createMessage(true), slackifiedBody));
       const message = createSlackMessageWithSecondaryBlock(createMessage(false), slackifiedBody);
       followers.forEach(follower => {
         repoContext.slack.postMessage('pr-review-follow', follower.id, follower.login, message);
       });
     } else if (body) {
       const mention = repoContext.slack.mention(reviewer.login);
-      const prUrl = createPrLink(pr, repoContext);
+      const prUrl = createPrLink(pullRequest, repoContext);
       const commentLink = createLink(reviewUrl, 'commented');
       const message = createSlackMessageWithSecondaryBlock(`:speech_balloon: ${mention} ${commentLink} on his PR ${prUrl}`, body);
       followers.forEach(follower => {
         repoContext.slack.postMessage('pr-review-follow', follower.id, follower.login, message);
       });
     }
-  }));
-}
-
-function reviewDismissed(app, appContext) {
-  app.on('pull_request_review.dismissed', createPullRequestHandler(appContext, payload => payload.pull_request, async (prContext, context, repoContext) => {
-    const sender = context.payload.sender;
-    const reviewer = context.payload.review.user;
-    const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
-
-    if (!repoContext.shouldIgnore && reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
-      const updatedPrContext = await fetchPullRequestAndCreateContext(context, prContext);
-      const pr = updatedPrContext.updatedPr;
-      const {
-        reviewStates
-      } = await getReviewersAndReviewStates(context, repoContext);
-      const hasChangesRequestedInReviews = reviewStates[reviewerGroup].changesRequested !== 0;
-      const hasApprovals = reviewStates[reviewerGroup].approved !== 0;
-      const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, {
-        includesReviewerGroup: true
-      });
-      await updateReviewStatus(updatedPrContext, context, reviewerGroup, {
-        add: [!hasApprovals && 'needsReview', hasApprovals && !hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && 'approved'],
-        remove: [!hasRequestedReviewsForGroup && !hasChangesRequestedInReviews && 'requested', !hasChangesRequestedInReviews && 'changesRequested', !hasApprovals && 'approved']
-      });
-
-      if (pr.assignees) {
-        pr.assignees.forEach(assignee => {
-          repoContext.slack.updateHome(assignee.login);
-        });
-      }
-
-      if (!pr.assignees.find(assignee => assignee.login === reviewer.login)) {
-        repoContext.slack.updateHome(reviewer.login);
-      }
-    }
-
-    if (repoContext.slack) {
-      if (sender.login === reviewer.login) {
-        prContext.pr.assignees.forEach(assignee => {
-          repoContext.slack.postMessage('pr-review', assignee.id, assignee.login, {
-            text: `:skull: ${repoContext.slack.mention(reviewer.login)} dismissed his review on ${createPrLink(prContext.pr, repoContext)}`
-          });
-        });
-      } else {
-        repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, {
-          text: `:skull: ${repoContext.slack.mention(sender.login)} dismissed your review on ${createPrLink(prContext.pr, repoContext)}`
-        });
-      }
-    }
-  }));
-}
-
-function synchronize(app, appContext) {
-  app.on('pull_request.synchronize', createPullRequestHandler(appContext, (payload, context, repoContext) => {
-    if (repoContext.shouldIgnore) return null;
-    return payload.pull_request;
-  }, async (prContext, context) => {
-    const updatedPrContext = await fetchPullRequestAndCreateContext(context, prContext); // old and new sha
-    // const { before, after } = context.payload;
-
-    const previousSha = context.payload.before;
-    await Promise.all([editOpenedPR(updatedPrContext, context, true, previousSha), // addStatusCheckToLatestCommit
-    updateStatusCheckFromLabels(updatedPrContext, updatedPrContext.updatedPr, context, updatedPrContext.updatedPr.labels, previousSha)]); // call autoMergeIfPossible to re-add to the queue when push is fixed
-
-    await autoMergeIfPossible(updatedPrContext, context);
-  }));
-}
-
-function edited(app, appContext) {
-  app.on('pull_request.edited', createPullRequestHandler(appContext, (payload, context, repoContext) => {
-    if (repoContext.shouldIgnore) return null;
-    return payload.pull_request;
-  }, async (prContext, context) => {
-    const prContextUpdated = await fetchPullRequestAndCreateContext(context, prContext);
-    const sender = context.payload.sender;
-
-    if (checkIfIsThisBot(sender)) {
-      return;
-    }
-
-    await editOpenedPR(prContextUpdated, context, false);
-    await autoMergeIfPossible(prContextUpdated, context);
-  }));
-}
-
-const updateBranch = async (updatedPrContext, context, login) => {
-  const pr = updatedPrContext.updatedPr;
-  context.log.info('update branch', {
-    head: pr.head.ref,
-    base: pr.base.ref
-  });
-  const result = await context.github.repos.merge({
-    owner: pr.head.repo.owner.login,
-    repo: pr.head.repo.name,
-    head: pr.base.ref,
-    base: pr.head.ref
-  }).catch(err => ({
-    error: err
-  }));
-  context.log.info('update branch result', {
-    status: result.status,
-    sha: result.data && result.data.sha,
-    error: result.error
-  });
-
-  if (result.status === 204) {
-    context.github.issues.createComment(context.repo({
-      issue_number: pr.number,
-      body: `@${login} could not update branch: base already contains the head, nothing to merge.`
-    }));
-  } else if (result.status === 409) {
-    context.github.issues.createComment(context.repo({
-      issue_number: pr.number,
-      body: `@${login} could not update branch: merge conflict. Please resolve manually.`
-    }));
-  } else if (!result || !result.data || !result.data.sha) {
-    context.github.issues.createComment(context.repo({
-      issue_number: pr.number,
-      body: `@${login} could not update branch (unknown error)`
-    }));
-  } else {
-    context.github.issues.createComment(context.repo({
-      issue_number: pr.number,
-      body: `@${login} branch updated: ${result.data.sha}`
-    }));
-  }
-};
-
-const updatePrCommentBody = async (prContext, context, updateOptions) => {
-  const {
-    commentBody: newBody
-  } = updateCommentOptions(prContext.commentBody, prContext.repoContext.config.prDefaultOptions, updateOptions);
-  await updatePrIfNeeded(prContext, context, {
-    commentBody: newBody
-  });
-};
-
-const isFromRenovate = payload => {
-  const sender = payload.sender;
-  return sender.type === 'Bot' && sender.login === 'renovate[bot]' && payload.pull_request.head.ref.startsWith('renovate/');
-};
-
-function labelsChanged(app, appContext) {
-  app.on(['pull_request.labeled', 'pull_request.unlabeled'], createPullRequestHandler(appContext, (payload, context, repoContext) => {
-    if (payload.sender.type === 'Bot' && !isFromRenovate(payload)) {
-      return null;
-    }
-
-    if (repoContext.shouldIgnore) return null;
-    return payload.pull_request;
-  }, async (prContext, context, repoContext) => {
-    const fromRenovate = isFromRenovate(context.payload);
-    const updatedPrContext = await fetchPullRequestAndCreateContext(context, prContext);
-    const {
-      updatedPr: pr
-    } = updatedPrContext;
-    const label = context.payload.label;
-
-    if (fromRenovate) {
-      const codeApprovedLabel = repoContext.labels['code/approved'];
-      const autoMergeLabel = repoContext.labels['merge/automerge'];
-      const autoMergeSkipCiLabel = repoContext.labels['merge/skip-ci'];
-
-      if (context.payload.action === 'labeled') {
-        if (codeApprovedLabel && label.id === codeApprovedLabel.id) {
-          // const { data: reviews } = await context.github.pulls.listReviews(
-          //   contextPr(context, { per_page: 1 }),
-          // );
-          // if (reviews.length !== 0) {
-          await context.github.pulls.createReview(contextPr(context, {
-            event: 'APPROVE'
-          }));
-          let labels = pr.labels;
-          const autoMergeWithSkipCi = autoMergeSkipCiLabel && repoContext.config.autoMergeRenovateWithSkipCi;
-
-          if (autoMergeWithSkipCi) {
-            const result = await context.github.issues.addLabels(contextIssue(context, {
-              labels: [autoMergeSkipCiLabel.name]
-            }));
-            labels = result.data;
-          }
-
-          await updateStatusCheckFromLabels(updatedPrContext, pr, context, labels);
-          await updatePrCommentBody(updatedPrContext, context, {
-            autoMergeWithSkipCi,
-            // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
-            autoMerge: hasLabelInPR(labels, autoMergeLabel) ? true : repoContext.config.prDefaultOptions.autoMerge
-          }); // }
-        } else if (autoMergeLabel && label.id === autoMergeLabel.id) {
-          await updatePrCommentBody(updatedPrContext, context, {
-            autoMerge: true,
-            // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
-            // Note: si c'est renovate qui ajoute le label autoMerge, le label codeApprovedLabel n'aurait pu etre ajouté que par renovate également (on est a quelques secondes de l'ouverture de la pr par renovate)
-            autoMergeWithSkipCi: hasLabelInPR(pr.labels, codeApprovedLabel) ? true : repoContext.config.prDefaultOptions.autoMergeWithSkipCi
-          });
-        }
-
-        await autoMergeIfPossible(updatedPrContext, context);
-      }
-
-      return;
-    }
-
-    if (repoContext.protectedLabelIds.includes(label.id)) {
-      if (context.payload.action === 'labeled') {
-        await context.github.issues.removeLabel(contextIssue(context, {
-          name: label.name
-        }));
-      } else {
-        await context.github.issues.addLabels(contextIssue(context, {
-          labels: [label.name]
-        }));
-      }
-
-      return;
-    }
-
-    await updateStatusCheckFromLabels(updatedPrContext, pr, context);
-    const updateBranchLabel = repoContext.labels['merge/update-branch'];
-    const featureBranchLabel = repoContext.labels['feature-branch'];
-    const automergeLabel = repoContext.labels['merge/automerge'];
-    const skipCiLabel = repoContext.labels['merge/skip-ci'];
-
-    const option = (() => {
-      if (featureBranchLabel && label.id === featureBranchLabel.id) return 'featureBranch';
-      if (automergeLabel && label.id === automergeLabel.id) return 'autoMerge';
-      if (skipCiLabel && label.id === skipCiLabel.id) return 'autoMergeWithSkipCi';
-      return null;
-    })();
-
-    if (option) {
-      await updatePrCommentBody(updatedPrContext, context, {
-        [option]: context.payload.action === 'labeled'
-      });
-    } // not an else if
-
-
-    if (automergeLabel && label.id === automergeLabel.id) {
-      if (context.payload.action === 'labeled') {
-        await autoMergeIfPossible(updatedPrContext, context);
-      } else {
-        repoContext.removePrFromAutomergeQueue(context, pr.number, 'automerge label removed');
-      }
-    }
-
-    if (updateBranchLabel && label.id === updateBranchLabel.id) {
-      if (context.payload.action === 'labeled') {
-        await updateBranch(updatedPrContext, context, context.payload.sender.login);
-        await context.github.issues.removeLabel(contextIssue(context, {
-          name: label.name
-        }));
-      }
-    }
-  }));
-}
-
-function checkrunCompleted(app, appContext) {
-  app.on('check_run.completed', createPullRequestsHandler(appContext, (payload, repoContext) => {
-    if (repoContext.shouldIgnore) return [];
-    return payload.check_run.pull_requests;
-  }, async (pr, context, repoContext) => {
-    const pullRequest = await fetchPr(context, pr.number);
-    await autoMergeIfPossibleOptionalPrContext(appContext, repoContext, pullRequest, context);
-  }));
-}
-
-function checksuiteCompleted(app, appContext) {
-  app.on('check_suite.completed', createPullRequestsHandler(appContext, (payload, repoContext) => {
-    if (repoContext.shouldIgnore) return [];
-    return payload.check_suite.pull_requests;
-  }, async (pr, context, repoContext) => {
-    const pullRequest = await fetchPr(context, pr.number);
-    const prContext = await createPullRequestContextFromPullResponse(appContext, repoContext, context, pullRequest, {});
-    await autoMergeIfPossible(prContext, context);
   }));
 }
 
@@ -3572,20 +3373,22 @@ function status(app, appContext) {
   }));
 }
 
-const handlerOrgChange = async (appContext, context, callback) => {
-  const org = context.payload.organization;
-  const config$1 = accountConfigs[org.login] || config;
-  const accountContext = await obtainAccountContext(appContext, context, config$1, { ...org,
-    type: 'Organization'
-  });
-  if (!accountContext) return;
-  return accountContext.lock(async () => {
-    await callback(context, accountContext);
-  });
-};
-const createHandlerOrgChange = (appContext, callback) => context => {
-  return handlerOrgChange(appContext, context, callback);
-};
+function synchronize(app, appContext) {
+  app.on('pull_request.synchronize', createPullRequestHandler(appContext, (payload, context, repoContext) => {
+    if (repoContext.shouldIgnore) return null;
+    return payload.pull_request;
+  }, async (pullRequest, context, repoContext, reviewflowPrContext) => {
+    if (!reviewflowPrContext) return;
+    const updatedPr = await fetchPr(context, pullRequest.number); // old and new sha
+    // const { before, after } = context.payload;
+
+    const previousSha = context.payload.before;
+    await Promise.all([editOpenedPR(updatedPr, context, repoContext, reviewflowPrContext, true, previousSha), // addStatusCheckToLatestCommit
+    updateStatusCheckFromLabels(updatedPr, context, repoContext, updatedPr.labels, previousSha)]); // call autoMergeIfPossible to re-add to the queue when push is fixed
+
+    await autoMergeIfPossible(updatedPr, context, repoContext, reviewflowPrContext);
+  }));
+}
 
 function repoEdited(app, appContext) {
   app.on('repository.edited', createHandlerOrgChange(appContext, async context => {
@@ -3597,24 +3400,25 @@ function repoEdited(app, appContext) {
   }));
 }
 
+// import commands from 'probot-commands';
 function initApp(app, appContext) {
   /* https://developer.github.com/webhooks/event-payloads/#organization */
   app.on(['organization.member_added', 'organization.member_removed'], createHandlerOrgChange(appContext, async (context, accountContext) => {
-    await syncOrg(appContext.mongoStores, context.github, accountContext.account.installationId, context.payload.organization);
+    await syncOrg(appContext.mongoStores, context.octokit, accountContext.account.installationId, context.payload.organization);
   }));
   /* https://developer.github.com/webhooks/event-payloads/#team */
 
   app.on(['team.created', 'team.deleted', 'team.edited'], createHandlerOrgChange(appContext, async context => {
-    await syncTeams(appContext.mongoStores, context.github, context.payload.organization);
+    await syncTeams(appContext.mongoStores, context.octokit, context.payload.organization);
   })); // /* https://developer.github.com/webhooks/event-payloads/#membership */
   // app.on(
   //   ['membership.added', 'membership.removed'],
-  //   createHandlerOrgChange<Webhooks.WebhookPayloadMembership>(
+  //   createHandlerOrgChange<EventPayloads.WebhookPayloadMembership>(
   //     mongoStores,
   //     async (context, accountContext) => {
   //       await syncTeamMembers(
   //         mongoStores,
-  //         context.github,
+  //         context.octokit,
   //         context.payload.organization,
   //         context.payload.team,
   //       );
@@ -3654,13 +3458,136 @@ function initApp(app, appContext) {
   /* https://developer.github.com/webhooks/event-payloads/#status */
 
   status(app, appContext);
+  /* commands */
+  // commands(app, 'update-branch', () => {});
+}
+
+/* eslint-disable @typescript-eslint/no-floating-promises */
+
+if (!process.env.MONGO_DB) {
+  throw new Error('MONGO_DB is missing in process.env');
+}
+
+function init() {
+  const config = new Map([['host', process.env.MONGO_HOST || 'localhost'], ['port', process.env.MONGO_PORT || '27017'], ['database', process.env.MONGO_DB]]);
+
+  if (process.env.MONGO_USER) {
+    config.set('user', process.env.MONGO_USER);
+    config.set('password', process.env.MONGO_PASSWORD);
+  }
+
+  const connection = new liwiMongo.MongoConnection(config); // const prEvents = new MongoStore<PrEventsModel>(connection, 'prEvents');
+  // prEvents.collection.then((coll) => {
+  //   coll.createIndex({ owner: 1, repo: 1, ???: 1 });
+  // });
+
+  const userDmSettings = new liwiMongo.MongoStore(connection, 'userDmSettings');
+  userDmSettings.collection.then(coll => {
+    coll.createIndex({
+      userId: 1,
+      orgId: 1
+    }, {
+      unique: true
+    });
+  });
+  const users = new liwiMongo.MongoStore(connection, 'users');
+  users.collection.then(coll => {
+    coll.createIndex({
+      login: 1
+    }, {
+      unique: true
+    });
+  });
+  const orgs = new liwiMongo.MongoStore(connection, 'orgs');
+  orgs.collection.then(coll => {
+    coll.createIndex({
+      login: 1
+    }, {
+      unique: true
+    });
+  });
+  const orgMembers = new liwiMongo.MongoStore(connection, 'orgMembers');
+  orgMembers.collection.then(coll => {
+    coll.createIndex({
+      'user.id': 1,
+      'org.id': 1
+    }, {
+      unique: true
+    });
+  });
+  const orgTeams = new liwiMongo.MongoStore(connection, 'orgTeams');
+  orgTeams.collection.then(coll => {
+    coll.createIndex({
+      'org.id': 1
+    });
+  });
+  const slackSentMessages = new liwiMongo.MongoStore(connection, 'slackSentMessages');
+  slackSentMessages.collection.then(coll => {
+    coll.createIndex({
+      'account.id': 1,
+      'account.type': 1,
+      type: 1,
+      typeId: 1
+    }); // remove older than 14 days
+
+    coll.deleteMany({
+      created: {
+        $lt: new Date(Date.now() - 1209600000)
+      }
+    });
+  });
+  const automergeLogs = new liwiMongo.MongoStore(connection, 'automergeLogs');
+  automergeLogs.collection.then(coll => {
+    coll.createIndex({
+      repoFullName: 1,
+      type: 1
+    });
+    coll.createIndex({
+      repoFullName: 1,
+      'pr.number': 1
+    }); // remove older than 30 days
+
+    coll.deleteMany({
+      created: {
+        $lt: new Date(Date.now() - 2592000000)
+      }
+    });
+  });
+  const prs = new liwiMongo.MongoStore(connection, 'prs');
+  prs.collection.then(coll => {
+    coll.createIndex({
+      'account.id': 1,
+      'repo.id': 1,
+      'pr.number': 1
+    }, {
+      unique: true
+    }); // remove older than 12 * 30 days
+
+    coll.deleteMany({
+      created: {
+        $lt: new Date(Date.now() - 31104000000)
+      }
+    });
+  }); // return { connection, prEvents };
+
+  return {
+    connection,
+    userDmSettings,
+    users,
+    orgs,
+    orgMembers,
+    orgTeams,
+    slackSentMessages,
+    automergeLogs,
+    prs
+  };
 }
 
 const createSlackHomeWorker = mongoStores => {
   const updateMember = async (github, slackClient, member) => {
     var _member$slack;
 
-    if (!((_member$slack = member.slack) === null || _member$slack === void 0 ? void 0 : _member$slack.id)) return; // console.log('update member', member.org.login, member.user.login);
+    if (!((_member$slack = member.slack) !== null && _member$slack !== void 0 && _member$slack.id)) return; // console.log('update member', member.org.login, member.user.login);
 
     /* search limit: 30 requests per minute = 7 update/min max */
 
@@ -3815,7 +3742,7 @@ const createSlackHomeWorker = mongoStores => {
   return {
     scheduleUpdateMember,
     scheduleUpdateOrg,
-    scheduleUpdateAllOrgs: async auth => {
+    scheduleUpdateAllOrgs: async (auth) => {
       const cursor = await mongoStores.orgs.cursor();
       cursor.forEach(async org => {
         if (!org.slackToken || !org.installationId) return;
@@ -3826,6 +3753,7 @@ const createSlackHomeWorker = mongoStores => {
   };
 };
 
+/* eslint-disable @typescript-eslint/no-floating-promises */
 if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = 'reviewflow';
 console.log({
   name: process.env.REVIEWFLOW_NAME
@@ -3834,16 +3762,18 @@ console.log({
 // const connect = MongoClient.connect(process.env.MONGO_URL);
 // const db = connect.then(client => client.db(process.env.MONGO_DB));
 // let config = await getConfig(context, 'reviewflow.yml');
-// eslint-disable-next-line import/no-commonjs
 
-probot.Probot.run(app => {
+probot.run(({
+  app,
+  getRouter
+}) => {
   const mongoStores = init();
   const slackHome = createSlackHomeWorker(mongoStores);
   const appContext = {
     mongoStores,
     slackHome
   };
-  appRouter(app, appContext);
+  appRouter(app, getRouter, appContext);
   initApp(app, appContext);
   slackHome.scheduleUpdateAllOrgs(id => app.auth(id));
 });

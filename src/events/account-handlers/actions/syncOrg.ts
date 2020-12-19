@@ -1,5 +1,6 @@
-import { Octokit } from 'probot';
-import { MongoStores, Org } from '../../../mongo';
+import type { Octokit } from '@octokit/core';
+import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
+import type { MongoStores, Org } from '../../../mongo';
 
 interface OrgInfo {
   login: string;
@@ -27,7 +28,9 @@ export const syncOrg = async (
       github.orgs.listMembers.endpoint.merge({
         org: org.login,
       }),
-      ({ data }: Octokit.Response<Octokit.OrgsListMembersResponse>) => {
+      ({
+        data,
+      }: RestEndpointMethodTypes['orgs']['listMembers']['response']) => {
         return Promise.all(
           data.map(async (member) => {
             memberIds.push(member.id);

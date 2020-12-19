@@ -1,14 +1,23 @@
 import { Lock } from 'lock';
-import { Context } from 'probot';
-import { fetchPr } from '../events/pr-handlers/utils/fetchPr';
-import { accountConfigs, Config, defaultConfig } from '../accountConfigs';
-import { GroupLabels } from '../accountConfigs/types';
+import type { Context } from 'probot';
+import type { Config } from '../accountConfigs';
+import { accountConfigs, defaultConfig } from '../accountConfigs';
+import type { GroupLabels } from '../accountConfigs/types';
 // eslint-disable-next-line import/no-cycle
-import { autoMergeIfPossibleOptionalPrContext } from '../events/pr-handlers/actions/autoMergeIfPossible';
+import { autoMergeIfPossible } from '../events/pr-handlers/actions/autoMergeIfPossible';
+import type {
+  PullRequestData,
+  PullRequestLabels,
+  PullRequestWithDecentData,
+} from '../events/pr-handlers/utils/PullRequestData';
+import { getReviewflowPrContext } from '../events/pr-handlers/utils/createPullRequestContext';
+import { fetchPr } from '../events/pr-handlers/utils/fetchPr';
 import { ExcludesFalsy } from '../utils/Excludes';
-import { AppContext } from './AppContext';
-import { initRepoLabels, LabelResponse, Labels } from './initRepoLabels';
-import { obtainAccountContext, AccountContext } from './accountContext';
+import type { AppContext } from './AppContext';
+import type { AccountContext } from './accountContext';
+import { obtainAccountContext } from './accountContext';
+import type { LabelResponse, LabelsRecord } from './initRepoLabels';
+import { initRepoLabels } from './initRepoLabels';
 import { getEmojiFromRepoDescription } from './utils';
 
 export interface LockedMergePr {
@@ -18,34 +27,41 @@ export interface LockedMergePr {
 }
 
 interface RepoContextWithoutTeamContext<GroupNames extends string> {
+  appContext: AppContext;
   repoFullName: string;
   repoEmbed: { id: number; name: string };
   repoEmoji: string | undefined;
-  labels: Labels;
+  labels: LabelsRecord;
   protectedLabelIds: readonly LabelResponse['id'][];
   shouldIgnore: boolean;
 
-  hasNeedsReview: (labels: LabelResponse[]) => boolean;
-  hasRequestedReview: (labels: LabelResponse[]) => boolean;
-  hasChangesRequestedReview: (labels: LabelResponse[]) => boolean;
-  hasApprovesReview: (labels: LabelResponse[]) => boolean;
-  getNeedsReviewGroupNames: (labels: LabelResponse[]) => GroupNames[];
+  hasNeedsReview: (labels: PullRequestLabels) => boolean;
+  hasRequestedReview: (labels: PullRequestLabels) => boolean;
+  hasChangesRequestedReview: (labels: PullRequestLabels) => boolean;
+  hasApprovesReview: (labels: PullRequestLabels) => boolean;
+  getNeedsReviewGroupNames: (labels: PullRequestLabels) => GroupNames[];
 
-  lockPR(
+  lockPullRequest: (
+    pullRequest: PullRequestData,
+    callback: () => Promise<void> | void,
+  ) => Promise<void>;
+
+  /** @deprecated */
+  lockPR: (
     prId: string,
     prNumber: number,
     callback: () => Promise<void> | void,
-  ): Promise<void>;
+  ) => Promise<void>;
 
-  getMergeLockedPr(): LockedMergePr;
-  addMergeLockPr(pr: LockedMergePr): void;
-  removePrFromAutomergeQueue(
+  getMergeLockedPr: () => LockedMergePr;
+  addMergeLockPr: (pr: LockedMergePr) => void;
+  removePrFromAutomergeQueue: (
     context: Context<any>,
     prNumber: number,
     reason: string,
-  ): void;
-  reschedule(context: Context<any>, pr: LockedMergePr): void;
-  pushAutomergeQueue(pr: LockedMergePr): void;
+  ) => void;
+  reschedule: (context: Context<any>, pr: LockedMergePr) => void;
+  pushAutomergeQueue: (pr: LockedMergePr) => void;
 }
 
 export type RepoContext<GroupNames extends string = any> = AccountContext<
@@ -76,7 +92,7 @@ const createGetReviewLabelIds = <GroupNames extends string>(
   shouldIgnore: boolean,
   config: Config<GroupNames>,
   reviewGroupNames: GroupNames[],
-  labels: Labels,
+  labels: LabelsRecord,
 ): ((labelKey: GroupLabels) => number[]) => {
   if (shouldIgnore) return (labelKey: GroupLabels): number[] => [];
   return (labelKey: GroupLabels): number[] =>
@@ -144,16 +160,16 @@ async function initRepoContext<GroupNames extends string>(
 
   // const updateStatusCheck = (context, reviewGroup, statusInfo) => {};
 
-  const hasNeedsReview = (labels: LabelResponse[]) =>
+  const hasNeedsReview = (labels: PullRequestLabels): boolean =>
     labels.some((label) => needsReviewLabelIds.includes(label.id));
-  const hasRequestedReview = (labels: LabelResponse[]) =>
+  const hasRequestedReview = (labels: PullRequestLabels): boolean =>
     labels.some((label) => requestedReviewLabelIds.includes(label.id));
-  const hasChangesRequestedReview = (labels: LabelResponse[]) =>
+  const hasChangesRequestedReview = (labels: PullRequestLabels): boolean =>
     labels.some((label) => changesRequestedLabelIds.includes(label.id));
-  const hasApprovesReview = (labels: LabelResponse[]) =>
+  const hasApprovesReview = (labels: PullRequestLabels): boolean =>
     labels.some((label) => approvedReviewLabelIds.includes(label.id));
 
-  const getNeedsReviewGroupNames = (labels: LabelResponse[]): GroupNames[] =>
+  const getNeedsReviewGroupNames = (labels: PullRequestLabels): GroupNames[] =>
     labels
       .filter((label) => needsReviewLabelIds.includes(label.id))
       .map((label) => labelIdToGroupName.get(label.id))
@@ -164,14 +180,14 @@ async function initRepoContext<GroupNames extends string>(
   let automergeQueue: LockedMergePr[] = [];
 
   const lockPR = (
-    prOPrIssueId: string,
+    prOrPrIssueId: string,
     prNumber: number,
     callback: () => Promise<void> | void,
   ): Promise<void> =>
     new Promise((resolve, reject) => {
       const logInfos = {
         repo: fullName,
-        prOPrIssueId,
+        prOrPrIssueId,
         prNumber,
       };
       context.log.debug('lock: try to lock pr', logInfos);
@@ -193,25 +209,36 @@ async function initRepoContext<GroupNames extends string>(
       });
     });
 
-  const reschedule = (context: Context<any>, pr: LockedMergePr) => {
+  const lockPullRequest = (
+    pullRequest: PullRequestWithDecentData,
+    callback: () => Promise<void> | void,
+  ): Promise<void> => {
+    return lockPR(String(pullRequest.id), pullRequest.number, callback);
+  };
+
+  const reschedule = (context: Context<any>, pr: LockedMergePr): void => {
     if (!pr) throw new Error('Cannot reschedule undefined');
     context.log.info('reschedule', pr);
     setTimeout(() => {
       lockPR('reschedule', -1, () => {
         return lockPR(String(pr.id), pr.number, async () => {
-          const updatedPr = await fetchPr(context, pr.number);
-          await autoMergeIfPossibleOptionalPrContext(
-            appContext,
-            repoContext,
-            updatedPr,
+          const [pullRequest, reviewflowPrContext] = await Promise.all([
+            fetchPr(context, pr.number),
+            getReviewflowPrContext(pr.number, context, repoContext),
+          ]);
+          await autoMergeIfPossible(
+            pullRequest,
             context,
+            repoContext,
+            reviewflowPrContext,
           );
         });
       });
-    }, 10000);
+    }, 10_000);
   };
 
   return Object.assign(repoContext, {
+    appContext,
     labels,
     repoFullName: fullName,
     repoEmbed: { id, name },
@@ -272,6 +299,7 @@ async function initRepoContext<GroupNames extends string>(
     reschedule,
 
     lockPR,
+    lockPullRequest,
   } as RepoContextWithoutTeamContext<GroupNames>);
 }
 

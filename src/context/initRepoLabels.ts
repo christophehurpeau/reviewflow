@@ -1,5 +1,6 @@
-import { Context, Octokit } from 'probot';
-import { Config } from '../accountConfigs';
+import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
+import type { Context } from 'probot';
+import type { Config } from '../accountConfigs';
 
 export interface LabelResponse {
   id: number;
@@ -11,14 +12,16 @@ export interface LabelResponse {
   default: boolean;
 }
 
-export interface Labels {
+export interface LabelsRecord {
   [key: string]: LabelResponse;
 }
 
 export const getLabelsForRepo = async (
   context: Context<any>,
-): Promise<Octokit.IssuesListLabelsForRepoResponse> => {
-  const { data: labels } = await context.github.issues.listLabelsForRepo(
+): Promise<
+  RestEndpointMethodTypes['issues']['listLabelsForRepo']['response']['data']
+> => {
+  const { data: labels } = await context.octokit.issues.listLabelsForRepo(
     context.repo({ per_page: 100 }),
   );
   return labels;
@@ -27,7 +30,7 @@ export const getLabelsForRepo = async (
 export const initRepoLabels = async <GroupNames extends string>(
   context: Context<any>,
   config: Config<GroupNames>,
-): Promise<Labels> => {
+): Promise<LabelsRecord> => {
   const labels = await getLabelsForRepo(context);
   const finalLabels: Record<string, LabelResponse> = {};
 
@@ -58,7 +61,7 @@ export const initRepoLabels = async <GroupNames extends string>(
     }
 
     if (!existingLabel) {
-      const result = await context.github.issues.createLabel(
+      const result = await context.octokit.issues.createLabel(
         context.repo({
           name: labelConfig.name,
           color: labelColor,
@@ -78,7 +81,7 @@ export const initRepoLabels = async <GroupNames extends string>(
         description: existingLabel.description !== description && description,
       });
 
-      const result = await context.github.issues.updateLabel(
+      const result = await context.octokit.issues.updateLabel(
         context.repo({
           current_name: existingLabel.name,
           name: labelConfig.name,

@@ -1,23 +1,31 @@
-import { Context } from 'probot';
-import Webhooks from '@octokit/webhooks';
-import { OnCallback } from 'probot/lib/application';
+import type { EventPayloads } from '@octokit/webhooks';
+import type { Context } from 'probot';
+import type { OnCallback } from 'probot/lib/application';
+import type { AppContext } from '../../../context/AppContext';
+import type { RepoContext, LockedMergePr } from '../../../context/repoContext';
 import { createRepoHandler } from '../../repository-handlers/utils/createRepoHandler';
-import { AppContext } from '../../../context/AppContext';
-import { RepoContext, LockedMergePr } from '../../../context/repoContext';
-import {
-  createPullRequestContextFromWebhook,
+import type {
+  PullRequestData,
+  PullRequestFromWebhook,
+} from './PullRequestData';
+import type {
   CreatePrContextOptions,
-  PrContext,
+  ReviewflowPrContext,
 } from './createPullRequestContext';
-import { PullRequestData, PullRequestFromWebhook } from './PullRequestData';
+import { getReviewflowPrContext } from './createPullRequestContext';
 
 export type CallbackWithPRAndRepoContext<T extends PullRequestData> = (
-  prContext: PrContext<T>,
+  pullRequest: T,
   repoContext: RepoContext,
 ) => void | Promise<void>;
 
 export const createPullRequestHandler = <
-  T extends { repository: Webhooks.PayloadRepository },
+  T extends
+    | EventPayloads.WebhookPayloadPullRequest
+    | EventPayloads.WebhookPayloadPullRequestReview
+    | EventPayloads.WebhookPayloadPullRequestReviewComment
+    | EventPayloads.WebhookPayloadIssueComment
+    | EventPayloads.WebhookPayloadPullRequestReviewComment,
   U extends PullRequestFromWebhook
 >(
   appContext: AppContext,
@@ -27,9 +35,10 @@ export const createPullRequestHandler = <
     repoContext: RepoContext,
   ) => U | null,
   callbackPr: (
-    prContext: PrContext<U>,
+    pullRequest: U,
     context: Context<T>,
     repoContext: RepoContext,
+    reviewflowPrContext: ReviewflowPrContext | null,
   ) => void | Promise<void>,
   callbackBeforeLock?: (
     pullRequest: U,
@@ -48,32 +57,33 @@ export const createPullRequestHandler = <
       ? callbackBeforeLock(pullRequest, context, repoContext)
       : {};
 
-    await repoContext.lockPR(
-      String(pullRequest.id),
-      pullRequest.number,
-      async () => {
-        const prContext = await createPullRequestContextFromWebhook<T, U>(
-          appContext,
-          repoContext,
-          context,
-          pullRequest,
-          options,
-        );
+    await repoContext.lockPullRequest(pullRequest, async () => {
+      /*
+       * When repo are ignored, only slack notifications are sent.
+       * PR is not linted, commented, nor auto merged.
+       */
+      const reviewflowPrContext = repoContext.shouldIgnore
+        ? null
+        : await getReviewflowPrContext(
+            pullRequest.number,
+            context,
+            repoContext,
+            options.reviewflowCommentPromise,
+          );
 
-        return callbackPr(prContext, context, repoContext);
-      },
-    );
+      return callbackPr(pullRequest, context, repoContext, reviewflowPrContext);
+    });
   });
 };
 
 export const createPullRequestsHandler = <
-  T extends { repository: Webhooks.PayloadRepository },
+  T extends { repository: EventPayloads.PayloadRepository },
   U extends PullRequestFromWebhook | LockedMergePr
 >(
   appContext: AppContext,
   getPrs: (payload: Context<T>['payload'], repoContext: RepoContext) => U[],
   callbackPr: (
-    pr: U,
+    pullRequest: U,
     context: Context<T>,
     repoContext: RepoContext,
   ) => void | Promise<void>,

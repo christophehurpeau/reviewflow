@@ -7,13 +7,13 @@ export const parseOptions = (
   content: string,
   defaultOptions: Options,
 ): Options => {
-  return optionsRegexps.reduce((acc, { key, regexp }) => {
+  return optionsRegexps.reduce<any>((acc, { key, regexp }) => {
     const match = regexp.exec(content);
     acc[key] = !match
       ? defaultOptions[key] || false
       : match[1] === 'x' || match[1] === 'X';
     return acc;
-  }, {} as any) as Options;
+  }, {}) as Options;
 };
 
 export const parseCommitNotes = (content: string): string => {

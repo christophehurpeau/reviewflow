@@ -1,35 +1,34 @@
-import { Application, Octokit, Context } from 'probot';
-import {
-  WebhookPayloadPullRequestReviewComment,
-  WebhookPayloadIssueComment,
-} from '@octokit/webhooks';
-import { ExcludesNullish } from 'utils/Excludes';
+import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
+import type { EventPayloads } from '@octokit/webhooks';
+import type { Probot, Context } from 'probot';
+import type { AppContext } from '../../context/AppContext';
+import type { SlackMessage } from '../../context/SlackMessage';
+import type { PostSlackMessageResult } from '../../context/TeamSlack';
+import type { AccountEmbed } from '../../mongo';
 import * as slackUtils from '../../slack/utils';
-import { AccountEmbed } from '../../mongo';
-import { SlackMessage } from '../../context/SlackMessage';
-import { PostSlackMessageResult } from '../../context/TeamSlack';
-import { contextPr } from '../../context/utils';
-import { AppContext } from '../../context/AppContext';
+import { ExcludesNullish } from '../../utils/Excludes';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { createSlackMessageWithSecondaryBlock } from './utils/createSlackMessageWithSecondaryBlock';
-import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
-import { parseMentions } from './utils/parseMentions';
-import {
-  getPullRequestFromPayload,
-  PullRequestFromPayload,
-} from './utils/getPullRequestFromPayload';
-import { checkIfUserIsBot, checkIfIsThisBot } from './utils/isBotUser';
 import { fetchPr } from './utils/fetchPr';
+import type { PullRequestFromPayload } from './utils/getPullRequestFromPayload';
+import { getPullRequestFromPayload } from './utils/getPullRequestFromPayload';
+import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
+import { checkIfUserIsBot, checkIfIsThisBot } from './utils/isBotUser';
+import { parseMentions } from './utils/parseMentions';
 import { slackifyCommentBody } from './utils/slackifyCommentBody';
 
 const getDiscussion = async (
   context: Context,
   comment: any,
-): Promise<Octokit.PullsListCommentsResponse> => {
+): Promise<
+  RestEndpointMethodTypes['pulls']['listComments']['response']['data']
+> => {
   if (!comment.in_reply_to_id) return [comment];
-  return context.github.paginate(
-    context.github.pulls.listComments.endpoint.merge(contextPr(context)),
-    ({ data }: Octokit.Response<Octokit.PullsListCommentsResponse>) => {
+  return context.octokit.paginate(
+    context.octokit.pulls.listComments.endpoint.merge(context.pullRequest()),
+    ({
+      data,
+    }: RestEndpointMethodTypes['pulls']['listComments']['response']) => {
       return data.filter(
         (c) =>
           c.in_reply_to_id === comment.in_reply_to_id ||
@@ -40,7 +39,7 @@ const getDiscussion = async (
 };
 
 const getMentions = (
-  discussion: Octokit.PullsListCommentsResponse,
+  discussion: RestEndpointMethodTypes['pulls']['listComments']['response']['data'],
 ): string[] => {
   const mentions = new Set<string>();
 
@@ -52,7 +51,7 @@ const getMentions = (
 };
 
 const getUsersInThread = (
-  discussion: Octokit.PullsListCommentsResponse,
+  discussion: RestEndpointMethodTypes['pulls']['listComments']['response']['data'],
 ): { id: number; login: string }[] => {
   const userIds = new Set<number>();
   const users: { id: number; login: string }[] = [];
@@ -67,7 +66,7 @@ const getUsersInThread = (
 };
 
 export default function prCommentCreated(
-  app: Application,
+  app: Probot,
   appContext: AppContext,
 ): void {
   const saveInDb = async (
@@ -97,9 +96,11 @@ export default function prCommentCreated(
       'issue_comment.created',
     ],
     createPullRequestHandler<
-      WebhookPayloadPullRequestReviewComment | WebhookPayloadIssueComment,
+      | EventPayloads.WebhookPayloadPullRequestReviewComment
+      | EventPayloads.WebhookPayloadIssueComment,
       | PullRequestFromPayload<
-          WebhookPayloadPullRequestReviewComment | WebhookPayloadIssueComment
+          | EventPayloads.WebhookPayloadPullRequestReviewComment
+          | EventPayloads.WebhookPayloadIssueComment
         >
       | any
     >(
@@ -111,8 +112,13 @@ export default function prCommentCreated(
         }
         return getPullRequestFromPayload(payload);
       },
-      async (prContext, context, repoContext): Promise<void> => {
-        const pr = await fetchPr(context, prContext.pr.number);
+      async (
+        pullRequest,
+        context,
+        repoContext,
+        reviewflowPrContext,
+      ): Promise<void> => {
+        const pr = await fetchPr(context, pullRequest.number);
         const { comment } = context.payload;
         const type = (comment as any).pull_request_review_id
           ? 'review-comment'
@@ -235,7 +241,7 @@ export default function prCommentCreated(
           ),
         );
 
-        if (mentions.length !== 0) {
+        if (mentions.length > 0) {
           await appContext.mongoStores.users
             .findAll({ login: { $in: mentions } })
             .then((users) => {
@@ -243,7 +249,7 @@ export default function prCommentCreated(
                 ...users.map((u) =>
                   repoContext.slack.postMessage(
                     'pr-comment-mention',
-                    u._id as any, // TODO _id is number
+                    u._id,
                     u.login,
                     message,
                   ),

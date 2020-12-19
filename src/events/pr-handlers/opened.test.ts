@@ -1,14 +1,14 @@
-import { Probot } from 'probot';
+import type { Probot } from 'probot';
+import pullRequestOpened from '../../../fixtures/pull_request_30.opened.json';
+import pullRequestCommits from '../../../fixtures/pull_request_30_commits.json';
+import * as initTeamSlack from '../../context/initTeamSlack';
+import { voidTeamSlack } from '../../context/voidTeamSlack';
 import {
   initializeProbotApp,
   mockAccessToken,
   mockLabels,
   nock,
 } from '../../tests/setup';
-import pullRequestOpened from '../../../fixtures/pull_request_30.opened.json';
-import pullRequestCommits from '../../../fixtures/pull_request_30_commits.json';
-import * as initTeamSlack from '../../context/initTeamSlack';
-import { voidTeamSlack } from '../../context/voidTeamSlack';
 
 jest.spyOn(initTeamSlack, 'initTeamSlack').mockResolvedValue(voidTeamSlack());
 
@@ -62,7 +62,7 @@ describe('opened', (): void => {
       )
       .reply(200, [
         {
-          id: 1210432920,
+          id: 1_210_432_920,
           node_id: 'MDU6TGFiZWwxMjEwNDMyOTIw',
           url:
             'https://api.github.com/repos/reviewflow/reviewflow-test/labels/:ok_hand:%20code/needs-review',
@@ -93,11 +93,12 @@ describe('opened', (): void => {
 
     await probot.receive({
       id: '1',
-      name: pullRequestOpened.event,
+      name: pullRequestOpened.event as any,
       payload: pullRequestOpened.payload,
     });
 
     expect(insertOnePr).toHaveBeenCalled();
-    expect(scope.isDone()).toBe(true);
+    expect(scope.pendingMocks()).toEqual([]);
+    expect(scope.activeMocks()).toEqual([]);
   });
 });

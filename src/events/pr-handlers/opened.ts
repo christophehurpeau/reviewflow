@@ -1,14 +1,15 @@
-import { Application } from 'probot';
-import { AppContext } from 'context/AppContext';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
+import type { Probot } from 'probot';
+import type { AppContext } from 'context/AppContext';
+import { autoApproveAndAutoMerge } from './actions/autoApproveAndAutoMerge';
 import { autoAssignPRToCreator } from './actions/autoAssignPRToCreator';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { updateReviewStatus } from './actions/updateReviewStatus';
-import { autoApproveAndAutoMerge } from './actions/autoApproveAndAutoMerge';
 import { defaultCommentBody } from './actions/utils/body/updateBody';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
+import { fetchPr } from './utils/fetchPr';
 import { createReviewflowComment } from './utils/reviewflowComment';
 
-export default function opened(app: Application, appContext: AppContext): void {
+export default function opened(app: Probot, appContext: AppContext): void {
   app.on(
     'pull_request.opened',
     createPullRequestHandler(
@@ -17,39 +18,55 @@ export default function opened(app: Application, appContext: AppContext): void {
         if (repoContext.shouldIgnore) return null;
         return payload.pull_request;
       },
-      async (prContext, context) => {
-        const { pr } = prContext;
-        const fromRenovate = pr.head.ref.startsWith('renovate/');
+      async (pullRequest, context, repoContext, reviewflowPrContext) => {
+        const fromRenovate = pullRequest.head.ref.startsWith('renovate/');
+        if (reviewflowPrContext === null) return;
 
         await Promise.all<unknown>([
-          autoAssignPRToCreator(prContext, context),
-          editOpenedPR(prContext, context, true),
+          autoAssignPRToCreator(pullRequest, context, repoContext),
+          editOpenedPR(
+            pullRequest,
+            context,
+            repoContext,
+            reviewflowPrContext,
+            true,
+          ),
           fromRenovate
-            ? autoApproveAndAutoMerge(prContext, context).then(
-                async (approved: boolean): Promise<void> => {
-                  if (
-                    !approved &&
-                    prContext.repoContext.config.requiresReviewRequest
-                  ) {
-                    await updateReviewStatus(prContext, context, 'dev', {
-                      add: ['needsReview'],
-                    });
-                  }
-                },
+            ? fetchPr(context, pullRequest.number).then((updatedPr) =>
+                autoApproveAndAutoMerge(
+                  updatedPr,
+                  context,
+                  repoContext,
+                  reviewflowPrContext,
+                ).then(
+                  async (approved: boolean): Promise<void> => {
+                    if (!approved && repoContext.config.requiresReviewRequest) {
+                      await updateReviewStatus(
+                        pullRequest,
+                        context,
+                        repoContext,
+                        'dev',
+                        {
+                          add: ['needsReview'],
+                        },
+                      );
+                    }
+                  },
+                ),
               )
-            : updateReviewStatus(prContext, context, 'dev', {
-                add: prContext.repoContext.config.requiresReviewRequest
+            : updateReviewStatus(pullRequest, context, repoContext, 'dev', {
+                add: repoContext.config.requiresReviewRequest
                   ? ['needsReview']
                   : [],
                 remove: ['approved', 'changesRequested'],
               }),
         ]);
       },
-      (pr, context, repoContext) => {
+      (pullRequest, context, repoContext) => {
         return {
           reviewflowCommentPromise: createReviewflowComment(
+            pullRequest.number,
             context,
-            pr,
             defaultCommentBody,
           ),
         };

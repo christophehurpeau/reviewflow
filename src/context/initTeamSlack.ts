@@ -1,13 +1,13 @@
 import { WebClient } from '@slack/web-api';
-import { Context } from 'probot';
-import { Org, User } from '../mongo';
+import type { Context } from 'probot';
+import type { Config } from '../accountConfigs';
+import type { MessageCategory } from '../dm/MessageCategory';
 import { getUserDmSettings } from '../dm/getUserDmSettings';
-import { MessageCategory } from '../dm/MessageCategory';
-import { Config } from '../accountConfigs';
+import type { Org, User } from '../mongo';
+import type { AppContext } from './AppContext';
+import type { SlackMessage } from './SlackMessage';
+import type { TeamSlack, PostSlackMessageResult } from './TeamSlack';
 import { getKeys } from './utils';
-import { AppContext } from './AppContext';
-import { SlackMessage } from './SlackMessage';
-import { TeamSlack, PostSlackMessageResult } from './TeamSlack';
 import { voidTeamSlack } from './voidTeamSlack';
 
 export type { TeamSlack };
@@ -64,7 +64,7 @@ export const initTeamSlack = async <GroupNames extends string>(
 
     await slackClient.paginate('users.list', {}, (page: any) => {
       page.members.forEach((member: any) => {
-        const email = member.profile && member.profile.email;
+        const email = member.profile?.email;
         if (email && missingEmails.includes(email)) {
           members.push([email, { member, im: undefined }]);
           if (memberEmailToMemberId.has(email)) {
@@ -188,7 +188,7 @@ export const initTeamSlack = async <GroupNames extends string>(
       const user = getUserFromGithubLogin(githubLogin);
       if (!user || !user.member) return;
 
-      slackHome.scheduleUpdateMember(context.github, slackClient, {
+      slackHome.scheduleUpdateMember(context.octokit, slackClient, {
         user: { id: null, login: githubLogin },
         org: { id: account._id, login: account.login },
         slack: { id: user.member.id },

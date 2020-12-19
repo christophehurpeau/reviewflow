@@ -1,37 +1,37 @@
-import { Application } from 'probot';
-import { AppContext } from '../../context/AppContext';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
+import type { Probot } from 'probot';
+import type { AppContext } from '../../context/AppContext';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { parseOptions } from './actions/utils/body/parseBody';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
 
-export default function closed(app: Application, appContext: AppContext): void {
+export default function closed(app: Probot, appContext: AppContext): void {
   app.on(
     'pull_request.closed',
     createPullRequestHandler(
       appContext,
       (payload) => payload.pull_request,
-      async (prContext, context, repoContext) => {
-        const { pr, commentBody } = prContext;
-
-        if (!repoContext.shouldIgnore) {
+      async (pullRequest, context, repoContext, reviewflowPrContext) => {
+        if (!repoContext.shouldIgnore && reviewflowPrContext) {
           const repo = context.payload.repository;
 
-          if (pr.merged) {
-            const isNotFork = pr.head.repo.id === repo.id;
+          if (pullRequest.merged) {
+            const isNotFork = pullRequest.head.repo.id === repo.id;
             const options = parseOptions(
-              commentBody,
+              reviewflowPrContext.commentBody,
               repoContext.config.prDefaultOptions,
             );
 
             await Promise.all([
               repoContext.removePrFromAutomergeQueue(
                 context,
-                pr.number,
+                pullRequest.number,
                 'pr closed',
               ),
               isNotFork && options.deleteAfterMerge
-                ? context.github.git
-                    .deleteRef(context.repo({ ref: `heads/${pr.head.ref}` }))
+                ? context.octokit.git
+                    .deleteRef(
+                      context.repo({ ref: `heads/${pullRequest.head.ref}` }),
+                    )
                     .catch(() => {})
                 : undefined,
             ]);
@@ -39,18 +39,18 @@ export default function closed(app: Application, appContext: AppContext): void {
             await Promise.all([
               repoContext.removePrFromAutomergeQueue(
                 context,
-                pr.number,
+                pullRequest.number,
                 'pr closed',
               ),
-              updateReviewStatus(prContext, context, 'dev', {
+              updateReviewStatus(pullRequest, context, repoContext, 'dev', {
                 remove: ['needsReview'],
               }),
             ]);
           }
         }
 
-        if (pr.assignees) {
-          pr.assignees.forEach((assignee) => {
+        if (pullRequest.assignees) {
+          pullRequest.assignees.forEach((assignee) => {
             repoContext.slack.updateHome(assignee.login);
           });
         }

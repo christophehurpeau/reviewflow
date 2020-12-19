@@ -1,18 +1,18 @@
-import Webhooks from '@octokit/webhooks';
-import { Application, Context } from 'probot';
-import { AppContext } from '../../context/AppContext';
-import { LockedMergePr } from '../../context/repoContext';
+import type { EventPayloads } from '@octokit/webhooks';
+import type { Probot, Context } from 'probot';
+import type { AppContext } from '../../context/AppContext';
+import type { LockedMergePr } from '../../context/repoContext';
 import { createPullRequestsHandler } from './utils/createPullRequestHandler';
 
 const isSameBranch = (
-  payload: Context<Webhooks.WebhookPayloadStatus>['payload'],
+  payload: Context<EventPayloads.WebhookPayloadStatus>['payload'],
   lockedPr: LockedMergePr,
 ): boolean => {
   if (!lockedPr) return false;
   return !!payload.branches.find((b) => b.name === lockedPr.branch);
 };
 
-export default function status(app: Application, appContext: AppContext): void {
+export default function status(app: Probot, appContext: AppContext): void {
   app.on(
     'status',
     createPullRequestsHandler(

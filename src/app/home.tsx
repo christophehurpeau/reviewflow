@@ -1,14 +1,14 @@
 import type { Router } from 'express';
+import type { ProbotOctokit } from 'probot';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { GitHubAPI } from 'probot/lib/github';
 import type { MongoStores } from '../mongo';
 import Layout from '../views/Layout';
 import { getUser } from './auth';
 
 export default function home(
   router: Router,
-  api: GitHubAPI,
+  octokitApp: InstanceType<typeof ProbotOctokit>,
   mongoStores: MongoStores,
 ): void {
   router.get('/', async (req, res) => {

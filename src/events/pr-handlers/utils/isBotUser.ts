@@ -1,4 +1,4 @@
-import { RepoContext } from '../../../context/repoContext';
+import type { RepoContext } from '../../../context/repoContext';
 
 export const checkIfUserIsBot = (
   repoContext: RepoContext,

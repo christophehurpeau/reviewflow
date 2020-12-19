@@ -1,9 +1,9 @@
 import { promisify } from 'util';
-import { Octokit } from 'probot';
+import { Octokit } from '@octokit/rest';
 import type { Router, Request, Response } from 'express';
+import { sign, verify } from 'jsonwebtoken';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { sign, verify } from 'jsonwebtoken';
 import * as githubAuth from '../auth/github';
 import Layout from '../views/Layout';
 
@@ -61,19 +61,28 @@ const getAuthInfoFromCookie = async (
   return undefined;
 };
 
+function createApi(accessToken: string): Octokit {
+  return new Octokit({ auth: accessToken });
+}
+
 export const getUser = async (
   req: Request,
   res: Response,
-): Promise<{ authInfo: AuthInfo; api: Octokit } | null> => {
+): Promise<{
+  authInfo: AuthInfo;
+  api: Octokit;
+} | null> => {
   const authInfo = await getAuthInfoFromCookie(req, res);
   if (!authInfo) {
     res.redirect('/app/login');
     return null;
   }
 
+  const api = createApi(authInfo.accessToken);
+
   return {
     authInfo,
-    api: new Octokit({ auth: `token ${authInfo.accessToken}` }),
+    api,
   };
 };
 
@@ -144,8 +153,8 @@ export default function auth(router: Router): void {
     }
 
     const accessToken = result.access_token;
-    const octokit = new Octokit({ auth: `token ${accessToken}` });
-    const user = await octokit.users.getAuthenticated({});
+    const api = createApi(accessToken);
+    const user = await api.users.getAuthenticated({});
     const id = user.data.id;
     const login = user.data.login;
 

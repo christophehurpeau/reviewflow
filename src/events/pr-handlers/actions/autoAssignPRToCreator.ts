@@ -1,22 +1,22 @@
-import Webhooks from '@octokit/webhooks';
-import { Context, Octokit } from 'probot';
-import { contextIssue } from '../../../context/utils';
-import { PrContext } from '../utils/createPullRequestContext';
+import type { EventPayloads } from '@octokit/webhooks';
+import type { Context } from 'probot';
+import type { RepoContext } from 'context/repoContext';
+import type { PullRequestFromRestEndpoint } from '../utils/PullRequestData';
 
 export const autoAssignPRToCreator = async <
-  E extends Webhooks.WebhookPayloadPullRequest
+  E extends EventPayloads.WebhookPayloadPullRequest
 >(
-  prContext: PrContext<E['pull_request'] | Octokit.PullsGetResponse>,
+  pullRequest: E['pull_request'] | PullRequestFromRestEndpoint,
   context: Context<E>,
+  repoContext: RepoContext,
 ): Promise<void> => {
-  const { pr, repoContext } = prContext;
   if (!repoContext.config.autoAssignToCreator) return;
-  if (pr.assignees.length !== 0) return;
-  if (pr.user.type === 'Bot') return;
+  if (pullRequest.assignees.length > 0) return;
+  if (pullRequest.user.type === 'Bot') return;
 
-  await context.github.issues.addAssignees(
-    contextIssue(context, {
-      assignees: [pr.user.login],
+  await context.octokit.issues.addAssignees(
+    context.issue({
+      assignees: [pullRequest.user.login],
     }),
   );
 };

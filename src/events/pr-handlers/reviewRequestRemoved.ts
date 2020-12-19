@@ -1,12 +1,12 @@
-import { Application } from 'probot';
-import { AppContext } from '../../context/AppContext';
+import type { Probot } from 'probot';
+import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { updateReviewStatus } from './actions/updateReviewStatus';
+import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 
 export default function reviewRequestRemoved(
-  app: Application,
+  app: Probot,
   appContext: AppContext,
 ): void {
   app.on(
@@ -14,8 +14,12 @@ export default function reviewRequestRemoved(
     createPullRequestHandler(
       appContext,
       (payload) => payload.pull_request,
-      async (prContext, context, repoContext): Promise<void> => {
-        const { pr } = prContext;
+      async (
+        pullRequest,
+        context,
+        repoContext,
+        reviewflowPrContext,
+      ): Promise<void> => {
         const sender = context.payload.sender;
         const reviewer = (context.payload as any).requested_reviewer;
 
@@ -28,7 +32,7 @@ export default function reviewRequestRemoved(
         ) {
           const hasRequestedReviewsForGroup = repoContext.approveShouldWait(
             reviewerGroup,
-            pr.requested_reviewers,
+            pullRequest.requested_reviewers,
             {
               includesReviewerGroup: true,
             },
@@ -50,27 +54,35 @@ export default function reviewRequestRemoved(
             !hasChangesRequestedInReviews &&
             hasApprovedInReviews;
 
-          await updateReviewStatus(prContext, context, reviewerGroup, {
-            add: [
-              // if changes requested by the one which requests was removed (should still be in changed requested anyway, but we never know)
-              hasChangesRequestedInReviews && 'changesRequested',
-              // if was already approved by another member in the group and has no other requests waiting
-              approved && 'approved',
-            ],
-            // remove labels if has no other requests waiting
-            remove: [
-              approved && 'needsReview',
-              !hasRequestedReviewsForGroup && 'requested',
-            ],
-          });
+          await updateReviewStatus(
+            pullRequest,
+            context,
+            repoContext,
+            reviewerGroup,
+            {
+              add: [
+                // if changes requested by the one which requests was removed (should still be in changed requested anyway, but we never know)
+                hasChangesRequestedInReviews && 'changesRequested',
+                // if was already approved by another member in the group and has no other requests waiting
+                approved && 'approved',
+              ],
+              // remove labels if has no other requests waiting
+              remove: [
+                approved && 'needsReview',
+                !hasRequestedReviewsForGroup && 'requested',
+              ],
+            },
+          );
 
-          if (pr.assignees) {
-            pr.assignees.forEach((assignee) => {
+          if (pullRequest.assignees) {
+            pullRequest.assignees.forEach((assignee) => {
               repoContext.slack.updateHome(assignee.login);
             });
           }
           if (
-            !pr.assignees.find((assignee) => assignee.login === reviewer.login)
+            !pullRequest.assignees.find(
+              (assignee) => assignee.login === reviewer.login,
+            )
           ) {
             repoContext.slack.updateHome(reviewer.login);
           }
@@ -86,7 +98,7 @@ export default function reviewRequestRemoved(
             text: `:skull_and_crossbones: ${repoContext.slack.mention(
               sender.login,
             )} removed the request for your review on ${slackUtils.createPrLink(
-              pr,
+              pullRequest,
               repoContext,
             )}`,
           },
@@ -97,7 +109,7 @@ export default function reviewRequestRemoved(
             'account.id': repoContext.account._id,
             'account.type': repoContext.accountType,
             type: 'review-requested',
-            typeId: `${pr.id}_${reviewer.id}`,
+            typeId: `${pullRequest.id}_${reviewer.id}`,
           },
         );
 

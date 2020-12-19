@@ -1,11 +1,11 @@
+import initialSimple from './mocks/commentBody-initial-simple';
+import initialAfterEditSimple from './mocks/commentBody-initialAfterEdit-simple';
+import initialAfterEditSimpleWithInfos from './mocks/commentBody-initialAfterEdit-simpleWithInfos';
 import {
   updateCommentOptions,
   updateCommentBodyCommitsNotes,
   updateCommentBodyInfos,
 } from './updateBody';
-import initialSimple from './mocks/commentBody-initial-simple';
-import initialAfterEditSimple from './mocks/commentBody-initialAfterEdit-simple';
-import initialAfterEditSimpleWithInfos from './mocks/commentBody-initialAfterEdit-simpleWithInfos';
 
 const defaultConfig = {
   featureBranch: false,

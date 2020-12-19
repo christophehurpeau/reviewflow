@@ -1,8 +1,8 @@
-import { Config as ConfigType } from './types';
+import christophehurpeau from './christophehurpeau';
 import defaultConfig from './defaultConfig';
 import ornikar from './ornikar';
-import christophehurpeau from './christophehurpeau';
 import reviewflow from './reviewflow';
+import type { Config as ConfigType } from './types';
 
 export type Config<
   GroupNames extends string = any,
