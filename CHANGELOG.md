@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.66.1](https://github.com/christophehurpeau/reviewflow/compare/v1.66.0...v1.66.1) (2020-12-19)
+
+
+### Bug Fixes
+
+* update label api ([9838dc1](https://github.com/christophehurpeau/reviewflow/commit/9838dc1355cd155bb6da75920ec3307072e70629))
+
 ## [1.66.0](https://github.com/christophehurpeau/reviewflow/compare/v1.65.0...v1.66.0) (2020-12-19)
 
 
