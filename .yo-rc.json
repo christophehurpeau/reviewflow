@@ -12,7 +12,7 @@
       "type": "app",
       "yarn2": false
     },
-    "pob-app-config": {
+    "app": {
       "type": "node",
       "testing": true,
       "ci": true
