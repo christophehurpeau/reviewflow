@@ -75,7 +75,7 @@
     ]
   },
   "dependencies": {
-    "@commitlint/parse": "8.3.4",
+    "@commitlint/parse": "11.0.0",
     "@octokit/core": "3.2.4",
     "@octokit/plugin-rest-endpoint-methods": "3.17.0",
     "@octokit/rest": "18.0.12",
