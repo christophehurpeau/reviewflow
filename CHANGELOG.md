@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.69.1](https://github.com/christophehurpeau/reviewflow/compare/v1.69.0...v1.69.1) (2020-12-20)
+
+
+### Bug Fixes
+
+* import commitNode from commitlint types ([d2442ba](https://github.com/christophehurpeau/reviewflow/commit/d2442ba90ae31b0c935d277d781bdbbd141243c5))
+
 ## [1.69.0](https://github.com/christophehurpeau/reviewflow/compare/v1.68.0...v1.69.0) (2020-12-20)
 
 
