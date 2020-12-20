@@ -2149,9 +2149,7 @@ const updateStatusCheckFromLabels = (pullRequest, context, repoContext, labels =
   }, previousSha);
 
   if (pullRequest.requested_reviewers.length > 0) {
-    return createFailedStatusCheck( // TODO remove `as`
-    // https://github.com/probot/probot/issues/1219
-    `Awaiting review from: ${pullRequest.requested_reviewers.map(rr => rr.login).join(', ')}`);
+    return createFailedStatusCheck(`Awaiting review from: ${pullRequest.requested_reviewers.map(rr => rr.login).join(', ')}`);
   }
 
   if (repoContext.hasChangesRequestedReview(labels)) {
