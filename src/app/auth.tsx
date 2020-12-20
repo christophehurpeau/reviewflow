@@ -21,7 +21,7 @@ const secure =
 
 const createRedirectUri = (req: Request): string => {
   const host = `http${secure ? 's' : ''}://${req.hostname}${
-    req.hostname === 'localhost' ? `:${process.env.PORT}` : ''
+    req.hostname === 'localhost' ? `:${process.env.PORT || 3000}` : ''
   }`;
   return `${host}/app/login-response`;
 };
@@ -51,11 +51,13 @@ const getAuthInfoFromCookie = async (
   res: Response,
 ): Promise<undefined | AuthInfo> => {
   const strategy = 'gh'; // req.params.strategy
-  const authInfo = await readAuthCookie(req, strategy);
+  try {
+    const authInfo = await readAuthCookie(req, strategy);
 
-  if (authInfo?.id) {
-    return authInfo;
-  }
+    if (authInfo?.id) {
+      return authInfo;
+    }
+  } catch {}
 
   res.clearCookie(`auth_${strategy}`);
   return undefined;

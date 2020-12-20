@@ -82,7 +82,7 @@ const verifyPromisified = util.promisify(jsonwebtoken.verify);
 const secure = !!process.env.SECURE_COOKIE && process.env.SECURE_COOKIE !== 'false';
 
 const createRedirectUri = req => {
-  const host = `http${secure ? 's' : ''}://${req.hostname}${req.hostname === 'localhost' ? `:${process.env.PORT}` : ''}`;
+  const host = `http${secure ? 's' : ''}://${req.hostname}${req.hostname === 'localhost' ? `:${process.env.PORT || 3000}` : ''}`;
   return `${host}/app/login-response`;
 };
 
@@ -97,11 +97,13 @@ const readAuthCookie = (req, strategy) => {
 
 const getAuthInfoFromCookie = async (req, res) => {
   // req.params.strategy
-  const authInfo = await readAuthCookie(req, "gh");
+  try {
+    const authInfo = await readAuthCookie(req, 'gh');
 
-  if (authInfo !== null && authInfo !== void 0 && authInfo.id) {
-    return authInfo;
-  }
+    if (authInfo !== null && authInfo !== void 0 && authInfo.id) {
+      return authInfo;
+    }
+  } catch {}
 
   res.clearCookie(`auth_${"gh"}`);
   return undefined;
