@@ -4,6 +4,7 @@ import type { AppContext } from '../../context/AppContext';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateBranch } from './actions/updateBranch';
 import { updatePrCommentBodyOptions } from './actions/updatePrCommentBody';
+import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromLabels } from './actions/updateStatusCheckFromLabels';
 import hasLabelInPR from './actions/utils/hasLabelInPR';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
@@ -49,6 +50,7 @@ export default function labelsChanged(
         const label = (context.payload as any).label;
         if (fromRenovate) {
           const codeApprovedLabel = repoContext.labels['code/approved'];
+          const codeNeedsReviewLabel = repoContext.labels['code/needs-review'];
           const autoMergeLabel = repoContext.labels['merge/automerge'];
           const autoMergeSkipCiLabel = repoContext.labels['merge/skip-ci'];
           if (context.payload.action === 'labeled') {
@@ -73,12 +75,25 @@ export default function labelsChanged(
                 );
                 labels = result.data;
               }
-              await updateStatusCheckFromLabels(
-                updatedPr,
-                context,
-                repoContext,
-                labels,
-              );
+              if (hasLabelInPR(labels, codeNeedsReviewLabel)) {
+                await updateReviewStatus(
+                  updatedPr,
+                  context,
+                  repoContext,
+                  'dev',
+                  {
+                    remove: ['needsReview'],
+                  },
+                );
+              } else {
+                await updateStatusCheckFromLabels(
+                  updatedPr,
+                  context,
+                  repoContext,
+                  labels,
+                );
+              }
+
               await updatePrCommentBodyOptions(
                 context,
                 repoContext,

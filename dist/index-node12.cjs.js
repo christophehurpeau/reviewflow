@@ -2991,6 +2991,7 @@ function labelsChanged(app, appContext) {
 
     if (fromRenovate) {
       const codeApprovedLabel = repoContext.labels['code/approved'];
+      const codeNeedsReviewLabel = repoContext.labels['code/needs-review'];
       const autoMergeLabel = repoContext.labels['merge/automerge'];
       const autoMergeSkipCiLabel = repoContext.labels['merge/skip-ci'];
 
@@ -3013,7 +3014,14 @@ function labelsChanged(app, appContext) {
             labels = result.data;
           }
 
-          await updateStatusCheckFromLabels(updatedPr, context, repoContext, labels);
+          if (hasLabelInPR(labels, codeNeedsReviewLabel)) {
+            await updateReviewStatus(updatedPr, context, repoContext, 'dev', {
+              remove: ['needsReview']
+            });
+          } else {
+            await updateStatusCheckFromLabels(updatedPr, context, repoContext, labels);
+          }
+
           await updatePrCommentBodyOptions(context, repoContext, reviewflowPrContext, {
             autoMergeWithSkipCi,
             // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
