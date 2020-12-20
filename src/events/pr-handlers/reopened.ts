@@ -39,6 +39,19 @@ export default function reopened(app: Probot, appContext: AppContext): void {
           ]);
         }
 
+        /* update slack home */
+        if (pullRequest.requested_reviewers) {
+          pullRequest.requested_reviewers.forEach((requestedReviewer) => {
+            repoContext.slack.updateHome(requestedReviewer.login);
+          });
+        }
+
+        if (pullRequest.assignees) {
+          pullRequest.assignees.forEach((assignee) => {
+            repoContext.slack.updateHome(assignee.login);
+          });
+        }
+
         /* send notifications to assignees and followers */
         const { reviewers } = await getReviewersAndReviewStates(
           context,
