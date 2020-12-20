@@ -3128,7 +3128,7 @@ function opened(app, appContext) {
     if (reviewflowPrContext === null) return;
     const fromRenovate = pullRequest.head.ref.startsWith('renovate/');
     await Promise.all([autoAssignPRToCreator(pullRequest, context, repoContext), editOpenedPR(pullRequest, context, repoContext, reviewflowPrContext, true), fromRenovate ? fetchPr(context, pullRequest.number).then(updatedPr => autoApproveAndAutoMerge(updatedPr, context, repoContext, reviewflowPrContext).then(async approved => {
-      if (!approved && repoContext.config.requiresReviewRequest) {
+      if (!approved) {
         await updateReviewStatus(pullRequest, context, repoContext, 'dev', {
           add: ['needsReview']
         });
