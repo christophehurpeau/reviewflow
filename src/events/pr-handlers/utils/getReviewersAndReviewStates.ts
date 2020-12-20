@@ -1,5 +1,6 @@
 import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
 import type { Context } from 'probot';
+import type { AccountInfo } from 'context/getOrCreateAccount';
 import type { RepoContext } from '../../../context/repoContext';
 import { getKeys } from '../../../context/utils';
 
@@ -10,10 +11,8 @@ interface ReviewStates {
   changesRequested: number;
   dismissed: number;
 }
-interface Reviewer {
-  id: number;
-  login: string;
-}
+
+export type Reviewer = AccountInfo;
 
 export const getReviewersAndReviewStates = async <GroupNames extends string>(
   context: Context,
@@ -35,7 +34,11 @@ export const getReviewersAndReviewStates = async <GroupNames extends string>(
       reviews.forEach((review) => {
         if (!userIds.has(review.user.id)) {
           userIds.add(review.user.id);
-          reviewers.push({ id: review.user.id, login: review.user.login });
+          reviewers.push({
+            id: review.user.id,
+            login: review.user.login,
+            type: review.user.type,
+          });
         }
         const state = review.state.toUpperCase();
         if (state !== 'COMMENTED') {

@@ -8,6 +8,7 @@ import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { createSlackMessageWithSecondaryBlock } from './utils/createSlackMessageWithSecondaryBlock';
 import { fetchPr } from './utils/fetchPr';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
+import { getRolesFromPullRequestAndReviewers } from './utils/getRolesFromPullRequestAndReviewers';
 
 const getEmojiFromState = (state: string): string => {
   switch (state) {
@@ -44,28 +45,22 @@ export default function reviewSubmitted(
           html_url: reviewUrl,
         } = payload.review;
 
-        const reviewByOwner = pullRequest.user.login === reviewer.login;
         const { reviewers, reviewStates } = await getReviewersAndReviewStates(
           context,
           repoContext,
         );
-        const followers = reviewers.filter(
-          (user) => user.id !== reviewer.id && user.id !== pullRequest.user.id,
+        const {
+          owner,
+          assignees,
+          followers,
+        } = getRolesFromPullRequestAndReviewers(pullRequest, reviewers);
+        const isReviewByOwner = owner.login === reviewer.login;
+
+        const filteredFollowers = followers.filter(
+          (follower) => follower.id !== reviewer.id,
         );
 
-        if (pullRequest.requested_reviewers) {
-          followers.push(
-            ...pullRequest.requested_reviewers.filter((rr) => {
-              return (
-                !followers.find((f) => f.id === rr.id) &&
-                rr.id !== reviewer.id &&
-                rr.id !== pullRequest.user.id
-              );
-            }),
-          );
-        }
-
-        if (!reviewByOwner) {
+        if (!isReviewByOwner) {
           const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
           let merged: boolean;
 
@@ -77,7 +72,7 @@ export default function reviewSubmitted(
           ) {
             const hasRequestedReviewsForGroup = repoContext.approveShouldWait(
               reviewerGroup,
-              pullRequest.requested_reviewers,
+              pullRequest,
               {
                 includesReviewerGroup: true,
                 // TODO reenable this when accepted can notify request review to slack (dev accepted => design requested) and flag to disable for label (approved design ; still waiting for dev ?)
@@ -128,15 +123,13 @@ export default function reviewSubmitted(
             }
           }
 
-          if (pullRequest.assignees) {
-            pullRequest.assignees.forEach((assignee) => {
+          if (assignees) {
+            assignees.forEach((assignee) => {
               repoContext.slack.updateHome(assignee.login);
             });
           }
           if (
-            !pullRequest.assignees.find(
-              (assignee) => assignee.login === reviewer.login,
-            )
+            !assignees.find((assignee) => assignee.login === reviewer.login)
           ) {
             repoContext.slack.updateHome(reviewer.login);
           }
@@ -176,12 +169,17 @@ export default function reviewSubmitted(
 
           const mention = repoContext.slack.mention(reviewer.login);
           const prUrl = slackUtils.createPrLink(pullRequest, repoContext);
-          const ownerMention = repoContext.slack.mention(
-            pullRequest.user.login,
-          );
+          const ownerMention = repoContext.slack.mention(owner.login);
 
-          const createMessage = (toOwner?: boolean): string => {
-            const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR`;
+          const createMessage = (
+            toOwner?: boolean,
+            isAssignedTo?: boolean,
+          ): string => {
+            const ownerPart = toOwner
+              ? 'your PR'
+              : `${ownerMention}'s PR${
+                  isAssignedTo ? " you're assigned to" : ''
+                }`;
 
             if (state === 'changes_requested') {
               return `:${emoji}: ${mention} requests changes on ${ownerPart} ${prUrl}`;
@@ -200,22 +198,24 @@ export default function reviewSubmitted(
 
           const slackifiedBody = slackifyMarkdown((body as unknown) as string);
 
-          repoContext.slack.postMessage(
-            'pr-review',
-            pullRequest.user.id,
-            pullRequest.user.login,
-            createSlackMessageWithSecondaryBlock(
-              createMessage(true),
-              slackifiedBody,
-            ),
-          );
+          assignees.forEach((assignee) => {
+            repoContext.slack.postMessage(
+              'pr-review',
+              assignee.id,
+              assignee.login,
+              createSlackMessageWithSecondaryBlock(
+                createMessage(assignee.id === owner.id, true),
+                slackifiedBody,
+              ),
+            );
+          });
 
           const message = createSlackMessageWithSecondaryBlock(
             createMessage(false),
             slackifiedBody,
           );
 
-          followers.forEach((follower) => {
+          filteredFollowers.forEach((follower) => {
             repoContext.slack.postMessage(
               'pr-review-follow',
               follower.id,
@@ -233,7 +233,7 @@ export default function reviewSubmitted(
             body,
           );
 
-          followers.forEach((follower) => {
+          filteredFollowers.forEach((follower) => {
             repoContext.slack.postMessage(
               'pr-review-follow',
               follower.id,

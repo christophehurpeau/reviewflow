@@ -26,24 +26,25 @@ export const createPullRequestHandler = <
     | EventPayloads.WebhookPayloadPullRequestReviewComment
     | EventPayloads.WebhookPayloadIssueComment
     | EventPayloads.WebhookPayloadPullRequestReviewComment,
-  U extends PullRequestFromWebhook
+  U extends PullRequestFromWebhook,
+  GroupNames extends string = string
 >(
   appContext: AppContext,
   getPullRequestInPayload: (
     payload: Context<T>['payload'],
     context: Context<T>,
-    repoContext: RepoContext,
+    repoContext: RepoContext<GroupNames>,
   ) => U | null,
   callbackPr: (
     pullRequest: U,
     context: Context<T>,
-    repoContext: RepoContext,
+    repoContext: RepoContext<GroupNames>,
     reviewflowPrContext: ReviewflowPrContext | null,
   ) => void | Promise<void>,
   callbackBeforeLock?: (
     pullRequest: U,
     context: Context<T>,
-    repoContext: RepoContext,
+    repoContext: RepoContext<GroupNames>,
   ) => CreatePrContextOptions,
 ): OnCallback<T> => {
   return createRepoHandler(appContext, async (context, repoContext) => {
@@ -78,14 +79,18 @@ export const createPullRequestHandler = <
 
 export const createPullRequestsHandler = <
   T extends { repository: EventPayloads.PayloadRepository },
-  U extends PullRequestFromWebhook | LockedMergePr
+  U extends PullRequestFromWebhook | LockedMergePr,
+  GroupNames extends string
 >(
   appContext: AppContext,
-  getPrs: (payload: Context<T>['payload'], repoContext: RepoContext) => U[],
+  getPrs: (
+    payload: Context<T>['payload'],
+    repoContext: RepoContext<GroupNames>,
+  ) => U[],
   callbackPr: (
     pullRequest: U,
     context: Context<T>,
-    repoContext: RepoContext,
+    repoContext: RepoContext<GroupNames>,
   ) => void | Promise<void>,
 ): OnCallback<T> => {
   return createRepoHandler(appContext, async (context, repoContext) => {

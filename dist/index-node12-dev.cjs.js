@@ -631,6 +631,8 @@ const accountConfigs = {
 // };
 
 const defaultDmSettings = {
+  'pr-lifecycle': true,
+  'pr-lifecycle-follow': true,
   'pr-review': true,
   'pr-review-follow': true,
   'pr-comment': true,
@@ -754,6 +756,8 @@ const syncTeams = async (mongoStores, github, org) => {
 };
 
 const dmMessages = {
+  'pr-lifecycle': 'Your PR is closed, merged, reopened',
+  'pr-lifecycle-follow': "Someone closed, merged, reopened a PR you're reviewing",
   'pr-review': 'You are assigned to a review, someone reviewed your PR',
   'pr-review-follow': "Someone reviewed a PR you're also reviewing",
   'pr-comment': 'Someone commented on your PR',
@@ -1306,12 +1310,13 @@ const initAccountContext = async (appContext, context, config, accountInfo) => {
     getReviewerGroup: githubLogin => githubLoginToGroup.get(githubLogin),
     getReviewerGroups,
     getTeamsForLogin: githubLogin => githubLoginToTeams.get(githubLogin) || [],
-    approveShouldWait: (reviewerGroup, requestedReviewers, {
+    approveShouldWait: (reviewerGroup, pullRequest, {
       includesReviewerGroup,
       includesWaitForGroups
     }) => {
       if (!reviewerGroup) return false;
-      const requestedReviewerGroups = getReviewerGroups(requestedReviewers.map(request => request.login)); // contains another request of a reviewer in the same group
+      const requestedReviewerGroups = getReviewerGroups(pullRequest.requested_reviewers.map(request => request.login)); // TODO pullRequest.requested_teams
+      // contains another request of a reviewer in the same group
 
       if (includesReviewerGroup && requestedReviewerGroups.includes(reviewerGroup)) {
         return true;
@@ -2073,6 +2078,19 @@ function checksuiteCompleted(app, appContext) {
   }));
 }
 
+const createLink = (url, text) => {
+  return `<${url}|${text}>`;
+};
+const createPrLink = (pr, repoContext) => {
+  return createLink(pr.html_url, `${repoContext.repoEmoji ? `${repoContext.repoEmoji} ` : ''}${repoContext.repoFullName}#${pr.number}`);
+};
+const createOwnerPart = (ownerMention, pullRequest, sendTo) => {
+  const owner = pullRequest.user;
+  if (owner.id === sendTo.id) return 'your PR';
+  const isAssignedTo = pullRequest.assignees.some(a => a.id === sendTo.id);
+  return `${ownerMention}'s PR${isAssignedTo ? " you're assigned to" : ''}`;
+};
+
 async function createStatus(context, name, sha, type, description, url) {
   await context.octokit.repos.createCommitStatus(context.repo({
     context: name === '' ? process.env.REVIEWFLOW_NAME : `${process.env.REVIEWFLOW_NAME}/${name}`,
@@ -2298,79 +2316,6 @@ const updateReviewStatus = async (pullRequest, context, repoContext, reviewGroup
   return prLabels;
 };
 
-function closed(app, appContext) {
-  app.on('pull_request.closed', createPullRequestHandler(appContext, payload => payload.pull_request, async (pullRequest, context, repoContext, reviewflowPrContext) => {
-    if (!repoContext.shouldIgnore && reviewflowPrContext) {
-      const repo = context.payload.repository;
-
-      if (pullRequest.merged) {
-        const isNotFork = pullRequest.head.repo.id === repo.id;
-        const options = parseOptions(reviewflowPrContext.commentBody, repoContext.config.prDefaultOptions);
-        await Promise.all([repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'pr closed'), isNotFork && options.deleteAfterMerge ? context.octokit.git.deleteRef(context.repo({
-          ref: `heads/${pullRequest.head.ref}`
-        })).catch(() => {}) : undefined]);
-      } else {
-        await Promise.all([repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'pr closed'), updateReviewStatus(pullRequest, context, repoContext, 'dev', {
-          remove: ['needsReview']
-        })]);
-      }
-    }
-
-    if (pullRequest.assignees) {
-      pullRequest.assignees.forEach(assignee => {
-        repoContext.slack.updateHome(assignee.login);
-      });
-    }
-  }));
-}
-
-const createLink = (url, text) => {
-  return `<${url}|${text}>`;
-};
-const createPrLink = (pr, repoContext) => {
-  return createLink(pr.html_url, `${repoContext.repoEmoji ? `${repoContext.repoEmoji} ` : ''}${repoContext.repoFullName}#${pr.number}`);
-};
-
-const createMrkdwnSectionBlock = text => ({
-  type: 'section',
-  text: {
-    type: 'mrkdwn',
-    text
-  }
-});
-const createSlackMessageWithSecondaryBlock = (message, secondaryBlockText) => {
-  return {
-    text: message,
-    blocks: [{
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: message
-      }
-    }],
-    secondaryBlocks: !secondaryBlockText ? undefined : [createMrkdwnSectionBlock(secondaryBlockText)]
-  };
-};
-
-/** deprecated */
-const getPullRequestFromPayload = payload => {
-  const pullRequest = payload.pull_request;
-
-  if (pullRequest) {
-    return pullRequest;
-  }
-
-  const issue = payload.issue;
-
-  if (issue !== null && issue !== void 0 && issue.pull_request) {
-    return { ...issue,
-      ...issue.pull_request
-    };
-  }
-
-  throw new Error('No pull_request in payload');
-};
-
 const getReviewersAndReviewStates = async (context, repoContext) => {
   const userIds = new Set();
   const reviewers = [];
@@ -2383,7 +2328,8 @@ const getReviewersAndReviewStates = async (context, repoContext) => {
         userIds.add(review.user.id);
         reviewers.push({
           id: review.user.id,
-          login: review.user.login
+          login: review.user.login,
+          type: review.user.type
         });
       }
 
@@ -2428,6 +2374,141 @@ const getReviewersAndReviewStates = async (context, repoContext) => {
     reviewers,
     reviewStates
   };
+};
+
+function getRolesFromPullRequestAndReviewers(pullRequest, reviewers) {
+  const owner = pullRequest.user;
+  const assignees = pullRequest.assignees;
+  const assigneeIds = assignees.map(a => a.id);
+  const followers = reviewers.filter(user => !assigneeIds.includes(user.id));
+  const requestedReviewers = pullRequest.requested_reviewers.map(rr => ({ ...rr,
+    isRequestedByName: true,
+    requestedByTeams: []
+  }));
+
+  if (pullRequest.requested_teams) ;
+
+  if (requestedReviewers) {
+    followers.push(...requestedReviewers.filter(rr => {
+      return !followers.find(f => f.id === rr.id) && !assigneeIds.includes(rr.id);
+    }));
+  }
+
+  return {
+    owner,
+    assignees,
+    reviewers,
+    requestedReviewers,
+    followers
+  };
+}
+
+function closed(app, appContext) {
+  app.on('pull_request.closed', createPullRequestHandler(appContext, payload => payload.pull_request, async (pullRequest, context, repoContext, reviewflowPrContext) => {
+    /* if repo is not ignored */
+    if (reviewflowPrContext) {
+      /* update status, update automerge queue, delete branch */
+      const repo = context.payload.repository;
+
+      if (pullRequest.merged) {
+        const isNotFork = pullRequest.head.repo.id === repo.id;
+        const options = parseOptions(reviewflowPrContext.commentBody, repoContext.config.prDefaultOptions);
+        await Promise.all([repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'pr closed'), isNotFork && options.deleteAfterMerge ? context.octokit.git.deleteRef(context.repo({
+          ref: `heads/${pullRequest.head.ref}`
+        })).catch(() => {}) : undefined]);
+      } else {
+        await Promise.all([repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'pr closed'), updateReviewStatus(pullRequest, context, repoContext, 'dev', {
+          remove: ['needsReview']
+        })]);
+      }
+    }
+    /* update slack home */
+
+
+    if (pullRequest.requested_reviewers) {
+      pullRequest.requested_reviewers.forEach(requestedReviewer => {
+        repoContext.slack.updateHome(requestedReviewer.login);
+      });
+    }
+
+    if (pullRequest.assignees) {
+      pullRequest.assignees.forEach(assignee => {
+        repoContext.slack.updateHome(assignee.login);
+      });
+    }
+    /* send notifications to assignees and followers */
+
+
+    const {
+      reviewers
+    } = await getReviewersAndReviewStates(context, repoContext);
+    const {
+      owner,
+      assignees,
+      followers
+    } = getRolesFromPullRequestAndReviewers(pullRequest, reviewers);
+    const senderMention = repoContext.slack.mention(context.payload.sender.login);
+    const ownerMention = repoContext.slack.mention(owner.login);
+    const prLink = createPrLink(pullRequest, repoContext);
+
+    const createMessage = to => {
+      const ownerPart = createOwnerPart(ownerMention, pullRequest, to);
+      return pullRequest.merged ? `:rocket: ${senderMention} merged ${ownerPart} ${prLink}` : `:wastebasket: ${senderMention} closed ${ownerPart} ${prLink}`;
+    };
+
+    assignees.map(assignee => {
+      if (context.payload.sender.id === assignee.id) return;
+      return repoContext.slack.postMessage('pr-lifecycle', assignee.id, assignee.login, {
+        text: createMessage(assignee)
+      });
+    });
+    followers.map(follower => {
+      if (context.payload.sender.id === follower.id) return;
+      return repoContext.slack.postMessage('pr-lifecycle-follow', follower.id, follower.login, {
+        text: createMessage(follower)
+      });
+    });
+  }));
+}
+
+const createMrkdwnSectionBlock = text => ({
+  type: 'section',
+  text: {
+    type: 'mrkdwn',
+    text
+  }
+});
+const createSlackMessageWithSecondaryBlock = (message, secondaryBlockText) => {
+  return {
+    text: message,
+    blocks: [{
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: message
+      }
+    }],
+    secondaryBlocks: !secondaryBlockText ? undefined : [createMrkdwnSectionBlock(secondaryBlockText)]
+  };
+};
+
+/** deprecated */
+const getPullRequestFromPayload = payload => {
+  const pullRequest = payload.pull_request;
+
+  if (pullRequest) {
+    return pullRequest;
+  }
+
+  const issue = payload.issue;
+
+  if (issue !== null && issue !== void 0 && issue.pull_request) {
+    return { ...issue,
+      ...issue.pull_request
+    };
+  }
+
+  throw new Error('No pull_request in payload');
 };
 
 const checkIfUserIsBot = (repoContext, user) => {
@@ -2753,7 +2834,6 @@ const updatePrIfNeeded = async (pullRequest, context, update) => {
 const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*([A-Za-z][\dA-Za-z]+)[ -](\d+)\s*]?\s*$/, (s, arg1, arg2) => ` ${arg1.toUpperCase()}-${arg2}`).replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `).replace(/^Revert "([^"]+)"$/, 'revert: $1').replace(/\s+[[\]]\s*no\s*issue\s*[[\]]$/i, ' [no issue]').replace(/^(revert:.*)(\s+\(#\d+\))$/, '$1');
 
 const editOpenedPR = async (pullRequest, context, repoContext, reviewflowPrContext, shouldUpdateCommentBodyInfos, previousSha) => {
-  if (reviewflowPrContext === null) return;
   const title = repoContext.config.trimTitle ? cleanTitle(pullRequest.title) : pullRequest.title;
   const isPrFromBot = pullRequest.user.type === 'Bot';
   const statuses = [];
@@ -3064,15 +3144,49 @@ function opened(app, appContext) {
   }));
 }
 
-function closed$1(app, appContext) {
-  app.on('pull_request.reopened', createPullRequestHandler(appContext, (payload, context, repoContext) => {
-    if (repoContext.shouldIgnore) return null;
+function reopened(app, appContext) {
+  app.on('pull_request.reopened', createPullRequestHandler(appContext, payload => {
     return payload.pull_request;
   }, async (pullRequest, context, repoContext, reviewflowPrContext) => {
-    await Promise.all([updateReviewStatus(pullRequest, context, repoContext, 'dev', {
-      add: ['needsReview'],
-      remove: ['approved']
-    }), editOpenedPR(pullRequest, context, repoContext, reviewflowPrContext, true)]);
+    /* if repo is not ignored */
+    if (reviewflowPrContext) {
+      await Promise.all([updateReviewStatus(pullRequest, context, repoContext, 'dev', {
+        add: ['needsReview'],
+        remove: ['approved']
+      }), editOpenedPR(pullRequest, context, repoContext, reviewflowPrContext, true)]);
+    }
+    /* send notifications to assignees and followers */
+
+
+    const {
+      reviewers
+    } = await getReviewersAndReviewStates(context, repoContext);
+    const {
+      owner,
+      assignees,
+      followers
+    } = getRolesFromPullRequestAndReviewers(pullRequest, reviewers);
+    const senderMention = repoContext.slack.mention(context.payload.sender.login);
+    const ownerMention = repoContext.slack.mention(owner.login);
+    const prLink = createPrLink(pullRequest, repoContext);
+
+    const createMessage = to => {
+      const ownerPart = createOwnerPart(ownerMention, pullRequest, to);
+      return `:recycle: ${senderMention} reopened ${ownerPart} ${prLink}`;
+    };
+
+    assignees.map(assignee => {
+      if (context.payload.sender.id === assignee.id) return;
+      return repoContext.slack.postMessage('pr-lifecycle', assignee.id, assignee.login, {
+        text: createMessage(assignee)
+      });
+    });
+    followers.map(follower => {
+      if (context.payload.sender.id === follower.id) return;
+      return repoContext.slack.postMessage('pr-lifecycle-follow', follower.id, follower.login, {
+        text: createMessage(follower)
+      });
+    });
   }));
 }
 
@@ -3089,7 +3203,7 @@ function reviewDismissed(app, appContext) {
       } = await getReviewersAndReviewStates(context, repoContext);
       const hasChangesRequestedInReviews = reviewStates[reviewerGroup].changesRequested !== 0;
       const hasApprovals = reviewStates[reviewerGroup].approved !== 0;
-      const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, updatedPr.requested_reviewers, {
+      const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, updatedPr, {
         includesReviewerGroup: true
       });
       await updateReviewStatus(updatedPr, context, repoContext, reviewerGroup, {
@@ -3112,12 +3226,12 @@ function reviewDismissed(app, appContext) {
       if (sender.login === reviewer.login) {
         pullRequest.assignees.forEach(assignee => {
           repoContext.slack.postMessage('pr-review', assignee.id, assignee.login, {
-            text: `:skull: ${repoContext.slack.mention(reviewer.login)} dismissed his review on ${createPrLink(pullRequest, repoContext)}`
+            text: `:recycle: ${repoContext.slack.mention(reviewer.login)} dismissed his review on ${createPrLink(pullRequest, repoContext)}`
           });
         });
       } else {
         repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, {
-          text: `:skull: ${repoContext.slack.mention(sender.login)} dismissed your review on ${createPrLink(pullRequest, repoContext)}`
+          text: `:recycle: ${repoContext.slack.mention(sender.login)} dismissed your review on ${createPrLink(pullRequest, repoContext)}`
         });
       }
     }
@@ -3131,7 +3245,7 @@ function reviewRequestRemoved(app, appContext) {
     const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
     if (!repoContext.shouldIgnore && reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
-      const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, pullRequest.requested_reviewers, {
+      const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, pullRequest, {
         includesReviewerGroup: true
       });
       const {
@@ -3250,25 +3364,24 @@ function reviewSubmitted(app, appContext) {
       body,
       html_url: reviewUrl
     } = payload.review;
-    const reviewByOwner = pullRequest.user.login === reviewer.login;
     const {
       reviewers,
       reviewStates
     } = await getReviewersAndReviewStates(context, repoContext);
-    const followers = reviewers.filter(user => user.id !== reviewer.id && user.id !== pullRequest.user.id);
+    const {
+      owner,
+      assignees,
+      followers
+    } = getRolesFromPullRequestAndReviewers(pullRequest, reviewers);
+    const isReviewByOwner = owner.login === reviewer.login;
+    const filteredFollowers = followers.filter(follower => follower.id !== reviewer.id);
 
-    if (pullRequest.requested_reviewers) {
-      followers.push(...pullRequest.requested_reviewers.filter(rr => {
-        return !followers.find(f => f.id === rr.id) && rr.id !== reviewer.id && rr.id !== pullRequest.user.id;
-      }));
-    }
-
-    if (!reviewByOwner) {
+    if (!isReviewByOwner) {
       const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
       let merged;
 
       if (reviewflowPrContext && !repoContext.shouldIgnore && reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
-        const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, pullRequest.requested_reviewers, {
+        const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, pullRequest, {
           includesReviewerGroup: true // TODO reenable this when accepted can notify request review to slack (dev accepted => design requested) and flag to disable for label (approved design ; still waiting for dev ?)
           // includesWaitForGroups: true,
 
@@ -3286,13 +3399,13 @@ function reviewSubmitted(app, appContext) {
         }
       }
 
-      if (pullRequest.assignees) {
-        pullRequest.assignees.forEach(assignee => {
+      if (assignees) {
+        assignees.forEach(assignee => {
           repoContext.slack.updateHome(assignee.login);
         });
       }
 
-      if (!pullRequest.assignees.find(assignee => assignee.login === reviewer.login)) {
+      if (!assignees.find(assignee => assignee.login === reviewer.login)) {
         repoContext.slack.updateHome(reviewer.login);
       }
 
@@ -3318,10 +3431,10 @@ function reviewSubmitted(app, appContext) {
 
       const mention = repoContext.slack.mention(reviewer.login);
       const prUrl = createPrLink(pullRequest, repoContext);
-      const ownerMention = repoContext.slack.mention(pullRequest.user.login);
+      const ownerMention = repoContext.slack.mention(owner.login);
 
-      const createMessage = toOwner => {
-        const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR`;
+      const createMessage = (toOwner, isAssignedTo) => {
+        const ownerPart = toOwner ? 'your PR' : `${ownerMention}'s PR${isAssignedTo ? " you're assigned to" : ''}`;
 
         if (state === 'changes_requested') {
           return `:${emoji}: ${mention} requests changes on ${ownerPart} ${prUrl}`;
@@ -3336,9 +3449,11 @@ function reviewSubmitted(app, appContext) {
       };
 
       const slackifiedBody = slackifyMarkdown__default(body);
-      repoContext.slack.postMessage('pr-review', pullRequest.user.id, pullRequest.user.login, createSlackMessageWithSecondaryBlock(createMessage(true), slackifiedBody));
+      assignees.forEach(assignee => {
+        repoContext.slack.postMessage('pr-review', assignee.id, assignee.login, createSlackMessageWithSecondaryBlock(createMessage(assignee.id === owner.id, true), slackifiedBody));
+      });
       const message = createSlackMessageWithSecondaryBlock(createMessage(false), slackifiedBody);
-      followers.forEach(follower => {
+      filteredFollowers.forEach(follower => {
         repoContext.slack.postMessage('pr-review-follow', follower.id, follower.login, message);
       });
     } else if (body) {
@@ -3346,7 +3461,7 @@ function reviewSubmitted(app, appContext) {
       const prUrl = createPrLink(pullRequest, repoContext);
       const commentLink = createLink(reviewUrl, 'commented');
       const message = createSlackMessageWithSecondaryBlock(`:speech_balloon: ${mention} ${commentLink} on his PR ${prUrl}`, body);
-      followers.forEach(follower => {
+      filteredFollowers.forEach(follower => {
         repoContext.slack.postMessage('pr-review-follow', follower.id, follower.login, message);
       });
     }
@@ -3441,7 +3556,7 @@ function initApp(app, appContext) {
   opened(app, appContext);
   edited(app, appContext);
   closed(app, appContext);
-  closed$1(app, appContext);
+  reopened(app, appContext);
   reviewRequested(app, appContext);
   reviewRequestRemoved(app, appContext);
   reviewSubmitted(app, appContext);

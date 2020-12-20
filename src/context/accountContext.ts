@@ -1,5 +1,6 @@
 import { Lock } from 'lock';
 import type { Context } from 'probot';
+import type { PullRequestWithDecentData } from 'events/pr-handlers/utils/PullRequestData';
 import type { Config } from '../accountConfigs';
 import type { Org, User, AccountEmbed, AccountType } from '../mongo';
 import { ExcludesFalsy } from '../utils/Excludes';
@@ -24,7 +25,7 @@ export interface AccountContext<
   getTeamsForLogin: (githubLogin: string) => TeamNames[];
   approveShouldWait: (
     reviewerGroup: GroupNames | undefined,
-    requestedReviewers: any[],
+    pullRequest: PullRequestWithDecentData,
     {
       includesReviewerGroup,
       includesWaitForGroups,
@@ -119,14 +120,16 @@ const initAccountContext = async (
 
     approveShouldWait: (
       reviewerGroup,
-      requestedReviewers,
+      pullRequest,
       { includesReviewerGroup, includesWaitForGroups },
     ): boolean => {
       if (!reviewerGroup) return false;
 
       const requestedReviewerGroups = getReviewerGroups(
-        requestedReviewers.map((request) => request.login),
+        pullRequest.requested_reviewers.map((request) => request.login),
       );
+
+      // TODO pullRequest.requested_teams
 
       // contains another request of a reviewer in the same group
       if (

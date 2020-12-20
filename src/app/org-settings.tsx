@@ -13,6 +13,9 @@ import Layout from '../views/Layout';
 import { getUser } from './auth';
 
 const dmMessages: Record<MessageCategory, string> = {
+  'pr-lifecycle': 'Your PR is closed, merged, reopened',
+  'pr-lifecycle-follow':
+    "Someone closed, merged, reopened a PR you're reviewing",
   'pr-review': 'You are assigned to a review, someone reviewed your PR',
   'pr-review-follow': "Someone reviewed a PR you're also reviewing",
   'pr-comment': 'Someone commented on your PR',

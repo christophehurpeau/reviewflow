@@ -32,7 +32,7 @@ export default function reviewRequestRemoved(
         ) {
           const hasRequestedReviewsForGroup = repoContext.approveShouldWait(
             reviewerGroup,
-            pullRequest.requested_reviewers,
+            pullRequest,
             {
               includesReviewerGroup: true,
             },

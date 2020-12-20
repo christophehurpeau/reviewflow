@@ -22,7 +22,7 @@ export default function reviewDismissed(
         reviewflowPrContext,
       ): Promise<void> => {
         const sender = context.payload.sender;
-        const reviewer = (context.payload as any).review.user;
+        const reviewer = context.payload.review.user;
         const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
         if (
@@ -36,12 +36,13 @@ export default function reviewDismissed(
             context,
             repoContext,
           );
+
           const hasChangesRequestedInReviews =
             reviewStates[reviewerGroup].changesRequested !== 0;
           const hasApprovals = reviewStates[reviewerGroup].approved !== 0;
           const hasRequestedReviewsForGroup = repoContext.approveShouldWait(
             reviewerGroup,
-            updatedPr.requested_reviewers,
+            updatedPr,
             { includesReviewerGroup: true },
           );
 
@@ -90,7 +91,7 @@ export default function reviewDismissed(
                 assignee.id,
                 assignee.login,
                 {
-                  text: `:skull: ${repoContext.slack.mention(
+                  text: `:recycle: ${repoContext.slack.mention(
                     reviewer.login,
                   )} dismissed his review on ${slackUtils.createPrLink(
                     pullRequest,
@@ -105,7 +106,7 @@ export default function reviewDismissed(
               reviewer.id,
               reviewer.login,
               {
-                text: `:skull: ${repoContext.slack.mention(
+                text: `:recycle: ${repoContext.slack.mention(
                   sender.login,
                 )} dismissed your review on ${slackUtils.createPrLink(
                   pullRequest,

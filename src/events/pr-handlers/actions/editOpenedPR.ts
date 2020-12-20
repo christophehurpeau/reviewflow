@@ -38,12 +38,10 @@ export const editOpenedPR = async <
   pullRequest: PullRequestWithDecentData,
   context: Context<E>,
   repoContext: RepoContext,
-  reviewflowPrContext: ReviewflowPrContext | null,
+  reviewflowPrContext: ReviewflowPrContext,
   shouldUpdateCommentBodyInfos: boolean,
   previousSha?: string,
 ): Promise<void> => {
-  if (reviewflowPrContext === null) return;
-
   const title = repoContext.config.trimTitle
     ? cleanTitle(pullRequest.title)
     : pullRequest.title;

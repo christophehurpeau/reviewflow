@@ -1,4 +1,6 @@
 export type MessageCategory =
+  | 'pr-lifecycle'
+  | 'pr-lifecycle-follow'
   | 'pr-review'
   | 'pr-review-follow'
   | 'pr-comment'
