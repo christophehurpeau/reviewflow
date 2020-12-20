@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.69.0](https://github.com/christophehurpeau/reviewflow/compare/v1.68.0...v1.69.0) (2020-12-20)
+
+
+### Features
+
+* **deps:** update dependency @commitlint/parse to v11 ([#141](https://github.com/christophehurpeau/reviewflow/issues/141)) ([b3a8efe](https://github.com/christophehurpeau/reviewflow/commit/b3a8efe5d3aa22a0de77ac0626a646ea4b98c01b))
+* **deps:** update dependency simple-oauth2 to v4 ([#144](https://github.com/christophehurpeau/reviewflow/issues/144)) ([0cf3d57](https://github.com/christophehurpeau/reviewflow/commit/0cf3d57efee47d471a7d24bd1abc37f4439779cb))
+* **deps:** update dependency slackify-markdown to v3 ([#145](https://github.com/christophehurpeau/reviewflow/issues/145)) ([7c94748](https://github.com/christophehurpeau/reviewflow/commit/7c94748c0047c769115cd5b7d1006ea4effbac76))
+* **deps:** update react monorepo to v17 (major) ([#146](https://github.com/christophehurpeau/reviewflow/issues/146)) ([148371c](https://github.com/christophehurpeau/reviewflow/commit/148371c6073aeae20fc9cb11987397ac9c4aa04c))
+
+
+### Bug Fixes
+
+* also update slack home when pr is reopened ([be8fc96](https://github.com/christophehurpeau/reviewflow/commit/be8fc9689d6fa8d979465342189f146771365c41))
+* always request a review for non approved renovate prs ([6ed428e](https://github.com/christophehurpeau/reviewflow/commit/6ed428e8f1fd58f0e186cf85ab465d8457fa8611))
+* auth error and port ([27fce2e](https://github.com/christophehurpeau/reviewflow/commit/27fce2e261c28a37074c30518ab7f69e2134a35f))
+* remove needsReview label for auto aproved renovate prs ([4144c8b](https://github.com/christophehurpeau/reviewflow/commit/4144c8b47c9c690b9fdd93683712c934ac68a611))
+
 ## [1.68.0](https://github.com/christophehurpeau/reviewflow/compare/v1.67.0...v1.68.0) (2020-12-20)
 
 
