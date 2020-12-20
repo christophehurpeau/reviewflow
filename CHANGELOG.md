@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.68.0](https://github.com/christophehurpeau/reviewflow/compare/v1.67.0...v1.68.0) (2020-12-20)
+
+
+### Features
+
+* send notifications for closed, merged and reopened PRs ([4cfc6a0](https://github.com/christophehurpeau/reviewflow/commit/4cfc6a02b6bc372097b50c93688ac63d217d7e68))
+* **deps:** update dependency @octokit/webhooks to v7.21.0 ([#132](https://github.com/christophehurpeau/reviewflow/issues/132)) ([32d0542](https://github.com/christophehurpeau/reviewflow/commit/32d0542c375162c6efa604e9d88749209285e01b))
+* **deps:** update dependency @slack/web-api to v5.14.0 ([#133](https://github.com/christophehurpeau/reviewflow/issues/133)) ([8b9a0ae](https://github.com/christophehurpeau/reviewflow/commit/8b9a0ae4f535b763849f2fdfc4d4929783d44090))
+* **deps:** update dependency emoji-regex to v9.2.0 ([#134](https://github.com/christophehurpeau/reviewflow/issues/134)) ([8da8c83](https://github.com/christophehurpeau/reviewflow/commit/8da8c83c4c46f035eb756046ff4e3ebe814a2dac))
+* **deps:** update dependency probot to v10.19.0 ([#135](https://github.com/christophehurpeau/reviewflow/issues/135)) ([0684361](https://github.com/christophehurpeau/reviewflow/commit/0684361d6c58536017f9958bd00e95d609b70688))
+* **deps:** update react monorepo to v16.14.0 ([#137](https://github.com/christophehurpeau/reviewflow/issues/137)) ([e9f6a58](https://github.com/christophehurpeau/reviewflow/commit/e9f6a589e878cf7101b630a17c7057067051eaf9))
+
 ## [1.67.0](https://github.com/christophehurpeau/reviewflow/compare/v1.66.1...v1.67.0) (2020-12-19)
 
 
