@@ -90,8 +90,8 @@
     "liwi-mongo": "7.4.2",
     "lock": "1.1.0",
     "probot": "10.19.0",
-    "react": "16.14.0",
-    "react-dom": "16.14.0",
+    "react": "17.0.1",
+    "react-dom": "17.0.1",
     "simple-oauth2": "2.5.2",
     "slackify-markdown": "2.1.0"
   },
