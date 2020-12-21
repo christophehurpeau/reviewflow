@@ -92,9 +92,11 @@ export default function closed(app: Probot, appContext: AppContext): void {
             to,
           );
 
-          return pullRequest.merged
-            ? `:rocket: ${senderMention} merged ${ownerPart} ${prLink}`
-            : `:wastebasket: ${senderMention} closed ${ownerPart} ${prLink}`;
+          return `${
+            pullRequest.merged
+              ? `:rocket: ${senderMention} merged`
+              : `:wastebasket: ${senderMention} closed`
+          } ${ownerPart} ${prLink}\n> ${pullRequest.title}`;
         };
 
         assignees.map((assignee) => {

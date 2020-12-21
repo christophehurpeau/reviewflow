@@ -76,7 +76,7 @@ export default function reopened(app: Probot, appContext: AppContext): void {
             to,
           );
 
-          return `:recycle: ${senderMention} reopened ${ownerPart} ${prLink}`;
+          return `:recycle: ${senderMention} reopened ${ownerPart} ${prLink}\n> ${pullRequest.title}`;
         };
 
         assignees.map((assignee) => {

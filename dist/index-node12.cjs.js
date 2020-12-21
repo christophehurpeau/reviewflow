@@ -2453,7 +2453,7 @@ function closed(app, appContext) {
 
     const createMessage = to => {
       const ownerPart = createOwnerPart(ownerMention, pullRequest, to);
-      return pullRequest.merged ? `:rocket: ${senderMention} merged ${ownerPart} ${prLink}` : `:wastebasket: ${senderMention} closed ${ownerPart} ${prLink}`;
+      return `${pullRequest.merged ? `:rocket: ${senderMention} merged` : `:wastebasket: ${senderMention} closed`} ${ownerPart} ${prLink}\n> ${pullRequest.title}`;
     };
 
     assignees.map(assignee => {
@@ -3194,7 +3194,7 @@ function reopened(app, appContext) {
 
     const createMessage = to => {
       const ownerPart = createOwnerPart(ownerMention, pullRequest, to);
-      return `:recycle: ${senderMention} reopened ${ownerPart} ${prLink}`;
+      return `:recycle: ${senderMention} reopened ${ownerPart} ${prLink}\n> ${pullRequest.title}`;
     };
 
     assignees.map(assignee => {
