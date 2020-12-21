@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.69.2](https://github.com/christophehurpeau/reviewflow/compare/v1.69.1...v1.69.2) (2020-12-21)
+
+
+### Bug Fixes
+
+* add title preview and prevent github to add hudge previews ([14e3c42](https://github.com/christophehurpeau/reviewflow/commit/14e3c424f258e042c5bde268821a88748dda77fc))
+
 ### [1.69.1](https://github.com/christophehurpeau/reviewflow/compare/v1.69.0...v1.69.1) (2020-12-20)
 
 
