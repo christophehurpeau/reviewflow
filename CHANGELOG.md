@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.70.0](https://github.com/christophehurpeau/reviewflow/compare/v1.69.2...v1.70.0) (2020-12-21)
+
+
+### Features
+
+* robot face ([3b145a3](https://github.com/christophehurpeau/reviewflow/commit/3b145a3d42b222a84c8b48dfffa91afaff74490f))
+
 ### [1.69.2](https://github.com/christophehurpeau/reviewflow/compare/v1.69.1...v1.69.2) (2020-12-21)
 
 
