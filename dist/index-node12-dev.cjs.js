@@ -1151,6 +1151,11 @@ const initTeamSlack = async ({
 
   return {
     mention: githubLogin => {
+      // TODO pass AccountInfo instead
+      if (githubLogin.endsWith('[bot]')) {
+        return `:robot_face: ${githubLogin.slice(0, -5)}`;
+      }
+
       const user = getUserFromGithubLogin(githubLogin);
       if (!user) return githubLogin;
       return `<@${user.member.id}>`;

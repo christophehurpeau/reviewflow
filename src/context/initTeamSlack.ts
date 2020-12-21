@@ -101,6 +101,10 @@ export const initTeamSlack = async <GroupNames extends string>(
 
   return {
     mention: (githubLogin: string): string => {
+      // TODO pass AccountInfo instead
+      if (githubLogin.endsWith('[bot]')) {
+        return `:robot_face: ${githubLogin.slice(0, -'[bot]'.length)}`;
+      }
       const user = getUserFromGithubLogin(githubLogin);
       if (!user) return githubLogin;
       return `<@${user.member.id}>`;
