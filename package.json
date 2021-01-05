@@ -80,7 +80,7 @@
     "@octokit/plugin-rest-endpoint-methods": "3.17.0",
     "@octokit/rest": "18.0.12",
     "@octokit/webhooks": "7.21.0",
-    "@slack/web-api": "5.14.0",
+    "@slack/web-api": "5.15.0",
     "body-parser": "1.19.0",
     "cookie-parser": "1.4.5",
     "dotenv": "8.2.0",
