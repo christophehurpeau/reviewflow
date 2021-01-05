@@ -77,7 +77,7 @@
   "dependencies": {
     "@commitlint/parse": "11.0.0",
     "@octokit/core": "3.2.4",
-    "@octokit/plugin-rest-endpoint-methods": "3.17.0",
+    "@octokit/plugin-rest-endpoint-methods": "4.4.3",
     "@octokit/rest": "18.0.12",
     "@octokit/webhooks": "7.21.0",
     "@slack/web-api": "5.14.0",
