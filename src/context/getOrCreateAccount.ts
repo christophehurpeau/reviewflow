@@ -1,8 +1,8 @@
-import type { Octokit } from '@octokit/core';
 import { syncOrg } from '../events/account-handlers/actions/syncOrg';
-import { syncTeams } from '../events/account-handlers/actions/syncTeams';
+import { syncTeamsAndTeamMembers } from '../events/account-handlers/actions/syncTeams';
 import { syncUser } from '../events/account-handlers/actions/syncUser';
 import type { Org, User } from '../mongo';
+import type { Octokit } from '../octokit';
 import type { AppContext } from './AppContext';
 
 export interface AccountInfo {
@@ -24,7 +24,7 @@ export const getOrCreateAccount = async (
 
       // TODO diff org vs user...
       org = await syncOrg(mongoStores, github, installationId, accountInfo);
-      await syncTeams(mongoStores, github, accountInfo);
+      await syncTeamsAndTeamMembers(mongoStores, github, accountInfo);
       return org;
     }
 

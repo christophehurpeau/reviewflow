@@ -1,5 +1,5 @@
-import type { Octokit } from '@octokit/core';
 import type { MongoStores, User } from '../../../mongo';
+import type { Octokit } from '../../../octokit';
 
 interface UserInfo {
   login: string;

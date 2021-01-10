@@ -681,10 +681,9 @@ const getUserDmSettings = async (mongoStores, org, orgId, userId) => {
   return config;
 };
 
-const syncOrg = async (mongoStores, github, installationId, org) => {
+const syncOrg = async (mongoStores, octokit, installationId, org) => {
   const orgInStore = await mongoStores.orgs.upsertOne({
     _id: org.id,
-    // TODO _id is number
     login: org.login,
     installationId
   });
@@ -693,12 +692,14 @@ const syncOrg = async (mongoStores, github, installationId, org) => {
     login: org.login
   };
   const memberIds = [];
-  await Promise.all(await github.paginate(github.orgs.listMembers.endpoint.merge({
-    org: org.login
-  }), ({
+
+  for await (const {
     data
-  }) => {
-    return Promise.all(data.map(async member => {
+  } of octokit.paginate.iterator(octokit.orgs.listMembers, {
+    org: org.login
+  })) {
+    await Promise.all(data.map(async member => {
+      if (!member) return;
       memberIds.push(member.id);
       return Promise.all([mongoStores.orgMembers.upsertOne({
         _id: `${org.id}_${member.id}`,
@@ -707,13 +708,17 @@ const syncOrg = async (mongoStores, github, installationId, org) => {
           id: member.id,
           login: member.login
         }
+      }, {
+        teams: [] // teams is synced in syncTeamMembers
+
       }), mongoStores.users.upsertOne({
         _id: member.id,
         login: member.login,
         type: member.type
       })]);
     }));
-  }));
+  }
+
   await mongoStores.orgMembers.deleteMany({
     'org.id': org.id,
     'user.id': {
@@ -725,19 +730,68 @@ const syncOrg = async (mongoStores, github, installationId, org) => {
   return orgInStore;
 };
 
-const syncTeams = async (mongoStores, github, org) => {
+const syncTeamMembers = async (mongoStores, octokit, org, team) => {
+  const memberIds = [];
+
+  for await (const {
+    data
+  } of octokit.paginate.iterator(octokit.teams.listMembersInOrg, {
+    org: org.login,
+    team_slug: team.slug
+  })) {
+    const currentIterationMemberIds = data.map(member => member.id);
+    memberIds.push(...currentIterationMemberIds);
+    await mongoStores.orgMembers.partialUpdateMany({
+      _id: {
+        $in: currentIterationMemberIds.map(memberId => `${org.id}_${memberId}`)
+      },
+      'org.id': org.id,
+      'teams.id': {
+        $ne: team.id
+      }
+    }, {
+      $push: {
+        teams: team
+      }
+    });
+  }
+
+  await mongoStores.orgMembers.partialUpdateMany({
+    'org.id': org.id,
+    'user.id': {
+      $not: {
+        $in: memberIds
+      }
+    }
+  }, {
+    $pull: {
+      teams: {
+        id: team.id
+      }
+    }
+  });
+};
+
+const syncTeams = async (mongoStores, octokit, org) => {
   const orgEmbed = {
     id: org.id,
     login: org.login
   };
+  const teamEmbeds = [];
   const teamIds = [];
-  await Promise.all(await github.paginate(github.teams.list.endpoint.merge({
-    org: org.login
-  }), ({
+
+  for await (const {
     data
-  }) => {
-    return Promise.all(data.map(team => {
+  } of octokit.paginate.iterator(octokit.teams.list, {
+    org: org.login
+  })) {
+    await Promise.all(data.map(async team => {
       teamIds.push(team.id);
+      teamEmbeds.push({
+        id: team.id,
+        name: team.name,
+        slug: team.slug
+      });
       return mongoStores.orgTeams.upsertOne({
         _id: team.id,
         org: orgEmbed,
@@ -746,15 +800,36 @@ const syncTeams = async (mongoStores, github, org) => {
         description: team.description
       });
     }));
-  }));
-  await mongoStores.orgTeams.deleteMany({
+  }
+
+  await Promise.all([mongoStores.orgTeams.deleteMany({
     'org.id': org.id,
     _id: {
       $not: {
         $in: teamIds
       }
     }
-  });
+  }), mongoStores.orgMembers.partialUpdateMany({
+    'org.id': org.id
+  }, {
+    $pull: {
+      teams: {
+        id: {
+          $not: {
+            $in: teamIds
+          }
+        }
+      }
+    }
+  })]);
+  return teamEmbeds;
+};
+const syncTeamsAndTeamMembers = async (mongoStores, octokit, org) => {
+  const teams = await syncTeams(mongoStores, octokit, org);
+
+  for (const team of teams) {
+    await syncTeamMembers(mongoStores, octokit, org, team);
+  }
 };
 
 const dmMessages = {
@@ -781,7 +856,7 @@ function orgSettings(router, octokitApp, mongoStores) {
     const o = await mongoStores.orgs.findByKey(org.id);
     if (!o) return res.redirect('/app');
     await syncOrg(mongoStores, user.api, o.installationId, org);
-    await syncTeams(mongoStores, user.api, org);
+    await syncTeamsAndTeamMembers(mongoStores, user.api, org);
     res.redirect(`/app/org/${req.params.org}`);
   });
   router.get('/org/:org', async (req, res) => {
@@ -1016,7 +1091,7 @@ const getOrCreateAccount = async ({
         if ((_org = org) !== null && _org !== void 0 && _org.installationId) return org; // TODO diff org vs user...
 
         org = await syncOrg(mongoStores, github, installationId, accountInfo);
-        await syncTeams(mongoStores, github, accountInfo);
+        await syncTeamsAndTeamMembers(mongoStores, github, accountInfo);
         return org;
       }
 
@@ -2543,7 +2618,7 @@ const slackifyCommentBody = (body, multipleLines) => {
 
 const getDiscussion = async (context, comment) => {
   if (!comment.in_reply_to_id) return [comment];
-  return context.octokit.paginate(context.octokit.pulls.listComments.endpoint.merge(context.pullRequest()), ({
+  return context.octokit.paginate(context.octokit.pulls.listReviewComments, context.pullRequest(), ({
     data
   }) => {
     return data.filter(c => c.in_reply_to_id === comment.in_reply_to_id || c.id === comment.in_reply_to_id);
@@ -3557,22 +3632,23 @@ function initApp(app, appContext) {
 
   app.on(['team.created', 'team.deleted', 'team.edited'], createHandlerOrgChange(appContext, async context => {
     await syncTeams(appContext.mongoStores, context.octokit, context.payload.organization);
-  })); // /* https://developer.github.com/webhooks/event-payloads/#membership */
-  // app.on(
-  //   ['membership.added', 'membership.removed'],
-  //   createHandlerOrgChange<EventPayloads.WebhookPayloadMembership>(
-  //     mongoStores,
-  //     async (context, accountContext) => {
-  //       await syncTeamMembers(
-  //         mongoStores,
-  //         context.octokit,
-  //         context.payload.organization,
-  //         context.payload.team,
-  //       );
-  //     },
-  //   ),
-  // );
-  // Repo
+  }));
+  /* https://developer.github.com/webhooks/event-payloads/#membership */
+
+  app.on(['membership.added', 'membership.removed'], createHandlerOrgChange(appContext, async context => {
+    // TODO: only sync team members and team parents members
+    // await syncTeamMembersWithTeamParents(
+    //   appContext.mongoStores,
+    //   context.octokit,
+    //   context.payload.organization,
+    //   {
+    //     id: context.payload.team.id,
+    //     name: context.payload.team.name,
+    //     slug: context.payload.team.slug,
+    //   },
+    // );
+    await syncTeamsAndTeamMembers(appContext.mongoStores, context.octokit, context.payload.organization);
+  })); // Repo
 
   /* https://developer.github.com/webhooks/event-payloads/#repository */
 
@@ -3661,6 +3737,13 @@ function init() {
     }, {
       unique: true
     });
+    coll.createIndex({
+      'org.id': 1,
+      'user.id': 1,
+      'teams.id': 1
+    }, {
+      unique: true
+    });
   });
   const orgTeams = new liwiMongo.MongoStore(connection, 'orgTeams');
   orgTeams.collection.then(coll => {
@@ -3731,26 +3814,26 @@ function init() {
 }
 
 const createSlackHomeWorker = mongoStores => {
-  const updateMember = async (github, slackClient, member) => {
+  const updateMember = async (octokit, slackClient, member) => {
     var _member$slack;
 
     if (!((_member$slack = member.slack) !== null && _member$slack !== void 0 && _member$slack.id)) return; // console.log('update member', member.org.login, member.user.login);
 
     /* search limit: 30 requests per minute = 7 update/min max */
 
-    const [prsWithRequestedReviews, prsToMerge, prsWithRequestedChanges, prsInDraft] = await Promise.all([github.search.issuesAndPullRequests({
+    const [prsWithRequestedReviews, prsToMerge, prsWithRequestedChanges, prsInDraft] = await Promise.all([octokit.search.issuesAndPullRequests({
       q: `is:pr user:${member.org.login} is:open review-requested:${member.user.login} `,
       sort: 'created',
       order: 'desc'
-    }), github.search.issuesAndPullRequests({
+    }), octokit.search.issuesAndPullRequests({
       q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} label:":ok_hand: code/approved"`,
       sort: 'created',
       order: 'desc'
-    }), github.search.issuesAndPullRequests({
+    }), octokit.search.issuesAndPullRequests({
       q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} label:":ok_hand: code/changes-requested"`,
       sort: 'created',
       order: 'desc'
-    }), github.search.issuesAndPullRequests({
+    }), octokit.search.issuesAndPullRequests({
       q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} draft:true`,
       sort: 'created',
       order: 'desc',

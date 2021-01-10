@@ -51,17 +51,24 @@ export interface Org extends BaseAccount {
   slackToken?: string;
 }
 
-export interface OrgMember extends MongoBaseModel {
-  org: AccountEmbedWithoutType;
-  user: AccountEmbedWithoutType;
-  slack?: { id: string };
-}
-
 export interface OrgTeam extends MongoBaseModel<number> {
   org: AccountEmbedWithoutType;
   name: string;
   slug: string;
-  description: string;
+  description: string | null;
+}
+
+export interface OrgTeamEmbed {
+  id: OrgTeam['_id'];
+  name: OrgTeam['name'];
+  slug: OrgTeam['slug'];
+}
+
+export interface OrgMember extends MongoBaseModel {
+  org: AccountEmbedWithoutType;
+  user: AccountEmbedWithoutType;
+  slack?: { id: string };
+  teams: OrgTeamEmbed[];
 }
 
 export type SlackMessageType =
@@ -163,6 +170,10 @@ export default function init(): MongoStores {
   const orgMembers = new MongoStore<OrgMember>(connection, 'orgMembers');
   orgMembers.collection.then((coll) => {
     coll.createIndex({ 'user.id': 1, 'org.id': 1 }, { unique: true });
+    coll.createIndex(
+      { 'org.id': 1, 'user.id': 1, 'teams.id': 1 },
+      { unique: true },
+    );
   });
 
   const orgTeams = new MongoStore<OrgTeam>(connection, 'orgTeams');

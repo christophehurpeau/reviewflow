@@ -1,6 +1,6 @@
 import parse from '@commitlint/parse';
 import type { CommitNote } from '@commitlint/types';
-import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
+import type { RestEndpointMethodTypes } from '@octokit/rest';
 import type { EventPayloads } from '@octokit/webhooks';
 import type { Context } from 'probot';
 import type { RepoContext } from 'context/repoContext';

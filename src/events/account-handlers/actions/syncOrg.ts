@@ -1,6 +1,5 @@
-import type { Octokit } from '@octokit/core';
-import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
 import type { MongoStores, Org } from '../../../mongo';
+import type { Octokit } from '../../../octokit';
 
 interface OrgInfo {
   login: string;
@@ -9,12 +8,12 @@ interface OrgInfo {
 
 export const syncOrg = async (
   mongoStores: MongoStores,
-  github: Octokit,
+  octokit: Octokit,
   installationId: number,
   org: OrgInfo,
 ): Promise<Org> => {
   const orgInStore = await mongoStores.orgs.upsertOne({
-    _id: org.id as any, // TODO _id is number
+    _id: org.id,
     login: org.login,
     installationId,
   });
@@ -23,37 +22,37 @@ export const syncOrg = async (
 
   const memberIds: number[] = [];
 
-  await Promise.all(
-    await github.paginate(
-      github.orgs.listMembers.endpoint.merge({
-        org: org.login,
-      }),
-      ({
-        data,
-      }: RestEndpointMethodTypes['orgs']['listMembers']['response']) => {
-        return Promise.all(
-          data.map(async (member) => {
-            memberIds.push(member.id);
-            return Promise.all([
-              mongoStores.orgMembers.upsertOne({
-                _id: `${org.id}_${member.id}`,
-                org: orgEmbed,
-                user: {
-                  id: member.id,
-                  login: member.login,
-                },
-              }),
-              mongoStores.users.upsertOne({
-                _id: member.id as any,
+  for await (const { data } of octokit.paginate.iterator(
+    octokit.orgs.listMembers,
+    { org: org.login },
+  )) {
+    await Promise.all(
+      data.map(async (member) => {
+        if (!member) return;
+        memberIds.push(member.id);
+        return Promise.all([
+          mongoStores.orgMembers.upsertOne<'teams'>(
+            {
+              _id: `${org.id}_${member.id}`,
+              org: orgEmbed,
+              user: {
+                id: member.id,
                 login: member.login,
-                type: member.type,
-              }),
-            ]);
+              },
+            },
+            {
+              teams: [], // teams is synced in syncTeamMembers
+            },
+          ),
+          mongoStores.users.upsertOne({
+            _id: member.id as any,
+            login: member.login,
+            type: member.type,
           }),
-        );
-      },
-    ),
-  );
+        ]);
+      }),
+    );
+  }
 
   await mongoStores.orgMembers.deleteMany({
     'org.id': org.id,

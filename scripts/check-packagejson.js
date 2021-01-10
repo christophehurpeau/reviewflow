@@ -26,11 +26,3 @@ check(
   ),
   `@octokit/webhooks devDependency "${pkg.dependencies['@octokit/webhooks']}" does not satisfies "${probotPkg.dependencies['@octokit/webhooks']}"`,
 );
-
-check(
-  semver.satisfies(
-    pkg.dependencies['@octokit/plugin-rest-endpoint-methods'],
-    probotPkg.dependencies['@octokit/plugin-rest-endpoint-methods'],
-  ),
-  `@octokit/plugin-rest-endpoint-methods devDependency "${pkg.dependencies['@octokit/plugin-rest-endpoint-methods']}" does not satisfies "${probotPkg.dependencies['@octokit/plugin-rest-endpoint-methods']}"`,
-);

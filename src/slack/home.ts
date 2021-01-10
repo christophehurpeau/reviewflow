@@ -1,6 +1,6 @@
-import type { Octokit } from '@octokit/core';
 import { WebClient } from '@slack/web-api';
 import type { MongoStores, Org, OrgMember } from '../mongo';
+import type { Octokit } from '../octokit';
 import { createLink } from './utils';
 
 interface QueueItem {
@@ -11,7 +11,7 @@ interface QueueItem {
 
 export const createSlackHomeWorker = (mongoStores: MongoStores) => {
   const updateMember = async (
-    github: Octokit,
+    octokit: Octokit,
     slackClient: WebClient,
     member: OrgMember,
   ): Promise<void> => {
@@ -25,22 +25,22 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
       prsWithRequestedChanges,
       prsInDraft,
     ] = await Promise.all([
-      github.search.issuesAndPullRequests({
+      octokit.search.issuesAndPullRequests({
         q: `is:pr user:${member.org.login} is:open review-requested:${member.user.login} `,
         sort: 'created',
         order: 'desc',
       }),
-      github.search.issuesAndPullRequests({
+      octokit.search.issuesAndPullRequests({
         q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} label:":ok_hand: code/approved"`,
         sort: 'created',
         order: 'desc',
       }),
-      github.search.issuesAndPullRequests({
+      octokit.search.issuesAndPullRequests({
         q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} label:":ok_hand: code/changes-requested"`,
         sort: 'created',
         order: 'desc',
       }),
-      github.search.issuesAndPullRequests({
+      octokit.search.issuesAndPullRequests({
         q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} draft:true`,
         sort: 'created',
         order: 'desc',

@@ -7,7 +7,7 @@ import { accountConfigs } from '../accountConfigs';
 import type { MessageCategory } from '../dm/MessageCategory';
 import { getUserDmSettings, updateCache } from '../dm/getUserDmSettings';
 import { syncOrg } from '../events/account-handlers/actions/syncOrg';
-import { syncTeams } from '../events/account-handlers/actions/syncTeams';
+import { syncTeamsAndTeamMembers } from '../events/account-handlers/actions/syncTeams';
 import type { MongoStores } from '../mongo';
 import Layout from '../views/Layout';
 import { getUser } from './auth';
@@ -46,7 +46,7 @@ export default function orgSettings(
     if (!o) return res.redirect('/app');
 
     await syncOrg(mongoStores, user.api, o.installationId as number, org);
-    await syncTeams(mongoStores, user.api, org);
+    await syncTeamsAndTeamMembers(mongoStores, user.api, org);
 
     res.redirect(`/app/org/${req.params.org}`);
   });

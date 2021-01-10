@@ -1,4 +1,3 @@
-import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
 import type { Context } from 'probot';
 import type { AccountInfo } from 'context/getOrCreateAccount';
 import type { RepoContext } from '../../../context/repoContext';
@@ -28,9 +27,7 @@ export const getReviewersAndReviewStates = async <GroupNames extends string>(
   await context.octokit.paginate(
     context.octokit.pulls.listReviews,
     context.pullRequest(),
-    ({
-      data: reviews,
-    }: RestEndpointMethodTypes['pulls']['listReviews']['response']) => {
+    ({ data: reviews }) => {
       reviews.forEach((review) => {
         if (!userIds.has(review.user.id)) {
           userIds.add(review.user.id);

@@ -439,7 +439,7 @@
     core-js-pure "^3.0.0"
     regenerator-runtime "^0.13.4"
 
-"@babel/runtime@^7.10.2", "@babel/runtime@^7.10.5", "@babel/runtime@^7.11.2":
+"@babel/runtime@^7.10.2", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.5":
   version "7.12.5"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.12.5.tgz#410e7e487441e1b360c29be715d870d9b985882e"
   integrity sha512-plcc+hbExy3McchJCEQG3knOsuh3HH+Prx1P6cLIkET/0dLuQDEnrT+s27Axgc9bqfsmNUNHfscgMUdBpC9xfg==
@@ -974,20 +974,20 @@
   resolved "https://registry.yarnpkg.com/@octokit/plugin-request-log/-/plugin-request-log-1.0.2.tgz#394d59ec734cd2f122431fbaf05099861ece3c44"
   integrity sha512-oTJSNAmBqyDR41uSMunLQKMX0jmEXbwD1fpz8FG27lScV3RhtGfBa1/BBLym+PxcC16IBlF7KH9vP1BUYxA+Eg==
 
-"@octokit/plugin-rest-endpoint-methods@3.17.0", "@octokit/plugin-rest-endpoint-methods@^3.17.0":
-  version "3.17.0"
-  resolved "https://registry.yarnpkg.com/@octokit/plugin-rest-endpoint-methods/-/plugin-rest-endpoint-methods-3.17.0.tgz#d8ba04eb883849dd98666c55bf49d8c9fe7be055"
-  integrity sha512-NFV3vq7GgoO2TrkyBRUOwflkfTYkFKS0tLAPym7RNpkwLCttqShaEGjthOsPEEL+7LFcYv3mU24+F2yVd3npmg==
-  dependencies:
-    "@octokit/types" "^4.1.6"
-    deprecation "^2.3.1"
-
 "@octokit/plugin-rest-endpoint-methods@4.4.1":
   version "4.4.1"
   resolved "https://registry.yarnpkg.com/@octokit/plugin-rest-endpoint-methods/-/plugin-rest-endpoint-methods-4.4.1.tgz#105cf93255432155de078c9efc33bd4e14d1cd63"
   integrity sha512-+v5PcvrUcDeFXf8hv1gnNvNLdm4C0+2EiuWt9EatjjUmfriM1pTMM+r4j1lLHxeBQ9bVDmbywb11e3KjuavieA==
   dependencies:
     "@octokit/types" "^6.1.0"
+    deprecation "^2.3.1"
+
+"@octokit/plugin-rest-endpoint-methods@^3.17.0":
+  version "3.17.0"
+  resolved "https://registry.yarnpkg.com/@octokit/plugin-rest-endpoint-methods/-/plugin-rest-endpoint-methods-3.17.0.tgz#d8ba04eb883849dd98666c55bf49d8c9fe7be055"
+  integrity sha512-NFV3vq7GgoO2TrkyBRUOwflkfTYkFKS0tLAPym7RNpkwLCttqShaEGjthOsPEEL+7LFcYv3mU24+F2yVd3npmg==
+  dependencies:
+    "@octokit/types" "^4.1.6"
     deprecation "^2.3.1"
 
 "@octokit/plugin-retry@^3.0.1":
@@ -5819,40 +5819,40 @@ listr2@^3.2.2:
     rxjs "^6.6.3"
     through "^2.3.8"
 
-liwi-mongo@7.4.2:
-  version "7.4.2"
-  resolved "https://registry.yarnpkg.com/liwi-mongo/-/liwi-mongo-7.4.2.tgz#815f204849a4ca0e53ea0fcc85129fc72919b11a"
-  integrity sha512-DotGnvY5nf0Ql3rGo2yqFPJ22KJbzN01debUOKcvllpMvDzaxJYwRwtJO64QURKUwNIJ4vqNV4N1/M8YPob5ug==
+liwi-mongo@8.0.1:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/liwi-mongo/-/liwi-mongo-8.0.1.tgz#f953777c5b915c28b605304bb423666d28cf049d"
+  integrity sha512-jWYO9rnlHfe2liysBkhjP3LY3Tfwh9JPND8QWa+z1VhhFE28s+LQgIGJrVJLLwTzqsORTTuDiL3z8fKwcc5nhg==
   dependencies:
     "@types/mongodb" "^3.5.20"
-    liwi-store "^7.2.3"
-    liwi-subscribe-store "^7.2.3"
-    liwi-types "^7.0.0"
+    liwi-store "^8.0.1"
+    liwi-subscribe-store "^8.0.1"
+    liwi-types "^8.0.1"
     mingo "^3.0.2"
     mongodb "^3.5.8"
     nightingale-logger "^10.0.1"
 
-liwi-store@^7.2.3:
-  version "7.2.3"
-  resolved "https://registry.yarnpkg.com/liwi-store/-/liwi-store-7.2.3.tgz#b9d34c292a9bd4e1f7362bd38208eb9374d126d0"
-  integrity sha512-3boxL1pxyIIUPlrRgQhcVHjuxMqHkcyRJPS5tmn5I17iq//ewaS79BVMcXiwxUrZr9AGQMx7T/JZbxkVfNjcCA==
+liwi-store@^8.0.1:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/liwi-store/-/liwi-store-8.0.1.tgz#b945a5f9c4ce5c9ca75ce7cf85ab1e4412690858"
+  integrity sha512-kNsruoDApVCHEvR5Mw7FhJ55gx53ywBN5O4JGf8UTkEKuwKZUFeu3Jrg59KyeLqzJsFsEhQlfIU7Xlh/z/KFOg==
   dependencies:
-    "@babel/runtime" "^7.10.5"
-    liwi-types "^7.0.0"
+    "@babel/runtime" "^7.12.5"
+    liwi-types "^8.0.1"
 
-liwi-subscribe-store@^7.2.3:
-  version "7.2.3"
-  resolved "https://registry.yarnpkg.com/liwi-subscribe-store/-/liwi-subscribe-store-7.2.3.tgz#9d8df1155b6cba9f6236fff14a53bfb2a98959c8"
-  integrity sha512-scj67v3+EXz4PDyXvz6Cks8JfrM53WV4LNgv6CGdz+fwJjWRVu4yUNnwi1TdralRJC/3mO6+MgUp0Dr5a9UlUw==
+liwi-subscribe-store@^8.0.1:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/liwi-subscribe-store/-/liwi-subscribe-store-8.0.1.tgz#997c7b14c542b3b18193a644ceb1b0d0441ea126"
+  integrity sha512-F+6/srkdUvXVEwcBjwYKz3pNEUWu72sUR3EZMyZSI7Sf8YQG4w77NhMwm+jlEjt+B+ddOxWZMz4qqE8arovbhA==
   dependencies:
-    "@babel/runtime" "^7.10.5"
-    liwi-store "^7.2.3"
-    liwi-types "^7.0.0"
+    "@babel/runtime" "^7.12.5"
+    liwi-store "^8.0.1"
+    liwi-types "^8.0.1"
 
-liwi-types@^7.0.0:
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/liwi-types/-/liwi-types-7.0.0.tgz#dc95750f11f9ae24baec5506845d34a9d077493c"
-  integrity sha512-NZTU9f/dpJpa/fo44hencGL/2HyGvr7ELFk+gaOxCBeozpYdL9GSs5LmxyroOLOf07ynTu/UCllWA1qinGnnwA==
+liwi-types@^8.0.1:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/liwi-types/-/liwi-types-8.0.1.tgz#b901f58e8d87a4853d57a9b10a74994376374347"
+  integrity sha512-6NTj6njxnZPgE9GiqkxV42AoXe7zlaN4a5TraoGlFts2VsuyaD18XhW+ROOBZYmkPdkca/jU3r50+Evkp52tiw==
 
 load-json-file@^1.0.0:
   version "1.1.0"

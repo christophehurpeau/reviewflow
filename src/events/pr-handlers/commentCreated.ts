@@ -1,4 +1,4 @@
-import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
+import type { RestEndpointMethodTypes } from '@octokit/rest';
 import type { EventPayloads } from '@octokit/webhooks';
 import type { Probot, Context } from 'probot';
 import type { AppContext } from '../../context/AppContext';
@@ -21,14 +21,13 @@ const getDiscussion = async (
   context: Context,
   comment: any,
 ): Promise<
-  RestEndpointMethodTypes['pulls']['listComments']['response']['data']
+  RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data']
 > => {
   if (!comment.in_reply_to_id) return [comment];
   return context.octokit.paginate(
-    context.octokit.pulls.listComments.endpoint.merge(context.pullRequest()),
-    ({
-      data,
-    }: RestEndpointMethodTypes['pulls']['listComments']['response']) => {
+    context.octokit.pulls.listReviewComments,
+    context.pullRequest() as any,
+    ({ data }) => {
       return data.filter(
         (c) =>
           c.in_reply_to_id === comment.in_reply_to_id ||

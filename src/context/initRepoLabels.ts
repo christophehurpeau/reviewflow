@@ -1,4 +1,4 @@
-import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
+import type { RestEndpointMethodTypes } from '@octokit/rest';
 import type { Context } from 'probot';
 import type { Config } from '../accountConfigs';
 

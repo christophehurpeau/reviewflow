@@ -3,7 +3,10 @@ import type { Probot } from 'probot';
 // import commands from 'probot-commands';
 import type { AppContext } from './context/AppContext';
 import { syncOrg } from './events/account-handlers/actions/syncOrg';
-import { syncTeams } from './events/account-handlers/actions/syncTeams';
+import {
+  syncTeams,
+  syncTeamsAndTeamMembers,
+} from './events/account-handlers/actions/syncTeams';
 import { createHandlerOrgChange } from './events/account-handlers/utils/handler';
 import checkrunCompleted from './events/pr-handlers/checkrunCompleted';
 import checksuiteCompleted from './events/pr-handlers/checksuiteCompleted';
@@ -54,21 +57,31 @@ export default function initApp(app: Probot, appContext: AppContext): void {
     ),
   );
 
-  // /* https://developer.github.com/webhooks/event-payloads/#membership */
-  // app.on(
-  //   ['membership.added', 'membership.removed'],
-  //   createHandlerOrgChange<EventPayloads.WebhookPayloadMembership>(
-  //     mongoStores,
-  //     async (context, accountContext) => {
-  //       await syncTeamMembers(
-  //         mongoStores,
-  //         context.octokit,
-  //         context.payload.organization,
-  //         context.payload.team,
-  //       );
-  //     },
-  //   ),
-  // );
+  /* https://developer.github.com/webhooks/event-payloads/#membership */
+  app.on(
+    ['membership.added', 'membership.removed'],
+    createHandlerOrgChange<EventPayloads.WebhookPayloadMembership>(
+      appContext,
+      async (context, accountContext) => {
+        // TODO: only sync team members and team parents members
+        // await syncTeamMembersWithTeamParents(
+        //   appContext.mongoStores,
+        //   context.octokit,
+        //   context.payload.organization,
+        //   {
+        //     id: context.payload.team.id,
+        //     name: context.payload.team.name,
+        //     slug: context.payload.team.slug,
+        //   },
+        // );
+        await syncTeamsAndTeamMembers(
+          appContext.mongoStores,
+          context.octokit,
+          context.payload.organization,
+        );
+      },
+    ),
+  );
 
   // Repo
   /* https://developer.github.com/webhooks/event-payloads/#repository */

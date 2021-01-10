@@ -1,40 +1,63 @@
-import type { Octokit } from '@octokit/core';
-import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
-import type { MongoStores } from '../../../mongo';
+import type { MongoStores, OrgTeamEmbed } from '../../../mongo';
+import type { Octokit } from '../../../octokit';
+import { syncTeamMembers } from './syncTeamMembers';
 
 export const syncTeams = async (
   mongoStores: MongoStores,
-  github: Octokit,
+  octokit: Octokit,
   org: { login: string; id: number },
-): Promise<void> => {
+): Promise<OrgTeamEmbed[]> => {
   const orgEmbed = { id: org.id, login: org.login };
 
+  const teamEmbeds: OrgTeamEmbed[] = [];
   const teamIds: number[] = [];
 
-  await Promise.all(
-    await github.paginate(
-      github.teams.list.endpoint.merge({
-        org: org.login,
+  for await (const { data } of octokit.paginate.iterator(octokit.teams.list, {
+    org: org.login,
+  })) {
+    await Promise.all(
+      data.map(async (team) => {
+        teamIds.push(team.id);
+        teamEmbeds.push({
+          id: team.id,
+          name: team.name,
+          slug: team.slug,
+        });
+        return mongoStores.orgTeams.upsertOne({
+          _id: team.id,
+          org: orgEmbed,
+          name: team.name,
+          slug: team.slug,
+          description: team.description,
+        });
       }),
-      ({ data }: RestEndpointMethodTypes['teams']['list']['response']) => {
-        return Promise.all(
-          data.map((team) => {
-            teamIds.push(team.id);
-            return mongoStores.orgTeams.upsertOne({
-              _id: team.id,
-              org: orgEmbed,
-              name: team.name,
-              slug: team.slug,
-              description: team.description,
-            });
-          }),
-        );
-      },
-    ),
-  );
+    );
+  }
 
-  await mongoStores.orgTeams.deleteMany({
-    'org.id': org.id,
-    _id: { $not: { $in: teamIds } },
-  });
+  await Promise.all([
+    mongoStores.orgTeams.deleteMany({
+      'org.id': org.id,
+      _id: { $not: { $in: teamIds } },
+    }),
+
+    mongoStores.orgMembers.partialUpdateMany(
+      {
+        'org.id': org.id,
+      },
+      { $pull: { teams: { id: { $not: { $in: teamIds } } } } },
+    ),
+  ]);
+
+  return teamEmbeds;
+};
+
+export const syncTeamsAndTeamMembers = async (
+  mongoStores: MongoStores,
+  octokit: Octokit,
+  org: { login: string; id: number },
+): Promise<void> => {
+  const teams = await syncTeams(mongoStores, octokit, org);
+  for (const team of teams) {
+    await syncTeamMembers(mongoStores, octokit, org, team);
+  }
 };
