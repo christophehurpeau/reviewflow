@@ -103,7 +103,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         'darame07',
         'Pixy',
         'Radyum',
-        'camillebaronnet'
+        'camillebaronnet',
       ],
       labels: ['teams/backend'],
     },
