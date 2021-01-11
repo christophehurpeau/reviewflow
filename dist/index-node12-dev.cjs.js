@@ -427,6 +427,7 @@ const config$2 = {
       darame07: `kevin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       Pixy: `pierre-alexis${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       machartier: `marie-anne${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      camillebaronnet: `camille.baronnet${process.env.ORNIKAR_EMAIL_DOMAIN}`,
 
       /* front */
       christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -453,7 +454,7 @@ const config$2 = {
       labels: ['teams/ops']
     },
     backends: {
-      logins: ['abarreir', 'arthurflachs', 'damienorny', 'Thierry-girod', 'darame07', 'Pixy', 'Radyum'],
+      logins: ['abarreir', 'arthurflachs', 'damienorny', 'Thierry-girod', 'darame07', 'Pixy', 'machartier', 'camillebaronnet'],
       labels: ['teams/backend']
     },
     frontends: {
