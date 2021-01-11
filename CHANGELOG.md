@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.71.0](https://github.com/christophehurpeau/reviewflow/compare/v1.70.0...v1.71.0) (2021-01-11)
+
+
+### Features
+
+* add camillebaronnet in accountConfigs ([#161](https://github.com/christophehurpeau/reviewflow/issues/161)) ([2b41ab0](https://github.com/christophehurpeau/reviewflow/commit/2b41ab037a74cf41aca60b9a4dfcbfb2f1dfdb2f))
+
+
+### Bug Fixes
+
+* backends logins ([f18d6e8](https://github.com/christophehurpeau/reviewflow/commit/f18d6e8b60c7bf33be5c95d471bb0002b74aee91))
+* prettier ([2902da6](https://github.com/christophehurpeau/reviewflow/commit/2902da6afe289a47dd12439d843d832260ffdfbf))
+
 ## [1.70.0](https://github.com/christophehurpeau/reviewflow/compare/v1.69.2...v1.70.0) (2020-12-21)
 
 

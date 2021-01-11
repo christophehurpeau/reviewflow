@@ -102,8 +102,8 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         'Thierry-girod',
         'darame07',
         'Pixy',
-        'Radyum',
-        'camillebaronnet'
+        'machartier',
+        'camillebaronnet',
       ],
       labels: ['teams/backend'],
     },

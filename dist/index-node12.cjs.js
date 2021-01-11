@@ -454,7 +454,7 @@ const config$2 = {
       labels: ['teams/ops']
     },
     backends: {
-      logins: ['abarreir', 'arthurflachs', 'damienorny', 'Thierry-girod', 'darame07', 'Pixy', 'Radyum', 'camillebaronnet'],
+      logins: ['abarreir', 'arthurflachs', 'damienorny', 'Thierry-girod', 'darame07', 'Pixy', 'machartier', 'camillebaronnet'],
       labels: ['teams/backend']
     },
     frontends: {
