@@ -11,11 +11,11 @@ process.env.REVIEWFLOW_NAME = 'reviewflow-dev';
 const APP_ID = 1;
 nock.disableNetConnect();
 
-export const initializeProbotApp = ({
+export const initializeProbotApp = async ({
   orgs,
   users,
   prs,
-}: Partial<any> = {}): Probot => {
+}: Partial<any> = {}): Promise<Probot> => {
   const probot = new Probot({
     appId: APP_ID,
     privateKey: 'test',
@@ -32,7 +32,8 @@ export const initializeProbotApp = ({
       ...prs,
     },
   };
-  probot.load(({ app }) => initApp(app, { mongoStores: mockStores } as any));
+
+  await probot.load((app) => initApp(app, { mongoStores: mockStores } as any));
 
   return probot;
 };

@@ -16,8 +16,8 @@ nock.disableNetConnect();
 describe('edited', (): void => {
   let probot: Probot;
 
-  beforeEach(() => {
-    probot = initializeProbotApp();
+  beforeEach(async () => {
+    probot = await initializeProbotApp();
     mockAccessToken();
     mockLabels();
   });

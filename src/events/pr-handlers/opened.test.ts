@@ -18,8 +18,8 @@ describe('opened', (): void => {
   let probot: Probot;
   const insertOnePr = jest.fn().mockResolvedValue({ commentId: 1 });
 
-  beforeEach(() => {
-    probot = initializeProbotApp({
+  beforeEach(async () => {
+    probot = await initializeProbotApp({
       prs: {
         insertOne: insertOnePr,
       },

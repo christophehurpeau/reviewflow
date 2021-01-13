@@ -6,9 +6,9 @@ interface OrgInfo {
   id: number;
 }
 
-export const syncOrg = async (
+export const syncOrg = async <T extends Octokit>(
   mongoStores: MongoStores,
-  octokit: Octokit,
+  octokit: T,
   installationId: number,
   org: OrgInfo,
 ): Promise<Org> => {
