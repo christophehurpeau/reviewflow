@@ -3994,8 +3994,7 @@ console.log({
 // const db = connect.then(client => client.db(process.env.MONGO_DB));
 // let config = await getConfig(context, 'reviewflow.yml');
 
-probot.run(({
-  app,
+probot.run((app, {
   getRouter
 }) => {
   const mongoStores = init();

@@ -18,7 +18,7 @@ console.log({ name: process.env.REVIEWFLOW_NAME });
 
 // let config = await getConfig(context, 'reviewflow.yml');
 
-run(({ app, getRouter }) => {
+run((app, { getRouter }) => {
   const mongoStores = mongoInit();
   const slackHome = createSlackHomeWorker(mongoStores);
   const appContext: AppContext = { mongoStores, slackHome };
