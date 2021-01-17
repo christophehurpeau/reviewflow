@@ -33,7 +33,8 @@
     "@typescript-eslint/no-unsafe-return": "warn",
     "@typescript-eslint/restrict-template-expressions": "warn",
     "@typescript-eslint/no-floating-promises": "warn",
-    "@typescript-eslint/explicit-function-return-type": "warn"
+    "@typescript-eslint/explicit-function-return-type": "warn",
+    "@typescript-eslint/prefer-optional-chain": "warn"
   },
   "overrides": [
     {

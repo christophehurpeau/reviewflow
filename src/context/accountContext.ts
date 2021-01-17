@@ -1,6 +1,9 @@
 import { Lock } from 'lock';
 import type { Context } from 'probot';
-import type { PullRequestWithDecentData } from 'events/pr-handlers/utils/PullRequestData';
+import type {
+  PullRequestWithDecentData,
+  PullRequestWithDecentDataFromWebhook,
+} from 'events/pr-handlers/utils/PullRequestData';
 import type { Config } from '../accountConfigs';
 import type { Org, User, AccountEmbed, AccountType } from '../mongo';
 import { ExcludesFalsy } from '../utils/Excludes';
@@ -123,10 +126,12 @@ const initAccountContext = async (
       pullRequest,
       { includesReviewerGroup, includesWaitForGroups },
     ): boolean => {
-      if (!reviewerGroup) return false;
+      if (!reviewerGroup || !pullRequest.requested_reviewers) return false;
 
       const requestedReviewerGroups = getReviewerGroups(
-        pullRequest.requested_reviewers.map((request) => request.login),
+        (pullRequest.requested_reviewers as PullRequestWithDecentDataFromWebhook['requested_reviewers']).map(
+          (request) => request.login,
+        ),
       );
 
       // TODO pullRequest.requested_teams

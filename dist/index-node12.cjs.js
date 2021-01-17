@@ -10,6 +10,7 @@ const React = require('react');
 const server = require('react-dom/server');
 const simpleOauth2 = require('simple-oauth2');
 const bodyParser = require('body-parser');
+const Excludes = require('utils/Excludes');
 const lock = require('lock');
 const webApi = require('@slack/web-api');
 const createEmojiRegex = require('emoji-regex');
@@ -740,7 +741,7 @@ const syncTeamMembers = async (mongoStores, octokit, org, team) => {
     org: org.login,
     team_slug: team.slug
   })) {
-    const currentIterationMemberIds = data.map(member => member.id);
+    const currentIterationMemberIds = data.filter(Excludes.ExcludesFalsy).map(member => member.id);
     memberIds.push(...currentIterationMemberIds);
     await mongoStores.orgMembers.partialUpdateMany({
       _id: {
@@ -1397,7 +1398,7 @@ const initAccountContext = async (appContext, context, config, accountInfo) => {
       includesReviewerGroup,
       includesWaitForGroups
     }) => {
-      if (!reviewerGroup) return false;
+      if (!reviewerGroup || !pullRequest.requested_reviewers) return false;
       const requestedReviewerGroups = getReviewerGroups(pullRequest.requested_reviewers.map(request => request.login)); // TODO pullRequest.requested_teams
       // contains another request of a reviewer in the same group
 
@@ -1573,7 +1574,7 @@ const autoMergeIfPossible = async (pullRequest, context, repoContext, reviewflow
     return false;
   }
 
-  if (pullRequest.requested_reviewers.length > 0) {
+  if (pullRequest.requested_reviewers && pullRequest.requested_reviewers.length > 0) {
     repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'still has requested reviewers');
     return false;
   }
@@ -1619,7 +1620,7 @@ const autoMergeIfPossible = async (pullRequest, context, repoContext, reviewflow
       if (pullRequest.mergeable_state === 'behind' || pullRequest.mergeable_state === 'dirty') {
         addLog('rebase-renovate', 'wait'); // TODO check if has commits not made by renovate https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
 
-        if (pullRequest.body.includes('<!-- rebase-check -->')) {
+        if (pullRequest.body && pullRequest.body.includes('<!-- rebase-check -->')) {
           if (pullRequest.body.includes('[x] <!-- rebase-check -->')) {
             return false;
           }
@@ -1767,6 +1768,7 @@ const updateCommentBodyCommitsNotes = (commentBody, commitNotes) => {
   /(?:#### Commits Notes:.*?)?(#### Options:)/s, !commitNotes ? '$1' : `#### Commits Notes:\n\n${commitNotes}\n\n$1`);
 };
 const removeDeprecatedReviewflowInPrBody = prBody => {
+  if (!prBody) return '';
   return prBody.replace(/^(.*)<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->(.*)$/is, '$1$3');
 };
 
@@ -2020,11 +2022,11 @@ async function initRepoContext(appContext, context, config) {
     repoEmoji,
     protectedLabelIds,
     shouldIgnore,
-    hasNeedsReview: labels => labels.some(label => needsReviewLabelIds.includes(label.id)),
-    hasRequestedReview: labels => labels.some(label => requestedReviewLabelIds.includes(label.id)),
-    hasChangesRequestedReview: labels => labels.some(label => changesRequestedLabelIds.includes(label.id)),
-    hasApprovesReview: labels => labels.some(label => approvedReviewLabelIds.includes(label.id)),
-    getNeedsReviewGroupNames: labels => labels.filter(label => needsReviewLabelIds.includes(label.id)).map(label => labelIdToGroupName.get(label.id)).filter(ExcludesFalsy),
+    hasNeedsReview: labels => labels.some(label => label.id && needsReviewLabelIds.includes(label.id)),
+    hasRequestedReview: labels => labels.some(label => label.id && requestedReviewLabelIds.includes(label.id)),
+    hasChangesRequestedReview: labels => labels.some(label => label.id && changesRequestedLabelIds.includes(label.id)),
+    hasApprovesReview: labels => labels.some(label => label.id && approvedReviewLabelIds.includes(label.id)),
+    getNeedsReviewGroupNames: labels => labels.filter(label => label.id && needsReviewLabelIds.includes(label.id)).map(label => labelIdToGroupName.get(label.id)).filter(ExcludesFalsy),
     getMergeLockedPr: () => lockMergePr,
     addMergeLockPr: pr => {
       console.log('merge lock: lock', {
@@ -2169,8 +2171,8 @@ const createPrLink = (pr, repoContext) => {
 };
 const createOwnerPart = (ownerMention, pullRequest, sendTo) => {
   const owner = pullRequest.user;
-  if (owner.id === sendTo.id) return 'your PR';
-  const isAssignedTo = pullRequest.assignees.some(a => a.id === sendTo.id);
+  if (owner && owner.id === sendTo.id) return 'your PR';
+  const isAssignedTo = !!pullRequest.assignees && pullRequest.assignees.some(a => a && a.id === sendTo.id);
   return `${ownerMention}'s PR${isAssignedTo ? " you're assigned to" : ''}`;
 };
 
@@ -2229,8 +2231,8 @@ const updateStatusCheckFromLabels = (pullRequest, context, repoContext, labels =
     description
   }, previousSha);
 
-  if (pullRequest.requested_reviewers.length > 0) {
-    return createFailedStatusCheck(`Awaiting review from: ${pullRequest.requested_reviewers.map(rr => rr.login).join(', ')}`);
+  if (pullRequest.requested_reviewers && pullRequest.requested_reviewers.length > 0) {
+    return createFailedStatusCheck(`Awaiting review from: ${pullRequest.requested_reviewers.filter(Excludes.ExcludesFalsy).map(rr => rr.login).join(', ')}`);
   }
 
   if (repoContext.hasChangesRequestedReview(labels)) {
@@ -2279,7 +2281,7 @@ const updateReviewStatus = async (pullRequest, context, repoContext, reviewGroup
   }, 'updateReviewStatus');
   let prLabels = pullRequest.labels || [];
   if (!reviewGroup) return prLabels;
-  const newLabelNames = new Set(prLabels.map(label => label.name));
+  const newLabelNames = new Set(prLabels.map(label => label.name).filter(Excludes.ExcludesFalsy));
   const toAdd = new Set();
   const toAddNames = new Set();
   const toDelete = new Set();
@@ -2297,7 +2299,7 @@ const updateReviewStatus = async (pullRequest, context, repoContext, reviewGroup
       if (!key) return;
       const label = getLabelFromKey(key);
 
-      if (!label || prLabels.some(prLabel => prLabel.id === label.id)) {
+      if (!label || !label.name || prLabels.some(prLabel => prLabel.id === label.id)) {
         return;
       }
 
@@ -2314,7 +2316,7 @@ const updateReviewStatus = async (pullRequest, context, repoContext, reviewGroup
       if (!label) return;
       const existing = prLabels.find(prLabel => prLabel.id === label.id);
 
-      if (existing) {
+      if (existing && existing.name) {
         newLabelNames.delete(existing.name);
         toDelete.add(key);
         toDeleteNames.add(existing.name);
@@ -2323,21 +2325,24 @@ const updateReviewStatus = async (pullRequest, context, repoContext, reviewGroup
   } // TODO move that elsewhere
 
 
-  repoContext.getTeamsForLogin(pullRequest.user.login).forEach(teamName => {
-    const team = repoContext.config.teams[teamName];
+  if (pullRequest.user) {
+    repoContext.getTeamsForLogin(pullRequest.user.login).forEach(teamName => {
+      const team = repoContext.config.teams[teamName];
 
-    if (team.labels) {
-      team.labels.forEach(labelKey => {
-        const label = repoContext.labels[labelKey];
+      if (team.labels) {
+        team.labels.forEach(labelKey => {
+          const label = repoContext.labels[labelKey];
 
-        if (label && !prLabels.some(prLabel => prLabel.id === label.id)) {
-          newLabelNames.add(label.name);
-          toAdd.add(labelKey);
-          toAddNames.add(label.name);
-        }
-      });
-    }
-  }); // if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return;
+          if (label && !prLabels.some(prLabel => prLabel.id === label.id)) {
+            newLabelNames.add(label.name);
+            toAdd.add(labelKey);
+            toAddNames.add(label.name);
+          }
+        });
+      }
+    });
+  } // if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return;
+
 
   if (toAdd.size !== 0 || toDelete.size !== 0) {
     if (toDelete.size === 0 || toDelete.size < 4) {
@@ -2405,6 +2410,8 @@ const getReviewersAndReviewStates = async (context, repoContext) => {
     data: reviews
   }) => {
     reviews.forEach(review => {
+      if (!review.user) return;
+
       if (!userIds.has(review.user.id)) {
         userIds.add(review.user.id);
         reviewers.push({
@@ -2638,7 +2645,7 @@ const getUsersInThread = discussion => {
   const userIds = new Set();
   const users = [];
   discussion.forEach(c => {
-    if (userIds.has(c.user.id)) return;
+    if (!c.user || userIds.has(c.user.id)) return;
     userIds.add(c.user.id);
     users.push({
       id: c.user.id,
@@ -2672,33 +2679,39 @@ function prCommentCreated(app, appContext) {
     return getPullRequestFromPayload(payload);
   }, async (pullRequest, context, repoContext) => {
     const pr = await fetchPr(context, pullRequest.number);
+    const prUser = pr.user;
+    if (!prUser) return;
     const {
       comment
     } = context.payload;
     const type = comment.pull_request_review_id ? 'review-comment' : 'issue-comment';
     const body = comment.body;
     if (!body) return;
-    const commentByOwner = pr.user.login === comment.user.login;
+    const commentByOwner = prUser.login === comment.user.login;
     const [discussion, {
       reviewers
     }] = await Promise.all([getDiscussion(context, comment), getReviewersAndReviewStates(context, repoContext)]);
-    const followers = reviewers.filter(u => u.id !== pr.user.id && u.id !== comment.user.id);
+    const followers = reviewers.filter(u => u.id !== prUser.id && u.id !== comment.user.id);
 
     if (pr.requested_reviewers) {
       followers.push(...pr.requested_reviewers.filter(rr => {
-        return !followers.find(f => f.id === rr.id) && rr.id !== comment.user.id && rr.id !== pr.user.id;
-      }));
+        return rr && !followers.find(f => f.id === rr.id) && rr.id !== (comment.user && comment.user.id) && rr.id !== prUser.id;
+      }).filter(ExcludesFalsy).map(rr => ({
+        id: rr.id,
+        login: rr.login,
+        type: rr.type
+      })));
     }
 
-    const usersInThread = getUsersInThread(discussion).filter(u => u.id !== pr.user.id && u.id !== comment.user.id && !followers.find(f => f.id === u.id));
-    const mentions = getMentions(discussion).filter(m => m !== pr.user.login && m !== comment.user.login && !followers.find(f => f.login === m) && !usersInThread.find(u => u.login === m));
+    const usersInThread = getUsersInThread(discussion).filter(u => u.id !== prUser.id && u.id !== comment.user.id && !followers.find(f => f.id === u.id));
+    const mentions = getMentions(discussion).filter(m => m !== prUser.login && m !== comment.user.login && !followers.find(f => f.login === m) && !usersInThread.find(u => u.login === m));
     const mention = repoContext.slack.mention(comment.user.login);
     const prUrl = createPrLink(pr, repoContext);
-    const ownerMention = repoContext.slack.mention(pr.user.login);
+    const ownerMention = repoContext.slack.mention(prUser.login);
     const commentLink = createLink(comment.html_url, comment.in_reply_to_id ? 'replied' : 'commented');
 
     const createMessage = toOwner => {
-      const ownerPart = toOwner ? 'your PR' : `${pr.user.id === comment.user.id ? 'his' : `${ownerMention}'s`} PR`;
+      const ownerPart = toOwner ? 'your PR' : `${(prUser && prUser.id) === comment.user.id ? 'his' : `${ownerMention}'s`} PR`;
       return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
     };
 
@@ -2709,7 +2722,7 @@ function prCommentCreated(app, appContext) {
 
     if (!commentByOwner) {
       const slackMessage = createSlackMessageWithSecondaryBlock(createMessage(true), slackifiedBody);
-      promisesOwner.push(repoContext.slack.postMessage(isBotUser ? 'pr-comment-bots' : 'pr-comment', pr.user.id, pr.user.login, slackMessage).then(res => saveInDb(type, comment.id, repoContext.accountEmbed, [res], slackMessage)));
+      promisesOwner.push(repoContext.slack.postMessage(isBotUser ? 'pr-comment-bots' : 'pr-comment', prUser.id, prUser.login, slackMessage).then(res => saveInDb(type, comment.id, repoContext.accountEmbed, [res], slackMessage)));
     }
 
     const message = createSlackMessageWithSecondaryBlock(createMessage(false), slackifiedBody);
@@ -2884,7 +2897,7 @@ const readCommitsAndUpdateInfos = async (pullRequest, context, repoContext, revi
   await Promise.all([syncLabel(pullRequest, context, breakingChangesCommits.length !== 0, breakingChangesLabel), updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newCommentBody)]); // TODO auto update ! in front of : to signal a breaking change when https://github.com/conventional-changelog/commitlint/issues/658 is closed
 };
 
-const cleanNewLines = text => text.replace(/\r\n/g, '\n');
+const cleanNewLines = text => !text ? '' : text.replace(/\r\n/g, '\n');
 
 const checkIfHasDiff = (text1, text2) => cleanNewLines(text1) !== cleanNewLines(text2);
 
@@ -2916,7 +2929,7 @@ const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*([A-Za-z][\dA-Za-z
 
 const editOpenedPR = async (pullRequest, context, repoContext, reviewflowPrContext, shouldUpdateCommentBodyInfos, previousSha) => {
   const title = repoContext.config.trimTitle ? cleanTitle(pullRequest.title) : pullRequest.title;
-  const isPrFromBot = pullRequest.user.type === 'Bot';
+  const isPrFromBot = pullRequest.user && pullRequest.user.type === 'Bot';
   const statuses = [];
   const errorRule = repoContext.config.parsePR.title.find(rule => {
     if (rule.bot === false && isPrFromBot) return false;
@@ -3202,8 +3215,8 @@ const autoApproveAndAutoMerge = async (pullRequest, context, repoContext, review
 
 const autoAssignPRToCreator = async (pullRequest, context, repoContext) => {
   if (!repoContext.config.autoAssignToCreator) return;
-  if (pullRequest.assignees.length > 0) return;
-  if (pullRequest.user.type === 'Bot') return;
+  if (!pullRequest.assignees || pullRequest.assignees.length > 0) return;
+  if (!pullRequest.user || pullRequest.user.type === 'Bot') return;
   await context.octokit.issues.addAssignees(context.issue({
     assignees: [pullRequest.user.login]
   }));
@@ -3316,11 +3329,13 @@ function reviewDismissed(app, appContext) {
 
       if (updatedPr.assignees) {
         updatedPr.assignees.forEach(assignee => {
-          repoContext.slack.updateHome(assignee.login);
+          if (assignee) {
+            repoContext.slack.updateHome(assignee.login);
+          }
         });
       }
 
-      if (!updatedPr.assignees.find(assignee => assignee.login === reviewer.login)) {
+      if (!updatedPr.assignees || !updatedPr.assignees.find(assignee => assignee && assignee.login === reviewer.login)) {
         repoContext.slack.updateHome(reviewer.login);
       }
     }

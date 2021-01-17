@@ -104,7 +104,10 @@ export const updateCommentBodyCommitsNotes = (
   );
 };
 
-export const removeDeprecatedReviewflowInPrBody = (prBody: string): string => {
+export const removeDeprecatedReviewflowInPrBody = (
+  prBody: string | null,
+): string => {
+  if (!prBody) return '';
   return prBody.replace(
     /^(.*)<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->(.*)$/is,
     '$1$3',

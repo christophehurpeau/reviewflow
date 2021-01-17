@@ -46,7 +46,7 @@ export const editOpenedPR = async <
     ? cleanTitle(pullRequest.title)
     : pullRequest.title;
 
-  const isPrFromBot = pullRequest.user.type === 'Bot';
+  const isPrFromBot = pullRequest.user && pullRequest.user.type === 'Bot';
 
   const statuses: Status[] = [];
 

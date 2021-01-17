@@ -129,7 +129,10 @@ export const autoMergeIfPossible = async (
     return false;
   }
 
-  if (pullRequest.requested_reviewers.length > 0) {
+  if (
+    pullRequest.requested_reviewers &&
+    pullRequest.requested_reviewers.length > 0
+  ) {
     repoContext.removePrFromAutomergeQueue(
       context,
       pullRequest.number,
@@ -203,7 +206,10 @@ export const autoMergeIfPossible = async (
         addLog('rebase-renovate', 'wait');
 
         // TODO check if has commits not made by renovate https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
-        if (pullRequest.body.includes('<!-- rebase-check -->')) {
+        if (
+          pullRequest.body &&
+          pullRequest.body.includes('<!-- rebase-check -->')
+        ) {
           if (pullRequest.body.includes('[x] <!-- rebase-check -->')) {
             return false;
           }

@@ -71,12 +71,15 @@ export default function reviewDismissed(
 
           if (updatedPr.assignees) {
             updatedPr.assignees.forEach((assignee) => {
-              repoContext.slack.updateHome(assignee.login);
+              if (assignee) {
+                repoContext.slack.updateHome(assignee.login);
+              }
             });
           }
           if (
+            !updatedPr.assignees ||
             !updatedPr.assignees.find(
-              (assignee) => assignee.login === reviewer.login,
+              (assignee) => assignee && assignee.login === reviewer.login,
             )
           ) {
             repoContext.slack.updateHome(reviewer.login);

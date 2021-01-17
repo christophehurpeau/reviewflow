@@ -1,6 +1,5 @@
 import type { EventPayloads } from '@octokit/webhooks';
 import type { Context } from 'probot';
-import type { OnCallback } from 'probot/lib/application';
 import type { AppContext } from '../../../context/AppContext';
 import type { RepoContext, LockedMergePr } from '../../../context/repoContext';
 import { createRepoHandler } from '../../repository-handlers/utils/createRepoHandler';
@@ -13,6 +12,8 @@ import type {
   ReviewflowPrContext,
 } from './createPullRequestContext';
 import { getReviewflowPrContext } from './createPullRequestContext';
+
+type OnCallback<T> = (context: Context<T>) => Promise<void>;
 
 export type CallbackWithPRAndRepoContext<T extends PullRequestData> = (
   pullRequest: T,

@@ -12,10 +12,10 @@ export default async function appRouter(
   getRouter: Parameters<
     // eslint-disable-next-line @typescript-eslint/ban-types
     Extract<Parameters<typeof run>[0], Function>
-  >[0]['getRouter'],
+  >[1]['getRouter'],
   { mongoStores }: AppContext,
 ): Promise<void> {
-  const router = getRouter('/app');
+  const router = (getRouter as NonNullable<typeof getRouter>)('/app');
   const octokitApp = await app.auth();
 
   router.use(cookieParser());

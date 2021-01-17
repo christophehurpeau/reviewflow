@@ -1,9 +1,11 @@
 import type { EventPayloads } from '@octokit/webhooks';
 import type { Context } from 'probot';
 import type { RepoContext } from 'context/repoContext';
+import { ExcludesFalsy } from 'utils/Excludes';
 import type {
   PullRequestLabels,
   PullRequestWithDecentData,
+  PullRequestWithDecentDataFromWebhook,
 } from '../utils/PullRequestData';
 import createStatus from './utils/createStatus';
 
@@ -85,9 +87,13 @@ export const updateStatusCheckFromLabels = <
       previousSha,
     );
 
-  if (pullRequest.requested_reviewers.length > 0) {
+  if (
+    pullRequest.requested_reviewers &&
+    pullRequest.requested_reviewers.length > 0
+  ) {
     return createFailedStatusCheck(
-      `Awaiting review from: ${pullRequest.requested_reviewers
+      `Awaiting review from: ${(pullRequest.requested_reviewers as PullRequestWithDecentDataFromWebhook['requested_reviewers'])
+        .filter(ExcludesFalsy)
         .map((rr) => rr.login)
         .join(', ')}`,
     );

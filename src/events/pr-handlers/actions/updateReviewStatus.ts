@@ -1,6 +1,7 @@
 import type { EventPayloads } from '@octokit/webhooks';
 import type { Context } from 'probot';
 import type { RepoContext } from 'context/repoContext';
+import { ExcludesFalsy } from 'utils/Excludes';
 import type { GroupLabels } from '../../../accountConfigs/types';
 import type {
   PullRequestLabels,
@@ -36,7 +37,9 @@ export const updateReviewStatus = async <
   let prLabels: PullRequestLabels = pullRequest.labels || [];
   if (!reviewGroup) return prLabels;
 
-  const newLabelNames = new Set<string>(prLabels.map((label) => label.name));
+  const newLabelNames = new Set<string>(
+    prLabels.map((label) => label.name).filter(ExcludesFalsy),
+  );
 
   const toAdd = new Set<GroupLabels | string>();
   const toAddNames = new Set<string>();
@@ -59,7 +62,11 @@ export const updateReviewStatus = async <
     labelsToAdd.forEach((key) => {
       if (!key) return;
       const label = getLabelFromKey(key);
-      if (!label || prLabels.some((prLabel) => prLabel.id === label.id)) {
+      if (
+        !label ||
+        !label.name ||
+        prLabels.some((prLabel) => prLabel.id === label.id)
+      ) {
         return;
       }
       newLabelNames.add(label.name);
@@ -74,7 +81,7 @@ export const updateReviewStatus = async <
       const label = getLabelFromKey(key);
       if (!label) return;
       const existing = prLabels.find((prLabel) => prLabel.id === label.id);
-      if (existing) {
+      if (existing && existing.name) {
         newLabelNames.delete(existing.name);
         toDelete.add(key);
         toDeleteNames.add(existing.name);
@@ -83,20 +90,21 @@ export const updateReviewStatus = async <
   }
 
   // TODO move that elsewhere
-
-  repoContext.getTeamsForLogin(pullRequest.user.login).forEach((teamName) => {
-    const team = repoContext.config.teams[teamName];
-    if (team.labels) {
-      team.labels.forEach((labelKey) => {
-        const label = repoContext.labels[labelKey];
-        if (label && !prLabels.some((prLabel) => prLabel.id === label.id)) {
-          newLabelNames.add(label.name);
-          toAdd.add(labelKey);
-          toAddNames.add(label.name);
-        }
-      });
-    }
-  });
+  if (pullRequest.user) {
+    repoContext.getTeamsForLogin(pullRequest.user.login).forEach((teamName) => {
+      const team = repoContext.config.teams[teamName];
+      if (team.labels) {
+        team.labels.forEach((labelKey) => {
+          const label = repoContext.labels[labelKey];
+          if (label && !prLabels.some((prLabel) => prLabel.id === label.id)) {
+            newLabelNames.add(label.name);
+            toAdd.add(labelKey);
+            toAddNames.add(label.name);
+          }
+        });
+      }
+    });
+  }
 
   // if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return;
 

@@ -1,12 +1,13 @@
 import type { RestEndpointMethodTypes } from '@octokit/rest';
 import type { EventPayloads } from '@octokit/webhooks';
 import type { Probot, Context } from 'probot';
+import type { AccountInfo } from 'context/getOrCreateAccount';
 import type { AppContext } from '../../context/AppContext';
 import type { SlackMessage } from '../../context/SlackMessage';
 import type { PostSlackMessageResult } from '../../context/TeamSlack';
 import type { AccountEmbed } from '../../mongo';
 import * as slackUtils from '../../slack/utils';
-import { ExcludesNullish } from '../../utils/Excludes';
+import { ExcludesFalsy, ExcludesNullish } from '../../utils/Excludes';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { createSlackMessageWithSecondaryBlock } from './utils/createSlackMessageWithSecondaryBlock';
 import { fetchPr } from './utils/fetchPr';
@@ -38,7 +39,7 @@ const getDiscussion = async (
 };
 
 const getMentions = (
-  discussion: RestEndpointMethodTypes['pulls']['listComments']['response']['data'],
+  discussion: RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data'],
 ): string[] => {
   const mentions = new Set<string>();
 
@@ -50,13 +51,13 @@ const getMentions = (
 };
 
 const getUsersInThread = (
-  discussion: RestEndpointMethodTypes['pulls']['listComments']['response']['data'],
+  discussion: RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data'],
 ): { id: number; login: string }[] => {
   const userIds = new Set<number>();
   const users: { id: number; login: string }[] = [];
 
   discussion.forEach((c) => {
-    if (userIds.has(c.user.id)) return;
+    if (!c.user || userIds.has(c.user.id)) return;
     userIds.add(c.user.id);
     users.push({ id: c.user.id, login: c.user.login });
   });
@@ -118,6 +119,8 @@ export default function prCommentCreated(
         reviewflowPrContext,
       ): Promise<void> => {
         const pr = await fetchPr(context, pullRequest.number);
+        const prUser = pr.user;
+        if (!prUser) return;
         const { comment } = context.payload;
         const type = (comment as any).pull_request_review_id
           ? 'review-comment'
@@ -126,37 +129,45 @@ export default function prCommentCreated(
         const body = comment.body;
         if (!body) return;
 
-        const commentByOwner = pr.user.login === comment.user.login;
+        const commentByOwner = prUser.login === comment.user.login;
         const [discussion, { reviewers }] = await Promise.all([
           getDiscussion(context, comment),
           getReviewersAndReviewStates(context, repoContext),
         ]);
 
-        const followers = reviewers.filter(
-          (u) => u.id !== pr.user.id && u.id !== comment.user.id,
+        const followers: AccountInfo[] = reviewers.filter(
+          (u) => u.id !== prUser.id && u.id !== comment.user.id,
         );
 
         if (pr.requested_reviewers) {
           followers.push(
-            ...pr.requested_reviewers.filter((rr) => {
-              return (
-                !followers.find((f) => f.id === rr.id) &&
-                rr.id !== comment.user.id &&
-                rr.id !== pr.user.id
-              );
-            }),
+            ...pr.requested_reviewers
+              .filter((rr) => {
+                return (
+                  rr &&
+                  !followers.find((f) => f.id === rr.id) &&
+                  rr.id !== (comment.user && comment.user.id) &&
+                  rr.id !== prUser.id
+                );
+              })
+              .filter(ExcludesFalsy)
+              .map<AccountInfo>((rr) => ({
+                id: rr.id,
+                login: rr.login,
+                type: rr.type,
+              })),
           );
         }
 
         const usersInThread = getUsersInThread(discussion).filter(
           (u) =>
-            u.id !== pr.user.id &&
+            u.id !== prUser.id &&
             u.id !== comment.user.id &&
             !followers.find((f) => f.id === u.id),
         );
         const mentions = getMentions(discussion).filter(
           (m) =>
-            m !== pr.user.login &&
+            m !== prUser.login &&
             m !== comment.user.login &&
             !followers.find((f) => f.login === m) &&
             !usersInThread.find((u) => u.login === m),
@@ -164,7 +175,7 @@ export default function prCommentCreated(
 
         const mention = repoContext.slack.mention(comment.user.login);
         const prUrl = slackUtils.createPrLink(pr, repoContext);
-        const ownerMention = repoContext.slack.mention(pr.user.login);
+        const ownerMention = repoContext.slack.mention(prUser.login);
         const commentLink = slackUtils.createLink(
           comment.html_url,
           (comment as any).in_reply_to_id ? 'replied' : 'commented',
@@ -174,7 +185,9 @@ export default function prCommentCreated(
           const ownerPart = toOwner
             ? 'your PR'
             : `${
-                pr.user.id === comment.user.id ? 'his' : `${ownerMention}'s`
+                (prUser && prUser.id) === comment.user.id
+                  ? 'his'
+                  : `${ownerMention}'s`
               } PR`;
           return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
         };
@@ -197,8 +210,8 @@ export default function prCommentCreated(
             repoContext.slack
               .postMessage(
                 isBotUser ? 'pr-comment-bots' : 'pr-comment',
-                pr.user.id,
-                pr.user.login,
+                prUser.id,
+                prUser.login,
                 slackMessage,
               )
               .then((res) =>

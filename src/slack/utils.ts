@@ -25,9 +25,11 @@ export const createOwnerPart = (
 ): string => {
   const owner = pullRequest.user;
 
-  if (owner.id === sendTo.id) return 'your PR';
+  if (owner && owner.id === sendTo.id) return 'your PR';
 
-  const isAssignedTo = pullRequest.assignees.some((a) => a.id === sendTo.id);
+  const isAssignedTo: boolean =
+    !!pullRequest.assignees &&
+    pullRequest.assignees.some((a: any) => a && a.id === sendTo.id);
 
   return `${ownerMention}'s PR${isAssignedTo ? " you're assigned to" : ''}`;
 };

@@ -7,8 +7,9 @@ interface UpdatePr {
   body?: string;
 }
 
-const cleanNewLines = (text: string): string => text.replace(/\r\n/g, '\n');
-const checkIfHasDiff = (text1: string, text2: string): boolean =>
+const cleanNewLines = (text: string | null): string =>
+  !text ? '' : text.replace(/\r\n/g, '\n');
+const checkIfHasDiff = (text1: string | null, text2: string): boolean =>
   cleanNewLines(text1) !== cleanNewLines(text2);
 
 export const updatePrIfNeeded = async <

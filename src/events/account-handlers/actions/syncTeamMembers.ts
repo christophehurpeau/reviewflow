@@ -1,3 +1,4 @@
+import { ExcludesFalsy } from 'utils/Excludes';
 import type { MongoStores, OrgTeamEmbed } from '../../../mongo';
 import type { Octokit } from '../../../octokit';
 
@@ -15,7 +16,9 @@ export const syncTeamMembers = async (
       team_slug: team.slug,
     },
   )) {
-    const currentIterationMemberIds = data.map((member) => member.id);
+    const currentIterationMemberIds = data
+      .filter(ExcludesFalsy)
+      .map((member) => member.id);
     memberIds.push(...currentIterationMemberIds);
 
     await mongoStores.orgMembers.partialUpdateMany(

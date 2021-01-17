@@ -7,7 +7,7 @@ export interface LabelResponse {
   node_id: string;
   url: string;
   name: string;
-  description: string;
+  description: string | null;
   color: string;
   default: boolean;
 }

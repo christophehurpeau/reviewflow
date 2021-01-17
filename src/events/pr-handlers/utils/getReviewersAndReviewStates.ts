@@ -29,6 +29,7 @@ export const getReviewersAndReviewStates = async <GroupNames extends string>(
     context.pullRequest(),
     ({ data: reviews }) => {
       reviews.forEach((review) => {
+        if (!review.user) return;
         if (!userIds.has(review.user.id)) {
           userIds.add(review.user.id);
           reviewers.push({

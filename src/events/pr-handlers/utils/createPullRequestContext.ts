@@ -34,7 +34,7 @@ export const getReviewflowPrContext = async <T>(
       pr: prEmbed,
       commentId: comment.id,
     });
-    return { reviewflowPr, commentBody: comment.body };
+    return { reviewflowPr, commentBody: comment.body as string };
   }
 
   const existing = await appContext.mongoStores.prs.findOne({
@@ -64,7 +64,7 @@ export const getReviewflowPrContext = async <T>(
         pr: prEmbed,
         commentId: comment.id,
       });
-      return { reviewflowPr, commentBody: comment.body };
+      return { reviewflowPr, commentBody: comment.body as string };
     } else {
       await appContext.mongoStores.prs.partialUpdateByKey(existing._id, {
         $set: { commentId: comment.id },
@@ -72,5 +72,5 @@ export const getReviewflowPrContext = async <T>(
     }
   }
 
-  return { reviewflowPr: existing, commentBody: comment!.body };
+  return { reviewflowPr: existing, commentBody: comment!.body as string };
 };

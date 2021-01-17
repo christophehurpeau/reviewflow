@@ -127,7 +127,6 @@ async function initRepoContext<GroupNames extends string>(
   const labels = shouldIgnore ? {} : await initRepoLabels(context, config);
 
   const reviewGroupNames = Object.keys(config.groups) as GroupNames[];
-
   const getReviewLabelIds = createGetReviewLabelIds(
     shouldIgnore,
     config,
@@ -159,18 +158,26 @@ async function initRepoContext<GroupNames extends string>(
   // const updateStatusCheck = (context, reviewGroup, statusInfo) => {};
 
   const hasNeedsReview = (labels: PullRequestLabels): boolean =>
-    labels.some((label) => needsReviewLabelIds.includes(label.id));
+    labels.some((label) => label.id && needsReviewLabelIds.includes(label.id));
   const hasRequestedReview = (labels: PullRequestLabels): boolean =>
-    labels.some((label) => requestedReviewLabelIds.includes(label.id));
+    labels.some(
+      (label) => label.id && requestedReviewLabelIds.includes(label.id),
+    );
   const hasChangesRequestedReview = (labels: PullRequestLabels): boolean =>
-    labels.some((label) => changesRequestedLabelIds.includes(label.id));
+    labels.some(
+      (label) => label.id && changesRequestedLabelIds.includes(label.id),
+    );
   const hasApprovesReview = (labels: PullRequestLabels): boolean =>
-    labels.some((label) => approvedReviewLabelIds.includes(label.id));
+    labels.some(
+      (label) => label.id && approvedReviewLabelIds.includes(label.id),
+    );
 
   const getNeedsReviewGroupNames = (labels: PullRequestLabels): GroupNames[] =>
     labels
-      .filter((label) => needsReviewLabelIds.includes(label.id))
-      .map((label) => labelIdToGroupName.get(label.id))
+      .filter((label) => label.id && needsReviewLabelIds.includes(label.id))
+      .map((label) =>
+        labelIdToGroupName.get(label.id as NonNullable<typeof label.id>),
+      )
       .filter(ExcludesFalsy);
 
   const lock = Lock();
