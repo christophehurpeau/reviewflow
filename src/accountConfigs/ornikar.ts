@@ -85,7 +85,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       CoralineColasse: `coraline${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       Lenamari: `lena${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      loicleser: null,
+      loicleser: `loic.leser${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       carlbouville: `carl.bouville${process.env.ORNIKAR_EMAIL_DOMAIN}`,
     },
   },
