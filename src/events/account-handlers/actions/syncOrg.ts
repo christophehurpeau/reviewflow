@@ -45,7 +45,7 @@ export const syncOrg = async <T extends Octokit>(
             },
           ),
           mongoStores.users.upsertOne({
-            _id: member.id as any,
+            _id: member.id,
             login: member.login,
             type: member.type,
           }),
