@@ -89,89 +89,98 @@ export const getUser = async (
 };
 
 export default function auth(router: Router): void {
-  router.get('/login', async (req: Request, res: Response) => {
-    if (await getAuthInfoFromCookie(req, res)) {
-      return res.redirect('/app');
-    }
+  router.get(
+    '/login',
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    async (req: Request, res: Response) => {
+      if (await getAuthInfoFromCookie(req, res)) {
+        res.redirect('/app');
+        return;
+      }
 
-    // const state = await randomHex(8);
-    // res.cookie(`auth_${strategy}_${state}`, strategy, {
-    //   maxAge: 10 * 60 * 1000,
-    //   httpOnly: true,
-    //   secure,
-    // });
+      // const state = await randomHex(8);
+      // res.cookie(`auth_${strategy}_${state}`, strategy, {
+      //   maxAge: 10 * 60 * 1000,
+      //   httpOnly: true,
+      //   secure,
+      // });
 
-    const redirectUri = githubAuth.oauth2.authorizationCode.authorizeURL({
-      redirect_uri: createRedirectUri(req),
-      scope: 'read:user,repo',
-      // state,
-      // grant_type: options.grantType,
-      // access_type: options.accessType,
-      // login_hint: req.query.loginHint,
-      // include_granted_scopes: options.includeGrantedScopes,
-    });
+      const redirectUri = githubAuth.oauth2.authorizationCode.authorizeURL({
+        redirect_uri: createRedirectUri(req),
+        scope: 'read:user,repo',
+        // state,
+        // grant_type: options.grantType,
+        // access_type: options.accessType,
+        // login_hint: req.query.loginHint,
+        // include_granted_scopes: options.includeGrantedScopes,
+      });
 
-    // console.log(redirectUri);
+      // console.log(redirectUri);
 
-    res.redirect(redirectUri);
-  });
+      res.redirect(redirectUri);
+    },
+  );
 
-  router.get('/login-response', async (req, res) => {
-    if (req.query.error) {
-      res.send(req.query.error_description);
-      return;
-    }
+  router.get(
+    '/login-response',
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    async (req, res) => {
+      if (req.query.error) {
+        res.send(req.query.error_description);
+        return;
+      }
 
-    const strategy = 'gh';
-    const code: string = req.query.code as string;
-    // const state = req.query.state;
-    // const cookieName = `auth_${strategy}_${state}`;
-    // const cookie = req.cookies && req.cookies[cookieName];
-    // if (!cookie) {
-    //   // res.redirect(`/${strategy}/login`);
-    //   res.send(
-    //     '<html><body>No cookie for this state. <a href="/app/login">Retry ?</a></body></html>',
-    //   );
-    //   return;
-    // }
-    // res.clearCookie(cookieName);
+      const strategy = 'gh';
+      const code: string = req.query.code as string;
+      // const state = req.query.state;
+      // const cookieName = `auth_${strategy}_${state}`;
+      // const cookie = req.cookies && req.cookies[cookieName];
+      // if (!cookie) {
+      //   // res.redirect(`/${strategy}/login`);
+      //   res.send(
+      //     '<html><body>No cookie for this state. <a href="/app/login">Retry ?</a></body></html>',
+      //   );
+      //   return;
+      // }
+      // res.clearCookie(cookieName);
 
-    const result = await githubAuth.oauth2.authorizationCode.getToken({
-      code,
-      redirect_uri: createRedirectUri(req),
-    });
+      const result = await githubAuth.oauth2.authorizationCode.getToken({
+        code,
+        redirect_uri: createRedirectUri(req),
+      });
 
-    if (!result) {
-      res.send(
-        renderToStaticMarkup(
-          <Layout>
-            <div>
-              Could not get access token. <a href="/app/login">Retry ?</a>
-            </div>
-          </Layout>,
-        ),
-      );
-      return;
-    }
+      if (!result) {
+        res.send(
+          renderToStaticMarkup(
+            <Layout>
+              <div>
+                Could not get access token. <a href="/app/login">Retry ?</a>
+              </div>
+            </Layout>,
+          ),
+        );
+        return;
+      }
 
-    const accessToken = result.access_token;
-    const api = createApi(accessToken);
-    const user = await api.users.getAuthenticated({});
-    const id = user.data.id;
-    const login = user.data.login;
+      const accessToken = result.access_token;
+      const api = createApi(accessToken);
+      const user = await api.users.getAuthenticated({});
+      const id = user.data.id;
+      const login = user.data.login;
 
-    const authInfo: AuthInfo = { id, login, accessToken, time: Date.now() };
-    const token = await signPromisified(authInfo, AUTH_SECRET_KEY, {
-      algorithm: 'HS512',
-      audience: req.headers['user-agent'],
-      expiresIn: '10 days',
-    });
+      const authInfo: AuthInfo = { id, login, accessToken, time: Date.now() };
+      const token = await signPromisified(authInfo, AUTH_SECRET_KEY, {
+        algorithm: 'HS512',
+        audience: req.headers['user-agent'],
+        expiresIn: '10 days',
+      });
 
-    res.cookie(`auth_${strategy}`, token, {
-      httpOnly: true,
-      secure,
-    });
+      res.cookie(`auth_${strategy}`, token, {
+        httpOnly: true,
+        secure,
+      });
 
-    res.redirect('/app');
-  });
+      res.redirect('/app');
+    },
+  );
 }

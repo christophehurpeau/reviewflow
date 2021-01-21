@@ -11,35 +11,39 @@ export default function home(
   octokitApp: InstanceType<typeof ProbotOctokit>,
   mongoStores: MongoStores,
 ): void {
-  router.get('/', async (req, res) => {
-    const user = await getUser(req, res);
-    if (!user) return;
+  router.get(
+    '/',
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    async (req, res) => {
+      const user = await getUser(req, res);
+      if (!user) return;
 
-    const orgs = await user.api.orgs.listForAuthenticatedUser();
+      const orgs = await user.api.orgs.listForAuthenticatedUser();
 
-    res.send(
-      renderToStaticMarkup(
-        <Layout>
-          <div>
-            <h1>{process.env.REVIEWFLOW_NAME}</h1>
-            <div style={{ display: 'flex' }}>
-              <div style={{ flexGrow: 1 }}>
-                <h4>Choose your account</h4>
-                <ul>
-                  <li>
-                    <a href="/app/user">{user.authInfo.login}</a>
-                  </li>
-                  {orgs.data.map((org) => (
-                    <li key={org.id}>
-                      <a href={`/app/org/${org.login}`}>{org.login}</a>
+      res.send(
+        renderToStaticMarkup(
+          <Layout>
+            <div>
+              <h1>{process.env.REVIEWFLOW_NAME}</h1>
+              <div style={{ display: 'flex' }}>
+                <div style={{ flexGrow: 1 }}>
+                  <h4>Choose your account</h4>
+                  <ul>
+                    <li>
+                      <a href="/app/user">{user.authInfo.login}</a>
                     </li>
-                  ))}
-                </ul>
+                    {orgs.data.map((org) => (
+                      <li key={org.id}>
+                        <a href={`/app/org/${org.login}`}>{org.login}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
-          </div>
-        </Layout>,
-      ),
-    );
-  });
+          </Layout>,
+        ),
+      );
+    },
+  );
 }

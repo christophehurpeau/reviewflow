@@ -130,9 +130,11 @@ const getUser = async (req, res) => {
   };
 };
 function auth(router) {
-  router.get('/login', async (req, res) => {
+  router.get('/login', // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  async (req, res) => {
     if (await getAuthInfoFromCookie(req, res)) {
-      return res.redirect('/app');
+      res.redirect('/app');
+      return;
     } // const state = await randomHex(8);
     // res.cookie(`auth_${strategy}_${state}`, strategy, {
     //   maxAge: 10 * 60 * 1000,
@@ -153,7 +155,8 @@ function auth(router) {
 
     res.redirect(redirectUri);
   });
-  router.get('/login-response', async (req, res) => {
+  router.get('/login-response', // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  async (req, res) => {
     if (req.query.error) {
       res.send(req.query.error_description);
       return;
@@ -208,7 +211,8 @@ function auth(router) {
 }
 
 function home(router) {
-  router.get('/', async (req, res) => {
+  router.get('/', // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
     const orgs = await user.api.orgs.listForAuthenticatedUser();
@@ -446,8 +450,8 @@ const config$2 = {
       jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       CoralineColasse: `coraline${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       Lenamari: `lena${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      loicleser: null,
-      carlbouville: `carl.bouville{process.env.ORNIKAR_EMAIL_DOMAIN}`
+      loicleser: `loic.leser${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      carlbouville: `carl.bouville${process.env.ORNIKAR_EMAIL_DOMAIN}`
     }
   },
   teams: {
@@ -853,7 +857,8 @@ const dmMessages = {
   'issue-comment-mention': 'Someone mentioned you in an issue (not implemented)'
 };
 function orgSettings(router, octokitApp, mongoStores) {
-  router.get('/org/:org/force-sync', async (req, res) => {
+  router.get('/org/:org/force-sync', // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
     const orgs = await user.api.orgs.listForAuthenticatedUser();
@@ -865,7 +870,8 @@ function orgSettings(router, octokitApp, mongoStores) {
     await syncTeamsAndTeamMembers(mongoStores, user.api, org);
     res.redirect(`/app/org/${req.params.org}`);
   });
-  router.get('/org/:org', async (req, res) => {
+  router.get('/org/:org', // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
     const orgs = await user.api.orgs.listForAuthenticatedUser();
@@ -961,7 +967,8 @@ function orgSettings(router, octokitApp, mongoStores) {
 }
 
 function repository(router, octokitApp) {
-  router.get('/repositories', async (req, res) => {
+  router.get('/repositories', // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
     const {
@@ -975,7 +982,8 @@ function repository(router, octokitApp) {
       href: `/app/repository/${repo.owner.login}/${repo.name}`
     }, repo.name)))), data.length === 100 && /*#__PURE__*/React__default.createElement("div", null, "We currently have a limit to 100 repositories")))));
   });
-  router.get('/repository/:owner/:repository', async (req, res) => {
+  router.get('/repository/:owner/:repository', // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
     const {
@@ -1029,7 +1037,8 @@ const syncUser = async (mongoStores, github, installationId, userInfo) => {
 };
 
 function userSettings(router, octokitApp, mongoStores) {
-  router.get('/user/force-sync', async (req, res) => {
+  router.get('/user/force-sync', // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return; // const { data: installation } = await api.apps
     //   .getUserInstallation({
@@ -1045,7 +1054,8 @@ function userSettings(router, octokitApp, mongoStores) {
     await syncUser(mongoStores, user.api, u.installationId, user.authInfo);
     res.redirect('/app/user');
   });
-  router.get('/user', async (req, res) => {
+  router.get('/user', // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  async (req, res) => {
     const user = await getUser(req, res);
     if (!user) return;
     const {

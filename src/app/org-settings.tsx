@@ -34,107 +34,115 @@ export default function orgSettings(
   octokitApp: InstanceType<typeof ProbotOctokit>,
   mongoStores: MongoStores,
 ): void {
-  router.get('/org/:org/force-sync', async (req, res) => {
-    const user = await getUser(req, res);
-    if (!user) return;
+  router.get(
+    '/org/:org/force-sync',
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    async (req, res) => {
+      const user = await getUser(req, res);
+      if (!user) return;
 
-    const orgs = await user.api.orgs.listForAuthenticatedUser();
-    const org = orgs.data.find((o) => o.login === req.params.org);
-    if (!org) return res.redirect('/app');
+      const orgs = await user.api.orgs.listForAuthenticatedUser();
+      const org = orgs.data.find((o) => o.login === req.params.org);
+      if (!org) return res.redirect('/app');
 
-    const o = await mongoStores.orgs.findByKey(org.id);
-    if (!o) return res.redirect('/app');
+      const o = await mongoStores.orgs.findByKey(org.id);
+      if (!o) return res.redirect('/app');
 
-    await syncOrg(mongoStores, user.api, o.installationId as number, org);
-    await syncTeamsAndTeamMembers(mongoStores, user.api, org);
+      await syncOrg(mongoStores, user.api, o.installationId as number, org);
+      await syncTeamsAndTeamMembers(mongoStores, user.api, org);
 
-    res.redirect(`/app/org/${req.params.org}`);
-  });
+      res.redirect(`/app/org/${req.params.org}`);
+    },
+  );
 
-  router.get('/org/:org', async (req, res) => {
-    const user = await getUser(req, res);
-    if (!user) return;
+  router.get(
+    '/org/:org',
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    async (req, res) => {
+      const user = await getUser(req, res);
+      if (!user) return;
 
-    const orgs = await user.api.orgs.listForAuthenticatedUser();
-    const org = orgs.data.find((o) => o.login === req.params.org);
-    if (!org) return res.redirect('/app');
+      const orgs = await user.api.orgs.listForAuthenticatedUser();
+      const org = orgs.data.find((o) => o.login === req.params.org);
+      if (!org) return res.redirect('/app');
 
-    const installation = await octokitApp.apps
-      .getOrgInstallation({ org: org.login })
-      .catch((err) => {
-        return { status: err.status, data: undefined };
-      });
+      const installation = await octokitApp.apps
+        .getOrgInstallation({ org: org.login })
+        .catch((err) => {
+          return { status: err.status, data: undefined };
+        });
 
-    if (!installation) {
-      return res.send(
+      if (!installation) {
+        return res.send(
+          renderToStaticMarkup(
+            <Layout>
+              <div>
+                {process.env.REVIEWFLOW_NAME}{' '}
+                {"isn't installed for this user. Go to "}
+                <a
+                  href={`https://github.com/settings/apps/${process.env.REVIEWFLOW_NAME}/installations/new`}
+                >
+                  Github Configuration
+                </a>{' '}
+                to install it.
+              </div>
+            </Layout>,
+          ),
+        );
+      }
+
+      const accountConfig = accountConfigs[org.login];
+      const userDmSettings = await getUserDmSettings(
+        mongoStores,
+        org.login,
+        org.id,
+        user.authInfo.id,
+      );
+
+      res.send(
         renderToStaticMarkup(
           <Layout>
             <div>
-              {process.env.REVIEWFLOW_NAME}{' '}
-              {"isn't installed for this user. Go to "}
-              <a
-                href={`https://github.com/settings/apps/${process.env.REVIEWFLOW_NAME}/installations/new`}
-              >
-                Github Configuration
-              </a>{' '}
-              to install it.
+              <h1>{process.env.REVIEWFLOW_NAME}</h1>
+              <div style={{ display: 'flex' }}>
+                <h2 style={{ flexGrow: 1 }}>{org.login}</h2>
+                <a href="/app">Switch account</a>
+              </div>
+
+              <div style={{ display: 'flex' }}>
+                <div style={{ flexGrow: 1 }}>
+                  <h4>Information</h4>
+                  {!accountConfig
+                    ? 'Default config is used: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/defaultConfig.ts'
+                    : `Custom config: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/${org.login}.ts`}
+                </div>
+                <div style={{ width: '380px' }}>
+                  <h4>My DM Settings</h4>
+                  {Object.entries(dmMessages).map(([key, name]) => (
+                    <div key={key}>
+                      <label htmlFor={key}>
+                        <span
+                          // eslint-disable-next-line react/no-danger
+                          dangerouslySetInnerHTML={{
+                            __html: `<input id="${key}" type="checkbox" autocomplete="off" ${
+                              userDmSettings[key as MessageCategory]
+                                ? 'checked="checked" '
+                                : ''
+                            }onclick="fetch(location.pathname, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: '${key}', value: event.currentTarget.checked }) })" />`,
+                          }}
+                        />
+                        {name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </Layout>,
         ),
       );
-    }
-
-    const accountConfig = accountConfigs[org.login];
-    const userDmSettings = await getUserDmSettings(
-      mongoStores,
-      org.login,
-      org.id,
-      user.authInfo.id,
-    );
-
-    res.send(
-      renderToStaticMarkup(
-        <Layout>
-          <div>
-            <h1>{process.env.REVIEWFLOW_NAME}</h1>
-            <div style={{ display: 'flex' }}>
-              <h2 style={{ flexGrow: 1 }}>{org.login}</h2>
-              <a href="/app">Switch account</a>
-            </div>
-
-            <div style={{ display: 'flex' }}>
-              <div style={{ flexGrow: 1 }}>
-                <h4>Information</h4>
-                {!accountConfig
-                  ? 'Default config is used: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/defaultConfig.ts'
-                  : `Custom config: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/${org.login}.ts`}
-              </div>
-              <div style={{ width: '380px' }}>
-                <h4>My DM Settings</h4>
-                {Object.entries(dmMessages).map(([key, name]) => (
-                  <div key={key}>
-                    <label htmlFor={key}>
-                      <span
-                        // eslint-disable-next-line react/no-danger
-                        dangerouslySetInnerHTML={{
-                          __html: `<input id="${key}" type="checkbox" autocomplete="off" ${
-                            userDmSettings[key as MessageCategory]
-                              ? 'checked="checked" '
-                              : ''
-                          }onclick="fetch(location.pathname, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: '${key}', value: event.currentTarget.checked }) })" />`,
-                        }}
-                      />
-                      {name}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Layout>,
-      ),
-    );
-  });
+    },
+  );
 
   router.patch('/org/:org', bodyParser.json(), async (req, res) => {
     if (!req.body) {
