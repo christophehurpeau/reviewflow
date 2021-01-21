@@ -440,7 +440,8 @@ const config$2 = {
       mdcarter: `maxime.dehaye${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       ChibiBlasphem: `christopher${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       PSniezak: `paul.sniezak${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      GaelFerrand: 'gael.ferrand@othrys.dev'
+      GaelFerrand: 'gael.ferrand@othrys.dev',
+      aenario: `romain.foucault${process.env.ORNIKAR_EMAIL_DOMAIN}`
     },
     design: {
       jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -459,7 +460,7 @@ const config$2 = {
       labels: ['teams/backend']
     },
     frontends: {
-      logins: ['christophehurpeau', 'HugoGarrido', 'LentnerStefan', 'CorentinAndre', 'Mxime', 'vlbr', 'budet-b', 'mdcarter', 'ChibiBlasphem', 'PSniezak'],
+      logins: ['christophehurpeau', 'HugoGarrido', 'LentnerStefan', 'CorentinAndre', 'Mxime', 'vlbr', 'budet-b', 'mdcarter', 'ChibiBlasphem', 'PSniezak', 'aenario'],
       labels: ['teams/frontend']
     }
   },
