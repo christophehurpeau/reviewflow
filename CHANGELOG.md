@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.73.0](https://github.com/christophehurpeau/reviewflow/compare/v1.72.0...v1.73.0) (2021-01-21)
+
+
+### Features
+
+* initial support for requested_teams ([e8e9e94](https://github.com/christophehurpeau/reviewflow/commit/e8e9e94c48bdfc42967930fe23ad1c3bf5e540c5))
+* **deps:** update dependency @slack/web-api to v6 ([#163](https://github.com/christophehurpeau/reviewflow/issues/163)) ([cfd8971](https://github.com/christophehurpeau/reviewflow/commit/cfd897125d7818810be687b15ed361ce70721292))
+* **deps:** update dependency liwi-mongo to v8.0.4 ([#174](https://github.com/christophehurpeau/reviewflow/issues/174)) ([68e7aea](https://github.com/christophehurpeau/reviewflow/commit/68e7aea513de181292aa58d7a70a1b1843f03de3))
+
 ## [1.72.0](https://github.com/christophehurpeau/reviewflow/compare/v1.71.0...v1.72.0) (2021-01-21)
 
 
