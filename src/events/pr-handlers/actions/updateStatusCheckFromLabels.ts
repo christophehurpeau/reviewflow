@@ -1,7 +1,7 @@
 import type { EventPayloads } from '@octokit/webhooks';
 import type { Context } from 'probot';
 import type { RepoContext } from 'context/repoContext';
-import { ExcludesFalsy } from 'utils/Excludes';
+import { ExcludesFalsy } from '../../../utils/Excludes';
 import type {
   PullRequestLabels,
   PullRequestWithDecentData,

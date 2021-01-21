@@ -1,6 +1,6 @@
-import { ExcludesFalsy } from 'utils/Excludes';
 import type { MongoStores, OrgTeamEmbed } from '../../../mongo';
 import type { Octokit } from '../../../octokit';
+import { ExcludesFalsy } from '../../../utils/Excludes';
 
 export const syncTeamMembers = async (
   mongoStores: MongoStores,

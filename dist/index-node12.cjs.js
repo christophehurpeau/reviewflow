@@ -10,7 +10,6 @@ const React = require('react');
 const server = require('react-dom/server');
 const simpleOauth2 = require('simple-oauth2');
 const bodyParser = require('body-parser');
-const Excludes = require('utils/Excludes');
 const lock = require('lock');
 const webApi = require('@slack/web-api');
 const createEmojiRegex = require('emoji-regex');
@@ -733,6 +732,9 @@ const syncOrg = async (mongoStores, octokit, installationId, org) => {
   return orgInStore;
 };
 
+const ExcludesFalsy = Boolean;
+const ExcludesNullish = res => res !== null;
+
 const syncTeamMembers = async (mongoStores, octokit, org, team) => {
   const memberIds = [];
 
@@ -742,7 +744,7 @@ const syncTeamMembers = async (mongoStores, octokit, org, team) => {
     org: org.login,
     team_slug: team.slug
   })) {
-    const currentIterationMemberIds = data.filter(Excludes.ExcludesFalsy).map(member => member.id);
+    const currentIterationMemberIds = data.filter(ExcludesFalsy).map(member => member.id);
     memberIds.push(...currentIterationMemberIds);
     await mongoStores.orgMembers.partialUpdateMany({
       _id: {
@@ -1078,9 +1080,6 @@ async function appRouter(app, getRouter, {
   orgSettings(router, octokitApp, mongoStores);
   userSettings(router, octokitApp, mongoStores);
 }
-
-const ExcludesFalsy = Boolean;
-const ExcludesNullish = res => res !== null;
 
 const getOrCreateAccount = async ({
   mongoStores
@@ -2233,7 +2232,7 @@ const updateStatusCheckFromLabels = (pullRequest, context, repoContext, labels =
   }, previousSha);
 
   if (pullRequest.requested_reviewers && pullRequest.requested_reviewers.length > 0) {
-    return createFailedStatusCheck(`Awaiting review from: ${pullRequest.requested_reviewers.filter(Excludes.ExcludesFalsy).map(rr => rr.login).join(', ')}`);
+    return createFailedStatusCheck(`Awaiting review from: ${pullRequest.requested_reviewers.filter(ExcludesFalsy).map(rr => rr.login).join(', ')}`);
   }
 
   if (repoContext.hasChangesRequestedReview(labels)) {
@@ -2282,7 +2281,7 @@ const updateReviewStatus = async (pullRequest, context, repoContext, reviewGroup
   }, 'updateReviewStatus');
   let prLabels = pullRequest.labels || [];
   if (!reviewGroup) return prLabels;
-  const newLabelNames = new Set(prLabels.map(label => label.name).filter(Excludes.ExcludesFalsy));
+  const newLabelNames = new Set(prLabels.map(label => label.name).filter(ExcludesFalsy));
   const toAdd = new Set();
   const toAddNames = new Set();
   const toDelete = new Set();
