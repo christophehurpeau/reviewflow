@@ -456,14 +456,17 @@ const config$2 = {
   },
   teams: {
     ops: {
+      githubTeamSlug: 'ops',
       logins: ['JulienBreux', 'Alan-pad', 'CamilSadiki', 'busser'],
       labels: ['teams/ops']
     },
     backends: {
+      githubTeamSlug: 'backend',
       logins: ['abarreir', 'arthurflachs', 'damienorny', 'Thierry-girod', 'darame07', 'Pixy', 'machartier', 'camillebaronnet'],
       labels: ['teams/backend']
     },
     frontends: {
+      githubTeamSlug: 'frontend',
       logins: ['christophehurpeau', 'HugoGarrido', 'LentnerStefan', 'CorentinAndre', 'Mxime', 'vlbr', 'budet-b', 'mdcarter', 'ChibiBlasphem', 'PSniezak', 'aenario'],
       labels: ['teams/frontend']
     }

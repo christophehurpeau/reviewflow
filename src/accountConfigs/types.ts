@@ -17,6 +17,7 @@ export interface Group {
 }
 
 export interface Team {
+  githubTeamSlug?: string;
   logins: string[];
   labels?: string[];
 }

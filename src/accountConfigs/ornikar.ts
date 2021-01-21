@@ -92,11 +92,13 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
 
   teams: {
     ops: {
+      githubTeamSlug: 'ops',
       logins: ['JulienBreux', 'Alan-pad', 'CamilSadiki', 'busser'],
       labels: ['teams/ops'],
     },
 
     backends: {
+      githubTeamSlug: 'backend',
       logins: [
         'abarreir',
         'arthurflachs',
@@ -111,6 +113,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
     },
 
     frontends: {
+      githubTeamSlug: 'frontend',
       logins: [
         'christophehurpeau',
         'HugoGarrido',
