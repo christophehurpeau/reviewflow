@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.72.0](https://github.com/christophehurpeau/reviewflow/compare/v1.71.0...v1.72.0) (2021-01-21)
+
+
+### Features
+
+* configure githubTeamSlug ([51b7e3e](https://github.com/christophehurpeau/reviewflow/commit/51b7e3e5eac92122c0fa8ce0875a52aabc52757e))
+* **deps:** update dependency slackify-markdown to v4 ([#149](https://github.com/christophehurpeau/reviewflow/issues/149)) ([6cd4c2e](https://github.com/christophehurpeau/reviewflow/commit/6cd4c2e4842fa892463a3d42bbf3cdd80ed7caf9))
+* add aenario in accountConfigs ([#170](https://github.com/christophehurpeau/reviewflow/issues/170)) ([2f005c1](https://github.com/christophehurpeau/reviewflow/commit/2f005c1ec76e10a8f2ba2b6c1e5589e721ed5329))
+* add camillebaronnet in accountConfigs ([#161](https://github.com/christophehurpeau/reviewflow/issues/161)) ([c9a5929](https://github.com/christophehurpeau/reviewflow/commit/c9a592968668e2bdfc418c75edcd1b20ae48be96))
+* add slack email for loicleser ([35f4a68](https://github.com/christophehurpeau/reviewflow/commit/35f4a68ad4d3f3f780674fab82bbff61ae46674e))
+* probot 11 and fix tsc issue ([d76f9d6](https://github.com/christophehurpeau/reviewflow/commit/d76f9d6071edcec01e303b9bd62308669c98d9e5))
+* **deps:** update dependency @slack/web-api to v5.15.0 ([#156](https://github.com/christophehurpeau/reviewflow/issues/156)) ([e4bedb2](https://github.com/christophehurpeau/reviewflow/commit/e4bedb2c3783170661ff08e9b88048237cc4768a))
+* sync teams and team members ([5d318e0](https://github.com/christophehurpeau/reviewflow/commit/5d318e03f585dec3470676087d220c62310ac7b6))
+
+
+### Bug Fixes
+
+* config ornikar ([76d512d](https://github.com/christophehurpeau/reviewflow/commit/76d512d205145d340cf55a4900f773ea4c09690d))
+* label description can be undefined ([5d7fab4](https://github.com/christophehurpeau/reviewflow/commit/5d7fab4f7d57909275058eb30580482b8e004248))
+* lint ([afe8523](https://github.com/christophehurpeau/reviewflow/commit/afe85233408fe04f3e1dea68d1819f4df75fa794))
+* probot 11 run callback ([f46699a](https://github.com/christophehurpeau/reviewflow/commit/f46699ae1cceb48f4e2052abd17c19a85fc99be0))
+* relative imports ([efffa8a](https://github.com/christophehurpeau/reviewflow/commit/efffa8afd532ad1878bb63a3147d3cfaf409e52e))
+* update probot ([abbaca9](https://github.com/christophehurpeau/reviewflow/commit/abbaca9ca3b01738be4705442c44ef78c059277c))
+
 ## [1.71.0](https://github.com/christophehurpeau/reviewflow/compare/v1.70.0...v1.71.0) (2021-01-11)
 
 
