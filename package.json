@@ -92,7 +92,7 @@
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "simple-oauth2": "2.5.2",
-    "slackify-markdown": "3.1.0"
+    "slackify-markdown": "4.1.0"
   },
   "devDependencies": {
     "@babel/core": "7.12.10",
