@@ -79,6 +79,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       ChibiBlasphem: `christopher${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       PSniezak: `paul.sniezak${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       GaelFerrand: 'gael.ferrand@othrys.dev',
+      aenario: `romain.foucault${process.env.ORNIKAR_EMAIL_DOMAIN}`,
     },
     design: {
       jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -120,6 +121,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         'mdcarter',
         'ChibiBlasphem',
         'PSniezak',
+        'aenario',
       ],
       labels: ['teams/frontend'],
     },
