@@ -454,19 +454,23 @@ const config$2 = {
       carlbouville: `carl.bouville${process.env.ORNIKAR_EMAIL_DOMAIN}`
     }
   },
+  groupsGithubTeams: {
+    dev: ['ops', 'backend', 'frontend'],
+    design: ['design']
+  },
   teams: {
     ops: {
-      githubTeamSlug: 'ops',
+      githubTeamName: 'ops',
       logins: ['JulienBreux', 'Alan-pad', 'CamilSadiki', 'busser'],
       labels: ['teams/ops']
     },
     backends: {
-      githubTeamSlug: 'backend',
+      githubTeamName: 'backend',
       logins: ['abarreir', 'arthurflachs', 'damienorny', 'Thierry-girod', 'darame07', 'Pixy', 'machartier', 'camillebaronnet'],
       labels: ['teams/backend']
     },
     frontends: {
-      githubTeamSlug: 'frontend',
+      githubTeamName: 'frontend',
       logins: ['christophehurpeau', 'HugoGarrido', 'LentnerStefan', 'CorentinAndre', 'Mxime', 'vlbr', 'budet-b', 'mdcarter', 'ChibiBlasphem', 'PSniezak', 'aenario'],
       labels: ['teams/frontend']
     }
@@ -1349,11 +1353,23 @@ const initAccountContext = async (appContext, context, config, accountInfo) => {
   const account = await getOrCreateAccount(appContext, context.octokit, context.payload.installation.id, accountInfo);
   const slackPromise = initTeamSlack(appContext, context, config, account);
   const githubLoginToGroup = new Map();
-  getKeys(config.groups).forEach(groupName => {
+
+  for (const groupName of getKeys(config.groups)) {
     Object.keys(config.groups[groupName]).forEach(login => {
       githubLoginToGroup.set(login, groupName);
     });
-  });
+  }
+
+  const githubTeamNameToGroup = new Map();
+
+  if (config.groupsGithubTeams) {
+    for (const groupName of getKeys(config.groupsGithubTeams)) {
+      Object.keys(config.groupsGithubTeams[groupName]).forEach(teamName => {
+        githubLoginToGroup.set(teamName, groupName);
+      });
+    }
+  }
+
   const githubLoginToTeams = new Map();
   getKeys(config.teams || {}).forEach(teamName => {
     config.teams[teamName].logins.forEach(login => {
@@ -1368,6 +1384,8 @@ const initAccountContext = async (appContext, context, config, accountInfo) => {
   });
 
   const getReviewerGroups = githubLogins => [...new Set(githubLogins.map(githubLogin => githubLoginToGroup.get(githubLogin)).filter(ExcludesFalsy))];
+
+  const getGithubTeamsGroups = githubTeamNames => [...new Set(githubTeamNames.map(teamName => githubTeamNameToGroup.get(teamName)).filter(ExcludesFalsy))];
 
   const lock$1 = lock.Lock();
   return {
@@ -1407,13 +1425,27 @@ const initAccountContext = async (appContext, context, config, accountInfo) => {
     },
     getReviewerGroup: githubLogin => githubLoginToGroup.get(githubLogin),
     getReviewerGroups,
+    getTeamGroup: githubTeamName => githubTeamNameToGroup.get(githubTeamName),
+    getGithubTeamsGroups,
     getTeamsForLogin: githubLogin => githubLoginToTeams.get(githubLogin) || [],
+    getMembersForTeam: async teamId => {
+      const cursor = await appContext.mongoStores.orgMembers.cursor({
+        'org.id': account._id,
+        'teams.id': teamId
+      });
+      await cursor.limit(100);
+      const orgMembers = await cursor.toArray();
+      return orgMembers.map(member => member.user);
+    },
     approveShouldWait: (reviewerGroup, pullRequest, {
       includesReviewerGroup,
       includesWaitForGroups
     }) => {
-      if (!reviewerGroup || !pullRequest.requested_reviewers) return false;
-      const requestedReviewerGroups = getReviewerGroups(pullRequest.requested_reviewers.map(request => request.login)); // TODO pullRequest.requested_teams
+      if (!reviewerGroup || !pullRequest.requested_reviewers || !pullRequest.requested_teams) {
+        return false;
+      }
+
+      const requestedReviewerGroups = [...new Set([...getReviewerGroups(pullRequest.requested_reviewers.map(request => request.login)), ...(!pullRequest.requested_teams ? [] : getGithubTeamsGroups(pullRequest.requested_teams.map(team => team.name)))])]; // TODO pullRequest.requested_teams
       // contains another request of a reviewer in the same group
 
       if (includesReviewerGroup && requestedReviewerGroups.includes(reviewerGroup)) {
@@ -1590,6 +1622,11 @@ const autoMergeIfPossible = async (pullRequest, context, repoContext, reviewflow
 
   if (pullRequest.requested_reviewers && pullRequest.requested_reviewers.length > 0) {
     repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'still has requested reviewers');
+    return false;
+  }
+
+  if (pullRequest.requested_teams && pullRequest.requested_teams.length > 0) {
+    repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'still has requested teams');
     return false;
   }
 
@@ -2249,6 +2286,10 @@ const updateStatusCheckFromLabels = (pullRequest, context, repoContext, labels =
     return createFailedStatusCheck(`Awaiting review from: ${pullRequest.requested_reviewers.filter(ExcludesFalsy).map(rr => rr.login).join(', ')}`);
   }
 
+  if (pullRequest.requested_teams && pullRequest.requested_teams.length > 0) {
+    return createFailedStatusCheck(`Awaiting review from: ${pullRequest.requested_teams.filter(ExcludesFalsy).map(rt => rt.name).join(', ')}`);
+  }
+
   if (repoContext.hasChangesRequestedReview(labels)) {
     return createFailedStatusCheck('Changes requested ! Push commits or discuss changes then re-request a review.');
   }
@@ -2531,6 +2572,15 @@ function closed(app, appContext) {
       pullRequest.requested_reviewers.forEach(requestedReviewer => {
         repoContext.slack.updateHome(requestedReviewer.login);
       });
+    }
+
+    if (pullRequest.requested_teams) {
+      await Promise.all(pullRequest.requested_teams.map(async team => {
+        const members = await repoContext.getMembersForTeam(team.id);
+        members.forEach(member => {
+          repoContext.slack.updateHome(member.login);
+        });
+      }));
     }
 
     if (pullRequest.assignees) {
@@ -3280,6 +3330,15 @@ function reopened(app, appContext) {
       });
     }
 
+    if (pullRequest.requested_teams) {
+      await Promise.all(pullRequest.requested_teams.map(async team => {
+        const members = await repoContext.getMembersForTeam(team.id);
+        members.forEach(member => {
+          repoContext.slack.updateHome(member.login);
+        });
+      }));
+    }
+
     if (pullRequest.assignees) {
       pullRequest.assignees.forEach(assignee => {
         repoContext.slack.updateHome(assignee.login);
@@ -3373,8 +3432,10 @@ function reviewDismissed(app, appContext) {
 function reviewRequestRemoved(app, appContext) {
   app.on('pull_request.review_request_removed', createPullRequestHandler(appContext, payload => payload.pull_request, async (pullRequest, context, repoContext) => {
     const sender = context.payload.sender;
-    const reviewer = context.payload.requested_reviewer;
-    const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
+    const requestedReviewer = context.payload.requested_reviewer;
+    const requestedTeam = context.payload.requested_team;
+    const requestedReviewers = requestedReviewer ? [requestedReviewer] : await repoContext.getMembersForTeam(requestedTeam.slug);
+    const reviewerGroup = requestedReviewer ? repoContext.getReviewerGroup(requestedReviewer.login) : repoContext.getTeamGroup(requestedTeam.name);
 
     if (!repoContext.shouldIgnore && reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
       const hasRequestedReviewsForGroup = repoContext.approveShouldWait(reviewerGroup, pullRequest, {
@@ -3393,35 +3454,53 @@ function reviewRequestRemoved(app, appContext) {
         // remove labels if has no other requests waiting
         remove: [approved && 'needsReview', !hasRequestedReviewsForGroup && 'requested']
       });
+      const assigneesLogins = [];
 
       if (pullRequest.assignees) {
         pullRequest.assignees.forEach(assignee => {
+          assigneesLogins.push(assignee.login);
           repoContext.slack.updateHome(assignee.login);
         });
       }
 
-      if (!pullRequest.assignees.find(assignee => assignee.login === reviewer.login)) {
-        repoContext.slack.updateHome(reviewer.login);
-      }
+      requestedReviewers.forEach(potentialReviewer => {
+        if (assigneesLogins.includes(potentialReviewer)) return;
+        repoContext.slack.updateHome(potentialReviewer.login);
+      });
     }
 
-    if (sender.login === reviewer.login) return;
-    repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, {
-      text: `:skull_and_crossbones: ${repoContext.slack.mention(sender.login)} removed the request for your review on ${createPrLink(pullRequest, repoContext)}`
-    });
-    const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne({
-      'account.id': repoContext.account._id,
-      'account.type': repoContext.accountType,
-      type: 'review-requested',
-      typeId: `${pullRequest.id}_${reviewer.id}`
-    });
+    if (repoContext.slack) {
+      if (requestedReviewers.some(rr => rr.login === sender.login)) {
+        requestedReviewers.forEach(potentialReviewer => {
+          if (potentialReviewer.login === sender.login) return;
+          repoContext.slack.postMessage('pr-review', potentialReviewer.id, potentialReviewer.login, {
+            text: `:skull_and_crossbones: ${repoContext.slack.mention(sender.login)} removed the request for your team _${requestedTeam.name}_ review on ${createPrLink(pullRequest, repoContext)}`
+          });
+        });
+      } else {
+        requestedReviewers.forEach(potentialReviewer => {
+          repoContext.slack.postMessage('pr-review', potentialReviewer.id, potentialReviewer.login, {
+            text: `:skull_and_crossbones: ${repoContext.slack.mention(sender.login)} removed the request for  ${requestedTeam ? `your team _${requestedTeam.name}_` : 'your'} review on ${createPrLink(pullRequest, repoContext)}`
+          });
+        });
+      }
 
-    if (sentMessageRequestedReview) {
-      const sentTo = sentMessageRequestedReview.sentTo[0];
-      const message = sentMessageRequestedReview.message;
-      await Promise.all([repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, { ...message,
-        text: message.text.split('\n').map(l => `~${l}~`).join('\n')
-      }), repoContext.slack.addReaction(sentTo.ts, sentTo.channel, 'skull_and_crossbones'), appContext.mongoStores.slackSentMessages.deleteOne(sentMessageRequestedReview)]);
+      await Promise.all(requestedReviewers.map(async potentialReviewer => {
+        const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne({
+          'account.id': repoContext.account._id,
+          'account.type': repoContext.accountType,
+          type: 'review-requested',
+          typeId: `${pullRequest.id}_${requestedTeam ? `${requestedTeam.id}_` : ''}${potentialReviewer.id}`
+        });
+
+        if (sentMessageRequestedReview) {
+          const sentTo = sentMessageRequestedReview.sentTo[0];
+          const message = sentMessageRequestedReview.message;
+          await Promise.all([repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, { ...message,
+            text: message.text.split('\n').map(l => `~${l}~`).join('\n')
+          }), repoContext.slack.addReaction(sentTo.ts, sentTo.channel, 'skull_and_crossbones'), appContext.mongoStores.slackSentMessages.deleteOne(sentMessageRequestedReview)]);
+        }
+      }));
     }
   }));
 }
@@ -3429,8 +3508,10 @@ function reviewRequestRemoved(app, appContext) {
 function reviewRequested(app, appContext) {
   app.on('pull_request.review_requested', createPullRequestHandler(appContext, payload => payload.pull_request, async (pullRequest, context, repoContext) => {
     const sender = context.payload.sender;
-    const reviewer = context.payload.requested_reviewer;
-    const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
+    const requestedReviewer = context.payload.requested_reviewer;
+    const requestedTeam = context.payload.requested_team;
+    const requestedReviewers = requestedReviewer ? [requestedReviewer] : await repoContext.getMembersForTeam(requestedTeam.slug);
+    const reviewerGroup = requestedReviewer ? repoContext.getReviewerGroup(requestedReviewer.login) : repoContext.getTeamGroup(requestedTeam.name);
 
     // repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, { includesWaitForGroups: true });
     if (!repoContext.shouldIgnore && reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
@@ -3438,36 +3519,40 @@ function reviewRequested(app, appContext) {
         add: ['needsReview', "requested"],
         remove: ['approved']
       });
+      const assigneesLogins = [];
 
       if (pullRequest.assignees) {
         pullRequest.assignees.forEach(assignee => {
+          assigneesLogins.push(assignee.login);
           repoContext.slack.updateHome(assignee.login);
         });
       }
 
-      if (!pullRequest.assignees.find(assignee => assignee.login === reviewer.login)) {
-        repoContext.slack.updateHome(reviewer.login);
-      }
+      requestedReviewers.forEach(potentialReviewer => {
+        if (assigneesLogins.includes(potentialReviewer)) return;
+        repoContext.slack.updateHome(potentialReviewer.login);
+      });
     }
 
-    if (sender.login === reviewer.login) return;
-
     if (repoContext.slack) {
-      const text = `:eyes: ${repoContext.slack.mention(sender.login)} requests your review on ${createPrLink(pullRequest, repoContext)} !\n> ${pullRequest.title}`;
+      const text = `:eyes: ${repoContext.slack.mention(sender.login)} requests ${requestedReviewer ? 'your' : `your team _${requestedTeam.name}_`} review on ${createPrLink(pullRequest, repoContext)} !\n> ${pullRequest.title}`;
       const message = {
         text
       };
-      const result = await repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, message);
+      await Promise.all(requestedReviewers.map(async potentialReviewer => {
+        if (sender.login === potentialReviewer.login) return;
+        const result = await repoContext.slack.postMessage('pr-review', potentialReviewer.id, potentialReviewer.login, message);
 
-      if (result) {
-        await appContext.mongoStores.slackSentMessages.insertOne({
-          type: 'review-requested',
-          typeId: `${pullRequest.id}_${reviewer.id}`,
-          message,
-          account: repoContext.accountEmbed,
-          sentTo: [result]
-        });
-      }
+        if (result) {
+          await appContext.mongoStores.slackSentMessages.insertOne({
+            type: 'review-requested',
+            typeId: `${pullRequest.id}_${requestedTeam ? `${requestedTeam.id}_` : ''}${potentialReviewer.id}`,
+            message,
+            account: repoContext.accountEmbed,
+            sentTo: [result]
+          });
+        }
+      }));
     }
   }));
 }
@@ -3773,6 +3858,10 @@ function init() {
       'teams.id': 1
     }, {
       unique: true
+    });
+    coll.createIndex({
+      'org.id': 1,
+      'teams.id': 1
     });
   });
   const orgTeams = new liwiMongo.MongoStore(connection, 'orgTeams');

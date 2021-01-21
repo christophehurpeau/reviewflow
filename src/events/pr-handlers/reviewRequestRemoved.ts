@@ -21,9 +21,15 @@ export default function reviewRequestRemoved(
         reviewflowPrContext,
       ): Promise<void> => {
         const sender = context.payload.sender;
-        const reviewer = (context.payload as any).requested_reviewer;
+        const requestedReviewer = (context.payload as any).requested_reviewer;
+        const requestedTeam = (context.payload as any).requested_team;
+        const requestedReviewers = requestedReviewer
+          ? [requestedReviewer]
+          : await repoContext.getMembersForTeam(requestedTeam.slug);
 
-        const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
+        const reviewerGroup = requestedReviewer
+          ? repoContext.getReviewerGroup(requestedReviewer.login)
+          : repoContext.getTeamGroup(requestedTeam.name);
 
         if (
           !repoContext.shouldIgnore &&
@@ -74,65 +80,96 @@ export default function reviewRequestRemoved(
             },
           );
 
+          const assigneesLogins: string[] = [];
           if (pullRequest.assignees) {
             pullRequest.assignees.forEach((assignee) => {
+              assigneesLogins.push(assignee.login);
               repoContext.slack.updateHome(assignee.login);
             });
           }
-          if (
-            !pullRequest.assignees.find(
-              (assignee) => assignee.login === reviewer.login,
-            )
-          ) {
-            repoContext.slack.updateHome(reviewer.login);
-          }
+
+          requestedReviewers.forEach((potentialReviewer) => {
+            if (assigneesLogins.includes(potentialReviewer)) return;
+            repoContext.slack.updateHome(potentialReviewer.login);
+          });
         }
 
-        if (sender.login === reviewer.login) return;
+        if (repoContext.slack) {
+          if (requestedReviewers.some((rr) => rr.login === sender.login)) {
+            requestedReviewers.forEach((potentialReviewer) => {
+              if (potentialReviewer.login === sender.login) return;
+              repoContext.slack.postMessage(
+                'pr-review',
+                potentialReviewer.id,
+                potentialReviewer.login,
+                {
+                  text: `:skull_and_crossbones: ${repoContext.slack.mention(
+                    sender.login,
+                  )} removed the request for your team _${
+                    requestedTeam.name
+                  }_ review on ${slackUtils.createPrLink(
+                    pullRequest,
+                    repoContext,
+                  )}`,
+                },
+              );
+            });
+          } else {
+            requestedReviewers.forEach((potentialReviewer) => {
+              repoContext.slack.postMessage(
+                'pr-review',
+                potentialReviewer.id,
+                potentialReviewer.login,
+                {
+                  text: `:skull_and_crossbones: ${repoContext.slack.mention(
+                    sender.login,
+                  )} removed the request for  ${
+                    requestedTeam ? `your team _${requestedTeam.name}_` : 'your'
+                  } review on ${slackUtils.createPrLink(
+                    pullRequest,
+                    repoContext,
+                  )}`,
+                },
+              );
+            });
+          }
 
-        repoContext.slack.postMessage(
-          'pr-review',
-          reviewer.id,
-          reviewer.login,
-          {
-            text: `:skull_and_crossbones: ${repoContext.slack.mention(
-              sender.login,
-            )} removed the request for your review on ${slackUtils.createPrLink(
-              pullRequest,
-              repoContext,
-            )}`,
-          },
-        );
+          await Promise.all(
+            requestedReviewers.map(async (potentialReviewer) => {
+              const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne(
+                {
+                  'account.id': repoContext.account._id,
+                  'account.type': repoContext.accountType,
+                  type: 'review-requested',
+                  typeId: `${pullRequest.id}_${
+                    requestedTeam ? `${requestedTeam.id}_` : ''
+                  }${potentialReviewer.id}`,
+                },
+              );
 
-        const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne(
-          {
-            'account.id': repoContext.account._id,
-            'account.type': repoContext.accountType,
-            type: 'review-requested',
-            typeId: `${pullRequest.id}_${reviewer.id}`,
-          },
-        );
-
-        if (sentMessageRequestedReview) {
-          const sentTo = sentMessageRequestedReview.sentTo[0];
-          const message = sentMessageRequestedReview.message;
-          await Promise.all([
-            repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, {
-              ...message,
-              text: message.text
-                .split('\n')
-                .map((l) => `~${l}~`)
-                .join('\n'),
+              if (sentMessageRequestedReview) {
+                const sentTo = sentMessageRequestedReview.sentTo[0];
+                const message = sentMessageRequestedReview.message;
+                await Promise.all([
+                  repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, {
+                    ...message,
+                    text: message.text
+                      .split('\n')
+                      .map((l) => `~${l}~`)
+                      .join('\n'),
+                  }),
+                  repoContext.slack.addReaction(
+                    sentTo.ts,
+                    sentTo.channel,
+                    'skull_and_crossbones',
+                  ),
+                  appContext.mongoStores.slackSentMessages.deleteOne(
+                    sentMessageRequestedReview,
+                  ),
+                ]);
+              }
             }),
-            repoContext.slack.addReaction(
-              sentTo.ts,
-              sentTo.channel,
-              'skull_and_crossbones',
-            ),
-            appContext.mongoStores.slackSentMessages.deleteOne(
-              sentMessageRequestedReview,
-            ),
-          ]);
+          );
         }
       },
     ),

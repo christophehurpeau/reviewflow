@@ -99,6 +99,15 @@ export const updateStatusCheckFromLabels = <
     );
   }
 
+  if (pullRequest.requested_teams && pullRequest.requested_teams.length > 0) {
+    return createFailedStatusCheck(
+      `Awaiting review from: ${(pullRequest.requested_teams as PullRequestWithDecentDataFromWebhook['requested_teams'])
+        .filter(ExcludesFalsy)
+        .map((rt) => rt.name)
+        .join(', ')}`,
+    );
+  }
+
   if (repoContext.hasChangesRequestedReview(labels)) {
     return createFailedStatusCheck(
       'Changes requested ! Push commits or discuss changes then re-request a review.',

@@ -141,6 +141,15 @@ export const autoMergeIfPossible = async (
     return false;
   }
 
+  if (pullRequest.requested_teams && pullRequest.requested_teams.length > 0) {
+    repoContext.removePrFromAutomergeQueue(
+      context,
+      pullRequest.number,
+      'still has requested teams',
+    );
+    return false;
+  }
+
   const lockedPr = repoContext.getMergeLockedPr();
   if (lockedPr && String(lockedPr.number) !== String(pullRequest.number)) {
     context.log.info(

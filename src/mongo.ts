@@ -29,7 +29,7 @@ interface PrEmbed {
   number: number;
 }
 
-type AccountEmbedWithoutType = Omit<AccountEmbed, 'type'>;
+export type AccountEmbedWithoutType = Omit<AccountEmbed, 'type'>;
 
 export interface UserDmSettings extends MongoBaseModel {
   userId: number;
@@ -174,6 +174,7 @@ export default function init(): MongoStores {
       { 'org.id': 1, 'user.id': 1, 'teams.id': 1 },
       { unique: true },
     );
+    coll.createIndex({ 'org.id': 1, 'teams.id': 1 });
   });
 
   const orgTeams = new MongoStore<OrgTeam>(connection, 'orgTeams');

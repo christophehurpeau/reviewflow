@@ -17,7 +17,7 @@ export interface Group {
 }
 
 export interface Team {
-  githubTeamSlug?: string;
+  githubTeamName?: string;
   logins: string[];
   labels?: string[];
 }
@@ -71,6 +71,7 @@ export interface Config<GroupNames extends string, TeamNames extends string> {
 
   botUsers?: string[];
   groups: Record<GroupNames, Group>;
+  groupsGithubTeams?: Record<GroupNames, string[]>;
   teams: Record<TeamNames, Team>;
   waitForGroups?: Record<GroupNames, GroupNames[]>;
 

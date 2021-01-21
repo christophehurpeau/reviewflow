@@ -81,6 +81,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       GaelFerrand: 'gael.ferrand@othrys.dev',
       aenario: `romain.foucault${process.env.ORNIKAR_EMAIL_DOMAIN}`,
     },
+
     design: {
       jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       CoralineColasse: `coraline${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -90,15 +91,20 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
     },
   },
 
+  groupsGithubTeams: {
+    dev: ['ops', 'backend', 'frontend'],
+    design: ['design'],
+  },
+
   teams: {
     ops: {
-      githubTeamSlug: 'ops',
+      githubTeamName: 'ops',
       logins: ['JulienBreux', 'Alan-pad', 'CamilSadiki', 'busser'],
       labels: ['teams/ops'],
     },
 
     backends: {
-      githubTeamSlug: 'backend',
+      githubTeamName: 'backend',
       logins: [
         'abarreir',
         'arthurflachs',
@@ -113,7 +119,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
     },
 
     frontends: {
-      githubTeamSlug: 'frontend',
+      githubTeamName: 'frontend',
       logins: [
         'christophehurpeau',
         'HugoGarrido',

@@ -62,6 +62,17 @@ export default function closed(app: Probot, appContext: AppContext): void {
           });
         }
 
+        if (pullRequest.requested_teams) {
+          await Promise.all(
+            pullRequest.requested_teams.map(async (team) => {
+              const members = await repoContext.getMembersForTeam(team.id);
+              members.forEach((member) => {
+                repoContext.slack.updateHome(member.login);
+              });
+            }),
+          );
+        }
+
         if (pullRequest.assignees) {
           pullRequest.assignees.forEach((assignee) => {
             repoContext.slack.updateHome(assignee.login);

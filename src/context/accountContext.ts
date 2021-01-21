@@ -5,7 +5,14 @@ import type {
   PullRequestWithDecentDataFromWebhook,
 } from 'events/pr-handlers/utils/PullRequestData';
 import type { Config } from '../accountConfigs';
-import type { Org, User, AccountEmbed, AccountType } from '../mongo';
+import type {
+  Org,
+  User,
+  AccountEmbed,
+  AccountType,
+  AccountEmbedWithoutType,
+  OrgMember,
+} from '../mongo';
 import { ExcludesFalsy } from '../utils/Excludes';
 import type { AppContext } from './AppContext';
 import type { AccountInfo } from './getOrCreateAccount';
@@ -25,6 +32,9 @@ export interface AccountContext<
   slack: TeamSlack;
   getReviewerGroup: (githubLogin: string) => GroupNames | undefined;
   getReviewerGroups: (githubLogins: string[]) => GroupNames[];
+  getTeamGroup: (teamName: string) => GroupNames | undefined;
+  getGithubTeamsGroups: (teamNames: string[]) => GroupNames[];
+  getMembersForTeam: (teamId: string) => Promise<AccountEmbedWithoutType[]>;
   getTeamsForLogin: (githubLogin: string) => TeamNames[];
   approveShouldWait: (
     reviewerGroup: GroupNames | undefined,
@@ -53,11 +63,20 @@ const initAccountContext = async (
   const slackPromise = initTeamSlack(appContext, context, config, account);
 
   const githubLoginToGroup = new Map<string, string>();
-  getKeys(config.groups).forEach((groupName) => {
+  for (const groupName of getKeys(config.groups)) {
     Object.keys(config.groups[groupName]).forEach((login) => {
       githubLoginToGroup.set(login, groupName);
     });
-  });
+  }
+
+  const githubTeamNameToGroup = new Map<string, string>();
+  if (config.groupsGithubTeams) {
+    for (const groupName of getKeys(config.groupsGithubTeams)) {
+      Object.keys(config.groupsGithubTeams[groupName]).forEach((teamName) => {
+        githubLoginToGroup.set(teamName, groupName);
+      });
+    }
+  }
 
   const githubLoginToTeams = new Map<string, string[]>();
   getKeys(config.teams || {}).forEach((teamName) => {
@@ -77,6 +96,13 @@ const initAccountContext = async (
     ...new Set(
       githubLogins
         .map((githubLogin) => githubLoginToGroup.get(githubLogin))
+        .filter(ExcludesFalsy),
+    ),
+  ];
+  const getGithubTeamsGroups = (githubTeamNames: string[]): string[] => [
+    ...new Set(
+      githubTeamNames
+        .map((teamName) => githubTeamNameToGroup.get(teamName))
         .filter(ExcludesFalsy),
     ),
   ];
@@ -117,22 +143,54 @@ const initAccountContext = async (
     getReviewerGroup: (githubLogin): string | undefined =>
       githubLoginToGroup.get(githubLogin),
     getReviewerGroups,
+    getTeamGroup: (githubTeamName): string | undefined =>
+      githubTeamNameToGroup.get(githubTeamName),
+    getGithubTeamsGroups,
 
     getTeamsForLogin: (githubLogin): string[] =>
       githubLoginToTeams.get(githubLogin) || [],
+
+    getMembersForTeam: async (teamId): Promise<AccountEmbedWithoutType[]> => {
+      const cursor = await appContext.mongoStores.orgMembers.cursor<
+        Pick<OrgMember, 'user'>
+      >({
+        'org.id': account._id,
+        'teams.id': teamId,
+      });
+      await cursor.limit(100);
+      const orgMembers = await cursor.toArray();
+      return orgMembers.map((member) => member.user);
+    },
 
     approveShouldWait: (
       reviewerGroup,
       pullRequest,
       { includesReviewerGroup, includesWaitForGroups },
     ): boolean => {
-      if (!reviewerGroup || !pullRequest.requested_reviewers) return false;
+      if (
+        !reviewerGroup ||
+        !pullRequest.requested_reviewers ||
+        !pullRequest.requested_teams
+      ) {
+        return false;
+      }
 
-      const requestedReviewerGroups = getReviewerGroups(
-        (pullRequest.requested_reviewers as PullRequestWithDecentDataFromWebhook['requested_reviewers']).map(
-          (request) => request.login,
-        ),
-      );
+      const requestedReviewerGroups = [
+        ...new Set([
+          ...getReviewerGroups(
+            (pullRequest.requested_reviewers as PullRequestWithDecentDataFromWebhook['requested_reviewers']).map(
+              (request) => request.login,
+            ),
+          ),
+          ...(!pullRequest.requested_teams
+            ? []
+            : getGithubTeamsGroups(
+                (pullRequest.requested_teams as PullRequestWithDecentDataFromWebhook['requested_teams']).map(
+                  (team) => team.name,
+                ),
+              )),
+        ]),
+      ];
 
       // TODO pullRequest.requested_teams
 

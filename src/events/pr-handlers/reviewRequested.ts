@@ -21,9 +21,15 @@ export default function reviewRequested(
       ): Promise<void> => {
         const sender = context.payload.sender;
 
-        const reviewer = (context.payload as any).requested_reviewer;
+        const requestedReviewer = (context.payload as any).requested_reviewer;
+        const requestedTeam = (context.payload as any).requested_team;
+        const requestedReviewers = requestedReviewer
+          ? [requestedReviewer]
+          : await repoContext.getMembersForTeam(requestedTeam.slug);
 
-        const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
+        const reviewerGroup = requestedReviewer
+          ? repoContext.getReviewerGroup(requestedReviewer.login)
+          : repoContext.getTeamGroup(requestedTeam.name);
         const shouldWait = false;
         // repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, { includesWaitForGroups: true });
 
@@ -43,45 +49,54 @@ export default function reviewRequested(
             },
           );
 
+          const assigneesLogins: string[] = [];
           if (pullRequest.assignees) {
             pullRequest.assignees.forEach((assignee) => {
+              assigneesLogins.push(assignee.login);
               repoContext.slack.updateHome(assignee.login);
             });
           }
-          if (
-            !pullRequest.assignees.find(
-              (assignee) => assignee.login === reviewer.login,
-            )
-          ) {
-            repoContext.slack.updateHome(reviewer.login);
-          }
-        }
 
-        if (sender.login === reviewer.login) return;
+          requestedReviewers.forEach((potentialReviewer) => {
+            if (assigneesLogins.includes(potentialReviewer)) return;
+            repoContext.slack.updateHome(potentialReviewer.login);
+          });
+        }
 
         if (!shouldWait && repoContext.slack) {
           const text = `:eyes: ${repoContext.slack.mention(
             sender.login,
-          )} requests your review on ${slackUtils.createPrLink(
+          )} requests ${
+            requestedReviewer ? 'your' : `your team _${requestedTeam.name}_`
+          } review on ${slackUtils.createPrLink(
             pullRequest,
             repoContext,
           )} !\n> ${pullRequest.title}`;
           const message = { text };
-          const result = await repoContext.slack.postMessage(
-            'pr-review',
-            reviewer.id,
-            reviewer.login,
-            message,
+
+          await Promise.all(
+            requestedReviewers.map(async (potentialReviewer) => {
+              if (sender.login === potentialReviewer.login) return;
+
+              const result = await repoContext.slack.postMessage(
+                'pr-review',
+                potentialReviewer.id,
+                potentialReviewer.login,
+                message,
+              );
+              if (result) {
+                await appContext.mongoStores.slackSentMessages.insertOne({
+                  type: 'review-requested',
+                  typeId: `${pullRequest.id}_${
+                    requestedTeam ? `${requestedTeam.id}_` : ''
+                  }${potentialReviewer.id}`,
+                  message,
+                  account: repoContext.accountEmbed,
+                  sentTo: [result],
+                });
+              }
+            }),
           );
-          if (result) {
-            await appContext.mongoStores.slackSentMessages.insertOne({
-              type: 'review-requested',
-              typeId: `${pullRequest.id}_${reviewer.id}`,
-              message,
-              account: repoContext.accountEmbed,
-              sentTo: [result],
-            });
-          }
         }
       },
     ),
