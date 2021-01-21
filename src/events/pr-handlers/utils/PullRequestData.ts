@@ -6,8 +6,8 @@ export type PullRequestWithDecentDataFromWebhook =
   | EventPayloads.WebhookPayloadPullRequestReviewPullRequest;
 
 export type PullRequestLabels = Partial<
-    EventPayloads.WebhookPayloadPullRequest['pull_request']['labels'][number]
-  >[];
+  EventPayloads.WebhookPayloadPullRequest['pull_request']['labels'][number]
+>[];
 
 export type PullRequestFromWebhook =
   | PullRequestWithDecentDataFromWebhook
