@@ -432,6 +432,7 @@ const config$2 = {
       Pixy: `pierre-alexis${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       machartier: `marie-anne${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       camillebaronnet: `camille.baronnet${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      'olivier-martinez': `olivier.martinez${process.env.ORNIKAR_EMAIL_DOMAIN}`,
 
       /* front */
       christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -466,7 +467,7 @@ const config$2 = {
     },
     backends: {
       githubTeamName: 'backend',
-      logins: ['abarreir', 'arthurflachs', 'damienorny', 'Thierry-girod', 'darame07', 'Pixy', 'machartier', 'camillebaronnet'],
+      logins: ['abarreir', 'arthurflachs', 'damienorny', 'Thierry-girod', 'darame07', 'Pixy', 'machartier', 'camillebaronnet', 'olivier-martinez'],
       labels: ['teams/backend']
     },
     frontends: {
