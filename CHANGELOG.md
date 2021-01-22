@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.74.0](https://github.com/christophehurpeau/reviewflow/compare/v1.73.0...v1.74.0) (2021-01-22)
+
+
+### Features
+
+* add olivier to backend team ([#176](https://github.com/christophehurpeau/reviewflow/issues/176)) ([cd8a68f](https://github.com/christophehurpeau/reviewflow/commit/cd8a68f3f912d1cb34ef43f798e13fae41ad1124))
+
 ## [1.73.0](https://github.com/christophehurpeau/reviewflow/compare/v1.72.0...v1.73.0) (2021-01-21)
 
 
