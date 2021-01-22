@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.74.2](https://github.com/christophehurpeau/reviewflow/compare/v1.74.1...v1.74.2) (2021-01-22)
+
+
+### Bug Fixes
+
+* **context:** groupsGithubTeams is an object of arrays ([d2aaeae](https://github.com/christophehurpeau/reviewflow/commit/d2aaeae20b5adf041284eeca101a2f92ccc04614))
+
 ### [1.74.1](https://github.com/christophehurpeau/reviewflow/compare/v1.74.0...v1.74.1) (2021-01-22)
 
 
