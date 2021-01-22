@@ -106,7 +106,7 @@
     "@pob/root": "3.0.3",
     "@rollup/plugin-run": "2.0.2",
     "@types/cookie-parser": "1.4.2",
-    "@types/express": "4.17.9",
+    "@types/express": "4.17.11",
     "@types/issue-parser": "3.0.0",
     "@types/jest": "26.0.20",
     "@types/jsonwebtoken": "8.5.0",
