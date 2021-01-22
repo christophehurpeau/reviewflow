@@ -456,7 +456,7 @@ const config$2 = {
     }
   },
   groupsGithubTeams: {
-    dev: ['ops', 'backend', 'frontend'],
+    dev: ['ops', 'backend', 'frontend', 'frontend-architects'],
     design: ['design']
   },
   teams: {
