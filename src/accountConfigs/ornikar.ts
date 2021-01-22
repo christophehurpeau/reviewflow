@@ -93,7 +93,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
   },
 
   groupsGithubTeams: {
-    dev: ['ops', 'backend', 'frontend'],
+    dev: ['ops', 'backend', 'frontend', 'frontend-architects'],
     design: ['design'],
   },
 
