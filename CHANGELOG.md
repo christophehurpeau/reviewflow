@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.74.3](https://github.com/christophehurpeau/reviewflow/compare/v1.74.2...v1.74.3) (2021-01-22)
+
+
+### Bug Fixes
+
+* **context:** set to githubTeamNameToGroup :facepalm: ([1003760](https://github.com/christophehurpeau/reviewflow/commit/1003760684ad63dd9bdc3b1ae088cedb2ef19401))
+
 ### [1.74.2](https://github.com/christophehurpeau/reviewflow/compare/v1.74.1...v1.74.2) (2021-01-22)
 
 
