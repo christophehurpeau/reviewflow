@@ -72,7 +72,7 @@ const initAccountContext = async (
   const githubTeamNameToGroup = new Map<string, string>();
   if (config.groupsGithubTeams) {
     for (const groupName of getKeys(config.groupsGithubTeams)) {
-      Object.keys(config.groupsGithubTeams[groupName]).forEach((teamName) => {
+      config.groupsGithubTeams[groupName].forEach((teamName) => {
         githubLoginToGroup.set(teamName, groupName);
       });
     }
