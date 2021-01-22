@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.74.1](https://github.com/christophehurpeau/reviewflow/compare/v1.74.0...v1.74.1) (2021-01-22)
+
+
+### Bug Fixes
+
+* **configs:** add frontend-architects in dev group github teams ([e7c3ae3](https://github.com/christophehurpeau/reviewflow/commit/e7c3ae3d5de15082b7873b5966b227c5efd25a25))
+
 ## [1.74.0](https://github.com/christophehurpeau/reviewflow/compare/v1.73.0...v1.74.0) (2021-01-22)
 
 
