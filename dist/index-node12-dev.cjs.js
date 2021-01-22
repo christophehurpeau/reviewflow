@@ -1366,7 +1366,7 @@ const initAccountContext = async (appContext, context, config, accountInfo) => {
   if (config.groupsGithubTeams) {
     for (const groupName of getKeys(config.groupsGithubTeams)) {
       config.groupsGithubTeams[groupName].forEach(teamName => {
-        githubLoginToGroup.set(teamName, groupName);
+        githubTeamNameToGroup.set(teamName, groupName);
       });
     }
   }
