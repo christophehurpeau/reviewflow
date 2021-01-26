@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.75.0](https://github.com/christophehurpeau/reviewflow/compare/v1.74.3...v1.75.0) (2021-01-26)
+
+
+### Features
+
+* **deps:** update dependency @octokit/rest to v18.0.14 ([#175](https://github.com/christophehurpeau/reviewflow/issues/175)) ([97e0a4a](https://github.com/christophehurpeau/reviewflow/commit/97e0a4aed676f2b36e48617c68f1472708bc478f))
+
+
+### Bug Fixes
+
+* dont add skip ci label when code approved ([f9bee58](https://github.com/christophehurpeau/reviewflow/commit/f9bee581be0cfa575944c374b504f981cf791309))
+
 ### [1.74.3](https://github.com/christophehurpeau/reviewflow/compare/v1.74.2...v1.74.3) (2021-01-22)
 
 
