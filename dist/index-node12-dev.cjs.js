@@ -3191,7 +3191,7 @@ function labelsChanged(app, appContext) {
             autoMerge: true,
             // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
             // Note: si c'est renovate qui ajoute le label autoMerge, le label codeApprovedLabel n'aurait pu etre ajouté que par renovate également (on est a quelques secondes de l'ouverture de la pr par renovate)
-            autoMergeWithSkipCi: hasLabelInPR(pullRequest.labels, codeApprovedLabel) ? true : repoContext.config.prDefaultOptions.autoMergeWithSkipCi
+            autoMergeWithSkipCi: hasLabelInPR(pullRequest.labels, autoMergeSkipCiLabel) ? true : repoContext.config.prDefaultOptions.autoMergeWithSkipCi
           });
         }
 

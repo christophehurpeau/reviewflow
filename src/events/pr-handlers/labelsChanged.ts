@@ -118,7 +118,7 @@ export default function labelsChanged(
                   // Note: si c'est renovate qui ajoute le label autoMerge, le label codeApprovedLabel n'aurait pu etre ajouté que par renovate également (on est a quelques secondes de l'ouverture de la pr par renovate)
                   autoMergeWithSkipCi: hasLabelInPR(
                     pullRequest.labels,
-                    codeApprovedLabel,
+                    autoMergeSkipCiLabel,
                   )
                     ? true
                     : repoContext.config.prDefaultOptions.autoMergeWithSkipCi,
