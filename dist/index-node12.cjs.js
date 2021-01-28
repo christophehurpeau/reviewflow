@@ -463,7 +463,7 @@ const config$2 = {
   teams: {
     ops: {
       githubTeamName: 'ops',
-      logins: ['JulienBreux', 'Alan-pad', 'CamilSadiki', 'busser'],
+      logins: ['JulienBreux', 'TheR3aLp3nGuinJM', 'AymenBac'],
       labels: ['teams/ops']
     },
     backends: {
