@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.76.1](https://github.com/christophehurpeau/reviewflow/compare/v1.76.0...v1.76.1) (2021-01-28)
+
+
+### Bug Fixes
+
+* logins ops team in ornikar config ([09c748e](https://github.com/christophehurpeau/reviewflow/commit/09c748e6e89cd654f100ce8cdbcd344aea51fcc7))
+
 ## [1.76.0](https://github.com/christophehurpeau/reviewflow/compare/v1.75.0...v1.76.0) (2021-01-28)
 
 
