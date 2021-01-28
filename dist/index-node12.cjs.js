@@ -423,6 +423,7 @@ const config$2 = {
       /* ops */
       JulienBreux: `julien.breux${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       TheR3aLp3nGuinJM: `jean-michel${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      AymenBac: `aymen${process.env.ORNIKAR_EMAIL_DOMAIN}`,
 
       /* back */
       abarreir: `alexandre${process.env.ORNIKAR_EMAIL_DOMAIN}`,
