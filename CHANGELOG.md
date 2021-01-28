@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.76.0](https://github.com/christophehurpeau/reviewflow/compare/v1.75.0...v1.76.0) (2021-01-28)
+
+
+### Features
+
+* add aymen in ornikar config ([a9007a3](https://github.com/christophehurpeau/reviewflow/commit/a9007a3c908b7a4899ccbb1c50682df80a4e367d))
+
 ## [1.75.0](https://github.com/christophehurpeau/reviewflow/compare/v1.74.3...v1.75.0) (2021-01-26)
 
 
