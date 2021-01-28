@@ -25,7 +25,7 @@ export default function reviewRequested(
         const requestedTeam = (context.payload as any).requested_team;
         const requestedReviewers = requestedReviewer
           ? [requestedReviewer]
-          : await repoContext.getMembersForTeam(requestedTeam.slug);
+          : await repoContext.getMembersForTeam(requestedTeam.id);
 
         const reviewerGroup = requestedReviewer
           ? repoContext.getReviewerGroup(requestedReviewer.login)

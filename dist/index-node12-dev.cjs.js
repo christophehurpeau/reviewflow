@@ -3436,7 +3436,7 @@ function reviewRequestRemoved(app, appContext) {
     const sender = context.payload.sender;
     const requestedReviewer = context.payload.requested_reviewer;
     const requestedTeam = context.payload.requested_team;
-    const requestedReviewers = requestedReviewer ? [requestedReviewer] : await repoContext.getMembersForTeam(requestedTeam.slug);
+    const requestedReviewers = requestedReviewer ? [requestedReviewer] : await repoContext.getMembersForTeam(requestedTeam.id);
     const reviewerGroup = requestedReviewer ? repoContext.getReviewerGroup(requestedReviewer.login) : repoContext.getTeamGroup(requestedTeam.name);
 
     if (!repoContext.shouldIgnore && reviewerGroup && repoContext.config.labels.review[reviewerGroup]) {
@@ -3512,7 +3512,7 @@ function reviewRequested(app, appContext) {
     const sender = context.payload.sender;
     const requestedReviewer = context.payload.requested_reviewer;
     const requestedTeam = context.payload.requested_team;
-    const requestedReviewers = requestedReviewer ? [requestedReviewer] : await repoContext.getMembersForTeam(requestedTeam.slug);
+    const requestedReviewers = requestedReviewer ? [requestedReviewer] : await repoContext.getMembersForTeam(requestedTeam.id);
     const reviewerGroup = requestedReviewer ? repoContext.getReviewerGroup(requestedReviewer.login) : repoContext.getTeamGroup(requestedTeam.name);
 
     // repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, { includesWaitForGroups: true });
