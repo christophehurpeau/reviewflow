@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.76.2](https://github.com/christophehurpeau/reviewflow/compare/v1.76.1...v1.76.2) (2021-01-28)
+
+
+### Bug Fixes
+
+* use team id not team slug to find members ([c876a59](https://github.com/christophehurpeau/reviewflow/commit/c876a59d85071c6f1d12d5878c9447401f310ff0))
+
 ### [1.76.1](https://github.com/christophehurpeau/reviewflow/compare/v1.76.0...v1.76.1) (2021-01-28)
 
 
