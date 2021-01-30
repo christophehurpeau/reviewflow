@@ -55,8 +55,10 @@ export type ReviewConfig<GroupNames extends string> = Record<
 > &
   Record<'ci', Record<CiLabels, string>>;
 
+export type LabelList = Record<string, LabelDescriptor>;
+
 export interface LabelsConfig<GroupNames extends string> {
-  list: Record<string, LabelDescriptor>;
+  list: LabelList;
   review: ReviewConfig<GroupNames>;
 }
 

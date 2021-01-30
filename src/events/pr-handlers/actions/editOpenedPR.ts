@@ -161,6 +161,8 @@ export const editOpenedPR = async <
 
   const newBody = shouldCreateCommentBody
     ? createCommentBody(
+        context.payload.repository.html_url,
+        repoContext.config.labels.list,
         calcDefaultOptions(repoContext, pullRequest),
         commentBodyInfos,
       )

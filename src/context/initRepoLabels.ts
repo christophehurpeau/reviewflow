@@ -58,6 +58,11 @@ export const initRepoLabels = async <GroupNames extends string>(
       if (labelKey === 'teams/ops') {
         existingLabel = labels.find((label) => label.name === 'archi');
       }
+      if (labelKey === 'merge/skip-ci') {
+        existingLabel = labels.find(
+          (label) => label.name === 'automerge/skip-ci',
+        );
+      }
     }
 
     if (!existingLabel) {

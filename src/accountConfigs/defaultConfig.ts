@@ -5,9 +5,8 @@ const config: Config<never, never> = {
   trimTitle: true,
   requiresReviewRequest: false,
   prDefaultOptions: {
-    featureBranch: false,
-    autoMergeWithSkipCi: false,
     autoMerge: false,
+    autoMergeWithSkipCi: false,
     deleteAfterMerge: true,
   },
   parsePR: {

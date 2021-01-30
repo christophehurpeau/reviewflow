@@ -6,9 +6,8 @@ import { parsePrBodyWithOptions } from './parsePrBody';
 describe('simple', () => {
   it('should parse default description', () => {
     const defaultOptions = {
-      featureBranch: false,
-      autoMergeWithSkipCi: false,
       autoMerge: false,
+      autoMergeWithSkipCi: false,
       deleteAfterMerge: true,
     };
 
@@ -16,9 +15,8 @@ describe('simple', () => {
 
     expect(parsed).not.toBeFalsy();
     expect(parsed?.options).toEqual({
-      featureBranch: false,
-      autoMergeWithSkipCi: false,
       autoMerge: false,
+      autoMergeWithSkipCi: false,
       deleteAfterMerge: true,
     });
     expect(parsed?.commitNotes).toBe('');
@@ -26,9 +24,8 @@ describe('simple', () => {
 
   it('should parse breaking changes', () => {
     const defaultOptions = {
-      featureBranch: false,
-      autoMergeWithSkipCi: false,
       autoMerge: false,
+      autoMergeWithSkipCi: false,
       deleteAfterMerge: true,
     };
 
@@ -42,9 +39,8 @@ describe('simple', () => {
 
     expect(parsed).not.toBeFalsy();
     expect(parsed?.options).toEqual({
-      featureBranch: false,
-      autoMergeWithSkipCi: false,
       autoMerge: false,
+      autoMergeWithSkipCi: false,
       deleteAfterMerge: true,
     });
     expect(parsed?.commitNotes).toBe('Some commits Notes');
@@ -54,9 +50,8 @@ describe('simple', () => {
 describe('table', () => {
   it('should parse default description', () => {
     const defaultOptions = {
-      featureBranch: false,
-      autoMergeWithSkipCi: false,
       autoMerge: false,
+      autoMergeWithSkipCi: false,
       deleteAfterMerge: true,
     };
 
@@ -64,9 +59,8 @@ describe('table', () => {
 
     expect(parsed).not.toBeFalsy();
     expect(parsed?.options).toEqual({
-      featureBranch: false,
-      autoMergeWithSkipCi: false,
       autoMerge: false,
+      autoMergeWithSkipCi: false,
       deleteAfterMerge: true,
     });
     expect(parsed?.commitNotes).toBe('');
@@ -76,9 +70,8 @@ describe('table', () => {
 describe('table', () => {
   it('should parse edited description', () => {
     const defaultOptions = {
-      featureBranch: true,
-      autoMergeWithSkipCi: false,
       autoMerge: false,
+      autoMergeWithSkipCi: false,
       deleteAfterMerge: true,
     };
 
@@ -86,9 +79,8 @@ describe('table', () => {
 
     expect(parsed).not.toBeFalsy();
     expect(parsed?.options).toEqual({
-      featureBranch: false,
-      autoMergeWithSkipCi: false,
       autoMerge: false,
+      autoMergeWithSkipCi: false,
       deleteAfterMerge: true,
     });
     expect(parsed?.commitNotes).toBe('');

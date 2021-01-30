@@ -9,6 +9,7 @@ import {
   mockLabels,
   nock,
 } from '../../tests/setup';
+import commentBodyV2InitialAfterEditSimple from './actions/utils/body/mocks/commentBody-v2-initialAfterEdit-simple';
 
 jest.spyOn(initTeamSlack, 'initTeamSlack').mockResolvedValue(voidTeamSlack());
 
@@ -40,8 +41,10 @@ describe('opened', (): void => {
 
       .patch('/repos/reviewflow/reviewflow-test/issues/comments/1', (body) => {
         expect(body).toEqual({
-          body:
-            '#### Options:\n- [ ] <!-- reviewflow-featureBranch -->This PR is a feature branch\n- [ ] <!-- reviewflow-autoMergeWithSkipCi -->Add `[skip ci]` on merge commit\n- [ ] <!-- reviewflow-autoMerge -->Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless "Update branch" triggers)\n- [x] <!-- reviewflow-deleteAfterMerge -->Automatic branch delete after this PR is merged',
+          body: commentBodyV2InitialAfterEditSimple.replace(
+            /christophehurpeau\/reviewflow/g,
+            'reviewflow/reviewflow-test',
+          ),
         });
         return true;
       })

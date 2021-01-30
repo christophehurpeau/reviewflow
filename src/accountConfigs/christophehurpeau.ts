@@ -5,9 +5,8 @@ const config: Config<'dev', never> = {
   trimTitle: true,
   requiresReviewRequest: false,
   prDefaultOptions: {
-    featureBranch: false,
-    autoMergeWithSkipCi: false,
     autoMerge: false,
+    autoMergeWithSkipCi: false,
     deleteAfterMerge: true,
   },
   parsePR: {
@@ -65,7 +64,7 @@ const config: Config<'dev', never> = {
         color: '#64DD17',
       },
       'merge/skip-ci': {
-        name: 'automerge/skip-ci',
+        name: ':vertical_traffic_light: skip-ci',
         color: '#e1e8ed',
       },
       'merge/update-branch': {

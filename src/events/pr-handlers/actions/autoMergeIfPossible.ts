@@ -320,18 +320,19 @@ export const autoMergeIfPossible = async (
       repoContext.config.prDefaultOptions,
     );
     const options = parsedBody?.options || repoContext.config.prDefaultOptions;
+    const isFeatureBranch = false; // options.featureBranch;
 
     const mergeResult = await context.octokit.pulls.merge({
-      merge_method: options.featureBranch ? 'merge' : 'squash',
+      merge_method: isFeatureBranch ? 'merge' : 'squash',
       owner: pullRequest.head.repo.owner.login,
       repo: pullRequest.head.repo.name,
       pull_number: pullRequest.number,
-      commit_title: options.featureBranch
+      commit_title: isFeatureBranch
         ? undefined
         : `${pullRequest.title}${
             options.autoMergeWithSkipCi ? ' [skip ci]' : ''
           } (#${pullRequest.number})`,
-      commit_message: options.featureBranch ? undefined : '', // TODO add BC
+      commit_message: isFeatureBranch ? undefined : '', // TODO add BC
     });
     context.log.debug(mergeResult.data, 'merge result:');
     repoContext.removePrFromAutomergeQueue(

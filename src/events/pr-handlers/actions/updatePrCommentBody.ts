@@ -42,6 +42,8 @@ export const updatePrCommentBodyOptions = async <
   updateOptions: Partial<Options>,
 ): Promise<void> => {
   const { commentBody: newBody } = updateCommentOptions(
+    context.payload.repository.html_url,
+    repoContext.config.labels.list,
     reviewflowPrContext.commentBody,
     repoContext.config.prDefaultOptions,
     updateOptions,

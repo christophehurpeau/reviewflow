@@ -56,7 +56,7 @@
   {
     "id": 1285313520,
     "node_id": "MDU6TGFiZWwxMjg1MzEzNTIw",
-    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:soon:%20automerge",
+    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:vertical_traffic_light:%20automerge",
     "name": ":vertical_traffic_light: automerge",
     "color": "64DD17",
     "default": false,
@@ -92,8 +92,8 @@
   {
     "id": 1517089313,
     "node_id": "MDU6TGFiZWwxNTE3MDg5MzEz",
-    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/automerge/skip-ci",
-    "name": "automerge/skip-ci",
+    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:vertical_traffic_light:%20skip-ci",
+    "name": ":vertical_traffic_light: skip-ci",
     "color": "e1e8ed",
     "default": false,
     "description": "Synced by reviewflow for merge/skip-ci"

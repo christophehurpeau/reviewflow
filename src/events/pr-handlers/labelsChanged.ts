@@ -151,14 +151,10 @@ export default function labelsChanged(
         await updateStatusCheckFromLabels(updatedPr, context, repoContext);
 
         const updateBranchLabel = repoContext.labels['merge/update-branch'];
-        const featureBranchLabel = repoContext.labels['feature-branch'];
         const automergeLabel = repoContext.labels['merge/automerge'];
         const skipCiLabel = repoContext.labels['merge/skip-ci'];
 
         const option = (() => {
-          if (featureBranchLabel && label.id === featureBranchLabel.id) {
-            return 'featureBranch';
-          }
           if (automergeLabel && label.id === automergeLabel.id) {
             return 'autoMerge';
           }

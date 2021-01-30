@@ -239,9 +239,8 @@ const config = {
   trimTitle: true,
   requiresReviewRequest: false,
   prDefaultOptions: {
-    featureBranch: false,
-    autoMergeWithSkipCi: false,
     autoMerge: false,
+    autoMergeWithSkipCi: false,
     deleteAfterMerge: true
   },
   parsePR: {
@@ -295,7 +294,7 @@ const config = {
         color: '#64DD17'
       },
       'merge/skip-ci': {
-        name: 'automerge/skip-ci',
+        name: ':vertical_traffic_light: skip-ci',
         color: '#e1e8ed'
       },
       'merge/update-branch': {
@@ -336,9 +335,8 @@ const config$1 = {
   trimTitle: true,
   requiresReviewRequest: false,
   prDefaultOptions: {
-    featureBranch: false,
-    autoMergeWithSkipCi: false,
     autoMerge: false,
+    autoMergeWithSkipCi: false,
     deleteAfterMerge: true
   },
   parsePR: {
@@ -377,7 +375,6 @@ const config$2 = {
   requiresReviewRequest: true,
   autoMergeRenovateWithSkipCi: false,
   prDefaultOptions: {
-    featureBranch: false,
     autoMergeWithSkipCi: false,
     autoMerge: false,
     deleteAfterMerge: true
@@ -544,7 +541,7 @@ const config$2 = {
         color: '#64DD17'
       },
       'merge/skip-ci': {
-        name: 'automerge/skip-ci',
+        name: ':vertical_traffic_light: skip-ci',
         color: '#e1e8ed'
       },
       'merge/update-branch': {
@@ -1502,23 +1499,23 @@ const createHandlerOrgChange = (appContext, callback) => context => {
   return handlerOrgChange(appContext, context, callback);
 };
 
-const options = ['featureBranch', 'autoMergeWithSkipCi', 'autoMerge', 'deleteAfterMerge'];
+const options = ['autoMerge', 'autoMergeWithSkipCi', 'deleteAfterMerge'];
 const optionsRegexps = options.map(option => ({
   key: option,
   regexp: new RegExp(`\\[([ xX]?)]\\s*<!-- reviewflow-${option} -->`)
 }));
-const optionsLabels = [{
-  key: 'featureBranch',
-  label: 'This PR is a feature branch'
+const optionsDescriptions = [{
+  key: 'autoMerge',
+  labelKey: 'merge/automerge',
+  description: 'Automatically merge when this PR is ready and has no failed statuses. When the repository requires _branches to be up to date before merging_, it merges default branch, with a queue per repo to prevent multiple merges when several PRs are ready. A fail job prevents the merge.'
 }, {
   key: 'autoMergeWithSkipCi',
-  label: 'Add `[skip ci]` on merge commit'
-}, {
-  key: 'autoMerge',
-  label: 'Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless "Update branch" triggers)'
+  labelKey: 'merge/skip-ci',
+  description: 'Add `[skip ci]` on merge commit when merge is done with autoMerge.'
 }, {
   key: 'deleteAfterMerge',
-  label: 'Automatic branch delete after this PR is merged'
+  icon: ':recycle:',
+  description: 'Automatically delete the branch after this PR is merged.'
 }];
 
 const parseOptions = (content, defaultOptions) => {
@@ -1748,13 +1745,14 @@ const autoMergeIfPossible = async (pullRequest, context, repoContext, reviewflow
     context.log.info(`automerge pr #${pullRequest.number}`);
     const parsedBody = parseBody(reviewflowPrContext.commentBody, repoContext.config.prDefaultOptions);
     const options = (parsedBody === null || parsedBody === void 0 ? void 0 : parsedBody.options) || repoContext.config.prDefaultOptions;
+    // options.featureBranch;
     const mergeResult = await context.octokit.pulls.merge({
-      merge_method: options.featureBranch ? 'merge' : 'squash',
+      merge_method: 'squash',
       owner: pullRequest.head.repo.owner.login,
       repo: pullRequest.head.repo.name,
       pull_number: pullRequest.number,
-      commit_title: options.featureBranch ? undefined : `${pullRequest.title}${options.autoMergeWithSkipCi ? ' [skip ci]' : ''} (#${pullRequest.number})`,
-      commit_message: options.featureBranch ? undefined : '' // TODO add BC
+      commit_title: `${pullRequest.title}${options.autoMergeWithSkipCi ? ' [skip ci]' : ''} (#${pullRequest.number})`,
+      commit_message: '' // TODO add BC
 
     });
     context.log.debug(mergeResult.data, 'merge result:');
@@ -1771,11 +1769,19 @@ const autoMergeIfPossible = async (pullRequest, context, repoContext, reviewflow
 
 const defaultCommentBody = 'This will be auto filled by reviewflow.';
 
-const toMarkdownOptions = options => {
-  return optionsLabels.map(({
+const toMarkdownOptions = (repoLink, labelsConfig, options) => {
+  return optionsDescriptions.map(({
     key,
-    label
-  }) => `- [${options[key] ? 'x' : ' '}] <!-- reviewflow-${key} -->${label}`).join('\n');
+    labelKey,
+    description,
+    icon: iconValue
+  }) => {
+    const checkboxWithId = `[${options[key] ? 'x' : ' '}] <!-- reviewflow-${key} -->`;
+    const labelDescription = labelKey && labelsConfig[labelKey];
+    const labelLink = labelDescription ? `[${labelDescription.name}](${repoLink}/labels/${encodeURIComponent(labelDescription.name)}): ` : '';
+    const icon = labelLink || !iconValue ? '' : `${iconValue} `;
+    return `- ${checkboxWithId}${icon}${labelLink}${description}`;
+  }).join('\n');
 };
 
 const toMarkdownInfos = infos => {
@@ -1797,21 +1803,21 @@ const updateOptions = (options, optionsToUpdate) => {
   };
 };
 
-const internalUpdateBodyOptionsAndInfos = (body, options, infos) => {
+const internalUpdateBodyOptionsAndInfos = (repoLink, labelsConfig, body, options, infos) => {
   const infosAndCommitNotesParagraph = body.replace( // eslint-disable-next-line unicorn/no-unsafe-regex
   /^\s*(?:(#### Infos:.*)?(#### Commits Notes:.*)?#### Options:)?.*$/s, getReplacement(infos));
-  return `${infosAndCommitNotesParagraph}#### Options:\n${toMarkdownOptions(options)}`;
+  return `${infosAndCommitNotesParagraph}#### Options:\n${toMarkdownOptions(repoLink, labelsConfig, options)}`;
 };
 
-const createCommentBody = (defaultOptions, infos) => {
-  return internalUpdateBodyOptionsAndInfos('', defaultOptions, infos);
+const createCommentBody = (repoLink, labelsConfig, defaultOptions, infos) => {
+  return internalUpdateBodyOptionsAndInfos(repoLink, labelsConfig, '', defaultOptions, infos);
 };
-const updateCommentOptions = (commentBody, defaultOptions, optionsToUpdate) => {
+const updateCommentOptions = (repoLink, labelsConfig, commentBody, defaultOptions, optionsToUpdate) => {
   const options = parseOptions(commentBody, defaultOptions);
   const updatedOptions = updateOptions(options, optionsToUpdate);
   return {
     options: updatedOptions,
-    commentBody: internalUpdateBodyOptionsAndInfos(commentBody, updatedOptions)
+    commentBody: internalUpdateBodyOptionsAndInfos(repoLink, labelsConfig, commentBody, updatedOptions)
   };
 };
 const updateCommentBodyInfos = (commentBody, infos) => {
@@ -1941,6 +1947,10 @@ const initRepoLabels = async (context, config) => {
 
       if (labelKey === 'teams/ops') {
         existingLabel = labels.find(label => label.name === 'archi');
+      }
+
+      if (labelKey === 'merge/skip-ci') {
+        existingLabel = labels.find(label => label.name === 'automerge/skip-ci');
       }
     }
 
@@ -2829,7 +2839,7 @@ const updatePrCommentBodyIfNeeded = async (context, reviewflowPrContext, newBody
 const updatePrCommentBodyOptions = async (context, repoContext, reviewflowPrContext, updateOptions) => {
   const {
     commentBody: newBody
-  } = updateCommentOptions(reviewflowPrContext.commentBody, repoContext.config.prDefaultOptions, updateOptions);
+  } = updateCommentOptions(context.payload.repository.html_url, repoContext.config.labels.list, reviewflowPrContext.commentBody, repoContext.config.prDefaultOptions, updateOptions);
   await updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newBody);
 };
 
@@ -2853,33 +2863,28 @@ async function syncLabel(pullRequest, context, shouldHaveLabel, label, prHasLabe
 }
 
 const calcDefaultOptions = (repoContext, pullRequest) => {
-  const featureBranchLabel = repoContext.labels['feature-branch'];
   const automergeLabel = repoContext.labels['merge/automerge'];
   const skipCiLabel = repoContext.labels['merge/skip-ci'];
-  const prHasFeatureBranchLabel = hasLabelInPR(pullRequest.labels, featureBranchLabel);
   const prHasSkipCiLabel = hasLabelInPR(pullRequest.labels, skipCiLabel);
   const prHasAutoMergeLabel = hasLabelInPR(pullRequest.labels, automergeLabel);
   return { ...repoContext.config.prDefaultOptions,
-    featureBranch: prHasFeatureBranchLabel,
     autoMergeWithSkipCi: prHasSkipCiLabel,
     autoMerge: prHasAutoMergeLabel
   };
 };
 const syncLabelsAfterCommentBodyEdited = async (pullRequest, context, repoContext, reviewflowPrContext) => {
-  const featureBranchLabel = repoContext.labels['feature-branch'];
   const automergeLabel = repoContext.labels['merge/automerge'];
   const skipCiLabel = repoContext.labels['merge/skip-ci'];
-  const prHasFeatureBranchLabel = hasLabelInPR(pullRequest.labels, featureBranchLabel);
   const prHasSkipCiLabel = hasLabelInPR(pullRequest.labels, skipCiLabel);
   const prHasAutoMergeLabel = hasLabelInPR(pullRequest.labels, automergeLabel);
   const {
     commentBody,
     options
-  } = updateCommentOptions(reviewflowPrContext.commentBody, calcDefaultOptions(repoContext, pullRequest));
+  } = updateCommentOptions(context.payload.repository.html_url, repoContext.config.labels.list, reviewflowPrContext.commentBody, calcDefaultOptions(repoContext, pullRequest));
   await updatePrCommentBodyIfNeeded(context, reviewflowPrContext, commentBody);
 
-  if (options && (featureBranchLabel || automergeLabel)) {
-    await Promise.all([featureBranchLabel && syncLabel(pullRequest, context, options.featureBranch, featureBranchLabel, prHasFeatureBranchLabel), skipCiLabel && syncLabel(pullRequest, context, options.autoMergeWithSkipCi, skipCiLabel, prHasSkipCiLabel), automergeLabel && syncLabel(pullRequest, context, options.autoMerge, automergeLabel, prHasAutoMergeLabel, {
+  if (options && automergeLabel) {
+    await Promise.all([skipCiLabel && syncLabel(pullRequest, context, options.autoMergeWithSkipCi, skipCiLabel, prHasSkipCiLabel), automergeLabel && syncLabel(pullRequest, context, options.autoMerge, automergeLabel, prHasAutoMergeLabel, {
       onAdd: async prLabels => {
         await autoMergeIfPossible(pullRequest, context, repoContext, reviewflowPrContext, prLabels);
       },
@@ -3061,7 +3066,7 @@ const editOpenedPR = async (pullRequest, context, repoContext, reviewflowPrConte
     return (_status$info = status.info) === null || _status$info === void 0 ? void 0 : _status$info.inBody;
   }).map(status => status.info);
   const shouldCreateCommentBody = reviewflowPrContext.commentBody === defaultCommentBody;
-  const newBody = shouldCreateCommentBody ? createCommentBody(calcDefaultOptions(repoContext, pullRequest), commentBodyInfos) : updateCommentBodyInfos(reviewflowPrContext.commentBody, commentBodyInfos);
+  const newBody = shouldCreateCommentBody ? createCommentBody(context.payload.repository.html_url, repoContext.config.labels.list, calcDefaultOptions(repoContext, pullRequest), commentBodyInfos) : updateCommentBodyInfos(reviewflowPrContext.commentBody, commentBodyInfos);
 
   if (shouldCreateCommentBody || shouldUpdateCommentBodyInfos) {
     promises.push(readCommitsAndUpdateInfos(pullRequest, context, repoContext, reviewflowPrContext, newBody));
@@ -3222,15 +3227,10 @@ function labelsChanged(app, appContext) {
 
     await updateStatusCheckFromLabels(updatedPr, context, repoContext);
     const updateBranchLabel = repoContext.labels['merge/update-branch'];
-    const featureBranchLabel = repoContext.labels['feature-branch'];
     const automergeLabel = repoContext.labels['merge/automerge'];
     const skipCiLabel = repoContext.labels['merge/skip-ci'];
 
     const option = (() => {
-      if (featureBranchLabel && label.id === featureBranchLabel.id) {
-        return 'featureBranch';
-      }
-
       if (automergeLabel && label.id === automergeLabel.id) {
         return 'autoMerge';
       }

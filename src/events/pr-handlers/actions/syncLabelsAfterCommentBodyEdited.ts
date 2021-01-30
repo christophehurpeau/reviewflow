@@ -16,20 +16,14 @@ export const calcDefaultOptions = (
   repoContext: RepoContext,
   pullRequest: PullRequestWithDecentData,
 ): Options => {
-  const featureBranchLabel = repoContext.labels['feature-branch'];
   const automergeLabel = repoContext.labels['merge/automerge'];
   const skipCiLabel = repoContext.labels['merge/skip-ci'];
 
-  const prHasFeatureBranchLabel = hasLabelInPR(
-    pullRequest.labels,
-    featureBranchLabel,
-  );
   const prHasSkipCiLabel = hasLabelInPR(pullRequest.labels, skipCiLabel);
   const prHasAutoMergeLabel = hasLabelInPR(pullRequest.labels, automergeLabel);
 
   return {
     ...repoContext.config.prDefaultOptions,
-    featureBranch: prHasFeatureBranchLabel,
     autoMergeWithSkipCi: prHasSkipCiLabel,
     autoMerge: prHasAutoMergeLabel,
   };
@@ -41,34 +35,23 @@ export const syncLabelsAfterCommentBodyEdited = async (
   repoContext: RepoContext,
   reviewflowPrContext: ReviewflowPrContext,
 ): Promise<void> => {
-  const featureBranchLabel = repoContext.labels['feature-branch'];
   const automergeLabel = repoContext.labels['merge/automerge'];
   const skipCiLabel = repoContext.labels['merge/skip-ci'];
 
-  const prHasFeatureBranchLabel = hasLabelInPR(
-    pullRequest.labels,
-    featureBranchLabel,
-  );
   const prHasSkipCiLabel = hasLabelInPR(pullRequest.labels, skipCiLabel);
   const prHasAutoMergeLabel = hasLabelInPR(pullRequest.labels, automergeLabel);
 
   const { commentBody, options } = updateCommentOptions(
+    context.payload.repository.html_url,
+    repoContext.config.labels.list,
     reviewflowPrContext.commentBody,
     calcDefaultOptions(repoContext, pullRequest),
   );
 
   await updatePrCommentBodyIfNeeded(context, reviewflowPrContext, commentBody);
 
-  if (options && (featureBranchLabel || automergeLabel)) {
+  if (options && automergeLabel) {
     await Promise.all([
-      featureBranchLabel &&
-        syncLabel(
-          pullRequest,
-          context,
-          options.featureBranch,
-          featureBranchLabel,
-          prHasFeatureBranchLabel,
-        ),
       skipCiLabel &&
         syncLabel(
           pullRequest,

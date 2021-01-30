@@ -1,16 +1,31 @@
-import type { StatusInfo } from 'accountConfigs/types';
+import type { LabelList, StatusInfo } from 'accountConfigs/types';
 import type { Options } from './parseBody';
 import { parseOptions } from './parseBody';
-import { optionsLabels } from './prOptions';
+import { optionsDescriptions } from './prOptions';
 
 export const defaultCommentBody = 'This will be auto filled by reviewflow.';
 
-const toMarkdownOptions = (options: Options) => {
-  return optionsLabels
-    .map(
-      ({ key, label }) =>
-        `- [${options[key] ? 'x' : ' '}] <!-- reviewflow-${key} -->${label}`,
-    )
+const toMarkdownOptions = (
+  repoLink: string,
+  labelsConfig: LabelList,
+  options: Options,
+): string => {
+  return optionsDescriptions
+    .map(({ key, labelKey, description, icon: iconValue }) => {
+      const checkboxWithId = `[${
+        options[key] ? 'x' : ' '
+      }] <!-- reviewflow-${key} -->`;
+
+      const labelDescription = labelKey && labelsConfig[labelKey];
+      const labelLink = labelDescription
+        ? `[${labelDescription.name}](${repoLink}/labels/${encodeURIComponent(
+            labelDescription.name,
+          )}): `
+        : '';
+      const icon = labelLink || !iconValue ? '' : `${iconValue} `;
+
+      return `- ${checkboxWithId}${icon}${labelLink}${description}`;
+    })
     .join('\n');
 };
 
@@ -44,6 +59,8 @@ const updateOptions = (
 };
 
 const internalUpdateBodyOptionsAndInfos = (
+  repoLink: string,
+  labelsConfig: LabelList,
   body: string,
   options: Options,
   infos?: StatusInfo[],
@@ -55,18 +72,30 @@ const internalUpdateBodyOptionsAndInfos = (
   );
 
   return `${infosAndCommitNotesParagraph}#### Options:\n${toMarkdownOptions(
+    repoLink,
+    labelsConfig,
     options,
   )}`;
 };
 
 export const createCommentBody = (
+  repoLink: string,
+  labelsConfig: LabelList,
   defaultOptions: Options,
   infos?: StatusInfo[],
 ): string => {
-  return internalUpdateBodyOptionsAndInfos('', defaultOptions, infos);
+  return internalUpdateBodyOptionsAndInfos(
+    repoLink,
+    labelsConfig,
+    '',
+    defaultOptions,
+    infos,
+  );
 };
 
 export const updateCommentOptions = (
+  repoLink: string,
+  labelsConfig: LabelList,
   commentBody: string,
   defaultOptions: Options,
   optionsToUpdate?: Partial<Options>,
@@ -76,7 +105,12 @@ export const updateCommentOptions = (
 
   return {
     options: updatedOptions,
-    commentBody: internalUpdateBodyOptionsAndInfos(commentBody, updatedOptions),
+    commentBody: internalUpdateBodyOptionsAndInfos(
+      repoLink,
+      labelsConfig,
+      commentBody,
+      updatedOptions,
+    ),
   };
 };
 

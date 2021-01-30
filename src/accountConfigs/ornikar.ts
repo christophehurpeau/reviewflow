@@ -7,7 +7,6 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
   requiresReviewRequest: true,
   autoMergeRenovateWithSkipCi: false,
   prDefaultOptions: {
-    featureBranch: false,
     autoMergeWithSkipCi: false,
     autoMerge: false,
     deleteAfterMerge: true,
@@ -207,7 +206,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         color: '#64DD17',
       },
       'merge/skip-ci': {
-        name: 'automerge/skip-ci',
+        name: ':vertical_traffic_light: skip-ci',
         color: '#e1e8ed',
       },
       'merge/update-branch': {
