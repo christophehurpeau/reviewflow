@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.76.3](https://github.com/christophehurpeau/reviewflow/compare/v1.76.2...v1.76.3) (2021-01-30)
+
+
+### Bug Fixes
+
+* removing comment creation on open pr event to avoid duplicates ([2d6c10f](https://github.com/christophehurpeau/reviewflow/commit/2d6c10f45fd1532a3dc51bc1194dc37853b36659))
+
 ### [1.76.2](https://github.com/christophehurpeau/reviewflow/compare/v1.76.1...v1.76.2) (2021-01-28)
 
 
