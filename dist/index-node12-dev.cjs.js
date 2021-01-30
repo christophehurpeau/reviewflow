@@ -1431,6 +1431,10 @@ const initAccountContext = async (appContext, context, config, accountInfo) => {
     getGithubTeamsGroups,
     getTeamsForLogin: githubLogin => githubLoginToTeams.get(githubLogin) || [],
     getMembersForTeam: async teamId => {
+      if (accountInfo.type !== 'Organization') {
+        throw new Error(`Invalid account type "${accountInfo.type}" for getMembersForTeam`);
+      }
+
       const cursor = await appContext.mongoStores.orgMembers.cursor({
         'org.id': account._id,
         'teams.id': teamId
@@ -3305,10 +3309,6 @@ function opened(app, appContext) {
       add: repoContext.config.requiresReviewRequest ? ['needsReview'] : [],
       remove: ['approved', 'changesRequested']
     })]);
-  }, (pullRequest, context) => {
-    return {
-      reviewflowCommentPromise: createReviewflowComment(pullRequest.number, context, defaultCommentBody)
-    };
   }));
 }
 

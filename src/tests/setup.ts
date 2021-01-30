@@ -22,9 +22,12 @@ export const initializeProbotApp = async ({
     githubToken: 'test',
   });
   const mockStores = {
-    orgs: { findByKey: () => Promise.resolve({ installationId: 1 }), ...orgs },
+    orgs: {
+      findByKey: () => Promise.resolve({ _id: 1, installationId: 1 }),
+      ...orgs,
+    },
     users: {
-      findByKey: () => Promise.resolve({ installationId: 1 }),
+      findByKey: () => Promise.resolve({ _id: 1, installationId: 1 }),
       ...users,
     },
     prs: {

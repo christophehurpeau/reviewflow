@@ -151,6 +151,11 @@ const initAccountContext = async (
       githubLoginToTeams.get(githubLogin) || [],
 
     getMembersForTeam: async (teamId): Promise<AccountEmbedWithoutType[]> => {
+      if (accountInfo.type !== 'Organization') {
+        throw new Error(
+          `Invalid account type "${accountInfo.type}" for getMembersForTeam`,
+        );
+      }
       const cursor = await appContext.mongoStores.orgMembers.cursor<
         Pick<OrgMember, 'user'>
       >({

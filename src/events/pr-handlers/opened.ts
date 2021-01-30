@@ -4,10 +4,8 @@ import { autoApproveAndAutoMerge } from './actions/autoApproveAndAutoMerge';
 import { autoAssignPRToCreator } from './actions/autoAssignPRToCreator';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { updateReviewStatus } from './actions/updateReviewStatus';
-import { defaultCommentBody } from './actions/utils/body/updateBody';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
-import { createReviewflowComment } from './utils/reviewflowComment';
 
 export default function opened(app: Probot, appContext: AppContext): void {
   app.on(
@@ -61,15 +59,6 @@ export default function opened(app: Probot, appContext: AppContext): void {
                 remove: ['approved', 'changesRequested'],
               }),
         ]);
-      },
-      (pullRequest, context, repoContext) => {
-        return {
-          reviewflowCommentPromise: createReviewflowComment(
-            pullRequest.number,
-            context,
-            defaultCommentBody,
-          ),
-        };
       },
     ),
   );
