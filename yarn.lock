@@ -3349,10 +3349,10 @@ emittery@^0.7.1:
   resolved "https://registry.yarnpkg.com/emittery/-/emittery-0.7.2.tgz#25595908e13af0f5674ab419396e2fb394cdfa82"
   integrity sha512-A8OG5SR/ij3SsJdWDJdkkSYUjQdCUx6APQXem0SaEePBSRg4eymGYwBkKo1Y6DU+af/Jn2dBQqDBvjnr9Vi8nQ==
 
-emoji-regex@9.2.0, emoji-regex@^9.0.0:
-  version "9.2.0"
-  resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-9.2.0.tgz#a26da8e832b16a9753309f25e35e3c0efb9a066a"
-  integrity sha512-DNc3KFPK18bPdElMJnf/Pkv5TXhxFU3YFDEuGLDRtPmV4rkmCjBkCSEp22u6rBHdSN9Vlp/GK7k98prmE1Jgug==
+emoji-regex@9.2.1, emoji-regex@^9.0.0:
+  version "9.2.1"
+  resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-9.2.1.tgz#c9b25604256bb3428964bead3ab63069d736f7ee"
+  integrity sha512-117l1H6U4X3Krn+MrzYrL57d5H7siRHWraBs7s+LjRuFK7Fe7hJqnJ0skWlinqsycVLU5YAo6L8CsEYQ0V5prg==
 
 emoji-regex@^7.0.1:
   version "7.0.3"
