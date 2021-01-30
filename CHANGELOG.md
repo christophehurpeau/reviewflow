@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.77.0](https://github.com/christophehurpeau/reviewflow/compare/v1.76.3...v1.77.0) (2021-01-30)
+
+
+### Features
+
+* nicer options look and description ([0b4083b](https://github.com/christophehurpeau/reviewflow/commit/0b4083b0fb9f2bbbe4c7515c0dda85249f9b264c))
+
 ### [1.76.3](https://github.com/christophehurpeau/reviewflow/compare/v1.76.2...v1.76.3) (2021-01-30)
 
 
