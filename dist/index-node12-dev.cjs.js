@@ -1448,8 +1448,7 @@ const initAccountContext = async (appContext, context, config, accountInfo) => {
         return false;
       }
 
-      const requestedReviewerGroups = [...new Set([...getReviewerGroups(pullRequest.requested_reviewers.map(request => request.login)), ...(!pullRequest.requested_teams ? [] : getGithubTeamsGroups(pullRequest.requested_teams.map(team => team.name)))])]; // TODO pullRequest.requested_teams
-      // contains another request of a reviewer in the same group
+      const requestedReviewerGroups = [...new Set([...getReviewerGroups(pullRequest.requested_reviewers.map(request => request.login)), ...(!pullRequest.requested_teams ? [] : getGithubTeamsGroups(pullRequest.requested_teams.map(team => team.name)))])]; // contains another request of a reviewer in the same group
 
       if (includesReviewerGroup && requestedReviewerGroups.includes(reviewerGroup)) {
         return true;

@@ -197,8 +197,6 @@ const initAccountContext = async (
         ]),
       ];
 
-      // TODO pullRequest.requested_teams
-
       // contains another request of a reviewer in the same group
       if (
         includesReviewerGroup &&
