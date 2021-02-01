@@ -130,7 +130,7 @@
     "pob-babel": "26.3.0",
     "pob-lcov-reporter": "4.0.1",
     "prettier": "2.2.1",
-    "rollup": "2.38.2",
+    "rollup": "2.38.3",
     "semver": "7.3.4",
     "smee-client": "1.2.2",
     "standard-version": "9.0.0",
