@@ -1087,19 +1087,56 @@
     eslint-config-prettier "^6.11.0"
     eslint-plugin-unicorn "^23.0.0"
 
-"@pob/root@3.0.3":
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/@pob/root/-/root-3.0.3.tgz#6982e2757bf73b33057904349698ec470c1ad665"
-  integrity sha512-k7rPQ6tMoTMJBuwEMvARczEpD1wiMu7wLAn+wO791Gjwwe2qsAZtq4J+TiKmxiR0MapPuT2cjYNnP9gEYKxslg==
+"@pob/pretty-eslint-config@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@pob/pretty-eslint-config/-/pretty-eslint-config-1.0.0.tgz#1a7880408ce2b0351012934826b2cb7aa39ec171"
+  integrity sha512-9+B+8hLiPR2oOS/pgDJlA5DSwwYAfSEGMN2UzgFSr+gkfXvm5lgs3AUZ+HvMVDjAqiaz4Vq786u+AQJoR8HPLQ==
+  dependencies:
+    "@pob/sort-eslint-config" "^1.0.0"
+    prettier "^2.1.2"
+
+"@pob/pretty-pkg@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@pob/pretty-pkg/-/pretty-pkg-2.1.0.tgz#a8b9c2441c56eb0b8c5925d39f157f2c80c2bebf"
+  integrity sha512-7uulW1IhT5Twq/wy1vNykaI2iYB4HwVttJg2gJWkmXsij0b0n5KbNUSgdkcD6JkSvcI/98VOA+4rWYJFng6v0g==
+  dependencies:
+    "@pob/sort-pkg" "^2.2.0"
+    prettier "^2.1.2"
+
+"@pob/root@3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@pob/root/-/root-3.1.0.tgz#9d4e3eb889eb141ab2db621ccab984fff6bde21f"
+  integrity sha512-2MPYYbs+nmiS+zTsaNKTgKTU1qFeNOBu6YZ7qTywT155Y2rUAMeSLPrnY189yUFwJlA4PdtoqNdksdw2dklOtg==
   dependencies:
     "@commitlint/cli" "11.0.0"
+    "@pob/pretty-eslint-config" "^1.0.0"
+    "@pob/pretty-pkg" "^2.1.0"
     cross-env "^7.0.2"
-    lint-staged "10.5.3"
+    lint-staged "10.5.4"
     repository-check-dirty "^2.0.1"
     semver "^7.1.2"
     which-pm-runs "1.0.0"
     yarn-deduplicate "3.1.0"
     yarnhook "^0.5.0"
+
+"@pob/sort-eslint-config@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@pob/sort-eslint-config/-/sort-eslint-config-1.0.0.tgz#140c16e5339d4e07da65c9858a9f7d20218b483c"
+  integrity sha512-XMfvFtrHfQKSWxPOpT+L+VPQxAjq9Q7SDM/S5QS8cIQxWBEMttpHh76ZJlX7Vj0r4/Egy3tOH6cLmyaUT0aQaA==
+  dependencies:
+    "@pob/sort-object" "^2.0.1"
+
+"@pob/sort-object@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@pob/sort-object/-/sort-object-2.0.1.tgz#bb41d0f3afe9ae1fca1db1d834eabd421c1185d6"
+  integrity sha512-z9QlMv6/7sKKnXuadmkPr88bKWoJpEPWOa87lEp1kIbuchVSUDKBOdP8peG+Ms6DM3j4OUOf3qHqiJQLEkfb0w==
+
+"@pob/sort-pkg@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@pob/sort-pkg/-/sort-pkg-2.2.0.tgz#685e5e3b8bd3e5797ec36a0f36278881c6a53ecf"
+  integrity sha512-sI6C8mXKR2fzTfuazzhVPBZVGpn2kOocq8Sl1HmbcS04MPd5kFCAlehuxdxwRLXdCYtddbNbwgGv3M1OihtaNg==
+  dependencies:
+    "@pob/sort-object" "^2.0.1"
 
 "@pob/use-eslint-plugin@^41.1.0":
   version "41.1.2"
@@ -5727,10 +5764,10 @@ lines-and-columns@^1.1.6:
   resolved "https://registry.yarnpkg.com/lines-and-columns/-/lines-and-columns-1.1.6.tgz#1c00c743b433cd0a4e80758f7b64a57440d9ff00"
   integrity sha1-HADHQ7QzzQpOgHWPe2SldEDZ/wA=
 
-lint-staged@10.5.3:
-  version "10.5.3"
-  resolved "https://registry.yarnpkg.com/lint-staged/-/lint-staged-10.5.3.tgz#c682838b3eadd4c864d1022da05daa0912fb1da5"
-  integrity sha512-TanwFfuqUBLufxCc3RUtFEkFraSPNR3WzWcGF39R3f2J7S9+iF9W0KTVLfSy09lYGmZS5NDCxjNvhGMSJyFCWg==
+lint-staged@10.5.4:
+  version "10.5.4"
+  resolved "https://registry.yarnpkg.com/lint-staged/-/lint-staged-10.5.4.tgz#cd153b5f0987d2371fc1d2847a409a2fe705b665"
+  integrity sha512-EechC3DdFic/TdOPgj/RB3FicqE6932LTHCUm0Y2fsD9KGlLB+RwJl2q1IYBIvEsKzDOgn0D4gll+YxG5RsrKg==
   dependencies:
     chalk "^4.1.0"
     cli-truncate "^2.1.0"
@@ -7219,7 +7256,7 @@ prepend-http@^2.0.0:
   resolved "https://registry.yarnpkg.com/prepend-http/-/prepend-http-2.0.0.tgz#e92434bfa5ea8c19f41cdfd401d741a3c819d897"
   integrity sha1-6SQ0v6XqjBn0HN/UAddBo8gZ2Jc=
 
-prettier@2.2.1:
+prettier@2.2.1, prettier@^2.1.2:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.2.1.tgz#795a1a78dd52f073da0cd42b21f9c91381923ff5"
   integrity sha512-PqyhM2yCjg/oKkFPtTGUojv7gnZAoG80ttl45O6x2Ug/rMJw4wcc9k6aaf2hibP7BGVCCM33gZoGjyvt9mm16Q==
