@@ -1087,12 +1087,12 @@
     eslint-config-prettier "^6.11.0"
     eslint-plugin-unicorn "^23.0.0"
 
-"@pob/pretty-eslint-config@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@pob/pretty-eslint-config/-/pretty-eslint-config-1.0.0.tgz#1a7880408ce2b0351012934826b2cb7aa39ec171"
-  integrity sha512-9+B+8hLiPR2oOS/pgDJlA5DSwwYAfSEGMN2UzgFSr+gkfXvm5lgs3AUZ+HvMVDjAqiaz4Vq786u+AQJoR8HPLQ==
+"@pob/pretty-eslint-config@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@pob/pretty-eslint-config/-/pretty-eslint-config-1.0.1.tgz#00c62ff52170098ee125a5d8574fa0c70c4d974e"
+  integrity sha512-1ITTg5H7xr00TYz+z6Gl8pSoBZZekAJfVTMoDSqt1obguH2lYi5vW9D0p7Q/0U9qjfEOt4YPaITa82DeSTac2Q==
   dependencies:
-    "@pob/sort-eslint-config" "^1.0.0"
+    "@pob/sort-eslint-config" "^1.0.1"
     prettier "^2.1.2"
 
 "@pob/pretty-pkg@^2.1.0":
@@ -1103,13 +1103,13 @@
     "@pob/sort-pkg" "^2.2.0"
     prettier "^2.1.2"
 
-"@pob/root@3.1.0":
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@pob/root/-/root-3.1.0.tgz#9d4e3eb889eb141ab2db621ccab984fff6bde21f"
-  integrity sha512-2MPYYbs+nmiS+zTsaNKTgKTU1qFeNOBu6YZ7qTywT155Y2rUAMeSLPrnY189yUFwJlA4PdtoqNdksdw2dklOtg==
+"@pob/root@3.1.1":
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/@pob/root/-/root-3.1.1.tgz#f2867324072eea6480714dca7f6073f774edab6b"
+  integrity sha512-sfY8NfXYy+KqEHKwSWsIFZ8AWO7d8BURonwPH/UUOTDCScLJlwBII1GadcVNiKXJn/Nv3C7fzblGD5H3jmfP5g==
   dependencies:
     "@commitlint/cli" "11.0.0"
-    "@pob/pretty-eslint-config" "^1.0.0"
+    "@pob/pretty-eslint-config" "^1.0.1"
     "@pob/pretty-pkg" "^2.1.0"
     cross-env "^7.0.2"
     lint-staged "10.5.4"
@@ -1119,10 +1119,10 @@
     yarn-deduplicate "3.1.0"
     yarnhook "^0.5.0"
 
-"@pob/sort-eslint-config@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@pob/sort-eslint-config/-/sort-eslint-config-1.0.0.tgz#140c16e5339d4e07da65c9858a9f7d20218b483c"
-  integrity sha512-XMfvFtrHfQKSWxPOpT+L+VPQxAjq9Q7SDM/S5QS8cIQxWBEMttpHh76ZJlX7Vj0r4/Egy3tOH6cLmyaUT0aQaA==
+"@pob/sort-eslint-config@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@pob/sort-eslint-config/-/sort-eslint-config-1.0.1.tgz#bb8aee27d0680b53ce82c52d62a45d49a406e759"
+  integrity sha512-ccmWLCi6XTEdmTtYWB4M4iteypyD7DkiRWmZYqAa1ixwHXNrOpQ7LEI31g3sH9Y3NuDyMnXA6V4Du6Eibmu67A==
   dependencies:
     "@pob/sort-object" "^2.0.1"
 
