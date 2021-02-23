@@ -382,7 +382,7 @@ const config$2 = {
   parsePR: {
     title: [{
       regExp: // eslint-disable-next-line unicorn/no-unsafe-regex
-      /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([/a-z-]*)\))?:\s/,
+      /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([/A-Za-z-]*)\))?:\s/,
       error: {
         title: 'Title does not match commitlint conventional',
         summary: 'https://www.npmjs.com/package/@commitlint/config-conventional'
