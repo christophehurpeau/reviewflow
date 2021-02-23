@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.78.0](https://github.com/christophehurpeau/reviewflow/compare/v1.77.0...v1.78.0) (2021-02-23)
+
+
+### Features
+
+* ornikar config allow uppercase in scope ([300e412](https://github.com/christophehurpeau/reviewflow/commit/300e412c5ff42856195f51886a7b0cbfbc8a848b))
+* **deps:** update dependency @octokit/core to v3.2.5 ([#178](https://github.com/christophehurpeau/reviewflow/issues/178)) ([31081f1](https://github.com/christophehurpeau/reviewflow/commit/31081f13e5ee970a7d9a8c56fdb362de54a3c87b))
+* **deps:** update dependency @octokit/rest to v18.0.15 ([#179](https://github.com/christophehurpeau/reviewflow/issues/179)) ([b2f4d7f](https://github.com/christophehurpeau/reviewflow/commit/b2f4d7f7e9a90df6e68c124f2fa9e05cda98e706))
+* **deps:** update dependency emoji-regex to v9.2.1 ([#181](https://github.com/christophehurpeau/reviewflow/issues/181)) ([950d2c1](https://github.com/christophehurpeau/reviewflow/commit/950d2c133dd2669467e06195eaa95237fa8eb4c9))
+* **deps:** update dependency probot to v11.0.6 ([#193](https://github.com/christophehurpeau/reviewflow/issues/193)) ([4f3aed3](https://github.com/christophehurpeau/reviewflow/commit/4f3aed311817c5e5f3a8e98a0dc570a95d849abd))
+
 ## [1.77.0](https://github.com/christophehurpeau/reviewflow/compare/v1.76.3...v1.77.0) (2021-01-30)
 
 
