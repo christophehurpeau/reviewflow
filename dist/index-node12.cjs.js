@@ -3069,7 +3069,6 @@ const editOpenedPR = async (pullRequest, context, repoContext, reviewflowPrConte
   const hasLintPrCheck = (await context.octokit.checks.listForRef(context.repo({
     ref: pullRequest.head.sha
   }))).data.check_runs.find(check => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`);
-  console.log(warnings);
   const promises = [...statuses.map(({
     name,
     error,

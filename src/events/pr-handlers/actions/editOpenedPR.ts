@@ -108,8 +108,6 @@ export const editOpenedPR = async <
     (check): boolean => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`,
   );
 
-  console.log(warnings);
-
   const promises: Promise<unknown>[] = [
     ...statuses.map(
       ({ name, error, info }): Promise<void> =>
