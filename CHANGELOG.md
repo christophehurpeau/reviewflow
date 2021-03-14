@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.79.0](https://github.com/christophehurpeau/reviewflow/compare/v1.78.0...v1.79.0) (2021-03-14)
+
+
+### Features
+
+* allow error to depend on title ([e325e0d](https://github.com/christophehurpeau/reviewflow/commit/e325e0d11110e7b1e8e3aff079380c43ea7c9dda))
+* lint pr head, base and add optional url ([fac951c](https://github.com/christophehurpeau/reviewflow/commit/fac951c39c6d0e40b6c86455599b8c575a1a5455))
+
+
+### Bug Fixes
+
+* remove console.log ([c8acfdf](https://github.com/christophehurpeau/reviewflow/commit/c8acfdf771d93a650a79c54bc316e106c462b98b))
+
 ## [1.78.0](https://github.com/christophehurpeau/reviewflow/compare/v1.77.0...v1.78.0) (2021-02-23)
 
 
