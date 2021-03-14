@@ -1,11 +1,7 @@
 import type { EventPayloads } from '@octokit/webhooks';
 import type { Context } from 'probot';
 import type { RepoContext } from 'context/repoContext';
-import type {
-  ParsePRRule,
-  StatusError,
-  StatusInfo,
-} from '../../../accountConfigs/types';
+import type { ParsePRRule, StatusInfo } from '../../../accountConfigs/types';
 import { getKeys } from '../../../context/utils';
 import { ExcludesFalsy } from '../../../utils/Excludes';
 import type { PullRequestWithDecentData } from '../utils/PullRequestData';
@@ -31,7 +27,7 @@ interface StatusWithInfo {
 
 interface StatusWithError {
   name: string;
-  error: StatusError;
+  error: ParsePRRule['error'];
   info?: undefined;
 }
 
@@ -60,7 +56,7 @@ export const editOpenedPR = async <
   const isPrFromBot = pullRequest.user && pullRequest.user.type === 'Bot';
 
   const statuses: Status[] = [];
-  const warnings: StatusError[] = [];
+  const warnings: ParsePRRule['error'][] = [];
 
   let errorRule: ParsePRRule | undefined;
   getKeys(repoContext.config.parsePR).find((parsePRKey) => {
@@ -108,6 +104,13 @@ export const editOpenedPR = async <
     (check): boolean => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`,
   );
 
+  const errorStatus = errorRule
+    ? // eslint-disable-next-line unicorn/no-nested-ternary
+      typeof errorRule.error === 'function'
+      ? errorRule.error({ title })
+      : errorRule.error
+    : undefined;
+
   const promises: Promise<unknown>[] = [
     ...statuses.map(
       ({ name, error, info }): Promise<void> =>
@@ -116,7 +119,9 @@ export const editOpenedPR = async <
           name,
           pullRequest.head.sha,
           error ? 'failure' : 'success',
-          error ? error.title : (info as StatusInfo).title,
+          error
+            ? (typeof error === 'function' ? error({ title }) : error).title
+            : (info as StatusInfo).title,
           error ? undefined : (info as StatusInfo).url,
         ),
     ),
@@ -140,7 +145,7 @@ export const editOpenedPR = async <
         context.repo({
           name: `${process.env.REVIEWFLOW_NAME}/lint-pr`,
           head_sha: pullRequest.head.sha,
-          status: 'completed' as const,
+          status: 'completed',
           conclusion: (errorRule ? 'failure' : 'success') as
             | 'failure'
             | 'success',
@@ -153,7 +158,11 @@ export const editOpenedPR = async <
                   warnings.length === 0
                     ? '✓ Your PR is valid'
                     : `warnings: ${warnings
-                        .map((error) => error.title)
+                        .map((error) =>
+                          typeof error === 'function'
+                            ? error({ title }).title
+                            : error.title,
+                        )
                         .join(',')}`,
                 summary: '',
               },
@@ -174,15 +183,21 @@ export const editOpenedPR = async <
         'lint-pr',
         pullRequest.head.sha,
         errorRule ? 'failure' : 'success',
-        errorRule
-          ? errorRule.error.title
+        errorStatus
+          ? errorStatus.title
           : // eslint-disable-next-line unicorn/no-nested-ternary
           warnings.length === 0
           ? '✓ Your PR is valid'
-          : `warning${warnings.length === 1 ? '' : 's'}: ${warnings
-              .map((error) => error.title)
+          : `warning${
+              warnings.length === 1 ? '' : 's'
+            }: ${warnings
+              .map((error) =>
+                typeof error === 'function'
+                  ? error({ title }).title
+                  : error.title,
+              )
               .join(',')}`,
-        errorRule ? errorRule.error.url : undefined,
+        errorStatus ? errorStatus.url : undefined,
       ),
   ].filter(ExcludesFalsy);
 

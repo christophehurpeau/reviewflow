@@ -26,7 +26,7 @@ export interface Team {
 export interface ParsePRRule {
   bot?: false;
   regExp: RegExp;
-  error: StatusError;
+  error: StatusError | ((prInfos: { title: string }) => StatusError);
   warning?: boolean;
 
   status?: string;

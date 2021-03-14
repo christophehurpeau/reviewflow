@@ -418,10 +418,12 @@ const config$2 = {
       // eslint-disable-next-line unicorn/no-unsafe-regex
       regExp: /^(?<revert>revert-\d+-)?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\/[a-z-]+)?\/(?<breaking>!)?(?<subject>.*)-(?<jiraIssue>[A-Z][\dA-Z]+-(\d+))$/,
       warning: true,
-      error: {
-        title: 'Branch name does not match commitlint conventional',
+      error: ({
+        title
+      }) => ({
+        title: `Branch name does not match commitlint conventional, ideal branch name would have been: ${title.replace(/(\(|\):|:)\s*/g, '/').replace(/[\s,]+/g, '-')}`,
         summary: ''
-      }
+      })
     }],
     base: [{
       regExp: /^(master|main)$/,
@@ -3072,11 +3074,17 @@ const editOpenedPR = async (pullRequest, context, repoContext, reviewflowPrConte
   const hasLintPrCheck = (await context.octokit.checks.listForRef(context.repo({
     ref: pullRequest.head.sha
   }))).data.check_runs.find(check => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`);
+  const errorStatus = errorRule ? // eslint-disable-next-line unicorn/no-nested-ternary
+  typeof errorRule.error === 'function' ? errorRule.error({
+    title
+  }) : errorRule.error : undefined;
   const promises = [...statuses.map(({
     name,
     error,
     info
-  }) => createStatus(context, name, pullRequest.head.sha, error ? 'failure' : 'success', error ? error.title : info.title, error ? undefined : info.url)), ...(previousSha ? statuses.map(({
+  }) => createStatus(context, name, pullRequest.head.sha, error ? 'failure' : 'success', error ? (typeof error === 'function' ? error({
+    title
+  }) : error).title : info.title, error ? undefined : info.url)), ...(previousSha ? statuses.map(({
     name,
     error,
     info
@@ -3088,11 +3096,15 @@ const editOpenedPR = async (pullRequest, context, repoContext, reviewflowPrConte
     started_at: date,
     completed_at: date,
     output: errorRule ? errorRule.error : {
-      title: warnings.length === 0 ? '✓ Your PR is valid' : `warnings: ${warnings.map(error => error.title).join(',')}`,
+      title: warnings.length === 0 ? '✓ Your PR is valid' : `warnings: ${warnings.map(error => typeof error === 'function' ? error({
+        title
+      }).title : error.title).join(',')}`,
       summary: ''
     }
-  })), !hasLintPrCheck && previousSha && errorRule ? createStatus(context, 'lint-pr', previousSha, 'success', 'New commits have been pushed') : undefined, !hasLintPrCheck && createStatus(context, 'lint-pr', pullRequest.head.sha, errorRule ? 'failure' : 'success', errorRule ? errorRule.error.title : // eslint-disable-next-line unicorn/no-nested-ternary
-  warnings.length === 0 ? '✓ Your PR is valid' : `warning${warnings.length === 1 ? '' : 's'}: ${warnings.map(error => error.title).join(',')}`, errorRule ? errorRule.error.url : undefined)].filter(ExcludesFalsy);
+  })), !hasLintPrCheck && previousSha && errorRule ? createStatus(context, 'lint-pr', previousSha, 'success', 'New commits have been pushed') : undefined, !hasLintPrCheck && createStatus(context, 'lint-pr', pullRequest.head.sha, errorRule ? 'failure' : 'success', errorStatus ? errorStatus.title : // eslint-disable-next-line unicorn/no-nested-ternary
+  warnings.length === 0 ? '✓ Your PR is valid' : `warning${warnings.length === 1 ? '' : 's'}: ${warnings.map(error => typeof error === 'function' ? error({
+    title
+  }).title : error.title).join(',')}`, errorStatus ? errorStatus.url : undefined)].filter(ExcludesFalsy);
   const body = removeDeprecatedReviewflowInPrBody(pullRequest.body);
   promises.push(updatePrIfNeeded(pullRequest, context, {
     title,
