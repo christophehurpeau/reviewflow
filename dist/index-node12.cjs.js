@@ -246,7 +246,7 @@ const config = {
   parsePR: {
     title: [{
       regExp: // eslint-disable-next-line unicorn/no-unsafe-regex
-      /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([/a-z-]*)\))?(!)?:\s/,
+      /^(?<revert>revert: )?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\([/a-z-]+\)?((?=:\s)|(?=!:\s)))?(?<breaking>!)?(?<subject>:\s.*)$/,
       error: {
         title: 'Title does not match commitlint conventional',
         summary: 'https://www.npmjs.com/package/@commitlint/config-conventional'
@@ -381,8 +381,8 @@ const config$2 = {
   },
   parsePR: {
     title: [{
-      regExp: // eslint-disable-next-line unicorn/no-unsafe-regex
-      /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([/A-Za-z-]*)\))?:\s/,
+      // eslint-disable-next-line unicorn/no-unsafe-regex
+      regExp: /^(?<revert>revert: )?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\([/A-Za-z-]+\)?((?=:\s)|(?=!:\s)))?(?<breaking>!)?(?<subject>:\s.*)$/,
       error: {
         title: 'Title does not match commitlint conventional',
         summary: 'https://www.npmjs.com/package/@commitlint/config-conventional'
@@ -391,7 +391,7 @@ const config$2 = {
       bot: false,
       regExp: /\s([A-Z][\dA-Z]+-(\d+)|\[no issue])$/,
       error: {
-        title: 'Title does not have JIRA issue',
+        title: 'Title does not have Jira issue',
         summary: 'The PR title should end with ONK-0000, or [no issue]'
       },
       status: 'jira-issue',
@@ -411,6 +411,23 @@ const config$2 = {
           title: `JIRA issue: ${issue}`,
           summary: `[${issue}](https://ornikar.atlassian.net/browse/${issue})`
         };
+      }
+    }],
+    head: [{
+      bot: false,
+      // eslint-disable-next-line unicorn/no-unsafe-regex
+      regExp: /^(?<revert>revert-\d+-)?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\/[a-z-]+)?\/(?<breaking>!)?(?<subject>.*)-(?<jiraIssue>[A-Z][\dA-Z]+-(\d+))$/,
+      warning: true,
+      error: {
+        title: 'Branch name does not match commitlint conventional',
+        summary: ''
+      }
+    }],
+    base: [{
+      regExp: /^(master|main)$/,
+      error: {
+        title: 'PR to branches other than main is not recommended',
+        summary: 'https://ornikar.atlassian.net/wiki/spaces/TECH/pages/2221900272/Should+I+make+a+feature-branch+or+not'
       }
     }]
   },
@@ -3003,37 +3020,56 @@ const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*([A-Za-z][\dA-Za-z
 
 const editOpenedPR = async (pullRequest, context, repoContext, reviewflowPrContext, shouldUpdateCommentBodyInfos, previousSha) => {
   const title = repoContext.config.trimTitle ? cleanTitle(pullRequest.title) : pullRequest.title;
+  const parsePRValue = {
+    title,
+    head: pullRequest.head.ref,
+    base: pullRequest.base.ref
+  };
   const isPrFromBot = pullRequest.user && pullRequest.user.type === 'Bot';
   const statuses = [];
-  const errorRule = repoContext.config.parsePR.title.find(rule => {
-    if (rule.bot === false && isPrFromBot) return false;
-    const match = rule.regExp.exec(title);
+  const warnings = [];
+  let errorRule;
+  getKeys(repoContext.config.parsePR).find(parsePRKey => {
+    const rules = repoContext.config.parsePR[parsePRKey];
+    if (!rules) return false;
+    const value = parsePRValue[parsePRKey];
+    errorRule = rules.find(rule => {
+      if (rule.bot === false && isPrFromBot) return false;
+      const match = rule.regExp.exec(value);
 
-    if (match === null) {
-      if (rule.status) {
-        statuses.push({
-          name: rule.status,
-          error: rule.error
-        });
+      if (match === null) {
+        if (rule.status) {
+          statuses.push({
+            name: rule.status,
+            error: rule.error
+          });
+        }
+
+        if (rule.warning) {
+          warnings.push(rule.error);
+          return false;
+        }
+
+        return true;
       }
 
-      return true;
-    }
+      if (rule.status && rule.statusInfoFromMatch) {
+        statuses.push({
+          name: rule.status,
+          info: rule.statusInfoFromMatch(match)
+        });
+        return false;
+      }
 
-    if (rule.status && rule.statusInfoFromMatch) {
-      statuses.push({
-        name: rule.status,
-        info: rule.statusInfoFromMatch(match)
-      });
       return false;
-    }
-
-    return false;
+    });
+    return errorRule;
   });
   const date = new Date().toISOString();
   const hasLintPrCheck = (await context.octokit.checks.listForRef(context.repo({
     ref: pullRequest.head.sha
   }))).data.check_runs.find(check => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`);
+  console.log(warnings);
   const promises = [...statuses.map(({
     name,
     error,
@@ -3050,10 +3086,11 @@ const editOpenedPR = async (pullRequest, context, repoContext, reviewflowPrConte
     started_at: date,
     completed_at: date,
     output: errorRule ? errorRule.error : {
-      title: '✓ Your PR is valid',
+      title: warnings.length === 0 ? '✓ Your PR is valid' : `warnings: ${warnings.map(error => error.title).join(',')}`,
       summary: ''
     }
-  })), !hasLintPrCheck && previousSha && errorRule ? createStatus(context, 'lint-pr', previousSha, 'success', 'New commits have been pushed') : undefined, !hasLintPrCheck && createStatus(context, 'lint-pr', pullRequest.head.sha, errorRule ? 'failure' : 'success', errorRule ? errorRule.error.title : '✓ Your PR is valid')].filter(ExcludesFalsy);
+  })), !hasLintPrCheck && previousSha && errorRule ? createStatus(context, 'lint-pr', previousSha, 'success', 'New commits have been pushed') : undefined, !hasLintPrCheck && createStatus(context, 'lint-pr', pullRequest.head.sha, errorRule ? 'failure' : 'success', errorRule ? errorRule.error.title : // eslint-disable-next-line unicorn/no-nested-ternary
+  warnings.length === 0 ? '✓ Your PR is valid' : `warning${warnings.length === 1 ? '' : 's'}: ${warnings.map(error => error.title).join(',')}`, errorRule ? errorRule.error.url : undefined)].filter(ExcludesFalsy);
   const body = removeDeprecatedReviewflowInPrBody(pullRequest.body);
   promises.push(updatePrIfNeeded(pullRequest, context, {
     title,

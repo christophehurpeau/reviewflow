@@ -10,6 +10,7 @@ export interface StatusInfo {
 export interface StatusError {
   title: string;
   summary: string;
+  url?: string;
 }
 
 export interface Group {
@@ -26,6 +27,7 @@ export interface ParsePRRule {
   bot?: false;
   regExp: RegExp;
   error: StatusError;
+  warning?: boolean;
 
   status?: string;
   statusInfoFromMatch?: (match: RegExpMatchArray) => StatusInfo;
@@ -33,6 +35,8 @@ export interface ParsePRRule {
 
 export interface ParsePR {
   title: ParsePRRule[];
+  head?: ParsePRRule[];
+  base?: ParsePRRule[];
 }
 
 export interface LabelDescriptor {

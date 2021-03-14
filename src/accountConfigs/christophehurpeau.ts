@@ -14,7 +14,7 @@ const config: Config<'dev', never> = {
       {
         regExp:
           // eslint-disable-next-line unicorn/no-unsafe-regex
-          /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([/a-z-]*)\))?(!)?:\s/,
+          /^(?<revert>revert: )?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\([/a-z-]+\)?((?=:\s)|(?=!:\s)))?(?<breaking>!)?(?<subject>:\s.*)$/,
         error: {
           title: 'Title does not match commitlint conventional',
           summary:

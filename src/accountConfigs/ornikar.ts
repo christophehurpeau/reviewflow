@@ -14,9 +14,8 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
   parsePR: {
     title: [
       {
-        regExp:
-          // eslint-disable-next-line unicorn/no-unsafe-regex
-          /^(revert: )?(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\(([/A-Za-z-]*)\))?:\s/,
+        // eslint-disable-next-line unicorn/no-unsafe-regex
+        regExp: /^(?<revert>revert: )?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\([/A-Za-z-]+\)?((?=:\s)|(?=!:\s)))?(?<breaking>!)?(?<subject>:\s.*)$/,
         error: {
           title: 'Title does not match commitlint conventional',
           summary:
@@ -27,7 +26,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         bot: false,
         regExp: /\s([A-Z][\dA-Z]+-(\d+)|\[no issue])$/,
         error: {
-          title: 'Title does not have JIRA issue',
+          title: 'Title does not have Jira issue',
           summary: 'The PR title should end with ONK-0000, or [no issue]',
         },
         status: 'jira-issue',
@@ -45,6 +44,28 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
             title: `JIRA issue: ${issue}`,
             summary: `[${issue}](https://ornikar.atlassian.net/browse/${issue})`,
           };
+        },
+      },
+    ],
+    head: [
+      {
+        bot: false,
+        // eslint-disable-next-line unicorn/no-unsafe-regex
+        regExp: /^(?<revert>revert-\d+-)?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\/[a-z-]+)?\/(?<breaking>!)?(?<subject>.*)-(?<jiraIssue>[A-Z][\dA-Z]+-(\d+))$/,
+        warning: true,
+        error: {
+          title: 'Branch name does not match commitlint conventional',
+          summary: '',
+        },
+      },
+    ],
+    base: [
+      {
+        regExp: /^(master|main)$/,
+        error: {
+          title: 'PR to branches other than main is not recommended',
+          summary:
+            'https://ornikar.atlassian.net/wiki/spaces/TECH/pages/2221900272/Should+I+make+a+feature-branch+or+not',
         },
       },
     ],

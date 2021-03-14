@@ -1,7 +1,12 @@
 import type { EventPayloads } from '@octokit/webhooks';
 import type { Context } from 'probot';
 import type { RepoContext } from 'context/repoContext';
-import type { StatusError, StatusInfo } from '../../../accountConfigs/types';
+import type {
+  ParsePRRule,
+  StatusError,
+  StatusInfo,
+} from '../../../accountConfigs/types';
+import { getKeys } from '../../../context/utils';
 import { ExcludesFalsy } from '../../../utils/Excludes';
 import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
@@ -46,30 +51,49 @@ export const editOpenedPR = async <
     ? cleanTitle(pullRequest.title)
     : pullRequest.title;
 
+  const parsePRValue = {
+    title,
+    head: pullRequest.head.ref,
+    base: pullRequest.base.ref,
+  };
+
   const isPrFromBot = pullRequest.user && pullRequest.user.type === 'Bot';
 
   const statuses: Status[] = [];
+  const warnings: StatusError[] = [];
 
-  const errorRule = repoContext.config.parsePR.title.find((rule) => {
-    if (rule.bot === false && isPrFromBot) return false;
+  let errorRule: ParsePRRule | undefined;
+  getKeys(repoContext.config.parsePR).find((parsePRKey) => {
+    const rules = repoContext.config.parsePR[parsePRKey];
+    if (!rules) return false;
 
-    const match = rule.regExp.exec(title);
-    if (match === null) {
-      if (rule.status) {
-        statuses.push({ name: rule.status, error: rule.error });
+    const value = parsePRValue[parsePRKey];
+    errorRule = rules.find((rule) => {
+      if (rule.bot === false && isPrFromBot) return false;
+
+      const match = rule.regExp.exec(value);
+      if (match === null) {
+        if (rule.status) {
+          statuses.push({ name: rule.status, error: rule.error });
+        }
+        if (rule.warning) {
+          warnings.push(rule.error);
+          return false;
+        }
+        return true;
       }
-      return true;
-    }
 
-    if (rule.status && rule.statusInfoFromMatch) {
-      statuses.push({
-        name: rule.status,
-        info: rule.statusInfoFromMatch(match),
-      });
+      if (rule.status && rule.statusInfoFromMatch) {
+        statuses.push({
+          name: rule.status,
+          info: rule.statusInfoFromMatch(match),
+        });
+        return false;
+      }
+
       return false;
-    }
-
-    return false;
+    });
+    return errorRule;
   });
 
   const date = new Date().toISOString();
@@ -83,6 +107,8 @@ export const editOpenedPR = async <
   ).data.check_runs.find(
     (check): boolean => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`,
   );
+
+  console.log(warnings);
 
   const promises: Promise<unknown>[] = [
     ...statuses.map(
@@ -125,7 +151,12 @@ export const editOpenedPR = async <
           output: errorRule
             ? errorRule.error
             : {
-                title: '✓ Your PR is valid',
+                title:
+                  warnings.length === 0
+                    ? '✓ Your PR is valid'
+                    : `warnings: ${warnings
+                        .map((error) => error.title)
+                        .join(',')}`,
                 summary: '',
               },
         }),
@@ -145,7 +176,15 @@ export const editOpenedPR = async <
         'lint-pr',
         pullRequest.head.sha,
         errorRule ? 'failure' : 'success',
-        errorRule ? errorRule.error.title : '✓ Your PR is valid',
+        errorRule
+          ? errorRule.error.title
+          : // eslint-disable-next-line unicorn/no-nested-ternary
+          warnings.length === 0
+          ? '✓ Your PR is valid'
+          : `warning${warnings.length === 1 ? '' : 's'}: ${warnings
+              .map((error) => error.title)
+              .join(',')}`,
+        errorRule ? errorRule.error.url : undefined,
       ),
   ].filter(ExcludesFalsy);
 

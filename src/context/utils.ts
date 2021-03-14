@@ -1,8 +1,6 @@
 import createEmojiRegex from 'emoji-regex';
 
-export const getKeys = <T extends Record<keyof T, unknown>>(
-  o: T,
-): (keyof T)[] => Object.keys(o) as (keyof T)[];
+export const getKeys = <T>(o: T): (keyof T)[] => Object.keys(o) as (keyof T)[];
 
 const emojiRegex = createEmojiRegex();
 
