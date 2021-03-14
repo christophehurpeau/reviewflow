@@ -39,7 +39,6 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   hasChangesRequestedReview: (labels: PullRequestLabels) => boolean;
   hasApprovesReview: (labels: PullRequestLabels) => boolean;
   getNeedsReviewGroupNames: (labels: PullRequestLabels) => GroupNames[];
-
   lockPullRequest: (
     pullRequest: PullRequestData,
     callback: () => Promise<void> | void,
@@ -258,6 +257,7 @@ async function initRepoContext<GroupNames extends string>(
 
     getMergeLockedPr: () => lockMergePr,
     addMergeLockPr: (pr: LockedMergePr): void => {
+      // eslint-disable-next-line no-console
       console.log('merge lock: lock', {
         repo: fullName,
         pr,
@@ -335,7 +335,7 @@ export const obtainRepoContext = (
   let accountConfig = accountConfigs[owner.login];
 
   if (!accountConfig) {
-    console.warn(`using default config for ${owner.login}`);
+    context.log(`using default config for ${owner.login}`);
     accountConfig = defaultConfig as Config<any, any>;
   }
 

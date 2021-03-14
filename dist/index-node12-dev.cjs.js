@@ -1248,7 +1248,9 @@ const initTeamSlack = async ({
       });
       user.im = im.channel;
     } catch (err) {
-      console.error(err);
+      context.log('could create im', {
+        err
+      });
     }
   }
 
@@ -2112,6 +2114,7 @@ async function initRepoContext(appContext, context, config) {
     getNeedsReviewGroupNames: labels => labels.filter(label => label.id && needsReviewLabelIds.includes(label.id)).map(label => labelIdToGroupName.get(label.id)).filter(ExcludesFalsy),
     getMergeLockedPr: () => lockMergePr,
     addMergeLockPr: pr => {
+      // eslint-disable-next-line no-console
       console.log('merge lock: lock', {
         repo: fullName,
         pr
@@ -2180,7 +2183,7 @@ const obtainRepoContext = (appContext, context) => {
   let accountConfig = accountConfigs[owner.login];
 
   if (!accountConfig) {
-    console.warn(`using default config for ${owner.login}`);
+    context.log(`using default config for ${owner.login}`);
     accountConfig = config$1;
   }
 
@@ -4140,7 +4143,8 @@ const createSlackHomeWorker = mongoStores => {
 };
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
-if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = 'reviewflow';
+if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = 'reviewflow'; // eslint-disable-next-line no-console
+
 console.log({
   name: process.env.REVIEWFLOW_NAME
 }); // const getConfig = require('probot-config')

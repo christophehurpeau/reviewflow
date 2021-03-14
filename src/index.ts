@@ -8,6 +8,8 @@ import mongoInit from './mongo';
 import { createSlackHomeWorker } from './slack/home';
 
 if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = 'reviewflow';
+
+// eslint-disable-next-line no-console
 console.log({ name: process.env.REVIEWFLOW_NAME });
 
 // const getConfig = require('probot-config')

@@ -87,7 +87,7 @@ export const initTeamSlack = async <GroupNames extends string>(
       });
       user.im = im.channel;
     } catch (err) {
-      console.error(err);
+      context.log('could create im', { err });
     }
   }
 

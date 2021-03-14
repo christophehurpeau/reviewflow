@@ -20,6 +20,7 @@
   },
   "ignorePatterns": ["*.d.ts"],
   "rules": {
+    "no-console": "error",
     "camelcase": "off",
     "complexity": "off",
     "no-use-before-define": "off",
