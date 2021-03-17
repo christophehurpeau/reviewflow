@@ -53,10 +53,12 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         // eslint-disable-next-line unicorn/no-unsafe-regex
         regExp: /^(?<revert>revert-\d+-)?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\/[a-z-]+)?\/(?<breaking>!)?(?<subject>.*)-(?<jiraIssue>[A-Z][\dA-Z]+-(\d+))$/,
         warning: true,
+        status: 'branch-name',
         error: ({ title }) => ({
-          title: `Branch name does not match commitlint conventional, ideal branch name would have been: ${title
-            .replace(/(\(|\):|:)\s*/g, '/')
-            .replace(/[\s,]+/g, '-')}`,
+          title: `Ideal branch name: "${title
+            .replace(/\s*\[no issue]$/, '')
+            .replace(/\s*(\(|\):|:)\s*/g, '/')
+            .replace(/[\s,]+/g, '-')}"`,
           summary: '',
         }),
       },

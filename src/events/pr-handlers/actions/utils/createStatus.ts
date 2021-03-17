@@ -11,6 +11,10 @@ export default async function createStatus<
   description: string,
   url?: string,
 ): Promise<void> {
+  if (description.length > 140) {
+    context.log('description too long', { description });
+    description = description.slice(0, 140);
+  }
   await context.octokit.repos.createCommitStatus(
     context.repo({
       context:

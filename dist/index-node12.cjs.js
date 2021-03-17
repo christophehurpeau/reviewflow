@@ -234,7 +234,7 @@ function home(router) {
   });
 }
 
-const config = {
+const config$3 = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: false,
@@ -330,7 +330,7 @@ const config = {
   }
 };
 
-const config$1 = {
+const config$2 = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: false,
@@ -368,7 +368,7 @@ const config$1 = {
   }
 };
 
-const config$2 = {
+const config$1 = {
   autoAssignToCreator: true,
   trimTitle: true,
   ignoreRepoPattern: '(infra-.*|devenv)',
@@ -418,10 +418,11 @@ const config$2 = {
       // eslint-disable-next-line unicorn/no-unsafe-regex
       regExp: /^(?<revert>revert-\d+-)?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\/[a-z-]+)?\/(?<breaking>!)?(?<subject>.*)-(?<jiraIssue>[A-Z][\dA-Z]+-(\d+))$/,
       warning: true,
+      status: 'branch-name',
       error: ({
         title
       }) => ({
-        title: `Branch name does not match commitlint conventional, ideal branch name would have been: ${title.replace(/(\(|\):|:)\s*/g, '/').replace(/[\s,]+/g, '-')}`,
+        title: `Ideal branch name: "${title.replace(/\s*\[no issue]$/, '').replace(/\s*(\(|\):|:)\s*/g, '/').replace(/[\s,]+/g, '-')}"`,
         summary: ''
       })
     }],
@@ -643,7 +644,7 @@ const config$2 = {
   }
 };
 
-const config$3 = { ...config,
+const config = { ...config$3,
   requiresReviewRequest: true,
   groups: {
     dev: {
@@ -654,9 +655,9 @@ const config$3 = { ...config,
 };
 
 const accountConfigs = {
-  ornikar: config$2,
-  christophehurpeau: config,
-  reviewflow: config$3
+  ornikar: config$1,
+  christophehurpeau: config$3,
+  reviewflow: config
 };
 // export const getMembers = <GroupNames extends string = any>(
 //   groups: Record<GroupNames, Group>,
@@ -682,7 +683,7 @@ const defaultDmSettings = {
 const cache = new Map();
 
 const getDefaultDmSettings = org => {
-  const accountConfig = accountConfigs[org] || config$1;
+  const accountConfig = accountConfigs[org] || config$2;
   return accountConfig.defaultDmSettings ? { ...defaultDmSettings,
     ...accountConfig.defaultDmSettings
   } : defaultDmSettings;
@@ -1506,7 +1507,7 @@ const obtainAccountContext = (appContext, context, config, accountInfo) => {
 const handlerOrgChange = async (appContext, context, callback) => {
   const org = context.payload.organization;
   if (!org) return;
-  const config = accountConfigs[org.login] || config$1;
+  const config = accountConfigs[org.login] || config$2;
   const accountContext = await obtainAccountContext(appContext, context, config, { ...org,
     type: 'Organization'
   });
@@ -2186,7 +2187,7 @@ const obtainRepoContext = (appContext, context) => {
 
   if (!accountConfig) {
     context.log(`using default config for ${owner.login}`);
-    accountConfig = config$1;
+    accountConfig = config$2;
   }
 
   const promise = initRepoContext(appContext, context, accountConfig);
@@ -2265,6 +2266,13 @@ const createOwnerPart = (ownerMention, pullRequest, sendTo) => {
 };
 
 async function createStatus(context, name, sha, type, description, url) {
+  if (description.length > 140) {
+    context.log('description too long', {
+      description
+    });
+    description = description.slice(0, 140);
+  }
+
   await context.octokit.repos.createCommitStatus(context.repo({
     context: name === '' ? process.env.REVIEWFLOW_NAME : `${process.env.REVIEWFLOW_NAME}/${name}`,
     sha,
@@ -3048,6 +3056,14 @@ const editOpenedPR = async (pullRequest, context, repoContext, reviewflowPrConte
             name: rule.status,
             error: rule.error
           });
+
+          if (rule.warning) {
+            warnings.push({
+              title: `"${rule.status}"`,
+              summary: ''
+            });
+            return false;
+          }
         }
 
         if (rule.warning) {

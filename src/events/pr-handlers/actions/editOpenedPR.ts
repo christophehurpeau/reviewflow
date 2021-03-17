@@ -71,6 +71,10 @@ export const editOpenedPR = async <
       if (match === null) {
         if (rule.status) {
           statuses.push({ name: rule.status, error: rule.error });
+          if (rule.warning) {
+            warnings.push({ title: `"${rule.status}"`, summary: '' });
+            return false;
+          }
         }
         if (rule.warning) {
           warnings.push(rule.error);
