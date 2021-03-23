@@ -80,17 +80,25 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
             .replace(/\s*(\(|\):|:)\s*/g, '/')
             .replace(/[\s,]+/g, '-');
 
-          if (!match || match[0] !== idealBranchName) {
+          if (!match) {
             return {
               type: 'failure',
-              title: `Ideal branch name: "${idealBranchName}"`,
+              title: `Suggested branch name: "${idealBranchName}"`,
+              summary: '',
+            };
+          }
+
+          if (match[0] === idealBranchName) {
+            return {
+              type: 'success',
+              title: '✓ The branch name matches PR title',
               summary: '',
             };
           }
 
           return {
             type: 'success',
-            title: '✓ The branch name matches PR title',
+            title: '✓ The branch name is valid',
             summary: '',
           };
         },
