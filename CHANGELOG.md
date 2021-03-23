@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.81.0](https://github.com/christophehurpeau/reviewflow/compare/v1.80.0...v1.81.0) (2021-03-23)
+
+
+### Features
+
+* improve ideal branch name regexp ([4c0688d](https://github.com/christophehurpeau/reviewflow/commit/4c0688d88b5d150f27abcabc499f94949bc7dd8c))
+
 ## [1.80.0](https://github.com/christophehurpeau/reviewflow/compare/v1.79.1...v1.80.0) (2021-03-23)
 
 
