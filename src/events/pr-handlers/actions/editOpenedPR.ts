@@ -6,6 +6,7 @@ import { getKeys } from '../../../context/utils';
 import { ExcludesFalsy } from '../../../utils/Excludes';
 import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
+import { checkIfUserIsBot } from '../utils/isBotUser';
 import { readCommitsAndUpdateInfos } from './readCommitsAndUpdateInfos';
 import { calcDefaultOptions } from './syncLabelsAfterCommentBodyEdited';
 import { updatePrIfNeeded } from './updatePr';
@@ -44,7 +45,9 @@ export const editOpenedPR = async <
     base: pullRequest.base.ref,
   };
 
-  const isPrFromBot = pullRequest.user && pullRequest.user.type === 'Bot';
+  const isPrFromBot = !pullRequest.user
+    ? false
+    : checkIfUserIsBot(repoContext, pullRequest.user);
 
   const statuses: Status[] = [];
   let errorStatus: StatusInfo | undefined;
@@ -53,22 +56,21 @@ export const editOpenedPR = async <
     const rules = repoContext.config.parsePR[parsePRKey];
     if (!rules) return;
 
-    const prInfo = { title };
     const value = parsePRValue[parsePRKey];
     rules.forEach((rule) => {
       if (rule.bot === false && isPrFromBot) return;
 
       const match = rule.regExp.exec(value);
-      const status = rule.createStatusInfo(match, prInfo);
+      const status = rule.createStatusInfo(match, parsePRValue, isPrFromBot);
 
       if (status !== null) {
-        if (status.type === 'failure') {
+        if (rule.status) {
+          statuses.push({ name: rule.status, status });
+        } else if (status.type === 'failure') {
           if (!errorStatus) {
             errorStatus = status;
           }
           return true;
-        } else if (rule.status) {
-          statuses.push({ name: rule.status, status });
         }
       }
     });
@@ -126,7 +128,7 @@ export const editOpenedPR = async <
                 summary: errorStatus.summary,
               }
             : {
-                title: '✓ Your PR is valid',
+                title: '✓ PR is valid',
                 summary: '',
               },
         }),
@@ -146,7 +148,7 @@ export const editOpenedPR = async <
         'lint-pr',
         pullRequest.head.sha,
         errorStatus ? 'failure' : 'success',
-        errorStatus ? errorStatus.title : '✓ Your PR is valid',
+        errorStatus ? errorStatus.title : '✓ PR is valid',
         errorStatus ? errorStatus.url : undefined,
       ),
   ].filter(ExcludesFalsy);

@@ -30,6 +30,7 @@ export interface ParsePRRule {
   createStatusInfo: (
     match: RegExpMatchArray | null,
     prInfo: PrInfo,
+    isPrFromBot: boolean,
   ) => StatusInfo | null;
 }
 

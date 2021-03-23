@@ -234,7 +234,7 @@ function home(router) {
   });
 }
 
-const config = {
+const config$3 = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: false,
@@ -337,7 +337,7 @@ const config = {
   }
 };
 
-const config$1 = {
+const config$2 = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: false,
@@ -375,7 +375,8 @@ const config$1 = {
   }
 };
 
-const config$2 = {
+/* eslint-disable max-lines */
+const config$1 = {
   autoAssignToCreator: true,
   trimTitle: true,
   ignoreRepoPattern: '(infra-.*|devenv)',
@@ -402,17 +403,16 @@ const config$2 = {
         };
       }
     }, {
-      bot: false,
       regExp: /\s([A-Z][\dA-Z]+-(\d+)|\[no issue])$/,
       status: 'jira-issue',
-      createStatusInfo: match => {
+      createStatusInfo: (match, prInfo, isPrFromBot) => {
         if (match) {
           const issue = match[1];
 
           if (issue === '[no issue]') {
             return {
               type: 'success',
-              title: 'No issue',
+              title: '✓ No issue',
               summary: ''
             };
           }
@@ -420,9 +420,17 @@ const config$2 = {
           return {
             type: 'success',
             inBody: true,
-            title: `JIRA issue: ${issue}`,
+            title: `✓ JIRA issue: ${issue}`,
             summary: `[${issue}](https://ornikar.atlassian.net/browse/${issue})`,
             url: `https://ornikar.atlassian.net/browse/${issue}`
+          };
+        }
+
+        if (isPrFromBot) {
+          return {
+            type: 'success',
+            title: 'Title does not have Jira issue but PR created by bot',
+            summary: ''
           };
         }
 
@@ -451,7 +459,11 @@ const config$2 = {
           };
         }
 
-        return null;
+        return {
+          type: 'success',
+          title: '✓ The branch name matches PR title',
+          summary: ''
+        };
       }
     }],
     base: [{
@@ -680,20 +692,21 @@ const config$2 = {
   }
 };
 
-const config$3 = { ...config,
+const config = { ...config$3,
   requiresReviewRequest: true,
   groups: {
     dev: {
       christophehurpeau: 'christophe@hurpeau.com',
       'chris-reviewflow': 'christophe.hurpeau+reviewflow@gmail.com'
     }
-  }
+  } // parsePR: ornikarconfig.parsePR,
+
 };
 
 const accountConfigs = {
-  ornikar: config$2,
-  christophehurpeau: config,
-  reviewflow: config$3
+  ornikar: config$1,
+  christophehurpeau: config$3,
+  reviewflow: config
 };
 // export const getMembers = <GroupNames extends string = any>(
 //   groups: Record<GroupNames, Group>,
@@ -719,7 +732,7 @@ const defaultDmSettings = {
 const cache = new Map();
 
 const getDefaultDmSettings = org => {
-  const accountConfig = accountConfigs[org] || config$1;
+  const accountConfig = accountConfigs[org] || config$2;
   return accountConfig.defaultDmSettings ? { ...defaultDmSettings,
     ...accountConfig.defaultDmSettings
   } : defaultDmSettings;
@@ -1543,7 +1556,7 @@ const obtainAccountContext = (appContext, context, config, accountInfo) => {
 const handlerOrgChange = async (appContext, context, callback) => {
   const org = context.payload.organization;
   if (!org) return;
-  const config = accountConfigs[org.login] || config$1;
+  const config = accountConfigs[org.login] || config$2;
   const accountContext = await obtainAccountContext(appContext, context, config, { ...org,
     type: 'Organization'
   });
@@ -2223,7 +2236,7 @@ const obtainRepoContext = (appContext, context) => {
 
   if (!accountConfig) {
     context.log(`using default config for ${owner.login}`);
-    accountConfig = config$1;
+    accountConfig = config$2;
   }
 
   const promise = initRepoContext(appContext, context, accountConfig);
@@ -3074,33 +3087,30 @@ const editOpenedPR = async (pullRequest, context, repoContext, reviewflowPrConte
     head: pullRequest.head.ref,
     base: pullRequest.base.ref
   };
-  const isPrFromBot = pullRequest.user && pullRequest.user.type === 'Bot';
+  const isPrFromBot = !pullRequest.user ? false : checkIfUserIsBot(repoContext, pullRequest.user);
   const statuses = [];
   let errorStatus;
   getKeys(repoContext.config.parsePR).forEach(parsePRKey => {
     const rules = repoContext.config.parsePR[parsePRKey];
     if (!rules) return;
-    const prInfo = {
-      title
-    };
     const value = parsePRValue[parsePRKey];
     rules.forEach(rule => {
       if (rule.bot === false && isPrFromBot) return;
       const match = rule.regExp.exec(value);
-      const status = rule.createStatusInfo(match, prInfo);
+      const status = rule.createStatusInfo(match, parsePRValue, isPrFromBot);
 
       if (status !== null) {
-        if (status.type === 'failure') {
+        if (rule.status) {
+          statuses.push({
+            name: rule.status,
+            status
+          });
+        } else if (status.type === 'failure') {
           if (!errorStatus) {
             errorStatus = status;
           }
 
           return true;
-        } else if (rule.status) {
-          statuses.push({
-            name: rule.status,
-            status
-          });
         }
       }
     });
@@ -3127,10 +3137,10 @@ const editOpenedPR = async (pullRequest, context, repoContext, reviewflowPrConte
       title: errorStatus.title,
       summary: errorStatus.summary
     } : {
-      title: '✓ Your PR is valid',
+      title: '✓ PR is valid',
       summary: ''
     }
-  })), !hasLintPrCheck && previousSha && errorStatus ? createStatus(context, 'lint-pr', previousSha, 'success', 'New commits have been pushed') : undefined, !hasLintPrCheck && createStatus(context, 'lint-pr', pullRequest.head.sha, errorStatus ? 'failure' : 'success', errorStatus ? errorStatus.title : '✓ Your PR is valid', errorStatus ? errorStatus.url : undefined)].filter(ExcludesFalsy);
+  })), !hasLintPrCheck && previousSha && errorStatus ? createStatus(context, 'lint-pr', previousSha, 'success', 'New commits have been pushed') : undefined, !hasLintPrCheck && createStatus(context, 'lint-pr', pullRequest.head.sha, errorStatus ? 'failure' : 'success', errorStatus ? errorStatus.title : '✓ PR is valid', errorStatus ? errorStatus.url : undefined)].filter(ExcludesFalsy);
   const body = removeDeprecatedReviewflowInPrBody(pullRequest.body);
   promises.push(updatePrIfNeeded(pullRequest, context, {
     title,

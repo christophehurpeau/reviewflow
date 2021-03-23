@@ -84,7 +84,7 @@ describe('opened', (): void => {
 
       .post(
         '/repos/reviewflow/reviewflow-test/statuses/2ab411d5c55f25f3dc2de6a3244f290a804e33da',
-        '{"context":"reviewflow-dev/lint-pr","state":"success","description":"✓ Your PR is valid"}',
+        '{"context":"reviewflow-dev/lint-pr","state":"success","description":"✓ PR is valid"}',
       )
       .reply(200, {})
 

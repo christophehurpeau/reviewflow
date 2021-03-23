@@ -1,4 +1,5 @@
 import chrisconfig from './christophehurpeau';
+// import ornikarconfig from './ornikar';
 import type { Config } from './types';
 
 const config: Config<'dev', never> = {
@@ -10,5 +11,6 @@ const config: Config<'dev', never> = {
       'chris-reviewflow': 'christophe.hurpeau+reviewflow@gmail.com',
     },
   },
+  // parsePR: ornikarconfig.parsePR,
 };
 export default config;

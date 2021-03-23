@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import type { Config } from './types';
 
 const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
@@ -30,25 +31,32 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         },
       },
       {
-        bot: false,
         regExp: /\s([A-Z][\dA-Z]+-(\d+)|\[no issue])$/,
         status: 'jira-issue',
-        createStatusInfo: (match) => {
+        createStatusInfo: (match, prInfo, isPrFromBot) => {
           if (match) {
             const issue = match[1];
             if (issue === '[no issue]') {
               return {
                 type: 'success',
-                title: 'No issue',
+                title: '✓ No issue',
                 summary: '',
               };
             }
             return {
               type: 'success',
               inBody: true,
-              title: `JIRA issue: ${issue}`,
+              title: `✓ JIRA issue: ${issue}`,
               summary: `[${issue}](https://ornikar.atlassian.net/browse/${issue})`,
               url: `https://ornikar.atlassian.net/browse/${issue}`,
+            };
+          }
+
+          if (isPrFromBot) {
+            return {
+              type: 'success',
+              title: 'Title does not have Jira issue but PR created by bot',
+              summary: '',
             };
           }
 
@@ -80,7 +88,11 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
             };
           }
 
-          return null;
+          return {
+            type: 'success',
+            title: '✓ The branch name matches PR title',
+            summary: '',
+          };
         },
       },
     ],
