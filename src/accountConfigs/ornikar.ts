@@ -78,7 +78,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
           const idealBranchName = title
             .replace(/\s*\[no issue]$/, '')
             .replace(/\s*(\(|\):|:)\s*/g, '/')
-            .replace(/[\s,]+/g, '-');
+            .replace(/[\s,_-]+/g, '-');
 
           if (!match) {
             return {
