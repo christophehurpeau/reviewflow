@@ -15,10 +15,17 @@ const config: Config<'dev', never> = {
         regExp:
           // eslint-disable-next-line unicorn/no-unsafe-regex
           /^(?<revert>revert: )?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\([/a-z-]+\)?((?=:\s)|(?=!:\s)))?(?<breaking>!)?(?<subject>:\s.*)$/,
-        error: {
-          title: 'Title does not match commitlint conventional',
-          summary:
-            'https://www.npmjs.com/package/@commitlint/config-conventional',
+        createStatusInfo: (match) => {
+          if (match) {
+            return null;
+          }
+
+          return {
+            type: 'failure',
+            title: 'Title does not match commitlint conventional',
+            summary:
+              'https://www.npmjs.com/package/@commitlint/config-conventional',
+          };
         },
       },
     ],

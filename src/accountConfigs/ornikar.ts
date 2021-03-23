@@ -16,33 +16,46 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       {
         // eslint-disable-next-line unicorn/no-unsafe-regex
         regExp: /^(?<revert>revert: )?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\([/A-Za-z-]+\)?((?=:\s)|(?=!:\s)))?(?<breaking>!)?(?<subject>:\s.*)$/,
-        error: {
-          title: 'Title does not match commitlint conventional',
-          summary:
-            'https://www.npmjs.com/package/@commitlint/config-conventional',
+        createStatusInfo: (match) => {
+          if (match) {
+            return null;
+          }
+
+          return {
+            type: 'failure',
+            title: 'Title does not match commitlint conventional',
+            summary:
+              'https://www.npmjs.com/package/@commitlint/config-conventional',
+          };
         },
       },
       {
         bot: false,
         regExp: /\s([A-Z][\dA-Z]+-(\d+)|\[no issue])$/,
-        error: {
-          title: 'Title does not have Jira issue',
-          summary: 'The PR title should end with ONK-0000, or [no issue]',
-        },
         status: 'jira-issue',
-        statusInfoFromMatch: (match) => {
-          const issue = match[1];
-          if (issue === '[no issue]') {
+        createStatusInfo: (match) => {
+          if (match) {
+            const issue = match[1];
+            if (issue === '[no issue]') {
+              return {
+                type: 'success',
+                title: 'No issue',
+                summary: '',
+              };
+            }
             return {
-              title: 'No issue',
-              summary: '',
+              type: 'success',
+              inBody: true,
+              title: `JIRA issue: ${issue}`,
+              summary: `[${issue}](https://ornikar.atlassian.net/browse/${issue})`,
+              url: `https://ornikar.atlassian.net/browse/${issue}`,
             };
           }
+
           return {
-            inBody: true,
-            url: `https://ornikar.atlassian.net/browse/${issue}`,
-            title: `JIRA issue: ${issue}`,
-            summary: `[${issue}](https://ornikar.atlassian.net/browse/${issue})`,
+            type: 'failure',
+            title: 'Title does not have Jira issue',
+            summary: 'The PR title should end with ONK-0000, or [no issue]',
           };
         },
       },
@@ -51,25 +64,41 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       {
         bot: false,
         // eslint-disable-next-line unicorn/no-unsafe-regex
-        regExp: /^(?<revert>revert-\d+-)?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\/[a-z-]+)?\/(?<breaking>!)?(?<subject>.*)-(?<jiraIssue>[A-Z][\dA-Z]+-(\d+))$/,
-        warning: true,
+        regExp: /^(?<revert>revert-\d+-)?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\/[a-z-]+)?\/(?<breaking>!)?(?<subject>.*)(?:-(?<jiraIssue>[A-Z][\dA-Z]+-(\d+)))?$/,
         status: 'branch-name',
-        error: ({ title }) => ({
-          title: `Ideal branch name: "${title
+        createStatusInfo: (match, { title }) => {
+          const idealBranchName = title
             .replace(/\s*\[no issue]$/, '')
             .replace(/\s*(\(|\):|:)\s*/g, '/')
-            .replace(/[\s,]+/g, '-')}"`,
-          summary: '',
-        }),
+            .replace(/[\s,]+/g, '-');
+
+          if (!match || match[0] !== idealBranchName) {
+            return {
+              type: 'failure',
+              title: `Ideal branch name: "${idealBranchName}"`,
+              summary: '',
+            };
+          }
+
+          return null;
+        },
       },
     ],
     base: [
       {
         regExp: /^(master|main)$/,
-        error: {
-          title: 'PR to branches other than main is not recommended',
-          summary:
-            'https://ornikar.atlassian.net/wiki/spaces/TECH/pages/2221900272/Should+I+make+a+feature-branch+or+not',
+        createStatusInfo: (match) => {
+          if (match) {
+            return null;
+          }
+
+          return {
+            type: 'failure',
+            title: 'PR to branches other than main is not recommended',
+            summary: '',
+            url:
+              'https://ornikar.atlassian.net/wiki/spaces/TECH/pages/2221900272/Should+I+make+a+feature-branch+or+not',
+          };
         },
       },
     ],

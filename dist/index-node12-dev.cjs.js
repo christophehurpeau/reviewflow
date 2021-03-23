@@ -234,7 +234,7 @@ function home(router) {
   });
 }
 
-const config$3 = {
+const config = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: false,
@@ -247,9 +247,16 @@ const config$3 = {
     title: [{
       regExp: // eslint-disable-next-line unicorn/no-unsafe-regex
       /^(?<revert>revert: )?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\([/a-z-]+\)?((?=:\s)|(?=!:\s)))?(?<breaking>!)?(?<subject>:\s.*)$/,
-      error: {
-        title: 'Title does not match commitlint conventional',
-        summary: 'https://www.npmjs.com/package/@commitlint/config-conventional'
+      createStatusInfo: match => {
+        if (match) {
+          return null;
+        }
+
+        return {
+          type: 'failure',
+          title: 'Title does not match commitlint conventional',
+          summary: 'https://www.npmjs.com/package/@commitlint/config-conventional'
+        };
       }
     }]
   },
@@ -330,7 +337,7 @@ const config$3 = {
   }
 };
 
-const config$2 = {
+const config$1 = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: false,
@@ -368,7 +375,7 @@ const config$2 = {
   }
 };
 
-const config$1 = {
+const config$2 = {
   autoAssignToCreator: true,
   trimTitle: true,
   ignoreRepoPattern: '(infra-.*|devenv)',
@@ -383,54 +390,83 @@ const config$1 = {
     title: [{
       // eslint-disable-next-line unicorn/no-unsafe-regex
       regExp: /^(?<revert>revert: )?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\([/A-Za-z-]+\)?((?=:\s)|(?=!:\s)))?(?<breaking>!)?(?<subject>:\s.*)$/,
-      error: {
-        title: 'Title does not match commitlint conventional',
-        summary: 'https://www.npmjs.com/package/@commitlint/config-conventional'
+      createStatusInfo: match => {
+        if (match) {
+          return null;
+        }
+
+        return {
+          type: 'failure',
+          title: 'Title does not match commitlint conventional',
+          summary: 'https://www.npmjs.com/package/@commitlint/config-conventional'
+        };
       }
     }, {
       bot: false,
       regExp: /\s([A-Z][\dA-Z]+-(\d+)|\[no issue])$/,
-      error: {
-        title: 'Title does not have Jira issue',
-        summary: 'The PR title should end with ONK-0000, or [no issue]'
-      },
       status: 'jira-issue',
-      statusInfoFromMatch: match => {
-        const issue = match[1];
+      createStatusInfo: match => {
+        if (match) {
+          const issue = match[1];
 
-        if (issue === '[no issue]') {
+          if (issue === '[no issue]') {
+            return {
+              type: 'success',
+              title: 'No issue',
+              summary: ''
+            };
+          }
+
           return {
-            title: 'No issue',
-            summary: ''
+            type: 'success',
+            inBody: true,
+            title: `JIRA issue: ${issue}`,
+            summary: `[${issue}](https://ornikar.atlassian.net/browse/${issue})`,
+            url: `https://ornikar.atlassian.net/browse/${issue}`
           };
         }
 
         return {
-          inBody: true,
-          url: `https://ornikar.atlassian.net/browse/${issue}`,
-          title: `JIRA issue: ${issue}`,
-          summary: `[${issue}](https://ornikar.atlassian.net/browse/${issue})`
+          type: 'failure',
+          title: 'Title does not have Jira issue',
+          summary: 'The PR title should end with ONK-0000, or [no issue]'
         };
       }
     }],
     head: [{
       bot: false,
       // eslint-disable-next-line unicorn/no-unsafe-regex
-      regExp: /^(?<revert>revert-\d+-)?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\/[a-z-]+)?\/(?<breaking>!)?(?<subject>.*)-(?<jiraIssue>[A-Z][\dA-Z]+-(\d+))$/,
-      warning: true,
+      regExp: /^(?<revert>revert-\d+-)?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\/[a-z-]+)?\/(?<breaking>!)?(?<subject>.*)(?:-(?<jiraIssue>[A-Z][\dA-Z]+-(\d+)))?$/,
       status: 'branch-name',
-      error: ({
+      createStatusInfo: (match, {
         title
-      }) => ({
-        title: `Ideal branch name: "${title.replace(/\s*\[no issue]$/, '').replace(/\s*(\(|\):|:)\s*/g, '/').replace(/[\s,]+/g, '-')}"`,
-        summary: ''
-      })
+      }) => {
+        const idealBranchName = title.replace(/\s*\[no issue]$/, '').replace(/\s*(\(|\):|:)\s*/g, '/').replace(/[\s,]+/g, '-');
+
+        if (!match || match[0] !== idealBranchName) {
+          return {
+            type: 'failure',
+            title: `Ideal branch name: "${idealBranchName}"`,
+            summary: ''
+          };
+        }
+
+        return null;
+      }
     }],
     base: [{
       regExp: /^(master|main)$/,
-      error: {
-        title: 'PR to branches other than main is not recommended',
-        summary: 'https://ornikar.atlassian.net/wiki/spaces/TECH/pages/2221900272/Should+I+make+a+feature-branch+or+not'
+      createStatusInfo: match => {
+        if (match) {
+          return null;
+        }
+
+        return {
+          type: 'failure',
+          title: 'PR to branches other than main is not recommended',
+          summary: '',
+          url: 'https://ornikar.atlassian.net/wiki/spaces/TECH/pages/2221900272/Should+I+make+a+feature-branch+or+not'
+        };
       }
     }]
   },
@@ -644,7 +680,7 @@ const config$1 = {
   }
 };
 
-const config = { ...config$3,
+const config$3 = { ...config,
   requiresReviewRequest: true,
   groups: {
     dev: {
@@ -655,9 +691,9 @@ const config = { ...config$3,
 };
 
 const accountConfigs = {
-  ornikar: config$1,
-  christophehurpeau: config$3,
-  reviewflow: config
+  ornikar: config$2,
+  christophehurpeau: config,
+  reviewflow: config$3
 };
 // export const getMembers = <GroupNames extends string = any>(
 //   groups: Record<GroupNames, Group>,
@@ -683,7 +719,7 @@ const defaultDmSettings = {
 const cache = new Map();
 
 const getDefaultDmSettings = org => {
-  const accountConfig = accountConfigs[org] || config$2;
+  const accountConfig = accountConfigs[org] || config$1;
   return accountConfig.defaultDmSettings ? { ...defaultDmSettings,
     ...accountConfig.defaultDmSettings
   } : defaultDmSettings;
@@ -1507,7 +1543,7 @@ const obtainAccountContext = (appContext, context, config, accountInfo) => {
 const handlerOrgChange = async (appContext, context, callback) => {
   const org = context.payload.organization;
   if (!org) return;
-  const config = accountConfigs[org.login] || config$2;
+  const config = accountConfigs[org.login] || config$1;
   const accountContext = await obtainAccountContext(appContext, context, config, { ...org,
     type: 'Organization'
   });
@@ -2187,7 +2223,7 @@ const obtainRepoContext = (appContext, context) => {
 
   if (!accountConfig) {
     context.log(`using default config for ${owner.login}`);
-    accountConfig = config$2;
+    accountConfig = config$1;
   }
 
   const promise = initRepoContext(appContext, context, accountConfig);
@@ -3040,97 +3076,67 @@ const editOpenedPR = async (pullRequest, context, repoContext, reviewflowPrConte
   };
   const isPrFromBot = pullRequest.user && pullRequest.user.type === 'Bot';
   const statuses = [];
-  const warnings = [];
-  let errorRule;
-  getKeys(repoContext.config.parsePR).find(parsePRKey => {
+  let errorStatus;
+  getKeys(repoContext.config.parsePR).forEach(parsePRKey => {
     const rules = repoContext.config.parsePR[parsePRKey];
-    if (!rules) return false;
+    if (!rules) return;
+    const prInfo = {
+      title
+    };
     const value = parsePRValue[parsePRKey];
-    errorRule = rules.find(rule => {
-      if (rule.bot === false && isPrFromBot) return false;
+    rules.forEach(rule => {
+      if (rule.bot === false && isPrFromBot) return;
       const match = rule.regExp.exec(value);
+      const status = rule.createStatusInfo(match, prInfo);
 
-      if (match === null) {
-        if (rule.status) {
+      if (status !== null) {
+        if (status.type === 'failure') {
+          if (!errorStatus) {
+            errorStatus = status;
+          }
+
+          return true;
+        } else if (rule.status) {
           statuses.push({
             name: rule.status,
-            error: rule.error
+            status
           });
-
-          if (rule.warning) {
-            warnings.push({
-              title: `"${rule.status}"`,
-              summary: ''
-            });
-            return false;
-          }
         }
-
-        if (rule.warning) {
-          warnings.push(rule.error);
-          return false;
-        }
-
-        return true;
       }
-
-      if (rule.status && rule.statusInfoFromMatch) {
-        statuses.push({
-          name: rule.status,
-          info: rule.statusInfoFromMatch(match)
-        });
-        return false;
-      }
-
-      return false;
     });
-    return errorRule;
   });
   const date = new Date().toISOString();
   const hasLintPrCheck = (await context.octokit.checks.listForRef(context.repo({
     ref: pullRequest.head.sha
   }))).data.check_runs.find(check => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`);
-  const errorStatus = errorRule ? // eslint-disable-next-line unicorn/no-nested-ternary
-  typeof errorRule.error === 'function' ? errorRule.error({
-    title
-  }) : errorRule.error : undefined;
   const promises = [...statuses.map(({
     name,
-    error,
-    info
-  }) => createStatus(context, name, pullRequest.head.sha, error ? 'failure' : 'success', error ? (typeof error === 'function' ? error({
-    title
-  }) : error).title : info.title, error ? undefined : info.url)), ...(previousSha ? statuses.map(({
-    name,
-    error,
-    info
-  }) => error ? createStatus(context, name, previousSha, 'success', 'New commits have been pushed') : undefined).filter(ExcludesFalsy) : []), hasLintPrCheck && context.octokit.checks.create(context.repo({
+    status
+  }) => createStatus(context, name, pullRequest.head.sha, status.type, status.title, status.url)), ...(previousSha ? statuses.filter(({
+    status
+  }) => status.type === 'failure').map(({
+    name
+  }) => createStatus(context, name, previousSha, 'success', 'New commits have been pushed')) : []), hasLintPrCheck && context.octokit.checks.create(context.repo({
     name: `${process.env.REVIEWFLOW_NAME}/lint-pr`,
     head_sha: pullRequest.head.sha,
     status: 'completed',
-    conclusion: errorRule ? 'failure' : 'success',
+    conclusion: errorStatus ? 'failure' : 'success',
     started_at: date,
     completed_at: date,
-    output: errorRule ? errorRule.error : {
-      title: warnings.length === 0 ? '✓ Your PR is valid' : `warnings: ${warnings.map(error => typeof error === 'function' ? error({
-        title
-      }).title : error.title).join(',')}`,
+    output: errorStatus ? {
+      title: errorStatus.title,
+      summary: errorStatus.summary
+    } : {
+      title: '✓ Your PR is valid',
       summary: ''
     }
-  })), !hasLintPrCheck && previousSha && errorRule ? createStatus(context, 'lint-pr', previousSha, 'success', 'New commits have been pushed') : undefined, !hasLintPrCheck && createStatus(context, 'lint-pr', pullRequest.head.sha, errorRule ? 'failure' : 'success', errorStatus ? errorStatus.title : // eslint-disable-next-line unicorn/no-nested-ternary
-  warnings.length === 0 ? '✓ Your PR is valid' : `warning${warnings.length === 1 ? '' : 's'}: ${warnings.map(error => typeof error === 'function' ? error({
-    title
-  }).title : error.title).join(',')}`, errorStatus ? errorStatus.url : undefined)].filter(ExcludesFalsy);
+  })), !hasLintPrCheck && previousSha && errorStatus ? createStatus(context, 'lint-pr', previousSha, 'success', 'New commits have been pushed') : undefined, !hasLintPrCheck && createStatus(context, 'lint-pr', pullRequest.head.sha, errorStatus ? 'failure' : 'success', errorStatus ? errorStatus.title : '✓ Your PR is valid', errorStatus ? errorStatus.url : undefined)].filter(ExcludesFalsy);
   const body = removeDeprecatedReviewflowInPrBody(pullRequest.body);
   promises.push(updatePrIfNeeded(pullRequest, context, {
     title,
     body
   }));
-  const commentBodyInfos = statuses.filter(status => {
-    var _status$info;
-
-    return (_status$info = status.info) === null || _status$info === void 0 ? void 0 : _status$info.inBody;
-  }).map(status => status.info);
+  const commentBodyInfos = statuses.filter(status => status.status.inBody).map(status => status.status);
   const shouldCreateCommentBody = reviewflowPrContext.commentBody === defaultCommentBody;
   const newBody = shouldCreateCommentBody ? createCommentBody(context.payload.repository.html_url, repoContext.config.labels.list, calcDefaultOptions(repoContext, pullRequest), commentBodyInfos) : updateCommentBodyInfos(reviewflowPrContext.commentBody, commentBodyInfos);
 

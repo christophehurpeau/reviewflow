@@ -2,15 +2,11 @@ import type { MessageCategory } from '../dm/MessageCategory';
 import type { Options } from '../events/pr-handlers/actions/utils/body/prOptions';
 
 export interface StatusInfo {
+  type: 'success' | 'failure';
   inBody?: true;
   url?: string;
   title: string;
   summary: string;
-}
-export interface StatusError {
-  title: string;
-  summary: string;
-  url?: string;
 }
 
 export interface Group {
@@ -23,14 +19,18 @@ export interface Team {
   labels?: string[];
 }
 
+interface PrInfo {
+  title: string;
+}
+
 export interface ParsePRRule {
   bot?: false;
   regExp: RegExp;
-  error: StatusError | ((prInfos: { title: string }) => StatusError);
-  warning?: boolean;
-
   status?: string;
-  statusInfoFromMatch?: (match: RegExpMatchArray) => StatusInfo;
+  createStatusInfo: (
+    match: RegExpMatchArray | null,
+    prInfo: PrInfo,
+  ) => StatusInfo | null;
 }
 
 export interface ParsePR {
