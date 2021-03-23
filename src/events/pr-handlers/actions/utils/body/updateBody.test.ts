@@ -129,6 +129,7 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
         expect(
           updateCommentBodyInfos(initialAfterEditSimple, [
             {
+              type: 'success',
               inBody: true,
               title: 'Test',
               url: 'http://test.com',
@@ -152,6 +153,7 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
             ),
             [
               {
+                type: 'success',
                 inBody: true,
                 title: 'Test Updated',
                 url: 'http://test.com',

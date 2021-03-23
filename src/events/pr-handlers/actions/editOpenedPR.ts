@@ -70,7 +70,6 @@ export const editOpenedPR = async <
           if (!errorStatus) {
             errorStatus = status;
           }
-          return true;
         }
       }
     });

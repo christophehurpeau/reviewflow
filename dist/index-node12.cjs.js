@@ -3117,8 +3117,6 @@ const editOpenedPR = async (pullRequest, context, repoContext, reviewflowPrConte
           if (!errorStatus) {
             errorStatus = status;
           }
-
-          return true;
         }
       }
     });
