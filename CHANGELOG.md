@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.80.0](https://github.com/christophehurpeau/reviewflow/compare/v1.79.1...v1.80.0) (2021-03-23)
+
+
+### Features
+
+* more flexible branch name status ([315d4d0](https://github.com/christophehurpeau/reviewflow/commit/315d4d0a94f3c8029b1e5442fac3c87d125e3d28))
+
+
+### Bug Fixes
+
+* branch name check and improve status messages ([24caaf1](https://github.com/christophehurpeau/reviewflow/commit/24caaf134f9cf789532c6255bad2654f0b078119))
+
 ### [1.79.1](https://github.com/christophehurpeau/reviewflow/compare/v1.79.0...v1.79.1) (2021-03-17)
 
 
