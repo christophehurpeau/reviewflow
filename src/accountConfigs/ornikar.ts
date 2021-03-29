@@ -155,6 +155,9 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       PSniezak: `paul.sniezak${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       GaelFerrand: 'gael.ferrand@othrys.dev',
       aenario: `romain.foucault${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      
+      /* em */
+      rchabin: `remy.chabin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
     },
 
     design: {
@@ -190,6 +193,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         'machartier',
         'camillebaronnet',
         'olivier-martinez',
+        'rchabin',
       ],
       labels: ['teams/backend'],
     },
@@ -208,6 +212,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         'ChibiBlasphem',
         'PSniezak',
         'aenario',
+        'rchabin',
       ],
       labels: ['teams/frontend'],
     },
