@@ -444,10 +444,10 @@
     core-js-pure "^3.0.0"
     regenerator-runtime "^0.13.4"
 
-"@babel/runtime@^7.10.2", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.5":
-  version "7.12.5"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.12.5.tgz#410e7e487441e1b360c29be715d870d9b985882e"
-  integrity sha512-plcc+hbExy3McchJCEQG3knOsuh3HH+Prx1P6cLIkET/0dLuQDEnrT+s27Axgc9bqfsmNUNHfscgMUdBpC9xfg==
+"@babel/runtime@^7.10.2", "@babel/runtime@^7.11.2", "@babel/runtime@^7.13.10":
+  version "7.13.10"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.13.10.tgz#47d42a57b6095f4468da440388fdbad8bebf0d7d"
+  integrity sha512-4QPkjJq6Ns3V/RgpEahRk+AGfL0eO6RHHtTWoNNr5mO49G6B5+X6d6THgWEAvTrznU5xYpbAlVKRYcsCgh/Akw==
   dependencies:
     regenerator-runtime "^0.13.4"
 
@@ -1550,10 +1550,10 @@
   resolved "https://registry.yarnpkg.com/@types/minimist/-/minimist-1.2.1.tgz#283f669ff76d7b8260df8ab7a4262cc83d988256"
   integrity sha512-fZQQafSREFyuZcdWFAExYjBiCL7AUCdgsk80iO0q4yihYYdcIiH28CcuPTGFgLOCC8RlW49GSQxdHwZP+I7CNg==
 
-"@types/mongodb@^3.5.20":
-  version "3.6.3"
-  resolved "https://registry.yarnpkg.com/@types/mongodb/-/mongodb-3.6.3.tgz#5655af409d9e32d5d5ae9a653abf3e5f9c83eb7a"
-  integrity sha512-6YNqGP1hk5bjUFaim+QoFFuI61WjHiHE1BNeB41TA00Xd2K7zG4lcWyLLq/XtIp36uMavvS5hoAUJ+1u/GcX2Q==
+"@types/mongodb@^3.6.10":
+  version "3.6.11"
+  resolved "https://registry.yarnpkg.com/@types/mongodb/-/mongodb-3.6.11.tgz#918ecc4cbe6fa15d26c4fe12c00cf0d4c3cf421d"
+  integrity sha512-j0WPV+MQArOYULfCcBALomTXsDMt3iQl8dHa99jrf4U9ENgTQC3LKJbeXYL7TiClofzFOwwICkxEdlB5XhihGw==
   dependencies:
     "@types/bson" "*"
     "@types/node" "*"
@@ -5852,34 +5852,34 @@ listr2@^3.2.2:
     rxjs "^6.6.3"
     through "^2.3.8"
 
-liwi-mongo@8.0.4:
-  version "8.0.4"
-  resolved "https://registry.yarnpkg.com/liwi-mongo/-/liwi-mongo-8.0.4.tgz#2061714fc0905edebe862c919c55e075dc521dfd"
-  integrity sha512-CWNFyKx/2UU55mac2qsEqmPhYzN2Vj8MqA2ifsKSltroYi4gn20Z8sLQsICm1BeRqCCF1xmfOTc5y+H7YOCVdA==
+liwi-mongo@8.1.1:
+  version "8.1.1"
+  resolved "https://registry.yarnpkg.com/liwi-mongo/-/liwi-mongo-8.1.1.tgz#70cc9e8efb420af9cc7b4e3705938869c978ad9a"
+  integrity sha512-ZfFQG8D2PQfBdfampLN66TgjD0MLgIRdriky5gInghSOYN+oyQo7sFRRLD9YfrXIO+MPKHf+X8nh5XJPbTsHjg==
   dependencies:
-    "@types/mongodb" "^3.5.20"
-    liwi-store "^8.0.4"
-    liwi-subscribe-store "^8.0.4"
+    "@types/mongodb" "^3.6.10"
+    liwi-store "^8.1.0"
+    liwi-subscribe-store "^8.1.0"
     liwi-types "^8.0.4"
-    mingo "^3.0.2"
-    mongodb "^3.5.8"
-    nightingale-logger "^11.0.5"
+    mingo "^4.1.2"
+    mongodb "^3.6.5"
+    nightingale-logger "^11.6.0"
 
-liwi-store@^8.0.4:
-  version "8.0.4"
-  resolved "https://registry.yarnpkg.com/liwi-store/-/liwi-store-8.0.4.tgz#af0e6c5aa85832ba32cdf87f5c5f9b396346ef0b"
-  integrity sha512-f6MpXqsc4pqb0rasqentqNODpdy8BHlft+6GLuMB+iHmuvQJeQheKZ7rLxftPGnWseqgYN+IDnMsgJFgHvl4vw==
+liwi-store@^8.1.0:
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/liwi-store/-/liwi-store-8.1.0.tgz#bd9be137d92475d5d49f053d6e23cd07d514c307"
+  integrity sha512-/tnP/+vTIl/ZXRXTrXxiqyOXTd9/pa/WOZvkU/iF50UQsZQp5KdpY/5bDIKTBDfecuNT/XGfuKfnCDLGJvDSnw==
   dependencies:
-    "@babel/runtime" "^7.12.5"
+    "@babel/runtime" "^7.13.10"
     liwi-types "^8.0.4"
 
-liwi-subscribe-store@^8.0.4:
-  version "8.0.4"
-  resolved "https://registry.yarnpkg.com/liwi-subscribe-store/-/liwi-subscribe-store-8.0.4.tgz#819012b37f668a0b12963ff6fd8b138b07817e97"
-  integrity sha512-Dfm1s0vSLJ6+iTNjy84QH6wzsZpsKaD3d69nphhpO15tWP0sqmsALu1/ghpS7nNacsORKSEykhxJagKA2Z889g==
+liwi-subscribe-store@^8.1.0:
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/liwi-subscribe-store/-/liwi-subscribe-store-8.1.0.tgz#347b2a08208b6d64d7d32c960aa20490c0ce93ba"
+  integrity sha512-A7appvLq0rCTPDOv6dradc7w37Ho/9mJftYUkE4vGieq+ZbRb/Q2gx6AUwYDPNaJa6/r57QZ9npmKrcfaLLmZg==
   dependencies:
-    "@babel/runtime" "^7.12.5"
-    liwi-store "^8.0.4"
+    "@babel/runtime" "^7.13.10"
+    liwi-store "^8.1.0"
     liwi-types "^8.0.4"
 
 liwi-types@^8.0.4:
@@ -6459,10 +6459,10 @@ min-indent@^1.0.0:
   resolved "https://registry.yarnpkg.com/min-indent/-/min-indent-1.0.1.tgz#a63f681673b30571fbe8bc25686ae746eefa9869"
   integrity sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==
 
-mingo@^3.0.2:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/mingo/-/mingo-3.1.0.tgz#9efaa4db7bd8d185106cba474c3112dcac7bfd81"
-  integrity sha512-0Bb94A1IEz3Vwd9pbHjQEWpJfX9nVceD+hLeSue6yXvzgP7HayS6IvuOdrw2Wz3tNBgJALg6W38aq2mkBSWq/A==
+mingo@^4.1.2:
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/mingo/-/mingo-4.1.2.tgz#c8b96c6a78fe9b37b42ea1264d785c8e5cd9eb02"
+  integrity sha512-WQKhtFDV7nRIMlPP7tfo0Zx4bpvmhfBuHKvNPA9DbISjYJtrU4g1kacQPxPhMSEebJ6tGz7pHXDzQOyANpJ9jA==
 
 minimatch@^3.0.4:
   version "3.0.4"
@@ -6514,10 +6514,10 @@ modify-values@^1.0.0:
   resolved "https://registry.yarnpkg.com/modify-values/-/modify-values-1.0.1.tgz#b3939fa605546474e3e3e3c63d64bd43b4ee6022"
   integrity sha512-xV2bxeN6F7oYjZWTe/YPAy6MN2M+sL4u/Rlm2AHCIVGfo2p1yGmBHQ6vHehl4bRTZBdHu3TSkWdYgkwpYzAGSw==
 
-mongodb@^3.5.8:
-  version "3.6.3"
-  resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-3.6.3.tgz#eddaed0cc3598474d7a15f0f2a5b04848489fd05"
-  integrity sha512-rOZuR0QkodZiM+UbQE5kDsJykBqWi0CL4Ec2i1nrGrUI3KO11r6Fbxskqmq3JK2NH7aW4dcccBuUujAP0ERl5w==
+mongodb@^3.6.5:
+  version "3.6.5"
+  resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-3.6.5.tgz#c27d786fd4d3c83dc19302483707d12a9d2aee5f"
+  integrity sha512-mQlYKw1iGbvJJejcPuyTaytq0xxlYbIoVDm2FODR+OHxyEiMR021vc32bTvamgBjCswsD54XIRwhg3yBaWqJjg==
   dependencies:
     bl "^2.2.1"
     bson "^1.1.4"
@@ -6600,26 +6600,26 @@ nice-try@^1.0.4:
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
   integrity sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==
 
-nightingale-levels@^11.0.5:
-  version "11.0.5"
-  resolved "https://registry.yarnpkg.com/nightingale-levels/-/nightingale-levels-11.0.5.tgz#cfeffa20678e7b1ae4bebc2ff7956896f8cb7035"
-  integrity sha512-EfTQBef9goZKF85g2GEot78Pysa+hTkedU5cl7MFEz/Asnqqm4+q22pOQfbm8IaW6cpLSBniH6UgWBlOKWtIxw==
+nightingale-levels@^11.7.0:
+  version "11.7.0"
+  resolved "https://registry.yarnpkg.com/nightingale-levels/-/nightingale-levels-11.7.0.tgz#cbee5c5c74b4d4b970ab332bc2fffca7259397bc"
+  integrity sha512-qti2gqZl+Lk51sPPYPmItZ5SrujLl4lqnP9sC/VSsD0+dxUArqAY9djJ7sjb9bYMscvuadVADbtpBo+FJaW2cA==
 
-nightingale-logger@^11.0.5:
-  version "11.0.5"
-  resolved "https://registry.yarnpkg.com/nightingale-logger/-/nightingale-logger-11.0.5.tgz#81c48153eed983d7f768586272769598ca127974"
-  integrity sha512-vprJR0z7oypNKg/MFM9+1RicYQpEYg93wtgzM6s7t1cJHzquCkHBiEt9MYgpwKPKrCyUadiaDB5/19lbtv0iyw==
+nightingale-logger@^11.6.0:
+  version "11.7.0"
+  resolved "https://registry.yarnpkg.com/nightingale-logger/-/nightingale-logger-11.7.0.tgz#842aa7a6483e7597a8a717f9277d474e7e64cafa"
+  integrity sha512-AaJSp+4MFPvqP+7kUvYWMeW2w1vPK0yY+ISvvgrNHMfYhYz8wxkbbJKpfkZsDWTpSCvQytRafefOrVffS/4Qlw==
   dependencies:
     "@types/node" ">=12.0.0"
-    nightingale-levels "^11.0.5"
-    nightingale-types "^11.0.5"
+    nightingale-levels "^11.7.0"
+    nightingale-types "^11.7.0"
 
-nightingale-types@^11.0.5:
-  version "11.0.5"
-  resolved "https://registry.yarnpkg.com/nightingale-types/-/nightingale-types-11.0.5.tgz#20780839ecdf0c0ba0feeee11b1ea7185a8c2dde"
-  integrity sha512-HvcSP43x1GeIH/FYJ/HJJWHhKpk7CNze9rr6Exk32oxPtAV+roFdNQH98eRiTDu70e7G9WNM774l7QqtCsS65g==
+nightingale-types@^11.7.0:
+  version "11.7.0"
+  resolved "https://registry.yarnpkg.com/nightingale-types/-/nightingale-types-11.7.0.tgz#57cb98b8051bcae3e17812b7e9add8475d7fada8"
+  integrity sha512-ixyg5hkb31/pHekQME973awnB1/yqje50qNtqHjiqkfBHXQrF2FLQpps2v1heqKAlEzADGqhZvPNXKRGvC65tg==
   dependencies:
-    nightingale-levels "^11.0.5"
+    nightingale-levels "^11.7.0"
 
 nock@*, nock@13.0.7:
   version "13.0.7"
