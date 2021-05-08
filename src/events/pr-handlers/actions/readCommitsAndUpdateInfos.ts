@@ -8,6 +8,7 @@ import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
 import { updateCommentBodyCommitsNotes } from './utils/body/updateBody';
+import { readPullRequestCommits } from './utils/readPullRequestCommits';
 import syncLabel from './utils/syncLabel';
 
 interface BreakingChangesCommits {
@@ -27,14 +28,7 @@ export const readCommitsAndUpdateInfos = async <
   // tmp.data[0].sha
   // tmp.data[0].commit.message
 
-  const commits = await context.octokit.paginate(
-    context.octokit.pulls.listCommits,
-    context.pullRequest({
-      // A custom page size up to 100. Default is 30.
-      per_page: 100,
-    }),
-    (res) => res.data,
-  );
+  const commits = await readPullRequestCommits(context);
 
   const conventionalCommits = await Promise.all(
     commits.map((c) => parse(c.commit.message)),

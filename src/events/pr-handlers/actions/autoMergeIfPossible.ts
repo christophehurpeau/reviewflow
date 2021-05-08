@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import type { Context } from 'probot';
 import type { RepoContext } from 'context/repoContext';
 import type { AutomergeLog } from 'mongo';
@@ -7,8 +8,11 @@ import type {
   PullRequestLabels,
 } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
+import { checkIfUserIsBot } from '../utils/isBotUser';
+import { updateBranch } from './updateBranch';
 import { parseBody } from './utils/body/parseBody';
 import hasLabelInPR from './utils/hasLabelInPR';
+import { readPullRequestCommits } from './utils/readPullRequestCommits';
 
 const hasFailedStatusOrChecks = async (
   pr: PullRequestData,
@@ -212,9 +216,28 @@ export const autoMergeIfPossible = async (
         pullRequest.mergeable_state === 'behind' ||
         pullRequest.mergeable_state === 'dirty'
       ) {
-        addLog('rebase-renovate', 'wait');
+        const commits = await readPullRequestCommits(context, pullRequest);
 
-        // TODO check if has commits not made by renovate https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
+        // check if has commits not made by renovate or bots like https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
+        if (
+          commits.some(
+            (c) => !c.author || checkIfUserIsBot(repoContext, c.author),
+          )
+        ) {
+          addLog('rebase-renovate', 'update branch');
+          if (await updateBranch(pullRequest, context, null)) {
+            return false;
+          }
+
+          repoContext.removePrFromAutomergeQueue(
+            context,
+            pullRequest.number,
+            'update branch failed',
+          );
+          return false;
+        }
+
+        addLog('rebase-renovate', 'wait');
         if (
           pullRequest.body &&
           pullRequest.body.includes('<!-- rebase-check -->')
@@ -282,13 +305,15 @@ export const autoMergeIfPossible = async (
 
     if (pullRequest.mergeable_state === 'behind') {
       addLog('behind mergeable_state', 'update branch');
-      await context.octokit.repos.merge({
-        owner: pullRequest.head.repo.owner.login,
-        repo: pullRequest.head.repo.name,
-        head: pullRequest.base.ref,
-        base: pullRequest.head.ref,
-      });
+      if (await updateBranch(pullRequest, context, null)) {
+        return false;
+      }
 
+      repoContext.removePrFromAutomergeQueue(
+        context,
+        pullRequest.number,
+        'update branch failed',
+      );
       return false;
     }
 
@@ -312,19 +337,21 @@ export const autoMergeIfPossible = async (
       repoContext.config.prDefaultOptions,
     );
     const options = parsedBody?.options || repoContext.config.prDefaultOptions;
-    const isFeatureBranch = false; // options.featureBranch;
 
     const mergeResult = await context.octokit.pulls.merge({
-      merge_method: isFeatureBranch ? 'merge' : 'squash',
+      merge_method: 'squash',
       owner: pullRequest.head.repo.owner.login,
       repo: pullRequest.head.repo.name,
       pull_number: pullRequest.number,
-      commit_title: isFeatureBranch
-        ? undefined
-        : `${pullRequest.title}${
-            options.autoMergeWithSkipCi ? ' [skip ci]' : ''
-          } (#${pullRequest.number})`,
-      commit_message: isFeatureBranch ? undefined : '', // TODO add BC
+      commit_title: `${pullRequest.title}${
+        options.autoMergeWithSkipCi ? ' [skip ci]' : ''
+      } (#${pullRequest.number})`,
+      commit_message: parsedBody?.commitNotes
+        ? parsedBody?.commitNotes
+            .replace(/^- (.*)\s*\([^)]+\)$/gm, '$1')
+            .replace(/^Breaking Changes:\n/, 'BREAKING CHANGE: ')
+            .replace(/\n/g, '; ')
+        : '',
     });
     context.log.debug(mergeResult.data, 'merge result:');
     repoContext.removePrFromAutomergeQueue(

@@ -4,8 +4,8 @@ import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 export const updateBranch = async (
   pullRequest: PullRequestWithDecentData,
   context: Context<any>,
-  login: string,
-): Promise<void> => {
+  login: string | null,
+): Promise<boolean> => {
   context.log.info('update branch', {
     head: pullRequest.head.ref,
     base: pullRequest.base.ref,
@@ -33,29 +33,39 @@ export const updateBranch = async (
     context.octokit.issues.createComment(
       context.repo({
         issue_number: pullRequest.number,
-        body: `@${login} could not update branch: base already contains the head, nothing to merge.`,
+        body: `${
+          login ? `@${login} ` : ''
+        }Could not update branch: base already contains the head, nothing to merge.`,
       }),
     );
+    return true;
   } else if (result.status === 409) {
     context.octokit.issues.createComment(
       context.repo({
         issue_number: pullRequest.number,
-        body: `@${login} could not update branch: merge conflict. Please resolve manually.`,
+        body: `${
+          login ? `@${login} ` : ''
+        }Could not update branch: merge conflict. Please resolve manually.`,
       }),
     );
+    return false;
   } else if (!result || !result.data || !result.data.sha) {
     context.octokit.issues.createComment(
       context.repo({
         issue_number: pullRequest.number,
-        body: `@${login} could not update branch (unknown error)`,
+        body: `${
+          login ? `@${login} ` : ''
+        }Could not update branch (unknown error).`,
       }),
     );
-  } else {
+    return false;
+  } else if (login) {
     context.octokit.issues.createComment(
       context.repo({
         issue_number: pullRequest.number,
-        body: `@${login} branch updated: ${result.data.sha}`,
+        body: `${login ? `@${login} ` : ''}Branch updated: ${result.data.sha}`,
       }),
     );
   }
+  return true;
 };

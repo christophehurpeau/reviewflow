@@ -1603,6 +1603,68 @@ const createHandlerOrgChange = (appContext, callback) => context => {
   return handlerOrgChange(appContext, context, callback);
 };
 
+const checkIfUserIsBot = (repoContext, user) => {
+  if (user.type === 'Bot') return true;
+
+  if (repoContext.config.botUsers) {
+    return repoContext.config.botUsers.includes(user.login);
+  }
+
+  return false;
+};
+const checkIfIsThisBot = user => {
+  return user.type === 'Bot' && user.login === `${process.env.REVIEWFLOW_NAME}[bot]`;
+};
+
+const updateBranch = async (pullRequest, context, login) => {
+  var _result$data;
+
+  context.log.info('update branch', {
+    head: pullRequest.head.ref,
+    base: pullRequest.base.ref
+  });
+  const result = await context.octokit.repos.merge({
+    owner: pullRequest.head.repo.owner.login,
+    repo: pullRequest.head.repo.name,
+    head: pullRequest.base.ref,
+    base: pullRequest.head.ref
+  }).catch(err => ({
+    error: err
+  }));
+  context.log.info({
+    status: result.status,
+    sha: (_result$data = result.data) === null || _result$data === void 0 ? void 0 : _result$data.sha,
+    error: result.error
+  }, 'update branch result');
+
+  if (result.status === 204) {
+    context.octokit.issues.createComment(context.repo({
+      issue_number: pullRequest.number,
+      body: `${login ? `@${login} ` : ''}Could not update branch: base already contains the head, nothing to merge.`
+    }));
+    return true;
+  } else if (result.status === 409) {
+    context.octokit.issues.createComment(context.repo({
+      issue_number: pullRequest.number,
+      body: `${login ? `@${login} ` : ''}Could not update branch: merge conflict. Please resolve manually.`
+    }));
+    return false;
+  } else if (!result || !result.data || !result.data.sha) {
+    context.octokit.issues.createComment(context.repo({
+      issue_number: pullRequest.number,
+      body: `${login ? `@${login} ` : ''}Could not update branch (unknown error).`
+    }));
+    return false;
+  } else if (login) {
+    context.octokit.issues.createComment(context.repo({
+      issue_number: pullRequest.number,
+      body: `${login ? `@${login} ` : ''}Branch updated: ${result.data.sha}`
+    }));
+  }
+
+  return true;
+};
+
 const options = ['autoMerge', 'autoMergeWithSkipCi', 'deleteAfterMerge'];
 const optionsRegexps = options.map(option => ({
   key: option,
@@ -1652,6 +1714,16 @@ function hasLabelInPR(prLabels, label) {
   if (!label) return false;
   return prLabels.some(l => l.id === label.id);
 }
+
+function readPullRequestCommits(context, pr = context.payload.pull_request) {
+  return context.octokit.paginate(context.octokit.pulls.listCommits, context.repo({
+    pull_number: pr.number,
+    // A custom page size up to 100. Default is 30.
+    per_page: 100
+  }), res => res.data);
+}
+
+/* eslint-disable max-lines */
 
 const hasFailedStatusOrChecks = async (pr, context) => {
   const checks = await context.octokit.checks.listForRef(context.repo({
@@ -1776,7 +1848,20 @@ const autoMergeIfPossible = async (pullRequest, context, repoContext, reviewflow
 
     if (isRenovatePr) {
       if (pullRequest.mergeable_state === 'behind' || pullRequest.mergeable_state === 'dirty') {
-        addLog('rebase-renovate', 'wait'); // TODO check if has commits not made by renovate https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
+        const commits = await readPullRequestCommits(context, pullRequest); // check if has commits not made by renovate or bots like https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
+
+        if (commits.some(c => !c.author || checkIfUserIsBot(repoContext, c.author))) {
+          addLog('rebase-renovate', 'update branch');
+
+          if (await updateBranch(pullRequest, context, null)) {
+            return false;
+          }
+
+          repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'update branch failed');
+          return false;
+        }
+
+        addLog('rebase-renovate', 'wait');
 
         if (pullRequest.body && pullRequest.body.includes('<!-- rebase-check -->')) {
           if (pullRequest.body.includes('[x] <!-- rebase-check -->')) {
@@ -1826,12 +1911,12 @@ const autoMergeIfPossible = async (pullRequest, context, repoContext, reviewflow
 
     if (pullRequest.mergeable_state === 'behind') {
       addLog('behind mergeable_state', 'update branch');
-      await context.octokit.repos.merge({
-        owner: pullRequest.head.repo.owner.login,
-        repo: pullRequest.head.repo.name,
-        head: pullRequest.base.ref,
-        base: pullRequest.head.ref
-      });
+
+      if (await updateBranch(pullRequest, context, null)) {
+        return false;
+      }
+
+      repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'update branch failed');
       return false;
     }
 
@@ -1845,15 +1930,13 @@ const autoMergeIfPossible = async (pullRequest, context, repoContext, reviewflow
     context.log.info(`automerge pr #${pullRequest.number}`);
     const parsedBody = parseBody(reviewflowPrContext.commentBody, repoContext.config.prDefaultOptions);
     const options = (parsedBody === null || parsedBody === void 0 ? void 0 : parsedBody.options) || repoContext.config.prDefaultOptions;
-    // options.featureBranch;
     const mergeResult = await context.octokit.pulls.merge({
       merge_method: 'squash',
       owner: pullRequest.head.repo.owner.login,
       repo: pullRequest.head.repo.name,
       pull_number: pullRequest.number,
       commit_title: `${pullRequest.title}${options.autoMergeWithSkipCi ? ' [skip ci]' : ''} (#${pullRequest.number})`,
-      commit_message: '' // TODO add BC
-
+      commit_message: parsedBody !== null && parsedBody !== void 0 && parsedBody.commitNotes ? parsedBody === null || parsedBody === void 0 ? void 0 : parsedBody.commitNotes.replace(/^- (.*)\s*\([^)]+\)$/gm, '$1').replace(/^Breaking Changes:\n/, 'BREAKING CHANGE: ').replace(/\n/g, '; ') : ''
     });
     context.log.debug(mergeResult.data, 'merge result:');
     repoContext.removePrFromAutomergeQueue(context, pullRequest.number, 'merged');
@@ -2789,19 +2872,6 @@ const getPullRequestFromPayload = payload => {
   throw new Error('No pull_request in payload');
 };
 
-const checkIfUserIsBot = (repoContext, user) => {
-  if (user.type === 'Bot') return true;
-
-  if (repoContext.config.botUsers) {
-    return repoContext.config.botUsers.includes(user.login);
-  }
-
-  return false;
-};
-const checkIfIsThisBot = user => {
-  return user.type === 'Bot' && user.login === `${process.env.REVIEWFLOW_NAME}[bot]`;
-};
-
 const parse = issueParser__default('github', {
   actions: {},
   issuePrefixes: []
@@ -3057,10 +3127,7 @@ function prCommentEditedOrDeleted(app, appContext) {
 const readCommitsAndUpdateInfos = async (pullRequest, context, repoContext, reviewflowPrContext, commentBody = reviewflowPrContext.commentBody) => {
   // tmp.data[0].sha
   // tmp.data[0].commit.message
-  const commits = await context.octokit.paginate(context.octokit.pulls.listCommits, context.pullRequest({
-    // A custom page size up to 100. Default is 30.
-    per_page: 100
-  }), res => res.data);
+  const commits = await readPullRequestCommits(context);
   const conventionalCommits = await Promise.all(commits.map(c => parse__default(c.commit.message)));
   const breakingChangesCommits = [];
   conventionalCommits.forEach((c, index) => {
@@ -3205,50 +3272,6 @@ function edited(app, appContext) {
     await autoMergeIfPossible(updatedPullRequest, context, repoContext, reviewflowPrContext);
   }));
 }
-
-const updateBranch = async (pullRequest, context, login) => {
-  var _result$data;
-
-  context.log.info('update branch', {
-    head: pullRequest.head.ref,
-    base: pullRequest.base.ref
-  });
-  const result = await context.octokit.repos.merge({
-    owner: pullRequest.head.repo.owner.login,
-    repo: pullRequest.head.repo.name,
-    head: pullRequest.base.ref,
-    base: pullRequest.head.ref
-  }).catch(err => ({
-    error: err
-  }));
-  context.log.info({
-    status: result.status,
-    sha: (_result$data = result.data) === null || _result$data === void 0 ? void 0 : _result$data.sha,
-    error: result.error
-  }, 'update branch result');
-
-  if (result.status === 204) {
-    context.octokit.issues.createComment(context.repo({
-      issue_number: pullRequest.number,
-      body: `@${login} could not update branch: base already contains the head, nothing to merge.`
-    }));
-  } else if (result.status === 409) {
-    context.octokit.issues.createComment(context.repo({
-      issue_number: pullRequest.number,
-      body: `@${login} could not update branch: merge conflict. Please resolve manually.`
-    }));
-  } else if (!result || !result.data || !result.data.sha) {
-    context.octokit.issues.createComment(context.repo({
-      issue_number: pullRequest.number,
-      body: `@${login} could not update branch (unknown error)`
-    }));
-  } else {
-    context.octokit.issues.createComment(context.repo({
-      issue_number: pullRequest.number,
-      body: `@${login} branch updated: ${result.data.sha}`
-    }));
-  }
-};
 
 const isFromRenovate = payload => {
   const sender = payload.sender;
