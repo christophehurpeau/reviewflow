@@ -64,7 +64,7 @@ export default function orgSettings(
   router.get(
     '/org/:org',
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    async (req, res) => {
+    async (req, res): Promise<void> => {
       const user = await getUser(req, res);
       if (!user) return;
 
@@ -82,7 +82,7 @@ export default function orgSettings(
         });
 
       if (!installation) {
-        return res.send(
+        res.send(
           renderToStaticMarkup(
             <Layout>
               <div>
@@ -98,6 +98,7 @@ export default function orgSettings(
             </Layout>,
           ),
         );
+        return;
       }
 
       const accountConfig = accountConfigs[org.login];

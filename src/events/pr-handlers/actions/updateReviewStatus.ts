@@ -165,7 +165,7 @@ export const updateReviewStatus = async <
 
       const result = await context.octokit.issues.setLabels(
         context.issue({
-          labels: newLabelNamesArray,
+          labels: newLabelNamesArray as string[] & { name: string }[],
         }),
       );
       prLabels = result.data;
