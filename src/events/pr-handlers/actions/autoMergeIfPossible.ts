@@ -282,14 +282,6 @@ export const autoMergeIfPossible = async (
 
     if (pullRequest.mergeable_state === 'behind') {
       addLog('behind mergeable_state', 'update branch');
-      context.log.info(
-        {
-          head: pullRequest.head.ref,
-          base: pullRequest.base.ref,
-        },
-        'automerge not possible: update branch',
-      );
-
       await context.octokit.repos.merge({
         owner: pullRequest.head.repo.owner.login,
         repo: pullRequest.head.repo.name,
