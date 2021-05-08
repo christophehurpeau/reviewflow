@@ -15,7 +15,7 @@ export default async function appRouter(
   >[1]['getRouter'],
   { mongoStores }: AppContext,
 ): Promise<void> {
-  const router = (getRouter as NonNullable<typeof getRouter>)('/app');
+  const router = getRouter!('/app');
   const octokitApp = await app.auth();
 
   router.use(cookieParser());

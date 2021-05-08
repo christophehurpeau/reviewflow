@@ -43,12 +43,18 @@ export default function orgSettings(
 
       const orgs = await user.api.orgs.listForAuthenticatedUser();
       const org = orgs.data.find((o) => o.login === req.params.org);
-      if (!org) return res.redirect('/app');
+      if (!org) {
+        res.redirect('/app');
+        return;
+      }
 
       const o = await mongoStores.orgs.findByKey(org.id);
-      if (!o) return res.redirect('/app');
+      if (!o) {
+        res.redirect('/app');
+        return;
+      }
 
-      await syncOrg(mongoStores, user.api, o.installationId as number, org);
+      await syncOrg(mongoStores, user.api, o.installationId!, org);
       await syncTeamsAndTeamMembers(mongoStores, user.api, org);
 
       res.redirect(`/app/org/${req.params.org}`);
@@ -64,7 +70,10 @@ export default function orgSettings(
 
       const orgs = await user.api.orgs.listForAuthenticatedUser();
       const org = orgs.data.find((o) => o.login === req.params.org);
-      if (!org) return res.redirect('/app');
+      if (!org) {
+        res.redirect('/app');
+        return;
+      }
 
       const installation = await octokitApp.apps
         .getOrgInstallation({ org: org.login })
@@ -155,7 +164,10 @@ export default function orgSettings(
 
     const orgs = await user.api.orgs.listForAuthenticatedUser();
     const org = orgs.data.find((o) => o.login === req.params.org);
-    if (!org) return res.redirect('/app');
+    if (!org) {
+      res.redirect('/app');
+      return;
+    }
 
     (await mongoStores.userDmSettings.collection).updateOne(
       {

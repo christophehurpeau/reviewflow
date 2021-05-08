@@ -30,14 +30,12 @@ export default function userSettings(
       // console.log(installation);
 
       const u = await mongoStores.users.findByKey(user.authInfo.id);
-      if (!u || !u.installationId) return res.redirect('/app');
+      if (!u || !u.installationId) {
+        res.redirect('/app');
+        return;
+      }
 
-      await syncUser(
-        mongoStores,
-        user.api,
-        u.installationId as number,
-        user.authInfo,
-      );
+      await syncUser(mongoStores, user.api, u.installationId!, user.authInfo);
 
       res.redirect('/app/user');
     },

@@ -136,11 +136,11 @@ export default function init(): MongoStores {
   const config = new Map([
     ['host', process.env.MONGO_HOST || 'localhost'],
     ['port', process.env.MONGO_PORT || '27017'],
-    ['database', process.env.MONGO_DB as string],
+    ['database', process.env.MONGO_DB!],
   ]);
   if (process.env.MONGO_USER) {
     config.set('user', process.env.MONGO_USER);
-    config.set('password', process.env.MONGO_PASSWORD as string);
+    config.set('password', process.env.MONGO_PASSWORD!);
   }
   const connection = new MongoConnection(config);
 

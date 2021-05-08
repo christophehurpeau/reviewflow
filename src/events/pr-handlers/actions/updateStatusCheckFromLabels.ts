@@ -30,7 +30,7 @@ const addStatusCheck = async function <
   if (hasPrCheck) {
     await context.octokit.checks.create(
       context.repo({
-        name: process.env.REVIEWFLOW_NAME as string,
+        name: process.env.REVIEWFLOW_NAME!,
         head_sha: pullRequest.head.sha,
         started_at: pullRequest.created_at,
         status: 'completed',

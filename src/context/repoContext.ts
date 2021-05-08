@@ -174,9 +174,7 @@ async function initRepoContext<GroupNames extends string>(
   const getNeedsReviewGroupNames = (labels: PullRequestLabels): GroupNames[] =>
     labels
       .filter((label) => label.id && needsReviewLabelIds.includes(label.id))
-      .map((label) =>
-        labelIdToGroupName.get(label.id as NonNullable<typeof label.id>),
-      )
+      .map((label) => labelIdToGroupName.get(label.id!))
       .filter(ExcludesFalsy);
 
   const lock = Lock();

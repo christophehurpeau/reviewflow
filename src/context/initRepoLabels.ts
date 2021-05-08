@@ -12,9 +12,7 @@ export interface LabelResponse {
   default: boolean;
 }
 
-export interface LabelsRecord {
-  [key: string]: LabelResponse;
-}
+export type LabelsRecord = Record<string, LabelResponse>;
 
 export const getLabelsForRepo = async (
   context: Context<any>,

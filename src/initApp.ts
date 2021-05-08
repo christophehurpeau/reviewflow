@@ -35,7 +35,7 @@ export default function initApp(app: Probot, appContext: AppContext): void {
         await syncOrg(
           appContext.mongoStores,
           context.octokit,
-          accountContext.account.installationId as number,
+          accountContext.account.installationId!,
           context.payload.organization,
         );
       },

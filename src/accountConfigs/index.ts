@@ -9,7 +9,7 @@ export type Config<
   TeamNames extends string = any
 > = ConfigType<GroupNames, TeamNames>;
 
-export const accountConfigs: { [owner: string]: Config } = {
+export const accountConfigs: Record<string, Config> = {
   ornikar,
   christophehurpeau,
   reviewflow,

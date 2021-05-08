@@ -80,16 +80,14 @@ const initAccountContext = async (
 
   const githubLoginToTeams = new Map<string, string[]>();
   getKeys(config.teams || {}).forEach((teamName) => {
-    (config.teams as NonNullable<typeof config.teams>)[teamName].logins.forEach(
-      (login) => {
-        const teams = githubLoginToTeams.get(login);
-        if (teams) {
-          teams.push(teamName);
-        } else {
-          githubLoginToTeams.set(login, [teamName]);
-        }
-      },
-    );
+    config.teams![teamName].logins.forEach((login) => {
+      const teams = githubLoginToTeams.get(login);
+      if (teams) {
+        teams.push(teamName);
+      } else {
+        githubLoginToTeams.set(login, [teamName]);
+      }
+    });
   });
 
   const getReviewerGroups = (githubLogins: string[]): string[] => [

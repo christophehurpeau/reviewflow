@@ -27,11 +27,11 @@ export const updatePrIfNeeded = async <
     const diff: Partial<Record<'title' | 'body', string>> = {};
     if (hasDiffInTitle) {
       diff.title = update.title;
-      pullRequest.title = update.title as string;
+      pullRequest.title = update.title!;
     }
     if (hasDiffInBody) {
       diff.body = update.body;
-      pullRequest.body = update.body as string;
+      pullRequest.body = update.body!;
     }
 
     await context.octokit.pulls.update(

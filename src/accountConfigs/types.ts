@@ -9,9 +9,7 @@ export interface StatusInfo {
   summary: string;
 }
 
-export interface Group {
-  [userName: string]: string | null;
-}
+export type Group = Record<string, string | null>;
 
 export interface Team {
   githubTeamName?: string;

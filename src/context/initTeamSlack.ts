@@ -24,9 +24,9 @@ export const initTeamSlack = async <GroupNames extends string>(
     return voidTeamSlack();
   }
 
-  const githubLoginToSlackEmail = getKeys(config.groups).reduce<{
-    [login: string]: string;
-  }>((acc, groupName) => {
+  const githubLoginToSlackEmail = getKeys(config.groups).reduce<
+    Record<string, string>
+  >((acc, groupName) => {
     Object.assign(acc, config.groups[groupName]);
     return acc;
   }, {});
