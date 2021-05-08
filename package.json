@@ -86,7 +86,7 @@
     ]
   },
   "dependencies": {
-    "@commitlint/parse": "11.0.0",
+    "@commitlint/parse": "12.1.1",
     "@octokit/core": "3.4.0",
     "@octokit/rest": "18.5.3",
     "@octokit/webhooks": "7.21.0",
