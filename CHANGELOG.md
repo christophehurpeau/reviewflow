@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.82.0](https://github.com/christophehurpeau/reviewflow/compare/v1.81.0...v1.82.0) (2021-05-08)
+
+
+### Features
+
+* **deps:** update dependency @commitlint/parse to v12 ([#217](https://github.com/christophehurpeau/reviewflow/issues/217)) ([ee9b450](https://github.com/christophehurpeau/reviewflow/commit/ee9b450f490de331cecc5ce922540644af972877))
+
+
+### Bug Fixes
+
+* prevent rebasing renovate if commit were made by humans & automerge with breaking change info ([f5b5c5a](https://github.com/christophehurpeau/reviewflow/commit/f5b5c5aaa92f39d12f15b1a58e9d9f7eb0150785))
+* remove console.log ([4875b66](https://github.com/christophehurpeau/reviewflow/commit/4875b665d2e4ba133cf95377b82f1e9d5101fc45))
+
 ## [1.81.0](https://github.com/christophehurpeau/reviewflow/compare/v1.80.0...v1.81.0) (2021-03-23)
 
 
