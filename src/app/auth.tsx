@@ -105,7 +105,7 @@ export default function auth(router: Router): void {
       //   secure,
       // });
 
-      const redirectUri = githubAuth.oauth2.authorizationCode.authorizeURL({
+      const redirectUri = githubAuth.oauth2.authorizeURL({
         redirect_uri: createRedirectUri(req),
         scope: 'read:user,repo',
         // state,
@@ -120,6 +120,23 @@ export default function auth(router: Router): void {
       res.redirect(redirectUri);
     },
   );
+
+  router.get('/logout', (req, res) => {
+    const strategy = 'gh';
+    res.clearCookie(`auth_${strategy}`, {
+      httpOnly: true,
+      secure,
+    });
+    res.send(
+      renderToStaticMarkup(
+        <Layout>
+          <div>
+            Logout successful. <a href="/app/login">Login</a>
+          </div>
+        </Layout>,
+      ),
+    );
+  });
 
   router.get(
     '/login-response',
@@ -144,12 +161,12 @@ export default function auth(router: Router): void {
       // }
       // res.clearCookie(cookieName);
 
-      const result = await githubAuth.oauth2.authorizationCode.getToken({
+      const accessToken = await githubAuth.oauth2.getToken({
         code,
         redirect_uri: createRedirectUri(req),
       });
 
-      if (!result) {
+      if (!accessToken) {
         res.send(
           renderToStaticMarkup(
             <Layout>
@@ -162,13 +179,17 @@ export default function auth(router: Router): void {
         return;
       }
 
-      const accessToken = result.access_token;
-      const api = createApi(accessToken);
+      const api = createApi(accessToken.token.access_token);
       const user = await api.users.getAuthenticated({});
       const id = user.data.id;
       const login = user.data.login;
 
-      const authInfo: AuthInfo = { id, login, accessToken, time: Date.now() };
+      const authInfo: AuthInfo = {
+        id,
+        login,
+        accessToken: accessToken.token.access_token,
+        time: Date.now(),
+      };
       const token = await signPromisified(authInfo, AUTH_SECRET_KEY, {
         algorithm: 'HS512',
         audience: req.headers['user-agent'],

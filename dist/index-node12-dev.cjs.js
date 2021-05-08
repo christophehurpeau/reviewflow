@@ -36,7 +36,7 @@ if (!process.env.GITHUB_CLIENT_SECRET) {
   throw new Error('Missing env variable: GITHUB_CLIENT_SECRET');
 }
 
-const oauth2 = simpleOauth2.create({
+const oauth2 = new simpleOauth2.AuthorizationCode({
   client: {
     id: process.env.GITHUB_CLIENT_ID,
     secret: process.env.GITHUB_CLIENT_SECRET
@@ -143,7 +143,7 @@ function auth(router) {
     // });
 
 
-    const redirectUri = oauth2.authorizationCode.authorizeURL({
+    const redirectUri = oauth2.authorizeURL({
       redirect_uri: createRedirectUri(req),
       scope: 'read:user,repo' // state,
       // grant_type: options.grantType,
@@ -154,6 +154,15 @@ function auth(router) {
     }); // console.log(redirectUri);
 
     res.redirect(redirectUri);
+  });
+  router.get('/logout', (req, res) => {
+    res.clearCookie(`auth_${"gh"}`, {
+      httpOnly: true,
+      secure
+    });
+    res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, "Logout successful. ", /*#__PURE__*/React__default.createElement("a", {
+      href: "/app/login"
+    }, "Login")))));
   });
   router.get('/login-response', // eslint-disable-next-line @typescript-eslint/no-misused-promises
   async (req, res) => {
@@ -174,27 +183,26 @@ function auth(router) {
     // }
     // res.clearCookie(cookieName);
 
-    const result = await oauth2.authorizationCode.getToken({
+    const accessToken = await oauth2.getToken({
       code,
       redirect_uri: createRedirectUri(req)
     });
 
-    if (!result) {
+    if (!accessToken) {
       res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, "Could not get access token. ", /*#__PURE__*/React__default.createElement("a", {
         href: "/app/login"
       }, "Retry ?")))));
       return;
     }
 
-    const accessToken = result.access_token;
-    const api = createApi(accessToken);
+    const api = createApi(accessToken.token.access_token);
     const user = await api.users.getAuthenticated({});
     const id = user.data.id;
     const login = user.data.login;
     const authInfo = {
       id,
       login,
-      accessToken,
+      accessToken: accessToken.token.access_token,
       time: Date.now()
     };
     const token = await signPromisified(authInfo, AUTH_SECRET_KEY, {
