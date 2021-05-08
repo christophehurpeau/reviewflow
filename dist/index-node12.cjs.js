@@ -1993,7 +1993,7 @@ const fetchPr = async (context, prNumber) => {
   return prResult.data;
 };
 
-const getLabelsForRepo = async (context) => {
+const getLabelsForRepo = async context => {
   const {
     data: labels
   } = await context.octokit.issues.listLabelsForRepo(context.repo({
@@ -2153,7 +2153,7 @@ async function initRepoContext(appContext, context, config) {
           await autoMergeIfPossible(pullRequest, context, repoContext, reviewflowPrContext);
         });
       });
-    }, 10_000);
+    }, 10000);
   };
 
   return Object.assign(repoContext, {
@@ -2635,7 +2635,7 @@ function getRolesFromPullRequestAndReviewers(pullRequest, reviewers) {
 
   if (requestedReviewers) {
     followers.push(...requestedReviewers.filter(rr => {
-      return !followers.find(f => f.id === rr.id) && !assigneeIds.includes(rr.id);
+      return !followers.some(f => f.id === rr.id) && !assigneeIds.includes(rr.id);
     }));
   }
 
@@ -2861,7 +2861,7 @@ function prCommentCreated(app, appContext) {
 
     if (pr.requested_reviewers) {
       followers.push(...pr.requested_reviewers.filter(rr => {
-        return rr && !followers.find(f => f.id === rr.id) && rr.id !== (comment.user && comment.user.id) && rr.id !== prUser.id;
+        return rr && !followers.some(f => f.id === rr.id) && rr.id !== (comment.user && comment.user.id) && rr.id !== prUser.id;
       }).filter(ExcludesFalsy).map(rr => ({
         id: rr.id,
         login: rr.login,
@@ -2869,8 +2869,8 @@ function prCommentCreated(app, appContext) {
       })));
     }
 
-    const usersInThread = getUsersInThread(discussion).filter(u => u.id !== prUser.id && u.id !== comment.user.id && !followers.find(f => f.id === u.id));
-    const mentions = getMentions(discussion).filter(m => m !== prUser.login && m !== comment.user.login && !followers.find(f => f.login === m) && !usersInThread.find(u => u.login === m));
+    const usersInThread = getUsersInThread(discussion).filter(u => u.id !== prUser.id && u.id !== comment.user.id && !followers.some(f => f.id === u.id));
+    const mentions = getMentions(discussion).filter(m => m !== prUser.login && m !== comment.user.login && !followers.some(f => f.login === m) && !usersInThread.some(u => u.login === m));
     const mention = repoContext.slack.mention(comment.user.login);
     const prUrl = createPrLink(pr, repoContext);
     const ownerMention = repoContext.slack.mention(prUser.login);
@@ -2892,8 +2892,7 @@ function prCommentCreated(app, appContext) {
     }
 
     const message = createSlackMessageWithSecondaryBlock(createMessage(false), slackifiedBody);
-    promisesNotOwner.push(...followers.map(follower => repoContext.slack.postMessage(isBotUser ? 'pr-comment-follow-bots' : 'pr-comment-follow', follower.id, follower.login, message)));
-    promisesNotOwner.push(...usersInThread.map(user => repoContext.slack.postMessage('pr-comment-thread', user.id, user.login, message)));
+    promisesNotOwner.push(...followers.map(follower => repoContext.slack.postMessage(isBotUser ? 'pr-comment-follow-bots' : 'pr-comment-follow', follower.id, follower.login, message)), ...usersInThread.map(user => repoContext.slack.postMessage('pr-comment-thread', user.id, user.login, message)));
 
     if (mentions.length > 0) {
       await appContext.mongoStores.users.findAll({
@@ -3055,7 +3054,7 @@ const readCommitsAndUpdateInfos = async (pullRequest, context, repoContext, revi
     commit,
     breakingChangesNotes
   }) => breakingChangesNotes.map(note => `- ${note.text.replace('\n', ' ')} (${commit.sha})`)).join('')}`);
-  await Promise.all([syncLabel(pullRequest, context, breakingChangesCommits.length !== 0, breakingChangesLabel), updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newCommentBody)]); // TODO auto update ! in front of : to signal a breaking change when https://github.com/conventional-changelog/commitlint/issues/658 is closed
+  await Promise.all([syncLabel(pullRequest, context, breakingChangesCommits.length > 0, breakingChangesLabel), updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newCommentBody)]); // TODO auto update ! in front of : to signal a breaking change when https://github.com/conventional-changelog/commitlint/issues/658 is closed
 };
 
 const cleanNewLines = text => !text ? '' : text.replace(/\r\n/g, '\n');
@@ -3498,7 +3497,7 @@ function reviewDismissed(app, appContext) {
         });
       }
 
-      if (!updatedPr.assignees || !updatedPr.assignees.find(assignee => assignee && assignee.login === reviewer.login)) {
+      if (!updatedPr.assignees || !updatedPr.assignees.some(assignee => assignee && assignee.login === reviewer.login)) {
         repoContext.slack.updateHome(reviewer.login);
       }
     }
@@ -3712,7 +3711,7 @@ function reviewSubmitted(app, appContext) {
         });
       }
 
-      if (!assignees.find(assignee => assignee.login === reviewer.login)) {
+      if (!assignees.some(assignee => assignee.login === reviewer.login)) {
         repoContext.slack.updateHome(reviewer.login);
       }
 
@@ -3777,7 +3776,7 @@ function reviewSubmitted(app, appContext) {
 
 const isSameBranch = (payload, lockedPr) => {
   if (!lockedPr) return false;
-  return !!payload.branches.find(b => b.name === lockedPr.branch);
+  return !!payload.branches.some(b => b.name === lockedPr.branch);
 };
 
 function status(app, appContext) {
@@ -4181,7 +4180,7 @@ const createSlackHomeWorker = mongoStores => {
   return {
     scheduleUpdateMember,
     scheduleUpdateOrg,
-    scheduleUpdateAllOrgs: async (auth) => {
+    scheduleUpdateAllOrgs: async auth => {
       const cursor = await mongoStores.orgs.cursor();
       cursor.forEach(async org => {
         if (!org.slackToken || !org.installationId) return;

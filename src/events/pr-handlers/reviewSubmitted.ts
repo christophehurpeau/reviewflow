@@ -129,7 +129,7 @@ export default function reviewSubmitted(
             });
           }
           if (
-            !assignees.find((assignee) => assignee.login === reviewer.login)
+            !assignees.some((assignee) => assignee.login === reviewer.login)
           ) {
             repoContext.slack.updateHome(reviewer.login);
           }

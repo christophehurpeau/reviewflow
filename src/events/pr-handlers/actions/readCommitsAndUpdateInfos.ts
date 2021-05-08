@@ -71,7 +71,7 @@ export const readCommitsAndUpdateInfos = async <
     syncLabel(
       pullRequest,
       context,
-      breakingChangesCommits.length !== 0,
+      breakingChangesCommits.length > 0,
       breakingChangesLabel,
     ),
     updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newCommentBody),

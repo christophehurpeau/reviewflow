@@ -78,7 +78,7 @@ export default function reviewDismissed(
           }
           if (
             !updatedPr.assignees ||
-            !updatedPr.assignees.find(
+            !updatedPr.assignees.some(
               (assignee) => assignee && assignee.login === reviewer.login,
             )
           ) {

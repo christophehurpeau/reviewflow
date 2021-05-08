@@ -145,7 +145,7 @@ export default function prCommentCreated(
               .filter((rr) => {
                 return (
                   rr &&
-                  !followers.find((f) => f.id === rr.id) &&
+                  !followers.some((f) => f.id === rr.id) &&
                   rr.id !== (comment.user && comment.user.id) &&
                   rr.id !== prUser.id
                 );
@@ -163,14 +163,14 @@ export default function prCommentCreated(
           (u) =>
             u.id !== prUser.id &&
             u.id !== comment.user.id &&
-            !followers.find((f) => f.id === u.id),
+            !followers.some((f) => f.id === u.id),
         );
         const mentions = getMentions(discussion).filter(
           (m) =>
             m !== prUser.login &&
             m !== comment.user.login &&
-            !followers.find((f) => f.login === m) &&
-            !usersInThread.find((u) => u.login === m),
+            !followers.some((f) => f.login === m) &&
+            !usersInThread.some((u) => u.login === m),
         );
 
         const mention = repoContext.slack.mention(comment.user.login);
@@ -240,9 +240,6 @@ export default function prCommentCreated(
               message,
             ),
           ),
-        );
-
-        promisesNotOwner.push(
           ...usersInThread.map((user) =>
             repoContext.slack.postMessage(
               'pr-comment-thread',

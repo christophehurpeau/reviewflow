@@ -39,7 +39,7 @@ export function getRolesFromPullRequestAndReviewers(
     followers.push(
       ...requestedReviewers.filter((rr) => {
         return (
-          !followers.find((f) => f.id === rr.id) && !assigneeIds.includes(rr.id)
+          !followers.some((f) => f.id === rr.id) && !assigneeIds.includes(rr.id)
         );
       }),
     );

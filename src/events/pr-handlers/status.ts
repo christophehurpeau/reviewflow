@@ -9,7 +9,7 @@ const isSameBranch = (
   lockedPr: LockedMergePr,
 ): boolean => {
   if (!lockedPr) return false;
-  return !!payload.branches.find((b) => b.name === lockedPr.branch);
+  return !!payload.branches.some((b) => b.name === lockedPr.branch);
 };
 
 export default function status(app: Probot, appContext: AppContext): void {
