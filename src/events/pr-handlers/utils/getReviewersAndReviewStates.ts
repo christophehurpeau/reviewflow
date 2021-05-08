@@ -26,7 +26,7 @@ export const getReviewersAndReviewStates = async <GroupNames extends string>(
 
   await context.octokit.paginate(
     context.octokit.pulls.listReviews,
-    context.pullRequest(),
+    context.pullRequest({ page: undefined }),
     ({ data: reviews }) => {
       reviews.forEach((review) => {
         if (!review.user) return;

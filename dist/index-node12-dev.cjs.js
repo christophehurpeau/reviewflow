@@ -985,9 +985,10 @@ function orgSettings(router, octokitApp, mongoStores) {
     });
 
     if (!installation) {
-      return res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed for this user. Go to ", /*#__PURE__*/React__default.createElement("a", {
+      res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed for this user. Go to ", /*#__PURE__*/React__default.createElement("a", {
         href: `https://github.com/settings/apps/${process.env.REVIEWFLOW_NAME}/installations/new`
       }, "Github Configuration"), ' ', "to install it."))));
+      return;
     }
 
     const accountConfig = accountConfigs[org.login];
@@ -2588,7 +2589,9 @@ const getReviewersAndReviewStates = async (context, repoContext) => {
   const userIds = new Set();
   const reviewers = [];
   const reviewStatesByUser = new Map();
-  await context.octokit.paginate(context.octokit.pulls.listReviews, context.pullRequest(), ({
+  await context.octokit.paginate(context.octokit.pulls.listReviews, context.pullRequest({
+    page: undefined
+  }), ({
     data: reviews
   }) => {
     reviews.forEach(review => {
