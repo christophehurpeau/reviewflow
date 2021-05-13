@@ -591,12 +591,12 @@
   resolved "https://registry.yarnpkg.com/@commitlint/message/-/message-12.0.1.tgz#caff6743db78c30a063809501cf4b835c3ce7fa6"
   integrity sha512-fXuoxRC+NT1wEQi6p8oHfT7wvWIRgTk+udlRJnWTjmMpiYzVnMmmZfasdShirWr4TtxQtMyL+5DVgh7Y98kURw==
 
-"@commitlint/parse@12.1.1", "@commitlint/parse@^12.0.1":
-  version "12.1.1"
-  resolved "https://registry.yarnpkg.com/@commitlint/parse/-/parse-12.1.1.tgz#3e49d6dc113d59cf266af0db99e320e933108c56"
-  integrity sha512-nuljIvAbBDr93DgL0wCArftEIhjSghawAwhvrKNV9FFcqAJqfVqitwMxJrNDCQ5pgUMCSKULLOEv+dA0bLlTEQ==
+"@commitlint/parse@12.1.4", "@commitlint/parse@^12.0.1":
+  version "12.1.4"
+  resolved "https://registry.yarnpkg.com/@commitlint/parse/-/parse-12.1.4.tgz#ba03d54d24ef84f6fd2ff31c5e9998b22d7d0aa1"
+  integrity sha512-yqKSAsK2V4X/HaLb/yYdrzs6oD/G48Ilt0EJ2Mp6RJeWYxG14w/Out6JrneWnr/cpzemyN5hExOg6+TB19H/Lw==
   dependencies:
-    "@commitlint/types" "^12.1.1"
+    "@commitlint/types" "^12.1.4"
     conventional-changelog-angular "^5.0.11"
     conventional-commits-parser "^3.0.0"
 
@@ -642,10 +642,10 @@
   dependencies:
     find-up "^5.0.0"
 
-"@commitlint/types@^12.0.1", "@commitlint/types@^12.1.1":
-  version "12.1.1"
-  resolved "https://registry.yarnpkg.com/@commitlint/types/-/types-12.1.1.tgz#8e651f6af0171cd4f8d464c6c37a7cf63ee071bd"
-  integrity sha512-+qGH+s2Lo6qwacV2X3/ZypZwaAI84ift+1HBjXdXtI/q0F5NtmXucV3lcQOTviMTNiJhq4qWON2fjci2NItASw==
+"@commitlint/types@^12.0.1", "@commitlint/types@^12.1.4":
+  version "12.1.4"
+  resolved "https://registry.yarnpkg.com/@commitlint/types/-/types-12.1.4.tgz#9618a5dc8991fb58e6de6ed89d7bf712fa74ba7e"
+  integrity sha512-KRIjdnWNUx6ywz+SJvjmNCbQKcKP6KArhjZhY2l+CWKxak0d77SOjggkMwFTiSgLODOwmuLTbarR2ZfWPiPMlw==
   dependencies:
     chalk "^4.0.0"
 
