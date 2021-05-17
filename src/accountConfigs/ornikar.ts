@@ -142,6 +142,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       machartier: `marie-anne${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       camillebaronnet: `camille.baronnet${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       'olivier-martinez': `olivier.martinez${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      tnesztler: `tnesztler${process.env.ORNIKAR_EMAIL_DOMAIN}`
 
       /* front */
       christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -190,6 +191,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         'machartier',
         'camillebaronnet',
         'olivier-martinez',
+        'tnesztler'
       ],
       labels: ['teams/backend'],
     },
