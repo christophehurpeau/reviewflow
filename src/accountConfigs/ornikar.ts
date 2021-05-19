@@ -211,7 +211,6 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         'ChibiBlasphem',
         'PSniezak',
         'aenario',
-        'rchabin',
       ],
       labels: ['teams/frontend'],
     },
