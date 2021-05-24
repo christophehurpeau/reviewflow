@@ -242,7 +242,7 @@ function home(router) {
   });
 }
 
-const config$3 = {
+const config = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: false,
@@ -345,7 +345,7 @@ const config$3 = {
   }
 };
 
-const config$2 = {
+const config$1 = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: false,
@@ -384,7 +384,7 @@ const config$2 = {
 };
 
 /* eslint-disable max-lines */
-const config$1 = {
+const config$2 = {
   autoAssignToCreator: true,
   trimTitle: true,
   ignoreRepoPattern: '(infra-.*|devenv)',
@@ -515,6 +515,7 @@ const config$1 = {
       machartier: `marie-anne${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       camillebaronnet: `camille.baronnet${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       'olivier-martinez': `olivier.martinez${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+      tnesztler: `thibaud.nesztler${process.env.ORNIKAR_EMAIL_DOMAIN}`,
 
       /* front */
       christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -527,7 +528,10 @@ const config$1 = {
       ChibiBlasphem: `christopher${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       PSniezak: `paul.sniezak${process.env.ORNIKAR_EMAIL_DOMAIN}`,
       GaelFerrand: 'gael.ferrand@othrys.dev',
-      aenario: `romain.foucault${process.env.ORNIKAR_EMAIL_DOMAIN}`
+      aenario: `romain.foucault${process.env.ORNIKAR_EMAIL_DOMAIN}`,
+
+      /* em */
+      rchabin: `remy.chabin${process.env.ORNIKAR_EMAIL_DOMAIN}`
     },
     design: {
       jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
@@ -549,7 +553,7 @@ const config$1 = {
     },
     backends: {
       githubTeamName: 'backend',
-      logins: ['abarreir', 'arthurflachs', 'damienorny', 'Thierry-girod', 'darame07', 'Pixy', 'machartier', 'camillebaronnet', 'olivier-martinez'],
+      logins: ['abarreir', 'arthurflachs', 'damienorny', 'Thierry-girod', 'darame07', 'Pixy', 'machartier', 'camillebaronnet', 'olivier-martinez', 'tnesztler'],
       labels: ['teams/backend']
     },
     frontends: {
@@ -708,7 +712,7 @@ const config$1 = {
   }
 };
 
-const config = { ...config$3,
+const config$3 = { ...config,
   requiresReviewRequest: true,
   groups: {
     dev: {
@@ -720,9 +724,9 @@ const config = { ...config$3,
 };
 
 const accountConfigs = {
-  ornikar: config$1,
-  christophehurpeau: config$3,
-  reviewflow: config
+  ornikar: config$2,
+  christophehurpeau: config,
+  reviewflow: config$3
 };
 // export const getMembers = <GroupNames extends string = any>(
 //   groups: Record<GroupNames, Group>,
@@ -748,7 +752,7 @@ const defaultDmSettings = {
 const cache = new Map();
 
 const getDefaultDmSettings = org => {
-  const accountConfig = accountConfigs[org] || config$2;
+  const accountConfig = accountConfigs[org] || config$1;
   return accountConfig.defaultDmSettings ? { ...defaultDmSettings,
     ...accountConfig.defaultDmSettings
   } : defaultDmSettings;
@@ -1598,7 +1602,7 @@ const obtainAccountContext = (appContext, context, config, accountInfo) => {
 const handlerOrgChange = async (appContext, context, callback) => {
   const org = context.payload.organization;
   if (!org) return;
-  const config = accountConfigs[org.login] || config$2;
+  const config = accountConfigs[org.login] || config$1;
   const accountContext = await obtainAccountContext(appContext, context, config, { ...org,
     type: 'Organization'
   });
@@ -2106,7 +2110,7 @@ const fetchPr = async (context, prNumber) => {
   return prResult.data;
 };
 
-const getLabelsForRepo = async context => {
+const getLabelsForRepo = async (context) => {
   const {
     data: labels
   } = await context.octokit.issues.listLabelsForRepo(context.repo({
@@ -2266,7 +2270,7 @@ async function initRepoContext(appContext, context, config) {
           await autoMergeIfPossible(pullRequest, context, repoContext, reviewflowPrContext);
         });
       });
-    }, 10000);
+    }, 10_000);
   };
 
   return Object.assign(repoContext, {
@@ -2357,7 +2361,7 @@ const obtainRepoContext = (appContext, context) => {
 
   if (!accountConfig) {
     context.log(`using default config for ${owner.login}`);
-    accountConfig = config$2;
+    accountConfig = config$1;
   }
 
   const promise = initRepoContext(appContext, context, accountConfig);
@@ -4235,7 +4239,7 @@ const createSlackHomeWorker = mongoStores => {
   return {
     scheduleUpdateMember,
     scheduleUpdateOrg,
-    scheduleUpdateAllOrgs: async auth => {
+    scheduleUpdateAllOrgs: async (auth) => {
       const cursor = await mongoStores.orgs.cursor();
       cursor.forEach(async org => {
         if (!org.slackToken || !org.installationId) return;
