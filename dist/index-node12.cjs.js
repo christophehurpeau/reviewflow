@@ -242,7 +242,7 @@ function home(router) {
   });
 }
 
-const config = {
+const config$3 = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: false,
@@ -345,7 +345,7 @@ const config = {
   }
 };
 
-const config$1 = {
+const config$2 = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: false,
@@ -384,7 +384,7 @@ const config$1 = {
 };
 
 /* eslint-disable max-lines */
-const config$2 = {
+const config$1 = {
   autoAssignToCreator: true,
   trimTitle: true,
   ignoreRepoPattern: '(infra-.*|devenv)',
@@ -397,8 +397,8 @@ const config$2 = {
   },
   parsePR: {
     title: [{
-      // eslint-disable-next-line unicorn/no-unsafe-regex
-      regExp: /^(?<revert>revert: )?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\([/A-Za-z-]+\)?((?=:\s)|(?=!:\s)))?(?<breaking>!)?(?<subject>:\s.*)$/,
+      regExp: // eslint-disable-next-line unicorn/no-unsafe-regex
+      /^(?<revert>revert: )?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\([/A-Za-z-]+\)?((?=:\s)|(?=!:\s)))?(?<breaking>!)?(?<subject>:\s.*)$/,
       createStatusInfo: match => {
         if (match) {
           return null;
@@ -451,8 +451,8 @@ const config$2 = {
     }],
     head: [{
       bot: false,
-      // eslint-disable-next-line unicorn/no-unsafe-regex
-      regExp: /^(?<revert>revert-\d+-)?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\/[a-z-]+)?\/(?<breaking>!)?(?<subject>.*)(?:-(?<jiraIssue>[A-Z][\dA-Z]+-(\d+)))?$/,
+      regExp: // eslint-disable-next-line unicorn/no-unsafe-regex
+      /^(?<revert>revert-\d+-)?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\/[a-z-]+)?\/(?<breaking>!)?(?<subject>.*)(?:-(?<jiraIssue>[A-Z][\dA-Z]+-(\d+)))?$/,
       status: 'branch-name',
       createStatusInfo: (match, {
         title
@@ -712,7 +712,7 @@ const config$2 = {
   }
 };
 
-const config$3 = { ...config,
+const config = { ...config$3,
   requiresReviewRequest: true,
   groups: {
     dev: {
@@ -724,9 +724,9 @@ const config$3 = { ...config,
 };
 
 const accountConfigs = {
-  ornikar: config$2,
-  christophehurpeau: config,
-  reviewflow: config$3
+  ornikar: config$1,
+  christophehurpeau: config$3,
+  reviewflow: config
 };
 // export const getMembers = <GroupNames extends string = any>(
 //   groups: Record<GroupNames, Group>,
@@ -752,7 +752,7 @@ const defaultDmSettings = {
 const cache = new Map();
 
 const getDefaultDmSettings = org => {
-  const accountConfig = accountConfigs[org] || config$1;
+  const accountConfig = accountConfigs[org] || config$2;
   return accountConfig.defaultDmSettings ? { ...defaultDmSettings,
     ...accountConfig.defaultDmSettings
   } : defaultDmSettings;
@@ -1602,7 +1602,7 @@ const obtainAccountContext = (appContext, context, config, accountInfo) => {
 const handlerOrgChange = async (appContext, context, callback) => {
   const org = context.payload.organization;
   if (!org) return;
-  const config = accountConfigs[org.login] || config$1;
+  const config = accountConfigs[org.login] || config$2;
   const accountContext = await obtainAccountContext(appContext, context, config, { ...org,
     type: 'Organization'
   });
@@ -2110,7 +2110,7 @@ const fetchPr = async (context, prNumber) => {
   return prResult.data;
 };
 
-const getLabelsForRepo = async (context) => {
+const getLabelsForRepo = async context => {
   const {
     data: labels
   } = await context.octokit.issues.listLabelsForRepo(context.repo({
@@ -2270,7 +2270,7 @@ async function initRepoContext(appContext, context, config) {
           await autoMergeIfPossible(pullRequest, context, repoContext, reviewflowPrContext);
         });
       });
-    }, 10_000);
+    }, 10000);
   };
 
   return Object.assign(repoContext, {
@@ -2361,7 +2361,7 @@ const obtainRepoContext = (appContext, context) => {
 
   if (!accountConfig) {
     context.log(`using default config for ${owner.login}`);
-    accountConfig = config$1;
+    accountConfig = config$2;
   }
 
   const promise = initRepoContext(appContext, context, accountConfig);
@@ -4239,7 +4239,7 @@ const createSlackHomeWorker = mongoStores => {
   return {
     scheduleUpdateMember,
     scheduleUpdateOrg,
-    scheduleUpdateAllOrgs: async (auth) => {
+    scheduleUpdateAllOrgs: async auth => {
       const cursor = await mongoStores.orgs.cursor();
       cursor.forEach(async org => {
         if (!org.slackToken || !org.installationId) return;
