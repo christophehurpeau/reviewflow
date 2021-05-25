@@ -84,11 +84,8 @@ export default function closed(app: Probot, appContext: AppContext): void {
           context,
           repoContext,
         );
-        const {
-          owner,
-          assignees,
-          followers,
-        } = getRolesFromPullRequestAndReviewers(pullRequest, reviewers);
+        const { owner, assignees, followers } =
+          getRolesFromPullRequestAndReviewers(pullRequest, reviewers);
 
         const senderMention = repoContext.slack.mention(
           context.payload.sender.login,

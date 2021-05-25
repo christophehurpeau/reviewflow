@@ -15,8 +15,9 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
   parsePR: {
     title: [
       {
-        // eslint-disable-next-line unicorn/no-unsafe-regex
-        regExp: /^(?<revert>revert: )?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\([/A-Za-z-]+\)?((?=:\s)|(?=!:\s)))?(?<breaking>!)?(?<subject>:\s.*)$/,
+        regExp:
+          // eslint-disable-next-line unicorn/no-unsafe-regex
+          /^(?<revert>revert: )?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\([/A-Za-z-]+\)?((?=:\s)|(?=!:\s)))?(?<breaking>!)?(?<subject>:\s.*)$/,
         createStatusInfo: (match) => {
           if (match) {
             return null;
@@ -71,8 +72,9 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
     head: [
       {
         bot: false,
-        // eslint-disable-next-line unicorn/no-unsafe-regex
-        regExp: /^(?<revert>revert-\d+-)?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\/[a-z-]+)?\/(?<breaking>!)?(?<subject>.*)(?:-(?<jiraIssue>[A-Z][\dA-Z]+-(\d+)))?$/,
+        regExp:
+          // eslint-disable-next-line unicorn/no-unsafe-regex
+          /^(?<revert>revert-\d+-)?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\/[a-z-]+)?\/(?<breaking>!)?(?<subject>.*)(?:-(?<jiraIssue>[A-Z][\dA-Z]+-(\d+)))?$/,
         status: 'branch-name',
         createStatusInfo: (match, { title }) => {
           const idealBranchName = title
@@ -116,8 +118,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
             type: 'failure',
             title: 'PR to branches other than main is not recommended',
             summary: '',
-            url:
-              'https://ornikar.atlassian.net/wiki/spaces/TECH/pages/2221900272/Should+I+make+a+feature-branch+or+not',
+            url: 'https://ornikar.atlassian.net/wiki/spaces/TECH/pages/2221900272/Should+I+make+a+feature-branch+or+not',
           };
         },
       },

@@ -13,7 +13,8 @@ export type PullRequestFromWebhook =
   | PullRequestWithDecentDataFromWebhook
   | EventPayloads.WebhookPayloadCheckRunCheckRunPullRequestsItem;
 
-export type PullRequestFromRestEndpoint = RestEndpointMethodTypes['pulls']['get']['response']['data'];
+export type PullRequestFromRestEndpoint =
+  RestEndpointMethodTypes['pulls']['get']['response']['data'];
 
 export type PullRequestData =
   | PullRequestFromRestEndpoint

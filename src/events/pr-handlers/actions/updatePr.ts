@@ -13,7 +13,7 @@ const checkIfHasDiff = (text1: string | null, text2: string): boolean =>
   cleanNewLines(text1) !== cleanNewLines(text2);
 
 export const updatePrIfNeeded = async <
-  E extends EventPayloads.WebhookPayloadPullRequest
+  E extends EventPayloads.WebhookPayloadPullRequest,
 >(
   pullRequest: PullRequestWithDecentData,
   context: Context<E>,

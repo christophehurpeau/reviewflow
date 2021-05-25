@@ -6,7 +6,7 @@ import type { Options } from './utils/body/prOptions';
 import { updateCommentOptions } from './utils/body/updateBody';
 
 const updatePrCommentBody = async <
-  E extends EventPayloads.WebhookPayloadPullRequest
+  E extends EventPayloads.WebhookPayloadPullRequest,
 >(
   context: Context<E>,
   reviewflowPrContext: ReviewflowPrContext,
@@ -22,7 +22,7 @@ const updatePrCommentBody = async <
 };
 
 export const updatePrCommentBodyIfNeeded = async <
-  E extends EventPayloads.WebhookPayloadPullRequest
+  E extends EventPayloads.WebhookPayloadPullRequest,
 >(
   context: Context<E>,
   reviewflowPrContext: ReviewflowPrContext,
@@ -34,7 +34,7 @@ export const updatePrCommentBodyIfNeeded = async <
 };
 
 export const updatePrCommentBodyOptions = async <
-  E extends EventPayloads.WebhookPayloadPullRequest
+  E extends EventPayloads.WebhookPayloadPullRequest,
 >(
   context: Context<E>,
   repoContext: RepoContext,

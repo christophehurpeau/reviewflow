@@ -4,7 +4,7 @@ import type { Context } from 'probot';
 import type { PullRequestData } from 'events/pr-handlers/utils/PullRequestData';
 
 export function readPullRequestCommits<
-  E extends EventPayloads.WebhookPayloadPullRequest
+  E extends EventPayloads.WebhookPayloadPullRequest,
 >(
   context: Context<E>,
   pr: PullRequestData = context.payload.pull_request,

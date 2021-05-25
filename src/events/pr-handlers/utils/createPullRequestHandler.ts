@@ -28,7 +28,7 @@ export const createPullRequestHandler = <
     | EventPayloads.WebhookPayloadIssueComment
     | EventPayloads.WebhookPayloadPullRequestReviewComment,
   U extends PullRequestFromWebhook,
-  GroupNames extends string = string
+  GroupNames extends string = string,
 >(
   appContext: AppContext,
   getPullRequestInPayload: (
@@ -81,7 +81,7 @@ export const createPullRequestHandler = <
 export const createPullRequestsHandler = <
   T extends { repository: EventPayloads.PayloadRepository },
   U extends PullRequestFromWebhook | LockedMergePr,
-  GroupNames extends string
+  GroupNames extends string,
 >(
   appContext: AppContext,
   getPrs: (

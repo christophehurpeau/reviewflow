@@ -11,7 +11,7 @@ import { updateStatusCheckFromLabels } from './updateStatusCheckFromLabels';
 
 export const updateReviewStatus = async <
   E extends { repository: EventPayloads.PayloadRepository },
-  GroupNames extends string = any
+  GroupNames extends string = any,
 >(
   pullRequest: PullRequestWithDecentData,
   context: Context<E>,

@@ -10,7 +10,7 @@ type CallbackContextAndAccountContext<T> = (
 ) => void | Promise<void>;
 
 export const handlerOrgChange = async <
-  T extends { organization?: { id: number; login: string } }
+  T extends { organization?: { id: number; login: string } },
 >(
   appContext: AppContext,
   context: Context<T>,
@@ -32,11 +32,11 @@ export const handlerOrgChange = async <
   });
 };
 
-export const createHandlerOrgChange = <
-  T extends { organization?: { id: number; login: string } }
->(
-  appContext: AppContext,
-  callback: CallbackContextAndAccountContext<T>,
-) => (context: Context<T>) => {
-  return handlerOrgChange(appContext, context, callback);
-};
+export const createHandlerOrgChange =
+  <T extends { organization?: { id: number; login: string } }>(
+    appContext: AppContext,
+    callback: CallbackContextAndAccountContext<T>,
+  ) =>
+  (context: Context<T>) => {
+    return handlerOrgChange(appContext, context, callback);
+  };

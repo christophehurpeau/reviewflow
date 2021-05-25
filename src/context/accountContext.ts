@@ -23,7 +23,7 @@ import { getKeys } from './utils';
 
 export interface AccountContext<
   GroupNames extends string = any,
-  TeamNames extends string = any
+  TeamNames extends string = any,
 > {
   config: Config<GroupNames, TeamNames>;
   accountType: AccountType;
@@ -181,16 +181,16 @@ const initAccountContext = async (
       const requestedReviewerGroups = [
         ...new Set([
           ...getReviewerGroups(
-            (pullRequest.requested_reviewers as PullRequestWithDecentDataFromWebhook['requested_reviewers']).map(
-              (request) => request.login,
-            ),
+            (
+              pullRequest.requested_reviewers as PullRequestWithDecentDataFromWebhook['requested_reviewers']
+            ).map((request) => request.login),
           ),
           ...(!pullRequest.requested_teams
             ? []
             : getGithubTeamsGroups(
-                (pullRequest.requested_teams as PullRequestWithDecentDataFromWebhook['requested_teams']).map(
-                  (team) => team.name,
-                ),
+                (
+                  pullRequest.requested_teams as PullRequestWithDecentDataFromWebhook['requested_teams']
+                ).map((team) => team.name),
               )),
         ]),
       ];

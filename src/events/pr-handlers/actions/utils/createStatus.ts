@@ -2,7 +2,7 @@ import type { EventPayloads } from '@octokit/webhooks';
 import type { Context } from 'probot';
 
 export default async function createStatus<
-  T extends { repository: EventPayloads.PayloadRepository }
+  T extends { repository: EventPayloads.PayloadRepository },
 >(
   context: Context<T>,
   name: string,
