@@ -4,7 +4,7 @@ import type { RepoContext } from 'context/repoContext';
 import type { PullRequestFromRestEndpoint } from '../utils/PullRequestData';
 
 export const autoAssignPRToCreator = async <
-  E extends EventPayloads.WebhookPayloadPullRequest
+  E extends EventPayloads.WebhookPayloadPullRequest,
 >(
   pullRequest: E['pull_request'] | PullRequestFromRestEndpoint,
   context: Context<E>,

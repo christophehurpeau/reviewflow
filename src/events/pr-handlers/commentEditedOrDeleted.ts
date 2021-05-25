@@ -76,9 +76,8 @@ export default function prCommentEditedOrDeleted(
           typeId: comment.id,
         };
 
-        const sentMessages = await appContext.mongoStores.slackSentMessages.findAll(
-          criteria,
-        );
+        const sentMessages =
+          await appContext.mongoStores.slackSentMessages.findAll(criteria);
 
         if (sentMessages.length === 0) return;
 

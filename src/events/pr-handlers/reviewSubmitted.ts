@@ -49,11 +49,8 @@ export default function reviewSubmitted(
           context,
           repoContext,
         );
-        const {
-          owner,
-          assignees,
-          followers,
-        } = getRolesFromPullRequestAndReviewers(pullRequest, reviewers);
+        const { owner, assignees, followers } =
+          getRolesFromPullRequestAndReviewers(pullRequest, reviewers);
         const isReviewByOwner = owner.login === reviewer.login;
 
         const filteredFollowers = followers.filter(
@@ -134,14 +131,13 @@ export default function reviewSubmitted(
             repoContext.slack.updateHome(reviewer.login);
           }
 
-          const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne(
-            {
+          const sentMessageRequestedReview =
+            await appContext.mongoStores.slackSentMessages.findOne({
               'account.id': repoContext.account._id,
               'account.type': repoContext.accountType,
               type: 'review-requested',
               typeId: `${pullRequest.id}_${reviewer.id}`,
-            },
-          );
+            });
 
           const emoji = getEmojiFromState(state);
 
@@ -196,7 +192,7 @@ export default function reviewSubmitted(
             return `:${emoji}: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
           };
 
-          const slackifiedBody = slackifyMarkdown((body as unknown) as string);
+          const slackifiedBody = slackifyMarkdown(body as unknown as string);
 
           assignees.forEach((assignee) => {
             repoContext.slack.postMessage(

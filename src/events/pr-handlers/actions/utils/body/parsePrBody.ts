@@ -4,8 +4,10 @@ import { parseBody } from './parseBody';
 const commentStart = '<!-- do not edit after this -->';
 const commentEnd = "<!-- end - don't add anything after this -->";
 
-const regexpCols = /^(.*)(<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->)(.*)$/is;
-const regexpReviewflowCol = /^(\s*<!---? do not edit after this -?--><\/td><td [^>]*>)\s*(.*)\s*(<\/td><\/tr><\/table>\s*<!---? end - don't add anything after this -?-->)\s*$/is;
+const regexpCols =
+  /^(.*)(<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->)(.*)$/is;
+const regexpReviewflowCol =
+  /^(\s*<!---? do not edit after this -?--><\/td><td [^>]*>)\s*(.*)\s*(<\/td><\/tr><\/table>\s*<!---? end - don't add anything after this -?-->)\s*$/is;
 
 interface ParsePrBodyResultWithoutOptions {
   content: string;

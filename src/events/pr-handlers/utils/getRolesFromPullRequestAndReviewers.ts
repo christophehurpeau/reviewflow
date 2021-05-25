@@ -22,13 +22,12 @@ export function getRolesFromPullRequestAndReviewers(
   const assigneeIds = assignees.map((a) => a.id);
 
   const followers = reviewers.filter((user) => !assigneeIds.includes(user.id));
-  const requestedReviewers: RequestedReviewers[] = pullRequest.requested_reviewers.map(
-    (rr) => ({
+  const requestedReviewers: RequestedReviewers[] =
+    pullRequest.requested_reviewers.map((rr) => ({
       ...rr,
       isRequestedByName: true,
       requestedByTeams: [],
-    }),
-  );
+    }));
 
   if (pullRequest.requested_teams) {
     // TODO

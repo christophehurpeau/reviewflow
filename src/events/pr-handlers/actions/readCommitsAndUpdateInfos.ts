@@ -17,7 +17,7 @@ interface BreakingChangesCommits {
 }
 
 export const readCommitsAndUpdateInfos = async <
-  E extends EventPayloads.WebhookPayloadPullRequest
+  E extends EventPayloads.WebhookPayloadPullRequest,
 >(
   pullRequest: PullRequestWithDecentData,
   context: Context<E>,

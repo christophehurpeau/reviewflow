@@ -36,21 +36,19 @@ export default function opened(app: Probot, appContext: AppContext): void {
                   context,
                   repoContext,
                   reviewflowPrContext,
-                ).then(
-                  async (approved: boolean): Promise<void> => {
-                    if (!approved) {
-                      await updateReviewStatus(
-                        pullRequest,
-                        context,
-                        repoContext,
-                        'dev',
-                        {
-                          add: ['needsReview'],
-                        },
-                      );
-                    }
-                  },
-                ),
+                ).then(async (approved: boolean): Promise<void> => {
+                  if (!approved) {
+                    await updateReviewStatus(
+                      pullRequest,
+                      context,
+                      repoContext,
+                      'dev',
+                      {
+                        add: ['needsReview'],
+                      },
+                    );
+                  }
+                }),
               )
             : updateReviewStatus(pullRequest, context, repoContext, 'dev', {
                 add: repoContext.config.requiresReviewRequest

@@ -26,7 +26,7 @@ interface Status {
 }
 
 export const editOpenedPR = async <
-  E extends EventPayloads.WebhookPayloadPullRequest
+  E extends EventPayloads.WebhookPayloadPullRequest,
 >(
   pullRequest: PullRequestWithDecentData,
   context: Context<E>,

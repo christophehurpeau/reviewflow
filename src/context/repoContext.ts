@@ -62,9 +62,8 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   pushAutomergeQueue: (pr: LockedMergePr) => void;
 }
 
-export type RepoContext<
-  GroupNames extends string = any
-> = AccountContext<GroupNames> & RepoContextWithoutTeamContext<GroupNames>;
+export type RepoContext<GroupNames extends string = any> =
+  AccountContext<GroupNames> & RepoContextWithoutTeamContext<GroupNames>;
 
 export const shouldIgnoreRepo = (
   repoName: string,

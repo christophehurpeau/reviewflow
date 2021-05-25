@@ -5,7 +5,7 @@ import type { RepoContext } from '../../../context/repoContext';
 import { obtainRepoContext } from '../../../context/repoContext';
 
 export const createRepoHandler = <
-  T extends { repository: EventPayloads.PayloadRepository }
+  T extends { repository: EventPayloads.PayloadRepository },
 >(
   appContext: AppContext,
   callback: (

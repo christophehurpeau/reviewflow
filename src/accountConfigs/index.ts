@@ -6,7 +6,7 @@ import type { Config as ConfigType } from './types';
 
 export type Config<
   GroupNames extends string = any,
-  TeamNames extends string = any
+  TeamNames extends string = any,
 > = ConfigType<GroupNames, TeamNames>;
 
 export const accountConfigs: Record<string, Config> = {

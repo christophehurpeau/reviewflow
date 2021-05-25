@@ -10,7 +10,7 @@ interface SyncLabelOptions {
 }
 
 export default async function syncLabel<
-  T extends EventPayloads.WebhookPayloadPullRequest
+  T extends EventPayloads.WebhookPayloadPullRequest,
 >(
   pullRequest: PullRequestWithDecentData,
   context: Context<T>,

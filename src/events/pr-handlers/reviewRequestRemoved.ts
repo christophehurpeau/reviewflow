@@ -136,16 +136,15 @@ export default function reviewRequestRemoved(
 
           await Promise.all(
             requestedReviewers.map(async (potentialReviewer) => {
-              const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne(
-                {
+              const sentMessageRequestedReview =
+                await appContext.mongoStores.slackSentMessages.findOne({
                   'account.id': repoContext.account._id,
                   'account.type': repoContext.accountType,
                   type: 'review-requested',
                   typeId: `${pullRequest.id}_${
                     requestedTeam ? `${requestedTeam.id}_` : ''
                   }${potentialReviewer.id}`,
-                },
-              );
+                });
 
               if (sentMessageRequestedReview) {
                 const sentTo = sentMessageRequestedReview.sentTo[0];

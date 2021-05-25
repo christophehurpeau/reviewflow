@@ -15,7 +15,7 @@ type PullRequestHandlerAllowedPayloads =
     };
 
 export type PullRequestFromPayload<
-  T extends PullRequestHandlerAllowedPayloads
+  T extends PullRequestHandlerAllowedPayloads,
 > = T extends { pull_request: WebhookPr }
   ? T['pull_request']
   : T extends { issue: EventPayloads.WebhookPayloadIssueCommentIssue }
@@ -24,7 +24,7 @@ export type PullRequestFromPayload<
 
 /** deprecated */
 export const getPullRequestFromPayload = <
-  T extends PullRequestHandlerAllowedPayloads
+  T extends PullRequestHandlerAllowedPayloads,
 >(
   payload: T,
 ): PullRequestFromPayload<T> => {

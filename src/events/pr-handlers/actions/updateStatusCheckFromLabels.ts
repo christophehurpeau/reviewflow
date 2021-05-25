@@ -10,7 +10,7 @@ import type {
 import createStatus from './utils/createStatus';
 
 const addStatusCheck = async function <
-  T extends { repository: EventPayloads.PayloadRepository }
+  T extends { repository: EventPayloads.PayloadRepository },
 >(
   pullRequest: PullRequestWithDecentData,
   context: Context<T>,
@@ -59,7 +59,7 @@ const addStatusCheck = async function <
 };
 
 export const updateStatusCheckFromLabels = <
-  T extends { repository: EventPayloads.PayloadRepository }
+  T extends { repository: EventPayloads.PayloadRepository },
 >(
   pullRequest: PullRequestWithDecentData,
   context: Context<T>,
@@ -92,7 +92,9 @@ export const updateStatusCheckFromLabels = <
     pullRequest.requested_reviewers.length > 0
   ) {
     return createFailedStatusCheck(
-      `Awaiting review from: ${(pullRequest.requested_reviewers as PullRequestWithDecentDataFromWebhook['requested_reviewers'])
+      `Awaiting review from: ${(
+        pullRequest.requested_reviewers as PullRequestWithDecentDataFromWebhook['requested_reviewers']
+      )
         .filter(ExcludesFalsy)
         .map((rr) => rr.login)
         .join(', ')}`,
@@ -101,7 +103,9 @@ export const updateStatusCheckFromLabels = <
 
   if (pullRequest.requested_teams && pullRequest.requested_teams.length > 0) {
     return createFailedStatusCheck(
-      `Awaiting review from: ${(pullRequest.requested_teams as PullRequestWithDecentDataFromWebhook['requested_teams'])
+      `Awaiting review from: ${(
+        pullRequest.requested_teams as PullRequestWithDecentDataFromWebhook['requested_teams']
+      )
         .filter(ExcludesFalsy)
         .map((rt) => rt.name)
         .join(', ')}`,
