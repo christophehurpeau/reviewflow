@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.83.0](https://github.com/christophehurpeau/reviewflow/compare/v1.82.0...v1.83.0) (2021-06-06)
+
+
+### Features
+
+* **deps:** update dependency slackify-markdown to v4.3.0 ([#241](https://github.com/christophehurpeau/reviewflow/issues/241)) ([79a2623](https://github.com/christophehurpeau/reviewflow/commit/79a2623dca64b1056d2352238cfde50d70a481c7))
+* add rchabin to reviewers ([#226](https://github.com/christophehurpeau/reviewflow/issues/226)) ([6083bee](https://github.com/christophehurpeau/reviewflow/commit/6083beeadc0619e963f5175f81ffebb134196782))
+* add tnesztler to reviewers [no issue] ([#242](https://github.com/christophehurpeau/reviewflow/issues/242)) ([9364d41](https://github.com/christophehurpeau/reviewflow/commit/9364d41ecd8833ebc37461f6605f5f267af94fe9))
+* **deps:** update dependency dotenv to v8.6.0 ([#234](https://github.com/christophehurpeau/reviewflow/issues/234)) ([385ccb3](https://github.com/christophehurpeau/reviewflow/commit/385ccb36d9882acacd9784718c53fe4924b6a9af))
+
+
+### Bug Fixes
+
+* renovate update branch areCommitsAllMadeByBots ([e1a574a](https://github.com/christophehurpeau/reviewflow/commit/e1a574afc51f0bf2ef4fbfee13a06136f62ebfc5))
+* **deps:** update dependency @commitlint/parse to v12.1.4 ([#240](https://github.com/christophehurpeau/reviewflow/issues/240)) ([791a330](https://github.com/christophehurpeau/reviewflow/commit/791a3305248fb81f34aef8dad0e1a900f090925a))
+* typo and build ornikar config ([8159754](https://github.com/christophehurpeau/reviewflow/commit/81597546301b344aa7109246e3f0ba201cf9e320))
+
 ## [1.82.0](https://github.com/christophehurpeau/reviewflow/compare/v1.81.0...v1.82.0) (2021-05-08)
 
 
