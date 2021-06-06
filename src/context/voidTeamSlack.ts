@@ -7,4 +7,6 @@ export const voidTeamSlack = (): TeamSlack => ({
   deleteMessage: (): Promise<undefined> => Promise.resolve(undefined),
   addReaction: (): Promise<undefined> => Promise.resolve(undefined),
   updateHome: (): void => undefined,
+  updateSlackMember: (): Promise<undefined> => Promise.resolve(undefined),
+  shouldShowLoginMessage: (): boolean => false,
 });

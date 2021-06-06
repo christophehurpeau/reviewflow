@@ -64,10 +64,18 @@ export interface OrgTeamEmbed {
   slug: OrgTeam['slug'];
 }
 
+interface OrgMemberSlack {
+  id: string;
+  email?: string;
+  accessToken?: string;
+  scope?: string;
+  teamId?: string;
+}
+
 export interface OrgMember extends MongoBaseModel {
   org: AccountEmbedWithoutType;
   user: AccountEmbedWithoutType;
-  slack?: { id: string };
+  slack?: OrgMemberSlack;
   teams: OrgTeamEmbed[];
 }
 

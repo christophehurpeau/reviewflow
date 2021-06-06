@@ -48,7 +48,27 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
       }),
     ]);
 
-    const blocks: any[] = [];
+    const blocks: any[] = [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `Configure your ${
+            process.env.REVIEWFLOW_NAME
+          } settings ${createLink(
+            `${process.env.REVIEWFLOW_APP_URL}/${member.org.login}`,
+            'here',
+          )}.`,
+        },
+      },
+      {
+        type: 'header',
+        text: {
+          type: 'plain_text',
+          text: 'PRs requesting your attention',
+        },
+      },
+    ];
 
     const buildBlocks = (title: string, results: any) => {
       if (!results.total_count) return;

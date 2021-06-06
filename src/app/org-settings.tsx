@@ -4,6 +4,7 @@ import type { ProbotOctokit } from 'probot';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { accountConfigs } from '../accountConfigs';
+import { getTeamsAndGroups } from '../context/accountContext';
 import type { MessageCategory } from '../dm/MessageCategory';
 import { getUserDmSettings, updateCache } from '../dm/getUserDmSettings';
 import { syncOrg } from '../events/account-handlers/actions/syncOrg';
@@ -102,12 +103,16 @@ export default function orgSettings(
       }
 
       const accountConfig = accountConfigs[org.login];
-      const userDmSettings = await getUserDmSettings(
-        mongoStores,
-        org.login,
-        org.id,
-        user.authInfo.id,
-      );
+      const [orgMember, userDmSettings] = await Promise.all([
+        mongoStores.orgMembers.findOne({
+          'org.id': org.id,
+          'user.id': user.authInfo.id,
+        }),
+        getUserDmSettings(mongoStores, org.login, org.id, user.authInfo.id),
+      ]);
+      const teamsAndGroups = orgMember
+        ? getTeamsAndGroups(accountConfig, orgMember)
+        : { groupName: undefined, teamNames: [] };
 
       res.send(
         renderToStaticMarkup(
@@ -121,30 +126,69 @@ export default function orgSettings(
 
               <div style={{ display: 'flex' }}>
                 <div style={{ flexGrow: 1 }}>
-                  <h4>Information</h4>
+                  <h4>Account Config</h4>
                   {!accountConfig
                     ? 'Default config is used: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/defaultConfig.ts'
                     : `Custom config: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/${org.login}.ts`}
+
+                  <h4 style={{ marginTop: '1rem' }}>Slack Connection</h4>
+                  {!orgMember || !orgMember.slack ? (
+                    <>
+                      Slack account yet linked ! Sign in to get notifications
+                      for your reviews.
+                      <br />
+                      <a
+                        href={`/app/slack-connect?orgId=${encodeURIComponent(
+                          org.id,
+                        )}&orgLogin=${encodeURIComponent(org.login)}`}
+                      >
+                        <img
+                          src="https://api.slack.com/img/sign_in_with_slack.png"
+                          alt="Sign in with Slack"
+                        />
+                      </a>
+                    </>
+                  ) : (
+                    <>Slack User ID: {orgMember.slack.id}</>
+                  )}
+                  <h4 style={{ marginTop: '1rem' }}>User Information</h4>
+                  {!orgMember ? (
+                    <>User not found in database</>
+                  ) : (
+                    <>
+                      <div>
+                        Group Name: {teamsAndGroups.groupName || 'No groups'}
+                      </div>
+                      <div>
+                        Team Names:{' '}
+                        {teamsAndGroups.teamNames.join(', ') || 'No teams'}
+                      </div>
+                    </>
+                  )}
                 </div>
                 <div style={{ width: '380px' }}>
                   <h4>My DM Settings</h4>
-                  {Object.entries(dmMessages).map(([key, name]) => (
-                    <div key={key}>
-                      <label htmlFor={key}>
-                        <span
-                          // eslint-disable-next-line react/no-danger
-                          dangerouslySetInnerHTML={{
-                            __html: `<input id="${key}" type="checkbox" autocomplete="off" ${
-                              userDmSettings[key as MessageCategory]
-                                ? 'checked="checked" '
-                                : ''
-                            }onclick="fetch(location.pathname, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: '${key}', value: event.currentTarget.checked }) })" />`,
-                          }}
-                        />
-                        {name}
-                      </label>
-                    </div>
-                  ))}
+                  {!orgMember || !orgMember.slack ? (
+                    <>Link your github account to unlock DM Settings</>
+                  ) : (
+                    Object.entries(dmMessages).map(([key, name]) => (
+                      <div key={key}>
+                        <label htmlFor={key}>
+                          <span
+                            // eslint-disable-next-line react/no-danger
+                            dangerouslySetInnerHTML={{
+                              __html: `<input id="${key}" type="checkbox" autocomplete="off" ${
+                                userDmSettings[key as MessageCategory]
+                                  ? 'checked="checked" '
+                                  : ''
+                              }onclick="fetch(location.pathname, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: '${key}', value: event.currentTarget.checked }) })" />`,
+                            }}
+                          />
+                          {name}
+                        </label>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>

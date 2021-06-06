@@ -45,7 +45,7 @@ export const initTeamSlack = async <GroupNames extends string>(
     const member = membersInDb.find((m) => m.user.login === login);
     if (member?.slack?.id) {
       foundEmailMembers.push(email);
-      members.push([email, { member: { id: member.slack.id }, im: undefined }]);
+      members.push([login, { member: { id: member.slack.id }, im: undefined }]);
     }
   });
 
@@ -54,7 +54,13 @@ export const initTeamSlack = async <GroupNames extends string>(
       (email) => !foundEmailMembers.includes(email),
     );
 
-    const memberEmailToMemberId = new Map<string, number>(
+    const memberEmailToGithubLogin = new Map<string, string>(
+      Object.entries(githubLoginToSlackEmail).map(([login, email]) => [
+        email,
+        login,
+      ]),
+    );
+    const memberEmailToMemberId = new Map<string, string>(
       Object.entries(githubLoginToSlackEmail).map(([login, email]) => [
         email,
         membersInDb.find((m) => m.user.login === login)?._id as any,
@@ -65,13 +71,14 @@ export const initTeamSlack = async <GroupNames extends string>(
       page.members.forEach((member: any) => {
         const email = member.profile?.email;
         if (email && missingEmails.includes(email)) {
-          members.push([email, { member, im: undefined }]);
-          if (memberEmailToMemberId.has(email)) {
+          const login = memberEmailToGithubLogin.get(email);
+          if (!login) return;
+          members.push([login, { member, im: undefined }]);
+          const memberId = memberEmailToMemberId.get(email);
+          if (memberId) {
             mongoStores.orgMembers.partialUpdateMany(
-              {
-                _id: memberEmailToMemberId.get(email),
-              },
-              { $set: { slack: { id: member.id } } },
+              { _id: memberId },
+              { $set: { slack: { id: member.id, email } } },
             );
           }
         }
@@ -80,24 +87,34 @@ export const initTeamSlack = async <GroupNames extends string>(
     });
   }
 
-  for (const [, user] of members) {
+  const membersMap = new Map(members);
+
+  // User added its email but not linked to a slack account yet
+  // Temporary transition before login with slack in the settings
+  membersInDb.forEach((member) => {
+    if (member?.slack?.id && !membersMap.has(member.user.login)) {
+      membersMap.set(member.user.login, {
+        member: { id: member.slack.id },
+        im: undefined,
+      });
+    }
+  });
+
+  const openConversation = async (userId: string): Promise<any> => {
     try {
       const im: any = await slackClient.conversations.open({
-        users: user.member.id,
+        users: userId,
       });
-      user.im = im.channel;
+      return im.channel;
     } catch (err) {
       context.log('could create im', { err });
     }
-  }
-
-  const membersMap = new Map(members);
-
-  const getUserFromGithubLogin = (githubLogin: string) => {
-    const email = githubLoginToSlackEmail[githubLogin];
-    if (!email) return null;
-    return membersMap.get(email);
   };
+
+  for (const user of membersMap.values()) {
+    const im = await openConversation(user.member.id);
+    if (im) user.im = im;
+  }
 
   return {
     mention: (githubLogin: string): string => {
@@ -105,7 +122,7 @@ export const initTeamSlack = async <GroupNames extends string>(
       if (githubLogin.endsWith('[bot]')) {
         return `:robot_face: ${githubLogin.slice(0, -'[bot]'.length)}`;
       }
-      const user = getUserFromGithubLogin(githubLogin);
+      const user = membersMap.get(githubLogin);
       if (!user) return githubLogin;
       return `<@${user.member.id}>`;
     },
@@ -134,7 +151,7 @@ export const initTeamSlack = async <GroupNames extends string>(
 
       if (!userDmSettings[category]) return null;
 
-      const user = getUserFromGithubLogin(githubLogin);
+      const user = membersMap.get(githubLogin);
       if (!user || !user.im) return null;
       const result = await slackClient.chat.postMessage({
         username: process.env.REVIEWFLOW_NAME,
@@ -188,10 +205,9 @@ export const initTeamSlack = async <GroupNames extends string>(
         name,
       });
     },
-
     updateHome: (githubLogin: string): void => {
       context.log.debug({ githubLogin }, 'update slack home');
-      const user = getUserFromGithubLogin(githubLogin);
+      const user = membersMap.get(githubLogin);
       if (!user || !user.member) return;
 
       slackHome.scheduleUpdateMember(context.octokit, slackClient, {
@@ -199,6 +215,27 @@ export const initTeamSlack = async <GroupNames extends string>(
         org: { id: account._id, login: account.login },
         slack: { id: user.member.id },
       } as any);
+    },
+
+    updateSlackMember: async (userId, userLogin): Promise<void> => {
+      // delete existing member if existing
+      membersMap.delete(userLogin);
+
+      const member = await mongoStores.orgMembers.findOne({
+        'org.id': account._id,
+        'user.id': userId,
+      });
+
+      if (!member || !member.slack) return;
+
+      const im = await openConversation(member.slack.id);
+      membersMap.set(userLogin, {
+        member: { id: member.slack.id },
+        im,
+      });
+    },
+    shouldShowLoginMessage: (githubLogin: string) => {
+      return !membersMap.has(githubLogin);
     },
   };
 };

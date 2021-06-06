@@ -159,6 +159,24 @@ export const editOpenedPR = async <
     .filter((status) => status.status.inBody)
     .map((status) => status.status);
 
+  if (
+    // not a bot
+    !isPrFromBot &&
+    // should not happen, but ts needs it
+    pullRequest.user?.login &&
+    // belongs to the organization
+    repoContext.getReviewerGroup(pullRequest.user.login) &&
+    // has not connected its slack account yet
+    repoContext.slack.shouldShowLoginMessage(pullRequest.user.login)
+  ) {
+    commentBodyInfos.push({
+      type: 'failure',
+      title: `@${pullRequest.user.login} Connect your account to Slack to get notifications for your PRs !`,
+      url: `${process.env.REVIEWFLOW_APP_URL}/org/${context.payload.repository.owner.login}`,
+      summary: '',
+    });
+  }
+
   const shouldCreateCommentBody =
     reviewflowPrContext.commentBody === defaultCommentBody;
 

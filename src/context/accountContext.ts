@@ -36,6 +36,7 @@ export interface AccountContext<
   getGithubTeamsGroups: (teamNames: string[]) => GroupNames[];
   getMembersForTeam: (teamId: string) => Promise<AccountEmbedWithoutType[]>;
   getTeamsForLogin: (githubLogin: string) => TeamNames[];
+  updateGithubTeamMembers: () => Promise<void>;
   approveShouldWait: (
     reviewerGroup: GroupNames | undefined,
     pullRequest: PullRequestWithDecentData,
@@ -47,6 +48,35 @@ export interface AccountContext<
 
   lock: (callback: () => Promise<void> | void) => Promise<void>;
 }
+
+interface TeamsAndGroups {
+  groupName?: string;
+  teamNames: string[];
+}
+
+export const getTeamsAndGroups = (
+  config: Config,
+  member: OrgMember,
+): TeamsAndGroups => {
+  const { groupsGithubTeams, teams } = config;
+
+  const groupName = !groupsGithubTeams
+    ? undefined
+    : (getKeys(groupsGithubTeams).find((groupName) => {
+        return member.teams.some((team) => {
+          return groupsGithubTeams[groupName].includes(team.name);
+        });
+      }) as string);
+
+  const teamNames = getKeys(teams).filter((teamName) => {
+    const githubTeamName = teams[teamName].githubTeamName;
+    if (!githubTeamName) {
+      return teams[teamName].logins.includes(member.user.login);
+    }
+    return member.teams.some((team) => team.name === teamName);
+  });
+  return { groupName, teamNames };
+};
 
 const initAccountContext = async (
   appContext: AppContext,
@@ -63,13 +93,16 @@ const initAccountContext = async (
   const slackPromise = initTeamSlack(appContext, context, config, account);
 
   const githubLoginToGroup = new Map<string, string>();
+  const githubTeamNameToGroup = new Map<string, string>();
+  const githubLoginToTeams = new Map<string, string[]>();
+  // TODO const githubLoginToSlackId = new Map<string, string>();
+
   for (const groupName of getKeys(config.groups)) {
     Object.keys(config.groups[groupName]).forEach((login) => {
       githubLoginToGroup.set(login, groupName);
     });
   }
 
-  const githubTeamNameToGroup = new Map<string, string>();
   if (config.groupsGithubTeams) {
     for (const groupName of getKeys(config.groupsGithubTeams)) {
       config.groupsGithubTeams[groupName].forEach((teamName) => {
@@ -78,17 +111,25 @@ const initAccountContext = async (
     }
   }
 
-  const githubLoginToTeams = new Map<string, string[]>();
-  getKeys(config.teams || {}).forEach((teamName) => {
-    config.teams![teamName].logins.forEach((login) => {
-      const teams = githubLoginToTeams.get(login);
-      if (teams) {
-        teams.push(teamName);
-      } else {
-        githubLoginToTeams.set(login, [teamName]);
-      }
+  const updateGithubTeamMembers = async (): Promise<void> => {
+    if (accountInfo.type !== 'Organization') {
+      return;
+    }
+
+    const members = await appContext.mongoStores.orgMembers.findAll({
+      'org.id': accountInfo.id,
     });
-  });
+
+    members.forEach((member) => {
+      const { groupName, teamNames } = getTeamsAndGroups(config, member);
+      if (groupName) {
+        githubLoginToGroup.set(member.user.login, groupName);
+      }
+      githubLoginToTeams.set(member.user.login, teamNames);
+    });
+  };
+
+  await updateGithubTeamMembers();
 
   const getReviewerGroups = (githubLogins: string[]): string[] => [
     ...new Set(
@@ -164,6 +205,7 @@ const initAccountContext = async (
       const orgMembers = await cursor.toArray();
       return orgMembers.map((member) => member.user);
     },
+    updateGithubTeamMembers,
 
     approveShouldWait: (
       reviewerGroup,
@@ -221,17 +263,26 @@ const initAccountContext = async (
 const accountContextsPromise = new Map();
 const accountContexts = new Map();
 
+export const getExistingAccountContext = (
+  accountInfo: AccountInfo,
+): Promise<AccountContext> | null => {
+  const existingAccountContext = accountContexts.get(accountInfo.login);
+  if (existingAccountContext) return Promise.resolve(existingAccountContext);
+
+  const existingPromise = accountContextsPromise.get(accountInfo.login);
+  if (existingPromise) return Promise.resolve(existingPromise);
+
+  return null;
+};
+
 export const obtainAccountContext = (
   appContext: AppContext,
   context: Context<any>,
   config: Config,
   accountInfo: AccountInfo,
 ): Promise<AccountContext> => {
-  const existingAccountContext = accountContexts.get(accountInfo.login);
-  if (existingAccountContext) return existingAccountContext;
-
-  const existingPromise = accountContextsPromise.get(accountInfo.login);
-  if (existingPromise) return Promise.resolve(existingPromise);
+  const existingAccountContextPromise = getExistingAccountContext(accountInfo);
+  if (existingAccountContextPromise) return existingAccountContextPromise;
 
   const promise = initAccountContext(appContext, context, config, accountInfo);
   accountContextsPromise.set(accountInfo.login, promise);

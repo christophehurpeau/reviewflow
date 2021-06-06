@@ -13,6 +13,7 @@ nock.disableNetConnect();
 
 export const initializeProbotApp = async ({
   orgs,
+  orgMembers,
   users,
   prs,
 }: Partial<any> = {}): Promise<Probot> => {
@@ -26,6 +27,10 @@ export const initializeProbotApp = async ({
       findByKey: () => Promise.resolve({ _id: 1, installationId: 1 }),
       ...orgs,
     },
+    orgMembers: {
+      findAll: () => Promise.resolve([]),
+      ...orgMembers,
+    },
     users: {
       findByKey: () => Promise.resolve({ _id: 1, installationId: 1 }),
       ...users,
@@ -36,7 +41,9 @@ export const initializeProbotApp = async ({
     },
   };
 
-  await probot.load((app) => initApp(app, { mongoStores: mockStores } as any));
+  await probot.load((app) => {
+    initApp(app, { mongoStores: mockStores } as any);
+  });
 
   return probot;
 };

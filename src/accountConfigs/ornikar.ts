@@ -128,51 +128,12 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
   botUsers: ['michael-robot'],
 
   groups: {
-    dev: {
-      /* ops */
-      JulienBreux: `julien.breux${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      TheR3aLp3nGuinJM: `jean-michel${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      AymenBac: `aymen${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-
-      /* back */
-      abarreir: `alexandre${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      damienorny: `damien.orny${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      'Thierry-girod': `thierry${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      darame07: `kevin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      Pixy: `pierre-alexis${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      machartier: `marie-anne${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      camillebaronnet: `camille.baronnet${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      'olivier-martinez': `olivier.martinez${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      tnesztler: `thibaud.nesztler${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-
-      /* front */
-      christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      HugoGarrido: `hugo${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      CorentinAndre: `corentin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      Mxime: `maxime${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      vlbr: `valerian${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      'budet-b': `benjamin.budet${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      mdcarter: `maxime.dehaye${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      ChibiBlasphem: `christopher${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      PSniezak: `paul.sniezak${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      GaelFerrand: 'gael.ferrand@othrys.dev',
-      aenario: `romain.foucault${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-
-      /* em */
-      rchabin: `remy.chabin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-    },
-
-    design: {
-      jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      CoralineColasse: `coraline${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      Lenamari: `lena${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      loicleser: `loic.leser${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      carlbouville: `carl.bouville${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-    },
+    dev: {},
+    design: {},
   },
 
   groupsGithubTeams: {
-    dev: ['ops', 'backend', 'frontend', 'frontend-architects'],
+    dev: ['ops', 'dev', 'backend', 'frontend', 'frontend-architects'],
     design: ['design'],
   },
 

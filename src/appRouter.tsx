@@ -4,6 +4,7 @@ import auth from './app/auth';
 import home from './app/home';
 import orgSettings from './app/org-settings';
 import repository from './app/repository';
+import slackConnect from './app/slack-connect';
 import userSettings from './app/user-settings';
 import type { AppContext } from './context/AppContext';
 
@@ -25,4 +26,5 @@ export default async function appRouter(
   home(router, octokitApp, mongoStores);
   orgSettings(router, octokitApp, mongoStores);
   userSettings(router, octokitApp, mongoStores);
+  slackConnect(router, mongoStores);
 }

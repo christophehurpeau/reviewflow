@@ -35,7 +35,7 @@ const toMarkdownInfos = (infos: StatusInfo[]): string => {
       if (info.url) return `[${info.title}](${info.url})`;
       return info.title;
     })
-    .join('\n');
+    .join('\n\n');
 };
 
 interface UpdatedBodyWithOptions {

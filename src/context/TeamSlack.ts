@@ -24,4 +24,6 @@ export interface TeamSlack {
   deleteMessage: (ts: string, channel: string) => Promise<void>;
   addReaction: (ts: string, channel: string, name: string) => Promise<void>;
   updateHome: (githubLogin: string) => void;
+  updateSlackMember: (githubId: number, githubLogin: string) => Promise<void>;
+  shouldShowLoginMessage: (githubLogin: string) => boolean;
 }

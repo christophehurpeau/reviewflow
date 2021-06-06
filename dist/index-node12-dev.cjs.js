@@ -81,7 +81,7 @@ const signPromisified = util.promisify(jsonwebtoken.sign);
 const verifyPromisified = util.promisify(jsonwebtoken.verify);
 const secure = !!process.env.SECURE_COOKIE && process.env.SECURE_COOKIE !== 'false';
 
-const createRedirectUri = req => {
+const createRedirectUri$1 = req => {
   const host = `http${secure ? 's' : ''}://${req.hostname}${req.hostname === 'localhost' ? `:${process.env.PORT || 3000}` : ''}`;
   return `${host}/app/login-response`;
 };
@@ -144,7 +144,7 @@ function auth(router) {
 
 
     const redirectUri = oauth2.authorizeURL({
-      redirect_uri: createRedirectUri(req),
+      redirect_uri: createRedirectUri$1(req),
       scope: 'read:user,repo' // state,
       // grant_type: options.grantType,
       // access_type: options.accessType,
@@ -185,7 +185,7 @@ function auth(router) {
 
     const accessToken = await oauth2.getToken({
       code,
-      redirect_uri: createRedirectUri(req)
+      redirect_uri: createRedirectUri$1(req)
     });
 
     if (!accessToken) {
@@ -500,49 +500,11 @@ const config$1 = {
   },
   botUsers: ['michael-robot'],
   groups: {
-    dev: {
-      /* ops */
-      JulienBreux: `julien.breux${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      TheR3aLp3nGuinJM: `jean-michel${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      AymenBac: `aymen${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-
-      /* back */
-      abarreir: `alexandre${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      damienorny: `damien.orny${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      'Thierry-girod': `thierry${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      darame07: `kevin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      Pixy: `pierre-alexis${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      machartier: `marie-anne${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      camillebaronnet: `camille.baronnet${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      'olivier-martinez': `olivier.martinez${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      tnesztler: `thibaud.nesztler${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-
-      /* front */
-      christophehurpeau: `christophe${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      HugoGarrido: `hugo${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      CorentinAndre: `corentin${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      Mxime: `maxime${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      vlbr: `valerian${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      'budet-b': `benjamin.budet${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      mdcarter: `maxime.dehaye${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      ChibiBlasphem: `christopher${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      PSniezak: `paul.sniezak${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      GaelFerrand: 'gael.ferrand@othrys.dev',
-      aenario: `romain.foucault${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-
-      /* em */
-      rchabin: `remy.chabin${process.env.ORNIKAR_EMAIL_DOMAIN}`
-    },
-    design: {
-      jperriere: `julien${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      CoralineColasse: `coraline${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      Lenamari: `lena${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      loicleser: `loic.leser${process.env.ORNIKAR_EMAIL_DOMAIN}`,
-      carlbouville: `carl.bouville${process.env.ORNIKAR_EMAIL_DOMAIN}`
-    }
+    dev: {},
+    design: {}
   },
   groupsGithubTeams: {
-    dev: ['ops', 'backend', 'frontend', 'frontend-architects'],
+    dev: ['ops', 'dev', 'backend', 'frontend', 'frontend-architects'],
     design: ['design']
   },
   teams: {
@@ -734,54 +696,8 @@ const accountConfigs = {
 //   return Object.values(groups).flat(1);
 // };
 
-const defaultDmSettings = {
-  'pr-lifecycle': true,
-  'pr-lifecycle-follow': true,
-  'pr-review': true,
-  'pr-review-follow': true,
-  'pr-comment': true,
-  'pr-comment-bots': true,
-  'pr-comment-follow': true,
-  'pr-comment-follow-bots': false,
-  'pr-comment-mention': true,
-  'pr-comment-thread': true,
-  'pr-merge-conflicts': true,
-  'issue-comment-mention': true
-};
-
-const cache = new Map();
-
-const getDefaultDmSettings = org => {
-  const accountConfig = accountConfigs[org] || config$2;
-  return accountConfig.defaultDmSettings ? { ...defaultDmSettings,
-    ...accountConfig.defaultDmSettings
-  } : defaultDmSettings;
-};
-
-const updateCache = (org, userId, newSettings) => {
-  let orgCache = cache.get(org);
-
-  if (!orgCache) {
-    orgCache = new Map();
-    cache.set(org, orgCache);
-  }
-
-  orgCache.set(userId, { ...getDefaultDmSettings(org),
-    ...newSettings
-  });
-};
-const getUserDmSettings = async (mongoStores, org, orgId, userId) => {
-  const orgDefaultDmSettings = getDefaultDmSettings(org);
-  const userDmSettingsConfig = await mongoStores.userDmSettings.findOne({
-    orgId,
-    userId
-  });
-  const config = userDmSettingsConfig ? { ...orgDefaultDmSettings,
-    ...userDmSettingsConfig.settings
-  } : orgDefaultDmSettings;
-  updateCache(org, userId, config);
-  return config;
-};
+const ExcludesFalsy = Boolean;
+const ExcludesNullish = res => res !== null;
 
 const syncOrg = async (mongoStores, octokit, installationId, org) => {
   const orgInStore = await mongoStores.orgs.upsertOne({
@@ -831,9 +747,6 @@ const syncOrg = async (mongoStores, octokit, installationId, org) => {
   });
   return orgInStore;
 };
-
-const ExcludesFalsy = Boolean;
-const ExcludesNullish = res => res !== null;
 
 const syncTeamMembers = async (mongoStores, octokit, org, team) => {
   const memberIds = [];
@@ -937,6 +850,532 @@ const syncTeamsAndTeamMembers = async (mongoStores, octokit, org) => {
   }
 };
 
+const syncUser = async (mongoStores, github, installationId, userInfo) => {
+  const user = await mongoStores.users.upsertOne({
+    _id: userInfo.id,
+    login: userInfo.login,
+    type: 'User',
+    installationId
+  });
+  return user;
+};
+
+const getOrCreateAccount = async ({
+  mongoStores
+}, github, installationId, accountInfo) => {
+  var _org, _user;
+
+  switch (accountInfo.type) {
+    case 'Organization':
+      {
+        let org = await mongoStores.orgs.findByKey(accountInfo.id);
+        if ((_org = org) !== null && _org !== void 0 && _org.installationId) return org; // TODO diff org vs user...
+
+        org = await syncOrg(mongoStores, github, installationId, accountInfo);
+        await syncTeamsAndTeamMembers(mongoStores, github, accountInfo);
+        return org;
+      }
+
+    case 'User':
+      {
+        let user = await mongoStores.users.findByKey(accountInfo.id);
+        if ((_user = user) !== null && _user !== void 0 && _user.installationId) return user;
+        user = await syncUser(mongoStores, github, installationId, accountInfo);
+        return user;
+      }
+
+    default:
+      throw new Error(`Account type not supported ${accountInfo.type}`);
+  }
+};
+
+const defaultDmSettings = {
+  'pr-lifecycle': true,
+  'pr-lifecycle-follow': true,
+  'pr-review': true,
+  'pr-review-follow': true,
+  'pr-comment': true,
+  'pr-comment-bots': true,
+  'pr-comment-follow': true,
+  'pr-comment-follow-bots': false,
+  'pr-comment-mention': true,
+  'pr-comment-thread': true,
+  'pr-merge-conflicts': true,
+  'issue-comment-mention': true
+};
+
+const cache = new Map();
+
+const getDefaultDmSettings = org => {
+  const accountConfig = accountConfigs[org] || config$2;
+  return accountConfig.defaultDmSettings ? { ...defaultDmSettings,
+    ...accountConfig.defaultDmSettings
+  } : defaultDmSettings;
+};
+
+const updateCache = (org, userId, newSettings) => {
+  let orgCache = cache.get(org);
+
+  if (!orgCache) {
+    orgCache = new Map();
+    cache.set(org, orgCache);
+  }
+
+  orgCache.set(userId, { ...getDefaultDmSettings(org),
+    ...newSettings
+  });
+};
+const getUserDmSettings = async (mongoStores, org, orgId, userId) => {
+  const orgDefaultDmSettings = getDefaultDmSettings(org);
+  const userDmSettingsConfig = await mongoStores.userDmSettings.findOne({
+    orgId,
+    userId
+  });
+  const config = userDmSettingsConfig ? { ...orgDefaultDmSettings,
+    ...userDmSettingsConfig.settings
+  } : orgDefaultDmSettings;
+  updateCache(org, userId, config);
+  return config;
+};
+
+const getKeys = o => Object.keys(o);
+const emojiRegex = createEmojiRegex__default();
+const getEmojiFromRepoDescription = description => {
+  if (!description) return '';
+
+  if (description.startsWith(':')) {
+    const [, emoji] = /^(:\w+:)/.exec(description) || [];
+    return emoji || '';
+  }
+
+  const match = emojiRegex.exec(description);
+  if (match && description.startsWith(match[0])) return match[0];
+  return '';
+};
+
+const voidTeamSlack = () => ({
+  mention: () => '',
+  postMessage: () => Promise.resolve(null),
+  updateMessage: () => Promise.resolve(null),
+  deleteMessage: () => Promise.resolve(undefined),
+  addReaction: () => Promise.resolve(undefined),
+  updateHome: () => undefined,
+  updateSlackMember: () => Promise.resolve(undefined),
+  shouldShowLoginMessage: () => false
+});
+
+const initTeamSlack = async ({
+  mongoStores,
+  slackHome
+}, context, config, account) => {
+  const slackToken = 'slackToken' in account && account.slackToken;
+
+  if (!slackToken) {
+    return voidTeamSlack();
+  }
+
+  const githubLoginToSlackEmail = getKeys(config.groups).reduce((acc, groupName) => {
+    Object.assign(acc, config.groups[groupName]);
+    return acc;
+  }, {});
+  const slackEmails = Object.values(githubLoginToSlackEmail);
+  const slackClient = new webApi.WebClient(slackToken);
+  const membersInDb = await mongoStores.orgMembers.findAll({
+    'org.id': account._id
+  });
+  const members = [];
+  const foundEmailMembers = [];
+  Object.entries(githubLoginToSlackEmail).forEach(([login, email]) => {
+    var _member$slack;
+
+    const member = membersInDb.find(m => m.user.login === login);
+
+    if (member !== null && member !== void 0 && (_member$slack = member.slack) !== null && _member$slack !== void 0 && _member$slack.id) {
+      foundEmailMembers.push(email);
+      members.push([login, {
+        member: {
+          id: member.slack.id
+        },
+        im: undefined
+      }]);
+    }
+  });
+
+  if (foundEmailMembers.length !== slackEmails.length) {
+    const missingEmails = slackEmails.filter(email => !foundEmailMembers.includes(email));
+    const memberEmailToGithubLogin = new Map(Object.entries(githubLoginToSlackEmail).map(([login, email]) => [email, login]));
+    const memberEmailToMemberId = new Map(Object.entries(githubLoginToSlackEmail).map(([login, email]) => {
+      var _membersInDb$find;
+
+      return [email, (_membersInDb$find = membersInDb.find(m => m.user.login === login)) === null || _membersInDb$find === void 0 ? void 0 : _membersInDb$find._id];
+    }));
+    await slackClient.paginate('users.list', {}, page => {
+      page.members.forEach(member => {
+        var _member$profile;
+
+        const email = (_member$profile = member.profile) === null || _member$profile === void 0 ? void 0 : _member$profile.email;
+
+        if (email && missingEmails.includes(email)) {
+          const login = memberEmailToGithubLogin.get(email);
+          if (!login) return;
+          members.push([login, {
+            member,
+            im: undefined
+          }]);
+          const memberId = memberEmailToMemberId.get(email);
+
+          if (memberId) {
+            mongoStores.orgMembers.partialUpdateMany({
+              _id: memberId
+            }, {
+              $set: {
+                slack: {
+                  id: member.id,
+                  email
+                }
+              }
+            });
+          }
+        }
+      });
+      return false;
+    });
+  }
+
+  const membersMap = new Map(members); // User added its email but not linked to a slack account yet
+  // Temporary transition before login with slack in the settings
+
+  membersInDb.forEach(member => {
+    var _member$slack2;
+
+    if (member !== null && member !== void 0 && (_member$slack2 = member.slack) !== null && _member$slack2 !== void 0 && _member$slack2.id && !membersMap.has(member.user.login)) {
+      membersMap.set(member.user.login, {
+        member: {
+          id: member.slack.id
+        },
+        im: undefined
+      });
+    }
+  });
+
+  const openConversation = async userId => {
+    try {
+      const im = await slackClient.conversations.open({
+        users: userId
+      });
+      return im.channel;
+    } catch (err) {
+      context.log('could create im', {
+        err
+      });
+    }
+  };
+
+  for (const user of membersMap.values()) {
+    const im = await openConversation(user.member.id);
+    if (im) user.im = im;
+  }
+
+  return {
+    mention: githubLogin => {
+      // TODO pass AccountInfo instead
+      if (githubLogin.endsWith('[bot]')) {
+        return `:robot_face: ${githubLogin.slice(0, -5)}`;
+      }
+
+      const user = membersMap.get(githubLogin);
+      if (!user) return githubLogin;
+      return `<@${user.member.id}>`;
+    },
+    postMessage: async (category, githubId, githubLogin, message) => {
+      context.log.debug({
+        category,
+        githubLogin,
+        message
+      }, 'slack: post message');
+      if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
+      const userDmSettings = await getUserDmSettings(mongoStores, account.login, account._id, githubId);
+      if (!userDmSettings[category]) return null;
+      const user = membersMap.get(githubLogin);
+      if (!user || !user.im) return null;
+      const result = await slackClient.chat.postMessage({
+        username: process.env.REVIEWFLOW_NAME,
+        channel: user.im.id,
+        text: message.text,
+        blocks: message.blocks,
+        attachments: message.secondaryBlocks ? [{
+          blocks: message.secondaryBlocks
+        }] : undefined,
+        thread_ts: message.ts
+      });
+      if (!result.ok) return null;
+      return {
+        ts: result.ts,
+        channel: result.channel
+      };
+    },
+    updateMessage: async (ts, channel, message) => {
+      context.log.debug({
+        ts,
+        channel,
+        message
+      }, 'slack: update message');
+      if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
+      const result = await slackClient.chat.update({
+        ts,
+        channel,
+        text: message.text,
+        blocks: message.blocks,
+        attachments: message.secondaryBlocks ? [{
+          blocks: message.secondaryBlocks
+        }] : undefined
+      });
+      if (!result.ok) return null;
+      return {
+        ts: result.ts,
+        channel: result.channel
+      };
+    },
+    deleteMessage: async (ts, channel) => {
+      context.log.debug({
+        ts,
+        channel
+      }, 'slack: delete message');
+      await slackClient.chat.delete({
+        ts,
+        channel
+      });
+    },
+    addReaction: async (ts, channel, name) => {
+      context.log.debug({
+        ts,
+        channel,
+        name
+      }, 'slack: add reaction');
+      await slackClient.reactions.add({
+        timestamp: ts,
+        channel,
+        name
+      });
+    },
+    updateHome: githubLogin => {
+      context.log.debug({
+        githubLogin
+      }, 'update slack home');
+      const user = membersMap.get(githubLogin);
+      if (!user || !user.member) return;
+      slackHome.scheduleUpdateMember(context.octokit, slackClient, {
+        user: {
+          id: null,
+          login: githubLogin
+        },
+        org: {
+          id: account._id,
+          login: account.login
+        },
+        slack: {
+          id: user.member.id
+        }
+      });
+    },
+    updateSlackMember: async (userId, userLogin) => {
+      // delete existing member if existing
+      membersMap.delete(userLogin);
+      const member = await mongoStores.orgMembers.findOne({
+        'org.id': account._id,
+        'user.id': userId
+      });
+      if (!member || !member.slack) return;
+      const im = await openConversation(member.slack.id);
+      membersMap.set(userLogin, {
+        member: {
+          id: member.slack.id
+        },
+        im
+      });
+    },
+    shouldShowLoginMessage: githubLogin => {
+      return !membersMap.has(githubLogin);
+    }
+  };
+};
+
+const getTeamsAndGroups = (config, member) => {
+  const {
+    groupsGithubTeams,
+    teams
+  } = config;
+  const groupName = !groupsGithubTeams ? undefined : getKeys(groupsGithubTeams).find(groupName => {
+    return member.teams.some(team => {
+      return groupsGithubTeams[groupName].includes(team.name);
+    });
+  });
+  const teamNames = getKeys(teams).filter(teamName => {
+    const githubTeamName = teams[teamName].githubTeamName;
+
+    if (!githubTeamName) {
+      return teams[teamName].logins.includes(member.user.login);
+    }
+
+    return member.teams.some(team => team.name === teamName);
+  });
+  return {
+    groupName,
+    teamNames
+  };
+};
+
+const initAccountContext = async (appContext, context, config, accountInfo) => {
+  const account = await getOrCreateAccount(appContext, context.octokit, context.payload.installation.id, accountInfo);
+  const slackPromise = initTeamSlack(appContext, context, config, account);
+  const githubLoginToGroup = new Map();
+  const githubTeamNameToGroup = new Map();
+  const githubLoginToTeams = new Map(); // TODO const githubLoginToSlackId = new Map<string, string>();
+
+  for (const groupName of getKeys(config.groups)) {
+    Object.keys(config.groups[groupName]).forEach(login => {
+      githubLoginToGroup.set(login, groupName);
+    });
+  }
+
+  if (config.groupsGithubTeams) {
+    for (const groupName of getKeys(config.groupsGithubTeams)) {
+      config.groupsGithubTeams[groupName].forEach(teamName => {
+        githubTeamNameToGroup.set(teamName, groupName);
+      });
+    }
+  }
+
+  const updateGithubTeamMembers = async () => {
+    if (accountInfo.type !== 'Organization') {
+      return;
+    }
+
+    const members = await appContext.mongoStores.orgMembers.findAll({
+      'org.id': accountInfo.id
+    });
+    members.forEach(member => {
+      const {
+        groupName,
+        teamNames
+      } = getTeamsAndGroups(config, member);
+
+      if (groupName) {
+        githubLoginToGroup.set(member.user.login, groupName);
+      }
+
+      githubLoginToTeams.set(member.user.login, teamNames);
+    });
+  };
+
+  await updateGithubTeamMembers();
+
+  const getReviewerGroups = githubLogins => [...new Set(githubLogins.map(githubLogin => githubLoginToGroup.get(githubLogin)).filter(ExcludesFalsy))];
+
+  const getGithubTeamsGroups = githubTeamNames => [...new Set(githubTeamNames.map(teamName => githubTeamNameToGroup.get(teamName)).filter(ExcludesFalsy))];
+
+  const lock$1 = lock.Lock();
+  return {
+    config,
+    account,
+    accountEmbed: {
+      id: accountInfo.id,
+      login: accountInfo.login,
+      type: accountInfo.type
+    },
+    accountType: accountInfo.type,
+    lock: callback => {
+      return new Promise((resolve, reject) => {
+        const logInfos = {
+          account: accountInfo.login
+        };
+        context.log.info(logInfos, 'lock: try to lock account'); // eslint-disable-next-line @typescript-eslint/no-misused-promises
+
+        lock$1('_', async createReleaseCallback => {
+          const release = createReleaseCallback(() => {});
+          context.log.info(logInfos, 'lock: lock account acquired');
+
+          try {
+            await callback();
+          } catch (err) {
+            context.log.info(logInfos, 'lock: release account (with error)');
+            release();
+            reject(err);
+            return;
+          }
+
+          context.log.info(logInfos, 'lock: release account');
+          release();
+          resolve();
+        });
+      });
+    },
+    getReviewerGroup: githubLogin => githubLoginToGroup.get(githubLogin),
+    getReviewerGroups,
+    getTeamGroup: githubTeamName => githubTeamNameToGroup.get(githubTeamName),
+    getGithubTeamsGroups,
+    getTeamsForLogin: githubLogin => githubLoginToTeams.get(githubLogin) || [],
+    getMembersForTeam: async teamId => {
+      if (accountInfo.type !== 'Organization') {
+        throw new Error(`Invalid account type "${accountInfo.type}" for getMembersForTeam`);
+      }
+
+      const cursor = await appContext.mongoStores.orgMembers.cursor({
+        'org.id': account._id,
+        'teams.id': teamId
+      });
+      await cursor.limit(100);
+      const orgMembers = await cursor.toArray();
+      return orgMembers.map(member => member.user);
+    },
+    updateGithubTeamMembers,
+    approveShouldWait: (reviewerGroup, pullRequest, {
+      includesReviewerGroup,
+      includesWaitForGroups
+    }) => {
+      if (!reviewerGroup || !pullRequest.requested_reviewers || !pullRequest.requested_teams) {
+        return false;
+      }
+
+      const requestedReviewerGroups = [...new Set([...getReviewerGroups(pullRequest.requested_reviewers.map(request => request.login)), ...(!pullRequest.requested_teams ? [] : getGithubTeamsGroups(pullRequest.requested_teams.map(team => team.name)))])]; // contains another request of a reviewer in the same group
+
+      if (includesReviewerGroup && requestedReviewerGroups.includes(reviewerGroup)) {
+        return true;
+      } // contains a request from a dependent group
+
+
+      if (config.waitForGroups && includesWaitForGroups) {
+        const waitForGroups = config.waitForGroups;
+        return requestedReviewerGroups.some(group => waitForGroups[reviewerGroup].includes(group));
+      }
+
+      return false;
+    },
+    slack: await slackPromise
+  };
+};
+
+const accountContextsPromise = new Map();
+const accountContexts = new Map();
+const getExistingAccountContext = accountInfo => {
+  const existingAccountContext = accountContexts.get(accountInfo.login);
+  if (existingAccountContext) return Promise.resolve(existingAccountContext);
+  const existingPromise = accountContextsPromise.get(accountInfo.login);
+  if (existingPromise) return Promise.resolve(existingPromise);
+  return null;
+};
+const obtainAccountContext = (appContext, context, config, accountInfo) => {
+  const existingAccountContextPromise = getExistingAccountContext(accountInfo);
+  if (existingAccountContextPromise) return existingAccountContextPromise;
+  const promise = initAccountContext(appContext, context, config, accountInfo);
+  accountContextsPromise.set(accountInfo.login, promise);
+  return promise.then(accountContext => {
+    accountContextsPromise.delete(accountInfo.login);
+    accountContexts.set(accountInfo.login, accountContext);
+    return accountContext;
+  });
+};
+
 const dmMessages = {
   'pr-lifecycle': 'Your PR is closed, merged, reopened',
   'pr-lifecycle-follow': "Someone closed, merged, reopened a PR you're reviewing",
@@ -1004,7 +1443,14 @@ function orgSettings(router, octokitApp, mongoStores) {
     }
 
     const accountConfig = accountConfigs[org.login];
-    const userDmSettings = await getUserDmSettings(mongoStores, org.login, org.id, user.authInfo.id);
+    const [orgMember, userDmSettings] = await Promise.all([mongoStores.orgMembers.findOne({
+      'org.id': org.id,
+      'user.id': user.authInfo.id
+    }), getUserDmSettings(mongoStores, org.login, org.id, user.authInfo.id)]);
+    const teamsAndGroups = orgMember ? getTeamsAndGroups(accountConfig, orgMember) : {
+      groupName: undefined,
+      teamNames: []
+    };
     res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("h1", null, process.env.REVIEWFLOW_NAME), /*#__PURE__*/React__default.createElement("div", {
       style: {
         display: 'flex'
@@ -1023,11 +1469,24 @@ function orgSettings(router, octokitApp, mongoStores) {
       style: {
         flexGrow: 1
       }
-    }, /*#__PURE__*/React__default.createElement("h4", null, "Information"), !accountConfig ? 'Default config is used: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/defaultConfig.ts' : `Custom config: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/${org.login}.ts`), /*#__PURE__*/React__default.createElement("div", {
+    }, /*#__PURE__*/React__default.createElement("h4", null, "Account Config"), !accountConfig ? 'Default config is used: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/defaultConfig.ts' : `Custom config: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/${org.login}.ts`, /*#__PURE__*/React__default.createElement("h4", {
+      style: {
+        marginTop: '1rem'
+      }
+    }, "Slack Connection"), !orgMember || !orgMember.slack ? /*#__PURE__*/React__default.createElement(React__default.Fragment, null, "Slack account yet linked ! Sign in to get notifications for your reviews.", /*#__PURE__*/React__default.createElement("br", null), /*#__PURE__*/React__default.createElement("a", {
+      href: `/app/slack-connect?orgId=${encodeURIComponent(org.id)}&orgLogin=${encodeURIComponent(org.login)}`
+    }, /*#__PURE__*/React__default.createElement("img", {
+      src: "https://api.slack.com/img/sign_in_with_slack.png",
+      alt: "Sign in with Slack"
+    }))) : /*#__PURE__*/React__default.createElement(React__default.Fragment, null, "Slack User ID: ", orgMember.slack.id), /*#__PURE__*/React__default.createElement("h4", {
+      style: {
+        marginTop: '1rem'
+      }
+    }, "User Information"), !orgMember ? /*#__PURE__*/React__default.createElement(React__default.Fragment, null, "User not found in database") : /*#__PURE__*/React__default.createElement(React__default.Fragment, null, /*#__PURE__*/React__default.createElement("div", null, "Group Name: ", teamsAndGroups.groupName || 'No groups'), /*#__PURE__*/React__default.createElement("div", null, "Team Names:", ' ', teamsAndGroups.teamNames.join(', ') || 'No teams'))), /*#__PURE__*/React__default.createElement("div", {
       style: {
         width: '380px'
       }
-    }, /*#__PURE__*/React__default.createElement("h4", null, "My DM Settings"), Object.entries(dmMessages).map(([key, name]) => /*#__PURE__*/React__default.createElement("div", {
+    }, /*#__PURE__*/React__default.createElement("h4", null, "My DM Settings"), !orgMember || !orgMember.slack ? /*#__PURE__*/React__default.createElement(React__default.Fragment, null, "Link your github account to unlock DM Settings") : Object.entries(dmMessages).map(([key, name]) => /*#__PURE__*/React__default.createElement("div", {
       key: key
     }, /*#__PURE__*/React__default.createElement("label", {
       htmlFor: key
@@ -1142,15 +1601,130 @@ function repository(router, octokitApp) {
   });
 }
 
-const syncUser = async (mongoStores, github, installationId, userInfo) => {
-  const user = await mongoStores.users.upsertOne({
-    _id: userInfo.id,
-    login: userInfo.login,
-    type: 'User',
-    installationId
-  });
-  return user;
+if (!process.env.SLACK_CLIENT_ID) {
+  throw new Error('Missing env variable: SLACK_CLIENT_ID');
+}
+
+if (!process.env.SLACK_CLIENT_SECRET) {
+  throw new Error('Missing env variable: SLACK_CLIENT_SECRET');
+}
+
+const createSlackOAuth2 = ({
+  id,
+  secret
+}) => new simpleOauth2.AuthorizationCode({
+  client: {
+    id,
+    secret
+  },
+  auth: {
+    tokenHost: 'https://slack.com',
+    tokenPath: '/api/oauth.access',
+    authorizePath: '/oauth/authorize'
+  }
+});
+const slackOAuth2 = createSlackOAuth2({
+  id: process.env.SLACK_CLIENT_ID,
+  secret: process.env.SLACK_CLIENT_SECRET
+});
+
+if (!process.env.AUTH_SECRET_KEY) {
+  throw new Error('Missing env variable: AUTH_SECRET_KEY');
+}
+
+const createRedirectUri = req => {
+  const host = `https://${req.hostname}${req.hostname === 'localhost' ? `:${process.env.PORT || 3000}` : ''}`;
+  return `${host}/app/slack-connect-response`;
 };
+
+const parseJSONSafe = string => {
+  try {
+    return JSON.parse(string);
+  } catch {
+    return null;
+  }
+};
+
+function slackConnect(router, mongoStores) {
+  router.get('/slack-connect', // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  async (req, res) => {
+    const user = await getUser(req, res);
+    if (!user) return;
+    const orgId = Number(req.query.orgId);
+    const orgLogin = req.query.orgLogin;
+
+    if (!orgId || !orgLogin) {
+      res.redirect('/app');
+      return;
+    }
+
+    const redirectUri = slackOAuth2.authorizeURL({
+      redirect_uri: createRedirectUri(req),
+      scope: 'identity.basic identity.email identity.avatar',
+      state: JSON.stringify({
+        orgId,
+        orgLogin
+      })
+    });
+    res.redirect(redirectUri);
+  });
+  router.get('/slack-connect-response', // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  async (req, res) => {
+    const user = await getUser(req, res);
+    if (!user) return;
+
+    if (req.query.error) {
+      res.send(req.query.error_description);
+      return;
+    }
+
+    const code = req.query.code;
+    const state = req.query.state;
+    const {
+      orgId,
+      orgLogin
+    } = parseJSONSafe(state) || {};
+    const accessToken = await slackOAuth2.getToken({
+      code,
+      redirect_uri: createRedirectUri(req)
+    });
+
+    if (!accessToken) {
+      res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, "Could not get access token."))));
+      return;
+    } // TODO ensure matches team_id in account
+
+
+    const slackClient = new webApi.WebClient(accessToken.token.access_token);
+    const identity = await slackClient.users.identity();
+    await mongoStores.orgMembers.partialUpdateMany({
+      'user.id': user.authInfo.id,
+      'org.id': orgId
+    }, {
+      $set: {
+        slack: {
+          id: accessToken.token.user_id,
+          accessToken: accessToken.token.access_token,
+          scope: accessToken.token.scope,
+          teamId: accessToken.token.team_id,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          email: identity.user.email
+        }
+      }
+    });
+    const existingAccountContext = await getExistingAccountContext({
+      type: 'Organization',
+      id: orgId,
+      login: orgLogin
+    });
+
+    if (existingAccountContext) {
+      existingAccountContext.slack.updateSlackMember(user.authInfo.id, user.authInfo.login);
+    }
+
+    res.redirect(`/app/org/${orgLogin || ''}`);
+  });
+}
 
 function userSettings(router, octokitApp, mongoStores) {
   router.get('/user/force-sync', // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -1211,393 +1785,8 @@ async function appRouter(app, getRouter, {
   home(router);
   orgSettings(router, octokitApp, mongoStores);
   userSettings(router, octokitApp, mongoStores);
+  slackConnect(router, mongoStores);
 }
-
-const getOrCreateAccount = async ({
-  mongoStores
-}, github, installationId, accountInfo) => {
-  var _org, _user;
-
-  switch (accountInfo.type) {
-    case 'Organization':
-      {
-        let org = await mongoStores.orgs.findByKey(accountInfo.id);
-        if ((_org = org) !== null && _org !== void 0 && _org.installationId) return org; // TODO diff org vs user...
-
-        org = await syncOrg(mongoStores, github, installationId, accountInfo);
-        await syncTeamsAndTeamMembers(mongoStores, github, accountInfo);
-        return org;
-      }
-
-    case 'User':
-      {
-        let user = await mongoStores.users.findByKey(accountInfo.id);
-        if ((_user = user) !== null && _user !== void 0 && _user.installationId) return user;
-        user = await syncUser(mongoStores, github, installationId, accountInfo);
-        return user;
-      }
-
-    default:
-      throw new Error(`Account type not supported ${accountInfo.type}`);
-  }
-};
-
-const getKeys = o => Object.keys(o);
-const emojiRegex = createEmojiRegex__default();
-const getEmojiFromRepoDescription = description => {
-  if (!description) return '';
-
-  if (description.startsWith(':')) {
-    const [, emoji] = /^(:\w+:)/.exec(description) || [];
-    return emoji || '';
-  }
-
-  const match = emojiRegex.exec(description);
-  if (match && description.startsWith(match[0])) return match[0];
-  return '';
-};
-
-const voidTeamSlack = () => ({
-  mention: () => '',
-  postMessage: () => Promise.resolve(null),
-  updateMessage: () => Promise.resolve(null),
-  deleteMessage: () => Promise.resolve(undefined),
-  addReaction: () => Promise.resolve(undefined),
-  updateHome: () => undefined
-});
-
-const initTeamSlack = async ({
-  mongoStores,
-  slackHome
-}, context, config, account) => {
-  const slackToken = 'slackToken' in account && account.slackToken;
-
-  if (!slackToken) {
-    return voidTeamSlack();
-  }
-
-  const githubLoginToSlackEmail = getKeys(config.groups).reduce((acc, groupName) => {
-    Object.assign(acc, config.groups[groupName]);
-    return acc;
-  }, {});
-  const slackEmails = Object.values(githubLoginToSlackEmail);
-  const slackClient = new webApi.WebClient(slackToken);
-  const membersInDb = await mongoStores.orgMembers.findAll({
-    'org.id': account._id
-  });
-  const members = [];
-  const foundEmailMembers = [];
-  Object.entries(githubLoginToSlackEmail).forEach(([login, email]) => {
-    var _member$slack;
-
-    const member = membersInDb.find(m => m.user.login === login);
-
-    if (member !== null && member !== void 0 && (_member$slack = member.slack) !== null && _member$slack !== void 0 && _member$slack.id) {
-      foundEmailMembers.push(email);
-      members.push([email, {
-        member: {
-          id: member.slack.id
-        },
-        im: undefined
-      }]);
-    }
-  });
-
-  if (foundEmailMembers.length !== slackEmails.length) {
-    const missingEmails = slackEmails.filter(email => !foundEmailMembers.includes(email));
-    const memberEmailToMemberId = new Map(Object.entries(githubLoginToSlackEmail).map(([login, email]) => {
-      var _membersInDb$find;
-
-      return [email, (_membersInDb$find = membersInDb.find(m => m.user.login === login)) === null || _membersInDb$find === void 0 ? void 0 : _membersInDb$find._id];
-    }));
-    await slackClient.paginate('users.list', {}, page => {
-      page.members.forEach(member => {
-        var _member$profile;
-
-        const email = (_member$profile = member.profile) === null || _member$profile === void 0 ? void 0 : _member$profile.email;
-
-        if (email && missingEmails.includes(email)) {
-          members.push([email, {
-            member,
-            im: undefined
-          }]);
-
-          if (memberEmailToMemberId.has(email)) {
-            mongoStores.orgMembers.partialUpdateMany({
-              _id: memberEmailToMemberId.get(email)
-            }, {
-              $set: {
-                slack: {
-                  id: member.id
-                }
-              }
-            });
-          }
-        }
-      });
-      return false;
-    });
-  }
-
-  for (const [, user] of members) {
-    try {
-      const im = await slackClient.conversations.open({
-        users: user.member.id
-      });
-      user.im = im.channel;
-    } catch (err) {
-      context.log('could create im', {
-        err
-      });
-    }
-  }
-
-  const membersMap = new Map(members);
-
-  const getUserFromGithubLogin = githubLogin => {
-    const email = githubLoginToSlackEmail[githubLogin];
-    if (!email) return null;
-    return membersMap.get(email);
-  };
-
-  return {
-    mention: githubLogin => {
-      // TODO pass AccountInfo instead
-      if (githubLogin.endsWith('[bot]')) {
-        return `:robot_face: ${githubLogin.slice(0, -5)}`;
-      }
-
-      const user = getUserFromGithubLogin(githubLogin);
-      if (!user) return githubLogin;
-      return `<@${user.member.id}>`;
-    },
-    postMessage: async (category, githubId, githubLogin, message) => {
-      context.log.debug({
-        category,
-        githubLogin,
-        message
-      }, 'slack: post message');
-      if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
-      const userDmSettings = await getUserDmSettings(mongoStores, account.login, account._id, githubId);
-      if (!userDmSettings[category]) return null;
-      const user = getUserFromGithubLogin(githubLogin);
-      if (!user || !user.im) return null;
-      const result = await slackClient.chat.postMessage({
-        username: process.env.REVIEWFLOW_NAME,
-        channel: user.im.id,
-        text: message.text,
-        blocks: message.blocks,
-        attachments: message.secondaryBlocks ? [{
-          blocks: message.secondaryBlocks
-        }] : undefined,
-        thread_ts: message.ts
-      });
-      if (!result.ok) return null;
-      return {
-        ts: result.ts,
-        channel: result.channel
-      };
-    },
-    updateMessage: async (ts, channel, message) => {
-      context.log.debug({
-        ts,
-        channel,
-        message
-      }, 'slack: update message');
-      if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
-      const result = await slackClient.chat.update({
-        ts,
-        channel,
-        text: message.text,
-        blocks: message.blocks,
-        attachments: message.secondaryBlocks ? [{
-          blocks: message.secondaryBlocks
-        }] : undefined
-      });
-      if (!result.ok) return null;
-      return {
-        ts: result.ts,
-        channel: result.channel
-      };
-    },
-    deleteMessage: async (ts, channel) => {
-      context.log.debug({
-        ts,
-        channel
-      }, 'slack: delete message');
-      await slackClient.chat.delete({
-        ts,
-        channel
-      });
-    },
-    addReaction: async (ts, channel, name) => {
-      context.log.debug({
-        ts,
-        channel,
-        name
-      }, 'slack: add reaction');
-      await slackClient.reactions.add({
-        timestamp: ts,
-        channel,
-        name
-      });
-    },
-    updateHome: githubLogin => {
-      context.log.debug({
-        githubLogin
-      }, 'update slack home');
-      const user = getUserFromGithubLogin(githubLogin);
-      if (!user || !user.member) return;
-      slackHome.scheduleUpdateMember(context.octokit, slackClient, {
-        user: {
-          id: null,
-          login: githubLogin
-        },
-        org: {
-          id: account._id,
-          login: account.login
-        },
-        slack: {
-          id: user.member.id
-        }
-      });
-    }
-  };
-};
-
-const initAccountContext = async (appContext, context, config, accountInfo) => {
-  const account = await getOrCreateAccount(appContext, context.octokit, context.payload.installation.id, accountInfo);
-  const slackPromise = initTeamSlack(appContext, context, config, account);
-  const githubLoginToGroup = new Map();
-
-  for (const groupName of getKeys(config.groups)) {
-    Object.keys(config.groups[groupName]).forEach(login => {
-      githubLoginToGroup.set(login, groupName);
-    });
-  }
-
-  const githubTeamNameToGroup = new Map();
-
-  if (config.groupsGithubTeams) {
-    for (const groupName of getKeys(config.groupsGithubTeams)) {
-      config.groupsGithubTeams[groupName].forEach(teamName => {
-        githubTeamNameToGroup.set(teamName, groupName);
-      });
-    }
-  }
-
-  const githubLoginToTeams = new Map();
-  getKeys(config.teams || {}).forEach(teamName => {
-    config.teams[teamName].logins.forEach(login => {
-      const teams = githubLoginToTeams.get(login);
-
-      if (teams) {
-        teams.push(teamName);
-      } else {
-        githubLoginToTeams.set(login, [teamName]);
-      }
-    });
-  });
-
-  const getReviewerGroups = githubLogins => [...new Set(githubLogins.map(githubLogin => githubLoginToGroup.get(githubLogin)).filter(ExcludesFalsy))];
-
-  const getGithubTeamsGroups = githubTeamNames => [...new Set(githubTeamNames.map(teamName => githubTeamNameToGroup.get(teamName)).filter(ExcludesFalsy))];
-
-  const lock$1 = lock.Lock();
-  return {
-    config,
-    account,
-    accountEmbed: {
-      id: accountInfo.id,
-      login: accountInfo.login,
-      type: accountInfo.type
-    },
-    accountType: accountInfo.type,
-    lock: callback => {
-      return new Promise((resolve, reject) => {
-        const logInfos = {
-          account: accountInfo.login
-        };
-        context.log.info(logInfos, 'lock: try to lock account'); // eslint-disable-next-line @typescript-eslint/no-misused-promises
-
-        lock$1('_', async createReleaseCallback => {
-          const release = createReleaseCallback(() => {});
-          context.log.info(logInfos, 'lock: lock account acquired');
-
-          try {
-            await callback();
-          } catch (err) {
-            context.log.info(logInfos, 'lock: release account (with error)');
-            release();
-            reject(err);
-            return;
-          }
-
-          context.log.info(logInfos, 'lock: release account');
-          release();
-          resolve();
-        });
-      });
-    },
-    getReviewerGroup: githubLogin => githubLoginToGroup.get(githubLogin),
-    getReviewerGroups,
-    getTeamGroup: githubTeamName => githubTeamNameToGroup.get(githubTeamName),
-    getGithubTeamsGroups,
-    getTeamsForLogin: githubLogin => githubLoginToTeams.get(githubLogin) || [],
-    getMembersForTeam: async teamId => {
-      if (accountInfo.type !== 'Organization') {
-        throw new Error(`Invalid account type "${accountInfo.type}" for getMembersForTeam`);
-      }
-
-      const cursor = await appContext.mongoStores.orgMembers.cursor({
-        'org.id': account._id,
-        'teams.id': teamId
-      });
-      await cursor.limit(100);
-      const orgMembers = await cursor.toArray();
-      return orgMembers.map(member => member.user);
-    },
-    approveShouldWait: (reviewerGroup, pullRequest, {
-      includesReviewerGroup,
-      includesWaitForGroups
-    }) => {
-      if (!reviewerGroup || !pullRequest.requested_reviewers || !pullRequest.requested_teams) {
-        return false;
-      }
-
-      const requestedReviewerGroups = [...new Set([...getReviewerGroups(pullRequest.requested_reviewers.map(request => request.login)), ...(!pullRequest.requested_teams ? [] : getGithubTeamsGroups(pullRequest.requested_teams.map(team => team.name)))])]; // contains another request of a reviewer in the same group
-
-      if (includesReviewerGroup && requestedReviewerGroups.includes(reviewerGroup)) {
-        return true;
-      } // contains a request from a dependent group
-
-
-      if (config.waitForGroups && includesWaitForGroups) {
-        const waitForGroups = config.waitForGroups;
-        return requestedReviewerGroups.some(group => waitForGroups[reviewerGroup].includes(group));
-      }
-
-      return false;
-    },
-    slack: await slackPromise
-  };
-};
-
-const accountContextsPromise = new Map();
-const accountContexts = new Map();
-const obtainAccountContext = (appContext, context, config, accountInfo) => {
-  const existingAccountContext = accountContexts.get(accountInfo.login);
-  if (existingAccountContext) return existingAccountContext;
-  const existingPromise = accountContextsPromise.get(accountInfo.login);
-  if (existingPromise) return Promise.resolve(existingPromise);
-  const promise = initAccountContext(appContext, context, config, accountInfo);
-  accountContextsPromise.set(accountInfo.login, promise);
-  return promise.then(accountContext => {
-    accountContextsPromise.delete(accountInfo.login);
-    accountContexts.set(accountInfo.login, accountContext);
-    return accountContext;
-  });
-};
 
 const handlerOrgChange = async (appContext, context, callback) => {
   const org = context.payload.organization;
@@ -1614,6 +1803,39 @@ const handlerOrgChange = async (appContext, context, callback) => {
 const createHandlerOrgChange = (appContext, callback) => context => {
   return handlerOrgChange(appContext, context, callback);
 };
+
+function membershipChanged(app, appContext) {
+  /* https://developer.github.com/webhooks/event-payloads/#membership */
+  app.on(['membership.added', 'membership.removed'], createHandlerOrgChange(appContext, async (context, accountContext) => {
+    // TODO: only sync team members and team parents members
+    // await syncTeamMembersWithTeamParents(
+    //   appContext.mongoStores,
+    //   context.octokit,
+    //   context.payload.organization,
+    //   {
+    //     id: context.payload.team.id,
+    //     name: context.payload.team.name,
+    //     slug: context.payload.team.slug,
+    //   },
+    // );
+    await syncTeamsAndTeamMembers(appContext.mongoStores, context.octokit, context.payload.organization);
+    await accountContext.updateGithubTeamMembers();
+  }));
+}
+
+function orgMemberAddedOrRemoved(app, appContext) {
+  /* https://developer.github.com/webhooks/event-payloads/#organization */
+  app.on(['organization.member_added', 'organization.member_removed'], createHandlerOrgChange(appContext, async (context, accountContext) => {
+    await syncOrg(appContext.mongoStores, context.octokit, accountContext.account.installationId, context.payload.organization);
+  }));
+}
+
+function teamChanged(app, appContext) {
+  /* https://developer.github.com/webhooks/event-payloads/#team */
+  app.on(['team.created', 'team.deleted', 'team.edited'], createHandlerOrgChange(appContext, async context => {
+    await syncTeams(appContext.mongoStores, context.octokit, context.payload.organization);
+  }));
+}
 
 const checkIfUserIsBot = (repoContext, user) => {
   if (user.type === 'Bot') return true;
@@ -1984,7 +2206,7 @@ const toMarkdownInfos = infos => {
   return infos.map(info => {
     if (info.url) return `[${info.title}](${info.url})`;
     return info.title;
-  }).join('\n');
+  }).join('\n\n');
 };
 
 const getReplacement = infos => {
@@ -3192,6 +3414,8 @@ const updatePrIfNeeded = async (pullRequest, context, update) => {
 const cleanTitle = title => title.trim().replace(/[\s-]+\[?\s*([A-Za-z][\dA-Za-z]+)[ -](\d+)\s*]?\s*$/, (s, arg1, arg2) => ` ${arg1.toUpperCase()}-${arg2}`).replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `).replace(/^Revert "([^"]+)"$/, 'revert: $1').replace(/\s+[[\]]\s*no\s*issue\s*[[\]]$/i, ' [no issue]').replace(/^(revert:.*)(\s+\(#\d+\))$/, '$1');
 
 const editOpenedPR = async (pullRequest, context, repoContext, reviewflowPrContext, shouldUpdateCommentBodyInfos, previousSha) => {
+  var _pullRequest$user;
+
   const title = repoContext.config.trimTitle ? cleanTitle(pullRequest.title) : pullRequest.title;
   const parsePRValue = {
     title,
@@ -3256,6 +3480,20 @@ const editOpenedPR = async (pullRequest, context, repoContext, reviewflowPrConte
     body
   }));
   const commentBodyInfos = statuses.filter(status => status.status.inBody).map(status => status.status);
+
+  if ( // not a bot
+  !isPrFromBot && // should not happen, but ts needs it
+  (_pullRequest$user = pullRequest.user) !== null && _pullRequest$user !== void 0 && _pullRequest$user.login && // belongs to the organization
+  repoContext.getReviewerGroup(pullRequest.user.login) && // has not connected its slack account yet
+  repoContext.slack.shouldShowLoginMessage(pullRequest.user.login)) {
+    commentBodyInfos.push({
+      type: 'failure',
+      title: `@${pullRequest.user.login} Connect your account to Slack to get notifications for your PRs !`,
+      url: `${process.env.REVIEWFLOW_APP_URL}/org/${context.payload.repository.owner.login}`,
+      summary: ''
+    });
+  }
+
   const shouldCreateCommentBody = reviewflowPrContext.commentBody === defaultCommentBody;
   const newBody = shouldCreateCommentBody ? createCommentBody(context.payload.repository.html_url, repoContext.config.labels.list, calcDefaultOptions(repoContext, pullRequest), commentBodyInfos) : updateCommentBodyInfos(reviewflowPrContext.commentBody, commentBodyInfos);
 
@@ -3888,31 +4126,16 @@ function repoEdited(app, appContext) {
 
 // import commands from 'probot-commands';
 function initApp(app, appContext) {
+  // Account
+
   /* https://developer.github.com/webhooks/event-payloads/#organization */
-  app.on(['organization.member_added', 'organization.member_removed'], createHandlerOrgChange(appContext, async (context, accountContext) => {
-    await syncOrg(appContext.mongoStores, context.octokit, accountContext.account.installationId, context.payload.organization);
-  }));
+
   /* https://developer.github.com/webhooks/event-payloads/#team */
 
-  app.on(['team.created', 'team.deleted', 'team.edited'], createHandlerOrgChange(appContext, async context => {
-    await syncTeams(appContext.mongoStores, context.octokit, context.payload.organization);
-  }));
   /* https://developer.github.com/webhooks/event-payloads/#membership */
-
-  app.on(['membership.added', 'membership.removed'], createHandlerOrgChange(appContext, async context => {
-    // TODO: only sync team members and team parents members
-    // await syncTeamMembersWithTeamParents(
-    //   appContext.mongoStores,
-    //   context.octokit,
-    //   context.payload.organization,
-    //   {
-    //     id: context.payload.team.id,
-    //     name: context.payload.team.name,
-    //     slug: context.payload.team.slug,
-    //   },
-    // );
-    await syncTeamsAndTeamMembers(appContext.mongoStores, context.octokit, context.payload.organization);
-  })); // Repo
+  orgMemberAddedOrRemoved(app, appContext);
+  teamChanged(app, appContext);
+  membershipChanged(app, appContext); // Repo
 
   /* https://developer.github.com/webhooks/event-payloads/#repository */
 
@@ -4107,7 +4330,19 @@ const createSlackHomeWorker = mongoStores => {
       order: 'desc',
       per_page: 5
     })]);
-    const blocks = [];
+    const blocks = [{
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `Configure your ${process.env.REVIEWFLOW_NAME} settings ${createLink(`${process.env.REVIEWFLOW_APP_URL}/${member.org.login}`, 'here')}.`
+      }
+    }, {
+      type: 'header',
+      text: {
+        type: 'plain_text',
+        text: 'PRs requesting your attention'
+      }
+    }];
 
     const buildBlocks = (title, results) => {
       if (!results.total_count) return;

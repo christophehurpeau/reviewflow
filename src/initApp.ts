@@ -1,13 +1,9 @@
-import type { EventPayloads } from '@octokit/webhooks';
 import type { Probot } from 'probot';
 // import commands from 'probot-commands';
 import type { AppContext } from './context/AppContext';
-import { syncOrg } from './events/account-handlers/actions/syncOrg';
-import {
-  syncTeams,
-  syncTeamsAndTeamMembers,
-} from './events/account-handlers/actions/syncTeams';
-import { createHandlerOrgChange } from './events/account-handlers/utils/handler';
+import membershipChanged from './events/account-handlers/membershipChanged';
+import orgMemberAddedOrRemoved from './events/account-handlers/orgMemberAddedOrRemoved';
+import teamChanged from './events/account-handlers/teamChanged';
 import checkrunCompleted from './events/pr-handlers/checkrunCompleted';
 import checksuiteCompleted from './events/pr-handlers/checksuiteCompleted';
 import closedHandler from './events/pr-handlers/closed';
@@ -26,62 +22,13 @@ import synchronizeHandler from './events/pr-handlers/synchronize';
 import repoEdited from './events/repository-handlers/repoEdited';
 
 export default function initApp(app: Probot, appContext: AppContext): void {
+  // Account
   /* https://developer.github.com/webhooks/event-payloads/#organization */
-  app.on(
-    ['organization.member_added', 'organization.member_removed'],
-    createHandlerOrgChange<EventPayloads.WebhookPayloadOrganization>(
-      appContext,
-      async (context, accountContext) => {
-        await syncOrg(
-          appContext.mongoStores,
-          context.octokit,
-          accountContext.account.installationId!,
-          context.payload.organization,
-        );
-      },
-    ),
-  );
-
   /* https://developer.github.com/webhooks/event-payloads/#team */
-  app.on(
-    ['team.created', 'team.deleted', 'team.edited'],
-    createHandlerOrgChange<EventPayloads.WebhookPayloadTeam>(
-      appContext,
-      async (context, accountContext) => {
-        await syncTeams(
-          appContext.mongoStores,
-          context.octokit,
-          context.payload.organization,
-        );
-      },
-    ),
-  );
-
   /* https://developer.github.com/webhooks/event-payloads/#membership */
-  app.on(
-    ['membership.added', 'membership.removed'],
-    createHandlerOrgChange<EventPayloads.WebhookPayloadMembership>(
-      appContext,
-      async (context, accountContext) => {
-        // TODO: only sync team members and team parents members
-        // await syncTeamMembersWithTeamParents(
-        //   appContext.mongoStores,
-        //   context.octokit,
-        //   context.payload.organization,
-        //   {
-        //     id: context.payload.team.id,
-        //     name: context.payload.team.name,
-        //     slug: context.payload.team.slug,
-        //   },
-        // );
-        await syncTeamsAndTeamMembers(
-          appContext.mongoStores,
-          context.octokit,
-          context.payload.organization,
-        );
-      },
-    ),
-  );
+  orgMemberAddedOrRemoved(app, appContext);
+  teamChanged(app, appContext);
+  membershipChanged(app, appContext);
 
   // Repo
   /* https://developer.github.com/webhooks/event-payloads/#repository */
