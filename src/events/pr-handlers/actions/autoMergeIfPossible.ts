@@ -8,7 +8,7 @@ import type {
   PullRequestLabels,
 } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
-import { checkIfUserIsBot } from '../utils/isBotUser';
+import { areCommitsAllMadeByBots } from '../utils/isBotUser';
 import { updateBranch } from './updateBranch';
 import { parseBody } from './utils/body/parseBody';
 import hasLabelInPR from './utils/hasLabelInPR';
@@ -219,11 +219,7 @@ export const autoMergeIfPossible = async (
         const commits = await readPullRequestCommits(context, pullRequest);
 
         // check if has commits not made by renovate or bots like https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
-        if (
-          commits.some(
-            (c) => !c.author || checkIfUserIsBot(repoContext, c.author),
-          )
-        ) {
+        if (!areCommitsAllMadeByBots(repoContext, commits)) {
           addLog('rebase-renovate', 'update branch');
           if (await updateBranch(pullRequest, context, null)) {
             return false;

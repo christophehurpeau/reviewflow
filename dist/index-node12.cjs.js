@@ -1627,6 +1627,7 @@ const checkIfUserIsBot = (repoContext, user) => {
 const checkIfIsThisBot = user => {
   return user.type === 'Bot' && user.login === `${process.env.REVIEWFLOW_NAME}[bot]`;
 };
+const areCommitsAllMadeByBots = (repoContext, commits) => commits.every(c => c.author && checkIfUserIsBot(repoContext, c.author));
 
 const updateBranch = async (pullRequest, context, login) => {
   var _result$data;
@@ -1862,7 +1863,7 @@ const autoMergeIfPossible = async (pullRequest, context, repoContext, reviewflow
       if (pullRequest.mergeable_state === 'behind' || pullRequest.mergeable_state === 'dirty') {
         const commits = await readPullRequestCommits(context, pullRequest); // check if has commits not made by renovate or bots like https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
 
-        if (commits.some(c => !c.author || checkIfUserIsBot(repoContext, c.author))) {
+        if (!areCommitsAllMadeByBots(repoContext, commits)) {
           addLog('rebase-renovate', 'update branch');
 
           if (await updateBranch(pullRequest, context, null)) {
