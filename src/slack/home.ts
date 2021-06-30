@@ -142,7 +142,7 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
     buildBlocks(':x: Changes Requested', prsWithRequestedChanges.data);
     buildBlocks(':construction: Drafts', prsInDraft.data);
 
-    if (blocks.length === 0) {
+    if (blocks.length === 2) {
       blocks.push({
         type: 'section',
         text: {
