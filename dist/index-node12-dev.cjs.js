@@ -383,7 +383,6 @@ const config$2 = {
   }
 };
 
-/* eslint-disable max-lines */
 const config$1 = {
   autoAssignToCreator: true,
   trimTitle: true,
