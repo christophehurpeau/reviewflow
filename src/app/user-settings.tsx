@@ -15,73 +15,83 @@ export default function userSettings(
   router.get(
     '/user/force-sync',
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    async (req, res) => {
-      const user = await getUser(req, res);
-      if (!user) return;
+    async (req, res, next) => {
+      try {
+        const user = await getUser(req, res);
+        if (!user) return;
 
-      // const { data: installation } = await api.apps
-      //   .getUserInstallation({
-      //     username: user.authInfo.login,
-      //   })
-      //   .catch((err) => {
-      //     return { status: err.status, data: undefined };
-      //   });
+        // const { data: installation } = await api.apps
+        //   .getUserInstallation({
+        //     username: user.authInfo.login,
+        //   })
+        //   .catch((err) => {
+        //     return { status: err.status, data: undefined };
+        //   });
 
-      // console.log(installation);
+        // console.log(installation);
 
-      const u = await mongoStores.users.findByKey(user.authInfo.id);
-      if (!u || !u.installationId) {
-        res.redirect('/app');
-        return;
+        const u = await mongoStores.users.findByKey(user.authInfo.id);
+        if (!u || !u.installationId) {
+          res.redirect('/app');
+          return;
+        }
+
+        await syncUser(mongoStores, user.api, u.installationId!, user.authInfo);
+
+        res.redirect('/app/user');
+      } catch (err) {
+        next(err);
       }
-
-      await syncUser(mongoStores, user.api, u.installationId!, user.authInfo);
-
-      res.redirect('/app/user');
     },
   );
 
   router.get(
     '/user',
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    async (req, res) => {
-      const user = await getUser(req, res);
-      if (!user) return;
+    async (req, res, next) => {
+      try {
+        const user = await getUser(req, res);
+        if (!user) return;
 
-      const { data: installation } = await octokitApp.apps
-        .getUserInstallation({
-          username: user.authInfo.login,
-        })
-        .catch((err) => {
-          return { status: err.status, data: undefined };
-        });
+        const { data: installation } = await octokitApp.apps
+          .getUserInstallation({
+            username: user.authInfo.login,
+          })
+          .catch((err) => {
+            return { status: err.status, data: undefined };
+          });
 
-      if (!installation) {
+        if (!installation) {
+          return res.send(
+            renderToStaticMarkup(
+              <Layout>
+                <div>
+                  {process.env.REVIEWFLOW_NAME}{' '}
+                  {"isn't installed for this user. Go to "}
+                  <a
+                    href={`https://github.com/settings/apps/${process.env.REVIEWFLOW_NAME}/installations/new`}
+                  >
+                    Github Configuration
+                  </a>{' '}
+                  to install it.
+                </div>
+              </Layout>,
+            ),
+          );
+        }
+
         return res.send(
           renderToStaticMarkup(
             <Layout>
               <div>
-                {process.env.REVIEWFLOW_NAME}{' '}
-                {"isn't installed for this user. Go to "}
-                <a
-                  href={`https://github.com/settings/apps/${process.env.REVIEWFLOW_NAME}/installations/new`}
-                >
-                  Github Configuration
-                </a>{' '}
-                to install it.
+                {process.env.REVIEWFLOW_NAME} is installed for this user
               </div>
             </Layout>,
           ),
         );
+      } catch (err) {
+        next(err);
       }
-
-      return res.send(
-        renderToStaticMarkup(
-          <Layout>
-            <div>{process.env.REVIEWFLOW_NAME} is installed for this user</div>
-          </Layout>,
-        ),
-      );
     },
   );
 }

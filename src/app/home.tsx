@@ -14,17 +14,16 @@ export default function home(
   router.get(
     '/',
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    async (req, res) => {
-      const user = await getUser(req, res);
-      if (!user) return;
+    async (req, res, next) => {
+      try {
+        const user = await getUser(req, res);
+        if (!user) return;
 
-      const orgs = await user.api.orgs.listForAuthenticatedUser();
+        const orgs = await user.api.orgs.listForAuthenticatedUser();
 
-      res.send(
-        renderToStaticMarkup(
-          <Layout>
-            <div>
-              <h1>{process.env.REVIEWFLOW_NAME}</h1>
+        res.send(
+          renderToStaticMarkup(
+            <Layout>
               <div style={{ display: 'flex' }}>
                 <div style={{ flexGrow: 1 }}>
                   <h4>Choose your account</h4>
@@ -40,10 +39,12 @@ export default function home(
                   </ul>
                 </div>
               </div>
-            </div>
-          </Layout>,
-        ),
-      );
+            </Layout>,
+          ),
+        );
+      } catch (err) {
+        next(err);
+      }
     },
   );
 }

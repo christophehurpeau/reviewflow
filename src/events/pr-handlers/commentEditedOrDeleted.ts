@@ -70,8 +70,8 @@ export default function prCommentEditedOrDeleted(
           : 'issue-comment';
 
         const criteria = {
-          'account.id': repoContext.account._id,
-          'account.type': repoContext.accountType,
+          'account.id': repoContext.accountEmbed.id,
+          'account.type': repoContext.accountEmbed.type,
           type,
           typeId: comment.id,
         };

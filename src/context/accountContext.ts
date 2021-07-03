@@ -26,10 +26,10 @@ export interface AccountContext<
   TeamNames extends string = any,
 > {
   config: Config<GroupNames, TeamNames>;
-  accountType: AccountType;
-  account: Org | User;
   accountEmbed: AccountEmbed;
   slack: TeamSlack;
+  /** init slack after installation in webapp */
+  initSlack: () => Promise<void>;
   getReviewerGroup: (githubLogin: string) => GroupNames | undefined;
   getReviewerGroups: (githubLogins: string[]) => GroupNames[];
   getTeamGroup: (teamName: string) => GroupNames | undefined;
@@ -90,7 +90,9 @@ const initAccountContext = async (
     context.payload.installation.id,
     accountInfo,
   );
-  const slackPromise = initTeamSlack(appContext, context, config, account);
+  const initSlack = (account: Org | User): ReturnType<typeof initTeamSlack> =>
+    initTeamSlack(appContext, context, config, account);
+  const slackPromise = initSlack(account);
 
   const githubLoginToGroup = new Map<string, string>();
   const githubTeamNameToGroup = new Map<string, string>();
@@ -150,13 +152,11 @@ const initAccountContext = async (
 
   return {
     config,
-    account,
     accountEmbed: {
       id: accountInfo.id,
       login: accountInfo.login,
       type: accountInfo.type as AccountType,
     },
-    accountType: accountInfo.type as AccountType,
     lock: (callback: () => Promise<void> | void): Promise<void> => {
       return new Promise((resolve, reject) => {
         const logInfos = { account: accountInfo.login };
@@ -257,6 +257,18 @@ const initAccountContext = async (
     },
 
     slack: await slackPromise,
+
+    async initSlack(): Promise<void> {
+      // get latest account
+      const account = await getOrCreateAccount(
+        appContext,
+        context.octokit,
+        context.payload.installation.id,
+        accountInfo,
+      );
+      const slack = await initSlack(account);
+      (this as AccountContext).slack = slack;
+    },
   };
 };
 

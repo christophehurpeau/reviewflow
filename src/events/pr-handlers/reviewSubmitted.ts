@@ -133,8 +133,8 @@ export default function reviewSubmitted(
 
           const sentMessageRequestedReview =
             await appContext.mongoStores.slackSentMessages.findOne({
-              'account.id': repoContext.account._id,
-              'account.type': repoContext.accountType,
+              'account.id': repoContext.accountEmbed.id,
+              'account.type': repoContext.accountEmbed.type,
               type: 'review-requested',
               typeId: `${pullRequest.id}_${reviewer.id}`,
             });

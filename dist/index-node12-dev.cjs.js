@@ -69,7 +69,7 @@ function Layout({
     style: {
       padding: '24px 48px'
     }
-  }, children)));
+  }, /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("h1", null, process.env.REVIEWFLOW_NAME), children))));
 }
 
 if (!process.env.AUTH_SECRET_KEY) {
@@ -131,114 +131,130 @@ const getUser = async (req, res) => {
 };
 function auth(router) {
   router.get('/login', // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  async (req, res) => {
-    if (await getAuthInfoFromCookie(req, res)) {
-      res.redirect('/app');
-      return;
-    } // const state = await randomHex(8);
-    // res.cookie(`auth_${strategy}_${state}`, strategy, {
-    //   maxAge: 10 * 60 * 1000,
-    //   httpOnly: true,
-    //   secure,
-    // });
+  async (req, res, next) => {
+    try {
+      if (await getAuthInfoFromCookie(req, res)) {
+        res.redirect('/app');
+        return;
+      } // const state = await randomHex(8);
+      // res.cookie(`auth_${strategy}_${state}`, strategy, {
+      //   maxAge: 10 * 60 * 1000,
+      //   httpOnly: true,
+      //   secure,
+      // });
 
 
-    const redirectUri = oauth2.authorizeURL({
-      redirect_uri: createRedirectUri$1(req),
-      scope: 'read:user,repo' // state,
-      // grant_type: options.grantType,
-      // access_type: options.accessType,
-      // login_hint: req.query.loginHint,
-      // include_granted_scopes: options.includeGrantedScopes,
+      const redirectUri = oauth2.authorizeURL({
+        redirect_uri: createRedirectUri$1(req),
+        scope: 'read:user,repo' // state,
+        // grant_type: options.grantType,
+        // access_type: options.accessType,
+        // login_hint: req.query.loginHint,
+        // include_granted_scopes: options.includeGrantedScopes,
 
-    }); // console.log(redirectUri);
+      }); // console.log(redirectUri);
 
-    res.redirect(redirectUri);
+      res.redirect(redirectUri);
+    } catch (err) {
+      next(err);
+    }
   });
-  router.get('/logout', (req, res) => {
-    res.clearCookie(`auth_${"gh"}`, {
-      httpOnly: true,
-      secure
-    });
-    res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, "Logout successful. ", /*#__PURE__*/React__default.createElement("a", {
-      href: "/app/login"
-    }, "Login")))));
+  router.get('/logout', (req, res, next) => {
+    try {
+      res.clearCookie(`auth_${"gh"}`, {
+        httpOnly: true,
+        secure
+      });
+      res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, "Logout successful. ", /*#__PURE__*/React__default.createElement("a", {
+        href: "/app/login"
+      }, "Login")))));
+    } catch (err) {
+      next(err);
+    }
   });
   router.get('/login-response', // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  async (req, res) => {
-    if (req.query.error) {
-      res.send(req.query.error_description);
-      return;
+  async (req, res, next) => {
+    try {
+      if (req.query.error) {
+        res.send(req.query.error_description);
+        return;
+      }
+
+      const code = req.query.code; // const state = req.query.state;
+      // const cookieName = `auth_${strategy}_${state}`;
+      // const cookie = req.cookies && req.cookies[cookieName];
+      // if (!cookie) {
+      //   // res.redirect(`/${strategy}/login`);
+      //   res.send(
+      //     '<html><body>No cookie for this state. <a href="/app/login">Retry ?</a></body></html>',
+      //   );
+      //   return;
+      // }
+      // res.clearCookie(cookieName);
+
+      const accessToken = await oauth2.getToken({
+        code,
+        redirect_uri: createRedirectUri$1(req)
+      });
+
+      if (!accessToken) {
+        res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, "Could not get access token. ", /*#__PURE__*/React__default.createElement("a", {
+          href: "/app/login"
+        }, "Retry ?")))));
+        return;
+      }
+
+      const api = createApi(accessToken.token.access_token);
+      const user = await api.users.getAuthenticated({});
+      const id = user.data.id;
+      const login = user.data.login;
+      const authInfo = {
+        id,
+        login,
+        accessToken: accessToken.token.access_token,
+        time: Date.now()
+      };
+      const token = await signPromisified(authInfo, AUTH_SECRET_KEY, {
+        algorithm: 'HS512',
+        audience: req.headers['user-agent'],
+        expiresIn: '10 days'
+      });
+      res.cookie(`auth_${"gh"}`, token, {
+        httpOnly: true,
+        secure
+      });
+      res.redirect('/app');
+    } catch (err) {
+      next(err);
     }
-
-    const code = req.query.code; // const state = req.query.state;
-    // const cookieName = `auth_${strategy}_${state}`;
-    // const cookie = req.cookies && req.cookies[cookieName];
-    // if (!cookie) {
-    //   // res.redirect(`/${strategy}/login`);
-    //   res.send(
-    //     '<html><body>No cookie for this state. <a href="/app/login">Retry ?</a></body></html>',
-    //   );
-    //   return;
-    // }
-    // res.clearCookie(cookieName);
-
-    const accessToken = await oauth2.getToken({
-      code,
-      redirect_uri: createRedirectUri$1(req)
-    });
-
-    if (!accessToken) {
-      res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, "Could not get access token. ", /*#__PURE__*/React__default.createElement("a", {
-        href: "/app/login"
-      }, "Retry ?")))));
-      return;
-    }
-
-    const api = createApi(accessToken.token.access_token);
-    const user = await api.users.getAuthenticated({});
-    const id = user.data.id;
-    const login = user.data.login;
-    const authInfo = {
-      id,
-      login,
-      accessToken: accessToken.token.access_token,
-      time: Date.now()
-    };
-    const token = await signPromisified(authInfo, AUTH_SECRET_KEY, {
-      algorithm: 'HS512',
-      audience: req.headers['user-agent'],
-      expiresIn: '10 days'
-    });
-    res.cookie(`auth_${"gh"}`, token, {
-      httpOnly: true,
-      secure
-    });
-    res.redirect('/app');
   });
 }
 
 function home(router) {
   router.get('/', // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  async (req, res) => {
-    const user = await getUser(req, res);
-    if (!user) return;
-    const orgs = await user.api.orgs.listForAuthenticatedUser();
-    res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("h1", null, process.env.REVIEWFLOW_NAME), /*#__PURE__*/React__default.createElement("div", {
-      style: {
-        display: 'flex'
-      }
-    }, /*#__PURE__*/React__default.createElement("div", {
-      style: {
-        flexGrow: 1
-      }
-    }, /*#__PURE__*/React__default.createElement("h4", null, "Choose your account"), /*#__PURE__*/React__default.createElement("ul", null, /*#__PURE__*/React__default.createElement("li", null, /*#__PURE__*/React__default.createElement("a", {
-      href: "/app/user"
-    }, user.authInfo.login)), orgs.data.map(org => /*#__PURE__*/React__default.createElement("li", {
-      key: org.id
-    }, /*#__PURE__*/React__default.createElement("a", {
-      href: `/app/org/${org.login}`
-    }, org.login))))))))));
+  async (req, res, next) => {
+    try {
+      const user = await getUser(req, res);
+      if (!user) return;
+      const orgs = await user.api.orgs.listForAuthenticatedUser();
+      res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", {
+        style: {
+          display: 'flex'
+        }
+      }, /*#__PURE__*/React__default.createElement("div", {
+        style: {
+          flexGrow: 1
+        }
+      }, /*#__PURE__*/React__default.createElement("h4", null, "Choose your account"), /*#__PURE__*/React__default.createElement("ul", null, /*#__PURE__*/React__default.createElement("li", null, /*#__PURE__*/React__default.createElement("a", {
+        href: "/app/user"
+      }, user.authInfo.login)), orgs.data.map(org => /*#__PURE__*/React__default.createElement("li", {
+        key: org.id
+      }, /*#__PURE__*/React__default.createElement("a", {
+        href: `/app/org/${org.login}`
+      }, org.login)))))))));
+    } catch (err) {
+      next(err);
+    }
   });
 }
 
@@ -963,11 +979,20 @@ const voidTeamSlack = () => ({
   shouldShowLoginMessage: () => false
 });
 
+function getSlackAccountFromAccount(account) {
+  var _account$slack;
+
+  // This is first for legacy org using their own slackToken and slack app. Keep using them.
+  if ('slackToken' in account) return account.slackToken;
+  if ('slack' in account) return (_account$slack = account.slack) === null || _account$slack === void 0 ? void 0 : _account$slack.accessToken;
+  return undefined;
+}
+
 const initTeamSlack = async ({
   mongoStores,
   slackHome
 }, context, config, account) => {
-  const slackToken = 'slackToken' in account && account.slackToken;
+  const slackToken = getSlackAccountFromAccount(account);
 
   if (!slackToken) {
     return voidTeamSlack();
@@ -1226,7 +1251,10 @@ const getTeamsAndGroups = (config, member) => {
 
 const initAccountContext = async (appContext, context, config, accountInfo) => {
   const account = await getOrCreateAccount(appContext, context.octokit, context.payload.installation.id, accountInfo);
-  const slackPromise = initTeamSlack(appContext, context, config, account);
+
+  const initSlack = account => initTeamSlack(appContext, context, config, account);
+
+  const slackPromise = initSlack(account);
   const githubLoginToGroup = new Map();
   const githubTeamNameToGroup = new Map();
   const githubLoginToTeams = new Map(); // TODO const githubLoginToSlackId = new Map<string, string>();
@@ -1276,13 +1304,11 @@ const initAccountContext = async (appContext, context, config, accountInfo) => {
   const lock$1 = lock.Lock();
   return {
     config,
-    account,
     accountEmbed: {
       id: accountInfo.id,
       login: accountInfo.login,
       type: accountInfo.type
     },
-    accountType: accountInfo.type,
     lock: callback => {
       return new Promise((resolve, reject) => {
         const logInfos = {
@@ -1350,7 +1376,15 @@ const initAccountContext = async (appContext, context, config, accountInfo) => {
 
       return false;
     },
-    slack: await slackPromise
+    slack: await slackPromise,
+
+    async initSlack() {
+      // get latest account
+      const account = await getOrCreateAccount(appContext, context.octokit, context.payload.installation.id, accountInfo);
+      const slack = await initSlack(account);
+      this.slack = slack;
+    }
+
   };
 };
 
@@ -1375,6 +1409,7 @@ const obtainAccountContext = (appContext, context, config, accountInfo) => {
   });
 };
 
+/* eslint-disable unicorn/no-nested-ternary */
 const dmMessages = {
   'pr-lifecycle': 'Your PR is closed, merged, reopened',
   'pr-lifecycle-follow': "Someone closed, merged, reopened a PR you're reviewing",
@@ -1391,212 +1426,246 @@ const dmMessages = {
 };
 function orgSettings(router, octokitApp, mongoStores) {
   router.get('/org/:org/force-sync', // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  async (req, res) => {
-    const user = await getUser(req, res);
-    if (!user) return;
-    const orgs = await user.api.orgs.listForAuthenticatedUser();
-    const org = orgs.data.find(o => o.login === req.params.org);
+  async (req, res, next) => {
+    try {
+      const user = await getUser(req, res);
+      if (!user) return;
+      const orgs = await user.api.orgs.listForAuthenticatedUser();
+      const org = orgs.data.find(o => o.login === req.params.org);
 
-    if (!org) {
-      res.redirect('/app');
-      return;
+      if (!org) {
+        res.redirect('/app');
+        return;
+      }
+
+      const o = await mongoStores.orgs.findByKey(org.id);
+
+      if (!o) {
+        res.redirect('/app');
+        return;
+      }
+
+      await syncOrg(mongoStores, user.api, o.installationId, org);
+      await syncTeamsAndTeamMembers(mongoStores, user.api, org);
+      res.redirect(`/app/org/${req.params.org}`);
+    } catch (err) {
+      next(err);
     }
-
-    const o = await mongoStores.orgs.findByKey(org.id);
-
-    if (!o) {
-      res.redirect('/app');
-      return;
-    }
-
-    await syncOrg(mongoStores, user.api, o.installationId, org);
-    await syncTeamsAndTeamMembers(mongoStores, user.api, org);
-    res.redirect(`/app/org/${req.params.org}`);
   });
   router.get('/org/:org', // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  async (req, res) => {
+  async (req, res, next) => {
     const user = await getUser(req, res);
-    if (!user) return;
-    const orgs = await user.api.orgs.listForAuthenticatedUser();
-    const org = orgs.data.find(o => o.login === req.params.org);
 
-    if (!org) {
-      res.redirect('/app');
-      return;
-    }
+    try {
+      if (!user) return;
+      const authenticatedUserOrgs = await user.api.orgs.listForAuthenticatedUser();
+      const org = authenticatedUserOrgs.data.find(o => o.login === req.params.org);
 
-    const installation = await octokitApp.apps.getOrgInstallation({
-      org: org.login
-    }).catch(err => {
-      return {
-        status: err.status,
-        data: undefined
+      if (!org) {
+        res.redirect('/app');
+        return;
+      }
+
+      const [installation, orgInDb] = await Promise.all([octokitApp.apps.getOrgInstallation({
+        org: org.login
+      }).catch(err => {
+        return {
+          status: err.status,
+          data: undefined
+        };
+      }), mongoStores.orgs.findByKey(org.id)]);
+
+      if (!orgInDb) {
+        res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, process.env.REVIEWFLOW_NAME, " isn't correctly installed. Contact support."))));
+        return;
+      }
+
+      if (!installation) {
+        res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed for this user. Go to ", /*#__PURE__*/React__default.createElement("a", {
+          href: `https://github.com/settings/apps/${process.env.REVIEWFLOW_NAME}/installations/new`
+        }, "Github Configuration"), ' ', "to install it."))));
+        return;
+      }
+
+      const accountConfig = accountConfigs[org.login];
+      const [orgMember, userDmSettings] = await Promise.all([mongoStores.orgMembers.findOne({
+        'org.id': org.id,
+        'user.id': user.authInfo.id
+      }), getUserDmSettings(mongoStores, org.login, org.id, user.authInfo.id)]);
+      const teamsAndGroups = orgMember ? getTeamsAndGroups(accountConfig, orgMember) : {
+        groupName: undefined,
+        teamNames: []
       };
-    });
-
-    if (!installation) {
-      res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed for this user. Go to ", /*#__PURE__*/React__default.createElement("a", {
-        href: `https://github.com/settings/apps/${process.env.REVIEWFLOW_NAME}/installations/new`
-      }, "Github Configuration"), ' ', "to install it."))));
-      return;
+      res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("div", {
+        style: {
+          display: 'flex'
+        }
+      }, /*#__PURE__*/React__default.createElement("h2", {
+        style: {
+          flexGrow: 1
+        }
+      }, org.login), /*#__PURE__*/React__default.createElement("a", {
+        href: "/app"
+      }, "Switch account")), /*#__PURE__*/React__default.createElement("div", {
+        style: {
+          display: 'flex'
+        }
+      }, /*#__PURE__*/React__default.createElement("div", {
+        style: {
+          flexGrow: 1
+        }
+      }, /*#__PURE__*/React__default.createElement("h4", null, "Account Config"), !accountConfig ? 'Default config is used: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/defaultConfig.ts' : `Custom config: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/${org.login}.ts`, /*#__PURE__*/React__default.createElement("h4", {
+        style: {
+          marginTop: '1rem'
+        }
+      }, "Slack Connection"), !orgInDb.slack && !orgInDb.slackToken ? /*#__PURE__*/React__default.createElement(React__default.Fragment, null, "Slack account yet linked ! Install application to get notifications for your reviews.", /*#__PURE__*/React__default.createElement("br", null), /*#__PURE__*/React__default.createElement("a", {
+        href: `/app/slack-install?orgId=${encodeURIComponent(org.id)}&orgLogin=${encodeURIComponent(org.login)}`
+      }, /*#__PURE__*/React__default.createElement("img", {
+        alt: "Add to Slack",
+        height: "40",
+        width: "139",
+        src: "https://platform.slack-edge.com/img/add_to_slack.png",
+        srcSet: "https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"
+      }))) : !orgMember || !orgMember.slack ? /*#__PURE__*/React__default.createElement(React__default.Fragment, null, "Slack account yet linked ! Sign in to get notifications for your reviews.", /*#__PURE__*/React__default.createElement("br", null), /*#__PURE__*/React__default.createElement("a", {
+        href: `/app/slack-connect?orgId=${encodeURIComponent(org.id)}&orgLogin=${encodeURIComponent(org.login)}`
+      }, /*#__PURE__*/React__default.createElement("img", {
+        src: "https://api.slack.com/img/sign_in_with_slack.png",
+        alt: "Sign in with Slack"
+      }))) : /*#__PURE__*/React__default.createElement("div", null, !orgInDb.slackToken ? null : '⚠ This account use a custom slack application.', orgInDb.slack && /*#__PURE__*/React__default.createElement("div", null, "Slack Team ID: ", orgInDb.slack.id), /*#__PURE__*/React__default.createElement("div", null, "Slack User ID: ", orgMember.slack.id)), /*#__PURE__*/React__default.createElement("h4", {
+        style: {
+          marginTop: '1rem'
+        }
+      }, "User Information"), !orgMember ? /*#__PURE__*/React__default.createElement(React__default.Fragment, null, "User not found in database") : /*#__PURE__*/React__default.createElement(React__default.Fragment, null, /*#__PURE__*/React__default.createElement("div", null, "Group Name: ", teamsAndGroups.groupName || 'No groups'), /*#__PURE__*/React__default.createElement("div", null, "Team Names:", ' ', teamsAndGroups.teamNames.join(', ') || 'No teams'))), /*#__PURE__*/React__default.createElement("div", {
+        style: {
+          width: '380px'
+        }
+      }, /*#__PURE__*/React__default.createElement("h4", null, "My DM Settings"), !orgMember || !orgMember.slack ? /*#__PURE__*/React__default.createElement(React__default.Fragment, null, "Link your github account to unlock DM Settings") : Object.entries(dmMessages).map(([key, name]) => /*#__PURE__*/React__default.createElement("div", {
+        key: key
+      }, /*#__PURE__*/React__default.createElement("label", {
+        htmlFor: key
+      }, /*#__PURE__*/React__default.createElement("span", {
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML: {
+          __html: `<input id="${key}" type="checkbox" autocomplete="off" ${userDmSettings[key] ? 'checked="checked" ' : ''}onclick="fetch(location.pathname, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: '${key}', value: event.currentTarget.checked }) })" />`
+        }
+      }), name)))))))));
+    } catch (err) {
+      next(err);
     }
-
-    const accountConfig = accountConfigs[org.login];
-    const [orgMember, userDmSettings] = await Promise.all([mongoStores.orgMembers.findOne({
-      'org.id': org.id,
-      'user.id': user.authInfo.id
-    }), getUserDmSettings(mongoStores, org.login, org.id, user.authInfo.id)]);
-    const teamsAndGroups = orgMember ? getTeamsAndGroups(accountConfig, orgMember) : {
-      groupName: undefined,
-      teamNames: []
-    };
-    res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("h1", null, process.env.REVIEWFLOW_NAME), /*#__PURE__*/React__default.createElement("div", {
-      style: {
-        display: 'flex'
-      }
-    }, /*#__PURE__*/React__default.createElement("h2", {
-      style: {
-        flexGrow: 1
-      }
-    }, org.login), /*#__PURE__*/React__default.createElement("a", {
-      href: "/app"
-    }, "Switch account")), /*#__PURE__*/React__default.createElement("div", {
-      style: {
-        display: 'flex'
-      }
-    }, /*#__PURE__*/React__default.createElement("div", {
-      style: {
-        flexGrow: 1
-      }
-    }, /*#__PURE__*/React__default.createElement("h4", null, "Account Config"), !accountConfig ? 'Default config is used: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/defaultConfig.ts' : `Custom config: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/${org.login}.ts`, /*#__PURE__*/React__default.createElement("h4", {
-      style: {
-        marginTop: '1rem'
-      }
-    }, "Slack Connection"), !orgMember || !orgMember.slack ? /*#__PURE__*/React__default.createElement(React__default.Fragment, null, "Slack account yet linked ! Sign in to get notifications for your reviews.", /*#__PURE__*/React__default.createElement("br", null), /*#__PURE__*/React__default.createElement("a", {
-      href: `/app/slack-connect?orgId=${encodeURIComponent(org.id)}&orgLogin=${encodeURIComponent(org.login)}`
-    }, /*#__PURE__*/React__default.createElement("img", {
-      src: "https://api.slack.com/img/sign_in_with_slack.png",
-      alt: "Sign in with Slack"
-    }))) : /*#__PURE__*/React__default.createElement(React__default.Fragment, null, "Slack User ID: ", orgMember.slack.id), /*#__PURE__*/React__default.createElement("h4", {
-      style: {
-        marginTop: '1rem'
-      }
-    }, "User Information"), !orgMember ? /*#__PURE__*/React__default.createElement(React__default.Fragment, null, "User not found in database") : /*#__PURE__*/React__default.createElement(React__default.Fragment, null, /*#__PURE__*/React__default.createElement("div", null, "Group Name: ", teamsAndGroups.groupName || 'No groups'), /*#__PURE__*/React__default.createElement("div", null, "Team Names:", ' ', teamsAndGroups.teamNames.join(', ') || 'No teams'))), /*#__PURE__*/React__default.createElement("div", {
-      style: {
-        width: '380px'
-      }
-    }, /*#__PURE__*/React__default.createElement("h4", null, "My DM Settings"), !orgMember || !orgMember.slack ? /*#__PURE__*/React__default.createElement(React__default.Fragment, null, "Link your github account to unlock DM Settings") : Object.entries(dmMessages).map(([key, name]) => /*#__PURE__*/React__default.createElement("div", {
-      key: key
-    }, /*#__PURE__*/React__default.createElement("label", {
-      htmlFor: key
-    }, /*#__PURE__*/React__default.createElement("span", {
-      // eslint-disable-next-line react/no-danger
-      dangerouslySetInnerHTML: {
-        __html: `<input id="${key}" type="checkbox" autocomplete="off" ${userDmSettings[key] ? 'checked="checked" ' : ''}onclick="fetch(location.pathname, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: '${key}', value: event.currentTarget.checked }) })" />`
-      }
-    }), name)))))))));
   });
-  router.patch('/org/:org', bodyParser__default.json(), async (req, res) => {
-    if (!req.body) {
-      res.status(400).send('not ok');
-      return;
-    }
-
-    const user = await getUser(req, res);
-    if (!user) return;
-    const orgs = await user.api.orgs.listForAuthenticatedUser();
-    const org = orgs.data.find(o => o.login === req.params.org);
-
-    if (!org) {
-      res.redirect('/app');
-      return;
-    }
-
-    (await mongoStores.userDmSettings.collection).updateOne({
-      _id: `${org.id}_${user.authInfo.id}`
-    }, {
-      $set: {
-        [`settings.${req.body.key}`]: req.body.value,
-        updated: new Date()
-      },
-      $setOnInsert: {
-        orgId: org.id,
-        userId: user.authInfo.id,
-        created: new Date()
+  router.patch('/org/:org', bodyParser__default.json(), async (req, res, next) => {
+    try {
+      if (!req.body) {
+        res.status(400).send('not ok');
+        return;
       }
-    }, {
-      upsert: true
-    });
-    const userDmSettingsConfig = await mongoStores.userDmSettings.findOne({
-      orgId: org.id,
-      userId: user.authInfo.id
-    });
 
-    if (userDmSettingsConfig) {
-      updateCache(org.login, user.authInfo.id, userDmSettingsConfig.settings);
+      const user = await getUser(req, res);
+      if (!user) return;
+      const orgs = await user.api.orgs.listForAuthenticatedUser();
+      const org = orgs.data.find(o => o.login === req.params.org);
+
+      if (!org) {
+        res.redirect('/app');
+        return;
+      }
+
+      (await mongoStores.userDmSettings.collection).updateOne({
+        _id: `${org.id}_${user.authInfo.id}`
+      }, {
+        $set: {
+          [`settings.${req.body.key}`]: req.body.value,
+          updated: new Date()
+        },
+        $setOnInsert: {
+          orgId: org.id,
+          userId: user.authInfo.id,
+          created: new Date()
+        }
+      }, {
+        upsert: true
+      });
+      const userDmSettingsConfig = await mongoStores.userDmSettings.findOne({
+        orgId: org.id,
+        userId: user.authInfo.id
+      });
+
+      if (userDmSettingsConfig) {
+        updateCache(org.login, user.authInfo.id, userDmSettingsConfig.settings);
+      }
+
+      res.send('ok');
+    } catch (err) {
+      next(err);
     }
-
-    res.send('ok');
   });
 }
 
 function repository(router, octokitApp) {
   router.get('/repositories', // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  async (req, res) => {
-    const user = await getUser(req, res);
-    if (!user) return;
-    const {
-      data
-    } = await user.api.repos.listForAuthenticatedUser({
-      per_page: 100
-    });
-    res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("h4", null, "Your repositories"), /*#__PURE__*/React__default.createElement("ul", null, data.map(repo => /*#__PURE__*/React__default.createElement("li", {
-      key: repo.id
-    }, /*#__PURE__*/React__default.createElement("a", {
-      href: `/app/repository/${repo.owner.login}/${repo.name}`
-    }, repo.name)))), data.length === 100 && /*#__PURE__*/React__default.createElement("div", null, "We currently have a limit to 100 repositories")))));
+  async (req, res, next) => {
+    try {
+      const user = await getUser(req, res);
+      if (!user) return;
+      const {
+        data
+      } = await user.api.repos.listForAuthenticatedUser({
+        per_page: 100
+      });
+      res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("h4", null, "Your repositories"), /*#__PURE__*/React__default.createElement("ul", null, data.map(repo => /*#__PURE__*/React__default.createElement("li", {
+        key: repo.id
+      }, /*#__PURE__*/React__default.createElement("a", {
+        href: `/app/repository/${repo.owner.login}/${repo.name}`
+      }, repo.name)))), data.length === 100 && /*#__PURE__*/React__default.createElement("div", null, "We currently have a limit to 100 repositories")))));
+    } catch (err) {
+      next(err);
+    }
   });
   router.get('/repository/:owner/:repository', // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  async (req, res) => {
-    const user = await getUser(req, res);
-    if (!user) return;
-    const {
-      data
-    } = await user.api.repos.get({
-      owner: req.params.owner,
-      repo: req.params.repository
-    });
+  async (req, res, next) => {
+    try {
+      const user = await getUser(req, res);
+      if (!user) return;
+      const {
+        data
+      } = await user.api.repos.get({
+        owner: req.params.owner,
+        repo: req.params.repository
+      });
 
-    if (!data) {
-      res.status(404).send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, "repo not found"))));
-      return;
+      if (!data) {
+        res.status(404).send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, "repo not found"))));
+        return;
+      }
+
+      if (!data.permissions || !data.permissions.admin) {
+        res.status(401).send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, "not authorized to see this repo, you need to have admin permission"))));
+        return;
+      }
+
+      const {
+        data: data2
+      } = await octokitApp.apps.getRepoInstallation({
+        owner: req.params.owner,
+        repo: req.params.repository
+      }).catch(err => {
+        return {
+          status: err.status,
+          data: undefined
+        };
+      });
+
+      if (!data2) {
+        res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed on this repo. Go to ", /*#__PURE__*/React__default.createElement("a", {
+          href: `https://github.com/apps/${process.env.REVIEWFLOW_NAME}/installations/new`
+        }, "Github Configuration"), ' ', "to add it."))));
+        return;
+      }
+
+      res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("h4", null, req.params.repository)))));
+    } catch (err) {
+      next(err);
     }
-
-    if (!data.permissions || !data.permissions.admin) {
-      res.status(401).send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, "not authorized to see this repo, you need to have admin permission"))));
-      return;
-    }
-
-    const {
-      data: data2
-    } = await octokitApp.apps.getRepoInstallation({
-      owner: req.params.owner,
-      repo: req.params.repository
-    }).catch(err => {
-      return {
-        status: err.status,
-        data: undefined
-      };
-    });
-
-    if (!data2) {
-      res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed on this repo. Go to ", /*#__PURE__*/React__default.createElement("a", {
-        href: `https://github.com/apps/${process.env.REVIEWFLOW_NAME}/installations/new`
-      }, "Github Configuration"), ' ', "to add it."))));
-      return;
-    }
-
-    res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("h4", null, req.params.repository)))));
   });
 }
 
@@ -1610,7 +1679,8 @@ if (!process.env.SLACK_CLIENT_SECRET) {
 
 const createSlackOAuth2 = ({
   id,
-  secret
+  secret,
+  apiVersion = ''
 }) => new simpleOauth2.AuthorizationCode({
   client: {
     id,
@@ -1619,12 +1689,17 @@ const createSlackOAuth2 = ({
   auth: {
     tokenHost: 'https://slack.com',
     tokenPath: '/api/oauth.access',
-    authorizePath: '/oauth/authorize'
+    authorizePath: `/oauth/${apiVersion}authorize`
   }
 });
 const slackOAuth2 = createSlackOAuth2({
   id: process.env.SLACK_CLIENT_ID,
   secret: process.env.SLACK_CLIENT_SECRET
+});
+createSlackOAuth2({
+  id: process.env.SLACK_CLIENT_ID,
+  secret: process.env.SLACK_CLIENT_SECRET,
+  apiVersion: 'v2/'
 });
 
 if (!process.env.AUTH_SECRET_KEY) {
@@ -1646,130 +1721,231 @@ const parseJSONSafe = string => {
 
 function slackConnect(router, mongoStores) {
   router.get('/slack-connect', // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  async (req, res) => {
-    const user = await getUser(req, res);
-    if (!user) return;
-    const orgId = Number(req.query.orgId);
-    const orgLogin = req.query.orgLogin;
+  async (req, res, next) => {
+    try {
+      const user = await getUser(req, res);
+      if (!user) return;
+      const orgId = Number(req.query.orgId);
+      const orgLogin = req.query.orgLogin;
 
-    if (!orgId || !orgLogin) {
-      res.redirect('/app');
-      return;
+      if (!orgId || !orgLogin) {
+        res.redirect('/app');
+        return;
+      }
+
+      const org = await mongoStores.orgs.findByKey(orgId);
+
+      if (!org) {
+        res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, "Organization is not installed.")));
+        return;
+      }
+
+      const redirectUri = slackOAuth2.authorizeURL({
+        redirect_uri: createRedirectUri(req),
+        scope: 'identity.basic identity.email identity.avatar',
+        state: JSON.stringify({
+          orgId,
+          orgLogin
+        })
+      }); // TODO team_id
+
+      res.redirect(redirectUri);
+    } catch (err) {
+      next(err);
     }
+  });
+  router.get('/slack-install', // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  async (req, res, next) => {
+    try {
+      const user = await getUser(req, res);
+      if (!user) return;
+      const orgId = Number(req.query.orgId);
+      const orgLogin = req.query.orgLogin;
 
-    const redirectUri = slackOAuth2.authorizeURL({
-      redirect_uri: createRedirectUri(req),
-      scope: 'identity.basic identity.email identity.avatar',
-      state: JSON.stringify({
-        orgId,
-        orgLogin
-      })
-    });
-    res.redirect(redirectUri);
+      if (!orgId || !orgLogin) {
+        res.redirect('/app');
+        return;
+      }
+
+      const redirectUri = slackOAuth2.authorizeURL({
+        redirect_uri: createRedirectUri(req),
+        // see url in https://app.slack.com/app-settings/T01495JH7RS/A023QGDUDQX/distribute for scopes
+        //=chat:write,im:history,im:read,mpim:read,im:write,mpim:history,mpim:write,reactions:read,reactions:write,team:read,users:read,users:read.email,users:write&user_scope=
+        scope: 'chat:write im:history im:read im:write mpim:history mpim:read mpim:write reactions:read reactions:write team:read users:read users:read.email users:write',
+        state: JSON.stringify({
+          orgId,
+          orgLogin,
+          isInstall: true
+        })
+      });
+      res.redirect(redirectUri);
+    } catch (err) {
+      next(err);
+    }
   });
   router.get('/slack-connect-response', // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  async (req, res) => {
-    const user = await getUser(req, res);
-    if (!user) return;
+  async (req, res, next) => {
+    var _org$slack, _org$slack2;
 
-    if (req.query.error) {
-      res.send(req.query.error_description);
-      return;
-    }
+    try {
+      const user = await getUser(req, res);
+      if (!user) return;
 
-    const code = req.query.code;
-    const state = req.query.state;
-    const {
-      orgId,
-      orgLogin
-    } = parseJSONSafe(state) || {};
-    const accessToken = await slackOAuth2.getToken({
-      code,
-      redirect_uri: createRedirectUri(req)
-    });
-
-    if (!accessToken) {
-      res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, "Could not get access token."))));
-      return;
-    } // TODO ensure matches team_id in account
-
-
-    const slackClient = new webApi.WebClient(accessToken.token.access_token);
-    const identity = await slackClient.users.identity();
-    await mongoStores.orgMembers.partialUpdateMany({
-      'user.id': user.authInfo.id,
-      'org.id': orgId
-    }, {
-      $set: {
-        slack: {
-          id: accessToken.token.user_id,
-          accessToken: accessToken.token.access_token,
-          scope: accessToken.token.scope,
-          teamId: accessToken.token.team_id,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          email: identity.user.email
-        }
+      if (req.query.error) {
+        res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, "Could not get access token:", ' ', req.query.error_description || req.query.error, ".")));
+        return;
       }
-    });
-    const existingAccountContext = await getExistingAccountContext({
-      type: 'Organization',
-      id: orgId,
-      login: orgLogin
-    });
 
-    if (existingAccountContext) {
-      existingAccountContext.slack.updateSlackMember(user.authInfo.id, user.authInfo.login);
+      const code = req.query.code;
+      const state = req.query.state;
+      const {
+        orgId,
+        orgLogin,
+        isInstall
+      } = parseJSONSafe(state) || {};
+      const accessToken = await slackOAuth2.getToken({
+        code,
+        redirect_uri: createRedirectUri(req)
+      });
+
+      if (!accessToken || !accessToken.token.ok) {
+        res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, "Could not get access token.")));
+        return;
+      }
+
+      const org = await mongoStores.orgs.findByKey(orgId);
+
+      if (!org) {
+        res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, "Organization is not installed.")));
+        return;
+      } // install slack, not login
+
+
+      if (isInstall) {
+        await mongoStores.orgs.partialUpdateOne(org, {
+          $set: {
+            slack: {
+              id: accessToken.token.user_id,
+              accessToken: accessToken.token.access_token,
+              scope: accessToken.token.scope ? accessToken.token.scope.split(',') : [],
+              teamId: accessToken.token.team_id
+            }
+          }
+        });
+        const existingAccountContext = await getExistingAccountContext({
+          type: 'Organization',
+          id: orgId,
+          login: orgLogin
+        });
+
+        if (existingAccountContext) {
+          existingAccountContext.initSlack();
+        }
+
+        res.redirect(`/app/org/${orgLogin || ''}`);
+        return;
+      }
+
+      const slackClient = new webApi.WebClient(accessToken.token.access_token);
+      const identity = await slackClient.users.identity();
+
+      if (!org.slack && !org.slackToken) {
+        res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, "Organization is not linked to slack. Install it first.")));
+        return;
+      }
+
+      if (org !== null && org !== void 0 && (_org$slack = org.slack) !== null && _org$slack !== void 0 && _org$slack.teamId && accessToken.token.team_id !== (org === null || org === void 0 ? void 0 : (_org$slack2 = org.slack) === null || _org$slack2 === void 0 ? void 0 : _org$slack2.teamId)) {
+        res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, "Invalid slack team.", ' ', /*#__PURE__*/React__default.createElement("a", {
+          href: `/app/slack-connect?orgId=${encodeURIComponent(org._id)}&orgLogin=${encodeURIComponent(org.login)}`
+        }, "Retry ?"))));
+        return;
+      }
+
+      await mongoStores.orgMembers.partialUpdateMany({
+        'user.id': user.authInfo.id,
+        'org.id': orgId
+      }, {
+        $set: {
+          slack: {
+            id: accessToken.token.user_id,
+            accessToken: accessToken.token.access_token,
+            scope: accessToken.token.scope ? accessToken.token.scope.split(',') : [],
+            teamId: accessToken.token.team_id,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            email: identity.user.email
+          }
+        }
+      });
+      const existingAccountContext = await getExistingAccountContext({
+        type: 'Organization',
+        id: orgId,
+        login: orgLogin
+      });
+
+      if (existingAccountContext) {
+        existingAccountContext.slack.updateSlackMember(user.authInfo.id, user.authInfo.login);
+      }
+
+      res.redirect(`/app/org/${orgLogin || ''}`);
+    } catch (err) {
+      next(err);
     }
-
-    res.redirect(`/app/org/${orgLogin || ''}`);
   });
 }
 
 function userSettings(router, octokitApp, mongoStores) {
   router.get('/user/force-sync', // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  async (req, res) => {
-    const user = await getUser(req, res);
-    if (!user) return; // const { data: installation } = await api.apps
-    //   .getUserInstallation({
-    //     username: user.authInfo.login,
-    //   })
-    //   .catch((err) => {
-    //     return { status: err.status, data: undefined };
-    //   });
-    // console.log(installation);
+  async (req, res, next) => {
+    try {
+      const user = await getUser(req, res);
+      if (!user) return; // const { data: installation } = await api.apps
+      //   .getUserInstallation({
+      //     username: user.authInfo.login,
+      //   })
+      //   .catch((err) => {
+      //     return { status: err.status, data: undefined };
+      //   });
+      // console.log(installation);
 
-    const u = await mongoStores.users.findByKey(user.authInfo.id);
+      const u = await mongoStores.users.findByKey(user.authInfo.id);
 
-    if (!u || !u.installationId) {
-      res.redirect('/app');
-      return;
+      if (!u || !u.installationId) {
+        res.redirect('/app');
+        return;
+      }
+
+      await syncUser(mongoStores, user.api, u.installationId, user.authInfo);
+      res.redirect('/app/user');
+    } catch (err) {
+      next(err);
     }
-
-    await syncUser(mongoStores, user.api, u.installationId, user.authInfo);
-    res.redirect('/app/user');
   });
   router.get('/user', // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  async (req, res) => {
-    const user = await getUser(req, res);
-    if (!user) return;
-    const {
-      data: installation
-    } = await octokitApp.apps.getUserInstallation({
-      username: user.authInfo.login
-    }).catch(err => {
-      return {
-        status: err.status,
-        data: undefined
-      };
-    });
+  async (req, res, next) => {
+    try {
+      const user = await getUser(req, res);
+      if (!user) return;
+      const {
+        data: installation
+      } = await octokitApp.apps.getUserInstallation({
+        username: user.authInfo.login
+      }).catch(err => {
+        return {
+          status: err.status,
+          data: undefined
+        };
+      });
 
-    if (!installation) {
-      return res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed for this user. Go to ", /*#__PURE__*/React__default.createElement("a", {
-        href: `https://github.com/settings/apps/${process.env.REVIEWFLOW_NAME}/installations/new`
-      }, "Github Configuration"), ' ', "to install it."))));
+      if (!installation) {
+        return res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed for this user. Go to ", /*#__PURE__*/React__default.createElement("a", {
+          href: `https://github.com/settings/apps/${process.env.REVIEWFLOW_NAME}/installations/new`
+        }, "Github Configuration"), ' ', "to install it."))));
+      }
+
+      return res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, process.env.REVIEWFLOW_NAME, " is installed for this user"))));
+    } catch (err) {
+      next(err);
     }
-
-    return res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, process.env.REVIEWFLOW_NAME, " is installed for this user"))));
   });
 }
 
@@ -3335,8 +3511,8 @@ function prCommentEditedOrDeleted(app, appContext) {
 
     const type = comment.pull_request_review_id ? 'review-comment' : 'issue-comment';
     const criteria = {
-      'account.id': repoContext.account._id,
-      'account.type': repoContext.accountType,
+      'account.id': repoContext.accountEmbed.id,
+      'account.type': repoContext.accountEmbed.type,
       type,
       typeId: comment.id
     };
@@ -3873,8 +4049,8 @@ function reviewRequestRemoved(app, appContext) {
 
       await Promise.all(requestedReviewers.map(async potentialReviewer => {
         const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne({
-          'account.id': repoContext.account._id,
-          'account.type': repoContext.accountType,
+          'account.id': repoContext.accountEmbed.id,
+          'account.type': repoContext.accountEmbed.type,
           type: 'review-requested',
           typeId: `${pullRequest.id}_${requestedTeam ? `${requestedTeam.id}_` : ''}${potentialReviewer.id}`
         });
@@ -4013,8 +4189,8 @@ function reviewSubmitted(app, appContext) {
       }
 
       const sentMessageRequestedReview = await appContext.mongoStores.slackSentMessages.findOne({
-        'account.id': repoContext.account._id,
-        'account.type': repoContext.accountType,
+        'account.id': repoContext.accountEmbed.id,
+        'account.type': repoContext.accountEmbed.type,
         type: 'review-requested',
         typeId: `${pullRequest.id}_${reviewer.id}`
       });

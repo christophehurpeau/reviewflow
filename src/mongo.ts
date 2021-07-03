@@ -37,7 +37,6 @@ export interface UserDmSettings extends MongoBaseModel {
   settings: Record<MessageCategory, boolean>;
 }
 
-// TODO _id is number
 interface BaseAccount extends MongoBaseModel<number> {
   login: string;
   installationId?: number;
@@ -47,7 +46,15 @@ export interface User extends BaseAccount {
   type: string;
 }
 
+interface OrgSlack {
+  id: string;
+  accessToken?: string;
+  scope?: string[];
+  teamId?: string;
+}
 export interface Org extends BaseAccount {
+  slack?: OrgSlack;
+  /** @deprecated */
   slackToken?: string;
 }
 
@@ -68,7 +75,7 @@ interface OrgMemberSlack {
   id: string;
   email?: string;
   accessToken?: string;
-  scope?: string;
+  scope?: string[];
   teamId?: string;
 }
 

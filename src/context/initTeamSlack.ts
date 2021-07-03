@@ -12,13 +12,20 @@ import { voidTeamSlack } from './voidTeamSlack';
 
 export type { TeamSlack };
 
+function getSlackAccountFromAccount(account: Org | User): string | undefined {
+  // This is first for legacy org using their own slackToken and slack app. Keep using them.
+  if ('slackToken' in account) return account.slackToken;
+  if ('slack' in account) return account.slack?.accessToken;
+  return undefined;
+}
+
 export const initTeamSlack = async <GroupNames extends string>(
   { mongoStores, slackHome }: AppContext,
   context: Context<any>,
   config: Config<GroupNames>,
   account: Org | User,
 ): Promise<TeamSlack> => {
-  const slackToken = 'slackToken' in account && account.slackToken;
+  const slackToken = getSlackAccountFromAccount(account);
 
   if (!slackToken) {
     return voidTeamSlack();
