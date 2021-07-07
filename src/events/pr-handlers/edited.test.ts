@@ -1,7 +1,7 @@
 import type { Probot } from 'probot';
 import pullRequestEdited from '../../../fixtures/pull_request_30.edited.json';
-import * as initTeamSlack from '../../context/initTeamSlack';
-import { voidTeamSlack } from '../../context/voidTeamSlack';
+import * as initTeamSlack from '../../context/slack/initTeamSlack';
+import { voidTeamSlack } from '../../context/slack/voidTeamSlack';
 import {
   initializeProbotApp,
   mockAccessToken,

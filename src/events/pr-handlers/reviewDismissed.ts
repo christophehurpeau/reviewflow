@@ -89,34 +89,24 @@ export default function reviewDismissed(
         if (repoContext.slack) {
           if (sender.login === reviewer.login) {
             pullRequest.assignees.forEach((assignee) => {
-              repoContext.slack.postMessage(
-                'pr-review',
-                assignee.id,
-                assignee.login,
-                {
-                  text: `:recycle: ${repoContext.slack.mention(
-                    reviewer.login,
-                  )} dismissed his review on ${slackUtils.createPrLink(
-                    pullRequest,
-                    repoContext,
-                  )}`,
-                },
-              );
-            });
-          } else {
-            repoContext.slack.postMessage(
-              'pr-review',
-              reviewer.id,
-              reviewer.login,
-              {
+              repoContext.slack.postMessage('pr-review', assignee, {
                 text: `:recycle: ${repoContext.slack.mention(
-                  sender.login,
-                )} dismissed your review on ${slackUtils.createPrLink(
+                  reviewer.login,
+                )} dismissed his review on ${slackUtils.createPrLink(
                   pullRequest,
                   repoContext,
                 )}`,
-              },
-            );
+              });
+            });
+          } else {
+            repoContext.slack.postMessage('pr-review', reviewer, {
+              text: `:recycle: ${repoContext.slack.mention(
+                sender.login,
+              )} dismissed your review on ${slackUtils.createPrLink(
+                pullRequest,
+                repoContext,
+              )}`,
+            });
           }
         }
       },

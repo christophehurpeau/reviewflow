@@ -145,14 +145,24 @@ export default function reviewSubmitted(
             const sentTo = sentMessageRequestedReview.sentTo[0];
             const message = sentMessageRequestedReview.message;
             await Promise.all([
-              repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, {
-                ...message,
-                text: message.text
-                  .split('\n')
-                  .map((l) => `~${l}~`)
-                  .join('\n'),
-              }),
-              repoContext.slack.addReaction(sentTo.ts, sentTo.channel, emoji),
+              repoContext.slack.updateMessage(
+                sentMessageRequestedReview.account,
+                sentTo.ts,
+                sentTo.channel,
+                {
+                  ...message,
+                  text: message.text
+                    .split('\n')
+                    .map((l) => `~${l}~`)
+                    .join('\n'),
+                },
+              ),
+              repoContext.slack.addReaction(
+                sentMessageRequestedReview.account,
+                sentTo.ts,
+                sentTo.channel,
+                emoji,
+              ),
               appContext.mongoStores.slackSentMessages.deleteOne(
                 sentMessageRequestedReview,
               ),
@@ -197,8 +207,7 @@ export default function reviewSubmitted(
           assignees.forEach((assignee) => {
             repoContext.slack.postMessage(
               'pr-review',
-              assignee.id,
-              assignee.login,
+              assignee,
               createSlackMessageWithSecondaryBlock(
                 createMessage(assignee.id === owner.id, true),
                 slackifiedBody,
@@ -214,8 +223,7 @@ export default function reviewSubmitted(
           filteredFollowers.forEach((follower) => {
             repoContext.slack.postMessage(
               'pr-review-follow',
-              follower.id,
-              follower.login,
+              follower,
               message,
             );
           });
@@ -232,8 +240,7 @@ export default function reviewSubmitted(
           filteredFollowers.forEach((follower) => {
             repoContext.slack.postMessage(
               'pr-review-follow',
-              follower.id,
-              follower.login,
+              follower,
               message,
             );
           });

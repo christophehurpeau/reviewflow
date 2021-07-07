@@ -51,7 +51,7 @@ export default function userSettings(
     async (req, res, next) => {
       try {
         const user = await getUser(req, res);
-        if (!user) return;
+        if (!user) return null;
 
         const { data: installation } = await octokitApp.apps
           .getUserInstallation({
@@ -91,6 +91,7 @@ export default function userSettings(
         );
       } catch (err) {
         next(err);
+        return null;
       }
     },
   );

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import type { MongoBaseModel } from 'liwi-mongo';
 import { MongoStore, MongoConnection } from 'liwi-mongo';
-import type { SlackMessage } from './context/SlackMessage';
+import type { SlackMessage } from './context/slack/SlackMessage';
 import type { MessageCategory } from './dm/MessageCategory';
 
 // export interface PrEventsModel extends MongoModel {
@@ -52,10 +52,15 @@ interface OrgSlack {
   scope?: string[];
   teamId?: string;
 }
+interface OrgConfig {
+  canUseExternalSlack?: boolean;
+}
+
 export interface Org extends BaseAccount {
   slack?: OrgSlack;
   /** @deprecated */
   slackToken?: string;
+  config: OrgConfig;
 }
 
 export interface OrgTeam extends MongoBaseModel<number> {

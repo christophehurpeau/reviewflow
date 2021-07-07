@@ -98,39 +98,29 @@ export default function reviewRequestRemoved(
           if (requestedReviewers.some((rr) => rr.login === sender.login)) {
             requestedReviewers.forEach((potentialReviewer) => {
               if (potentialReviewer.login === sender.login) return;
-              repoContext.slack.postMessage(
-                'pr-review',
-                potentialReviewer.id,
-                potentialReviewer.login,
-                {
-                  text: `:skull_and_crossbones: ${repoContext.slack.mention(
-                    sender.login,
-                  )} removed the request for your team _${
-                    requestedTeam.name
-                  }_ review on ${slackUtils.createPrLink(
-                    pullRequest,
-                    repoContext,
-                  )}`,
-                },
-              );
+              repoContext.slack.postMessage('pr-review', potentialReviewer, {
+                text: `:skull_and_crossbones: ${repoContext.slack.mention(
+                  sender.login,
+                )} removed the request for your team _${
+                  requestedTeam.name
+                }_ review on ${slackUtils.createPrLink(
+                  pullRequest,
+                  repoContext,
+                )}`,
+              });
             });
           } else {
             requestedReviewers.forEach((potentialReviewer) => {
-              repoContext.slack.postMessage(
-                'pr-review',
-                potentialReviewer.id,
-                potentialReviewer.login,
-                {
-                  text: `:skull_and_crossbones: ${repoContext.slack.mention(
-                    sender.login,
-                  )} removed the request for  ${
-                    requestedTeam ? `your team _${requestedTeam.name}_` : 'your'
-                  } review on ${slackUtils.createPrLink(
-                    pullRequest,
-                    repoContext,
-                  )}`,
-                },
-              );
+              repoContext.slack.postMessage('pr-review', potentialReviewer, {
+                text: `:skull_and_crossbones: ${repoContext.slack.mention(
+                  sender.login,
+                )} removed the request for  ${
+                  requestedTeam ? `your team _${requestedTeam.name}_` : 'your'
+                } review on ${slackUtils.createPrLink(
+                  pullRequest,
+                  repoContext,
+                )}`,
+              });
             });
           }
 
@@ -150,14 +140,20 @@ export default function reviewRequestRemoved(
                 const sentTo = sentMessageRequestedReview.sentTo[0];
                 const message = sentMessageRequestedReview.message;
                 await Promise.all([
-                  repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, {
-                    ...message,
-                    text: message.text
-                      .split('\n')
-                      .map((l) => `~${l}~`)
-                      .join('\n'),
-                  }),
+                  repoContext.slack.updateMessage(
+                    sentMessageRequestedReview.account,
+                    sentTo.ts,
+                    sentTo.channel,
+                    {
+                      ...message,
+                      text: message.text
+                        .split('\n')
+                        .map((l) => `~${l}~`)
+                        .join('\n'),
+                    },
+                  ),
                   repoContext.slack.addReaction(
+                    sentMessageRequestedReview.account,
                     sentTo.ts,
                     sentTo.channel,
                     'skull_and_crossbones',

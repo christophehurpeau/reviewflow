@@ -17,8 +17,8 @@ import { ExcludesFalsy } from '../utils/Excludes';
 import type { AppContext } from './AppContext';
 import type { AccountInfo } from './getOrCreateAccount';
 import { getOrCreateAccount } from './getOrCreateAccount';
-import type { TeamSlack } from './initTeamSlack';
-import { initTeamSlack } from './initTeamSlack';
+import type { TeamSlack } from './slack/initTeamSlack';
+import { initTeamSlack } from './slack/initTeamSlack';
 import { getKeys } from './utils';
 
 export interface AccountContext<

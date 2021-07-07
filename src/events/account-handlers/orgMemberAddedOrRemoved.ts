@@ -14,10 +14,15 @@ export default function orgMemberAddedOrRemoved(
     createHandlerOrgChange<EventPayloads.WebhookPayloadOrganization>(
       appContext,
       async (context, accountContext) => {
+        const o = await appContext.mongoStores.orgs.findByKey(
+          accountContext.accountEmbed.id,
+        );
+        if (!o || !o.installationId) return;
+
         await syncOrg(
           appContext.mongoStores,
           context.octokit,
-          accountContext.account.installationId!,
+          o.installationId,
           context.payload.organization,
         );
       },

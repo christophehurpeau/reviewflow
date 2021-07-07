@@ -3,8 +3,8 @@ import type { EventPayloads } from '@octokit/webhooks';
 import type { Probot, Context } from 'probot';
 import type { AccountInfo } from 'context/getOrCreateAccount';
 import type { AppContext } from '../../context/AppContext';
-import type { SlackMessage } from '../../context/SlackMessage';
-import type { PostSlackMessageResult } from '../../context/TeamSlack';
+import type { SlackMessage } from '../../context/slack/SlackMessage';
+import type { PostSlackMessageResult } from '../../context/slack/TeamSlack';
 import type { AccountEmbed } from '../../mongo';
 import * as slackUtils from '../../slack/utils';
 import { ExcludesFalsy, ExcludesNullish } from '../../utils/Excludes';
@@ -52,14 +52,14 @@ const getMentions = (
 
 const getUsersInThread = (
   discussion: RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data'],
-): { id: number; login: string }[] => {
+): AccountInfo[] => {
   const userIds = new Set<number>();
-  const users: { id: number; login: string }[] = [];
+  const users: AccountInfo[] = [];
 
   discussion.forEach((c) => {
     if (!c.user || userIds.has(c.user.id)) return;
     userIds.add(c.user.id);
-    users.push({ id: c.user.id, login: c.user.login });
+    users.push({ id: c.user.id, login: c.user.login, type: c.user.type });
   });
 
   return users;
@@ -210,8 +210,7 @@ export default function prCommentCreated(
             repoContext.slack
               .postMessage(
                 isBotUser ? 'pr-comment-bots' : 'pr-comment',
-                prUser.id,
-                prUser.login,
+                prUser,
                 slackMessage,
               )
               .then((res) =>
@@ -235,18 +234,12 @@ export default function prCommentCreated(
           ...followers.map((follower) =>
             repoContext.slack.postMessage(
               isBotUser ? 'pr-comment-follow-bots' : 'pr-comment-follow',
-              follower.id,
-              follower.login,
+              follower,
               message,
             ),
           ),
           ...usersInThread.map((user) =>
-            repoContext.slack.postMessage(
-              'pr-comment-thread',
-              user.id,
-              user.login,
-              message,
-            ),
+            repoContext.slack.postMessage('pr-comment-thread', user, message),
           ),
         );
 
@@ -258,8 +251,7 @@ export default function prCommentCreated(
                 ...users.map((u) =>
                   repoContext.slack.postMessage(
                     'pr-comment-mention',
-                    u._id,
-                    u.login,
+                    { id: u._id, login: u.login, type: u.type },
                     message,
                   ),
                 ),

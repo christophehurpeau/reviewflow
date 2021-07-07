@@ -80,8 +80,7 @@ export default function reviewRequested(
 
               const result = await repoContext.slack.postMessage(
                 'pr-review',
-                potentialReviewer.id,
-                potentialReviewer.login,
+                potentialReviewer,
                 message,
               );
               if (result) {

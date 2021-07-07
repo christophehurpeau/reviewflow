@@ -87,7 +87,11 @@ export default function prCommentEditedOrDeleted(
               sentMessages.map((sentMessage) =>
                 Promise.all(
                   sentMessage.sentTo.map((sentTo) =>
-                    repoContext.slack.deleteMessage(sentTo.ts, sentTo.channel),
+                    repoContext.slack.deleteMessage(
+                      sentMessage.account,
+                      sentTo.ts,
+                      sentTo.channel,
+                    ),
                   ),
                 ),
               ),
@@ -109,10 +113,15 @@ export default function prCommentEditedOrDeleted(
               sentMessages.map((sentMessage) =>
                 Promise.all(
                   sentMessage.sentTo.map((sentTo) =>
-                    repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, {
-                      ...sentMessage.message,
-                      secondaryBlocks,
-                    }),
+                    repoContext.slack.updateMessage(
+                      sentMessage.account,
+                      sentTo.ts,
+                      sentTo.channel,
+                      {
+                        ...sentMessage.message,
+                        secondaryBlocks,
+                      },
+                    ),
                   ),
                 ),
               ),

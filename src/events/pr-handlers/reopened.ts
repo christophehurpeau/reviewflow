@@ -89,22 +89,16 @@ export default function reopened(app: Probot, appContext: AppContext): void {
 
         assignees.map((assignee) => {
           if (context.payload.sender.id === assignee.id) return;
-          return repoContext.slack.postMessage(
-            'pr-lifecycle',
-            assignee.id,
-            assignee.login,
-            {
-              text: createMessage(assignee),
-            },
-          );
+          return repoContext.slack.postMessage('pr-lifecycle', assignee, {
+            text: createMessage(assignee),
+          });
         });
 
         followers.map((follower) => {
           if (context.payload.sender.id === follower.id) return;
           return repoContext.slack.postMessage(
             'pr-lifecycle-follow',
-            follower.id,
-            follower.login,
+            follower,
             {
               text: createMessage(follower),
             },

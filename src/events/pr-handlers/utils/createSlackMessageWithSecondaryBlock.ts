@@ -1,5 +1,5 @@
 import type { KnownBlock } from '@slack/web-api';
-import type { SlackMessage } from '../../../context/SlackMessage';
+import type { SlackMessage } from '../../../context/slack/SlackMessage';
 
 export const createMrkdwnSectionBlock = (text: string): KnownBlock => ({
   type: 'section',

@@ -1003,7 +1003,7 @@ const initTeamSlack = async ({
     return acc;
   }, {});
   const slackEmails = Object.values(githubLoginToSlackEmail);
-  const slackClient = new webApi.WebClient(slackToken);
+  const orgSlackClient = new webApi.WebClient(slackToken);
   const membersInDb = await mongoStores.orgMembers.findAll({
     'org.id': account._id
   });
@@ -1033,7 +1033,7 @@ const initTeamSlack = async ({
 
       return [email, (_membersInDb$find = membersInDb.find(m => m.user.login === login)) === null || _membersInDb$find === void 0 ? void 0 : _membersInDb$find._id];
     }));
-    await slackClient.paginate('users.list', {}, page => {
+    await orgSlackClient.paginate('users.list', {}, page => {
       page.members.forEach(member => {
         var _member$profile;
 
@@ -1049,9 +1049,7 @@ const initTeamSlack = async ({
           const memberId = memberEmailToMemberId.get(email);
 
           if (memberId) {
-            mongoStores.orgMembers.partialUpdateMany({
-              _id: memberId
-            }, {
+            mongoStores.orgMembers.partialUpdateByKey(memberId, {
               $set: {
                 slack: {
                   id: member.id,
@@ -1075,14 +1073,30 @@ const initTeamSlack = async ({
     if (member !== null && member !== void 0 && (_member$slack2 = member.slack) !== null && _member$slack2 !== void 0 && _member$slack2.id && !membersMap.has(member.user.login)) {
       membersMap.set(member.user.login, {
         member: {
-          id: member.slack.id
+          id: member.slack.id,
+          teamId: member.slack.teamId
         },
         im: undefined
       });
     }
   });
 
-  const openConversation = async userId => {
+  const getSlackClient = teamId => {
+    var _account$slack2;
+
+    if (!teamId || !('slack' in account) || !((_account$slack2 = account.slack) !== null && _account$slack2 !== void 0 && _account$slack2.teamId)) {
+      return orgSlackClient;
+    }
+
+    if (!account.config.canUseExternalSlack) {
+      return undefined;
+    } // TODO support external slack
+
+
+    return undefined;
+  };
+
+  const openConversation = async (slackClient, userId) => {
     try {
       const im = await slackClient.conversations.open({
         users: userId
@@ -1096,8 +1110,13 @@ const initTeamSlack = async ({
   };
 
   for (const user of membersMap.values()) {
-    const im = await openConversation(user.member.id);
-    if (im) user.im = im;
+    const slackClient = getSlackClient(user.member.teamId);
+
+    if (slackClient) {
+      user.slackClient = slackClient;
+      const im = await openConversation(slackClient, user.member.id);
+      if (im) user.im = im;
+    }
   }
 
   return {
@@ -1111,18 +1130,18 @@ const initTeamSlack = async ({
       if (!user) return githubLogin;
       return `<@${user.member.id}>`;
     },
-    postMessage: async (category, githubId, githubLogin, message) => {
+    postMessage: async (category, toAccount, message) => {
       context.log.debug({
         category,
-        githubLogin,
+        toAccount,
         message
       }, 'slack: post message');
       if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
-      const userDmSettings = await getUserDmSettings(mongoStores, account.login, account._id, githubId);
+      const userDmSettings = await getUserDmSettings(mongoStores, account.login, account._id, toAccount.id);
       if (!userDmSettings[category]) return null;
-      const user = membersMap.get(githubLogin);
-      if (!user || !user.im) return null;
-      const result = await slackClient.chat.postMessage({
+      const user = membersMap.get(toAccount.login);
+      if (!user || !user.slackClient || !user.im) return null;
+      const result = await user.slackClient.chat.postMessage({
         username: process.env.REVIEWFLOW_NAME,
         channel: user.im.id,
         text: message.text,
@@ -1138,14 +1157,16 @@ const initTeamSlack = async ({
         channel: result.channel
       };
     },
-    updateMessage: async (ts, channel, message) => {
+    updateMessage: async (toAccount, ts, channel, message) => {
       context.log.debug({
         ts,
         channel,
         message
       }, 'slack: update message');
       if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
-      const result = await slackClient.chat.update({
+      const user = membersMap.get(toAccount.login);
+      if (!user || !user.slackClient || !user.im) return null;
+      const result = await user.slackClient.chat.update({
         ts,
         channel,
         text: message.text,
@@ -1160,23 +1181,27 @@ const initTeamSlack = async ({
         channel: result.channel
       };
     },
-    deleteMessage: async (ts, channel) => {
+    deleteMessage: async (toAccount, ts, channel) => {
       context.log.debug({
         ts,
         channel
       }, 'slack: delete message');
-      await slackClient.chat.delete({
+      const user = membersMap.get(toAccount.login);
+      if (!user || !user.slackClient || !user.im) return;
+      await user.slackClient.chat.delete({
         ts,
         channel
       });
     },
-    addReaction: async (ts, channel, name) => {
+    addReaction: async (toAccount, ts, channel, name) => {
       context.log.debug({
         ts,
         channel,
         name
       }, 'slack: add reaction');
-      await slackClient.reactions.add({
+      const user = membersMap.get(toAccount.login);
+      if (!user || !user.slackClient || !user.im) return;
+      await user.slackClient.reactions.add({
         timestamp: ts,
         channel,
         name
@@ -1187,8 +1212,8 @@ const initTeamSlack = async ({
         githubLogin
       }, 'update slack home');
       const user = membersMap.get(githubLogin);
-      if (!user || !user.member) return;
-      slackHome.scheduleUpdateMember(context.octokit, slackClient, {
+      if (!user || !user.slackClient || !user.member) return;
+      slackHome.scheduleUpdateMember(context.octokit, user.slackClient, {
         user: {
           id: null,
           login: githubLogin
@@ -1210,13 +1235,18 @@ const initTeamSlack = async ({
         'user.id': userId
       });
       if (!member || !member.slack) return;
-      const im = await openConversation(member.slack.id);
-      membersMap.set(userLogin, {
-        member: {
-          id: member.slack.id
-        },
-        im
-      });
+      const slackClient = getSlackClient(member.slack.teamId);
+
+      if (slackClient) {
+        const im = await openConversation(slackClient, member.slack.id);
+        membersMap.set(userLogin, {
+          member: {
+            id: member.slack.id
+          },
+          slackClient,
+          im
+        });
+      }
     },
     shouldShowLoginMessage: githubLogin => {
       return !membersMap.has(githubLogin);
@@ -1924,7 +1954,7 @@ function userSettings(router, octokitApp, mongoStores) {
   async (req, res, next) => {
     try {
       const user = await getUser(req, res);
-      if (!user) return;
+      if (!user) return null;
       const {
         data: installation
       } = await octokitApp.apps.getUserInstallation({
@@ -1945,6 +1975,7 @@ function userSettings(router, octokitApp, mongoStores) {
       return res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, process.env.REVIEWFLOW_NAME, " is installed for this user"))));
     } catch (err) {
       next(err);
+      return null;
     }
   });
 }
@@ -2001,7 +2032,9 @@ function membershipChanged(app, appContext) {
 function orgMemberAddedOrRemoved(app, appContext) {
   /* https://developer.github.com/webhooks/event-payloads/#organization */
   app.on(['organization.member_added', 'organization.member_removed'], createHandlerOrgChange(appContext, async (context, accountContext) => {
-    await syncOrg(appContext.mongoStores, context.octokit, accountContext.account.installationId, context.payload.organization);
+    const o = await appContext.mongoStores.orgs.findByKey(accountContext.accountEmbed.id);
+    if (!o || !o.installationId) return;
+    await syncOrg(appContext.mongoStores, context.octokit, o.installationId, context.payload.organization);
   }));
 }
 
@@ -3229,13 +3262,13 @@ function closed(app, appContext) {
 
     assignees.map(assignee => {
       if (context.payload.sender.id === assignee.id) return;
-      return repoContext.slack.postMessage('pr-lifecycle', assignee.id, assignee.login, {
+      return repoContext.slack.postMessage('pr-lifecycle', assignee, {
         text: createMessage(assignee)
       });
     });
     followers.map(follower => {
       if (context.payload.sender.id === follower.id) return;
-      return repoContext.slack.postMessage('pr-lifecycle-follow', follower.id, follower.login, {
+      return repoContext.slack.postMessage('pr-lifecycle-follow', follower, {
         text: createMessage(follower)
       });
     });
@@ -3319,7 +3352,8 @@ const getUsersInThread = discussion => {
     userIds.add(c.user.id);
     users.push({
       id: c.user.id,
-      login: c.user.login
+      login: c.user.login,
+      type: c.user.type
     });
   });
   return users;
@@ -3392,11 +3426,11 @@ function prCommentCreated(app, appContext) {
 
     if (!commentByOwner) {
       const slackMessage = createSlackMessageWithSecondaryBlock(createMessage(true), slackifiedBody);
-      promisesOwner.push(repoContext.slack.postMessage(isBotUser ? 'pr-comment-bots' : 'pr-comment', prUser.id, prUser.login, slackMessage).then(res => saveInDb(type, comment.id, repoContext.accountEmbed, [res], slackMessage)));
+      promisesOwner.push(repoContext.slack.postMessage(isBotUser ? 'pr-comment-bots' : 'pr-comment', prUser, slackMessage).then(res => saveInDb(type, comment.id, repoContext.accountEmbed, [res], slackMessage)));
     }
 
     const message = createSlackMessageWithSecondaryBlock(createMessage(false), slackifiedBody);
-    promisesNotOwner.push(...followers.map(follower => repoContext.slack.postMessage(isBotUser ? 'pr-comment-follow-bots' : 'pr-comment-follow', follower.id, follower.login, message)), ...usersInThread.map(user => repoContext.slack.postMessage('pr-comment-thread', user.id, user.login, message)));
+    promisesNotOwner.push(...followers.map(follower => repoContext.slack.postMessage(isBotUser ? 'pr-comment-follow-bots' : 'pr-comment-follow', follower, message)), ...usersInThread.map(user => repoContext.slack.postMessage('pr-comment-thread', user, message)));
 
     if (mentions.length > 0) {
       await appContext.mongoStores.users.findAll({
@@ -3404,7 +3438,11 @@ function prCommentCreated(app, appContext) {
           $in: mentions
         }
       }).then(users => {
-        promisesNotOwner.push(...users.map(u => repoContext.slack.postMessage('pr-comment-mention', u._id, u.login, message)));
+        promisesNotOwner.push(...users.map(u => repoContext.slack.postMessage('pr-comment-mention', {
+          id: u._id,
+          login: u.login,
+          type: u.type
+        }, message)));
       });
     }
 
@@ -3520,10 +3558,10 @@ function prCommentEditedOrDeleted(app, appContext) {
     if (sentMessages.length === 0) return;
 
     if (context.payload.action === 'deleted') {
-      await Promise.all([Promise.all(sentMessages.map(sentMessage => Promise.all(sentMessage.sentTo.map(sentTo => repoContext.slack.deleteMessage(sentTo.ts, sentTo.channel))))), appContext.mongoStores.slackSentMessages.deleteMany(criteria)]);
+      await Promise.all([Promise.all(sentMessages.map(sentMessage => Promise.all(sentMessage.sentTo.map(sentTo => repoContext.slack.deleteMessage(sentMessage.account, sentTo.ts, sentTo.channel))))), appContext.mongoStores.slackSentMessages.deleteMany(criteria)]);
     } else {
       const secondaryBlocks = [createMrkdwnSectionBlock(slackifyCommentBody(comment.body, comment.start_line !== null))];
-      await Promise.all([Promise.all(sentMessages.map(sentMessage => Promise.all(sentMessage.sentTo.map(sentTo => repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, { ...sentMessage.message,
+      await Promise.all([Promise.all(sentMessages.map(sentMessage => Promise.all(sentMessage.sentTo.map(sentTo => repoContext.slack.updateMessage(sentMessage.account, sentTo.ts, sentTo.channel, { ...sentMessage.message,
         secondaryBlocks
       }))))), appContext.mongoStores.slackSentMessages.partialUpdateMany(criteria, {
         $set: {
@@ -3928,13 +3966,13 @@ function reopened(app, appContext) {
 
     assignees.map(assignee => {
       if (context.payload.sender.id === assignee.id) return;
-      return repoContext.slack.postMessage('pr-lifecycle', assignee.id, assignee.login, {
+      return repoContext.slack.postMessage('pr-lifecycle', assignee, {
         text: createMessage(assignee)
       });
     });
     followers.map(follower => {
       if (context.payload.sender.id === follower.id) return;
-      return repoContext.slack.postMessage('pr-lifecycle-follow', follower.id, follower.login, {
+      return repoContext.slack.postMessage('pr-lifecycle-follow', follower, {
         text: createMessage(follower)
       });
     });
@@ -3978,12 +4016,12 @@ function reviewDismissed(app, appContext) {
     if (repoContext.slack) {
       if (sender.login === reviewer.login) {
         pullRequest.assignees.forEach(assignee => {
-          repoContext.slack.postMessage('pr-review', assignee.id, assignee.login, {
+          repoContext.slack.postMessage('pr-review', assignee, {
             text: `:recycle: ${repoContext.slack.mention(reviewer.login)} dismissed his review on ${createPrLink(pullRequest, repoContext)}`
           });
         });
       } else {
-        repoContext.slack.postMessage('pr-review', reviewer.id, reviewer.login, {
+        repoContext.slack.postMessage('pr-review', reviewer, {
           text: `:recycle: ${repoContext.slack.mention(sender.login)} dismissed your review on ${createPrLink(pullRequest, repoContext)}`
         });
       }
@@ -4035,13 +4073,13 @@ function reviewRequestRemoved(app, appContext) {
       if (requestedReviewers.some(rr => rr.login === sender.login)) {
         requestedReviewers.forEach(potentialReviewer => {
           if (potentialReviewer.login === sender.login) return;
-          repoContext.slack.postMessage('pr-review', potentialReviewer.id, potentialReviewer.login, {
+          repoContext.slack.postMessage('pr-review', potentialReviewer, {
             text: `:skull_and_crossbones: ${repoContext.slack.mention(sender.login)} removed the request for your team _${requestedTeam.name}_ review on ${createPrLink(pullRequest, repoContext)}`
           });
         });
       } else {
         requestedReviewers.forEach(potentialReviewer => {
-          repoContext.slack.postMessage('pr-review', potentialReviewer.id, potentialReviewer.login, {
+          repoContext.slack.postMessage('pr-review', potentialReviewer, {
             text: `:skull_and_crossbones: ${repoContext.slack.mention(sender.login)} removed the request for  ${requestedTeam ? `your team _${requestedTeam.name}_` : 'your'} review on ${createPrLink(pullRequest, repoContext)}`
           });
         });
@@ -4058,9 +4096,9 @@ function reviewRequestRemoved(app, appContext) {
         if (sentMessageRequestedReview) {
           const sentTo = sentMessageRequestedReview.sentTo[0];
           const message = sentMessageRequestedReview.message;
-          await Promise.all([repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, { ...message,
+          await Promise.all([repoContext.slack.updateMessage(sentMessageRequestedReview.account, sentTo.ts, sentTo.channel, { ...message,
             text: message.text.split('\n').map(l => `~${l}~`).join('\n')
-          }), repoContext.slack.addReaction(sentTo.ts, sentTo.channel, 'skull_and_crossbones'), appContext.mongoStores.slackSentMessages.deleteOne(sentMessageRequestedReview)]);
+          }), repoContext.slack.addReaction(sentMessageRequestedReview.account, sentTo.ts, sentTo.channel, 'skull_and_crossbones'), appContext.mongoStores.slackSentMessages.deleteOne(sentMessageRequestedReview)]);
         }
       }));
     }
@@ -4103,7 +4141,7 @@ function reviewRequested(app, appContext) {
       };
       await Promise.all(requestedReviewers.map(async potentialReviewer => {
         if (sender.login === potentialReviewer.login) return;
-        const result = await repoContext.slack.postMessage('pr-review', potentialReviewer.id, potentialReviewer.login, message);
+        const result = await repoContext.slack.postMessage('pr-review', potentialReviewer, message);
 
         if (result) {
           await appContext.mongoStores.slackSentMessages.insertOne({
@@ -4199,9 +4237,9 @@ function reviewSubmitted(app, appContext) {
       if (sentMessageRequestedReview) {
         const sentTo = sentMessageRequestedReview.sentTo[0];
         const message = sentMessageRequestedReview.message;
-        await Promise.all([repoContext.slack.updateMessage(sentTo.ts, sentTo.channel, { ...message,
+        await Promise.all([repoContext.slack.updateMessage(sentMessageRequestedReview.account, sentTo.ts, sentTo.channel, { ...message,
           text: message.text.split('\n').map(l => `~${l}~`).join('\n')
-        }), repoContext.slack.addReaction(sentTo.ts, sentTo.channel, emoji), appContext.mongoStores.slackSentMessages.deleteOne(sentMessageRequestedReview)]);
+        }), repoContext.slack.addReaction(sentMessageRequestedReview.account, sentTo.ts, sentTo.channel, emoji), appContext.mongoStores.slackSentMessages.deleteOne(sentMessageRequestedReview)]);
       }
 
       if (!body && state !== 'changes_requested' && state !== 'approved') {
@@ -4229,11 +4267,11 @@ function reviewSubmitted(app, appContext) {
 
       const slackifiedBody = slackifyMarkdown__default(body);
       assignees.forEach(assignee => {
-        repoContext.slack.postMessage('pr-review', assignee.id, assignee.login, createSlackMessageWithSecondaryBlock(createMessage(assignee.id === owner.id, true), slackifiedBody));
+        repoContext.slack.postMessage('pr-review', assignee, createSlackMessageWithSecondaryBlock(createMessage(assignee.id === owner.id, true), slackifiedBody));
       });
       const message = createSlackMessageWithSecondaryBlock(createMessage(false), slackifiedBody);
       filteredFollowers.forEach(follower => {
-        repoContext.slack.postMessage('pr-review-follow', follower.id, follower.login, message);
+        repoContext.slack.postMessage('pr-review-follow', follower, message);
       });
     } else if (body) {
       const mention = repoContext.slack.mention(reviewer.login);
@@ -4241,7 +4279,7 @@ function reviewSubmitted(app, appContext) {
       const commentLink = createLink(reviewUrl, 'commented');
       const message = createSlackMessageWithSecondaryBlock(`:speech_balloon: ${mention} ${commentLink} on his PR ${prUrl}`, body);
       filteredFollowers.forEach(follower => {
-        repoContext.slack.postMessage('pr-review-follow', follower.id, follower.login, message);
+        repoContext.slack.postMessage('pr-review-follow', follower, message);
       });
     }
   }));
