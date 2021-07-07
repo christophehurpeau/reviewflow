@@ -83,10 +83,9 @@ export const initTeamSlack = async <GroupNames extends string>(
           members.push([login, { member, im: undefined }]);
           const memberId = memberEmailToMemberId.get(email);
           if (memberId) {
-            mongoStores.orgMembers.partialUpdateMany(
-              { _id: memberId },
-              { $set: { slack: { id: member.id, email } } },
-            );
+            mongoStores.orgMembers.partialUpdateByKey(memberId, {
+              $set: { slack: { id: member.id, email } },
+            });
           }
         }
       });
