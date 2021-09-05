@@ -2666,10 +2666,10 @@ character-reference-invalid@^1.0.0:
   resolved "https://registry.yarnpkg.com/character-reference-invalid/-/character-reference-invalid-1.1.4.tgz#083329cda0eae272ab3dbbf37e9a382c13af1560"
   integrity sha512-mKKUkUbhPpQlCOfIuZkvSEgktjPFIsZKRRbC6KWVEMvlzblj3i3asQv5ODsrwt0N3pHAEvjP8KTQPHkp0+6jOg==
 
-check-package-dependencies@1.2.5:
-  version "1.2.5"
-  resolved "https://registry.yarnpkg.com/check-package-dependencies/-/check-package-dependencies-1.2.5.tgz#b9de2f80ef04093c54f4ea6a8d9c3339d12c2749"
-  integrity sha512-rAuH61Uf5UZqThaHFJ5vSE41nFX8Ws1lC2lZd1iowrS2+crsrJcCIJAqMIgrF+fDs0FUEAG9JKFXMAa/6sMXRA==
+check-package-dependencies@1.2.7:
+  version "1.2.7"
+  resolved "https://registry.yarnpkg.com/check-package-dependencies/-/check-package-dependencies-1.2.7.tgz#cd24af36b47bb56331caa24e6d585ba235e564be"
+  integrity sha512-j0taxpkC1TA7elJ+1pqqEp1q7mqK3NR95etCmyQQUpzdgf+aBRsE+eU0vgVHfdwzks61MV/A5SUXman0lkw/cw==
   dependencies:
     chalk "^4.1.0"
     glob "^7.1.6"
