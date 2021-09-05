@@ -1512,10 +1512,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/issue-parser@3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@types/issue-parser/-/issue-parser-3.0.0.tgz#154dcdea73c3447b0e30d8ab3dfe2661a531884b"
-  integrity sha512-wDi9vfrRlosge6GIjC8ToxeiyG7qYSNWRwZIxav0uPIn7LfGdo6RsKztAAFReXipFM5vDIYGgBiAEXcZ/EIniw==
+"@types/issue-parser@3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@types/issue-parser/-/issue-parser-3.0.1.tgz#05240316890ec37fef7cd64d19019ac95733c7a8"
+  integrity sha512-cdggbeJIxWoIB8CB57BvenONrQZcBuEf2uddxMRNIy2jgdcnSxnY71tQcNrxdqTG4VmQP5fdLLE9E+jCnMK0Fg==
 
 "@types/istanbul-lib-coverage@*", "@types/istanbul-lib-coverage@^2.0.0", "@types/istanbul-lib-coverage@^2.0.1":
   version "2.0.3"
