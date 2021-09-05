@@ -1480,6 +1480,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@octokit/webhooks@npm:7.24.3":
+  version: 7.24.3
+  resolution: "@octokit/webhooks@npm:7.24.3"
+  dependencies:
+    "@octokit/request-error": ^2.0.2
+    aggregate-error: ^3.1.0
+    debug: ^4.0.0
+  checksum: ca2962a527d09236df2eee31f6ee201551e820f2e02a5063ff50e7ed4a0cb8773ac56b5eb7f19526a72a6129930f2657196e0b673ebc1e53a7187e2cd4e09ebb
+  languageName: node
+  linkType: hard
+
 "@pob/commitlint-config@npm:3.1.1":
   version: 3.1.1
   resolution: "@pob/commitlint-config@npm:3.1.1"
@@ -9962,7 +9973,7 @@ resolve@^2.0.0-next.3:
     "@commitlint/parse": 12.1.4
     "@octokit/core": 3.4.0
     "@octokit/rest": 18.5.3
-    "@octokit/webhooks": 7.21.0
+    "@octokit/webhooks": 7.24.3
     "@pob/commitlint-config": 3.1.1
     "@pob/eslint-config": 45.1.0
     "@pob/eslint-config-typescript": 45.1.0
