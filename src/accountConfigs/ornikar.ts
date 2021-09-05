@@ -174,7 +174,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         'ChibiBlasphem',
         'PSniezak',
         'aenario',
-        'Goldiggy'
+        'Goldiggy',
       ],
       labels: ['teams/frontend'],
     },
