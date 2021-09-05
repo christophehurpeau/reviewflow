@@ -108,7 +108,7 @@ export const updateReviewStatus = async <
 
   // if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return;
 
-  if (toAdd.size !== 0 || toDelete.size !== 0) {
+  if (toAdd.size > 0 || toDelete.size > 0) {
     if (toDelete.size === 0 || toDelete.size < 4) {
       context.log.debug(
         {
@@ -121,7 +121,7 @@ export const updateReviewStatus = async <
         'updateReviewStatus',
       );
 
-      if (toAdd.size !== 0) {
+      if (toAdd.size > 0) {
         const result = await context.octokit.issues.addLabels(
           context.issue({
             labels: [...toAddNames],
@@ -130,8 +130,8 @@ export const updateReviewStatus = async <
         prLabels = result.data;
       }
 
-      if (toDelete.size !== 0) {
-        for (const toDeleteName of [...toDeleteNames]) {
+      if (toDelete.size > 0) {
+        for (const toDeleteName of toDeleteNames) {
           try {
             const result = await context.octokit.issues.removeLabel(
               context.issue({

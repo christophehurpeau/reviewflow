@@ -84,45 +84,43 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
         {
           type: 'divider',
         },
-        ...results.items
-          .map((pr: any) => {
-            const repoName = pr.repository_url.slice(
-              'https://api.github.com/repos/'.length,
-            );
-            const prFullName = `${repoName}#${pr.number}`;
+        ...results.items.flatMap((pr: any) => {
+          const repoName = pr.repository_url.slice(
+            'https://api.github.com/repos/'.length,
+          );
+          const prFullName = `${repoName}#${pr.number}`;
 
-            return [
-              {
-                type: 'section',
-                text: {
+          return [
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `*${createLink(pr.html_url, pr.title)}*`,
+                //  ${pr.labels.map((l) => `{${l.name}}`).join(' · ')}
+              },
+            },
+            {
+              type: 'context',
+              elements: [
+                {
                   type: 'mrkdwn',
-                  text: `*${createLink(pr.html_url, pr.title)}*`,
-                  //  ${pr.labels.map((l) => `{${l.name}}`).join(' · ')}
+                  text: `${createLink(pr.html_url, prFullName)} ${
+                    pr.draft ? '· _Draft_' : ''
+                  }`,
                 },
-              },
-              {
-                type: 'context',
-                elements: [
-                  {
-                    type: 'mrkdwn',
-                    text: `${createLink(pr.html_url, prFullName)} ${
-                      pr.draft ? '· _Draft_' : ''
-                    }`,
-                  },
-                  {
-                    type: 'image',
-                    image_url: pr.user.avatar_url,
-                    alt_text: pr.user.login,
-                  },
-                  {
-                    type: 'mrkdwn',
-                    text: `${pr.user.login}`,
-                  },
-                ],
-              },
-            ];
-          })
-          .flat(),
+                {
+                  type: 'image',
+                  image_url: pr.user.avatar_url,
+                  alt_text: pr.user.login,
+                },
+                {
+                  type: 'mrkdwn',
+                  text: `${pr.user.login}`,
+                },
+              ],
+            },
+          ];
+        }),
         {
           type: 'context',
           elements: [

@@ -8,14 +8,16 @@
     "renovate": {
       "enable": true
     },
-    "project": {
-      "type": "app",
-      "yarn2": false
-    },
     "app": {
       "type": "node",
       "testing": true,
       "ci": true
+    },
+    "project": {
+      "type": "app",
+      "yarn2": false,
+      "packageManager": "yarn",
+      "yarnNodeLinker": "node-modules"
     }
   }
 }

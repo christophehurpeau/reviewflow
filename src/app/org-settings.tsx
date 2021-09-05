@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/no-nested-ternary */
 import bodyParser from 'body-parser';
 import type { Router } from 'express';
 import type { ProbotOctokit } from 'probot';

@@ -1,7 +1,5 @@
-'use strict';
-
-require('dotenv').config();
-const { WebClient } = require('@slack/web-api');
+import 'dotenv/config';
+import { WebClient } from '@slack/web-api';
 
 if (!process.env.SLACK_TOKEN) {
   console.error('Missing slack token');
