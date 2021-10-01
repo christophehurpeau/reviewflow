@@ -2309,14 +2309,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:17.0.20":
-  version: 17.0.20
-  resolution: "@types/react@npm:17.0.20"
+"@types/react@npm:*, @types/react@npm:17.0.26":
+  version: 17.0.26
+  resolution: "@types/react@npm:17.0.26"
   dependencies:
     "@types/prop-types": "*"
     "@types/scheduler": "*"
     csstype: ^3.0.2
-  checksum: e342bfaa4fe052fc3a445ea49f746f3fd82cfc9c8028eae139a3e0763ead1871f353bd40da2a472f23d2b52544d2781d40e3159c0703e7e2ff08c13f067a3b9c
+  checksum: 943fe7e912ea6d664910fb9391a96d8f31c985265fb768d448461123dd970080494b7987a9bd54ca664c8675cb09680c8763823ff18622222e302c8d121b7d31
   languageName: node
   linkType: hard
 
@@ -9977,7 +9977,7 @@ resolve@^2.0.0-next.3:
     "@types/jsonwebtoken": 8.5.5
     "@types/nock": 11.1.0
     "@types/node": 14.17.20
-    "@types/react": 17.0.20
+    "@types/react": 17.0.26
     "@types/react-dom": 17.0.9
     "@types/simple-oauth2": 4.1.1
     "@typescript-eslint/eslint-plugin": 4.30.0
