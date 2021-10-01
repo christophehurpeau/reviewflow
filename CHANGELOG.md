@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.84.0](https://github.com/christophehurpeau/reviewflow/compare/v1.83.0...v1.84.0) (2021-10-01)
+
+
+### Features
+
+* add Jérémy to the list of ornikar users ([#274](https://github.com/christophehurpeau/reviewflow/issues/274)) ([fa06f57](https://github.com/christophehurpeau/reviewflow/commit/fa06f5713cba35567ca9d8e6fe71f0e7bd211479))
+* connect to slack via app instead of config file ([ee352a9](https://github.com/christophehurpeau/reviewflow/commit/ee352a957ae8d0906ba7c6658c29ad9f7f27282f))
+* improve slack connect ([ca3b13d](https://github.com/christophehurpeau/reviewflow/commit/ca3b13d69f6782635c9ee10289301326d9168aaf))
+* starting to support external slack teams ([0896ba6](https://github.com/christophehurpeau/reviewflow/commit/0896ba608a4dccc27738e7a9a9f272e94b9f6e37))
+
+
+### Bug Fixes
+
+* connect to slack ([8c10636](https://github.com/christophehurpeau/reviewflow/commit/8c10636f8fa4dade3eb8a4cdc076951ea3eade66))
+* slack home ([2189200](https://github.com/christophehurpeau/reviewflow/commit/2189200a5c37cd82195e388bb7f9b6aad3118896))
+* use cjs for now ([14040dd](https://github.com/christophehurpeau/reviewflow/commit/14040dd41cf4136c386335eb1ed8448ab5aabd91))
+
 ## [1.83.0](https://github.com/christophehurpeau/reviewflow/compare/v1.82.0...v1.83.0) (2021-06-06)
 
 
