@@ -68,7 +68,6 @@ export default function slackConnect(
           team: org.slackTeamId,
         } as any);
 
-        // TODO team_id
         res.redirect(redirectUri);
       } catch (err) {
         next(err);

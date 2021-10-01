@@ -1783,8 +1783,7 @@ function slackConnect(router, mongoStores) {
           orgLogin
         }),
         team: org.slackTeamId
-      }); // TODO team_id
-
+      });
       res.redirect(redirectUri);
     } catch (err) {
       next(err);
