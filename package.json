@@ -139,7 +139,7 @@
     "nock": "13.1.3",
     "pob-babel": "28.2.2",
     "pob-lcov-reporter": "5.1.1",
-    "prettier": "2.3.2",
+    "prettier": "2.4.1",
     "rollup": "2.56.3",
     "smee-client": "1.2.2",
     "standard-version": "9.3.1",
