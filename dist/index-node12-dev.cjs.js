@@ -979,12 +979,15 @@ const voidTeamSlack = () => ({
   shouldShowLoginMessage: () => false
 });
 
-function getSlackAccountFromAccount(account) {
-  var _account$slack;
-
+async function getSlackAccountFromAccount(mongoStores, account) {
   // This is first for legacy org using their own slackToken and slack app. Keep using them.
   if ('slackToken' in account) return account.slackToken;
-  if ('slack' in account) return (_account$slack = account.slack) === null || _account$slack === void 0 ? void 0 : _account$slack.accessToken;
+
+  if ('slackTeamId' in account) {
+    const slackTeam = await mongoStores.slackTeams.findByKey(account.slackTeamId);
+    return slackTeam === null || slackTeam === void 0 ? void 0 : slackTeam.botAccessToken;
+  }
+
   return undefined;
 }
 
@@ -992,7 +995,7 @@ const initTeamSlack = async ({
   mongoStores,
   slackHome
 }, context, config, account) => {
-  const slackToken = getSlackAccountFromAccount(account);
+  const slackToken = await getSlackAccountFromAccount(mongoStores, account);
 
   if (!slackToken) {
     return voidTeamSlack();
@@ -1083,9 +1086,7 @@ const initTeamSlack = async ({
   });
 
   const getSlackClient = teamId => {
-    var _account$slack2;
-
-    if (!teamId || !('slack' in account) || !((_account$slack2 = account.slack) !== null && _account$slack2 !== void 0 && _account$slack2.teamId)) {
+    if (!teamId || !('slackTeamId' in account) || !account.slackTeamId || account.slackTeamId === teamId) {
       return orgSlackClient;
     }
 
@@ -1510,6 +1511,8 @@ function orgSettings(router, octokitApp, mongoStores) {
         return;
       }
 
+      const slackTeam = orgInDb.slackTeamId ? await mongoStores.slackTeams.findByKey(orgInDb.slackTeamId) : undefined;
+
       if (!installation) {
         res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, /*#__PURE__*/React__default.createElement("div", null, process.env.REVIEWFLOW_NAME, ' ', "isn't installed for this user. Go to ", /*#__PURE__*/React__default.createElement("a", {
           href: `https://github.com/settings/apps/${process.env.REVIEWFLOW_NAME}/installations/new`
@@ -1548,7 +1551,7 @@ function orgSettings(router, octokitApp, mongoStores) {
         style: {
           marginTop: '1rem'
         }
-      }, "Slack Connection"), !orgInDb.slack && !orgInDb.slackToken ? /*#__PURE__*/React__default.createElement(React__default.Fragment, null, "Slack account yet linked ! Install application to get notifications for your reviews.", /*#__PURE__*/React__default.createElement("br", null), /*#__PURE__*/React__default.createElement("a", {
+      }, "Slack Connection"), !slackTeam && !orgInDb.slackToken ? /*#__PURE__*/React__default.createElement(React__default.Fragment, null, "Slack account yet linked ! Install application to get notifications for your reviews.", /*#__PURE__*/React__default.createElement("br", null), /*#__PURE__*/React__default.createElement("a", {
         href: `/app/slack-install?orgId=${encodeURIComponent(org.id)}&orgLogin=${encodeURIComponent(org.login)}`
       }, /*#__PURE__*/React__default.createElement("img", {
         alt: "Add to Slack",
@@ -1556,12 +1559,12 @@ function orgSettings(router, octokitApp, mongoStores) {
         width: "139",
         src: "https://platform.slack-edge.com/img/add_to_slack.png",
         srcSet: "https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"
-      }))) : !orgMember || !orgMember.slack ? /*#__PURE__*/React__default.createElement(React__default.Fragment, null, "Slack account yet linked ! Sign in to get notifications for your reviews.", /*#__PURE__*/React__default.createElement("br", null), /*#__PURE__*/React__default.createElement("a", {
+      }))) : !orgMember || !orgMember.slack ? /*#__PURE__*/React__default.createElement(React__default.Fragment, null, /*#__PURE__*/React__default.createElement("div", null, "Slack Team: ", slackTeam === null || slackTeam === void 0 ? void 0 : slackTeam.teamName), "Slack account yet linked ! Sign in to get notifications for your reviews.", /*#__PURE__*/React__default.createElement("br", null), /*#__PURE__*/React__default.createElement("a", {
         href: `/app/slack-connect?orgId=${encodeURIComponent(org.id)}&orgLogin=${encodeURIComponent(org.login)}`
       }, /*#__PURE__*/React__default.createElement("img", {
         src: "https://api.slack.com/img/sign_in_with_slack.png",
         alt: "Sign in with Slack"
-      }))) : /*#__PURE__*/React__default.createElement("div", null, !orgInDb.slackToken ? null : '⚠ This account use a custom slack application.', orgInDb.slack && /*#__PURE__*/React__default.createElement("div", null, "Slack Team ID: ", orgInDb.slack.id), /*#__PURE__*/React__default.createElement("div", null, "Slack User ID: ", orgMember.slack.id)), /*#__PURE__*/React__default.createElement("h4", {
+      }))) : /*#__PURE__*/React__default.createElement("div", null, !orgInDb.slackToken ? null : '⚠ This account use a custom slack application.', /*#__PURE__*/React__default.createElement("div", null, "Slack Team: ", slackTeam === null || slackTeam === void 0 ? void 0 : slackTeam.teamName, " (", orgMember.slack.teamId || (slackTeam === null || slackTeam === void 0 ? void 0 : slackTeam._id), ")"), /*#__PURE__*/React__default.createElement("div", null, "Slack User ID: ", orgMember.slack.id)), /*#__PURE__*/React__default.createElement("h4", {
         style: {
           marginTop: '1rem'
         }
@@ -1718,18 +1721,20 @@ const createSlackOAuth2 = ({
   },
   auth: {
     tokenHost: 'https://slack.com',
-    tokenPath: '/api/oauth.access',
-    authorizePath: `/oauth/${apiVersion}authorize`
+    tokenPath: `/api/oauth.${apiVersion ? `${apiVersion}.` : ''}access`,
+    authorizePath: `/oauth/${apiVersion ? `${apiVersion}/` : ''}authorize`
   }
 });
 const slackOAuth2 = createSlackOAuth2({
   id: process.env.SLACK_CLIENT_ID,
   secret: process.env.SLACK_CLIENT_SECRET
-});
-createSlackOAuth2({
+}); // only for apps installation
+// doc: https://api.slack.com/authentication/oauth-v2
+
+const slackOAuth2Version2 = createSlackOAuth2({
   id: process.env.SLACK_CLIENT_ID,
   secret: process.env.SLACK_CLIENT_SECRET,
-  apiVersion: 'v2/'
+  apiVersion: 'v2'
 });
 
 if (!process.env.AUTH_SECRET_KEY) {
@@ -1765,7 +1770,7 @@ function slackConnect(router, mongoStores) {
 
       const org = await mongoStores.orgs.findByKey(orgId);
 
-      if (!org) {
+      if (!org || !org.slackTeamId) {
         res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, "Organization is not installed.")));
         return;
       }
@@ -1776,14 +1781,17 @@ function slackConnect(router, mongoStores) {
         state: JSON.stringify({
           orgId,
           orgLogin
-        })
+        }),
+        team: org.slackTeamId
       }); // TODO team_id
 
       res.redirect(redirectUri);
     } catch (err) {
       next(err);
     }
-  });
+  }); // see url in https://app.slack.com/app-settings/T01495JH7RS/A023QGDUDQX/distribute for scopes
+
+  const slackInstallAppScopes = 'chat:write,im:history,im:read,im:write,mpim:history,mpim:read,mpim:write,reactions:read,reactions:write,team:read,users:read,users:read.email,users:write';
   router.get('/slack-install', // eslint-disable-next-line @typescript-eslint/no-misused-promises
   async (req, res, next) => {
     try {
@@ -1797,11 +1805,9 @@ function slackConnect(router, mongoStores) {
         return;
       }
 
-      const redirectUri = slackOAuth2.authorizeURL({
+      const redirectUri = slackOAuth2Version2.authorizeURL({
         redirect_uri: createRedirectUri(req),
-        // see url in https://app.slack.com/app-settings/T01495JH7RS/A023QGDUDQX/distribute for scopes
-        //=chat:write,im:history,im:read,mpim:read,im:write,mpim:history,mpim:write,reactions:read,reactions:write,team:read,users:read,users:read.email,users:write&user_scope=
-        scope: 'chat:write im:history im:read im:write mpim:history mpim:read mpim:write reactions:read reactions:write team:read users:read users:read.email users:write',
+        scope: slackInstallAppScopes,
         state: JSON.stringify({
           orgId,
           orgLogin,
@@ -1815,7 +1821,7 @@ function slackConnect(router, mongoStores) {
   });
   router.get('/slack-connect-response', // eslint-disable-next-line @typescript-eslint/no-misused-promises
   async (req, res, next) => {
-    var _org$slack, _org$slack2;
+    var _accessToken$token, _accessToken$token2, _accessToken$token2$t;
 
     try {
       const user = await getUser(req, res);
@@ -1833,35 +1839,54 @@ function slackConnect(router, mongoStores) {
         orgLogin,
         isInstall
       } = parseJSONSafe(state) || {};
-      const accessToken = await slackOAuth2.getToken({
+      const accessToken = await (isInstall ? slackOAuth2Version2 : slackOAuth2).getToken({
         code,
-        redirect_uri: createRedirectUri(req)
+        redirect_uri: createRedirectUri(req),
+        scope: isInstall ? slackInstallAppScopes : undefined
       });
 
       if (!accessToken || !accessToken.token.ok) {
-        res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, "Could not get access token.")));
+        res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, "Could not get access token (Error:", ' ', (accessToken === null || accessToken === void 0 ? void 0 : (_accessToken$token = accessToken.token) === null || _accessToken$token === void 0 ? void 0 : _accessToken$token.error) || 'Unknown', ").", /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("a", {
+          href: `/app/org/${orgLogin || ''}`
+        }, "Back")))));
         return;
       }
 
       const org = await mongoStores.orgs.findByKey(orgId);
 
       if (!org) {
-        res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, "Organization is not installed.")));
+        res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, "Organization is not installed.", /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("a", {
+          href: `/app/org/${orgLogin || ''}`
+        }, "Back")))));
         return;
       } // install slack, not login
 
 
       if (isInstall) {
-        await mongoStores.orgs.partialUpdateOne(org, {
+        if (!((_accessToken$token2 = accessToken.token) !== null && _accessToken$token2 !== void 0 && (_accessToken$token2$t = _accessToken$token2.team) !== null && _accessToken$token2$t !== void 0 && _accessToken$token2$t.id)) {
+          res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, "Invalid token: no team id.", /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("a", {
+            href: `/app/org/${orgLogin || ''}`
+          }, "Back")))));
+          return;
+        }
+
+        const slackTeam = {
+          _id: accessToken.token.team.id,
+          teamName: accessToken.token.team.name,
+          appId: accessToken.token.app_id,
+          installerUserId: accessToken.token.authed_user.id,
+          botUserId: accessToken.token.bot_user_id,
+          botAccessToken: accessToken.token.access_token,
+          scope: accessToken.token.scope ? accessToken.token.scope.split(',') : []
+        };
+        await Promise.all([mongoStores.slackTeams.insertOne(slackTeam), mongoStores.slackTeamInstallations.insertOne({ ...slackTeam,
+          teamId: slackTeam._id,
+          _id: undefined
+        }), mongoStores.orgs.partialUpdateOne(org, {
           $set: {
-            slack: {
-              id: accessToken.token.user_id,
-              accessToken: accessToken.token.access_token,
-              scope: accessToken.token.scope ? accessToken.token.scope.split(',') : [],
-              teamId: accessToken.token.team_id
-            }
+            slackTeamId: slackTeam._id
           }
-        });
+        })]);
         const existingAccountContext = await getExistingAccountContext({
           type: 'Organization',
           id: orgId,
@@ -1879,12 +1904,14 @@ function slackConnect(router, mongoStores) {
       const slackClient = new webApi.WebClient(accessToken.token.access_token);
       const identity = await slackClient.users.identity();
 
-      if (!org.slack && !org.slackToken) {
-        res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, "Organization is not linked to slack. Install it first.")));
+      if (!org.slackTeamId && !org.slackToken) {
+        res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, "Organization is not linked to slack. Install it first.", /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("a", {
+          href: `/app/org/${orgLogin || ''}`
+        }, "Back")))));
         return;
       }
 
-      if (org !== null && org !== void 0 && (_org$slack = org.slack) !== null && _org$slack !== void 0 && _org$slack.teamId && accessToken.token.team_id !== (org === null || org === void 0 ? void 0 : (_org$slack2 = org.slack) === null || _org$slack2 === void 0 ? void 0 : _org$slack2.teamId)) {
+      if (org !== null && org !== void 0 && org.slackTeamId && accessToken.token.team_id !== (org === null || org === void 0 ? void 0 : org.slackTeamId)) {
         res.send(server.renderToStaticMarkup( /*#__PURE__*/React__default.createElement(Layout, null, "Invalid slack team.", ' ', /*#__PURE__*/React__default.createElement("a", {
           href: `/app/slack-connect?orgId=${encodeURIComponent(org._id)}&orgLogin=${encodeURIComponent(org.login)}`
         }, "Retry ?"))));
@@ -4503,7 +4530,9 @@ function init() {
         $lt: new Date(Date.now() - 31104000000)
       }
     });
-  }); // return { connection, prEvents };
+  });
+  const slackTeams = new liwiMongo.MongoStore(connection, 'slackTeams');
+  const slackTeamInstallations = new liwiMongo.MongoStore(connection, 'slackTeamsInstallations'); // return { connection, prEvents };
 
   return {
     connection,
@@ -4512,6 +4541,8 @@ function init() {
     orgs,
     orgMembers,
     orgTeams,
+    slackTeams,
+    slackTeamInstallations,
     slackSentMessages,
     automergeLogs,
     prs

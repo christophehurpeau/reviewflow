@@ -107,6 +107,10 @@ export default function orgSettings(
           return;
         }
 
+        const slackTeam = orgInDb.slackTeamId
+          ? await mongoStores.slackTeams.findByKey(orgInDb.slackTeamId)
+          : undefined;
+
         if (!installation) {
           res.send(
             renderToStaticMarkup(
@@ -156,7 +160,7 @@ export default function orgSettings(
                       : `Custom config: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/${org.login}.ts`}
 
                     <h4 style={{ marginTop: '1rem' }}>Slack Connection</h4>
-                    {!orgInDb.slack && !orgInDb.slackToken ? (
+                    {!slackTeam && !orgInDb.slackToken ? (
                       <>
                         Slack account yet linked ! Install application to get
                         notifications for your reviews.
@@ -177,6 +181,7 @@ export default function orgSettings(
                       </>
                     ) : !orgMember || !orgMember.slack ? (
                       <>
+                        <div>Slack Team: {slackTeam?.teamName}</div>
                         Slack account yet linked ! Sign in to get notifications
                         for your reviews.
                         <br />
@@ -196,9 +201,10 @@ export default function orgSettings(
                         {!orgInDb.slackToken
                           ? null
                           : '⚠ This account use a custom slack application.'}
-                        {orgInDb.slack && (
-                          <div>Slack Team ID: {orgInDb.slack.id}</div>
-                        )}
+                        <div>
+                          Slack Team: {slackTeam?.teamName} (
+                          {orgMember.slack.teamId || slackTeam?._id})
+                        </div>
                         <div>Slack User ID: {orgMember.slack.id}</div>
                       </div>
                     )}

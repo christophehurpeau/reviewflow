@@ -1,10 +1,12 @@
 import { WebClient } from '@slack/web-api';
 import type { Router, Request, Response } from 'express';
+import type { MongoInsertType } from 'liwi-mongo';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { slackOAuth2 } from '../auth/slack';
+import type { SetRequired } from 'type-fest';
+import { slackOAuth2, slackOAuth2Version2 } from '../auth/slack';
 import { getExistingAccountContext } from '../context/accountContext';
-import type { MongoStores } from '../mongo';
+import type { MongoStores, SlackTeam } from '../mongo';
 import Layout from '../views/Layout';
 import { getUser } from './auth';
 
@@ -31,6 +33,8 @@ export default function slackConnect(
   router: Router,
   mongoStores: MongoStores,
 ): void {
+  const slackConnectUserScope = 'identity.basic identity.email identity.avatar';
+
   router.get(
     '/slack-connect',
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -48,7 +52,7 @@ export default function slackConnect(
 
         const org = await mongoStores.orgs.findByKey(orgId);
 
-        if (!org) {
+        if (!org || !org.slackTeamId) {
           res.send(
             renderToStaticMarkup(
               <Layout>Organization is not installed.</Layout>,
@@ -59,9 +63,10 @@ export default function slackConnect(
 
         const redirectUri = slackOAuth2.authorizeURL({
           redirect_uri: createRedirectUri(req),
-          scope: 'identity.basic identity.email identity.avatar',
+          scope: slackConnectUserScope,
           state: JSON.stringify({ orgId, orgLogin }),
-        });
+          team: org.slackTeamId,
+        } as any);
 
         // TODO team_id
         res.redirect(redirectUri);
@@ -70,6 +75,10 @@ export default function slackConnect(
       }
     },
   );
+
+  // see url in https://app.slack.com/app-settings/T01495JH7RS/A023QGDUDQX/distribute for scopes
+  const slackInstallAppScopes =
+    'chat:write,im:history,im:read,im:write,mpim:history,mpim:read,mpim:write,reactions:read,reactions:write,team:read,users:read,users:read.email,users:write';
 
   router.get(
     '/slack-install',
@@ -86,12 +95,9 @@ export default function slackConnect(
           return;
         }
 
-        const redirectUri = slackOAuth2.authorizeURL({
+        const redirectUri = slackOAuth2Version2.authorizeURL({
           redirect_uri: createRedirectUri(req),
-          // see url in https://app.slack.com/app-settings/T01495JH7RS/A023QGDUDQX/distribute for scopes
-          //=chat:write,im:history,im:read,mpim:read,im:write,mpim:history,mpim:write,reactions:read,reactions:write,team:read,users:read,users:read.email,users:write&user_scope=
-          scope:
-            'chat:write im:history im:read im:write mpim:history mpim:read mpim:write reactions:read reactions:write team:read users:read users:read.email users:write',
+          scope: slackInstallAppScopes,
           state: JSON.stringify({ orgId, orgLogin, isInstall: true }),
         });
 
@@ -127,14 +133,26 @@ export default function slackConnect(
         const state: string = req.query.state as string;
         const { orgId, orgLogin, isInstall } = parseJSONSafe(state) || {};
 
-        const accessToken = await slackOAuth2.getToken({
+        const accessToken = await (isInstall
+          ? slackOAuth2Version2
+          : slackOAuth2
+        ).getToken({
           code,
           redirect_uri: createRedirectUri(req),
+          scope: isInstall ? slackInstallAppScopes : undefined,
         });
 
         if (!accessToken || !accessToken.token.ok) {
           res.send(
-            renderToStaticMarkup(<Layout>Could not get access token.</Layout>),
+            renderToStaticMarkup(
+              <Layout>
+                Could not get access token (Error:{' '}
+                {accessToken?.token?.error || 'Unknown'}).
+                <div>
+                  <a href={`/app/org/${orgLogin || ''}`}>Back</a>
+                </div>
+              </Layout>,
+            ),
           );
           return;
         }
@@ -144,7 +162,12 @@ export default function slackConnect(
         if (!org) {
           res.send(
             renderToStaticMarkup(
-              <Layout>Organization is not installed.</Layout>,
+              <Layout>
+                Organization is not installed.
+                <div>
+                  <a href={`/app/org/${orgLogin || ''}`}>Back</a>
+                </div>
+              </Layout>,
             ),
           );
           return;
@@ -152,18 +175,45 @@ export default function slackConnect(
 
         // install slack, not login
         if (isInstall) {
-          await mongoStores.orgs.partialUpdateOne(org, {
-            $set: {
-              slack: {
-                id: accessToken.token.user_id,
-                accessToken: accessToken.token.access_token,
-                scope: accessToken.token.scope
-                  ? accessToken.token.scope.split(',')
-                  : [],
-                teamId: accessToken.token.team_id,
+          if (!accessToken.token?.team?.id) {
+            res.send(
+              renderToStaticMarkup(
+                <Layout>
+                  Invalid token: no team id.
+                  <div>
+                    <a href={`/app/org/${orgLogin || ''}`}>Back</a>
+                  </div>
+                </Layout>,
+              ),
+            );
+            return;
+          }
+
+          const slackTeam: SetRequired<MongoInsertType<SlackTeam>, '_id'> = {
+            _id: accessToken.token.team.id,
+            teamName: accessToken.token.team.name,
+            appId: accessToken.token.app_id,
+            installerUserId: accessToken.token.authed_user.id,
+            botUserId: accessToken.token.bot_user_id,
+            botAccessToken: accessToken.token.access_token,
+            scope: accessToken.token.scope
+              ? accessToken.token.scope.split(',')
+              : [],
+          };
+
+          await Promise.all([
+            mongoStores.slackTeams.insertOne(slackTeam),
+            mongoStores.slackTeamInstallations.insertOne({
+              ...slackTeam,
+              teamId: slackTeam._id,
+              _id: undefined,
+            }),
+            mongoStores.orgs.partialUpdateOne(org, {
+              $set: {
+                slackTeamId: slackTeam._id,
               },
-            },
-          });
+            }),
+          ]);
 
           const existingAccountContext = await getExistingAccountContext({
             type: 'Organization',
@@ -182,11 +232,14 @@ export default function slackConnect(
         const slackClient = new WebClient(accessToken.token.access_token);
         const identity = await slackClient.users.identity();
 
-        if (!org.slack && !org.slackToken) {
+        if (!org.slackTeamId && !org.slackToken) {
           res.send(
             renderToStaticMarkup(
               <Layout>
                 Organization is not linked to slack. Install it first.
+                <div>
+                  <a href={`/app/org/${orgLogin || ''}`}>Back</a>
+                </div>
               </Layout>,
             ),
           );
@@ -194,8 +247,8 @@ export default function slackConnect(
         }
 
         if (
-          org?.slack?.teamId &&
-          accessToken.token.team_id !== org?.slack?.teamId
+          org?.slackTeamId &&
+          accessToken.token.team_id !== org?.slackTeamId
         ) {
           res.send(
             renderToStaticMarkup(

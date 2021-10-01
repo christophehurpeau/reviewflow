@@ -3,7 +3,7 @@ import type { Context } from 'probot';
 import type { Config } from '../../accountConfigs';
 import type { MessageCategory } from '../../dm/MessageCategory';
 import { getUserDmSettings } from '../../dm/getUserDmSettings';
-import type { Org, User } from '../../mongo';
+import type { Org, User, MongoStores } from '../../mongo';
 import type { AppContext } from '../AppContext';
 import type { AccountInfo } from '../getOrCreateAccount';
 import { getKeys } from '../utils';
@@ -13,10 +13,18 @@ import { voidTeamSlack } from './voidTeamSlack';
 
 export type { TeamSlack };
 
-function getSlackAccountFromAccount(account: Org | User): string | undefined {
+async function getSlackAccountFromAccount(
+  mongoStores: MongoStores,
+  account: Org | User,
+): Promise<string | undefined> {
   // This is first for legacy org using their own slackToken and slack app. Keep using them.
   if ('slackToken' in account) return account.slackToken;
-  if ('slack' in account) return account.slack?.accessToken;
+  if ('slackTeamId' in account) {
+    const slackTeam = await mongoStores.slackTeams.findByKey(
+      account.slackTeamId,
+    );
+    return slackTeam?.botAccessToken;
+  }
   return undefined;
 }
 
@@ -35,7 +43,7 @@ export const initTeamSlack = async <GroupNames extends string>(
   config: Config<GroupNames>,
   account: Org | User,
 ): Promise<TeamSlack> => {
-  const slackToken = getSlackAccountFromAccount(account);
+  const slackToken = await getSlackAccountFromAccount(mongoStores, account);
 
   if (!slackToken) {
     return voidTeamSlack();
@@ -118,7 +126,12 @@ export const initTeamSlack = async <GroupNames extends string>(
   });
 
   const getSlackClient = (teamId?: string): WebClient | undefined => {
-    if (!teamId || !('slack' in account) || !account.slack?.teamId) {
+    if (
+      !teamId ||
+      !('slackTeamId' in account) ||
+      !account.slackTeamId ||
+      account.slackTeamId === teamId
+    ) {
       return orgSlackClient;
     }
 

@@ -46,18 +46,12 @@ export interface User extends BaseAccount {
   type: string;
 }
 
-interface OrgSlack {
-  id: string;
-  accessToken?: string;
-  scope?: string[];
-  teamId?: string;
-}
 interface OrgConfig {
   canUseExternalSlack?: boolean;
 }
 
 export interface Org extends BaseAccount {
-  slack?: OrgSlack;
+  slackTeamId?: string;
   /** @deprecated */
   slackToken?: string;
   config: OrgConfig;
@@ -89,6 +83,20 @@ export interface OrgMember extends MongoBaseModel {
   user: AccountEmbedWithoutType;
   slack?: OrgMemberSlack;
   teams: OrgTeamEmbed[];
+}
+
+export interface SlackTeam extends MongoBaseModel {
+  /** slack app installed (should be the same everywhere, but could be useful later) */
+  appId: string;
+  installerUserId: string;
+  botUserId: string;
+  botAccessToken?: string;
+  scope?: string[];
+  teamName?: string;
+}
+
+export interface SlackTeamInstallation extends SlackTeam {
+  teamId: SlackTeam['_id'];
 }
 
 export type SlackMessageType =
@@ -142,6 +150,8 @@ export interface MongoStores {
   orgs: MongoStore<Org>;
   orgMembers: MongoStore<OrgMember>;
   orgTeams: MongoStore<OrgTeam>;
+  slackTeams: MongoStore<SlackTeam>;
+  slackTeamInstallations: MongoStore<SlackTeamInstallation>;
   slackSentMessages: MongoStore<SlackSentMessage>;
   automergeLogs: MongoStore<AutomergeLog>;
   prs: MongoStore<ReviewflowPr>;
@@ -254,6 +264,12 @@ export default function init(): MongoStores {
     });
   });
 
+  const slackTeams = new MongoStore<SlackTeam>(connection, 'slackTeams');
+  const slackTeamInstallations = new MongoStore<SlackTeamInstallation>(
+    connection,
+    'slackTeamsInstallations',
+  );
+
   // return { connection, prEvents };
   return {
     connection,
@@ -262,6 +278,8 @@ export default function init(): MongoStores {
     orgs,
     orgMembers,
     orgTeams,
+    slackTeams,
+    slackTeamInstallations,
     slackSentMessages,
     automergeLogs,
     prs,

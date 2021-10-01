@@ -23,8 +23,8 @@ export const createSlackOAuth2 = ({
     client: { id, secret },
     auth: {
       tokenHost: 'https://slack.com',
-      tokenPath: '/api/oauth.access',
-      authorizePath: `/oauth/${apiVersion}authorize`,
+      tokenPath: `/api/oauth.${apiVersion ? `${apiVersion}.` : ''}access`,
+      authorizePath: `/oauth/${apiVersion ? `${apiVersion}/` : ''}authorize`,
     },
   });
 
@@ -33,8 +33,10 @@ export const slackOAuth2 = createSlackOAuth2({
   secret: process.env.SLACK_CLIENT_SECRET,
 });
 
+// only for apps installation
+// doc: https://api.slack.com/authentication/oauth-v2
 export const slackOAuth2Version2 = createSlackOAuth2({
   id: process.env.SLACK_CLIENT_ID,
   secret: process.env.SLACK_CLIENT_SECRET,
-  apiVersion: 'v2/',
+  apiVersion: 'v2',
 });
