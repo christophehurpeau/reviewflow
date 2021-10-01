@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.84.1](https://github.com/christophehurpeau/reviewflow/compare/v1.84.0...v1.84.1) (2021-10-01)
+
+
+### Bug Fixes
+
+* update slack home with slackTeams collection ([d6f57d6](https://github.com/christophehurpeau/reviewflow/commit/d6f57d605878c6c018f6a101cffc7cba6ca7981f))
+
 ## [1.84.0](https://github.com/christophehurpeau/reviewflow/compare/v1.83.0...v1.84.0) (2021-10-01)
 
 
