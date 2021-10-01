@@ -535,7 +535,7 @@ const config$1 = {
     },
     frontends: {
       githubTeamName: 'frontend',
-      logins: ['christophehurpeau', 'HugoGarrido', 'LentnerStefan', 'CorentinAndre', 'Mxime', 'vlbr', 'budet-b', 'mdcarter', 'ChibiBlasphem', 'PSniezak', 'aenario'],
+      logins: ['christophehurpeau', 'HugoGarrido', 'LentnerStefan', 'CorentinAndre', 'Mxime', 'vlbr', 'budet-b', 'mdcarter', 'ChibiBlasphem', 'PSniezak', 'aenario', 'Goldiggy'],
       labels: ['teams/frontend']
     }
   },
@@ -996,7 +996,8 @@ const initTeamSlack = async ({
 
   if (!slackToken) {
     return voidTeamSlack();
-  }
+  } // eslint-disable-next-line unicorn/no-array-reduce, unicorn/prefer-object-from-entries -- this will be removed soon
+
 
   const githubLoginToSlackEmail = getKeys(config.groups).reduce((acc, groupName) => {
     Object.assign(acc, config.groups[groupName]);
@@ -1439,7 +1440,6 @@ const obtainAccountContext = (appContext, context, config, accountInfo) => {
   });
 };
 
-/* eslint-disable unicorn/no-nested-ternary */
 const dmMessages = {
   'pr-lifecycle': 'Your PR is closed, merged, reopened',
   'pr-lifecycle-follow': "Someone closed, merged, reopened a PR you're reviewing",
@@ -2128,14 +2128,15 @@ const optionsDescriptions = [{
 }];
 
 const parseOptions = (content, defaultOptions) => {
-  return optionsRegexps.reduce((acc, {
+  const options = {};
+  optionsRegexps.forEach(({
     key,
     regexp
   }) => {
     const match = regexp.exec(content);
-    acc[key] = !match ? defaultOptions[key] || false : match[1] === 'x' || match[1] === 'X';
-    return acc;
-  }, {});
+    options[key] = !match ? defaultOptions[key] || false : match[1] === 'x' || match[1] === 'X';
+  });
+  return options;
 };
 const parseCommitNotes = content => {
   const commitNotes = content.replace(/^.*#### Commits Notes:(.*)#### Options:.*$/s, '$1');
@@ -3049,7 +3050,7 @@ const updateReviewStatus = async (pullRequest, context, repoContext, reviewGroup
   } // if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return;
 
 
-  if (toAdd.size !== 0 || toDelete.size !== 0) {
+  if (toAdd.size > 0 || toDelete.size > 0) {
     if (toDelete.size === 0 || toDelete.size < 4) {
       context.log.debug({
         reviewGroup,
@@ -3059,15 +3060,15 @@ const updateReviewStatus = async (pullRequest, context, repoContext, reviewGroup
         toDeleteNames: [...toDeleteNames]
       }, 'updateReviewStatus');
 
-      if (toAdd.size !== 0) {
+      if (toAdd.size > 0) {
         const result = await context.octokit.issues.addLabels(context.issue({
           labels: [...toAddNames]
         }));
         prLabels = result.data;
       }
 
-      if (toDelete.size !== 0) {
-        for (const toDeleteName of [...toDeleteNames]) {
+      if (toDelete.size > 0) {
+        for (const toDeleteName of toDeleteNames) {
           try {
             const result = await context.octokit.issues.removeLabel(context.issue({
               name: toDeleteName
@@ -4567,7 +4568,7 @@ const createSlackHomeWorker = mongoStores => {
         }
       }, {
         type: 'divider'
-      }, ...results.items.map(pr => {
+      }, ...results.items.flatMap(pr => {
         const repoName = pr.repository_url.slice(29);
         const prFullName = `${repoName}#${pr.number}`;
         return [{
@@ -4591,7 +4592,7 @@ const createSlackHomeWorker = mongoStores => {
             text: `${pr.user.login}`
           }]
         }];
-      }).flat(), {
+      }), {
         type: 'context',
         elements: [{
           type: 'image',
