@@ -213,9 +213,22 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
   const scheduleUpdateOrg = async (
     github: Octokit,
     org: Org,
-    slackClient = new WebClient(org.slackToken),
   ): Promise<void> => {
-    const cursor = await mongoStores.orgMembers.cursor();
+    if (!org.slackTeamId || !org.slackToken) return;
+    const [slackClient, cursor] = await Promise.all([
+      org.slackToken
+        ? new WebClient(org.slackToken)
+        : mongoStores.slackTeams
+            .findByKey(org.slackTeamId)
+            .then((slackTeam) => {
+              if (!slackTeam || !slackTeam.botAccessToken) return undefined;
+              return new WebClient(slackTeam.botAccessToken);
+            }),
+      mongoStores.orgMembers.cursor(),
+    ]);
+
+    if (!slackClient) return;
+
     cursor.forEach((member) => {
       scheduleUpdateMember(github, slackClient, member);
     });
@@ -226,7 +239,7 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
   ): Promise<void> => {
     const cursor = await mongoStores.orgs.cursor();
     cursor.forEach(async (org) => {
-      if (!org.slackToken || !org.installationId) return;
+      if (!(org.slackToken || org.slackTeamId) || !org.installationId) return;
       const github = await auth(org.installationId);
       await scheduleUpdateOrg(github, org);
     });

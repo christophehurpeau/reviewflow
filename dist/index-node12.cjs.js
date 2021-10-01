@@ -18,7 +18,7 @@ const slackifyMarkdown = require('slackify-markdown');
 const parse$1 = require('@commitlint/parse');
 const liwiMongo = require('liwi-mongo');
 
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e['default'] : e; }
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e["default"] : e; }
 
 const cookieParser__default = /*#__PURE__*/_interopDefaultLegacy(cookieParser);
 const React__default = /*#__PURE__*/_interopDefaultLegacy(React);
