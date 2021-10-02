@@ -4518,10 +4518,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"emoji-regex@npm:9.2.2, emoji-regex@npm:^9.0.0":
-  version: 9.2.2
-  resolution: "emoji-regex@npm:9.2.2"
-  checksum: 8487182da74aabd810ac6d6f1994111dfc0e331b01271ae01ec1eb0ad7b5ecc2bbbbd2f053c05cb55a1ac30449527d819bbfbf0e3de1023db308cbcb47f86601
+"emoji-regex@npm:10.0.0":
+  version: 10.0.0
+  resolution: "emoji-regex@npm:10.0.0"
+  checksum: 9a2e0ad35b84d8ce92777126d122196ff319f64de596e0ca8560298f94eec64b9be26f5b799bb47e2ad3e8791691817f3aec4e3c507e58d5b94a6adeea271921
   languageName: node
   linkType: hard
 
@@ -4536,6 +4536,13 @@ __metadata:
   version: 8.0.0
   resolution: "emoji-regex@npm:8.0.0"
   checksum: d4c5c39d5a9868b5fa152f00cada8a936868fd3367f33f71be515ecee4c803132d11b31a6222b2571b1e5f7e13890156a94880345594d0ce7e3c9895f560f192
+  languageName: node
+  linkType: hard
+
+"emoji-regex@npm:^9.0.0":
+  version: 9.2.2
+  resolution: "emoji-regex@npm:9.2.2"
+  checksum: 8487182da74aabd810ac6d6f1994111dfc0e331b01271ae01ec1eb0ad7b5ecc2bbbbd2f053c05cb55a1ac30449527d819bbfbf0e3de1023db308cbcb47f86601
   languageName: node
   linkType: hard
 
@@ -9981,7 +9988,7 @@ resolve@^2.0.0-next.3:
     check-package-dependencies: 1.2.7
     cookie-parser: 1.4.5
     dotenv: 8.6.0
-    emoji-regex: 9.2.2
+    emoji-regex: 10.0.0
     eslint: 7.32.0
     eslint-import-resolver-node: 0.3.6
     eslint-plugin-import: 2.24.2
