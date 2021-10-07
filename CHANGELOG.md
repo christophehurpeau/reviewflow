@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.85.0](https://github.com/christophehurpeau/reviewflow/compare/v1.84.1...v1.85.0) (2021-10-07)
+
+
+### Features
+
+* add external-bam team to dev group ([6dbbf1f](https://github.com/christophehurpeau/reviewflow/commit/6dbbf1f4bfe961c608f4a179b067fef89da3fbe8))
+
 ### [1.84.1](https://github.com/christophehurpeau/reviewflow/compare/v1.84.0...v1.84.1) (2021-10-01)
 
 
