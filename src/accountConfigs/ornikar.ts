@@ -132,7 +132,14 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
   },
 
   groupsGithubTeams: {
-    dev: ['ops', 'dev', 'backend', 'frontend', 'frontend-architects'],
+    dev: [
+      'ops',
+      'dev',
+      'backend',
+      'frontend',
+      'frontend-architects',
+      'external-bam',
+    ],
     design: ['design'],
   },
 
