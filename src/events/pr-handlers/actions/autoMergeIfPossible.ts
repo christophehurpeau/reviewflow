@@ -11,8 +11,34 @@ import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { areCommitsAllMadeByBots } from '../utils/isBotUser';
 import { updateBranch } from './updateBranch';
 import { parseBody } from './utils/body/parseBody';
+import type { ParsedBody } from './utils/body/parseBody';
+import type { Options } from './utils/body/prOptions';
 import hasLabelInPR from './utils/hasLabelInPR';
 import { readPullRequestCommits } from './utils/readPullRequestCommits';
+
+interface CreateCommitMessageOptions {
+  pullRequest: PullRequestFromRestEndpoint;
+  parsedBody: ParsedBody;
+  options: Options;
+}
+
+export const createCommitMessage = ({
+  pullRequest,
+  parsedBody,
+  options,
+}: CreateCommitMessageOptions): [string, string] => {
+  return [
+    `${pullRequest.title}${options.autoMergeWithSkipCi ? ' [skip ci]' : ''} (#${
+      pullRequest.number
+    })`,
+    parsedBody?.commitNotes
+      ? parsedBody.commitNotes
+          .replace(/^- (.*)\s*\([^)]+\)$/gm, '$1')
+          .replace(/^Breaking Changes:\n/, 'BREAKING CHANGE: ')
+          .replace(/\n/g, '; ')
+      : '',
+  ];
+};
 
 const hasFailedStatusOrChecks = async (
   pr: PullRequestData,
@@ -334,20 +360,19 @@ export const autoMergeIfPossible = async (
     );
     const options = parsedBody?.options || repoContext.config.prDefaultOptions;
 
+    const [commitTitle, commitMessage] = createCommitMessage({
+      pullRequest,
+      parsedBody,
+      options,
+    });
+
     const mergeResult = await context.octokit.pulls.merge({
       merge_method: 'squash',
       owner: pullRequest.head.repo.owner.login,
       repo: pullRequest.head.repo.name,
       pull_number: pullRequest.number,
-      commit_title: `${pullRequest.title}${
-        options.autoMergeWithSkipCi ? ' [skip ci]' : ''
-      } (#${pullRequest.number})`,
-      commit_message: parsedBody?.commitNotes
-        ? parsedBody?.commitNotes
-            .replace(/^- (.*)\s*\([^)]+\)$/gm, '$1')
-            .replace(/^Breaking Changes:\n/, 'BREAKING CHANGE: ')
-            .replace(/\n/g, '; ')
-        : '',
+      commit_title: commitTitle,
+      commit_message: commitMessage,
     });
     context.log.debug(mergeResult.data, 'merge result:');
     repoContext.removePrFromAutomergeQueue(

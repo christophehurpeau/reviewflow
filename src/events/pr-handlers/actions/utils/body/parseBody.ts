@@ -32,7 +32,7 @@ export const parseCommitNotes = (content: string): string => {
   }
 };
 
-interface ParsedBody {
+export interface ParsedBody {
   options: Options;
   commitNotes: string;
 }
