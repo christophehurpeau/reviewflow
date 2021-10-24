@@ -6,6 +6,7 @@ export const checkIfUserIsBot = (
   user: { login: string; type: string },
 ): boolean => {
   if (user.type === 'Bot') return true;
+  if (user.login.endsWith('-bot')) return true;
   if (repoContext.config.botUsers) {
     return repoContext.config.botUsers.includes(user.login);
   }
