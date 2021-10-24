@@ -58,7 +58,7 @@ export const readCommitsAndUpdateInfos = async <
               (note) => `- ${note.text.replace('\n', ' ')} (${commit.sha})`,
             ),
           )
-          .join('')}`,
+          .join('\n')}`,
   );
 
   await Promise.all([
