@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.85.1](https://github.com/christophehurpeau/reviewflow/compare/v1.85.0...v1.85.1) (2021-10-24)
+
+
+### Bug Fixes
+
+* missing new line in multiple breaking changes ([d589ebc](https://github.com/christophehurpeau/reviewflow/commit/d589ebc7b1d14f45148cebec4858b97518eeef8f))
+
 ## [1.85.0](https://github.com/christophehurpeau/reviewflow/compare/v1.84.1...v1.85.0) (2021-10-07)
 
 
