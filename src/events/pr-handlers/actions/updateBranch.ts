@@ -55,7 +55,9 @@ export const updateBranch = async (
         issue_number: pullRequest.number,
         body: `${
           login ? `@${login} ` : ''
-        }Could not update branch (unknown error).`,
+        }Could not update branch (unknown error${
+          result.status ? `, status = ${result.status}` : ''
+        }).`,
       }),
     );
     return false;
