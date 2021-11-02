@@ -46,7 +46,7 @@ interface UpdatedBodyWithOptions {
 const getInfosReplacement = (infos?: StatusInfo[]): string => {
   if (!infos) return '$1$2';
   return infos.length > 0
-    ? `#### Infos:\n\n${toMarkdownInfos(infos)}\n\n$2`
+    ? `### Infos:\n\n${toMarkdownInfos(infos)}\n\n$2`
     : '$2';
 };
 
@@ -67,11 +67,11 @@ const internalUpdateBodyOptionsAndInfos = (
 ): string => {
   const infosAndCommitNotesParagraph = body.replace(
     // eslint-disable-next-line unicorn/no-unsafe-regex
-    /^\s*(?:(#### Infos:.*)?(#### Commits Notes:.*)?#### Options:)?.*$/s,
+    /^\s*(?:(####? Infos:.*)?(####? Commits Notes:.*)?####? Options:)?.*$/s,
     getInfosReplacement(infos),
   );
 
-  return `${infosAndCommitNotesParagraph}#### Options:\n${toMarkdownOptions(
+  return `${infosAndCommitNotesParagraph}### Options:\n${toMarkdownOptions(
     repoLink,
     labelsConfig,
     options,
@@ -122,7 +122,7 @@ export const updateCommentBodyInfos = (
     // *  - zero or more
     // *? - zero or more (non-greedy)
     // eslint-disable-next-line unicorn/no-unsafe-regex
-    /^\s*(?:(#### Infos:.*?)?(#### Commits Notes:.*?)?(#### Options:.*?)?)?$/s,
+    /^\s*(?:(####? Infos:.*?)?(####? Commits Notes:.*?)?(####? Options:.*?)?)?$/s,
     `${getInfosReplacement(infos)}$3`,
   );
 };
@@ -133,8 +133,8 @@ export const updateCommentBodyCommitsNotes = (
 ): string => {
   return commentBody.replace(
     // eslint-disable-next-line unicorn/no-unsafe-regex
-    /(?:#### Commits Notes:.*?)?(#### Options:)/s,
-    !commitNotes ? '$1' : `#### Commits Notes:\n\n${commitNotes}\n\n$1`,
+    /(?:####? Commits Notes:.*?)?(####? Options:)/s,
+    !commitNotes ? '$1' : `### Commits Notes:\n\n${commitNotes}\n\n$1`,
   );
 };
 

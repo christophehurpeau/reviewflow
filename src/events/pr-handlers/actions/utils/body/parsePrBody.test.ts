@@ -31,8 +31,8 @@ describe('simple', () => {
 
     const parsed = parsePrBodyWithOptions(
       simple.replace(
-        '#### Options:',
-        '#### Commits Notes:\n\nSome commits Notes\n\n#### Options:',
+        '### Options:',
+        '### Commits Notes:\n\nSome commits Notes\n\n### Options:',
       ),
       defaultOptions,
     );

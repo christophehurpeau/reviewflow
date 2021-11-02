@@ -107,8 +107,8 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
           ),
         ).toEqual(
           initialAfterEditSimpleWithInfos.replace(
-            '#### Options:',
-            '#### Commits Notes:\n\nSome commits Notes\n\n#### Options:',
+            '### Options:',
+            '### Commits Notes:\n\nSome commits Notes\n\n### Options:',
           ),
         );
       });
@@ -117,8 +117,8 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
         expect(
           updateCommentBodyCommitsNotes(
             initialAfterEditSimpleWithInfos.replace(
-              '#### Options:',
-              '#### Commits Notes:\n\nSome commits Notes\n\n#### Options:',
+              '### Options:',
+              '### Commits Notes:\n\nSome commits Notes\n\n### Options:',
             ),
             '',
           ),
@@ -138,8 +138,8 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
           ]),
         ).toEqual(
           initialAfterEditSimple.replace(
-            '#### Options:',
-            '#### Infos:\n\n[Test](http://test.com)\n\n#### Options:',
+            '### Options:',
+            '### Infos:\n\n[Test](http://test.com)\n\n### Options:',
           ),
         );
       });
@@ -148,8 +148,8 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
         expect(
           updateCommentBodyInfos(
             initialAfterEditSimple.replace(
-              '#### Options:',
-              '#### Infos:\n\n[Test](http://test.com)\n\n#### Options:',
+              '### Options:',
+              '### Infos:\n\n[Test](http://test.com)\n\n### Options:',
             ),
             [
               {
@@ -163,8 +163,8 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
           ),
         ).toEqual(
           initialAfterEditSimple.replace(
-            '#### Options:',
-            '#### Infos:\n\n[Test Updated](http://test.com)\n\n#### Options:',
+            '### Options:',
+            '### Infos:\n\n[Test Updated](http://test.com)\n\n### Options:',
           ),
         );
       });
@@ -173,8 +173,8 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
         expect(
           updateCommentBodyInfos(
             initialAfterEditSimple.replace(
-              '#### Options:',
-              '#### Infos:\n\n[Test](http://test.com)\n\n#### Options:',
+              '### Options:',
+              '### Infos:\n\n[Test](http://test.com)\n\n### Options:',
             ),
             [],
           ),

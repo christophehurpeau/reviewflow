@@ -1,5 +1,5 @@
 export default `
-#### Options:
+### Options:
 - [ ] <!-- reviewflow-featureBranch -->This PR is a feature branch
 - [ ] <!-- reviewflow-autoMergeWithSkipCi -->Add \`[skip ci]\` on merge commit
 - [ ] <!-- reviewflow-autoMerge -->Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless "Update branch" triggers)

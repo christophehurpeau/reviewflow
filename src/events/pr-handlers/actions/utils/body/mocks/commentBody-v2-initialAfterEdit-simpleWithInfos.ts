@@ -1,7 +1,7 @@
 import simpleWithoutInfos from './commentBody-v2-initialAfterEdit-simple';
 
 export default `
-#### Infos:
+### Infos:
 Some informations here, like links.
 
 ${simpleWithoutInfos}

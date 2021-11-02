@@ -21,7 +21,7 @@ export const parseOptions = (
 
 export const parseCommitNotes = (content: string): string => {
   const commitNotes = content.replace(
-    /^.*#### Commits Notes:(.*)#### Options:.*$/s,
+    /^.*####? Commits Notes:(.*)####? Options:.*$/s,
     '$1',
   );
 
