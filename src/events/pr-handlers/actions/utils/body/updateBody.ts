@@ -43,7 +43,7 @@ interface UpdatedBodyWithOptions {
   options?: Options;
 }
 
-const getReplacement = (infos?: StatusInfo[]): string => {
+const getInfosReplacement = (infos?: StatusInfo[]): string => {
   if (!infos) return '$1$2';
   return infos.length > 0
     ? `#### Infos:\n\n${toMarkdownInfos(infos)}\n\n$2`
@@ -68,7 +68,7 @@ const internalUpdateBodyOptionsAndInfos = (
   const infosAndCommitNotesParagraph = body.replace(
     // eslint-disable-next-line unicorn/no-unsafe-regex
     /^\s*(?:(#### Infos:.*)?(#### Commits Notes:.*)?#### Options:)?.*$/s,
-    getReplacement(infos),
+    getInfosReplacement(infos),
   );
 
   return `${infosAndCommitNotesParagraph}#### Options:\n${toMarkdownOptions(
@@ -123,7 +123,7 @@ export const updateCommentBodyInfos = (
     // *? - zero or more (non-greedy)
     // eslint-disable-next-line unicorn/no-unsafe-regex
     /^\s*(?:(#### Infos:.*?)?(#### Commits Notes:.*?)?(#### Options:.*?)?)?$/s,
-    `${getReplacement(infos)}$3`,
+    `${getInfosReplacement(infos)}$3`,
   );
 };
 
