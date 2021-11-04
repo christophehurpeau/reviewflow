@@ -832,14 +832,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/parse@npm:12.1.4":
-  version: 12.1.4
-  resolution: "@commitlint/parse@npm:12.1.4"
+"@commitlint/parse@npm:14.0.0":
+  version: 14.0.0
+  resolution: "@commitlint/parse@npm:14.0.0"
   dependencies:
-    "@commitlint/types": ^12.1.4
+    "@commitlint/types": ^14.0.0
     conventional-changelog-angular: ^5.0.11
-    conventional-commits-parser: ^3.0.0
-  checksum: 0ad2090d05d8135b7b81f2f2032188d5aea56bf96e841c683dc440c1c5bf561b4d544447412842648d94e8b9cf49e2198440f64504d20750737455fe240afaee
+    conventional-commits-parser: ^3.2.2
+  checksum: 64429bc59e5e3109c3e237ef9f8475c4ba272760b87e2f686257adf849709ba151789a1bcdd31d7edb0f689fa4688e2bf1a4304f110962d26cad1ac920cb45f4
   languageName: node
   linkType: hard
 
@@ -907,21 +907,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/types@npm:^12.1.4":
-  version: 12.1.4
-  resolution: "@commitlint/types@npm:12.1.4"
-  dependencies:
-    chalk: ^4.0.0
-  checksum: 3f46760a2f9b8006a6e8c23eeabaf0c95ebc9f314ce88fc73cf9dbe208ba2dbfd8386349b7ff0caff95a84ec02260dbfdbcb67d5fadc781b1908ba5907019329
-  languageName: node
-  linkType: hard
-
 "@commitlint/types@npm:^13.1.0":
   version: 13.1.0
   resolution: "@commitlint/types@npm:13.1.0"
   dependencies:
     chalk: ^4.0.0
   checksum: 423ce7af4db4a0e83cd3ad360b7a435915198c0ee6a353975e38761fee60a03a71110c3abe332bd52b0caa0219f5ca8a2ccdba574c0031b838a6ac8994d11623
+  languageName: node
+  linkType: hard
+
+"@commitlint/types@npm:^14.0.0":
+  version: 14.0.0
+  resolution: "@commitlint/types@npm:14.0.0"
+  dependencies:
+    chalk: ^4.0.0
+  checksum: e9164cfdb0e24f8427e1633fe5bc1866fb71b0f626922d8c5c8233a357faf55fd840cf7cd74f86d5947c84e39b57c214c146fd2c17c4f75e551a4ff6e8d22fa7
   languageName: node
   linkType: hard
 
@@ -4034,20 +4034,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"conventional-commits-parser@npm:^3.0.0, conventional-commits-parser@npm:^3.2.0":
-  version: 3.2.0
-  resolution: "conventional-commits-parser@npm:3.2.0"
+"conventional-commits-parser@npm:^3.0.0, conventional-commits-parser@npm:^3.2.0, conventional-commits-parser@npm:^3.2.2":
+  version: 3.2.3
+  resolution: "conventional-commits-parser@npm:3.2.3"
   dependencies:
     JSONStream: ^1.0.4
     is-text-path: ^1.0.1
     lodash: ^4.17.15
     meow: ^8.0.0
-    split2: ^2.0.0
+    split2: ^3.0.0
     through2: ^4.0.0
-    trim-off-newlines: ^1.0.0
   bin:
     conventional-commits-parser: cli.js
-  checksum: 244794da52cf086944a1a527c665629bb2b6c55ce3089c1b6c4c3a0df829ed749d923df78e4f4c8a79bea12c0d62b1ee51d7faa31c9a74eda12767ce1ed774ed
+  checksum: 0f57b5cb7cb359eb49e6807cfd82b27cbe9ac30ec580b20ad7e79575561183110532a6c2e6328ce6c4cd05c01458b9bb781f1f6653b14560f7c509b87b0e9ac7
   languageName: node
   linkType: hard
 
@@ -9959,7 +9958,7 @@ resolve@^2.0.0-next.3:
   dependencies:
     "@babel/core": 7.15.5
     "@babel/preset-react": 7.14.5
-    "@commitlint/parse": 12.1.4
+    "@commitlint/parse": 14.0.0
     "@octokit/core": 3.4.0
     "@octokit/rest": 18.5.3
     "@octokit/webhooks": 7.21.0
@@ -10453,15 +10452,6 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"split2@npm:^2.0.0":
-  version: 2.2.0
-  resolution: "split2@npm:2.2.0"
-  dependencies:
-    through2: ^2.0.2
-  checksum: 06a9fe364f1c37098539e8d9b460c8c2e00320600a5e040dd3fa006f6bdabbbe6ee983568a62a585f41862c61b9672f59b93ef0accf4add346c716edcd6d21b7
-  languageName: node
-  linkType: hard
-
 "split2@npm:^3.0.0, split2@npm:^3.1.1, split2@npm:^3.2.2":
   version: 3.2.2
   resolution: "split2@npm:3.2.2"
@@ -10906,7 +10896,7 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"through2@npm:^2.0.0, through2@npm:^2.0.2":
+"through2@npm:^2.0.0":
   version: 2.0.5
   resolution: "through2@npm:2.0.5"
   dependencies:
@@ -11000,13 +10990,6 @@ resolve@^2.0.0-next.3:
   version: 3.0.0
   resolution: "trim-newlines@npm:3.0.0"
   checksum: ad99b771e7e6fc785cfdd60f3eeb794a6f2f230dd291987107974abd0c95a051d7cf3b6d45b542a59bfe67eb680c5b259ec19741e6fdfdbee0ab783ab8861585
-  languageName: node
-  linkType: hard
-
-"trim-off-newlines@npm:^1.0.0":
-  version: 1.0.1
-  resolution: "trim-off-newlines@npm:1.0.1"
-  checksum: ca644908cace3d91b4c5b0fee0224640fed34a4503583e542db3f2dbec95246f2dc0f1bdfc5169e95f244f2613c0256ccc0c594ebe678fd9afdd9c5cf424562f
   languageName: node
   linkType: hard
 
