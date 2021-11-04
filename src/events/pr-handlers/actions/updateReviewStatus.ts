@@ -139,7 +139,7 @@ export const updateReviewStatus = async <
               }),
             );
             prLabels = result.data;
-          } catch (err) {
+          } catch (err: any) {
             context.log.warn(
               {
                 err: err?.message,
