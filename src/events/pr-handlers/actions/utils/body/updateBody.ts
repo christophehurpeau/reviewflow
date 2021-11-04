@@ -44,10 +44,10 @@ interface UpdatedBodyWithOptions {
 }
 
 const getInfosReplacement = (infos?: StatusInfo[]): string => {
-  if (!infos) return '$1$2';
+  if (!infos) return '$1$2$3';
   return infos.length > 0
-    ? `### Infos:\n\n${toMarkdownInfos(infos)}\n\n$2`
-    : '$2';
+    ? `$1### Infos:\n\n${toMarkdownInfos(infos)}\n\n$3`
+    : '$1$3';
 };
 
 const updateOptions = (
@@ -65,13 +65,13 @@ const internalUpdateBodyOptionsAndInfos = (
   options: Options,
   infos?: StatusInfo[],
 ): string => {
-  const infosAndCommitNotesParagraph = body.replace(
+  const bodyWithoutOptions = body.replace(
     // eslint-disable-next-line unicorn/no-unsafe-regex
-    /^\s*(?:(####? Infos:.*)?(####? Commits Notes:.*)?####? Options:)?.*$/s,
+    /^\s*(?:(### Steps:.*?)?(####? Infos:.*)?(####? Commits Notes:.*)?####? Options:)?.*$/s,
     getInfosReplacement(infos),
   );
 
-  return `${infosAndCommitNotesParagraph}### Options:\n${toMarkdownOptions(
+  return `${bodyWithoutOptions}### Options:\n${toMarkdownOptions(
     repoLink,
     labelsConfig,
     options,
@@ -90,6 +90,51 @@ export const createCommentBody = (
     '',
     defaultOptions,
     infos,
+  );
+};
+
+interface StepResult {
+  date: Date;
+  link: string;
+}
+
+export interface Steps {
+  code: boolean;
+  // ci: boolean;
+  // codeReview: boolean;
+  // designReview: null | boolean;
+  // automerge: boolean;
+  // merged: false | StepResult;
+}
+
+const stepsTitle: Record<keyof Steps, string> = {
+  code: '✏️ Writing Code',
+  // ci: '✅ CI passes',
+  // codeReview: '👌 Code Review',
+  // designReview: '🎨 Design Review (optional)',
+  // automerge: '🚦 Merging Pull Request',
+  // merged: '🔀 Merged',
+};
+
+export const stepsToString = (steps: Steps): string => {
+  return Object.entries(steps)
+    .filter(([key, value]) => value !== null)
+    .map(
+      ([key, value], index) =>
+        `${
+          value === false ? ':white_large_square:' : ':heavy_check_mark:'
+        } Step ${index + 1}: ${stepsTitle[key as keyof Steps]}`,
+    )
+    .join('\n');
+};
+export const updateCommentBodySteps = (
+  commentBody: string,
+  steps: Steps,
+): string => {
+  return commentBody.replace(
+    // eslint-disable-next-line unicorn/no-unsafe-regex
+    /^\s*(### Steps:.*?)?(####? (?:Infos|Commits Notes|Options):)(.*)$/s,
+    `### Steps:\n\n${stepsToString(steps)}\n\n$2$3`,
   );
 };
 
@@ -122,8 +167,8 @@ export const updateCommentBodyInfos = (
     // *  - zero or more
     // *? - zero or more (non-greedy)
     // eslint-disable-next-line unicorn/no-unsafe-regex
-    /^\s*(?:(####? Infos:.*?)?(####? Commits Notes:.*?)?(####? Options:.*?)?)?$/s,
-    `${getInfosReplacement(infos)}$3`,
+    /^\s*(?:(### Steps:.*?)?(####? Infos:.*?)?(####? Commits Notes:.*?)?(####? Options:.*?)?)?$/s,
+    `${getInfosReplacement(infos)}$4`,
   );
 };
 

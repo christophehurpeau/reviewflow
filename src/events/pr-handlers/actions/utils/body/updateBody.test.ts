@@ -9,6 +9,7 @@ import {
   updateCommentOptions,
   updateCommentBodyCommitsNotes,
   updateCommentBodyInfos,
+  updateCommentBodySteps,
 } from './updateBody';
 
 const defaultConfig: Options = {
@@ -179,6 +180,34 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
             [],
           ),
         ).toEqual(initialAfterEditSimple);
+      });
+
+      it('should add steps', () => {
+        expect(
+          updateCommentBodySteps(initialAfterEditSimple, { code: false }),
+        ).toEqual(
+          initialAfterEditSimple.replace(
+            '### Options:',
+            '### Steps:\n\n:white_large_square: Step 1: ✏️ Writing Code\n\n### Options:',
+          ),
+        );
+      });
+
+      it('should update steps', () => {
+        expect(
+          updateCommentBodySteps(
+            initialAfterEditSimple.replace(
+              '### Options:',
+              '### Steps:\n\n:white_large_square: Step 1: ✏️ Writing Code\n\n### Options:',
+            ),
+            { code: true },
+          ),
+        ).toEqual(
+          initialAfterEditSimple.replace(
+            '### Options:',
+            '### Steps:\n\n:heavy_check_mark: Step 1: ✏️ Writing Code\n\n### Options:',
+          ),
+        );
       });
     });
   },
