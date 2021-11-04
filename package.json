@@ -107,8 +107,8 @@
     "slackify-markdown": "4.3.0"
   },
   "devDependencies": {
-    "@babel/core": "7.15.5",
-    "@babel/preset-react": "7.14.5",
+    "@babel/core": "7.16.0",
+    "@babel/preset-react": "7.16.0",
     "@pob/commitlint-config": "3.1.1",
     "@pob/eslint-config": "45.1.0",
     "@pob/eslint-config-typescript": "45.1.0",
