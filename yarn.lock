@@ -1485,6 +1485,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@octokit/webhooks-methods@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@octokit/webhooks-methods@npm:2.0.0"
+  checksum: 42f87ccb93d05b314a12e99c717523cef290c896719e95cdb9349aee4be453d42c3a4286ee9de67f88946d048b29ae31c2f98875df0c6d5da662e94554acab56
+  languageName: node
+  linkType: hard
+
+"@octokit/webhooks-types@npm:4.12.0":
+  version: 4.12.0
+  resolution: "@octokit/webhooks-types@npm:4.12.0"
+  checksum: 8ffe832543a5fafe1cbf7a6c4bc56451c84449be12c75fac91ef3055490ab8dbecfc9cb2541ffbf4e2b57194905e0468cdd8441b7fbfd578425291ca6142259e
+  languageName: node
+  linkType: hard
+
 "@octokit/webhooks@npm:7.21.0":
   version: 7.21.0
   resolution: "@octokit/webhooks@npm:7.21.0"
@@ -1493,6 +1507,18 @@ __metadata:
     aggregate-error: ^3.1.0
     debug: ^4.0.0
   checksum: ccb6574fc4ffa9f18d732170b9246e6a54b2164f1d434f25aaf6cd047323e13fb17d6cadbfcfafb4f3eba39dc65c66397283acd9fcf6ce482540069b8529319c
+  languageName: node
+  linkType: hard
+
+"@octokit/webhooks@npm:^9.8.4":
+  version: 9.17.0
+  resolution: "@octokit/webhooks@npm:9.17.0"
+  dependencies:
+    "@octokit/request-error": ^2.0.2
+    "@octokit/webhooks-methods": ^2.0.0
+    "@octokit/webhooks-types": 4.12.0
+    aggregate-error: ^3.1.0
+  checksum: b7682a85bad15c4145227e802f97d2f83260495578c14d300e8264257ba19dc57d62bb95c24106c234b59ff04a44fcd3c4ba232cc7f6615a753f218754912f03
   languageName: node
   linkType: hard
 
@@ -2076,12 +2102,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/ioredis@npm:^4.17.8":
-  version: 4.17.11
-  resolution: "@types/ioredis@npm:4.17.11"
+"@types/ioredis@npm:^4.27.1":
+  version: 4.28.1
+  resolution: "@types/ioredis@npm:4.28.1"
   dependencies:
     "@types/node": "*"
-  checksum: 58ec7fbd0728822befd5d1f1bf88a444b977035830acaa87b8e1e1cd0ac652511f03809af84454e8849004f138d13358324af2d3d9ea541d22d7a49dde536450
+  checksum: 2d5adc6ce3078a0dc59911b6e50214fbcedf7bf139b6fde8e466132d8f15c90b3f55ecbd1d16e93541dc0abaa666ce924608d6e34ed4d0ee9903aab51d1c9900
   languageName: node
   linkType: hard
 
@@ -6130,21 +6156,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ioredis@npm:^4.19.2":
-  version: 4.19.4
-  resolution: "ioredis@npm:4.19.4"
+"ioredis@npm:^4.27.8":
+  version: 4.28.0
+  resolution: "ioredis@npm:4.28.0"
   dependencies:
     cluster-key-slot: ^1.1.0
-    debug: ^4.1.1
+    debug: ^4.3.1
     denque: ^1.1.0
     lodash.defaults: ^4.2.0
     lodash.flatten: ^4.4.0
+    lodash.isarguments: ^3.1.0
     p-map: ^2.1.0
-    redis-commands: 1.6.0
+    redis-commands: 1.7.0
     redis-errors: ^1.2.0
     redis-parser: ^3.0.0
-    standard-as-callback: ^2.0.1
-  checksum: 1fb4b1d7e47d3074f2fdae3afd478c0de37b160fd16db433dda7d91e3c90888024e6071eeff5cc2ab8c21b7e0f05de0c09dd64a99da487ffaba65496c38198ae
+    standard-as-callback: ^2.1.0
+  checksum: d6951d3df93b94a8716090f233ccc9124fe82a244965ac695835a7d4d1795ca28025ef91abfbc014cce63b96112badfc216b8d91827722ddc406f10bd221b6ab
   languageName: node
   linkType: hard
 
@@ -7677,6 +7704,13 @@ __metadata:
   version: 4.3.0
   resolution: "lodash.includes@npm:4.3.0"
   checksum: 71092c130515a67ab3bd928f57f6018434797c94def7f46aafa417771e455ce3a4834889f4267b17887d7f75297dfabd96231bf704fd2b8c5096dc4a913568b6
+  languageName: node
+  linkType: hard
+
+"lodash.isarguments@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "lodash.isarguments@npm:3.1.0"
+  checksum: ae1526f3eb5c61c77944b101b1f655f846ecbedcb9e6b073526eba6890dc0f13f09f72e11ffbf6540b602caee319af9ac363d6cdd6be41f4ee453436f04f13b5
   languageName: node
   linkType: hard
 
@@ -9330,9 +9364,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"probot@npm:11.4.1":
-  version: 11.4.1
-  resolution: "probot@npm:11.4.1"
+"probot@npm:12.1.1":
+  version: 12.1.1
+  resolution: "probot@npm:12.1.1"
   dependencies:
     "@octokit/core": ^3.2.4
     "@octokit/plugin-enterprise-compatibility": ^1.2.8
@@ -9341,12 +9375,12 @@ __metadata:
     "@octokit/plugin-retry": ^3.0.6
     "@octokit/plugin-throttling": ^3.3.4
     "@octokit/types": ^6.1.1
-    "@octokit/webhooks": 7.21.0
+    "@octokit/webhooks": ^9.8.4
     "@probot/get-private-key": ^1.1.0
     "@probot/octokit-plugin-config": ^1.0.0
     "@probot/pino": ^2.2.0
     "@types/express": ^4.17.9
-    "@types/ioredis": ^4.17.8
+    "@types/ioredis": ^4.27.1
     "@types/pino": ^6.3.4
     "@types/pino-http": ^5.0.6
     "@types/update-notifier": ^5.0.0
@@ -9357,7 +9391,7 @@ __metadata:
     eventsource: ^1.0.7
     express: ^4.17.1
     hbs: ^4.1.1
-    ioredis: ^4.19.2
+    ioredis: ^4.27.8
     js-yaml: ^3.14.1
     lru-cache: ^6.0.0
     octokit-auth-probot: ^1.2.2
@@ -9371,7 +9405,7 @@ __metadata:
     uuid: ^8.3.2
   bin:
     probot: bin/probot.js
-  checksum: cdc3af2026c682c45d24e8444d0915460e3927f74c57d630854fbed04784f21845639aa5868d2a805deec1bf330f998a27c054cfb061207522c577c89f2e39ed
+  checksum: e88b7390e379783afe085bf1fc10f2c3658aad799c69e0cb2fd4b20de7ed3d14c2570824399d493a10f028869e6f2c936ff63b43e9600006b079ac180c14cb22
   languageName: node
   linkType: hard
 
@@ -9716,10 +9750,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"redis-commands@npm:1.6.0":
-  version: 1.6.0
-  resolution: "redis-commands@npm:1.6.0"
-  checksum: f35e1998a7a69c09924fe8f6dbac382401bd5494af2d2f650e05a69de45128f0f41a475bcf3ea30359ac8c50bf59f2922d3e44b5760550ba4ebf90de628afca6
+"redis-commands@npm:1.7.0":
+  version: 1.7.0
+  resolution: "redis-commands@npm:1.7.0"
+  checksum: d1ff7fbcb5e54768c77f731f1d49679d2a62c3899522c28addb4e2e5813aea8bcac3f22519d71d330224c3f2937f935dfc3d8dc65e90db0f5fe22dc2c1515aa7
   languageName: node
   linkType: hard
 
@@ -10074,7 +10108,7 @@ resolve@^2.0.0-next.3:
     pob-babel: 28.4.0
     pob-lcov-reporter: 5.3.0
     prettier: 2.4.1
-    probot: 11.4.1
+    probot: 12.1.1
     react: 17.0.2
     react-dom: 17.0.2
     rollup: 2.59.0
@@ -10567,10 +10601,10 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"standard-as-callback@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "standard-as-callback@npm:2.0.1"
-  checksum: b377fa9a50f0b98c129a56d0f1d37b693d5c3b8f368bf88ec0a9ff1d33ae7ff32ee3b8a8159e43a5f6855f1c7efeb35fce3f67e84d98271dd36bd821c28e4de9
+"standard-as-callback@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "standard-as-callback@npm:2.1.0"
+  checksum: 88bec83ee220687c72d94fd86a98d5272c91d37ec64b66d830dbc0d79b62bfa6e47f53b71646011835fc9ce7fae62739545d13124262b53be4fbb3e2ebad551c
   languageName: node
   linkType: hard
 
