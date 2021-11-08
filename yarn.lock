@@ -2231,10 +2231,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:14.17.32, @types/node@npm:>=12.0.0, @types/node@npm:>=8.9.0":
-  version: 14.17.32
-  resolution: "@types/node@npm:14.17.32"
-  checksum: c3ec45db5d8ca6ed80bcc2fe3cd9f15c1518d43cf048dd5444d1fcbe308d302a42721cb3f19548ac2e7b8b7db4f7f6cd4bf9ed58ab1d30a0bf61758350edd9d5
+"@types/node@npm:*, @types/node@npm:14.17.33, @types/node@npm:>=12.0.0, @types/node@npm:>=8.9.0":
+  version: 14.17.33
+  resolution: "@types/node@npm:14.17.33"
+  checksum: 47ee8d5a398f84b376023f03b83e43a71f1bf617d1014d34c0af24b0332b42e7b392c967c20bfb907fb37971993035e3b25c47a1678c745c5d122d8205ba5a19
   languageName: node
   linkType: hard
 
@@ -10047,7 +10047,7 @@ resolve@^2.0.0-next.3:
     "@types/jest": 27.0.2
     "@types/jsonwebtoken": 8.5.5
     "@types/nock": 11.1.0
-    "@types/node": 14.17.32
+    "@types/node": 14.17.33
     "@types/react": 17.0.34
     "@types/react-dom": 17.0.11
     "@types/simple-oauth2": 4.1.1
