@@ -1,9 +1,10 @@
-import type { Context } from 'probot';
+import type { EmitterWebhookEventName } from '@octokit/webhooks';
+import type { ProbotEvent } from 'events/probot-types';
 import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 
-export const updateBranch = async (
+export const updateBranch = async <Name extends EmitterWebhookEventName>(
   pullRequest: PullRequestWithDecentData,
-  context: Context<any>,
+  context: ProbotEvent<Name>,
   login: string | null,
 ): Promise<boolean> => {
   context.log.info('update branch', {

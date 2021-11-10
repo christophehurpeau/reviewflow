@@ -1,13 +1,14 @@
+/* eslint-disable max-lines */
+import type { EmitterWebhookEventName } from '@octokit/webhooks';
 import { Lock } from 'lock';
-import type { Context } from 'probot';
+import type { ProbotEvent } from 'events/probot-types';
 import type { Config } from '../accountConfigs';
 import { accountConfigs, defaultConfig } from '../accountConfigs';
 import type { GroupLabels } from '../accountConfigs/types';
 import { autoMergeIfPossible } from '../events/pr-handlers/actions/autoMergeIfPossible';
 import type {
-  PullRequestData,
+  PullRequestDataMinimumData,
   PullRequestLabels,
-  PullRequestWithDecentData,
 } from '../events/pr-handlers/utils/PullRequestData';
 import { getReviewflowPrContext } from '../events/pr-handlers/utils/createPullRequestContext';
 import { fetchPr } from '../events/pr-handlers/utils/fetchPr';
@@ -25,6 +26,52 @@ export interface LockedMergePr {
   branch: string;
 }
 
+export type CustomExtract<T, U extends T> = U;
+
+export type EventsWithRepository = CustomExtract<
+  EmitterWebhookEventName,
+  | 'pull_request.assigned'
+  | 'pull_request.auto_merge_disabled'
+  | 'pull_request.auto_merge_enabled'
+  | 'pull_request.closed'
+  | 'pull_request.converted_to_draft'
+  | 'pull_request.edited'
+  | 'pull_request.labeled'
+  | 'pull_request.locked'
+  | 'pull_request.opened'
+  | 'pull_request.ready_for_review'
+  | 'pull_request.reopened'
+  | 'pull_request.review_request_removed'
+  | 'pull_request.review_requested'
+  | 'pull_request.synchronize'
+  | 'pull_request.unassigned'
+  | 'pull_request.unlabeled'
+  | 'pull_request.unlocked'
+  | 'pull_request_review.dismissed'
+  | 'pull_request_review.edited'
+  | 'pull_request_review.submitted'
+  | 'pull_request_review_comment'
+  | 'pull_request_review_comment.created'
+  | 'pull_request_review_comment.deleted'
+  | 'pull_request_review_comment.edited'
+  | 'repository.archived'
+  | 'repository.created'
+  | 'repository.deleted'
+  | 'repository.edited'
+  | 'repository.privatized'
+  | 'repository.publicized'
+  | 'repository.renamed'
+  | 'repository.transferred'
+  | 'repository.unarchived'
+  | 'status'
+  | 'issue_comment.created'
+  | 'issue_comment.deleted'
+  | 'issue_comment.edited'
+  | 'check_run.completed'
+  | 'check_suite.completed'
+  | 'status'
+>;
+
 interface RepoContextWithoutTeamContext<GroupNames extends string> {
   appContext: AppContext;
   repoFullName: string;
@@ -40,7 +87,7 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   hasApprovesReview: (labels: PullRequestLabels) => boolean;
   getNeedsReviewGroupNames: (labels: PullRequestLabels) => GroupNames[];
   lockPullRequest: (
-    pullRequest: PullRequestData,
+    pullRequest: PullRequestDataMinimumData,
     callback: () => Promise<void> | void,
   ) => Promise<void>;
 
@@ -53,12 +100,15 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
 
   getMergeLockedPr: () => LockedMergePr;
   addMergeLockPr: (pr: LockedMergePr) => void;
-  removePrFromAutomergeQueue: (
-    context: Context<any>,
+  removePrFromAutomergeQueue: <EventName extends EmitterWebhookEventName>(
+    context: ProbotEvent<EventName>,
     prNumber: number,
     reason: string,
   ) => void;
-  reschedule: (context: Context<any>, pr: LockedMergePr) => void;
+  reschedule: <EventName extends EmitterWebhookEventName>(
+    context: ProbotEvent<EventName>,
+    pr: LockedMergePr,
+  ) => void;
   pushAutomergeQueue: (pr: LockedMergePr) => void;
 }
 
@@ -98,9 +148,12 @@ const createGetReviewLabelIds = <GroupNames extends string>(
       .map((name) => labels[name].id);
 };
 
-async function initRepoContext<GroupNames extends string>(
+async function initRepoContext<
+  T extends EventsWithRepository,
+  GroupNames extends string,
+>(
   appContext: AppContext,
-  context: Context<any>,
+  context: ProbotEvent<T>,
   config: Config<GroupNames>,
 ): Promise<RepoContext<GroupNames>> {
   const {
@@ -112,7 +165,7 @@ async function initRepoContext<GroupNames extends string>(
   } = context.payload.repository;
   const repoEmoji = getEmojiFromRepoDescription(description);
 
-  const accountContext = await obtainAccountContext(
+  const accountContext = await obtainAccountContext<T>(
     appContext,
     context,
     config,
@@ -211,13 +264,13 @@ async function initRepoContext<GroupNames extends string>(
     });
 
   const lockPullRequest = (
-    pullRequest: PullRequestWithDecentData,
+    pullRequest: PullRequestDataMinimumData,
     callback: () => Promise<void> | void,
   ): Promise<void> => {
     return lockPR(String(pullRequest.id), pullRequest.number, callback);
   };
 
-  const reschedule = (context: Context<any>, pr: LockedMergePr): void => {
+  const reschedule = (context: ProbotEvent<any>, pr: LockedMergePr): void => {
     if (!pr) throw new Error('Cannot reschedule undefined');
     context.log.info(pr, 'reschedule');
     setTimeout(() => {
@@ -315,10 +368,10 @@ async function initRepoContext<GroupNames extends string>(
 const repoContextsPromise = new Map<number, Promise<RepoContext>>();
 const repoContexts = new Map<number, RepoContext>();
 
-export const obtainRepoContext = (
+export const obtainRepoContext = <T extends EventsWithRepository>(
   appContext: AppContext,
-  context: Context<any>,
-): Promise<RepoContext> | RepoContext | null => {
+  context: ProbotEvent<T>,
+): Promise<RepoContext> | RepoContext => {
   const repo = context.payload.repository;
   const owner = repo.owner;
   const key = repo.id;

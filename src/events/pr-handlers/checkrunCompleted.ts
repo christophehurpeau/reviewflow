@@ -9,27 +9,26 @@ export default function checkrunCompleted(
   app: Probot,
   appContext: AppContext,
 ): void {
-  app.on(
+  createPullRequestsHandler(
+    app,
+    appContext,
     'check_run.completed',
-    createPullRequestsHandler(
-      appContext,
-      (payload, repoContext) => {
-        if (repoContext.shouldIgnore) return [];
-        return payload.check_run.pull_requests;
-      },
-      async (pullRequest, context, repoContext) => {
-        const [updatedPr, reviewflowPrContext] = await Promise.all([
-          fetchPr(context, pullRequest.number),
-          getReviewflowPrContext(pullRequest.number, context, repoContext),
-        ]);
+    (payload, repoContext) => {
+      if (repoContext.shouldIgnore) return [];
+      return payload.check_run.pull_requests;
+    },
+    async (pullRequest, context, repoContext) => {
+      const [updatedPr, reviewflowPrContext] = await Promise.all([
+        fetchPr(context, pullRequest.number),
+        getReviewflowPrContext(pullRequest.number, context, repoContext),
+      ]);
 
-        await autoMergeIfPossible(
-          updatedPr,
-          context,
-          repoContext,
-          reviewflowPrContext,
-        );
-      },
-    ),
+      await autoMergeIfPossible(
+        updatedPr,
+        context,
+        repoContext,
+        reviewflowPrContext,
+      );
+    },
   );
 }

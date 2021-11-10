@@ -1,10 +1,10 @@
 import type { MongoStores, OrgTeamEmbed } from '../../../mongo';
-import type { Octokit } from '../../../octokit';
+import type { CommonOctokitInterface } from '../../../octokit';
 import { syncTeamMembers } from './syncTeamMembers';
 
-export const syncTeams = async (
+export const syncTeams = async <T extends CommonOctokitInterface>(
   mongoStores: MongoStores,
-  octokit: Octokit,
+  octokit: T,
   org: { login: string; id: number },
 ): Promise<OrgTeamEmbed[]> => {
   const orgEmbed = { id: org.id, login: org.login };
@@ -51,9 +51,9 @@ export const syncTeams = async (
   return teamEmbeds;
 };
 
-export const syncTeamsAndTeamMembers = async (
+export const syncTeamsAndTeamMembers = async <T extends CommonOctokitInterface>(
   mongoStores: MongoStores,
-  octokit: Octokit,
+  octokit: T,
   org: { login: string; id: number },
 ): Promise<void> => {
   const teams = await syncTeams(mongoStores, octokit, org);

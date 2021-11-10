@@ -1,109 +1,153 @@
-import type { EventPayloads } from '@octokit/webhooks';
-import type { Context } from 'probot';
+import type { Probot } from 'probot';
+import type { ProbotEvent } from 'events/probot-types';
+import { catchExceptedErrors } from '../../../ExpectedError';
 import type { AppContext } from '../../../context/AppContext';
-import type { RepoContext, LockedMergePr } from '../../../context/repoContext';
-import { createRepoHandler } from '../../repository-handlers/utils/createRepoHandler';
 import type {
-  PullRequestData,
-  PullRequestFromWebhook,
-} from './PullRequestData';
+  RepoContext,
+  CustomExtract,
+  EventsWithRepository,
+} from '../../../context/repoContext';
+import { obtainRepoContext } from '../../../context/repoContext';
+import type { PullRequestDataMinimumData } from './PullRequestData';
 import type {
   CreatePrContextOptions,
   ReviewflowPrContext,
 } from './createPullRequestContext';
 import { getReviewflowPrContext } from './createPullRequestContext';
+import type { PullRequestFromProbotEvent } from './getPullRequestFromPayload';
 
-type OnCallback<T> = (context: Context<T>) => Promise<void>;
+export type EventsWithPullRequest = CustomExtract<
+  EventsWithRepository,
+  | 'pull_request.assigned'
+  | 'pull_request.auto_merge_disabled'
+  | 'pull_request.auto_merge_enabled'
+  | 'pull_request.closed'
+  | 'pull_request.converted_to_draft'
+  | 'pull_request.edited'
+  | 'pull_request.labeled'
+  | 'pull_request.locked'
+  | 'pull_request.opened'
+  | 'pull_request.ready_for_review'
+  | 'pull_request.reopened'
+  | 'pull_request.review_request_removed'
+  | 'pull_request.review_requested'
+  | 'pull_request.synchronize'
+  | 'pull_request.unassigned'
+  | 'pull_request.unlabeled'
+  | 'pull_request.unlocked'
+  | 'pull_request_review.dismissed'
+  | 'pull_request_review.edited'
+  | 'pull_request_review.submitted'
+  | 'pull_request_review_comment'
+  | 'pull_request_review_comment.created'
+  | 'pull_request_review_comment.deleted'
+  | 'pull_request_review_comment.edited'
+>;
 
-export type CallbackWithPRAndRepoContext<T extends PullRequestData> = (
-  pullRequest: T,
-  repoContext: RepoContext,
-) => void | Promise<void>;
+export type EventsWithPullRequests = CustomExtract<
+  EventsWithRepository,
+  'check_run.completed' | 'check_suite.completed' | 'status'
+>;
+
+export type EventsWithIssue = CustomExtract<
+  EventsWithRepository,
+  'issue_comment.created' | 'issue_comment.deleted' | 'issue_comment.edited'
+>;
 
 export const createPullRequestHandler = <
-  T extends
-    | EventPayloads.WebhookPayloadPullRequest
-    | EventPayloads.WebhookPayloadPullRequestReview
-    | EventPayloads.WebhookPayloadPullRequestReviewComment
-    | EventPayloads.WebhookPayloadIssueComment
-    | EventPayloads.WebhookPayloadPullRequestReviewComment,
-  U extends PullRequestFromWebhook,
+  EventName extends EventsWithPullRequest | EventsWithIssue,
   GroupNames extends string = string,
 >(
+  app: Probot,
   appContext: AppContext,
+  eventName: EventName | EventName[],
   getPullRequestInPayload: (
-    payload: Context<T>['payload'],
-    context: Context<T>,
+    payload: ProbotEvent<EventName>['payload'],
+    context: ProbotEvent<EventName>,
     repoContext: RepoContext<GroupNames>,
-  ) => U | null,
+  ) => PullRequestFromProbotEvent<EventName> | null,
   callbackPr: (
-    pullRequest: U,
-    context: Context<T>,
+    pullRequest: PullRequestFromProbotEvent<EventName>,
+    context: ProbotEvent<EventName>,
     repoContext: RepoContext<GroupNames>,
     reviewflowPrContext: ReviewflowPrContext | null,
   ) => void | Promise<void>,
   callbackBeforeLock?: (
-    pullRequest: U,
-    context: Context<T>,
+    pullRequest: PullRequestFromProbotEvent<EventName>,
+    context: ProbotEvent<EventName>,
     repoContext: RepoContext<GroupNames>,
   ) => CreatePrContextOptions,
-): OnCallback<T> => {
-  return createRepoHandler(appContext, async (context, repoContext) => {
-    const pullRequest: U | null = getPullRequestInPayload(
-      context.payload,
-      context,
-      repoContext,
-    );
-    if (pullRequest === null) return;
-    const options = callbackBeforeLock
-      ? callbackBeforeLock(pullRequest, context, repoContext)
-      : {};
+): void => {
+  app.on(eventName, async (context: ProbotEvent<EventName>) => {
+    return catchExceptedErrors(async () => {
+      const repoContext = await obtainRepoContext(appContext, context);
+      const pullRequest: PullRequestFromProbotEvent<EventName> | null =
+        getPullRequestInPayload(context.payload, context, repoContext);
 
-    await repoContext.lockPullRequest(pullRequest, async () => {
-      /*
-       * When repo are ignored, only slack notifications are sent.
-       * PR is not linted, commented, nor auto merged.
-       */
-      const reviewflowPrContext = repoContext.shouldIgnore
-        ? null
-        : await getReviewflowPrContext(
-            pullRequest.number,
-            context,
-            repoContext,
-            options.reviewflowCommentPromise,
-          );
+      if (pullRequest === null) return;
+      const options = callbackBeforeLock
+        ? callbackBeforeLock(pullRequest, context, repoContext)
+        : {};
 
-      return callbackPr(pullRequest, context, repoContext, reviewflowPrContext);
+      await repoContext.lockPullRequest(pullRequest, async () => {
+        /*
+         * When repo are ignored, only slack notifications are sent.
+         * PR is not linted, commented, nor auto merged.
+         */
+        const reviewflowPrContext = repoContext.shouldIgnore
+          ? null
+          : await getReviewflowPrContext(
+              pullRequest.number,
+              context,
+              repoContext,
+              options.reviewflowCommentPromise,
+            );
+
+        return callbackPr(
+          pullRequest,
+          context,
+          repoContext,
+          reviewflowPrContext,
+        );
+      });
     });
   });
 };
 
 export const createPullRequestsHandler = <
-  T extends { repository: EventPayloads.PayloadRepository },
-  U extends PullRequestFromWebhook | LockedMergePr,
+  EventName extends EventsWithPullRequests,
+  U extends PullRequestDataMinimumData,
   GroupNames extends string,
 >(
+  app: Probot,
   appContext: AppContext,
+  eventName: EventName,
   getPrs: (
-    payload: Context<T>['payload'],
+    payload: ProbotEvent<EventName>['payload'],
     repoContext: RepoContext<GroupNames>,
   ) => U[],
   callbackPr: (
     pullRequest: U,
-    context: Context<T>,
+    context: ProbotEvent<EventName>,
     repoContext: RepoContext<GroupNames>,
   ) => void | Promise<void>,
-): OnCallback<T> => {
-  return createRepoHandler(appContext, async (context, repoContext) => {
-    const prs = getPrs(context.payload, repoContext);
-    if (prs.length === 0) return;
+): void => {
+  app.on(eventName, (context) => {
+    return catchExceptedErrors(async () => {
+      const repoContext = await obtainRepoContext<EventName>(
+        appContext,
+        context,
+      );
+      const prs = getPrs(context.payload, repoContext);
+      if (prs.length === 0) return;
 
-    await Promise.all(
-      prs.map((pr) =>
-        repoContext.lockPR(String(pr.id), pr.number, async () => {
-          return callbackPr(pr, context, repoContext);
-        }),
-      ),
-    );
+      await Promise.all(
+        prs.map((pr) =>
+          repoContext.lockPR(String(pr.id), pr.number, async () => {
+            return callbackPr(pr, context, repoContext);
+          }),
+        ),
+      );
+    });
   });
 };

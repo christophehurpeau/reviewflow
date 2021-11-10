@@ -1,4 +1,5 @@
 import type { Probot } from 'probot';
+import type { ProbotEvent } from 'events/probot-types';
 import pullRequestOpened from '../../../fixtures/pull_request_30.opened.json';
 import pullRequestCommits from '../../../fixtures/pull_request_30_commits.json';
 import * as initTeamSlack from '../../context/slack/initTeamSlack';
@@ -96,7 +97,9 @@ describe('opened', (): void => {
     await probot.receive({
       id: '1',
       name: pullRequestOpened.event as any,
-      payload: pullRequestOpened.payload,
+      //https://github.com/microsoft/TypeScript/issues/32063
+      payload:
+        pullRequestOpened.payload as ProbotEvent<'pull_request.opened'>['payload'],
     });
 
     expect(insertOnePr).toHaveBeenCalled();

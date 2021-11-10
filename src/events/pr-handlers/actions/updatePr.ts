@@ -1,5 +1,5 @@
-import type { EventPayloads } from '@octokit/webhooks';
-import type { Context } from 'probot';
+import type { EmitterWebhookEventName } from '@octokit/webhooks';
+import type { ProbotEvent } from 'events/probot-types';
 import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 
 interface UpdatePr {
@@ -12,11 +12,9 @@ const cleanNewLines = (text: string | null): string =>
 const checkIfHasDiff = (text1: string | null, text2: string): boolean =>
   cleanNewLines(text1) !== cleanNewLines(text2);
 
-export const updatePrIfNeeded = async <
-  E extends EventPayloads.WebhookPayloadPullRequest,
->(
+export const updatePrIfNeeded = async <Name extends EmitterWebhookEventName>(
   pullRequest: PullRequestWithDecentData,
-  context: Context<E>,
+  context: ProbotEvent<Name>,
   update: UpdatePr,
 ): Promise<void> => {
   const hasDiffInTitle = update.title && pullRequest.title !== update.title;

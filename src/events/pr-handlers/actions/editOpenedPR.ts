@@ -1,6 +1,5 @@
-import type { EventPayloads } from '@octokit/webhooks';
-import type { Context } from 'probot';
-import type { RepoContext } from 'context/repoContext';
+import type { EventsWithRepository, RepoContext } from 'context/repoContext';
+import type { ProbotEvent } from 'events/probot-types';
 import type { StatusInfo } from '../../../accountConfigs/types';
 import { getKeys } from '../../../context/utils';
 import { ExcludesFalsy } from '../../../utils/Excludes';
@@ -25,11 +24,9 @@ interface Status {
   status: StatusInfo;
 }
 
-export const editOpenedPR = async <
-  E extends EventPayloads.WebhookPayloadPullRequest,
->(
+export const editOpenedPR = async <Name extends EventsWithRepository>(
   pullRequest: PullRequestWithDecentData,
-  context: Context<E>,
+  context: ProbotEvent<Name>,
   repoContext: RepoContext,
   reviewflowPrContext: ReviewflowPrContext,
   shouldUpdateCommentBodyInfos: boolean,

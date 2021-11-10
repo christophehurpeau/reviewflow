@@ -1,14 +1,11 @@
-import type { EventPayloads } from '@octokit/webhooks';
-import type { Context } from 'probot';
-import type { RepoContext } from 'context/repoContext';
+import type { EventsWithRepository, RepoContext } from 'context/repoContext';
+import type { ProbotEvent } from 'events/probot-types';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import type { Options } from './utils/body/prOptions';
 import { updateCommentOptions } from './utils/body/updateBody';
 
-const updatePrCommentBody = async <
-  E extends EventPayloads.WebhookPayloadPullRequest,
->(
-  context: Context<E>,
+const updatePrCommentBody = async <Name extends EventsWithRepository>(
+  context: ProbotEvent<Name>,
   reviewflowPrContext: ReviewflowPrContext,
   newBody: string,
 ): Promise<void> => {
@@ -22,9 +19,9 @@ const updatePrCommentBody = async <
 };
 
 export const updatePrCommentBodyIfNeeded = async <
-  E extends EventPayloads.WebhookPayloadPullRequest,
+  Name extends EventsWithRepository,
 >(
-  context: Context<E>,
+  context: ProbotEvent<Name>,
   reviewflowPrContext: ReviewflowPrContext,
   newBody: string,
 ): Promise<void> => {
@@ -34,9 +31,9 @@ export const updatePrCommentBodyIfNeeded = async <
 };
 
 export const updatePrCommentBodyOptions = async <
-  E extends EventPayloads.WebhookPayloadPullRequest,
+  Name extends EventsWithRepository,
 >(
-  context: Context<E>,
+  context: ProbotEvent<Name>,
   repoContext: RepoContext,
   reviewflowPrContext: ReviewflowPrContext,
   updateOptions: Partial<Options>,

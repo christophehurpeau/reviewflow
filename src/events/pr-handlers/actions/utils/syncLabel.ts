@@ -1,6 +1,6 @@
-import type { EventPayloads } from '@octokit/webhooks';
-import type { Context } from 'probot';
+import type { EmitterWebhookEventName } from '@octokit/webhooks';
 import type { PullRequestWithDecentData } from 'events/pr-handlers/utils/PullRequestData';
+import type { ProbotEvent } from 'events/probot-types';
 import type { LabelResponse } from '../../../../context/initRepoLabels';
 import hasLabelInPR from './hasLabelInPR';
 
@@ -10,10 +10,10 @@ interface SyncLabelOptions {
 }
 
 export default async function syncLabel<
-  T extends EventPayloads.WebhookPayloadPullRequest,
+  EventName extends EmitterWebhookEventName,
 >(
   pullRequest: PullRequestWithDecentData,
-  context: Context<T>,
+  context: ProbotEvent<EventName>,
   shouldHaveLabel: boolean,
   label: LabelResponse,
   prHasLabel = hasLabelInPR(pullRequest.labels, label),

@@ -1,20 +1,20 @@
-import type { EventPayloads } from '@octokit/webhooks';
-import type { Context } from 'probot';
 import type { RepoContext } from 'context/repoContext';
+import type { ProbotEvent } from 'events/probot-types';
 import type { GroupLabels } from '../../../accountConfigs/types';
 import { ExcludesFalsy } from '../../../utils/Excludes';
 import type {
   PullRequestLabels,
   PullRequestWithDecentData,
 } from '../utils/PullRequestData';
+import type { EventsWithPullRequest } from '../utils/createPullRequestHandler';
 import { updateStatusCheckFromLabels } from './updateStatusCheckFromLabels';
 
 export const updateReviewStatus = async <
-  E extends { repository: EventPayloads.PayloadRepository },
+  EventName extends EventsWithPullRequest,
   GroupNames extends string = any,
 >(
   pullRequest: PullRequestWithDecentData,
-  context: Context<E>,
+  context: ProbotEvent<EventName>,
   repoContext: RepoContext,
   reviewGroup: GroupNames,
   {

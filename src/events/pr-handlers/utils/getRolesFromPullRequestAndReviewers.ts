@@ -24,7 +24,9 @@ export function getRolesFromPullRequestAndReviewers(
   const followers = reviewers.filter((user) => !assigneeIds.includes(user.id));
   const requestedReviewers: RequestedReviewers[] =
     pullRequest.requested_reviewers.map((rr) => ({
-      ...rr,
+      id: rr.id,
+      login: (rr as any).login,
+      type: (rr as any).type,
       isRequestedByName: true,
       requestedByTeams: [],
     }));

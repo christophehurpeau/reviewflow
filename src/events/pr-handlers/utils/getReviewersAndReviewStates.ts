@@ -1,5 +1,6 @@
-import type { Context } from 'probot';
+import type { EmitterWebhookEventName } from '@octokit/webhooks';
 import type { AccountInfo } from 'context/getOrCreateAccount';
+import type { ProbotEvent } from 'events/probot-types';
 import type { RepoContext } from '../../../context/repoContext';
 import { getKeys } from '../../../context/utils';
 
@@ -13,8 +14,11 @@ interface ReviewStates {
 
 export type Reviewer = AccountInfo;
 
-export const getReviewersAndReviewStates = async <GroupNames extends string>(
-  context: Context,
+export const getReviewersAndReviewStates = async <
+  EventName extends EmitterWebhookEventName,
+  GroupNames extends string,
+>(
+  context: ProbotEvent<EventName>,
   repoContext: RepoContext<GroupNames>,
 ): Promise<{
   reviewers: Reviewer[];

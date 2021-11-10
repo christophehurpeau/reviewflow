@@ -1,10 +1,10 @@
 import type { MongoStores, OrgTeamEmbed } from '../../../mongo';
-import type { Octokit } from '../../../octokit';
+import type { CommonOctokitInterface } from '../../../octokit';
 import { ExcludesFalsy } from '../../../utils/Excludes';
 
-export const syncTeamMembers = async (
+export const syncTeamMembers = async <T extends CommonOctokitInterface>(
   mongoStores: MongoStores,
-  octokit: Octokit,
+  octokit: T,
   org: { login: string; id: number },
   team: OrgTeamEmbed,
 ): Promise<void> => {
@@ -44,9 +44,11 @@ export const syncTeamMembers = async (
   );
 };
 
-export const syncTeamMembersWithTeamParents = async (
+export const syncTeamMembersWithTeamParents = async <
+  T extends CommonOctokitInterface,
+>(
   mongoStores: MongoStores,
-  octokit: Octokit,
+  octokit: T,
   org: { login: string; id: number },
   team: OrgTeamEmbed,
 ): Promise<void> => {};

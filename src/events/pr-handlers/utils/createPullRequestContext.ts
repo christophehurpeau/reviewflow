@@ -1,5 +1,5 @@
-import type { Context } from 'probot';
-import type { RepoContext } from 'context/repoContext';
+import type { EventsWithRepository, RepoContext } from 'context/repoContext';
+import type { ProbotEvent } from 'events/probot-types';
 import type { ReviewflowPr } from 'mongo';
 import { defaultCommentBody } from '../actions/utils/body/updateBody';
 import type { PullRequestWithDecentDataFromWebhook } from './PullRequestData';
@@ -17,9 +17,9 @@ export interface ReviewflowPrContext {
   commentBody: string;
 }
 
-export const getReviewflowPrContext = async <T>(
+export const getReviewflowPrContext = async <T extends EventsWithRepository>(
   pullRequestNumber: PullRequestWithDecentDataFromWebhook['number'],
-  context: Context<T>,
+  context: ProbotEvent<T>,
   repoContext: RepoContext,
   reviewflowCommentPromise?: ReturnType<typeof createReviewflowComment>,
 ): Promise<ReviewflowPrContext> => {

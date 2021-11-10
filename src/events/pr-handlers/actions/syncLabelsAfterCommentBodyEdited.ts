@@ -1,5 +1,5 @@
-import type { Context } from 'probot';
-import type { RepoContext } from 'context/repoContext';
+import type { EventsWithRepository, RepoContext } from 'context/repoContext';
+import type { ProbotEvent } from 'events/probot-types';
 import type {
   PullRequestFromRestEndpoint,
   PullRequestWithDecentData,
@@ -29,9 +29,11 @@ export const calcDefaultOptions = (
   };
 };
 
-export const syncLabelsAfterCommentBodyEdited = async (
+export const syncLabelsAfterCommentBodyEdited = async <
+  Name extends EventsWithRepository,
+>(
   pullRequest: PullRequestFromRestEndpoint,
-  context: Context<any>,
+  context: ProbotEvent<Name>,
   repoContext: RepoContext,
   reviewflowPrContext: ReviewflowPrContext,
 ): Promise<void> => {

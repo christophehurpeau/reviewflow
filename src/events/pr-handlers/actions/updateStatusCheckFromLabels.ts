@@ -1,19 +1,16 @@
-import type { EventPayloads } from '@octokit/webhooks';
-import type { Context } from 'probot';
 import type { RepoContext } from 'context/repoContext';
+import type { ProbotEvent } from 'events/probot-types';
 import { ExcludesFalsy } from '../../../utils/Excludes';
 import type {
   PullRequestLabels,
   PullRequestWithDecentData,
-  PullRequestWithDecentDataFromWebhook,
 } from '../utils/PullRequestData';
+import type { EventsWithPullRequest } from '../utils/createPullRequestHandler';
 import createStatus from './utils/createStatus';
 
-const addStatusCheck = async function <
-  T extends { repository: EventPayloads.PayloadRepository },
->(
+const addStatusCheck = async function <EventName extends EventsWithPullRequest>(
   pullRequest: PullRequestWithDecentData,
-  context: Context<T>,
+  context: ProbotEvent<EventName>,
   { state, description }: { state: 'failure' | 'success'; description: string },
   previousSha?: string,
 ): Promise<void> {
@@ -59,10 +56,10 @@ const addStatusCheck = async function <
 };
 
 export const updateStatusCheckFromLabels = <
-  T extends { repository: EventPayloads.PayloadRepository },
+  EventName extends EventsWithPullRequest,
 >(
   pullRequest: PullRequestWithDecentData,
-  context: Context<T>,
+  context: ProbotEvent<EventName>,
   repoContext: RepoContext,
   labels: PullRequestLabels = pullRequest.labels || [],
   previousSha?: string,
@@ -88,26 +85,17 @@ export const updateStatusCheckFromLabels = <
     );
 
   if (
-    pullRequest.requested_reviewers &&
-    pullRequest.requested_reviewers.length > 0
+    (pullRequest.requested_reviewers &&
+      pullRequest.requested_reviewers.length > 0) ||
+    (pullRequest.requested_teams && pullRequest.requested_teams.length > 0)
   ) {
     return createFailedStatusCheck(
-      `Awaiting review from: ${(
-        pullRequest.requested_reviewers as PullRequestWithDecentDataFromWebhook['requested_reviewers']
-      )
+      `Awaiting review from: ${[
+        ...(pullRequest.requested_reviewers || []),
+        ...(pullRequest.requested_teams || []),
+      ]
+        .map((rr) => (!rr ? undefined : 'name' in rr ? rr.name : rr.login))
         .filter(ExcludesFalsy)
-        .map((rr) => rr.login)
-        .join(', ')}`,
-    );
-  }
-
-  if (pullRequest.requested_teams && pullRequest.requested_teams.length > 0) {
-    return createFailedStatusCheck(
-      `Awaiting review from: ${(
-        pullRequest.requested_teams as PullRequestWithDecentDataFromWebhook['requested_teams']
-      )
-        .filter(ExcludesFalsy)
-        .map((rt) => rt.name)
         .join(', ')}`,
     );
   }
