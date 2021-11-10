@@ -51,9 +51,10 @@ export default function opened(app: Probot, appContext: AppContext): void {
               }),
             )
           : updateReviewStatus(pullRequest, context, repoContext, 'dev', {
-              add: repoContext.config.requiresReviewRequest
-                ? ['needsReview']
-                : [],
+              add:
+                repoContext.config.requiresReviewRequest && !pullRequest.draft
+                  ? ['needsReview']
+                  : [],
               remove: ['approved', 'changesRequested'],
             }),
       ]);

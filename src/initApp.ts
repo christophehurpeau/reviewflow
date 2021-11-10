@@ -9,9 +9,11 @@ import checksuiteCompleted from './events/pr-handlers/checksuiteCompleted';
 import closedHandler from './events/pr-handlers/closed';
 import commentCreated from './events/pr-handlers/commentCreated';
 import commentEditedOrDeleted from './events/pr-handlers/commentEditedOrDeleted';
+import convertedToDraft from './events/pr-handlers/convertedToDraft';
 import editedHandler from './events/pr-handlers/edited';
 import labelsChanged from './events/pr-handlers/labelsChanged';
 import openedHandler from './events/pr-handlers/opened';
+import readyForReview from './events/pr-handlers/readyForReview';
 import reopenedHandler from './events/pr-handlers/reopened';
 import reviewDismissedHandler from './events/pr-handlers/reviewDismissed';
 import reviewRequestRemovedHandler from './events/pr-handlers/reviewRequestRemoved';
@@ -40,6 +42,8 @@ export default function initApp(app: Probot, appContext: AppContext): void {
   editedHandler(app, appContext);
   closedHandler(app, appContext);
   reopenedHandler(app, appContext);
+  convertedToDraft(app, appContext);
+  readyForReview(app, appContext);
 
   reviewRequestedHandler(app, appContext);
   reviewRequestRemovedHandler(app, appContext);
