@@ -1,5 +1,5 @@
 import { WebClient } from '@slack/web-api';
-import type { Context } from 'probot';
+import type { ProbotEvent } from 'events/probot-types';
 import type { Config } from '../../accountConfigs';
 import type { MessageCategory } from '../../dm/MessageCategory';
 import { getUserDmSettings } from '../../dm/getUserDmSettings';
@@ -39,7 +39,7 @@ interface MemberObject {
 
 export const initTeamSlack = async <GroupNames extends string>(
   { mongoStores, slackHome }: AppContext,
-  context: Context<any>,
+  context: ProbotEvent<any>,
   config: Config<GroupNames>,
   account: Org | User,
 ): Promise<TeamSlack> => {

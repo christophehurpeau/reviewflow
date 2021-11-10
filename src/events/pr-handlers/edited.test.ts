@@ -50,7 +50,7 @@ describe('edited', (): void => {
     await probot.receive({
       id: '1',
       name: pullRequestEdited.event as any,
-      payload: pullRequestEdited.payload,
+      payload: pullRequestEdited.payload as any,
     });
 
     expect(scope.pendingMocks()).toEqual([]);

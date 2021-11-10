@@ -1,13 +1,15 @@
-import type { Context } from 'probot';
-import type { RepoContext } from 'context/repoContext';
+import type { EventsWithRepository, RepoContext } from 'context/repoContext';
+import type { ProbotEvent } from 'events/probot-types';
 import type { PullRequestFromRestEndpoint } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { autoMergeIfPossible } from './autoMergeIfPossible';
 import hasLabelInPR from './utils/hasLabelInPR';
 
-export const autoApproveAndAutoMerge = async (
+export const autoApproveAndAutoMerge = async <
+  Name extends EventsWithRepository,
+>(
   pullRequest: PullRequestFromRestEndpoint,
-  context: Context<any>,
+  context: ProbotEvent<Name>,
   repoContext: RepoContext,
   reviewflowPrContext: ReviewflowPrContext,
 ): Promise<boolean> => {

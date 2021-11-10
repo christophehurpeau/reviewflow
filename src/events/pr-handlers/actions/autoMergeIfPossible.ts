@@ -1,6 +1,7 @@
 /* eslint-disable max-lines */
-import type { Context } from 'probot';
-import type { RepoContext } from 'context/repoContext';
+import type { EmitterWebhookEventName } from '@octokit/webhooks';
+import type { EventsWithRepository, RepoContext } from 'context/repoContext';
+import type { ProbotEvent } from 'events/probot-types';
 import type { AutomergeLog } from 'mongo';
 import type {
   PullRequestData,
@@ -40,9 +41,9 @@ export const createCommitMessage = ({
   ];
 };
 
-const hasFailedStatusOrChecks = async (
+const hasFailedStatusOrChecks = async <Name extends EmitterWebhookEventName>(
   pr: PullRequestData,
-  context: Context<any>,
+  context: ProbotEvent<Name>,
 ): Promise<boolean> => {
   const checks = await context.octokit.checks.listForRef(
     context.repo({
@@ -90,9 +91,9 @@ const hasFailedStatusOrChecks = async (
   return false;
 };
 
-export const autoMergeIfPossible = async (
+export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
   pullRequest: PullRequestFromRestEndpoint,
-  context: Context<any>,
+  context: ProbotEvent<Name>,
   repoContext: RepoContext,
   reviewflowPrContext: ReviewflowPrContext,
   prLabels: PullRequestLabels = pullRequest.labels,

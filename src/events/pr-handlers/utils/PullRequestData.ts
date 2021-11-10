@@ -1,25 +1,26 @@
-import type { RestEndpointMethodTypes } from '@octokit/rest';
-import type { EventPayloads } from '@octokit/webhooks';
+import type { ProbotEvent } from 'events/probot-types';
+import type { EventsWithPullRequest } from './createPullRequestHandler';
+import type { PullRequestFromRestEndpoint } from './fetchPr';
 
 export type PullRequestWithDecentDataFromWebhook =
-  | EventPayloads.WebhookPayloadPullRequest['pull_request']
-  | EventPayloads.WebhookPayloadPullRequestReviewPullRequest;
+  ProbotEvent<EventsWithPullRequest>['payload']['pull_request'];
 
-export type PullRequestLabels = Partial<
-  EventPayloads.WebhookPayloadPullRequest['pull_request']['labels'][number]
->[];
+export type PullRequestFromWebhook = PullRequestWithDecentDataFromWebhook;
+// | EventPayloads.WebhookPayloadCheckRunCheckRunPullRequestsItem;
 
-export type PullRequestFromWebhook =
-  | PullRequestWithDecentDataFromWebhook
-  | EventPayloads.WebhookPayloadCheckRunCheckRunPullRequestsItem;
-
-export type PullRequestFromRestEndpoint =
-  RestEndpointMethodTypes['pulls']['get']['response']['data'];
+export type { PullRequestFromRestEndpoint };
 
 export type PullRequestData =
   | PullRequestFromRestEndpoint
   | PullRequestFromWebhook;
 
+export interface PullRequestDataMinimumData {
+  id: PullRequestData['id'];
+  number: PullRequestData['number'];
+}
+
 export type PullRequestWithDecentData =
   | PullRequestFromRestEndpoint
   | PullRequestWithDecentDataFromWebhook;
+
+export type PullRequestLabels = PullRequestWithDecentData['labels'];

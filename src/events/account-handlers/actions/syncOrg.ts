@@ -1,15 +1,15 @@
+import type { CommonOctokitInterface } from 'octokit';
 import type { MongoStores, Org } from '../../../mongo';
-import type { Octokit } from '../../../octokit';
 
 interface OrgInfo {
   login: string;
   id: number;
 }
 
-export const syncOrg = async <T extends Octokit>(
+export const syncOrg = async <T extends CommonOctokitInterface>(
   mongoStores: MongoStores,
   octokit: T,
-  installationId: number,
+  installationId: number | undefined,
   org: OrgInfo,
 ): Promise<Org> => {
   const orgInStore = await mongoStores.orgs.upsertOne({

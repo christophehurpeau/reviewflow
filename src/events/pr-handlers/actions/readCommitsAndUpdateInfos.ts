@@ -1,9 +1,8 @@
 import parse from '@commitlint/parse';
 import type { CommitNote } from '@commitlint/types';
 import type { RestEndpointMethodTypes } from '@octokit/rest';
-import type { EventPayloads } from '@octokit/webhooks';
-import type { Context } from 'probot';
-import type { RepoContext } from 'context/repoContext';
+import type { EventsWithRepository, RepoContext } from 'context/repoContext';
+import type { ProbotEvent } from 'events/probot-types';
 import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
@@ -17,10 +16,10 @@ interface BreakingChangesCommits {
 }
 
 export const readCommitsAndUpdateInfos = async <
-  E extends EventPayloads.WebhookPayloadPullRequest,
+  Name extends EventsWithRepository,
 >(
   pullRequest: PullRequestWithDecentData,
-  context: Context<E>,
+  context: ProbotEvent<Name>,
   repoContext: RepoContext,
   reviewflowPrContext: ReviewflowPrContext,
   commentBody = reviewflowPrContext.commentBody,
@@ -28,7 +27,7 @@ export const readCommitsAndUpdateInfos = async <
   // tmp.data[0].sha
   // tmp.data[0].commit.message
 
-  const commits = await readPullRequestCommits(context);
+  const commits = await readPullRequestCommits(context, pullRequest);
 
   const conventionalCommits = await Promise.all(
     commits.map((c) => parse(c.commit.message)),

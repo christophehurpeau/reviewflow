@@ -1,8 +1,9 @@
+import type { EmitterWebhookEventName } from '@octokit/webhooks';
+import type { ProbotEvent } from 'events/probot-types';
 import { syncOrg } from '../events/account-handlers/actions/syncOrg';
 import { syncTeamsAndTeamMembers } from '../events/account-handlers/actions/syncTeams';
 import { syncUser } from '../events/account-handlers/actions/syncUser';
 import type { Org, User } from '../mongo';
-import type { Octokit } from '../octokit';
 import type { AppContext } from './AppContext';
 
 export interface AccountInfo {
@@ -11,10 +12,10 @@ export interface AccountInfo {
   type: string;
 }
 
-export const getOrCreateAccount = async (
+export const getOrCreateAccount = async <T extends EmitterWebhookEventName>(
   { mongoStores }: AppContext,
-  github: Octokit,
-  installationId: number,
+  github: ProbotEvent<T>['octokit'],
+  installationId: number | undefined,
   accountInfo: AccountInfo,
 ): Promise<Org | User> => {
   switch (accountInfo.type) {

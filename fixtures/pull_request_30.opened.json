@@ -169,7 +169,8 @@
           "forks": 0,
           "open_issues": 4,
           "watchers": 0,
-          "default_branch": "master"
+          "default_branch": "master",
+          "is_template": false
         }
       },
       "base": {
@@ -288,7 +289,8 @@
           "forks": 0,
           "open_issues": 2,
           "watchers": 0,
-          "default_branch": "master"
+          "default_branch": "master",
+          "is_template": false
         }
       },
       "_links": {
@@ -330,7 +332,9 @@
       "commits": 1,
       "additions": 1,
       "deletions": 0,
-      "changed_files": 1
+      "changed_files": 1,
+      "auto_merge": null,
+      "active_lock_reason": null
     },
     "repository": {
       "id": 167861157,
@@ -424,7 +428,8 @@
       "forks": 0,
       "open_issues": 4,
       "watchers": 0,
-      "default_branch": "master"
+      "default_branch": "master",
+      "is_template": false
     },
     "organization": {
       "login": "reviewflow",

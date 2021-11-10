@@ -1,11 +1,11 @@
-import type { EventPayloads } from '@octokit/webhooks';
-import type { Probot, Context } from 'probot';
+import type { Probot } from 'probot';
+import type { ProbotEvent } from 'events/probot-types';
 import type { AppContext } from '../../context/AppContext';
 import type { LockedMergePr } from '../../context/repoContext';
 import { createPullRequestsHandler } from './utils/createPullRequestHandler';
 
 const isSameBranch = (
-  payload: Context<EventPayloads.WebhookPayloadStatus>['payload'],
+  payload: ProbotEvent<'status'>['payload'],
   lockedPr: LockedMergePr,
 ): boolean => {
   if (!lockedPr) return false;
@@ -13,29 +13,28 @@ const isSameBranch = (
 };
 
 export default function status(app: Probot, appContext: AppContext): void {
-  app.on(
+  createPullRequestsHandler(
+    app,
+    appContext,
     'status',
-    createPullRequestsHandler(
-      appContext,
-      (payload, repoContext): LockedMergePr[] => {
-        if (repoContext.shouldIgnore) return [];
+    (payload, repoContext): LockedMergePr[] => {
+      if (repoContext.shouldIgnore) return [];
 
-        const lockedPr = repoContext.getMergeLockedPr();
-        if (!lockedPr) return [];
+      const lockedPr = repoContext.getMergeLockedPr();
+      if (!lockedPr) return [];
 
-        if (payload.state !== 'loading' && isSameBranch(payload, lockedPr)) {
-          return [lockedPr];
-        }
+      if (payload.state !== 'pending' && isSameBranch(payload, lockedPr)) {
+        return [lockedPr];
+      }
 
-        return [];
-      },
-      (pr, context, repoContext): void => {
-        const lockedPr = repoContext.getMergeLockedPr();
-        // check if changed
-        if (isSameBranch(context.payload, lockedPr)) {
-          repoContext.reschedule(context, lockedPr);
-        }
-      },
-    ),
+      return [];
+    },
+    (pr, context, repoContext): void => {
+      const lockedPr = repoContext.getMergeLockedPr();
+      // check if changed
+      if (isSameBranch(context.payload, lockedPr)) {
+        repoContext.reschedule(context, lockedPr);
+      }
+    },
   );
 }

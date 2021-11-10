@@ -1,13 +1,13 @@
-import type { EventPayloads } from '@octokit/webhooks';
-import type { Context } from 'probot';
+import type { EmitterWebhookEventName } from '@octokit/webhooks';
 import type { RepoContext } from 'context/repoContext';
-import type { PullRequestFromRestEndpoint } from '../utils/PullRequestData';
+import type { ProbotEvent } from 'events/probot-types';
+import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 
 export const autoAssignPRToCreator = async <
-  E extends EventPayloads.WebhookPayloadPullRequest,
+  Name extends EmitterWebhookEventName,
 >(
-  pullRequest: E['pull_request'] | PullRequestFromRestEndpoint,
-  context: Context<E>,
+  pullRequest: PullRequestWithDecentData,
+  context: ProbotEvent<Name>,
   repoContext: RepoContext,
 ): Promise<void> => {
   if (!repoContext.config.autoAssignToCreator) return;

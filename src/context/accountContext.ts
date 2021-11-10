@@ -1,9 +1,10 @@
 import { Lock } from 'lock';
-import type { Context } from 'probot';
+import type { EventsWithOrganisation } from 'events/account-handlers/utils/createHandlerOrgChange';
 import type {
   PullRequestWithDecentData,
   PullRequestWithDecentDataFromWebhook,
 } from 'events/pr-handlers/utils/PullRequestData';
+import type { ProbotEvent } from 'events/probot-types';
 import type { Config } from '../accountConfigs';
 import type {
   Org,
@@ -17,6 +18,7 @@ import { ExcludesFalsy } from '../utils/Excludes';
 import type { AppContext } from './AppContext';
 import type { AccountInfo } from './getOrCreateAccount';
 import { getOrCreateAccount } from './getOrCreateAccount';
+import type { EventsWithRepository } from './repoContext';
 import type { TeamSlack } from './slack/initTeamSlack';
 import { initTeamSlack } from './slack/initTeamSlack';
 import { getKeys } from './utils';
@@ -34,7 +36,7 @@ export interface AccountContext<
   getReviewerGroups: (githubLogins: string[]) => GroupNames[];
   getTeamGroup: (teamName: string) => GroupNames | undefined;
   getGithubTeamsGroups: (teamNames: string[]) => GroupNames[];
-  getMembersForTeam: (teamId: string) => Promise<AccountEmbedWithoutType[]>;
+  getMembersForTeam: (teamId: number) => Promise<AccountEmbedWithoutType[]>;
   getTeamsForLogin: (githubLogin: string) => TeamNames[];
   updateGithubTeamMembers: () => Promise<void>;
   approveShouldWait: (
@@ -78,16 +80,20 @@ export const getTeamsAndGroups = (
   return { groupName, teamNames };
 };
 
-const initAccountContext = async (
+const initAccountContext = async <
+  EventName extends EventsWithRepository | EventsWithOrganisation,
+>(
   appContext: AppContext,
-  context: Context<any>,
+  context: ProbotEvent<EventName>,
   config: Config,
   accountInfo: AccountInfo,
 ): Promise<AccountContext> => {
   const account = await getOrCreateAccount(
     appContext,
     context.octokit,
-    context.payload.installation.id,
+    'installation' in context.payload
+      ? context.payload.installation?.id
+      : undefined,
     accountInfo,
   );
   const initSlack = (account: Org | User): ReturnType<typeof initTeamSlack> =>
@@ -225,7 +231,12 @@ const initAccountContext = async (
           ...getReviewerGroups(
             (
               pullRequest.requested_reviewers as PullRequestWithDecentDataFromWebhook['requested_reviewers']
-            ).map((request) => request.login),
+            )
+              .map((request) => {
+                if (!request) return undefined;
+                return 'name' in request ? request.name : request.login;
+              })
+              .filter(ExcludesFalsy),
           ),
           ...(!pullRequest.requested_teams
             ? []
@@ -263,7 +274,7 @@ const initAccountContext = async (
       const account = await getOrCreateAccount(
         appContext,
         context.octokit,
-        context.payload.installation.id,
+        context.payload.installation?.id,
         accountInfo,
       );
       const slack = await initSlack(account);
@@ -287,9 +298,11 @@ export const getExistingAccountContext = (
   return null;
 };
 
-export const obtainAccountContext = (
+export const obtainAccountContext = <
+  EventName extends EventsWithRepository | EventsWithOrganisation,
+>(
   appContext: AppContext,
-  context: Context<any>,
+  context: ProbotEvent<EventName>,
   config: Config,
   accountInfo: AccountInfo,
 ): Promise<AccountContext> => {

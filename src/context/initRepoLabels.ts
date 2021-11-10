@@ -1,5 +1,6 @@
 import type { RestEndpointMethodTypes } from '@octokit/rest';
-import type { Context } from 'probot';
+import type { EmitterWebhookEventName } from '@octokit/webhooks';
+import type { ProbotEvent } from 'events/probot-types';
 import type { Config } from '../accountConfigs';
 
 export interface LabelResponse {
@@ -14,8 +15,8 @@ export interface LabelResponse {
 
 export type LabelsRecord = Record<string, LabelResponse>;
 
-export const getLabelsForRepo = async (
-  context: Context<any>,
+export const getLabelsForRepo = async <T extends EmitterWebhookEventName>(
+  context: ProbotEvent<T>,
 ): Promise<
   RestEndpointMethodTypes['issues']['listLabelsForRepo']['response']['data']
 > => {
@@ -25,11 +26,14 @@ export const getLabelsForRepo = async (
   return labels;
 };
 
-export const initRepoLabels = async <GroupNames extends string>(
-  context: Context<any>,
+export const initRepoLabels = async <
+  T extends EmitterWebhookEventName,
+  GroupNames extends string,
+>(
+  context: ProbotEvent<T>,
   config: Config<GroupNames>,
 ): Promise<LabelsRecord> => {
-  const labels = await getLabelsForRepo(context);
+  const labels = await getLabelsForRepo<T>(context);
   const finalLabels: Record<string, LabelResponse> = {};
 
   for (const [labelKey, labelConfig] of Object.entries(config.labels.list)) {

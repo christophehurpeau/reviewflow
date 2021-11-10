@@ -1,10 +1,10 @@
-import type { EventPayloads } from '@octokit/webhooks';
-import type { Context } from 'probot';
+import type { EventsWithRepository } from 'context/repoContext';
+import type { ProbotEvent } from 'events/probot-types';
 
 export default async function createStatus<
-  T extends { repository: EventPayloads.PayloadRepository },
+  EventName extends EventsWithRepository,
 >(
-  context: Context<T>,
+  context: ProbotEvent<EventName>,
   name: string,
   sha: string,
   type: 'failure' | 'success',

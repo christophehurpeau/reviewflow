@@ -1,10 +1,11 @@
 import type { RestEndpointMethodTypes } from '@octokit/rest';
-import type { Context } from 'probot';
+import type { EventsWithRepository } from 'context/repoContext';
+import type { ProbotEvent } from 'events/probot-types';
 import type { PullRequestWithDecentDataFromWebhook } from './PullRequestData';
 
-export const createReviewflowComment = <T>(
+export const createReviewflowComment = <EventName extends EventsWithRepository>(
   pullRequestNumber: PullRequestWithDecentDataFromWebhook['number'],
-  context: Context<T>,
+  context: ProbotEvent<EventName>,
   body: string,
 ): Promise<
   RestEndpointMethodTypes['issues']['createComment']['response']['data']
@@ -14,9 +15,11 @@ export const createReviewflowComment = <T>(
     .then(({ data }) => data);
 };
 
-export const getReviewflowCommentById = <T>(
+export const getReviewflowCommentById = <
+  EventName extends EventsWithRepository,
+>(
   pullRequestNumber: PullRequestWithDecentDataFromWebhook['number'],
-  context: Context<T>,
+  context: ProbotEvent<EventName>,
   commentId: number,
 ): Promise<
   RestEndpointMethodTypes['issues']['getComment']['response']['data'] | null
