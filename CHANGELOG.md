@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.86.0](https://github.com/christophehurpeau/reviewflow/compare/v1.85.2...v1.86.0) (2021-11-10)
+
+
+### Features
+
+* better draft support ([#325](https://github.com/christophehurpeau/reviewflow/issues/325)) ([201a57b](https://github.com/christophehurpeau/reviewflow/commit/201a57b2e945d924ea35b4b994cd42039b7ab9ff))
+* **deps:** update dependency @commitlint/parse to v14 ([#297](https://github.com/christophehurpeau/reviewflow/issues/297)) ([47027a8](https://github.com/christophehurpeau/reviewflow/commit/47027a833bb8f7583f7b448828b2c0c44669e0fe))
+* **deps:** update dependency emoji-regex to v10 ([#305](https://github.com/christophehurpeau/reviewflow/issues/305)) ([dba02bc](https://github.com/christophehurpeau/reviewflow/commit/dba02bc7c56999d1a3af029ea46ad7a054ebf028))
+* **deps:** update dependency probot to v11.4.1 ([#294](https://github.com/christophehurpeau/reviewflow/issues/294)) ([c593fc8](https://github.com/christophehurpeau/reviewflow/commit/c593fc8cf90789294fd1f90e23a85b746476918b))
+* **deps:** update dependency probot to v12 ([#308](https://github.com/christophehurpeau/reviewflow/issues/308)) ([7f6b273](https://github.com/christophehurpeau/reviewflow/commit/7f6b2732de21bd5735ecba922d66e6510eed24a9))
+* better titles ([5e3b3dd](https://github.com/christophehurpeau/reviewflow/commit/5e3b3dd77887aa62e04e5c138f736f55394760b1))
+* specify status when merge failed and status exists ([f0db6ed](https://github.com/christophehurpeau/reviewflow/commit/f0db6ed21b0581f0316284e7770571e11d972716))
+
+
+### Bug Fixes
+
+* update and delete comments ([#324](https://github.com/christophehurpeau/reviewflow/issues/324)) ([85c724f](https://github.com/christophehurpeau/reviewflow/commit/85c724f6290fc23c16e0fbba4f00811b357a0c3c))
+
 ### [1.85.2](https://github.com/christophehurpeau/reviewflow/compare/v1.85.1...v1.85.2) (2021-10-24)
 
 
