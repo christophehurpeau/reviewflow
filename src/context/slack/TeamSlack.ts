@@ -5,6 +5,7 @@ import type { SlackMessage } from './SlackMessage';
 export interface SlackMessageResult {
   ts: string;
   channel: string;
+  user: AccountInfo;
 }
 
 export type PostSlackMessageResult = SlackMessageResult | null;
@@ -13,22 +14,22 @@ export interface TeamSlack {
   mention: (githubLogin: string) => string;
   postMessage: (
     category: MessageCategory,
-    toAccount: AccountInfo,
+    toUser: AccountInfo,
     message: SlackMessage,
   ) => Promise<PostSlackMessageResult>;
   updateMessage: (
-    toAccount: AccountInfo,
+    toUser: AccountInfo,
     ts: string,
     channel: string,
     message: SlackMessage,
   ) => Promise<PostSlackMessageResult>;
   deleteMessage: (
-    toAccount: AccountInfo,
+    toUser: AccountInfo,
     ts: string,
     channel: string,
   ) => Promise<void>;
   addReaction: (
-    toAccount: AccountInfo,
+    toUser: AccountInfo,
     ts: string,
     channel: string,
     name: string,

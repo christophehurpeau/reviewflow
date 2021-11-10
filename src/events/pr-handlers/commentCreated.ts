@@ -182,54 +182,49 @@ export default function prCommentCreated(
         return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
       };
 
-      const promisesOwner = [];
-      const promisesNotOwner = [];
+      const promisesOwner: Promise<PostSlackMessageResult>[] = [];
+      const promisesNotOwner: Promise<PostSlackMessageResult>[] = [];
+
       const slackifiedBody = slackifyCommentBody(
         comment.body,
         (comment as any).start_line !== null,
       );
-      const isBotUser = checkIfUserIsBot(repoContext, comment.user);
 
-      if (!commentByOwner) {
-        const slackMessage = createSlackMessageWithSecondaryBlock(
-          createMessage(true),
-          slackifiedBody,
-        );
-
-        promisesOwner.push(
-          repoContext.slack
-            .postMessage(
-              isBotUser ? 'pr-comment-bots' : 'pr-comment',
-              prUser,
-              slackMessage,
-            )
-            .then((res) =>
-              saveInDb(
-                type,
-                comment.id,
-                repoContext.accountEmbed,
-                [res],
-                slackMessage,
-              ),
-            ),
-        );
-      }
-
-      const message = createSlackMessageWithSecondaryBlock(
+      const ownerSlackMessage = createSlackMessageWithSecondaryBlock(
+        createMessage(true),
+        slackifiedBody,
+      );
+      const notOwnerSlackMessage = createSlackMessageWithSecondaryBlock(
         createMessage(false),
         slackifiedBody,
       );
+
+      const isBotUser = checkIfUserIsBot(repoContext, comment.user);
+
+      if (!commentByOwner) {
+        promisesOwner.push(
+          repoContext.slack.postMessage(
+            isBotUser ? 'pr-comment-bots' : 'pr-comment',
+            prUser,
+            ownerSlackMessage,
+          ),
+        );
+      }
 
       promisesNotOwner.push(
         ...followers.map((follower) =>
           repoContext.slack.postMessage(
             isBotUser ? 'pr-comment-follow-bots' : 'pr-comment-follow',
             follower,
-            message,
+            notOwnerSlackMessage,
           ),
         ),
         ...usersInThread.map((user) =>
-          repoContext.slack.postMessage('pr-comment-thread', user, message),
+          repoContext.slack.postMessage(
+            'pr-comment-thread',
+            user,
+            notOwnerSlackMessage,
+          ),
         ),
       );
 
@@ -242,7 +237,7 @@ export default function prCommentCreated(
                 repoContext.slack.postMessage(
                   'pr-comment-mention',
                   { id: u._id, login: u.login, type: u.type },
-                  message,
+                  notOwnerSlackMessage,
                 ),
               ),
             );
@@ -250,14 +245,22 @@ export default function prCommentCreated(
       }
 
       await Promise.all([
-        Promise.all(promisesOwner),
+        Promise.all(promisesOwner).then((results) =>
+          saveInDb(
+            type,
+            comment.id,
+            repoContext.accountEmbed,
+            results,
+            ownerSlackMessage,
+          ),
+        ),
         Promise.all(promisesNotOwner).then((results) =>
           saveInDb(
             type,
             comment.id,
             repoContext.accountEmbed,
             results,
-            message,
+            notOwnerSlackMessage,
           ),
         ),
       ]);
