@@ -75,6 +75,11 @@ export default function reviewRequestRemoved(
             remove: [
               approved && 'needsReview',
               !hasRequestedReviewsForGroup && 'requested',
+              pullRequest.draft &&
+              !hasRequestedReviewsForGroup &&
+              !hasChangesRequestedInReviews
+                ? 'needsReview'
+                : undefined,
             ],
           },
         );

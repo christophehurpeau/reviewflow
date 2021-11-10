@@ -84,6 +84,10 @@ export const updateStatusCheckFromLabels = <
       previousSha,
     );
 
+  if (pullRequest.draft) {
+    return createFailedStatusCheck('PR is still in draft');
+  }
+
   if (
     (pullRequest.requested_reviewers &&
       pullRequest.requested_reviewers.length > 0) ||

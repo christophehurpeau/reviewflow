@@ -22,12 +22,13 @@ export default function reopened(app: Probot, appContext: AppContext): void {
       repoContext,
       reviewflowPrContext,
     ): Promise<void> => {
+      const fromRenovate = pullRequest.head.ref.startsWith('renovate/');
       /* if repo is not ignored */
       if (reviewflowPrContext) {
         await Promise.all([
           updateReviewStatus(pullRequest, context, repoContext, 'dev', {
-            add: ['needsReview'],
-            remove: ['approved'],
+            add: fromRenovate || pullRequest.draft ? [] : ['needsReview'],
+            remove: fromRenovate ? [] : ['approved'],
           }),
           editOpenedPR(
             pullRequest,
