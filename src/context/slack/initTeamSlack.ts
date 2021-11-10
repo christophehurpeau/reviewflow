@@ -178,13 +178,13 @@ export const initTeamSlack = async <GroupNames extends string>(
     },
     postMessage: async (
       category: MessageCategory,
-      toAccount: AccountInfo,
+      toUser: AccountInfo,
       message: SlackMessage,
     ): Promise<PostSlackMessageResult> => {
       context.log.debug(
         {
           category,
-          toAccount,
+          toUser,
           message,
         },
         'slack: post message',
@@ -195,12 +195,12 @@ export const initTeamSlack = async <GroupNames extends string>(
         mongoStores,
         account.login,
         account._id,
-        toAccount.id,
+        toUser.id,
       );
 
       if (!userDmSettings[category]) return null;
 
-      const user = membersMap.get(toAccount.login);
+      const user = membersMap.get(toUser.login);
       if (!user || !user.slackClient || !user.im) return null;
 
       const result = await user.slackClient.chat.postMessage({
@@ -214,10 +214,14 @@ export const initTeamSlack = async <GroupNames extends string>(
         thread_ts: message.ts,
       });
       if (!result.ok) return null;
-      return { ts: result.ts as string, channel: result.channel as string };
+      return {
+        ts: result.ts as string,
+        channel: result.channel as string,
+        user: toUser,
+      };
     },
     updateMessage: async (
-      toAccount: AccountInfo,
+      toUser: AccountInfo,
       ts: string,
       channel: string,
       message: SlackMessage,
@@ -225,7 +229,7 @@ export const initTeamSlack = async <GroupNames extends string>(
       context.log.debug({ ts, channel, message }, 'slack: update message');
       if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
 
-      const user = membersMap.get(toAccount.login);
+      const user = membersMap.get(toUser.login);
       if (!user || !user.slackClient || !user.im) return null;
 
       const result = await user.slackClient.chat.update({
@@ -238,16 +242,20 @@ export const initTeamSlack = async <GroupNames extends string>(
           : undefined,
       });
       if (!result.ok) return null;
-      return { ts: result.ts as string, channel: result.channel as string };
+      return {
+        ts: result.ts as string,
+        channel: result.channel as string,
+        user: toUser,
+      };
     },
     deleteMessage: async (
-      toAccount: AccountInfo,
+      toUser: AccountInfo,
       ts: string,
       channel: string,
     ): Promise<void> => {
       context.log.debug({ ts, channel }, 'slack: delete message');
 
-      const user = membersMap.get(toAccount.login);
+      const user = membersMap.get(toUser.login);
       if (!user || !user.slackClient || !user.im) return;
 
       await user.slackClient.chat.delete({
@@ -256,14 +264,14 @@ export const initTeamSlack = async <GroupNames extends string>(
       });
     },
     addReaction: async (
-      toAccount: AccountInfo,
+      toUser: AccountInfo,
       ts: string,
       channel: string,
       name: string,
     ): Promise<void> => {
       context.log.debug({ ts, channel, name }, 'slack: add reaction');
 
-      const user = membersMap.get(toAccount.login);
+      const user = membersMap.get(toUser.login);
       if (!user || !user.slackClient || !user.im) return;
 
       await user.slackClient.reactions.add({

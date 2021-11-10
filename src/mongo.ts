@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import type { MongoBaseModel } from 'liwi-mongo';
 import { MongoStore, MongoConnection } from 'liwi-mongo';
+import type { AccountInfo } from './context/getOrCreateAccount';
 import type { SlackMessage } from './context/slack/SlackMessage';
 import type { MessageCategory } from './dm/MessageCategory';
 
@@ -111,6 +112,7 @@ export interface SlackSentMessage extends MongoBaseModel {
   account: AccountEmbed;
   message: SlackMessage;
   sentTo: {
+    user: AccountInfo;
     channel: string;
     ts: string;
   }[];
