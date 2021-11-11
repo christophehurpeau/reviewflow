@@ -11,7 +11,7 @@
   "engines": {
     "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
   },
-  "packageManager": "yarn@3.0.2",
+  "packageManager": "yarn@3.1.0",
   "main": "./dist/index-node12.cjs.js",
   "exports": {
     "./package.json": "./package.json",
@@ -30,6 +30,7 @@
     "lint": "yarn run lint:prettier && tsc && yarn run lint:eslint",
     "lint:eslint": "eslint --report-unused-disable-directives --resolve-plugins-relative-to . --quiet *.{js,cjs,mjs} src scripts",
     "lint:prettier": "prettier --check .",
+    "postinstall": "pob-root-postinstall",
     "preversion": "yarn run lint && yarn run build && yarn run test && repository-check-dirty",
     "release": "repository-check-dirty && yarn preversion && standard-version -a -m 'chore(release): %s [skip ci]' && git push --follow-tags origin master",
     "start": "node dist/index-node10.cjs.js",
@@ -120,7 +121,6 @@
     "@types/issue-parser": "3.0.1",
     "@types/jest": "27.0.2",
     "@types/jsonwebtoken": "8.5.5",
-    "@types/nock": "11.1.0",
     "@types/node": "14.17.33",
     "@types/react": "17.0.34",
     "@types/react-dom": "17.0.11",
