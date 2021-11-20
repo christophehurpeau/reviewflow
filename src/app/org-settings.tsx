@@ -220,6 +220,12 @@ export default function orgSettings(
                           Team Names:{' '}
                           {teamsAndGroups.teamNames.join(', ') || 'No teams'}
                         </div>
+                        <div>
+                          Github Teams:{' '}
+                          {orgMember.teams
+                            .map((githubTeam) => githubTeam.name)
+                            .join(', ') || 'No teams'}
+                        </div>
                       </>
                     )}
                   </div>
