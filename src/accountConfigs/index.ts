@@ -1,5 +1,4 @@
 import christophehurpeau from './christophehurpeau';
-import defaultConfig from './defaultConfig';
 import ornikar from './ornikar';
 import reviewflow from './reviewflow';
 import type { Config as ConfigType } from './types';
@@ -15,7 +14,7 @@ export const accountConfigs: Record<string, Config> = {
   reviewflow,
 };
 
-export { defaultConfig };
+export { default as defaultConfig } from './defaultConfig';
 
 // flat requires node 11
 // export const getMembers = <GroupNames extends string = any>(

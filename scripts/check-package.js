@@ -11,5 +11,8 @@ createCheckPackage()
     dependencies: ['@octokit/core', '@octokit/webhooks'],
   })
   .checkSatisfiesVersionsBetweenDependencies('probot', '@octokit/rest', {
-    dependencies: ['@octokit/plugin-rest-endpoint-methods'],
+    dependencies: [
+      '@octokit/plugin-rest-endpoint-methods',
+      '@octokit/plugin-paginate-rest',
+    ],
   });

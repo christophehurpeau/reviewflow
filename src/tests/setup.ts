@@ -3,7 +3,7 @@ import { Probot } from 'probot';
 import repoLabels from '../../fixtures/labels.json';
 import initApp from '../initApp';
 
-export { nock };
+export { default as nock } from 'nock';
 
 jest.setTimeout(30_000);
 

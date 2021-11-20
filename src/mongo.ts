@@ -101,10 +101,10 @@ export interface SlackTeamInstallation extends SlackTeam {
 }
 
 export type SlackMessageType =
-  | 'review-comment'
   | 'issue-comment'
-  | 'review-submitted'
-  | 'review-requested';
+  | 'review-comment'
+  | 'review-requested'
+  | 'review-submitted';
 
 export interface SlackSentMessage extends MongoBaseModel {
   type: SlackMessageType;
@@ -128,14 +128,14 @@ export interface AutomergeLog extends MongoBaseModel {
     mergeableState: string;
   };
   type:
-    | 'rebase-renovate'
-    | 'unknown mergeable_state'
-    | 'blocked mergeable_state'
+    | 'already merged'
     | 'behind mergeable_state'
-    | 'not mergeable'
+    | 'blocked mergeable_state'
     | 'failed status or checks'
-    | 'already merged';
-  action: 'remove' | 'reschedule' | 'wait' | 'update branch';
+    | 'not mergeable'
+    | 'rebase-renovate'
+    | 'unknown mergeable_state';
+  action: 'remove' | 'reschedule' | 'update branch' | 'wait';
 }
 
 export interface ReviewflowPr extends MongoBaseModel {

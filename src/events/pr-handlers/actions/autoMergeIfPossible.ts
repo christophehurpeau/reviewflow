@@ -99,6 +99,8 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
   prLabels: PullRequestLabels = pullRequest.labels,
 ): Promise<boolean> => {
   if (reviewflowPrContext === null) return false;
+  const repo = pullRequest.head.repo;
+  if (!repo) return false;
 
   const autoMergeLabel = repoContext.labels['merge/automerge'];
 
@@ -132,7 +134,7 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
     type: AutomergeLog['type'],
     action: AutomergeLog['action'],
   ): void => {
-    const repoFullName = pullRequest.head.repo.full_name;
+    const repoFullName = repo.full_name;
     context.log.info(`automerge: ${repoFullName}#${pullRequest.id} ${type}`);
     repoContext.appContext.mongoStores.automergeLogs.insertOne({
       account: repoContext.accountEmbed,
@@ -369,8 +371,8 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
 
     const mergeResult = await context.octokit.pulls.merge({
       merge_method: 'squash',
-      owner: pullRequest.head.repo.owner.login,
-      repo: pullRequest.head.repo.name,
+      owner: repo.owner.login,
+      repo: repo.name,
       pull_number: pullRequest.number,
       commit_title: commitTitle,
       commit_message: commitMessage,

@@ -11,7 +11,7 @@ import type { SlackMessage } from './SlackMessage';
 import type { TeamSlack, PostSlackMessageResult } from './TeamSlack';
 import { voidTeamSlack } from './voidTeamSlack';
 
-export type { TeamSlack };
+export type { TeamSlack } from './TeamSlack';
 
 async function getSlackAccountFromAccount(
   mongoStores: MongoStores,

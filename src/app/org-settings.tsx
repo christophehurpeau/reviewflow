@@ -56,7 +56,7 @@ export default function orgSettings(
           return;
         }
 
-        await syncOrg(mongoStores, user.api, o.installationId!, org);
+        await syncOrg(mongoStores, user.api, o.installationId, org);
         await syncTeamsAndTeamMembers(mongoStores, user.api, org);
 
         res.redirect(`/app/org/${req.params.org}`);

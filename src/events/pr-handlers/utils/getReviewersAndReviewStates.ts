@@ -4,7 +4,7 @@ import type { ProbotEvent } from 'events/probot-types';
 import type { RepoContext } from '../../../context/repoContext';
 import { getKeys } from '../../../context/utils';
 
-type ReviewState = 'CHANGES_REQUESTED' | 'APPROVED' | 'DISMISSED';
+type ReviewState = 'APPROVED' | 'CHANGES_REQUESTED' | 'DISMISSED';
 
 interface ReviewStates {
   approved: number;
@@ -78,6 +78,8 @@ export const getReviewersAndReviewStates = async <
           break;
         case 'DISMISSED':
           reviewStates[group].dismissed++;
+          break;
+        case undefined:
           break;
       }
     }

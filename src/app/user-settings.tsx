@@ -36,7 +36,7 @@ export default function userSettings(
           return;
         }
 
-        await syncUser(mongoStores, user.api, u.installationId!, user.authInfo);
+        await syncUser(mongoStores, user.api, u.installationId, user.authInfo);
 
         res.redirect('/app/user');
       } catch (err) {

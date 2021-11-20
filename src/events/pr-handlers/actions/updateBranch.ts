@@ -7,6 +7,9 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
   context: ProbotEvent<Name>,
   login: string | null,
 ): Promise<boolean> => {
+  const repo = pullRequest.head.repo;
+  if (!repo) return false;
+
   context.log.info('update branch', {
     head: pullRequest.head.ref,
     base: pullRequest.base.ref,
@@ -14,8 +17,8 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
 
   const result = await context.octokit.repos
     .merge({
-      owner: pullRequest.head.repo.owner.login,
-      repo: pullRequest.head.repo.name,
+      owner: repo.owner.login,
+      repo: repo.name,
       head: pullRequest.base.ref,
       base: pullRequest.head.ref,
     })

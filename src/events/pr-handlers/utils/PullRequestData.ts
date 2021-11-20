@@ -8,7 +8,7 @@ export type PullRequestWithDecentDataFromWebhook =
 export type PullRequestFromWebhook = PullRequestWithDecentDataFromWebhook;
 // | EventPayloads.WebhookPayloadCheckRunCheckRunPullRequestsItem;
 
-export type { PullRequestFromRestEndpoint };
+export type { PullRequestFromRestEndpoint } from './fetchPr';
 
 export type PullRequestData =
   | PullRequestFromRestEndpoint

@@ -7,6 +7,7 @@ import type { PostSlackMessageResult } from '../../context/slack/TeamSlack';
 import type { AccountEmbed } from '../../mongo';
 import * as slackUtils from '../../slack/utils';
 import { ExcludesFalsy, ExcludesNullish } from '../../utils/Excludes';
+import type { ProbotEvent } from '../probot-types';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { createSlackMessageWithSecondaryBlock } from './utils/createSlackMessageWithSecondaryBlock';
 import { fetchPr } from './utils/fetchPr';
@@ -16,16 +17,25 @@ import { checkIfUserIsBot, checkIfIsThisBot } from './utils/isBotUser';
 import { parseMentions } from './utils/parseMentions';
 import { slackifyCommentBody } from './utils/slackifyCommentBody';
 
+type Comment = ProbotEvent<
+  'pull_request_review_comment.created' | 'issue_comment.created'
+>['payload']['comment'];
+
 const getDiscussion = async (
   context: Context,
-  comment: any,
+  comment: Comment,
 ): Promise<
-  RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data']
+  | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data']
+  | Comment[]
 > => {
-  if (!comment.in_reply_to_id) return [comment];
+  if (!('in_reply_to_id' in comment) || !comment.in_reply_to_id) {
+    return [comment];
+  }
   return context.octokit.paginate(
     context.octokit.pulls.listReviewComments,
-    context.pullRequest() as any,
+    context.pullRequest({
+      sort: 'created',
+    }),
     ({ data }) => {
       return data.filter(
         (c) =>
@@ -37,7 +47,9 @@ const getDiscussion = async (
 };
 
 const getMentions = (
-  discussion: RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data'],
+  discussion:
+    | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data']
+    | Comment[],
 ): string[] => {
   const mentions = new Set<string>();
 
@@ -49,7 +61,9 @@ const getMentions = (
 };
 
 const getUsersInThread = (
-  discussion: RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data'],
+  discussion:
+    | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data']
+    | Comment[],
 ): AccountInfo[] => {
   const userIds = new Set<number>();
   const users: AccountInfo[] = [];

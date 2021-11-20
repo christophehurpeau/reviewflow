@@ -175,14 +175,14 @@ async function initRepoContext<
 
   const shouldIgnore = shouldIgnoreRepo(name, config);
 
-  const labels = shouldIgnore ? {} : await initRepoLabels(context, config);
+  const repoLabels = shouldIgnore ? {} : await initRepoLabels(context, config);
 
   const reviewGroupNames = Object.keys(config.groups) as GroupNames[];
   const getReviewLabelIds = createGetReviewLabelIds(
     shouldIgnore,
     config,
     reviewGroupNames,
-    labels,
+    repoLabels,
   );
 
   const needsReviewLabelIds = getReviewLabelIds('needsReview');
@@ -201,7 +201,7 @@ async function initRepoContext<
     reviewGroupNames.forEach((key) => {
       const reviewGroupLabels = config.labels.review[key] as any;
       Object.keys(reviewGroupLabels).forEach((labelKey: string) => {
-        labelIdToGroupName.set(labels[reviewGroupLabels[labelKey]].id, key);
+        labelIdToGroupName.set(repoLabels[reviewGroupLabels[labelKey]].id, key);
       });
     });
   }
@@ -270,19 +270,22 @@ async function initRepoContext<
     return lockPR(String(pullRequest.id), pullRequest.number, callback);
   };
 
-  const reschedule = (context: ProbotEvent<any>, pr: LockedMergePr): void => {
+  const reschedule = (
+    rescheduleContext: ProbotEvent<any>,
+    pr: LockedMergePr,
+  ): void => {
     if (!pr) throw new Error('Cannot reschedule undefined');
-    context.log.info(pr, 'reschedule');
+    rescheduleContext.log.info(pr, 'reschedule');
     setTimeout(() => {
       lockPR('reschedule', -1, () => {
         return lockPR(String(pr.id), pr.number, async () => {
           const [pullRequest, reviewflowPrContext] = await Promise.all([
             fetchPr(context, pr.number),
-            getReviewflowPrContext(pr.number, context, repoContext),
+            getReviewflowPrContext(pr.number, rescheduleContext, repoContext),
           ]);
           await autoMergeIfPossible(
             pullRequest,
-            context,
+            rescheduleContext,
             repoContext,
             reviewflowPrContext,
           );
@@ -293,7 +296,7 @@ async function initRepoContext<
 
   return Object.assign(repoContext, {
     appContext,
-    labels,
+    labels: repoLabels,
     repoFullName: fullName,
     repoEmbed: { id, name },
     repoEmoji,
