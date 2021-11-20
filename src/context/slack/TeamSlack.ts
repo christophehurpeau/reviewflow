@@ -16,6 +16,7 @@ export interface TeamSlack {
     category: MessageCategory,
     toUser: AccountInfo,
     message: SlackMessage,
+    forTeamId?: number,
   ) => Promise<PostSlackMessageResult>;
   updateMessage: (
     toUser: AccountInfo,

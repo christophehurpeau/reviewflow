@@ -34,6 +34,7 @@ export function getRolesFromPullRequestAndReviewers(
   if (pullRequest.requested_teams) {
     // TODO
     // requestedReviewers.push ...
+    // And figure a way to keep `silentTeams` working
   }
 
   if (requestedReviewers) {

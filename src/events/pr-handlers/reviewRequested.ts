@@ -81,6 +81,7 @@ export default function reviewRequested(
               'pr-review',
               potentialReviewer,
               message,
+              requestedTeam ? requestedTeam.id : undefined,
             );
             if (result) {
               await appContext.mongoStores.slackSentMessages.insertOne({

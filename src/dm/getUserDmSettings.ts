@@ -1,12 +1,11 @@
+import type { MongoInsertType } from 'liwi-mongo';
 import { accountConfigs, defaultConfig } from '../accountConfigs';
-import type { MongoStores } from '../mongo';
-import type { MessageCategory } from './MessageCategory';
+import type { MongoStores, UserDmSettings } from '../mongo';
 import { defaultDmSettings } from './defaultDmSettings';
 
-export type UserDmSettings = Record<MessageCategory, boolean>;
-const cache = new Map<string, Map<number, UserDmSettings>>();
+const cache = new Map<string, Map<number, MongoInsertType<UserDmSettings>>>();
 
-const getDefaultDmSettings = (org: string): UserDmSettings => {
+const getDefaultDmSettings = (org: string): UserDmSettings['settings'] => {
   const accountConfig = accountConfigs[org] || defaultConfig;
   return accountConfig.defaultDmSettings
     ? { ...defaultDmSettings, ...accountConfig.defaultDmSettings }
@@ -16,14 +15,24 @@ const getDefaultDmSettings = (org: string): UserDmSettings => {
 export const updateCache = (
   org: string,
   userId: number,
-  newSettings: Partial<UserDmSettings>,
-): void => {
+  userDmSettings: MongoInsertType<UserDmSettings>,
+): MongoInsertType<UserDmSettings> => {
+  const orgDefaultDmSettings = getDefaultDmSettings(org);
+
+  // set defaults to make sure we always have all settings even after an update
+  userDmSettings.settings = {
+    ...orgDefaultDmSettings,
+    ...userDmSettings.settings,
+  };
+
   let orgCache = cache.get(org);
   if (!orgCache) {
     orgCache = new Map();
     cache.set(org, orgCache);
   }
-  orgCache.set(userId, { ...getDefaultDmSettings(org), ...newSettings });
+  orgCache.set(userId, userDmSettings);
+
+  return userDmSettings;
 };
 
 export const getUserDmSettings = async (
@@ -31,21 +40,26 @@ export const getUserDmSettings = async (
   org: string,
   orgId: number,
   userId: number,
-): Promise<UserDmSettings> => {
-  const orgDefaultDmSettings = getDefaultDmSettings(org);
+): Promise<MongoInsertType<UserDmSettings>> => {
+  const orgCache = cache.get(org);
+  if (orgCache) {
+    const userCache = orgCache.get(userId);
+    if (userCache) return userCache;
+  }
 
   const userDmSettingsConfig = await mongoStores.userDmSettings.findOne({
     orgId,
     userId,
   });
 
-  const config = userDmSettingsConfig
-    ? {
-        ...orgDefaultDmSettings,
-        ...userDmSettingsConfig.settings,
-      }
-    : orgDefaultDmSettings;
+  if (userDmSettingsConfig) {
+    return updateCache(org, userId, userDmSettingsConfig);
+  }
 
-  updateCache(org, userId, config);
-  return config;
+  return updateCache(org, userId, {
+    orgId,
+    userId,
+    settings: {} as UserDmSettings['settings'],
+    silentTeams: [],
+  });
 };

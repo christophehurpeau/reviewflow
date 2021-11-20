@@ -36,6 +36,7 @@ export interface UserDmSettings extends MongoBaseModel {
   userId: number;
   orgId: number;
   settings: Record<MessageCategory, boolean>;
+  silentTeams: OrgTeamEmbed[];
 }
 
 interface BaseAccount extends MongoBaseModel<number> {

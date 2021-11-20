@@ -180,6 +180,7 @@ export const initTeamSlack = async <GroupNames extends string>(
       category: MessageCategory,
       toUser: AccountInfo,
       message: SlackMessage,
+      forTeamId?: number,
     ): Promise<PostSlackMessageResult> => {
       context.log.debug(
         {
@@ -198,7 +199,13 @@ export const initTeamSlack = async <GroupNames extends string>(
         toUser.id,
       );
 
-      if (!userDmSettings[category]) return null;
+      if (!userDmSettings.settings[category]) return null;
+      if (
+        forTeamId &&
+        userDmSettings.silentTeams.some((team) => team.id === forTeamId)
+      ) {
+        return null;
+      }
 
       const user = membersMap.get(toUser.login);
       if (!user || !user.slackClient || !user.im) return null;

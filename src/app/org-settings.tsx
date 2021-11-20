@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import bodyParser from 'body-parser';
 import type { Router } from 'express';
 import type { ProbotOctokit } from 'probot';
@@ -234,23 +235,69 @@ export default function orgSettings(
                     {!orgMember || !orgMember.slack ? (
                       <>Link your github account to unlock DM Settings</>
                     ) : (
-                      Object.entries(dmMessages).map(([key, name]) => (
-                        <div key={key}>
-                          <label htmlFor={key}>
-                            <span
-                              // eslint-disable-next-line react/no-danger
-                              dangerouslySetInnerHTML={{
-                                __html: `<input id="${key}" type="checkbox" autocomplete="off" ${
-                                  userDmSettings[key as MessageCategory]
-                                    ? 'checked="checked" '
-                                    : ''
-                                }onclick="fetch(location.pathname, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: '${key}', value: event.currentTarget.checked }) })" />`,
-                              }}
-                            />
-                            {name}
-                          </label>
-                        </div>
-                      ))
+                      <>
+                        {Object.entries(dmMessages).map(([key, name]) => (
+                          <div key={key}>
+                            <label htmlFor={key}>
+                              <span
+                                // eslint-disable-next-line react/no-danger
+                                dangerouslySetInnerHTML={{
+                                  __html: `<input id="${key}" type="checkbox" autocomplete="off" ${
+                                    userDmSettings.settings[
+                                      key as MessageCategory
+                                    ]
+                                      ? 'checked="checked" '
+                                      : ''
+                                  }onclick="fetch(location.pathname, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: '${key}', value: event.currentTarget.checked }) })" />`,
+                                }}
+                              />
+                              {name}
+                            </label>
+                          </div>
+                        ))}
+
+                        {orgMember.teams.length === 0 ? null : (
+                          <>
+                            <h4 style={{ marginTop: '20px' }}>
+                              My DM settings - Github Teams
+                            </h4>
+                            <i>
+                              Untick to disable notifications for teams you
+                              belong to.
+                            </i>
+
+                            {orgMember.teams.map((team) => (
+                              <div key={team.id}>
+                                <label htmlFor={`team_${team.id}`}>
+                                  <span
+                                    // eslint-disable-next-line react/no-danger
+                                    dangerouslySetInnerHTML={{
+                                      __html: `<input id="team_${
+                                        team.id
+                                      }" type="checkbox" autocomplete="off" ${
+                                        userDmSettings.silentTeams?.some(
+                                          (t) => t.id === team.id,
+                                        )
+                                          ? 'checked="checked" '
+                                          : ''
+                                      }onclick="fetch(location.pathname, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ team: ${JSON.stringify(
+                                        team,
+                                      )
+                                        .replace(/'/g, "\\'")
+                                        // TODO " in name is replaced by '. Acceptable because not used, but should be fixed.
+                                        .replace(
+                                          /"/g,
+                                          "'",
+                                        )}, value: event.currentTarget.checked }) })" />`,
+                                    }}
+                                  />
+                                  {team.name}
+                                </label>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -270,6 +317,10 @@ export default function orgSettings(
         res.status(400).send('not ok');
         return;
       }
+      if (!req.body.key && !req.body.team) {
+        res.status(400).send('not ok');
+        return;
+      }
 
       const user = await getUser(req, res);
       if (!user) return;
@@ -280,22 +331,34 @@ export default function orgSettings(
         res.redirect('/app');
         return;
       }
+      const $setOnInsert = {
+        orgId: org.id,
+        userId: user.authInfo.id,
+        created: new Date(),
+      };
 
-      (await mongoStores.userDmSettings.collection).updateOne(
+      await (
+        await mongoStores.userDmSettings.collection
+      ).updateOne(
         {
           _id: `${org.id}_${user.authInfo.id}`,
         },
-        {
-          $set: {
-            [`settings.${req.body.key}`]: req.body.value,
-            updated: new Date(),
-          },
-          $setOnInsert: {
-            orgId: org.id,
-            userId: user.authInfo.id,
-            created: new Date(),
-          },
-        },
+        req.body.key
+          ? {
+              $set: {
+                [`settings.${req.body.key}`]: req.body.value,
+                updated: new Date(),
+              },
+              $setOnInsert,
+            }
+          : {
+              [req.body.value ? '$push' : '$pull']: {
+                silentTeams: req.body.value
+                  ? req.body.team
+                  : { id: req.body.team.id },
+              },
+              $setOnInsert,
+            },
         { upsert: true },
       );
 
@@ -305,7 +368,7 @@ export default function orgSettings(
       });
 
       if (userDmSettingsConfig) {
-        updateCache(org.login, user.authInfo.id, userDmSettingsConfig.settings);
+        updateCache(org.login, user.authInfo.id, userDmSettingsConfig);
       }
 
       res.send('ok');
