@@ -275,7 +275,7 @@ export default function orgSettings(
                                       __html: `<input id="team_${
                                         team.id
                                       }" type="checkbox" autocomplete="off" ${
-                                        userDmSettings.silentTeams?.some(
+                                        !userDmSettings.silentTeams?.some(
                                           (t) => t.id === team.id,
                                         )
                                           ? 'checked="checked" '
