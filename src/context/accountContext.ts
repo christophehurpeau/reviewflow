@@ -75,7 +75,7 @@ export const getTeamsAndGroups = (
     if (!githubTeamName) {
       return teams[teamName].logins.includes(member.user.login);
     }
-    return member.teams.some((team) => team.name === teamName);
+    return member.teams.some((team) => team.name === githubTeamName);
   });
   return { groupName, teamNames };
 };
