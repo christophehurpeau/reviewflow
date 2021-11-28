@@ -7494,39 +7494,39 @@ __metadata:
   languageName: node
   linkType: hard
 
-"liwi-mongo@npm:8.1.1":
-  version: 8.1.1
-  resolution: "liwi-mongo@npm:8.1.1"
+"liwi-mongo@npm:8.3.1":
+  version: 8.3.1
+  resolution: "liwi-mongo@npm:8.3.1"
   dependencies:
     "@types/mongodb": ^3.6.10
-    liwi-store: ^8.1.0
-    liwi-subscribe-store: ^8.1.0
+    liwi-store: ^8.3.1
+    liwi-subscribe-store: ^8.3.1
     liwi-types: ^8.0.4
     mingo: ^4.1.2
     mongodb: ^3.6.5
     nightingale-logger: ^11.6.0
-  checksum: 509a1060aef48542e51a588715eb0e2090c3260a518561fa145f702a130f385faafd998e169f9095b38732696010ac07b64abaf01d96867391455d15c83c337b
+  checksum: 2fbea568a96c60ffe61cae0a3a0dbc66fd572aee41b6797b13b4dcbb4a64f00bd25c0887454dd7428c41d7277cceaa94330fec86ff6506f2f9a0d2466904299a
   languageName: node
   linkType: hard
 
-"liwi-store@npm:^8.1.0":
-  version: 8.1.0
-  resolution: "liwi-store@npm:8.1.0"
+"liwi-store@npm:^8.3.1":
+  version: 8.3.1
+  resolution: "liwi-store@npm:8.3.1"
   dependencies:
     "@babel/runtime": ^7.13.10
     liwi-types: ^8.0.4
-  checksum: 6e0b12b9f95dd420b8707d1c5e564587ce060cc4c0b9948088ca8e5365fc88a323512e2478282f92180a652ad6521719b54165f2e816dcc7913d9b02d4e0fd9b
+  checksum: 0da5784495554968a036c38c85bb4e0dc14c392dbb9f9ac2dac5960af4907a554e7a1d84157e7ec7d60e3be470e232c86d200d54fe922b869b422ecc95a9946a
   languageName: node
   linkType: hard
 
-"liwi-subscribe-store@npm:^8.1.0":
-  version: 8.1.0
-  resolution: "liwi-subscribe-store@npm:8.1.0"
+"liwi-subscribe-store@npm:^8.3.1":
+  version: 8.3.1
+  resolution: "liwi-subscribe-store@npm:8.3.1"
   dependencies:
     "@babel/runtime": ^7.13.10
-    liwi-store: ^8.1.0
+    liwi-store: ^8.3.1
     liwi-types: ^8.0.4
-  checksum: 275df320ed3b51400c3b0776b2856c945c1fa3d96604821570aadfba57b9221d7d354c840a76778b3813c025505997fc26b798581e492fb173c281fa7284c809
+  checksum: a76a32e86142984e1b324b10ee68defaecc40f2fce75eb8abed692703abb6a663461a783ab608df58dcf0ded0908219517a94f6fedee49a291506bdc4aee44c1
   languageName: node
   linkType: hard
 
@@ -10068,7 +10068,7 @@ resolve@^2.0.0-next.3:
     issue-parser: 6.0.0
     jest: 27.3.1
     jsonwebtoken: 8.5.1
-    liwi-mongo: 8.1.1
+    liwi-mongo: 8.3.1
     lock: 1.1.0
     nock: 13.1.3
     pob-babel: 28.5.0
