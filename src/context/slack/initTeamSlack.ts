@@ -202,6 +202,7 @@ export const initTeamSlack = async <GroupNames extends string>(
       if (!userDmSettings.settings[category]) return null;
       if (
         forTeamId &&
+        userDmSettings.silentTeams &&
         userDmSettings.silentTeams.some((team) => team.id === forTeamId)
       ) {
         return null;
