@@ -12,13 +12,14 @@ import type {
 } from '../events/pr-handlers/utils/PullRequestData';
 import { getReviewflowPrContext } from '../events/pr-handlers/utils/createPullRequestContext';
 import { fetchPr } from '../events/pr-handlers/utils/fetchPr';
+import type { RepositoryMergeQueue } from '../mongo';
 import { ExcludesFalsy } from '../utils/Excludes';
 import type { AppContext } from './AppContext';
 import type { AccountContext } from './accountContext';
 import { obtainAccountContext } from './accountContext';
 import type { LabelResponse, LabelsRecord } from './initRepoLabels';
 import { initRepoLabels } from './initRepoLabels';
-import { getEmojiFromRepoDescription } from './utils';
+import { getKeys, getEmojiFromRepoDescription } from './utils';
 
 export interface LockedMergePr {
   id: number;
@@ -99,18 +100,18 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   ) => Promise<void>;
 
   getMergeLockedPr: () => LockedMergePr;
-  addMergeLockPr: (pr: LockedMergePr) => void;
+  addMergeLockPr: (pr: LockedMergePr) => Promise<void>;
   removePrFromAutomergeQueue: <EventName extends EmitterWebhookEventName>(
     context: ProbotEvent<EventName>,
-    prNumber: number,
+    pr: PullRequestDataMinimumData,
     reason: string,
-  ) => void;
+  ) => Promise<void>;
   reschedule: <EventName extends EmitterWebhookEventName>(
     context: ProbotEvent<EventName>,
     pr: LockedMergePr,
     longTime: boolean,
-  ) => void;
-  pushAutomergeQueue: (pr: LockedMergePr) => void;
+  ) => Promise<void>;
+  pushAutomergeQueue: (pr: LockedMergePr) => Promise<void>;
 }
 
 export type RepoContext<GroupNames extends string = any> =
@@ -174,13 +175,34 @@ async function initRepoContext<
     config,
     org,
   );
-  const repoContext = Object.create(accountContext);
+  const repoContext = Object.create(accountContext) as RepoContext<GroupNames>;
 
   const shouldIgnore = shouldIgnoreRepo(name, config);
 
-  const repoLabels = shouldIgnore ? {} : await initRepoLabels(context, config);
+  const findOrCreateRepositoryMergeQueue =
+    async (): Promise<RepositoryMergeQueue> => {
+      const res = await appContext.mongoStores.repositoryMergeQueue.findOne({
+        'account.id': accountContext.accountEmbed.id,
+        'repo.id': id,
+      });
 
-  const reviewGroupNames = Object.keys(config.groups) as GroupNames[];
+      if (res) {
+        return res;
+      }
+
+      return appContext.mongoStores.repositoryMergeQueue.insertOne({
+        account: accountContext.accountEmbed,
+        repo: { id, name },
+        queue: [],
+      });
+    };
+
+  const [repoLabels, repositoryMergeQueue] = await Promise.all([
+    shouldIgnore ? {} : initRepoLabels(context, config),
+    findOrCreateRepositoryMergeQueue(),
+  ]);
+
+  const reviewGroupNames = getKeys(config.groups);
   const getReviewLabelIds = createGetReviewLabelIds(
     shouldIgnore,
     config,
@@ -202,9 +224,12 @@ async function initRepoContext<
   const labelIdToGroupName = new Map<LabelResponse['id'], GroupNames>();
   if (!shouldIgnore) {
     reviewGroupNames.forEach((key) => {
-      const reviewGroupLabels = config.labels.review[key] as any;
-      Object.keys(reviewGroupLabels).forEach((labelKey: string) => {
-        labelIdToGroupName.set(repoLabels[reviewGroupLabels[labelKey]].id, key);
+      const reviewGroupLabels = config.labels.review[key];
+      getKeys(reviewGroupLabels).forEach((labelKey) => {
+        labelIdToGroupName.set(
+          (repoLabels as any)[reviewGroupLabels[labelKey]].id,
+          key,
+        );
       });
     });
   }
@@ -234,10 +259,31 @@ async function initRepoContext<
 
   const lock = Lock();
   const waitingToReschedule = new Map<string, ReturnType<typeof setTimeout>>();
-  let lockMergePr: LockedMergePr | undefined;
-  let automergeQueue: LockedMergePr[] = [];
 
-  const clearWaitingToReschedule = (prId: number) => {
+  let automergeQueue: LockedMergePr[] = repositoryMergeQueue.queue;
+
+  if (automergeQueue.length > 0) {
+    setTimeout(() => {
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define, @typescript-eslint/no-floating-promises
+      reschedule(context, automergeQueue[0], false);
+    }, 10);
+  }
+
+  const updateAutomergeQueueInDb = async (
+    newQueue: LockedMergePr[],
+  ): Promise<void> => {
+    automergeQueue = newQueue;
+    await appContext.mongoStores.repositoryMergeQueue.partialUpdateByKey(
+      repositoryMergeQueue._id,
+      {
+        $set: {
+          queue: automergeQueue,
+        },
+      },
+    );
+  };
+
+  const clearWaitingToReschedule = (prId: number): void => {
     const prIdAsString = String(prId);
     const timeout = waitingToReschedule.get(prIdAsString);
     if (timeout) {
@@ -284,62 +330,81 @@ async function initRepoContext<
     return lockPR(String(pullRequest.id), pullRequest.number, callback);
   };
 
-  const removePrFromAutomergeQueue = (
-    context: ProbotEvent<any>,
-    prNumber: number | string,
+  const removePrFromAutomergeQueue = async (
+    removePrContext: ProbotEvent<any>,
+    pr: PullRequestDataMinimumData,
     reason: string,
-  ): void => {
-    if (lockMergePr && String(lockMergePr.number) === String(prNumber)) {
-      lockMergePr = automergeQueue.shift();
-      context.log(`merge lock: remove ${fullName}#${prNumber}: ${reason}`);
-      if (lockMergePr) {
-        context.log(lockMergePr, `merge lock: next ${fullName}`);
+  ): Promise<void> => {
+    let lockMergePr = automergeQueue[0];
+    if (lockMergePr && String(lockMergePr.number) === String(pr.number)) {
+      removePrContext.log(
+        `merge lock: remove ${fullName}#${pr.number}: ${reason}`,
+      );
+      automergeQueue.shift();
+      lockMergePr = automergeQueue[0];
+      if (!lockMergePr) {
+        removePrContext.log(`merge lock: nothing next ${fullName}`);
+        await updateAutomergeQueueInDb(automergeQueue);
       } else {
-        context.log(`merge lock: nothing next ${fullName}`);
-      }
-      if (lockMergePr) {
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        reschedule(context, lockMergePr, false);
+        removePrContext.log(lockMergePr, `merge lock: next ${fullName}`);
+        await Promise.all([
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
+          reschedule(removePrContext, lockMergePr, false),
+          updateAutomergeQueueInDb(automergeQueue),
+        ]);
       }
     } else {
       const previousLength = automergeQueue.length;
       automergeQueue = automergeQueue.filter(
-        (value) => String(value.number) !== String(prNumber),
+        (value) => String(value.number) !== String(pr.number),
       );
       if (automergeQueue.length !== previousLength) {
-        context.log(`merge lock: remove ${fullName}#${prNumber}: ${reason}`);
+        removePrContext.log(
+          `merge lock: remove ${fullName}#${pr.number}: ${reason}`,
+        );
+        await updateAutomergeQueueInDb(automergeQueue);
       }
     }
   };
 
-  const reschedule = (
+  const reschedule = async (
     rescheduleContext: ProbotEvent<any>,
     pr: LockedMergePr,
     longTime: boolean,
-  ): void => {
+  ): Promise<void> => {
     if (!pr) throw new Error('Cannot reschedule undefined');
     clearWaitingToReschedule(pr.id);
-    rescheduleContext.log.info(pr, 'reschedule');
+    rescheduleContext.log.info(pr, 'reschedule', { longTime });
     const timeout = setTimeout(
       () => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         lockPR('reschedule', -1, () => {
           return lockPR(String(pr.id), pr.number, async () => {
-            const [pullRequest, reviewflowPrContext] = await Promise.all([
-              fetchPr(context, pr.number),
-              getReviewflowPrContext(pr.number, rescheduleContext, repoContext),
-            ]);
-            const couldMerge = await autoMergeIfPossible(
-              pullRequest,
-              rescheduleContext,
-              repoContext,
-              reviewflowPrContext,
-            );
-            if (!couldMerge && longTime) {
-              removePrFromAutomergeQueue(
+            try {
+              const [pullRequest, reviewflowPrContext] = await Promise.all([
+                fetchPr(context, pr.number),
+                getReviewflowPrContext(pr, rescheduleContext, repoContext),
+              ]);
+              const didMerge = await autoMergeIfPossible(
+                pullRequest,
                 rescheduleContext,
-                pr.number,
-                'reschedule: !couldMerge && longTime => abort lock',
+                repoContext,
+                reviewflowPrContext,
               );
+              if (!didMerge && longTime) {
+                await removePrFromAutomergeQueue(
+                  rescheduleContext,
+                  pr,
+                  'reschedule: !didMerge && longTime => abort lock',
+                );
+              }
+            } catch (err) {
+              await removePrFromAutomergeQueue(
+                rescheduleContext,
+                pr,
+                'reschedule: error caught, removing from queue',
+              );
+              throw err;
             }
           });
         });
@@ -363,32 +428,33 @@ async function initRepoContext<
     hasApprovesReview,
     getNeedsReviewGroupNames,
 
-    getMergeLockedPr: () => lockMergePr,
-    addMergeLockPr: (pr: LockedMergePr): void => {
+    getMergeLockedPr: () => automergeQueue[0],
+    addMergeLockPr: async (pr: LockedMergePr): Promise<void> => {
       // eslint-disable-next-line no-console
       console.log('merge lock: lock', {
         repo: fullName,
         pr,
       });
+      const lockMergePr = automergeQueue[0];
       if (lockMergePr && String(lockMergePr.number) === String(pr.number)) {
         return;
       }
       if (lockMergePr) throw new Error('Already have lock');
-      lockMergePr = pr;
+      await updateAutomergeQueueInDb([pr]);
     },
     removePrFromAutomergeQueue,
-    pushAutomergeQueue: (pr: LockedMergePr): void => {
+    pushAutomergeQueue: async (pr: LockedMergePr): Promise<void> => {
       context.log(
         {
           repo: fullName,
           pr,
-          lockMergePr,
           automergeQueue,
         },
         'merge lock: push queue',
       );
       if (!automergeQueue.some((p) => p.number === pr.number)) {
         automergeQueue.push(pr);
+        await updateAutomergeQueueInDb(automergeQueue);
       }
     },
     reschedule,

@@ -176,9 +176,9 @@ export default function labelsChanged(
             reviewflowPrContext,
           );
         } else {
-          repoContext.removePrFromAutomergeQueue(
+          await repoContext.removePrFromAutomergeQueue(
             context,
-            pullRequest.number,
+            pullRequest,
             'automerge label removed',
           );
         }

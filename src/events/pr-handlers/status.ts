@@ -29,11 +29,11 @@ export default function status(app: Probot, appContext: AppContext): void {
 
       return [];
     },
-    (pr, context, repoContext): void => {
+    async (pr, context, repoContext): Promise<void> => {
       const lockedPr = repoContext.getMergeLockedPr();
       // check if changed
       if (isSameBranch(context.payload, lockedPr)) {
-        repoContext.reschedule(context, lockedPr, false);
+        await repoContext.reschedule(context, lockedPr, false);
       }
     },
   );

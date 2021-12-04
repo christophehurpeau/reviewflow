@@ -20,7 +20,7 @@ export default function checkrunCompleted(
     async (pullRequest, context, repoContext) => {
       const [updatedPr, reviewflowPrContext] = await Promise.all([
         fetchPr(context, pullRequest.number),
-        getReviewflowPrContext(pullRequest.number, context, repoContext),
+        getReviewflowPrContext(pullRequest, context, repoContext),
       ]);
 
       await autoMergeIfPossible(

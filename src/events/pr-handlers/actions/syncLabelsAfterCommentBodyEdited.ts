@@ -79,10 +79,10 @@ export const syncLabelsAfterCommentBodyEdited = async <
                 prLabels,
               );
             },
-            onRemove: () => {
-              repoContext.removePrFromAutomergeQueue(
+            onRemove: async () => {
+              await repoContext.removePrFromAutomergeQueue(
                 context,
-                pullRequest.number,
+                pullRequest,
                 'label removed',
               );
             },

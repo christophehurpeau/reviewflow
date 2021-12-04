@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import type { MongoBaseModel } from 'liwi-mongo';
 import { MongoStore, MongoConnection } from 'liwi-mongo';
+import type { LockedMergePr } from 'context/repoContext';
 import type { AccountInfo } from './context/getOrCreateAccount';
 import type { SlackMessage } from './context/slack/SlackMessage';
 import type { MessageCategory } from './dm/MessageCategory';
@@ -27,6 +28,7 @@ interface RepoEmbed {
 }
 
 interface PrEmbed {
+  id: number;
   number: number;
 }
 
@@ -135,7 +137,8 @@ export interface AutomergeLog extends MongoBaseModel {
     | 'failed status or checks'
     | 'not mergeable'
     | 'rebase-renovate'
-    | 'unknown mergeable_state';
+    | 'unknown mergeable_state'
+    | 'review incomplete';
   action: 'remove' | 'reschedule' | 'update branch' | 'wait';
 }
 
@@ -144,6 +147,12 @@ export interface ReviewflowPr extends MongoBaseModel {
   repo: RepoEmbed;
   pr: PrEmbed;
   commentId: number;
+}
+
+export interface RepositoryMergeQueue extends MongoBaseModel {
+  account: AccountEmbed;
+  repo: RepoEmbed;
+  queue: LockedMergePr[];
 }
 
 export interface MongoStores {
@@ -158,6 +167,7 @@ export interface MongoStores {
   slackSentMessages: MongoStore<SlackSentMessage>;
   automergeLogs: MongoStore<AutomergeLog>;
   prs: MongoStore<ReviewflowPr>;
+  repositoryMergeQueue: MongoStore<RepositoryMergeQueue>;
   // prEvents: MongoStore<PrEventsModel>;
 }
 
@@ -273,6 +283,20 @@ export default function init(): MongoStores {
     'slackTeamsInstallations',
   );
 
+  const repositoryMergeQueue = new MongoStore<RepositoryMergeQueue>(
+    connection,
+    'repositoryMergeQueue',
+  );
+  repositoryMergeQueue.collection.then((coll) => {
+    coll.createIndex(
+      {
+        'account.id': 1,
+        'repo.id': 1,
+      },
+      { unique: true },
+    );
+  });
+
   // return { connection, prEvents };
   return {
     connection,
@@ -286,5 +310,6 @@ export default function init(): MongoStores {
     slackSentMessages,
     automergeLogs,
     prs,
+    repositoryMergeQueue,
   };
 }

@@ -97,7 +97,7 @@ export const createPullRequestHandler = <
         const reviewflowPrContext = repoContext.shouldIgnore
           ? null
           : await getReviewflowPrContext(
-              pullRequest.number,
+              pullRequest,
               context,
               repoContext,
               options.reviewflowCommentPromise,

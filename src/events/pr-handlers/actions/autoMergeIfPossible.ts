@@ -105,9 +105,9 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
   const autoMergeLabel = repoContext.labels['merge/automerge'];
 
   if (!hasLabelInPR(prLabels, autoMergeLabel)) {
-    repoContext.removePrFromAutomergeQueue(
+    await repoContext.removePrFromAutomergeQueue(
       context,
-      pullRequest.number,
+      pullRequest,
       'no automerge label',
     );
     return false;
@@ -122,9 +122,9 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
   });
 
   if (pullRequest.state !== 'open') {
-    repoContext.removePrFromAutomergeQueue(
+    await repoContext.removePrFromAutomergeQueue(
       context,
-      pullRequest.number,
+      pullRequest,
       'pr is not opened',
     );
     return false;
@@ -154,9 +154,10 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
     repoContext.hasNeedsReview(prLabels) ||
     repoContext.hasRequestedReview(prLabels)
   ) {
-    repoContext.removePrFromAutomergeQueue(
+    addLog('review incomplete', 'remove');
+    await repoContext.removePrFromAutomergeQueue(
       context,
-      pullRequest.number,
+      pullRequest,
       'blocking labels',
     );
     return false;
@@ -166,18 +167,20 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
     pullRequest.requested_reviewers &&
     pullRequest.requested_reviewers.length > 0
   ) {
-    repoContext.removePrFromAutomergeQueue(
+    addLog('review incomplete', 'remove');
+    await repoContext.removePrFromAutomergeQueue(
       context,
-      pullRequest.number,
+      pullRequest,
       'still has requested reviewers',
     );
     return false;
   }
 
   if (pullRequest.requested_teams && pullRequest.requested_teams.length > 0) {
-    repoContext.removePrFromAutomergeQueue(
+    addLog('review incomplete', 'remove');
+    await repoContext.removePrFromAutomergeQueue(
       context,
-      pullRequest.number,
+      pullRequest,
       'still has requested teams',
     );
     return false;
@@ -193,11 +196,11 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
       },
       'automerge not possible: locked pr',
     );
-    repoContext.pushAutomergeQueue(createMergeLockPrFromPr());
+    await repoContext.pushAutomergeQueue(createMergeLockPrFromPr());
     return false;
   }
 
-  repoContext.addMergeLockPr(createMergeLockPrFromPr());
+  await repoContext.addMergeLockPr(createMergeLockPrFromPr());
 
   if (pullRequest.mergeable == null) {
     const prResult = await context.octokit.pulls.get(
@@ -210,9 +213,9 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
 
   if (pullRequest.merged) {
     addLog('already merged', 'remove');
-    repoContext.removePrFromAutomergeQueue(
+    await repoContext.removePrFromAutomergeQueue(
       context,
-      pullRequest.number,
+      pullRequest,
       'pr already merged',
     );
     return false;
@@ -236,7 +239,7 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
     ) {
       addLog('unknown mergeable_state', 'reschedule');
       // GitHub is determining whether the pull request is mergeable
-      repoContext.reschedule(context, createMergeLockPrFromPr(), false);
+      await repoContext.reschedule(context, createMergeLockPrFromPr(), false);
       return false;
     }
 
@@ -254,9 +257,9 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
             return false;
           }
 
-          repoContext.removePrFromAutomergeQueue(
+          await repoContext.removePrFromAutomergeQueue(
             context,
-            pullRequest.number,
+            pullRequest,
             'update branch failed',
           );
           return false;
@@ -294,16 +297,16 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
 
       if (await hasFailedStatusOrChecks(pullRequest, context)) {
         addLog('failed status or checks', 'remove');
-        repoContext.removePrFromAutomergeQueue(
+        await repoContext.removePrFromAutomergeQueue(
           context,
-          pullRequest.number,
+          pullRequest,
           'failed status or checks',
         );
         return false;
       } else if (pullRequest.mergeable_state === 'blocked') {
         addLog('blocked mergeable_state', 'wait');
         // waiting for reschedule in status (pr-handler/status.ts), or retry anyway and if it fails remove from queue
-        repoContext.reschedule(context, createMergeLockPrFromPr(), true);
+        await repoContext.reschedule(context, createMergeLockPrFromPr(), true);
         return false;
       }
 
@@ -316,16 +319,16 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
     if (pullRequest.mergeable_state === 'blocked') {
       if (await hasFailedStatusOrChecks(pullRequest, context)) {
         addLog('failed status or checks', 'remove');
-        repoContext.removePrFromAutomergeQueue(
+        await repoContext.removePrFromAutomergeQueue(
           context,
-          pullRequest.number,
+          pullRequest,
           'failed status or checks',
         );
         return false;
       } else {
         addLog('blocked mergeable_state', 'wait');
         // waiting for reschedule in status (pr-handler/status.ts), or retry anyway and if it fails remove from queue
-        repoContext.reschedule(context, createMergeLockPrFromPr(), true);
+        await repoContext.reschedule(context, createMergeLockPrFromPr(), true);
         return false;
       }
     }
@@ -336,18 +339,18 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
         return false;
       }
 
-      repoContext.removePrFromAutomergeQueue(
+      await repoContext.removePrFromAutomergeQueue(
         context,
-        pullRequest.number,
+        pullRequest,
         'update branch failed',
       );
       return false;
     }
 
     addLog('not mergeable', 'remove');
-    repoContext.removePrFromAutomergeQueue(
+    await repoContext.removePrFromAutomergeQueue(
       context,
-      pullRequest.number,
+      pullRequest,
       `mergeable_state=${pullRequest.mergeable_state}`,
     );
     context.log.info(
@@ -380,15 +383,15 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
       commit_message: commitMessage,
     });
     context.log.debug(mergeResult.data, 'merge result:');
-    repoContext.removePrFromAutomergeQueue(
+    await repoContext.removePrFromAutomergeQueue(
       context,
-      pullRequest.number,
+      pullRequest,
       'merged',
     );
     return Boolean('merged' in mergeResult.data && mergeResult.data.merged);
   } catch (err: any) {
     context.log.info({ errorMessage: err?.message }, 'could not merge:');
-    repoContext.reschedule(context, createMergeLockPrFromPr(), false);
+    await repoContext.reschedule(context, createMergeLockPrFromPr(), false);
     return false;
   }
 };

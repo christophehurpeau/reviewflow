@@ -2,7 +2,7 @@ import type { EventsWithRepository, RepoContext } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
 import type { ReviewflowPr } from 'mongo';
 import { defaultCommentBody } from '../actions/utils/body/updateBody';
-import type { PullRequestWithDecentDataFromWebhook } from './PullRequestData';
+import type { PullRequestDataMinimumData } from './PullRequestData';
 import {
   createReviewflowComment,
   getReviewflowCommentById,
@@ -18,13 +18,13 @@ export interface ReviewflowPrContext {
 }
 
 export const getReviewflowPrContext = async <T extends EventsWithRepository>(
-  pullRequestNumber: PullRequestWithDecentDataFromWebhook['number'],
+  pullRequest: PullRequestDataMinimumData,
   context: ProbotEvent<T>,
   repoContext: RepoContext,
   reviewflowCommentPromise?: ReturnType<typeof createReviewflowComment>,
 ): Promise<ReviewflowPrContext> => {
   const appContext = repoContext.appContext;
-  const prEmbed = { number: pullRequestNumber };
+  const prEmbed = { id: pullRequest.id, number: pullRequest.number };
 
   if (reviewflowCommentPromise) {
     const comment = await reviewflowCommentPromise;
@@ -40,19 +40,19 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
   const existing = await appContext.mongoStores.prs.findOne({
     'account.id': repoContext.accountEmbed.id,
     'repo.id': repoContext.repoEmbed.id,
-    'pr.number': pullRequestNumber,
+    'pr.number': prEmbed.number,
   });
   const comment =
     existing &&
     (await getReviewflowCommentById(
-      pullRequestNumber,
+      pullRequest.number,
       context,
       existing.commentId,
     ));
 
   if (!comment || !existing) {
     const newComment = await createReviewflowComment(
-      pullRequestNumber,
+      pullRequest.number,
       context,
       defaultCommentBody,
     );

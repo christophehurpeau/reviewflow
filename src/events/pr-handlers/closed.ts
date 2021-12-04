@@ -30,7 +30,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
           await Promise.all([
             repoContext.removePrFromAutomergeQueue(
               context,
-              pullRequest.number,
+              pullRequest,
               'pr closed',
             ),
             isNotFork && options.deleteAfterMerge
@@ -45,7 +45,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
           await Promise.all([
             repoContext.removePrFromAutomergeQueue(
               context,
-              pullRequest.number,
+              pullRequest,
               'pr closed',
             ),
             updateReviewStatus(pullRequest, context, repoContext, 'dev', {
