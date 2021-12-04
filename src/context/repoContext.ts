@@ -108,6 +108,7 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   reschedule: <EventName extends EmitterWebhookEventName>(
     context: ProbotEvent<EventName>,
     pr: LockedMergePr,
+    longTime: boolean,
   ) => void;
   pushAutomergeQueue: (pr: LockedMergePr) => void;
 }
@@ -147,6 +148,8 @@ const createGetReviewLabelIds = <GroupNames extends string>(
       .filter(Boolean)
       .map((name) => labels[name].id);
 };
+
+export const allRepoContexts = new Map<string, RepoContext<any>>();
 
 async function initRepoContext<
   T extends EventsWithRepository,
@@ -230,8 +233,18 @@ async function initRepoContext<
       .filter(ExcludesFalsy);
 
   const lock = Lock();
+  const waitingToReschedule = new Map<string, ReturnType<typeof setTimeout>>();
   let lockMergePr: LockedMergePr | undefined;
   let automergeQueue: LockedMergePr[] = [];
+
+  const clearWaitingToReschedule = (prId: number) => {
+    const prIdAsString = String(prId);
+    const timeout = waitingToReschedule.get(prIdAsString);
+    if (timeout) {
+      clearTimeout(timeout);
+      waitingToReschedule.delete(prIdAsString);
+    }
+  };
 
   const lockPR = (
     prOrPrIssueId: string,
@@ -239,6 +252,7 @@ async function initRepoContext<
     callback: () => Promise<void> | void,
   ): Promise<void> =>
     new Promise((resolve, reject) => {
+      const prNumberAsString = String(prNumber);
       const logInfos = {
         repo: fullName,
         prOrPrIssueId,
@@ -246,7 +260,7 @@ async function initRepoContext<
       };
       context.log.debug(logInfos, 'lock: try to lock pr');
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      lock(String(prNumber), async (createReleaseCallback) => {
+      lock(prNumberAsString, async (createReleaseCallback) => {
         const release = createReleaseCallback(() => {});
         context.log.info(logInfos, 'lock: lock pr acquired');
         try {
@@ -270,28 +284,69 @@ async function initRepoContext<
     return lockPR(String(pullRequest.id), pullRequest.number, callback);
   };
 
+  const removePrFromAutomergeQueue = (
+    context: ProbotEvent<any>,
+    prNumber: number | string,
+    reason: string,
+  ): void => {
+    if (lockMergePr && String(lockMergePr.number) === String(prNumber)) {
+      lockMergePr = automergeQueue.shift();
+      context.log(`merge lock: remove ${fullName}#${prNumber}: ${reason}`);
+      if (lockMergePr) {
+        context.log(lockMergePr, `merge lock: next ${fullName}`);
+      } else {
+        context.log(`merge lock: nothing next ${fullName}`);
+      }
+      if (lockMergePr) {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        reschedule(context, lockMergePr, false);
+      }
+    } else {
+      const previousLength = automergeQueue.length;
+      automergeQueue = automergeQueue.filter(
+        (value) => String(value.number) !== String(prNumber),
+      );
+      if (automergeQueue.length !== previousLength) {
+        context.log(`merge lock: remove ${fullName}#${prNumber}: ${reason}`);
+      }
+    }
+  };
+
   const reschedule = (
     rescheduleContext: ProbotEvent<any>,
     pr: LockedMergePr,
+    longTime: boolean,
   ): void => {
     if (!pr) throw new Error('Cannot reschedule undefined');
+    clearWaitingToReschedule(pr.id);
     rescheduleContext.log.info(pr, 'reschedule');
-    setTimeout(() => {
-      lockPR('reschedule', -1, () => {
-        return lockPR(String(pr.id), pr.number, async () => {
-          const [pullRequest, reviewflowPrContext] = await Promise.all([
-            fetchPr(context, pr.number),
-            getReviewflowPrContext(pr.number, rescheduleContext, repoContext),
-          ]);
-          await autoMergeIfPossible(
-            pullRequest,
-            rescheduleContext,
-            repoContext,
-            reviewflowPrContext,
-          );
+    const timeout = setTimeout(
+      () => {
+        lockPR('reschedule', -1, () => {
+          return lockPR(String(pr.id), pr.number, async () => {
+            const [pullRequest, reviewflowPrContext] = await Promise.all([
+              fetchPr(context, pr.number),
+              getReviewflowPrContext(pr.number, rescheduleContext, repoContext),
+            ]);
+            const couldMerge = await autoMergeIfPossible(
+              pullRequest,
+              rescheduleContext,
+              repoContext,
+              reviewflowPrContext,
+            );
+            if (!couldMerge && longTime) {
+              removePrFromAutomergeQueue(
+                rescheduleContext,
+                pr.number,
+                'reschedule: !couldMerge && longTime => abort lock',
+              );
+            }
+          });
         });
-      });
-    }, 10_000);
+      },
+      longTime ? 60_000 * 10 /* 10 min */ : 10_000 /* 10s */,
+    );
+    waitingToReschedule.set(String(pr.id), timeout);
   };
 
   return Object.assign(repoContext, {
@@ -321,32 +376,7 @@ async function initRepoContext<
       if (lockMergePr) throw new Error('Already have lock');
       lockMergePr = pr;
     },
-    removePrFromAutomergeQueue: (
-      context,
-      prNumber: number | string,
-      reason: string,
-    ): void => {
-      if (lockMergePr && String(lockMergePr.number) === String(prNumber)) {
-        lockMergePr = automergeQueue.shift();
-        context.log(`merge lock: remove ${fullName}#${prNumber}: ${reason}`);
-        if (lockMergePr) {
-          context.log(lockMergePr, `merge lock: next ${fullName}`);
-        } else {
-          context.log(`merge lock: nothing next ${fullName}`);
-        }
-        if (lockMergePr) {
-          reschedule(context, lockMergePr);
-        }
-      } else {
-        const previousLength = automergeQueue.length;
-        automergeQueue = automergeQueue.filter(
-          (value) => String(value.number) !== String(prNumber),
-        );
-        if (automergeQueue.length !== previousLength) {
-          context.log(`merge lock: remove ${fullName}#${prNumber}: ${reason}`);
-        }
-      }
-    },
+    removePrFromAutomergeQueue,
     pushAutomergeQueue: (pr: LockedMergePr): void => {
       context.log(
         {

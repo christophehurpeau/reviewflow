@@ -33,7 +33,7 @@ export default function status(app: Probot, appContext: AppContext): void {
       const lockedPr = repoContext.getMergeLockedPr();
       // check if changed
       if (isSameBranch(context.payload, lockedPr)) {
-        repoContext.reschedule(context, lockedPr);
+        repoContext.reschedule(context, lockedPr, false);
       }
     },
   );

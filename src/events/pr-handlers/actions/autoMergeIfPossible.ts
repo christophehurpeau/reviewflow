@@ -236,7 +236,7 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
     ) {
       addLog('unknown mergeable_state', 'reschedule');
       // GitHub is determining whether the pull request is mergeable
-      repoContext.reschedule(context, createMergeLockPrFromPr());
+      repoContext.reschedule(context, createMergeLockPrFromPr(), false);
       return false;
     }
 
@@ -302,7 +302,8 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
         return false;
       } else if (pullRequest.mergeable_state === 'blocked') {
         addLog('blocked mergeable_state', 'wait');
-        // waiting for reschedule in status (pr-handler/status.ts)
+        // waiting for reschedule in status (pr-handler/status.ts), or retry anyway and if it fails remove from queue
+        repoContext.reschedule(context, createMergeLockPrFromPr(), true);
         return false;
       }
 
@@ -323,7 +324,8 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
         return false;
       } else {
         addLog('blocked mergeable_state', 'wait');
-        // waiting for reschedule in status (pr-handler/status.ts)
+        // waiting for reschedule in status (pr-handler/status.ts), or retry anyway and if it fails remove from queue
+        repoContext.reschedule(context, createMergeLockPrFromPr(), true);
         return false;
       }
     }
@@ -386,7 +388,7 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
     return Boolean('merged' in mergeResult.data && mergeResult.data.merged);
   } catch (err: any) {
     context.log.info({ errorMessage: err?.message }, 'could not merge:');
-    repoContext.reschedule(context, createMergeLockPrFromPr());
+    repoContext.reschedule(context, createMergeLockPrFromPr(), false);
     return false;
   }
 };

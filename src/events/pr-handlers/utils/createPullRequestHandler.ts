@@ -143,7 +143,7 @@ export const createPullRequestsHandler = <
 
       await Promise.all(
         prs.map((pr) =>
-          repoContext.lockPR(String(pr.id), pr.number, async () => {
+          repoContext.lockPullRequest(pr, async () => {
             return callbackPr(pr, context, repoContext);
           }),
         ),
