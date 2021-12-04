@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.87.0](https://github.com/christophehurpeau/reviewflow/compare/v1.86.0...v1.87.0) (2021-12-04)
+
+
+### Features
+
+* add feature to silent teams notifications in settings ([eb29508](https://github.com/christophehurpeau/reviewflow/commit/eb29508a0ec1ff8251ca7399bbdb0a157a8c8f91))
+* add github teams list in app ([d6a5168](https://github.com/christophehurpeau/reviewflow/commit/d6a5168e118d4e18d3d95a098fc9fefe2533fcaa))
+* better repo merge queue with db save and timeout ([ab13eb1](https://github.com/christophehurpeau/reviewflow/commit/ab13eb1da29d893e1ec96cd6f7fb21a0202a40e5))
+
+
+### Bug Fixes
+
+* **automerge:** add timeout to prevent prs blocking automerge system ([b8f02db](https://github.com/christophehurpeau/reviewflow/commit/b8f02db14348b2334787dc2ecbce8a9ad778f799))
+* reverse tick for silenting teams ([543a5bd](https://github.com/christophehurpeau/reviewflow/commit/543a5bdf2931a0bf3de13a2d7c19d1faadc12216))
+* team from githubTeamName ([1c55d61](https://github.com/christophehurpeau/reviewflow/commit/1c55d6198bec3aa4322701ef770feb72b5ad6a69))
+
 ## [1.86.0](https://github.com/christophehurpeau/reviewflow/compare/v1.85.2...v1.86.0) (2021-11-10)
 
 
