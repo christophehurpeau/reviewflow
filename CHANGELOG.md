@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.88.0](https://github.com/christophehurpeau/reviewflow/compare/v1.87.0...v1.88.0) (2021-12-04)
+
+
+### Features
+
+* **deps:** update dependency liwi-mongo to v8.3.1 ([#338](https://github.com/christophehurpeau/reviewflow/issues/338)) ([930c598](https://github.com/christophehurpeau/reviewflow/commit/930c5985ef844c5498cf61cb0138dcd4d489c432))
+
+
+### Bug Fixes
+
+* support userDmSettings to not have silentTeams setup ([04a33ad](https://github.com/christophehurpeau/reviewflow/commit/04a33ada1ee8f5ef384dcef88747e2f65052b6ea))
+* **deps:** update dependency cookie-parser to v1.4.6 ([#332](https://github.com/christophehurpeau/reviewflow/issues/332)) ([2d6beba](https://github.com/christophehurpeau/reviewflow/commit/2d6bebabcc88176159ea7c5fa0206fe9d16a1194))
+
 ## [1.87.0](https://github.com/christophehurpeau/reviewflow/compare/v1.86.0...v1.87.0) (2021-12-04)
 
 
