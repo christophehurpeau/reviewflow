@@ -834,18 +834,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/parse@npm:14.0.0":
-  version: 14.0.0
-  resolution: "@commitlint/parse@npm:14.0.0"
-  dependencies:
-    "@commitlint/types": ^14.0.0
-    conventional-changelog-angular: ^5.0.11
-    conventional-commits-parser: ^3.2.2
-  checksum: 64429bc59e5e3109c3e237ef9f8475c4ba272760b87e2f686257adf849709ba151789a1bcdd31d7edb0f689fa4688e2bf1a4304f110962d26cad1ac920cb45f4
-  languageName: node
-  linkType: hard
-
-"@commitlint/parse@npm:^15.0.0":
+"@commitlint/parse@npm:15.0.0, @commitlint/parse@npm:^15.0.0":
   version: 15.0.0
   resolution: "@commitlint/parse@npm:15.0.0"
   dependencies:
@@ -906,15 +895,6 @@ __metadata:
   dependencies:
     find-up: ^5.0.0
   checksum: ac85b75d0e8318ce6b4ac1120646581a643d3d322144ccc54ca02f3966c1e5d0892bffa20eb25b3911c9ecc80e7fcae61792f79792a4f4ee2522c8c6fa21ba15
-  languageName: node
-  linkType: hard
-
-"@commitlint/types@npm:^14.0.0":
-  version: 14.0.0
-  resolution: "@commitlint/types@npm:14.0.0"
-  dependencies:
-    chalk: ^4.0.0
-  checksum: e9164cfdb0e24f8427e1633fe5bc1866fb71b0f626922d8c5c8233a357faf55fd840cf7cd74f86d5947c84e39b57c214c146fd2c17c4f75e551a4ff6e8d22fa7
   languageName: node
   linkType: hard
 
@@ -10054,7 +10034,7 @@ resolve@^2.0.0-next.3:
   dependencies:
     "@babel/core": 7.16.0
     "@babel/preset-react": 7.16.0
-    "@commitlint/parse": 14.0.0
+    "@commitlint/parse": 15.0.0
     "@octokit/core": 3.5.1
     "@octokit/rest": 18.12.0
     "@octokit/webhooks": 9.17.0
