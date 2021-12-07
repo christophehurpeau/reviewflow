@@ -10102,7 +10102,7 @@ resolve@^2.0.0-next.3:
     react-dom: 17.0.2
     rollup: 2.60.2
     simple-oauth2: 4.2.0
-    slackify-markdown: 4.3.0
+    slackify-markdown: 4.3.1
     smee-client: 1.2.2
     standard-version: 9.3.2
     type-fest: 2.8.0
@@ -10369,9 +10369,9 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"slackify-markdown@npm:4.3.0":
-  version: 4.3.0
-  resolution: "slackify-markdown@npm:4.3.0"
+"slackify-markdown@npm:4.3.1":
+  version: 4.3.1
+  resolution: "slackify-markdown@npm:4.3.1"
   dependencies:
     mdast-util-to-markdown: ^0.6.2
     remark-gfm: ^1.0.0
@@ -10380,7 +10380,7 @@ resolve@^2.0.0-next.3:
     unified: ^9.0.0
     unist-util-remove: ^2.0.1
     unist-util-visit: ^2.0.3
-  checksum: 070eb5a83cdf0a2629d6bdb02405bb975ec6b3f0019a178485d1cf61a8b89789dab65199037aa8441ebadd4de8cd5bc465846b1dd46b82b11766d921a2d61444
+  checksum: 5a1658a442d7f44668c03e8c0b60b0cbf605bea001e1fe2e8d5e025621935eb1f78eb9bfc86ffcfe5ab653d43f3b5e7d95733050d708fd99cab63a8160fd32db
   languageName: node
   linkType: hard
 
