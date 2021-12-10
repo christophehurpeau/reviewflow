@@ -9275,9 +9275,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pob-babel@npm:28.6.0":
-  version: 28.6.0
-  resolution: "pob-babel@npm:28.6.0"
+"pob-babel@npm:28.7.0":
+  version: 28.7.0
+  resolution: "pob-babel@npm:28.7.0"
   dependencies:
     "@babel/plugin-transform-runtime": ^7.13.10
     "@rollup/plugin-babel": ^5.2.2
@@ -9297,18 +9297,18 @@ __metadata:
   bin:
     pob-build: bin/pob-build.js
     pob-watch: bin/pob-watch.js
-  checksum: cc3076c0fd0cee2e8ea67339d3577317636e7776fa33878b4c65af857dd094a1e2b65c3d9e24dbaa80b5099e6044d721b2bf74883275820a1c3bc53ef44e9e34
+  checksum: c74df6c30dc40bdb977b4f683aff21f980798ab6fe9a91fd230fd78c722bf20490bc019f9cea1a7ae324216d9c1720a4f6611df61791fa7827938910053e33a1
   languageName: node
   linkType: hard
 
-"pob-lcov-reporter@npm:5.4.0":
-  version: 5.4.0
-  resolution: "pob-lcov-reporter@npm:5.4.0"
+"pob-lcov-reporter@npm:5.5.0":
+  version: 5.5.0
+  resolution: "pob-lcov-reporter@npm:5.5.0"
   dependencies:
     istanbul-reports: ^3.0.2
   peerDependencies:
     jest: ^26.0.1 || ^27.0.6
-  checksum: 02faa41f855fbe4fe8868a93e4fee26d6a2d44afd572c971be2a819ea1ce3c0afe82c6c70438e454c6f279ceb7c414b7953b6d71a08354c4b7f38ca6d07e8b8c
+  checksum: 0ab26a9aa9b32976940185c710ab2aab685f8c5070e756d5a695035d8a98c3b508a67ae04b948b0ca2330dc59f4cd11fb534ef6034a3473f14678eb4506c7a2a
   languageName: node
   linkType: hard
 
@@ -10094,8 +10094,8 @@ resolve@^2.0.0-next.3:
     liwi-mongo: 8.3.1
     lock: 1.1.0
     nock: 13.2.1
-    pob-babel: 28.6.0
-    pob-lcov-reporter: 5.4.0
+    pob-babel: 28.7.0
+    pob-lcov-reporter: 5.5.0
     prettier: 2.5.1
     probot: 12.1.2
     react: 17.0.2
