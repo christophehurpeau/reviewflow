@@ -113,7 +113,7 @@
     "@pob/commitlint-config": "3.3.0",
     "@pob/eslint-config": "47.1.0",
     "@pob/eslint-config-typescript": "47.1.0",
-    "@pob/eslint-config-typescript-react": "47.0.0",
+    "@pob/eslint-config-typescript-react": "47.1.0",
     "@pob/root": "5.9.0",
     "@rollup/plugin-run": "2.1.0",
     "@types/cookie-parser": "1.4.2",

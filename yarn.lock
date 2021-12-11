@@ -1518,11 +1518,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pob/eslint-config-typescript-react@npm:47.0.0":
-  version: 47.0.0
-  resolution: "@pob/eslint-config-typescript-react@npm:47.0.0"
+"@pob/eslint-config-typescript-react@npm:47.1.0":
+  version: 47.1.0
+  resolution: "@pob/eslint-config-typescript-react@npm:47.1.0"
   dependencies:
-    "@pob/eslint-config": ^47.0.0
+    "@pob/eslint-config": ^47.1.0
     eslint-config-airbnb: ^18.2.1
     eslint-plugin-import: ^2.22.1
     eslint-plugin-jsx-a11y: ^6.4.1
@@ -1541,7 +1541,7 @@ __metadata:
       optional: true
     eslint-plugin-react-hooks:
       optional: true
-  checksum: e6b2d729495184fbbc936cbd3ac1d86eb8d20f27e8d092ee33513a53763261141ec70ba574520d0489030475531ffef561727fa0acd4c1faf16eb3d0a0355ba2
+  checksum: 74a8916b26e6b4c5e33698a79ef9c153af493d42bb1b89703aa4754fdb51ef4b7038696417aadc73bf0f75a26c29c1b891de9a4db63373661b0c239c55e1e3c5
   languageName: node
   linkType: hard
 
@@ -1575,7 +1575,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pob/eslint-config@npm:47.1.0, @pob/eslint-config@npm:^47.0.0, @pob/eslint-config@npm:^47.1.0":
+"@pob/eslint-config@npm:47.1.0, @pob/eslint-config@npm:^47.1.0":
   version: 47.1.0
   resolution: "@pob/eslint-config@npm:47.1.0"
   dependencies:
@@ -10061,7 +10061,7 @@ resolve@^2.0.0-next.3:
     "@pob/commitlint-config": 3.3.0
     "@pob/eslint-config": 47.1.0
     "@pob/eslint-config-typescript": 47.1.0
-    "@pob/eslint-config-typescript-react": 47.0.0
+    "@pob/eslint-config-typescript-react": 47.1.0
     "@pob/root": 5.9.0
     "@rollup/plugin-run": 2.1.0
     "@slack/web-api": 6.0.0
