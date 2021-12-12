@@ -14,13 +14,16 @@ const addStatusCheck = async function <EventName extends EventsWithPullRequest>(
   { state, description }: { state: 'failure' | 'success'; description: string },
   previousSha?: string,
 ): Promise<void> {
-  const hasPrCheck = (
-    await context.octokit.checks.listForRef(
-      context.repo({
-        ref: pullRequest.head.sha,
-      }),
-    )
-  ).data.check_runs.find((check) => check.name === process.env.REVIEWFLOW_NAME);
+  const {
+    data: { check_runs: checkRuns },
+  } = await context.octokit.checks.listForRef(
+    context.repo({
+      ref: pullRequest.head.sha,
+    }),
+  );
+  const hasPrCheck = checkRuns.find(
+    (check): boolean => check.name === process.env.REVIEWFLOW_NAME,
+  );
 
   context.log.debug({ hasPrCheck, state, description }, 'add status check');
 

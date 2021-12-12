@@ -1,7 +1,7 @@
 import type { Router } from 'express';
 import type { ProbotOctokit } from 'probot';
 import React from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
+import { renderToStaticMarkup } from 'react-dom/server.js';
 import Layout from '../views/Layout';
 import { getUser } from './auth';
 

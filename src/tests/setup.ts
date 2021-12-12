@@ -1,3 +1,5 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { jest } from '@jest/globals';
 import nock from 'nock';
 import { Probot } from 'probot';
 import repoLabels from '../../fixtures/labels.json';

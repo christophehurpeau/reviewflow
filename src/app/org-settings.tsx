@@ -3,7 +3,7 @@ import bodyParser from 'body-parser';
 import type { Router } from 'express';
 import type { ProbotOctokit } from 'probot';
 import React from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
+import { renderToStaticMarkup } from 'react-dom/server.js';
 import { accountConfigs } from '../accountConfigs';
 import { getTeamsAndGroups } from '../context/accountContext';
 import type { MessageCategory } from '../dm/MessageCategory';
@@ -337,9 +337,9 @@ export default function orgSettings(
         created: new Date(),
       };
 
-      await (
-        await mongoStores.userDmSettings.collection
-      ).updateOne(
+      const userDmSettingsCollection = await mongoStores.userDmSettings
+        .collection;
+      await userDmSettingsCollection.updateOne(
         {
           _id: `${org.id}_${user.authInfo.id}`,
         },

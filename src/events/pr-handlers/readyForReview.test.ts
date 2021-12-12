@@ -1,7 +1,8 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { jest } from '@jest/globals';
 import type { Probot } from 'probot';
 import pullRequestCommits from '../../../fixtures/pull_request_30_commits.json';
 import pullRequestReadyForReview from '../../../fixtures/pull_request_54.ready_for_review.json';
-import * as initTeamSlack from '../../context/slack/initTeamSlack';
 import { voidTeamSlack } from '../../context/slack/voidTeamSlack';
 import {
   initializeProbotApp,
@@ -10,7 +11,9 @@ import {
   nock,
 } from '../../tests/setup';
 
-jest.spyOn(initTeamSlack, 'initTeamSlack').mockResolvedValue(voidTeamSlack());
+jest.unstable_mockModule('../../context/slack/initTeamSlack', () => ({
+  initTeamSlack: () => Promise.resolve(voidTeamSlack()),
+}));
 
 nock.disableNetConnect();
 

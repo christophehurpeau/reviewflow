@@ -74,13 +74,14 @@ export const editOpenedPR = async <Name extends EventsWithRepository>(
 
   const date = new Date().toISOString();
 
-  const hasLintPrCheck = (
-    await context.octokit.checks.listForRef(
-      context.repo({
-        ref: pullRequest.head.sha,
-      }),
-    )
-  ).data.check_runs.find(
+  const {
+    data: { check_runs: checkRuns },
+  } = await context.octokit.checks.listForRef(
+    context.repo({
+      ref: pullRequest.head.sha,
+    }),
+  );
+  const hasLintPrCheck = checkRuns.find(
     (check): boolean => check.name === `${process.env.REVIEWFLOW_NAME}/lint-pr`,
   );
 

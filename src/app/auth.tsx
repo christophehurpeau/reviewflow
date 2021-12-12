@@ -1,9 +1,9 @@
 import { promisify } from 'util';
 import { Octokit } from '@octokit/rest';
 import type { Router, Request, Response } from 'express';
-import { sign, verify } from 'jsonwebtoken';
+import jsonwebtoken from 'jsonwebtoken';
 import React from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
+import { renderToStaticMarkup } from 'react-dom/server.js';
 import * as githubAuth from '../auth/github';
 import Layout from '../views/Layout';
 
@@ -13,8 +13,8 @@ if (!process.env.AUTH_SECRET_KEY) {
 
 const AUTH_SECRET_KEY: string = process.env.AUTH_SECRET_KEY;
 
-const signPromisified: any = promisify(sign);
-const verifyPromisified: any = promisify(verify);
+const signPromisified: any = promisify(jsonwebtoken.sign);
+const verifyPromisified: any = promisify(jsonwebtoken.verify);
 
 const secure =
   !!process.env.SECURE_COOKIE && process.env.SECURE_COOKIE !== 'false';

@@ -1,6 +1,4 @@
-'use strict';
-
-const { createCheckPackage } = require('check-package-dependencies');
+import { createCheckPackage } from 'check-package-dependencies';
 
 createCheckPackage()
   .checkRecommended({

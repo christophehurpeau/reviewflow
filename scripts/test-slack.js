@@ -1,49 +1,46 @@
-'use strict';
-
-require('dotenv/config');
-const { WebClient } = require('@slack/web-api');
+import 'dotenv/config';
+import { WebClient } from '@slack/web-api';
 
 if (!process.env.SLACK_TOKEN) {
   console.error('Missing slack token');
   process.exit(1);
 }
 
-(async () => {
-  const slackClient = new WebClient(process.env.SLACK_TOKEN);
-  const slackUsers = new Map();
-  await slackClient.paginate('users.list', {}, (page) => {
-    page.members.forEach((member) => {
-      if (member.profile && member.profile.email) {
-        slackUsers.set(member.profile.email, member);
-      }
-    });
-    return false;
+const slackClient = new WebClient(process.env.SLACK_TOKEN);
+const slackUsers = new Map();
+await slackClient.paginate('users.list', {}, (page) => {
+  page.members.forEach((member) => {
+    if (member.profile && member.profile.email) {
+      slackUsers.set(member.profile.email, member);
+    }
   });
+  return false;
+});
 
-  const member = slackUsers.get('christophe@ornikar.com');
+const member = slackUsers.get('christophe@ornikar.com');
 
-  const im = await slackClient.im.open({ user: member.id });
+const im = await slackClient.im.open({ user: member.id });
 
-  const message = await slackClient.chat.postMessage({
-    channel: im.channel.id,
-    text: '<https://github.com/ornikar/www/pull/2945|www#2945>',
-    blocks: [
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: '👨‍🎓<https://github.com/ornikar/www/pull/2945|www#2945>',
-        },
+const message = await slackClient.chat.postMessage({
+  channel: im.channel.id,
+  text: '<https://github.com/ornikar/www/pull/2945|www#2945>',
+  blocks: [
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: '👨‍🎓<https://github.com/ornikar/www/pull/2945|www#2945>',
       },
-    ],
-    attachments: [
-      {
-        blocks: [
-          {
-            type: 'section',
-            text: {
-              type: 'mrkdwn',
-              text: `### :warning: Artifact update problem
+    },
+  ],
+  attachments: [
+    {
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `### :warning: Artifact update problem
 
 Renovate failed to update an artifact related to this branch. You probably do not want to merge this PR as-is.
 
@@ -63,11 +60,10 @@ error An unexpected error occurred: "Unknown token: { line: 3, col: 2, type: 'IN
 
 \`\`\`
           `,
-            },
           },
-        ],
-      },
-    ],
-  });
-  console.log(message);
-})();
+        },
+      ],
+    },
+  ],
+});
+console.log(message);

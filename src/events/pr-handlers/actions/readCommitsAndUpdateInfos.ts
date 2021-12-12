@@ -1,4 +1,4 @@
-import parse from '@commitlint/parse';
+import * as commitlintParse from '@commitlint/parse';
 import type { CommitNote } from '@commitlint/types';
 import type { RestEndpointMethodTypes } from '@octokit/rest';
 import type { EventsWithRepository, RepoContext } from 'context/repoContext';
@@ -9,6 +9,12 @@ import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
 import { updateCommentBodyCommitsNotes } from './utils/body/updateBody';
 import { readPullRequestCommits } from './utils/readPullRequestCommits';
 import syncLabel from './utils/syncLabel';
+
+const parseCommit = (
+  (commitlintParse.default as any).default
+    ? (commitlintParse.default as any).default
+    : commitlintParse.default
+) as typeof commitlintParse.default;
 
 interface BreakingChangesCommits {
   commit: RestEndpointMethodTypes['pulls']['listCommits']['response']['data'][number];
@@ -30,7 +36,7 @@ export const readCommitsAndUpdateInfos = async <
   const commits = await readPullRequestCommits(context, pullRequest);
 
   const conventionalCommits = await Promise.all(
-    commits.map((c) => parse(c.commit.message)),
+    commits.map((c) => parseCommit(c.commit.message)),
   );
 
   const breakingChangesCommits: BreakingChangesCommits[] = [];
