@@ -280,7 +280,7 @@ export default function orgSettings(
                                         )
                                           ? 'checked="checked" '
                                           : ''
-                                      }onclick="fetch(location.pathname, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ team: ${JSON.stringify(
+                                      }onclick="fetch(location.pathname, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ silentTeam: ${JSON.stringify(
                                         team,
                                       )
                                         .replace(/'/g, "\\'")
@@ -288,7 +288,7 @@ export default function orgSettings(
                                         .replace(
                                           /"/g,
                                           "'",
-                                        )}, value: event.currentTarget.checked }) })" />`,
+                                        )}, value: !event.currentTarget.checked }) })" />`,
                                     }}
                                   />
                                   {team.name}
@@ -317,7 +317,7 @@ export default function orgSettings(
         res.status(400).send('not ok');
         return;
       }
-      if (!req.body.key && !req.body.team) {
+      if (!req.body.key && !req.body.silentTeam) {
         res.status(400).send('not ok');
         return;
       }
@@ -354,8 +354,8 @@ export default function orgSettings(
           : {
               [req.body.value ? '$push' : '$pull']: {
                 silentTeams: req.body.value
-                  ? req.body.team
-                  : { id: req.body.team.id },
+                  ? req.body.silentTeam
+                  : { id: req.body.silentTeam.id },
               },
               $setOnInsert,
             },
