@@ -30,8 +30,6 @@
     "lint:eslint": "eslint --report-unused-disable-directives --resolve-plugins-relative-to . --quiet *.{js,cjs,mjs} src scripts",
     "lint:prettier": "prettier --check .",
     "postinstall": "pob-root-postinstall",
-    "preversion": "yarn run lint && yarn run build && yarn run test && repository-check-dirty",
-    "release": "repository-check-dirty && yarn preversion && standard-version -a -m 'chore(release): %s [skip ci]' && git push --follow-tags origin master",
     "start": "pob-watch",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
@@ -132,7 +130,6 @@
     "pob-lcov-reporter": "6.0.0",
     "prettier": "2.5.1",
     "smee-client": "1.2.2",
-    "standard-version": "9.3.2",
     "type-fest": "2.8.0",
     "typescript": "4.5.3"
   }
