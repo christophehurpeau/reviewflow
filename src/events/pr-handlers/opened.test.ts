@@ -21,8 +21,8 @@ nock.disableNetConnect();
 
 describe('opened', (): void => {
   let probot: Probot;
-  const findOnePr = jest.fn().mockResolvedValue(undefined);
-  const insertOnePr = jest.fn().mockResolvedValue({ commentId: 1 });
+  const findOnePr = jest.fn(() => Promise.resolve(undefined));
+  const insertOnePr = jest.fn(() => Promise.resolve({ commentId: 1 }));
 
   beforeEach(async () => {
     probot = await initializeProbotApp({
