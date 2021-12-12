@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.88.1](https://github.com/christophehurpeau/reviewflow/compare/v1.88.0...v1.88.1) (2021-12-12)
+
+
+### Bug Fixes
+
+* correctly save untick/tick team to silent ([51c05c2](https://github.com/christophehurpeau/reviewflow/commit/51c05c2a323485ed87822104345b2b3eb873140a))
+* **deps:** update dependency probot to v12.1.2 ([#345](https://github.com/christophehurpeau/reviewflow/issues/345)) ([714efae](https://github.com/christophehurpeau/reviewflow/commit/714efae81c59ceaa1dd9ef90619c38246ed6dea2))
+
 ## [1.88.0](https://github.com/christophehurpeau/reviewflow/compare/v1.87.0...v1.88.0) (2021-12-04)
 
 
