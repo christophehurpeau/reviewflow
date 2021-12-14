@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.88.2](https://www.github.com/christophehurpeau/reviewflow/compare/v1.88.1...v1.88.2) (2021-12-14)
+
+
+### Bug Fixes
+
+* **deps:** update dependency body-parser to v1.19.1 ([#358](https://www.github.com/christophehurpeau/reviewflow/issues/358)) ([c7fd9e9](https://www.github.com/christophehurpeau/reviewflow/commit/c7fd9e9dfbb450facda943c12a71131d81c1ee2d))
+* **deps:** update dependency probot to v12.1.3 ([#353](https://www.github.com/christophehurpeau/reviewflow/issues/353)) ([cb8aac0](https://www.github.com/christophehurpeau/reviewflow/commit/cb8aac00794c433a8a21926f9a8dbb189b6d3db6))
+* **deps:** update dependency slackify-markdown to v4.3.1 ([#352](https://www.github.com/christophehurpeau/reviewflow/issues/352)) ([4c7ce61](https://www.github.com/christophehurpeau/reviewflow/commit/4c7ce617bb9eeb60a51de575429c0db028185eaa))
+
 ### [1.88.1](https://github.com/christophehurpeau/reviewflow/compare/v1.88.0...v1.88.1) (2021-12-12)
 
 
