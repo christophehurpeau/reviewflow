@@ -3,7 +3,7 @@ import type { Config } from './types';
 const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
   autoAssignToCreator: true,
   trimTitle: true,
-  ignoreRepoPattern: '(infra-.*|devenv)',
+  ignoreRepoPattern: '(infra-.*|devenv|bigquery-dbt)',
   requiresReviewRequest: true,
   autoMergeRenovateWithSkipCi: false,
   prDefaultOptions: {
