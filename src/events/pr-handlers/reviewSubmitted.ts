@@ -67,9 +67,10 @@ export default function reviewSubmitted(
           reviewerGroup &&
           repoContext.config.labels.review[reviewerGroup]
         ) {
+          const updatedPr = await fetchPr(context, pullRequest.number);
           const hasRequestedReviewsForGroup = repoContext.approveShouldWait(
             reviewerGroup,
-            pullRequest,
+            updatedPr,
             {
               includesReviewerGroup: true,
               // TODO reenable this when accepted can notify request review to slack (dev accepted => design requested) and flag to disable for label (approved design ; still waiting for dev ?)
@@ -84,8 +85,6 @@ export default function reviewSubmitted(
             !hasRequestedReviewsForGroup &&
             !hasChangesRequestedInReviews &&
             state === 'approved';
-
-          const updatedPr = await fetchPr(context, pullRequest.number);
 
           const newLabels = await updateReviewStatus(
             updatedPr,
