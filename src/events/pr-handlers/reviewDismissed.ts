@@ -26,7 +26,6 @@ export default function reviewDismissed(
       const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
       if (
-        reviewflowPrContext &&
         !repoContext.shouldIgnore &&
         reviewerGroup &&
         repoContext.config.labels.review[reviewerGroup]
@@ -47,18 +46,19 @@ export default function reviewDismissed(
           { includesReviewerGroup: true },
         );
 
-        const isApproved =
-          hasApprovals &&
-          !hasRequestedReviewsForGroup &&
-          !hasChangesRequestedInReviews;
-
         await updateReviewStatus(
           updatedPr,
           context,
           repoContext,
           reviewerGroup,
           {
-            add: [!hasApprovals && 'needsReview', isApproved && 'approved'],
+            add: [
+              !hasApprovals && 'needsReview',
+              hasApprovals &&
+                !hasRequestedReviewsForGroup &&
+                !hasChangesRequestedInReviews &&
+                'approved',
+            ],
             remove: [
               !hasRequestedReviewsForGroup &&
                 !hasChangesRequestedInReviews &&
@@ -68,22 +68,22 @@ export default function reviewDismissed(
             ],
           },
         );
-      }
 
-      if (pullRequest.assignees) {
-        pullRequest.assignees.forEach((assignee) => {
-          if (assignee) {
-            repoContext.slack.updateHome(assignee.login);
-          }
-        });
-      }
-      if (
-        !pullRequest.assignees ||
-        !pullRequest.assignees.some(
-          (assignee) => assignee && assignee.login === reviewer.login,
-        )
-      ) {
-        repoContext.slack.updateHome(reviewer.login);
+        if (updatedPr.assignees) {
+          updatedPr.assignees.forEach((assignee) => {
+            if (assignee) {
+              repoContext.slack.updateHome(assignee.login);
+            }
+          });
+        }
+        if (
+          !updatedPr.assignees ||
+          !updatedPr.assignees.some(
+            (assignee) => assignee && assignee.login === reviewer.login,
+          )
+        ) {
+          repoContext.slack.updateHome(reviewer.login);
+        }
       }
 
       if (repoContext.slack) {
