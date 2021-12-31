@@ -1,8 +1,10 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
+import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
+import { fetchPr } from './utils/fetchPr';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 
 export default function reviewRequestRemoved(
@@ -26,19 +28,22 @@ export default function reviewRequestRemoved(
       const requestedReviewers = requestedReviewer
         ? [requestedReviewer]
         : await repoContext.getMembersForTeam(requestedTeam.id);
+      let isMerged = false;
 
       const reviewerGroup = requestedReviewer
         ? repoContext.getReviewerGroup(requestedReviewer.login)
         : repoContext.getTeamGroup(requestedTeam.name);
 
       if (
+        reviewflowPrContext &&
         !repoContext.shouldIgnore &&
         reviewerGroup &&
         repoContext.config.labels.review[reviewerGroup]
       ) {
+        const updatedPr = await fetchPr(context, pullRequest.number);
         const hasRequestedReviewsForGroup = repoContext.approveShouldWait(
           reviewerGroup,
-          pullRequest,
+          updatedPr,
           {
             includesReviewerGroup: true,
           },
@@ -59,8 +64,8 @@ export default function reviewRequestRemoved(
           !hasChangesRequestedInReviews &&
           hasApprovedInReviews;
 
-        await updateReviewStatus(
-          pullRequest,
+        const newLabels = await updateReviewStatus(
+          updatedPr,
           context,
           repoContext,
           reviewerGroup,
@@ -83,6 +88,16 @@ export default function reviewRequestRemoved(
             ],
           },
         );
+
+        if (approved && !hasChangesRequestedInReviews) {
+          isMerged = await autoMergeIfPossible(
+            updatedPr,
+            context,
+            repoContext,
+            reviewflowPrContext,
+            newLabels,
+          );
+        }
 
         const assigneesLogins: string[] = [];
         if (pullRequest.assignees) {
@@ -113,7 +128,7 @@ export default function reviewRequestRemoved(
                 }_ review on ${slackUtils.createPrLink(
                   pullRequest,
                   repoContext,
-                )}`,
+                )}${isMerged ? ' and PR is merged :tada:' : ''}`,
               },
               requestedTeam ? requestedTeam.id : undefined,
             );
@@ -131,7 +146,7 @@ export default function reviewRequestRemoved(
                 } review on ${slackUtils.createPrLink(
                   pullRequest,
                   repoContext,
-                )}`,
+                )}${isMerged ? ' and PR is merged :tada:' : ''}`,
               },
               requestedTeam ? requestedTeam.id : undefined,
             );
