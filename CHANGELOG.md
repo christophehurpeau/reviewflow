@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.90.0](https://www.github.com/christophehurpeau/reviewflow/compare/v1.89.0...v1.90.0) (2022-01-01)
+
+
+### Features
+
+* **deps:** update dependency @commitlint/parse to v16 ([#379](https://www.github.com/christophehurpeau/reviewflow/issues/379)) ([3d6f6b8](https://www.github.com/christophehurpeau/reviewflow/commit/3d6f6b8753484d839b2664a417538b0f6fb355db))
+* **deps:** update dependency simple-oauth2 to v4.3.0 ([#373](https://www.github.com/christophehurpeau/reviewflow/issues/373)) ([bd09993](https://www.github.com/christophehurpeau/reviewflow/commit/bd099934bcd071383119336db7d496beb5c0eaa4))
+
+
+### Bug Fixes
+
+* check if a PR can be merged after a review request is removed ([19406c6](https://www.github.com/christophehurpeau/reviewflow/commit/19406c64431e076d7d90785d62dd4e76ca1d2693))
+* in review submitted event, use updated pr in approveShouldWait too ([8848afb](https://www.github.com/christophehurpeau/reviewflow/commit/8848afb51e2d27a2a70d17234421100ab043e07b))
+* update slack home after review is dismissed even if repo is ignored ([7e85dd4](https://www.github.com/christophehurpeau/reviewflow/commit/7e85dd4f603ebffff8a542e610eb6c5d5827ed25))
+
 ## [1.89.0](https://www.github.com/christophehurpeau/reviewflow/compare/v1.88.1...v1.89.0) (2021-12-15)
 
 
