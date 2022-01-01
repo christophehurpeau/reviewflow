@@ -9466,7 +9466,7 @@ resolve@^2.0.0-next.3:
     probot: 12.1.3
     react: 17.0.2
     react-dom: 17.0.2
-    simple-oauth2: 4.2.0
+    simple-oauth2: 4.3.0
     slackify-markdown: 4.3.1
     smee-client: 1.2.2
     type-fest: 2.8.0
@@ -9715,15 +9715,15 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"simple-oauth2@npm:4.2.0":
-  version: 4.2.0
-  resolution: "simple-oauth2@npm:4.2.0"
+"simple-oauth2@npm:4.3.0":
+  version: 4.3.0
+  resolution: "simple-oauth2@npm:4.3.0"
   dependencies:
     "@hapi/hoek": ^9.0.4
     "@hapi/wreck": ^17.0.0
     debug: ^4.1.1
     joi: ^17.3.0
-  checksum: e8aed33a74161ab63aa6d741c9735623b7474f987af224cbbf0cd5251afac8e753f15823dbeb77a902a3b6b9b6b3ff483c8455b4dc69246298f52951c5e8c9ec
+  checksum: a78c6181cc64b86ab2bebb5a4e484a4bfbb1890e7b08022d1f6f1cd6e95e5d4cae1d96c009ff7f60fdf1e32761ccf937e7fb8b4ca5d34473951016305c3baade
   languageName: node
   linkType: hard
 
