@@ -135,6 +135,7 @@ export interface AutomergeLog extends MongoBaseModel {
     | 'behind mergeable_state'
     | 'blocked mergeable_state'
     | 'failed status or checks'
+    | 'pending status or checks'
     | 'not mergeable'
     | 'rebase-renovate'
     | 'unknown mergeable_state'

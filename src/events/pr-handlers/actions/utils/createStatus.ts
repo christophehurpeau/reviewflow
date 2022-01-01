@@ -15,6 +15,7 @@ export default async function createStatus<
     context.log('description too long', { description });
     description = description.slice(0, 140);
   }
+
   await context.octokit.repos.createCommitStatus(
     context.repo({
       context:

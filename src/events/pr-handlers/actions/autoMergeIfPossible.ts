@@ -41,10 +41,19 @@ export const createCommitMessage = ({
   ];
 };
 
-const hasFailedStatusOrChecks = async <Name extends EmitterWebhookEventName>(
+interface FailedOrWaitingStatusOrChecks {
+  failedChecks: string[];
+  pendingChecks: string[];
+  failedStatuses: string[];
+  pendingStatuses: string[];
+}
+
+const getFailedOrWaitingStatusOrChecks = async <
+  Name extends EmitterWebhookEventName,
+>(
   pr: PullRequestData,
   context: ProbotEvent<Name>,
-): Promise<boolean> => {
+): Promise<FailedOrWaitingStatusOrChecks> => {
   const checks = await context.octokit.checks.listForRef(
     context.repo({
       ref: pr.head.sha,
@@ -52,19 +61,13 @@ const hasFailedStatusOrChecks = async <Name extends EmitterWebhookEventName>(
     }),
   );
 
-  const failedChecks = checks.data.check_runs.filter(
-    (check) => check.conclusion === 'failure',
-  );
+  const failedChecks = checks.data.check_runs
+    .filter((check) => check.conclusion === 'failure')
+    .map((check) => check.name);
 
-  if (failedChecks.length > 0) {
-    context.log.info(
-      {
-        checks: failedChecks.map((check) => check.name),
-      },
-      `automerge not possible: failed check pr ${pr.id}`,
-    );
-    return true;
-  }
+  const pendingChecks = checks.data.check_runs
+    .filter((check) => check.conclusion == null)
+    .map((check) => check.name);
 
   const combinedStatus = await context.octokit.repos.getCombinedStatusForRef(
     context.repo({
@@ -73,27 +76,25 @@ const hasFailedStatusOrChecks = async <Name extends EmitterWebhookEventName>(
     }),
   );
 
-  if (combinedStatus.data.state === 'failure') {
-    const failedStatuses = combinedStatus.data.statuses.filter(
-      (status) => status.state === 'failure' || status.state === 'error',
-    );
+  const failedStatuses = combinedStatus.data.statuses
+    .filter((status) => status.state === 'failure' || status.state === 'error')
+    .map((status) => status.context);
 
-    context.log.info(
-      {
-        statuses: failedStatuses.map((status) => status.context),
-      },
-      `automerge not possible: failed status pr ${pr.id}`,
-    );
+  const pendingStatuses = combinedStatus.data.statuses
+    .filter(
+      (status) =>
+        status.state === 'pending' && !status.context?.includes('/hold-'),
+    )
+    .map((status) => status.context);
 
-    return true;
-  }
-
-  return false;
+  return { failedChecks, pendingChecks, failedStatuses, pendingStatuses };
 };
 
-export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
+export const autoMergeIfPossible = async <
+  EventName extends EventsWithRepository,
+>(
   pullRequest: PullRequestFromRestEndpoint,
-  context: ProbotEvent<Name>,
+  context: ProbotEvent<EventName>,
   repoContext: RepoContext,
   reviewflowPrContext: ReviewflowPrContext,
   prLabels: PullRequestLabels = pullRequest.labels,
@@ -112,6 +113,18 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
     );
     return false;
   }
+
+  const createAutomergeStatus = (description: string): Promise<void> => {
+    // TODO there is a limit on 1000 status per sha. Find a way to avoid sending status if the value is the same.
+    // return createStatus(
+    //   context,
+    //   'automerge',
+    //   pullRequest.head.sha,
+    //   'success',
+    //   description,
+    // );
+    return Promise.resolve();
+  };
 
   const isRenovatePr = pullRequest.head.ref.startsWith('renovate/');
 
@@ -136,6 +149,7 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
   ): void => {
     const repoFullName = repo.full_name;
     context.log.info(`automerge: ${repoFullName}#${pullRequest.id} ${type}`);
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     repoContext.appContext.mongoStores.automergeLogs.insertOne({
       account: repoContext.accountEmbed,
       repoFullName,
@@ -155,11 +169,14 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
     repoContext.hasRequestedReview(prLabels)
   ) {
     addLog('review incomplete', 'remove');
-    await repoContext.removePrFromAutomergeQueue(
-      context,
-      pullRequest,
-      'blocking labels',
-    );
+    await Promise.all([
+      createAutomergeStatus('review incomplete'),
+      repoContext.removePrFromAutomergeQueue(
+        context,
+        pullRequest,
+        'blocking labels',
+      ),
+    ]);
     return false;
   }
 
@@ -168,21 +185,28 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
     pullRequest.requested_reviewers.length > 0
   ) {
     addLog('review incomplete', 'remove');
-    await repoContext.removePrFromAutomergeQueue(
-      context,
-      pullRequest,
-      'still has requested reviewers',
-    );
+    await Promise.all([
+      createAutomergeStatus('review incomplete'),
+      repoContext.removePrFromAutomergeQueue(
+        context,
+        pullRequest,
+        'still has requested reviewers',
+      ),
+    ]);
     return false;
   }
 
   if (pullRequest.requested_teams && pullRequest.requested_teams.length > 0) {
     addLog('review incomplete', 'remove');
-    await repoContext.removePrFromAutomergeQueue(
-      context,
-      pullRequest,
-      'still has requested teams',
-    );
+
+    await Promise.all([
+      createAutomergeStatus('review incomplete'),
+      repoContext.removePrFromAutomergeQueue(
+        context,
+        pullRequest,
+        'still has requested teams',
+      ),
+    ]);
     return false;
   }
 
@@ -213,11 +237,14 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
 
   if (pullRequest.merged) {
     addLog('already merged', 'remove');
-    await repoContext.removePrFromAutomergeQueue(
-      context,
-      pullRequest,
-      'pr already merged',
-    );
+    await Promise.all([
+      createAutomergeStatus('merged'),
+      repoContext.removePrFromAutomergeQueue(
+        context,
+        pullRequest,
+        'pr already merged',
+      ),
+    ]);
     return false;
   }
 
@@ -227,118 +254,33 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
 
   // https://github.com/octokit/octokit.net/issues/1763
   if (
-    !(
-      pullRequest.mergeable_state === 'clean' ||
-      pullRequest.mergeable_state === 'has_hooks' ||
-      pullRequest.mergeable_state === 'unstable'
-    )
+    !pullRequest.mergeable_state ||
+    pullRequest.mergeable_state === 'unknown'
   ) {
-    if (
-      !pullRequest.mergeable_state ||
-      pullRequest.mergeable_state === 'unknown'
-    ) {
-      addLog('unknown mergeable_state', 'reschedule');
-      // GitHub is determining whether the pull request is mergeable
-      await repoContext.reschedule(context, createMergeLockPrFromPr(), false);
-      return false;
-    }
+    addLog('unknown mergeable_state', 'reschedule');
+    await createAutomergeStatus('unknown mergeable_state, rescheduling');
+    // GitHub is determining whether the pull request is mergeable
+    await repoContext.reschedule(context, createMergeLockPrFromPr(), false);
+    return false;
+  }
 
-    if (isRenovatePr) {
-      if (
-        pullRequest.mergeable_state === 'behind' ||
-        pullRequest.mergeable_state === 'dirty'
-      ) {
-        const commits = await readPullRequestCommits(context, pullRequest);
+  if (
+    isRenovatePr &&
+    (pullRequest.mergeable_state === 'behind' ||
+      pullRequest.mergeable_state === 'dirty')
+  ) {
+    const commits = await readPullRequestCommits(context, pullRequest);
 
-        // check if has commits not made by renovate or bots like https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
-        if (!areCommitsAllMadeByBots(repoContext, commits)) {
-          addLog('rebase-renovate', 'update branch');
-          if (await updateBranch(pullRequest, context, null)) {
-            return false;
-          }
-
-          await repoContext.removePrFromAutomergeQueue(
-            context,
-            pullRequest,
-            'update branch failed',
-          );
-          return false;
-        }
-
-        addLog('rebase-renovate', 'wait');
-        if (
-          pullRequest.body &&
-          pullRequest.body.includes('<!-- rebase-check -->')
-        ) {
-          if (pullRequest.body.includes('[x] <!-- rebase-check -->')) {
-            return false;
-          }
-
-          const renovateRebaseBody = pullRequest.body.replace(
-            '[ ] <!-- rebase-check -->',
-            '[x] <!-- rebase-check -->',
-          );
-          await context.octokit.issues.update(
-            context.repo({
-              issue_number: pullRequest.number,
-              body: renovateRebaseBody,
-            }),
-          );
-        } else if (!pullRequest.title.startsWith('rebase!')) {
-          await context.octokit.issues.update(
-            context.repo({
-              issue_number: pullRequest.number,
-              title: `rebase!${pullRequest.title}`,
-            }),
-          );
-        }
-        return false;
-      }
-
-      if (await hasFailedStatusOrChecks(pullRequest, context)) {
-        addLog('failed status or checks', 'remove');
-        await repoContext.removePrFromAutomergeQueue(
-          context,
-          pullRequest,
-          'failed status or checks',
-        );
-        return false;
-      } else if (pullRequest.mergeable_state === 'blocked') {
-        addLog('blocked mergeable_state', 'wait');
-        // waiting for reschedule in status (pr-handler/status.ts), or retry anyway and if it fails remove from queue
-        await repoContext.reschedule(context, createMergeLockPrFromPr(), true);
-        return false;
-      }
-
-      context.log.info(
-        `automerge not possible: renovate with mergeable_state=${pullRequest.mergeable_state}`,
-      );
-      return false;
-    }
-
-    if (pullRequest.mergeable_state === 'blocked') {
-      if (await hasFailedStatusOrChecks(pullRequest, context)) {
-        addLog('failed status or checks', 'remove');
-        await repoContext.removePrFromAutomergeQueue(
-          context,
-          pullRequest,
-          'failed status or checks',
-        );
-        return false;
-      } else {
-        addLog('blocked mergeable_state', 'wait');
-        // waiting for reschedule in status (pr-handler/status.ts), or retry anyway and if it fails remove from queue
-        await repoContext.reschedule(context, createMergeLockPrFromPr(), true);
-        return false;
-      }
-    }
-
-    if (pullRequest.mergeable_state === 'behind') {
-      addLog('behind mergeable_state', 'update branch');
+    // check if has commits not made by renovate or bots like https://github.com/ornikar/shared-configs/pull/47#issuecomment-445767120
+    if (!areCommitsAllMadeByBots(repoContext, commits)) {
+      addLog('rebase-renovate', 'update branch');
+      await createAutomergeStatus('updating branch');
       if (await updateBranch(pullRequest, context, null)) {
+        // waiting for new commit to pass checks
         return false;
       }
 
+      await createAutomergeStatus('updating branch failed');
       await repoContext.removePrFromAutomergeQueue(
         context,
         pullRequest,
@@ -347,7 +289,90 @@ export const autoMergeIfPossible = async <Name extends EventsWithRepository>(
       return false;
     }
 
+    await createAutomergeStatus('rebasing branch');
+    addLog('rebase-renovate', 'wait');
+    if (pullRequest.body?.includes('<!-- rebase-check -->')) {
+      if (pullRequest.body.includes('[x] <!-- rebase-check -->')) {
+        // already waiting for renovate to update PR
+        return false;
+      }
+
+      const renovateRebaseBody = pullRequest.body.replace(
+        '[ ] <!-- rebase-check -->',
+        '[x] <!-- rebase-check -->',
+      );
+      await context.octokit.issues.update(
+        context.repo({
+          issue_number: pullRequest.number,
+          body: renovateRebaseBody,
+        }),
+      );
+    } else if (!pullRequest.title.startsWith('rebase!')) {
+      await context.octokit.issues.update(
+        context.repo({
+          issue_number: pullRequest.number,
+          title: `rebase!${pullRequest.title}`,
+        }),
+      );
+    }
+    return false;
+  }
+
+  if (pullRequest.mergeable_state === 'behind') {
+    addLog('behind mergeable_state', 'update branch');
+    await createAutomergeStatus('updating branch');
+    if (await updateBranch(pullRequest, context, null)) {
+      return false;
+    }
+
+    await createAutomergeStatus('updating branch failed');
+    await repoContext.removePrFromAutomergeQueue(
+      context,
+      pullRequest,
+      'update branch failed',
+    );
+    return false;
+  }
+
+  const { failedChecks, failedStatuses, pendingChecks, pendingStatuses } =
+    await getFailedOrWaitingStatusOrChecks(pullRequest, context);
+  if (failedChecks.length > 0 || failedStatuses.length > 0) {
+    addLog('failed status or checks', 'remove');
+    await createAutomergeStatus('failed statuses or checks');
+    await repoContext.removePrFromAutomergeQueue(
+      context,
+      pullRequest,
+      'failed status or checks',
+    );
+    return false;
+  } else if (pendingChecks.length > 0 || pendingStatuses.length > 0) {
+    addLog('pending status or checks', 'remove');
+    await createAutomergeStatus('pending statuses or checks');
+    // waiting for reschedule in status (pr-handler/status.ts), or retry anyway and if it fails remove from queue
+    await repoContext.reschedule(context, createMergeLockPrFromPr(), true);
+    return false;
+  }
+
+  if (pullRequest.mergeable_state === 'blocked') {
+    addLog('blocked mergeable_state', 'wait');
+    await createAutomergeStatus('mergeable_state is blocked');
+    // waiting for reschedule in status (pr-handler/status.ts), or retry anyway and if it fails remove from queue
+    await repoContext.reschedule(context, createMergeLockPrFromPr(), true);
+    return false;
+  }
+
+  if (
+    !(
+      pullRequest.mergeable_state === 'clean' ||
+      pullRequest.mergeable_state === 'has_hooks' ||
+      pullRequest.mergeable_state === 'unstable'
+    )
+  ) {
     addLog('not mergeable', 'remove');
+    await createAutomergeStatus(
+      `mergeable_state is ${pullRequest.mergeable_state}`,
+    );
+
     await repoContext.removePrFromAutomergeQueue(
       context,
       pullRequest,
