@@ -7,6 +7,15 @@ module.exports = function babelConfig(api) {
 
   return {
     only: ['src'],
-    presets: [[require.resolve('pob-babel/preset.cjs')]],
+    presets: [
+      [require.resolve('pob-babel/preset.cjs')],
+      [
+        '@babel/preset-react',
+        {
+          development: false,
+          useBuiltIns: true,
+        },
+      ],
+    ],
   };
 };
