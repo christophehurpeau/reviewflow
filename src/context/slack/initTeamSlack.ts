@@ -223,8 +223,8 @@ export const initTeamSlack = async <GroupNames extends string>(
       });
       if (!result.ok) return null;
       return {
-        ts: result.ts as string,
-        channel: result.channel as string,
+        ts: result.ts!,
+        channel: result.channel!,
         user: toUser,
       };
     },
@@ -251,8 +251,8 @@ export const initTeamSlack = async <GroupNames extends string>(
       });
       if (!result.ok) return null;
       return {
-        ts: result.ts as string,
-        channel: result.channel as string,
+        ts: result.ts!,
+        channel: result.channel!,
         user: toUser,
       };
     },
