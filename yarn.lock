@@ -1855,37 +1855,38 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@slack/logger@npm:>=1.0.0 <3.0.0":
-  version: 2.0.0
-  resolution: "@slack/logger@npm:2.0.0"
+"@slack/logger@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@slack/logger@npm:3.0.0"
   dependencies:
-    "@types/node": ">=8.9.0"
-  checksum: 283be1c5db9c2c32f0dcf001ade7c1ab1c0880e4edd13e017527cccb79683cb4ed79a8b5cdd792a5a342cdf63b03a61ca0901d22b141b11235da2b340adbc338
+    "@types/node": ">=12.0.0"
+  checksum: 6512d0e9e4be47ea465705ab9b6e6901f36fa981da0d4a657fde649d452b567b351002049b5ee0a22569b5119bf6c2f61befd5b8022d878addb7a99c91b03389
   languageName: node
   linkType: hard
 
-"@slack/types@npm:^1.7.0":
-  version: 1.10.0
-  resolution: "@slack/types@npm:1.10.0"
-  checksum: 9dcf254ad4882146de7ed2db948e7ee56614c3aca47a1df7cbbf4faebe6f2672a704239c0c259b4825be140bd8bb97d994241f35dc432b9ca722333828dac666
+"@slack/types@npm:^2.0.0":
+  version: 2.4.0
+  resolution: "@slack/types@npm:2.4.0"
+  checksum: f2661ab4f6bb20a67f01879f8e32e82bb1ef2b9384cc4c854091cd1f6c0f26db95bc10f630355c1ae8f99eb377a92c84a8ec26cf56cbd547fc9b4d7efbcc78d7
   languageName: node
   linkType: hard
 
-"@slack/web-api@npm:6.0.0":
-  version: 6.0.0
-  resolution: "@slack/web-api@npm:6.0.0"
+"@slack/web-api@npm:6.5.1":
+  version: 6.5.1
+  resolution: "@slack/web-api@npm:6.5.1"
   dependencies:
-    "@slack/logger": ">=1.0.0 <3.0.0"
-    "@slack/types": ^1.7.0
+    "@slack/logger": ^3.0.0
+    "@slack/types": ^2.0.0
     "@types/is-stream": ^1.1.0
     "@types/node": ">=12.0.0"
-    axios: ^0.21.1
+    axios: ^0.24.0
     eventemitter3: ^3.1.0
     form-data: ^2.5.0
+    is-electron: 2.2.0
     is-stream: ^1.1.0
     p-queue: ^6.6.1
     p-retry: ^4.0.0
-  checksum: 97e97a169b161e6d6cfc80ee96c939f9e41ab50d63c073da09c076a41a2abec47bfb26454572add13782b85c54a030830eff4c0bf6e4dc6ae4414f63c3c10eb9
+  checksum: 9fecbad34d56907ca784106b474a9391c8c6f5c03a51effea88b2429fd0313a7a29a9af0ed11b845a77448c2c126b2308aa1d1900914199119038ac4dc489ae6
   languageName: node
   linkType: hard
 
@@ -2203,7 +2204,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:14.18.4, @types/node@npm:>=12.0.0, @types/node@npm:>=8.9.0":
+"@types/node@npm:*, @types/node@npm:14.18.4, @types/node@npm:>=12.0.0":
   version: 14.18.4
   resolution: "@types/node@npm:14.18.4"
   checksum: 12015baff875140579d4c8982a7c239685ceee3a7b0ea58e6d6918d001582a752bfbc13e5c06c745e2bb10261068e632929fdf3e013c98fba006cd0cc4c67bf9
@@ -2897,12 +2898,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^0.21.1":
-  version: 0.21.1
-  resolution: "axios@npm:0.21.1"
+"axios@npm:^0.24.0":
+  version: 0.24.0
+  resolution: "axios@npm:0.24.0"
   dependencies:
-    follow-redirects: ^1.10.0
-  checksum: c87915fa0b18c15c63350112b6b3563a3e2ae524d7707de0a73d2e065e0d30c5d3da8563037bc29d4cc1b7424b5a350cb7274fa52525c6c04a615fe561c6ab11
+    follow-redirects: ^1.14.4
+  checksum: 468cf496c08a6aadfb7e699bebdac02851e3043d4e7d282350804ea8900e30d368daa6e3cd4ab83b8ddb5a3b1e17a5a21ada13fc9cebd27b74828f47a4236316
   languageName: node
   linkType: hard
 
@@ -5168,13 +5169,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.10.0":
-  version: 1.13.1
-  resolution: "follow-redirects@npm:1.13.1"
+"follow-redirects@npm:^1.14.4":
+  version: 1.14.6
+  resolution: "follow-redirects@npm:1.14.6"
   peerDependenciesMeta:
     debug:
       optional: true
-  checksum: b93de110b4ed2303efe809b448a1c23373f90b86fad1d1359768f779d7f72f5d0c3c89f1b3dce5b7867cbaccd9e9ff60c4d17d36d7267f5f53fd92a42b980b7d
+  checksum: 7fcdb089a733d2aa39041880790e9f772df009fcd0b243fee7e10acf0e14a8dab5208cf79eb1de35b9cc6033d4dde7f95becadfaa360c50d460b4c730b375e80
   languageName: node
   linkType: hard
 
@@ -5959,6 +5960,13 @@ __metadata:
   version: 1.0.4
   resolution: "is-decimal@npm:1.0.4"
   checksum: ed483a387517856dc395c68403a10201fddcc1b63dc56513fbe2fe86ab38766120090ecdbfed89223d84ca8b1cd28b0641b93cb6597b6e8f4c097a7c24e3fb96
+  languageName: node
+  linkType: hard
+
+"is-electron@npm:2.2.0":
+  version: 2.2.0
+  resolution: "is-electron@npm:2.2.0"
+  checksum: 79e497bd5077018ed2e243c1524a2af21d9cac56962a1aa09284450f315626ca41b184f5599c9ab6526245d0cd8fe4abe962817fde48100f632c104ad5d03560
   languageName: node
   linkType: hard
 
@@ -9438,7 +9446,7 @@ resolve@^2.0.0-next.3:
     "@pob/eslint-config-typescript": 48.0.6
     "@pob/eslint-config-typescript-react": 48.0.6
     "@pob/root": 6.2.1
-    "@slack/web-api": 6.0.0
+    "@slack/web-api": 6.5.1
     "@types/cookie-parser": 1.4.2
     "@types/express": 4.17.13
     "@types/issue-parser": 3.0.1
