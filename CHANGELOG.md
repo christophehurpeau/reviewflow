@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.91.0](https://github.com/christophehurpeau/reviewflow/compare/v1.90.0...v1.91.0) (2022-01-01)
+
+
+### Features
+
+* **deps:** update dependency @slack/web-api to v6.5.1 ([#233](https://github.com/christophehurpeau/reviewflow/issues/233)) ([8798a52](https://github.com/christophehurpeau/reviewflow/commit/8798a52768f980fbd4fb4c6aaaf7ec1351bc147a))
+* dont automerge when checks or statuses are pending ([5adb650](https://github.com/christophehurpeau/reviewflow/commit/5adb6506e734ac2401108413023790f31489005f))
+
 ## [1.90.0](https://www.github.com/christophehurpeau/reviewflow/compare/v1.89.0...v1.90.0) (2022-01-01)
 
 
