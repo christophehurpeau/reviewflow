@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.89.1](https://www.github.com/christophehurpeau/reviewflow/compare/v1.89.0...v1.89.1) (2022-01-01)
+
+
+### Bug Fixes
+
+* check if a PR can be merged after a review request is removed ([19406c6](https://www.github.com/christophehurpeau/reviewflow/commit/19406c64431e076d7d90785d62dd4e76ca1d2693))
+* in review submitted event, use updated pr in approveShouldWait too ([8848afb](https://www.github.com/christophehurpeau/reviewflow/commit/8848afb51e2d27a2a70d17234421100ab043e07b))
+* update slack home after review is dismissed even if repo is ignored ([7e85dd4](https://www.github.com/christophehurpeau/reviewflow/commit/7e85dd4f603ebffff8a542e610eb6c5d5827ed25))
+
 ## [1.89.0](https://www.github.com/christophehurpeau/reviewflow/compare/v1.88.1...v1.89.0) (2021-12-15)
 
 
