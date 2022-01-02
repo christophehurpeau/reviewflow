@@ -348,6 +348,15 @@ export const autoMergeIfPossible = async <
   } else if (pendingChecks.length > 0 || pendingStatuses.length > 0) {
     addLog('pending status or checks', 'remove');
     await createAutomergeStatus('pending statuses or checks');
+    if (pendingStatuses.includes('renovate/stability-days')) {
+      // renovate won't likely change this status in the next minutes
+      await repoContext.removePrFromAutomergeQueue(
+        context,
+        pullRequest,
+        'failed status or checks',
+      );
+      return false;
+    }
     // waiting for reschedule in status (pr-handler/status.ts), or retry anyway and if it fails remove from queue
     await repoContext.reschedule(context, createMergeLockPrFromPr(), true);
     return false;
