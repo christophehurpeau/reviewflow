@@ -311,69 +311,74 @@ export default function orgSettings(
     },
   );
 
-  router.patch('/org/:org', bodyParser.json(), async (req, res, next) => {
-    try {
-      if (!req.body) {
-        res.status(400).send('not ok');
-        return;
-      }
-      if (!req.body.key && !req.body.silentTeam) {
-        res.status(400).send('not ok');
-        return;
-      }
+  router.patch(
+    '/org/:org',
+    // @ts-expect-error incompatibility
+    bodyParser.json(),
+    async (req, res, next) => {
+      try {
+        if (!req.body) {
+          res.status(400).send('not ok');
+          return;
+        }
+        if (!req.body.key && !req.body.silentTeam) {
+          res.status(400).send('not ok');
+          return;
+        }
 
-      const user = await getUser(req, res);
-      if (!user) return;
+        const user = await getUser(req, res);
+        if (!user) return;
 
-      const orgs = await user.api.orgs.listForAuthenticatedUser();
-      const org = orgs.data.find((o) => o.login === req.params.org);
-      if (!org) {
-        res.redirect('/app');
-        return;
-      }
-      const $setOnInsert = {
-        orgId: org.id,
-        userId: user.authInfo.id,
-        created: new Date(),
-      };
+        const orgs = await user.api.orgs.listForAuthenticatedUser();
+        const org = orgs.data.find((o) => o.login === req.params.org);
+        if (!org) {
+          res.redirect('/app');
+          return;
+        }
+        const $setOnInsert = {
+          orgId: org.id,
+          userId: user.authInfo.id,
+          created: new Date(),
+        };
 
-      const userDmSettingsCollection = await mongoStores.userDmSettings
-        .collection;
-      await userDmSettingsCollection.updateOne(
-        {
-          _id: `${org.id}_${user.authInfo.id}`,
-        },
-        req.body.key
-          ? {
-              $set: {
-                [`settings.${req.body.key}`]: req.body.value,
-                updated: new Date(),
+        const userDmSettingsCollection = await mongoStores.userDmSettings
+          .collection;
+        await userDmSettingsCollection.updateOne(
+          {
+            _id: `${org.id}_${user.authInfo.id}`,
+          },
+          req.body.key
+            ? {
+                $set: {
+                  [`settings.${req.body.key}`]: req.body.value,
+                  updated: new Date(),
+                },
+                $setOnInsert,
+              }
+            : {
+                [req.body.value ? '$push' : '$pull']: {
+                  silentTeams: req.body.value
+                    ? req.body.silentTeam
+                    : { id: req.body.silentTeam.id },
+                },
+                $setOnInsert,
               },
-              $setOnInsert,
-            }
-          : {
-              [req.body.value ? '$push' : '$pull']: {
-                silentTeams: req.body.value
-                  ? req.body.silentTeam
-                  : { id: req.body.silentTeam.id },
-              },
-              $setOnInsert,
-            },
-        { upsert: true },
-      );
+          { upsert: true },
+        );
 
-      const userDmSettingsConfig = await mongoStores.userDmSettings.findOne({
-        orgId: org.id,
-        userId: user.authInfo.id,
-      });
+        const userDmSettingsConfig = await mongoStores.userDmSettings.findOne({
+          orgId: org.id,
+          userId: user.authInfo.id,
+        });
 
-      if (userDmSettingsConfig) {
-        updateCache(org.login, user.authInfo.id, userDmSettingsConfig);
+        if (userDmSettingsConfig) {
+          updateCache(org.login, user.authInfo.id, userDmSettingsConfig);
+        }
+
+        res.send('ok');
+      } catch (err) {
+        next(err);
       }
-
-      res.send('ok');
-    } catch (err) {
-      next(err);
-    }
-  });
+    },
+  );
 }
