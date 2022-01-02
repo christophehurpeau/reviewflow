@@ -1975,13 +1975,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/body-parser@npm:*":
-  version: 1.19.0
-  resolution: "@types/body-parser@npm:1.19.0"
+"@types/body-parser@npm:*, @types/body-parser@npm:1.19.2":
+  version: 1.19.2
+  resolution: "@types/body-parser@npm:1.19.2"
   dependencies:
     "@types/connect": "*"
     "@types/node": "*"
-  checksum: 15043566f1909e2a08dabb0a5d2642f8988545a1369bc5995fc40ee90c95200da2aa66f9240fcb19fc6af6ff4e27ff453f311b49363c14bb308c308c0751ca9b
+  checksum: e17840c7d747a549f00aebe72c89313d09fbc4b632b949b2470c5cb3b1cb73863901ae84d9335b567a79ec5efcfb8a28ff8e3f36bc8748a9686756b6d5681f40
   languageName: node
   linkType: hard
 
@@ -2204,10 +2204,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:14.18.4, @types/node@npm:>=12.0.0":
-  version: 14.18.4
-  resolution: "@types/node@npm:14.18.4"
-  checksum: 12015baff875140579d4c8982a7c239685ceee3a7b0ea58e6d6918d001582a752bfbc13e5c06c745e2bb10261068e632929fdf3e013c98fba006cd0cc4c67bf9
+"@types/node@npm:*, @types/node@npm:16.11.17, @types/node@npm:>=12.0.0":
+  version: 16.11.17
+  resolution: "@types/node@npm:16.11.17"
+  checksum: 86ed84f79450f6aba1a6ef09f8407c10076966c3cc7cc4eb3d35b8ae4f47817e525641396ef0a667fa0a88fcdf484f6182812c074601403083bdf3b5e1ac0313
   languageName: node
   linkType: hard
 
@@ -9447,12 +9447,13 @@ resolve@^2.0.0-next.3:
     "@pob/eslint-config-typescript-react": 48.0.7
     "@pob/root": 6.3.2
     "@slack/web-api": 6.5.1
+    "@types/body-parser": 1.19.2
     "@types/cookie-parser": 1.4.2
     "@types/express": 4.17.13
     "@types/issue-parser": 3.0.1
     "@types/jest": 27.4.0
     "@types/jsonwebtoken": 8.5.6
-    "@types/node": 14.18.4
+    "@types/node": 16.11.17
     "@types/react": 17.0.38
     "@types/react-dom": 17.0.11
     "@types/simple-oauth2": 4.1.1
