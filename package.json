@@ -113,7 +113,7 @@
     "@pob/eslint-config": "48.0.5",
     "@pob/eslint-config-typescript": "48.0.6",
     "@pob/eslint-config-typescript-react": "48.0.6",
-    "@pob/root": "6.3.0",
+    "@pob/root": "6.3.2",
     "@types/cookie-parser": "1.4.2",
     "@types/express": "4.17.13",
     "@types/issue-parser": "3.0.1",
