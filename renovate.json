@@ -1,4 +1,3 @@
 {
-  "extends": ["config:js-app", "@pob"],
-  "ignoreDeps": ["@octokit/core", "@octokit/webhooks"]
+  "extends": ["config:js-app", "@pob"]
 }
