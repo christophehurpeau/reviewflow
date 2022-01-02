@@ -139,6 +139,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       'frontend',
       'frontend-architects',
       'external-bam',
+      'external-padok',
     ],
     design: ['design'],
   },
