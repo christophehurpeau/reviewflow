@@ -9,6 +9,7 @@ yarn-error.log*
 /dist
 /.env*
 !/.env.example
+/private_key
 
 # IDE
 /.settings
