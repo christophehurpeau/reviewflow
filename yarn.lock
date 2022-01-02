@@ -1443,21 +1443,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pob/eslint-config-typescript-react@npm:48.0.6":
-  version: 48.0.6
-  resolution: "@pob/eslint-config-typescript-react@npm:48.0.6"
+"@pob/eslint-config-typescript-react@npm:48.0.7":
+  version: 48.0.7
+  resolution: "@pob/eslint-config-typescript-react@npm:48.0.7"
   dependencies:
     "@pob/eslint-config": ^48.0.5
-    eslint-config-airbnb: ^19.0.2
+    eslint-config-airbnb: ^19.0.4
     eslint-plugin-import: ^2.25.3
     eslint-plugin-jsx-a11y: ^6.5.1
-    eslint-plugin-react: ^7.27.1
+    eslint-plugin-react: ^7.28.0
     eslint-plugin-react-hooks: ^4.3.0
   peerDependencies:
     eslint: ^8.4.1
     eslint-plugin-import: ^2.25.3
     eslint-plugin-jsx-a11y: ^6.5.1
-    eslint-plugin-react: ^7.27.1
+    eslint-plugin-react: ^7.28.0
     eslint-plugin-react-hooks: ^4.3.0
   peerDependenciesMeta:
     eslint-plugin-import:
@@ -1468,7 +1468,7 @@ __metadata:
       optional: true
     eslint-plugin-react-hooks:
       optional: true
-  checksum: 6f39ca755ac4e55824de065541d643aa57c2c6a1efff95be2c64df9305ac4948a716ffb260ddf0beba4866112ed4992614454457c74f7d2d55ffd65941a2fb5b
+  checksum: e5a4ef7de0090b3de5ab20603e880f152a6eec372a103271cb0da9bea1e87ea32d02afb2ca4fd95e2635e74aeac18fe4b0016d6a10cbaa7f76123478f44bf47a
   languageName: node
   linkType: hard
 
@@ -4514,9 +4514,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-config-airbnb@npm:^19.0.2":
-  version: 19.0.2
-  resolution: "eslint-config-airbnb@npm:19.0.2"
+"eslint-config-airbnb@npm:^19.0.4":
+  version: 19.0.4
+  resolution: "eslint-config-airbnb@npm:19.0.4"
   dependencies:
     eslint-config-airbnb-base: ^15.0.0
     object.assign: ^4.1.2
@@ -4525,9 +4525,9 @@ __metadata:
     eslint: ^7.32.0 || ^8.2.0
     eslint-plugin-import: ^2.25.3
     eslint-plugin-jsx-a11y: ^6.5.1
-    eslint-plugin-react: ^7.27.1
+    eslint-plugin-react: ^7.28.0
     eslint-plugin-react-hooks: ^4.3.0
-  checksum: 668d91fee4d8e1b7ecefc3844caed6bb77a72b29521dd9595a14abaebb8651439b831da792614b51e7913bbe3b6d20df03e76f52287ccf511dee1982460d3f71
+  checksum: 253178689c3c80eef2567e3aaf0612e18973bc9cf51d9be36074b5dd58210e8b6942200a424bcccbb81ac884e41303479ab09f251a2a97addc2de61efdc9576c
   languageName: node
   linkType: hard
 
@@ -4645,9 +4645,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react@npm:^7.27.1":
-  version: 7.27.1
-  resolution: "eslint-plugin-react@npm:7.27.1"
+"eslint-plugin-react@npm:^7.28.0":
+  version: 7.28.0
+  resolution: "eslint-plugin-react@npm:7.28.0"
   dependencies:
     array-includes: ^3.1.4
     array.prototype.flatmap: ^1.2.5
@@ -4665,7 +4665,7 @@ __metadata:
     string.prototype.matchall: ^4.0.6
   peerDependencies:
     eslint: ^3 || ^4 || ^5 || ^6 || ^7 || ^8
-  checksum: db1ce303b597ede0bc8873d3f575b05873b06a058162c80f76604c9096eee8f72f299d7f849a86ac2e59f269c196575e6bcfb1ef9d7cbb23f533d081bcc15ea0
+  checksum: 90293d0fd53bb1f735ffd32141cdd211fb1120c9f7bbe5342f9e923261a39e52a2b2575d4e46c9cd77d257f42db4a99b8b339689fc5b5c1c26048929f69b1784
   languageName: node
   linkType: hard
 
@@ -9444,7 +9444,7 @@ resolve@^2.0.0-next.3:
     "@pob/commitlint-config": 4.1.0
     "@pob/eslint-config": 48.0.5
     "@pob/eslint-config-typescript": 48.0.6
-    "@pob/eslint-config-typescript-react": 48.0.6
+    "@pob/eslint-config-typescript-react": 48.0.7
     "@pob/root": 6.3.2
     "@slack/web-api": 6.5.1
     "@types/cookie-parser": 1.4.2
