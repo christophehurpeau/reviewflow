@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.91.1](https://github.com/christophehurpeau/reviewflow/compare/v1.91.0...v1.91.1) (2022-01-02)
+
+
+### Bug Fixes
+
+* treat renovate/stability-days pending status as failed to avoid blocking prs that can be merged ([ca79c7e](https://github.com/christophehurpeau/reviewflow/commit/ca79c7e65ac96782ebd0e662b14b7b95593db813))
+
 ## [1.91.0](https://github.com/christophehurpeau/reviewflow/compare/v1.90.0...v1.91.0) (2022-01-01)
 
 
