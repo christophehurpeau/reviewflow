@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.92.0](https://github.com/christophehurpeau/reviewflow/compare/v1.91.1...v1.92.0) (2022-01-02)
+
+
+### Features
+
+* **accountConfigs:** add external-padok in dev team ([3bcab12](https://github.com/christophehurpeau/reviewflow/commit/3bcab1223092ab5a6e6b86e726b65c662d10375c))
+
 ### [1.91.1](https://github.com/christophehurpeau/reviewflow/compare/v1.91.0...v1.91.1) (2022-01-02)
 
 
