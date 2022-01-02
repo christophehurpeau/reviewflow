@@ -25,7 +25,7 @@ jobs:
             v2-dependencies--${{ matrix.node-version }}-${{ runner.OS }}-
             v2-dependencies--${{ matrix.node-version }}-
 
-      - name: Check Dependencies
+      - name: Install Dependencies
         # no immutable here
         run: yarn install
         env:
