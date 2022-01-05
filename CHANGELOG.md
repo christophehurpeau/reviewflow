@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.93.0](https://github.com/christophehurpeau/reviewflow/compare/v1.92.0...v1.93.0) (2022-01-05)
+
+
+### Features
+
+* update @octokit/webhooks ([43f7aa7](https://github.com/christophehurpeau/reviewflow/commit/43f7aa7f17cd7b7becf2c528ed008e826ef64a78))
+
 ## [1.92.0](https://github.com/christophehurpeau/reviewflow/compare/v1.91.1...v1.92.0) (2022-01-02)
 
 
