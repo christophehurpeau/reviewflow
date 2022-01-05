@@ -126,7 +126,7 @@
     "@types/simple-oauth2": "4.1.1",
     "check-package-dependencies": "3.0.0",
     "eslint": "8.6.0",
-    "jest": "27.4.6",
+    "jest": "27.4.7",
     "nock": "13.2.1",
     "pob-babel": "29.6.1",
     "pob-lcov-reporter": "6.0.1",
