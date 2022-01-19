@@ -63,6 +63,7 @@ const getFailedOrWaitingStatusOrChecks = async <
 
   const failedChecks = checks.data.check_runs
     .filter((check) => check.conclusion === 'failure')
+    .filter((check) => !check.name?.includes('codecov'))
     .map((check) => check.name);
 
   const pendingChecks = checks.data.check_runs
@@ -78,6 +79,7 @@ const getFailedOrWaitingStatusOrChecks = async <
 
   const failedStatuses = combinedStatus.data.statuses
     .filter((status) => status.state === 'failure' || status.state === 'error')
+    .filter((status) => !status.context?.includes('test-e2e'))
     .map((status) => status.context);
 
   const pendingStatuses = combinedStatus.data.statuses
