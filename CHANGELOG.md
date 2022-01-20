@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.94.0](https://github.com/christophehurpeau/reviewflow/compare/v1.93.0...v1.94.0) (2022-01-20)
+
+
+### Features
+
+* **deps:** update dependency probot to v12.2.0 ([#400](https://github.com/christophehurpeau/reviewflow/issues/400)) ([8148ece](https://github.com/christophehurpeau/reviewflow/commit/8148ece6810725c226d7696525e5728ffdff2ffd))
+* save statuses to avoid spamming github api ([8318515](https://github.com/christophehurpeau/reviewflow/commit/831851562ea924d989c6ae7e07c991611673bfa4))
+
+
+### Bug Fixes
+
+* automerge ignore codecov and test-e2e ([2502fcf](https://github.com/christophehurpeau/reviewflow/commit/2502fcfb8ca24e5358c6c9d8dda37655a088bcef))
+
 ## [1.93.0](https://github.com/christophehurpeau/reviewflow/compare/v1.92.0...v1.93.0) (2022-01-05)
 
 
