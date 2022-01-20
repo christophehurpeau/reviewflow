@@ -24,12 +24,21 @@ export default function readyForReview(
       /* if repo is not ignored */
       if (reviewflowPrContext) {
         await Promise.all([
-          updateReviewStatus(pullRequest, context, repoContext, 'dev', {
-            add: ['needsReview'],
-          }),
+          updateReviewStatus(
+            pullRequest,
+            context,
+            appContext,
+            repoContext,
+            reviewflowPrContext,
+            'dev',
+            {
+              add: ['needsReview'],
+            },
+          ),
           editOpenedPR(
             pullRequest,
             context,
+            appContext,
             repoContext,
             reviewflowPrContext,
             true,

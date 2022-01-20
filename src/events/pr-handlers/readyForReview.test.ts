@@ -19,9 +19,14 @@ nock.disableNetConnect();
 
 describe('edited', (): void => {
   let probot: Probot;
+  const partialUpdateOnePr = jest.fn();
 
   beforeEach(async () => {
-    probot = await initializeProbotApp();
+    probot = await initializeProbotApp({
+      prs: {
+        partialUpdateOne: partialUpdateOnePr,
+      },
+    });
     mockAccessToken();
     mockLabels();
   });
@@ -82,6 +87,32 @@ describe('edited', (): void => {
       payload: pullRequestReadyForReview.payload as any,
     });
 
+    expect(partialUpdateOnePr).toHaveBeenNthCalledWith(1, expect.any(Object), {
+      $set: {
+        lastLintStatusesCommit: 'f354ffb37cf238108fbb4c915f155d925d82a61b',
+        lintStatuses: [
+          {
+            name: 'lint-pr',
+            status: {
+              summary: '',
+              title: '✓ PR is valid',
+              type: 'success',
+              url: undefined,
+            },
+          },
+        ],
+      },
+    });
+    expect(partialUpdateOnePr).toHaveBeenNthCalledWith(2, expect.any(Object), {
+      $set: {
+        flowStatus: {
+          summary: '',
+          title: 'Awaiting review from: dev. Perhaps request someone ?',
+          type: 'failure',
+        },
+        lastFlowStatusCommit: 'f354ffb37cf238108fbb4c915f155d925d82a61b',
+      },
+    });
     expect(scope.pendingMocks()).toEqual([]);
     expect(scope.activeMocks()).toEqual([]);
   });

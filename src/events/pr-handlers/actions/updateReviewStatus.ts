@@ -1,3 +1,4 @@
+import type { AppContext } from 'context/AppContext';
 import type { RepoContext } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
 import type { GroupLabels } from '../../../accountConfigs/types';
@@ -6,6 +7,7 @@ import type {
   PullRequestLabels,
   PullRequestWithDecentData,
 } from '../utils/PullRequestData';
+import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import type { EventsWithPullRequest } from '../utils/createPullRequestHandler';
 import { updateStatusCheckFromLabels } from './updateStatusCheckFromLabels';
 
@@ -15,7 +17,9 @@ export const updateReviewStatus = async <
 >(
   pullRequest: PullRequestWithDecentData,
   context: ProbotEvent<EventName>,
+  appContext: AppContext,
   repoContext: RepoContext,
+  reviewflowPrContext: ReviewflowPrContext,
   reviewGroup: GroupNames,
   {
     add: labelsToAdd,
@@ -181,7 +185,9 @@ export const updateReviewStatus = async <
   await updateStatusCheckFromLabels(
     pullRequest,
     context,
+    appContext,
     repoContext,
+    reviewflowPrContext,
     prLabels,
   );
   // }

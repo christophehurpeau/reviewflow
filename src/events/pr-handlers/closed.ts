@@ -48,9 +48,17 @@ export default function closed(app: Probot, appContext: AppContext): void {
               pullRequest,
               'pr closed',
             ),
-            updateReviewStatus(pullRequest, context, repoContext, 'dev', {
-              remove: ['needsReview'],
-            }),
+            updateReviewStatus(
+              pullRequest,
+              context,
+              appContext,
+              repoContext,
+              reviewflowPrContext,
+              'dev',
+              {
+                remove: ['needsReview'],
+              },
+            ),
           ]);
         }
       }

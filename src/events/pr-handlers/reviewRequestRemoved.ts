@@ -67,7 +67,9 @@ export default function reviewRequestRemoved(
         const newLabels = await updateReviewStatus(
           updatedPr,
           context,
+          appContext,
           repoContext,
+          reviewflowPrContext,
           reviewerGroup,
           {
             add: [

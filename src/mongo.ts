@@ -2,6 +2,7 @@
 import type { MongoBaseModel } from 'liwi-mongo';
 import { MongoStore, MongoConnection } from 'liwi-mongo';
 import type { LockedMergePr } from 'context/repoContext';
+import type { ReviewflowStatus } from 'events/pr-handlers/actions/editOpenedPR';
 import type { AccountInfo } from './context/getOrCreateAccount';
 import type { SlackMessage } from './context/slack/SlackMessage';
 import type { MessageCategory } from './dm/MessageCategory';
@@ -148,6 +149,11 @@ export interface ReviewflowPr extends MongoBaseModel {
   repo: RepoEmbed;
   pr: PrEmbed;
   commentId: number;
+  lastLintStatusesCommit?: string;
+  lintStatuses?: ReviewflowStatus[];
+  lastFlowStatusCommit?: string;
+  flowStatus?: ReviewflowStatus['status'];
+  automergeStatus?: ReviewflowStatus['status'];
 }
 
 export interface RepositoryMergeQueue extends MongoBaseModel {

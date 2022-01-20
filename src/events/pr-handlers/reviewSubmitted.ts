@@ -89,7 +89,9 @@ export default function reviewSubmitted(
           const newLabels = await updateReviewStatus(
             updatedPr,
             context,
+            appContext,
             repoContext,
+            reviewflowPrContext,
             reviewerGroup,
             {
               add: [

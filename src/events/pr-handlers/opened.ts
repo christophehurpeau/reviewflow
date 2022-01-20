@@ -25,6 +25,7 @@ export default function opened(app: Probot, appContext: AppContext): void {
         editOpenedPR(
           pullRequest,
           context,
+          appContext,
           repoContext,
           reviewflowPrContext,
           true,
@@ -41,7 +42,9 @@ export default function opened(app: Probot, appContext: AppContext): void {
                   await updateReviewStatus(
                     pullRequest,
                     context,
+                    appContext,
                     repoContext,
+                    reviewflowPrContext,
                     'dev',
                     {
                       add: ['needsReview'],
@@ -50,13 +53,21 @@ export default function opened(app: Probot, appContext: AppContext): void {
                 }
               }),
             )
-          : updateReviewStatus(pullRequest, context, repoContext, 'dev', {
-              add:
-                repoContext.config.requiresReviewRequest && !pullRequest.draft
-                  ? ['needsReview']
-                  : [],
-              remove: ['approved', 'changesRequested'],
-            }),
+          : updateReviewStatus(
+              pullRequest,
+              context,
+              appContext,
+              repoContext,
+              reviewflowPrContext,
+              'dev',
+              {
+                add:
+                  repoContext.config.requiresReviewRequest && !pullRequest.draft
+                    ? ['needsReview']
+                    : [],
+                remove: ['approved', 'changesRequested'],
+              },
+            ),
       ]);
     },
   );

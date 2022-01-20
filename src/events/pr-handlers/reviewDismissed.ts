@@ -26,7 +26,8 @@ export default function reviewDismissed(
       const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
       if (
-        !repoContext.shouldIgnore &&
+        /* repo is not ignored */
+        reviewflowPrContext &&
         reviewerGroup &&
         repoContext.config.labels.review[reviewerGroup]
       ) {
@@ -49,7 +50,9 @@ export default function reviewDismissed(
         await updateReviewStatus(
           updatedPr,
           context,
+          appContext,
           repoContext,
+          reviewflowPrContext,
           reviewerGroup,
           {
             add: [

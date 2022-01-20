@@ -1,60 +1,99 @@
+import type { AppContext } from 'context/AppContext';
 import type { RepoContext } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
+import type { StatusInfo } from '../../../accountConfigs/types';
 import { ExcludesFalsy } from '../../../utils/Excludes';
 import type {
   PullRequestLabels,
   PullRequestWithDecentData,
 } from '../utils/PullRequestData';
+import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import type { EventsWithPullRequest } from '../utils/createPullRequestHandler';
-import createStatus from './utils/createStatus';
+import createStatus, { isSameStatus } from './utils/createStatus';
 
 const addStatusCheck = async function <EventName extends EventsWithPullRequest>(
   pullRequest: PullRequestWithDecentData,
   context: ProbotEvent<EventName>,
+  appContext: AppContext,
+  reviewflowPrContext: ReviewflowPrContext,
   { state, description }: { state: 'failure' | 'success'; description: string },
   previousSha?: string,
 ): Promise<void> {
-  const {
-    data: { check_runs: checkRuns },
-  } = await context.octokit.checks.listForRef(
-    context.repo({
-      ref: pullRequest.head.sha,
-    }),
-  );
-  const hasPrCheck = checkRuns.find(
-    (check): boolean => check.name === process.env.REVIEWFLOW_NAME,
-  );
+  const previousStatus = reviewflowPrContext.reviewflowPr.flowStatus;
 
-  context.log.debug({ hasPrCheck, state, description }, 'add status check');
-
-  if (hasPrCheck) {
-    await context.octokit.checks.create(
+  let prCheck;
+  if (!previousStatus) {
+    const {
+      data: { check_runs: checkRuns },
+    } = await context.octokit.checks.listForRef(
       context.repo({
-        name: process.env.REVIEWFLOW_NAME!,
-        head_sha: pullRequest.head.sha,
-        started_at: pullRequest.created_at,
-        status: 'completed',
-        conclusion: state,
-        completed_at: new Date().toISOString(),
-        output: {
-          title: description,
-          summary: '',
-        },
+        ref: pullRequest.head.sha,
       }),
     );
-  } else if (previousSha && state === 'failure') {
-    await Promise.all([
-      createStatus(
-        context,
-        '',
-        previousSha,
-        'success',
-        'New commits have been pushed',
-      ),
-      createStatus(context, '', pullRequest.head.sha, state, description),
-    ]);
+    prCheck = checkRuns.find(
+      (check): boolean => check.name === process.env.REVIEWFLOW_NAME,
+    );
+  }
+
+  context.log.debug({ prCheck, state, description }, 'add status check');
+
+  const newStatus: StatusInfo = {
+    type: state,
+    title: description,
+    summary: '',
+  };
+
+  if (prCheck) {
+    if (prCheck.conclusion !== state || prCheck.output.title !== description) {
+      await context.octokit.checks.create(
+        context.repo({
+          name: process.env.REVIEWFLOW_NAME!,
+          head_sha: pullRequest.head.sha,
+          started_at: pullRequest.created_at,
+          status: 'completed',
+          conclusion: state,
+          completed_at: new Date().toISOString(),
+          output: {
+            title: description,
+            summary: '',
+          },
+        }),
+      );
+    }
   } else {
-    await createStatus(context, '', pullRequest.head.sha, state, description);
+    const shouldUpdateStatus =
+      !!previousSha ||
+      reviewflowPrContext.reviewflowPr.lastFlowStatusCommit !==
+        pullRequest.head.sha ||
+      !previousStatus ||
+      !isSameStatus(previousStatus, newStatus);
+
+    await Promise.all([
+      previousSha &&
+        (previousStatus
+          ? previousStatus.type === 'failure'
+          : state === 'failure') &&
+        createStatus(context, '', previousSha, {
+          type: 'success',
+          title: 'New commits have been pushed',
+          summary: '',
+        }),
+
+      shouldUpdateStatus &&
+        createStatus(context, '', pullRequest.head.sha, newStatus),
+    ]);
+
+    if (shouldUpdateStatus) {
+      await appContext.mongoStores.prs.partialUpdateOne(
+        reviewflowPrContext.reviewflowPr,
+        {
+          $set: {
+            lastFlowStatusCommit: pullRequest.head.sha,
+            flowStatus: newStatus,
+          },
+        },
+      );
+    }
   }
 };
 
@@ -63,7 +102,9 @@ export const updateStatusCheckFromLabels = <
 >(
   pullRequest: PullRequestWithDecentData,
   context: ProbotEvent<EventName>,
+  appContext: AppContext,
   repoContext: RepoContext,
+  reviewflowPrContext: ReviewflowPrContext,
   labels: PullRequestLabels = pullRequest.labels || [],
   previousSha?: string,
 ): Promise<void> => {
@@ -80,6 +121,8 @@ export const updateStatusCheckFromLabels = <
     addStatusCheck(
       pullRequest,
       context,
+      appContext,
+      reviewflowPrContext,
       {
         state: 'failure',
         description,
@@ -147,6 +190,8 @@ export const updateStatusCheckFromLabels = <
   return addStatusCheck(
     pullRequest,
     context,
+    appContext,
+    reviewflowPrContext,
     {
       state: 'success',
       description: '✓ PR ready to merge !',

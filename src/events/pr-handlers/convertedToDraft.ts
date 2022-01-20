@@ -24,12 +24,21 @@ export default function convertedToDraft(
       /* if repo is not ignored */
       if (reviewflowPrContext) {
         await Promise.all([
-          updateReviewStatus(pullRequest, context, repoContext, 'dev', {
-            remove: ['needsReview'],
-          }),
+          updateReviewStatus(
+            pullRequest,
+            context,
+            appContext,
+            repoContext,
+            reviewflowPrContext,
+            'dev',
+            {
+              remove: ['needsReview'],
+            },
+          ),
           editOpenedPR(
             pullRequest,
             context,
+            appContext,
             repoContext,
             reviewflowPrContext,
             true,

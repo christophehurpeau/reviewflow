@@ -36,6 +36,7 @@ export default function edited(app: Probot, appContext: AppContext): void {
       await editOpenedPR(
         updatedPullRequest,
         context,
+        appContext,
         repoContext,
         reviewflowPrContext,
         false,

@@ -75,14 +75,24 @@ export default function labelsChanged(
               labels = result.data;
             }
             if (hasLabelInPR(labels, codeNeedsReviewLabel)) {
-              await updateReviewStatus(updatedPr, context, repoContext, 'dev', {
-                remove: ['needsReview'],
-              });
+              await updateReviewStatus(
+                updatedPr,
+                context,
+                appContext,
+                repoContext,
+                reviewflowPrContext,
+                'dev',
+                {
+                  remove: ['needsReview'],
+                },
+              );
             } else {
               await updateStatusCheckFromLabels(
                 updatedPr,
                 context,
+                appContext,
                 repoContext,
+                reviewflowPrContext,
                 labels,
               );
             }
@@ -141,7 +151,13 @@ export default function labelsChanged(
         return;
       }
 
-      await updateStatusCheckFromLabels(updatedPr, context, repoContext);
+      await updateStatusCheckFromLabels(
+        updatedPr,
+        context,
+        appContext,
+        repoContext,
+        reviewflowPrContext,
+      );
 
       const updateBranchLabel = repoContext.labels['merge/update-branch'];
       const automergeLabel = repoContext.labels['merge/automerge'];

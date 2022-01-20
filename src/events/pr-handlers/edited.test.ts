@@ -18,9 +18,14 @@ nock.disableNetConnect();
 
 describe('edited', (): void => {
   let probot: Probot;
+  const partialUpdateOnePr = jest.fn();
 
   beforeEach(async () => {
-    probot = await initializeProbotApp();
+    probot = await initializeProbotApp({
+      prs: {
+        partialUpdateOne: partialUpdateOnePr,
+      },
+    });
     mockAccessToken();
     mockLabels();
   });
@@ -56,6 +61,7 @@ describe('edited', (): void => {
       payload: pullRequestEdited.payload as any,
     });
 
+    expect(partialUpdateOnePr).toHaveBeenCalled();
     expect(scope.pendingMocks()).toEqual([]);
     expect(scope.activeMocks()).toEqual([]);
   });

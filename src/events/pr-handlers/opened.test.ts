@@ -23,12 +23,14 @@ describe('opened', (): void => {
   let probot: Probot;
   const findOnePr = jest.fn(() => Promise.resolve(undefined));
   const insertOnePr = jest.fn(() => Promise.resolve({ commentId: 1 }));
+  const partialUpdateOnePr = jest.fn();
 
   beforeEach(async () => {
     probot = await initializeProbotApp({
       prs: {
         findOne: findOnePr,
         insertOne: insertOnePr,
+        partialUpdateOne: partialUpdateOnePr,
       },
     });
     mockAccessToken();
@@ -106,6 +108,7 @@ describe('opened', (): void => {
     });
 
     expect(insertOnePr).toHaveBeenCalled();
+    expect(partialUpdateOnePr).toHaveBeenCalled();
     expect(scope.pendingMocks()).toEqual([]);
     expect(scope.activeMocks()).toEqual([]);
   });

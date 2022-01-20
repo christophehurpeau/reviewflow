@@ -33,6 +33,7 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
         editOpenedPR(
           updatedPr,
           context,
+          appContext,
           repoContext,
           reviewflowPrContext,
           true,
@@ -42,7 +43,9 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
         updateStatusCheckFromLabels(
           updatedPr,
           context,
+          appContext,
           repoContext,
+          reviewflowPrContext,
           updatedPr.labels,
           previousSha,
         ),

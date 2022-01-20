@@ -26,13 +26,22 @@ export default function reopened(app: Probot, appContext: AppContext): void {
       /* if repo is not ignored */
       if (reviewflowPrContext) {
         await Promise.all([
-          updateReviewStatus(pullRequest, context, repoContext, 'dev', {
-            add: fromRenovate || pullRequest.draft ? [] : ['needsReview'],
-            remove: fromRenovate ? [] : ['approved'],
-          }),
+          updateReviewStatus(
+            pullRequest,
+            context,
+            appContext,
+            repoContext,
+            reviewflowPrContext,
+            'dev',
+            {
+              add: fromRenovate || pullRequest.draft ? [] : ['needsReview'],
+              remove: fromRenovate ? [] : ['approved'],
+            },
+          ),
           editOpenedPR(
             pullRequest,
             context,
+            appContext,
             repoContext,
             reviewflowPrContext,
             true,

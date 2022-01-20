@@ -34,14 +34,17 @@ export default function reviewRequested(
       // repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, { includesWaitForGroups: true });
 
       if (
-        !repoContext.shouldIgnore &&
+        /* repo is not ignored */
+        reviewflowPrContext &&
         reviewerGroup &&
         repoContext.config.labels.review[reviewerGroup]
       ) {
         await updateReviewStatus(
           pullRequest,
           context,
+          appContext,
           repoContext,
+          reviewflowPrContext,
           reviewerGroup,
           {
             add: ['needsReview', !shouldWait && 'requested'],
