@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.94.1](https://github.com/christophehurpeau/reviewflow/compare/v1.94.0...v1.94.1) (2022-01-21)
+
+
+### Bug Fixes
+
+* lint-pr status condition ([e666388](https://github.com/christophehurpeau/reviewflow/commit/e66638837c6ccc5f6bee5cd08b9b452f47e97f2f))
+
 ## [1.94.0](https://github.com/christophehurpeau/reviewflow/compare/v1.93.0...v1.94.0) (2022-01-20)
 
 
