@@ -107,7 +107,7 @@ export const editOpenedPR = async <Name extends EventsWithRepository>(
     },
   };
 
-  if (!hasLegacyLintPrCheck && !previousSha) {
+  if (!hasLegacyLintPrCheck || previousSha) {
     statuses.push(lintStatus);
   }
 
