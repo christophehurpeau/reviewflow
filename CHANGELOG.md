@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.95.0](https://github.com/christophehurpeau/reviewflow/compare/v1.94.2...v1.95.0) (2022-01-22)
+
+
+### Features
+
+* add actions in reviewflow comment ([a49fdef](https://github.com/christophehurpeau/reviewflow/commit/a49fdefbd9961502d139989c54be49f0752b5fa8))
+
 ### [1.94.2](https://github.com/christophehurpeau/reviewflow/compare/v1.94.1...v1.94.2) (2022-01-22)
 
 
