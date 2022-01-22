@@ -1,5 +1,5 @@
 import type { AppContext } from 'context/AppContext';
-import type { RepoContext } from 'context/repoContext';
+import type { EventsWithRepository, RepoContext } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
 import type { StatusInfo } from '../../../accountConfigs/types';
 import { ExcludesFalsy } from '../../../utils/Excludes';
@@ -8,10 +8,9 @@ import type {
   PullRequestWithDecentData,
 } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
-import type { EventsWithPullRequest } from '../utils/createPullRequestHandler';
 import createStatus, { isSameStatus } from './utils/createStatus';
 
-const addStatusCheck = async function <EventName extends EventsWithPullRequest>(
+const addStatusCheck = async function <EventName extends EventsWithRepository>(
   pullRequest: PullRequestWithDecentData,
   context: ProbotEvent<EventName>,
   appContext: AppContext,
@@ -98,7 +97,7 @@ const addStatusCheck = async function <EventName extends EventsWithPullRequest>(
 };
 
 export const updateStatusCheckFromLabels = <
-  EventName extends EventsWithPullRequest,
+  EventName extends EventsWithRepository,
 >(
   pullRequest: PullRequestWithDecentData,
   context: ProbotEvent<EventName>,

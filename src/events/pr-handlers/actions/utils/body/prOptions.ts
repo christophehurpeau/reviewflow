@@ -1,3 +1,7 @@
+import type { RepoContext } from 'context/repoContext';
+import type { PullRequestWithDecentData } from 'events/pr-handlers/utils/PullRequestData';
+import hasLabelInPR from '../hasLabelInPR';
+
 export type OptionsKeys =
   | 'autoMerge'
   | 'autoMergeWithSkipCi'
@@ -44,3 +48,20 @@ export const optionsDescriptions: OptionDisplay[] = [
     description: 'Automatically delete the branch after this PR is merged.',
   },
 ];
+
+export const calcDefaultOptions = (
+  repoContext: RepoContext,
+  pullRequest: PullRequestWithDecentData,
+): Options => {
+  const automergeLabel = repoContext.labels['merge/automerge'];
+  const skipCiLabel = repoContext.labels['merge/skip-ci'];
+
+  const prHasSkipCiLabel = hasLabelInPR(pullRequest.labels, skipCiLabel);
+  const prHasAutoMergeLabel = hasLabelInPR(pullRequest.labels, automergeLabel);
+
+  return {
+    ...repoContext.config.prDefaultOptions,
+    autoMergeWithSkipCi: prHasSkipCiLabel,
+    autoMerge: prHasAutoMergeLabel,
+  };
+};

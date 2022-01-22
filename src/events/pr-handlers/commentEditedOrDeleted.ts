@@ -1,6 +1,6 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
-import { syncLabelsAfterCommentBodyEdited } from './actions/syncLabelsAfterCommentBodyEdited';
+import { commentBodyEdited } from './actions/commentBodyEdited';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { createMrkdwnSectionBlock } from './utils/createSlackMessageWithSecondaryBlock';
 import { fetchPr } from './utils/fetchPr';
@@ -50,9 +50,10 @@ export default function prCommentEditedOrDeleted(
       ) {
         const updatedPr = await fetchPr(context, pullRequest.number);
         if (!updatedPr.closed_at) {
-          await syncLabelsAfterCommentBodyEdited(
+          await commentBodyEdited(
             updatedPr,
             context,
+            appContext,
             repoContext,
             reviewflowPrContext,
           );

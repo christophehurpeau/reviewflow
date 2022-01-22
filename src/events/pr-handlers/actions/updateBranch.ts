@@ -33,7 +33,7 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
     'update branch result',
   );
 
-  if (result.status === 204) {
+  if (result.status === 204 || result.error?.status === 204) {
     context.octokit.issues.createComment(
       context.repo({
         issue_number: pullRequest.number,
@@ -43,7 +43,7 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
       }),
     );
     return true;
-  } else if (result.status === 409) {
+  } else if (result.status === 409 || result.error?.status === 409) {
     context.octokit.issues.createComment(
       context.repo({
         issue_number: pullRequest.number,
@@ -57,11 +57,12 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
     context.octokit.issues.createComment(
       context.repo({
         issue_number: pullRequest.number,
-        body: `${
-          login ? `@${login} ` : ''
-        }Could not update branch (unknown error${
-          result.status ? `, status = ${result.status}` : ''
-        }).`,
+        body: `${login ? `@${login} ` : ''}Could not update branch ${
+          result?.error?.response?.data?.message ??
+          `(unknown error${
+            result?.error.status ? `, status = ${result.error.status}` : ''
+          })`
+        }.`,
       }),
     );
     return false;

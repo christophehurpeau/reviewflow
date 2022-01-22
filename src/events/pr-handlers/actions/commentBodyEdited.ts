@@ -1,39 +1,22 @@
 import type { EventsWithRepository, RepoContext } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
-import type {
-  PullRequestFromRestEndpoint,
-  PullRequestWithDecentData,
-} from '../utils/PullRequestData';
+import type { AppContext } from '../../../context/AppContext';
+import type { PullRequestFromRestEndpoint } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { autoMergeIfPossible } from './autoMergeIfPossible';
+import { editOpenedPR } from './editOpenedPR';
+import { updateBranch } from './updateBranch';
 import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
-import type { Options } from './utils/body/prOptions';
+import { updateStatusCheckFromLabels } from './updateStatusCheckFromLabels';
+import { calcDefaultOptions } from './utils/body/prOptions';
 import { updateCommentOptions } from './utils/body/updateBody';
 import hasLabelInPR from './utils/hasLabelInPR';
 import syncLabel from './utils/syncLabel';
 
-export const calcDefaultOptions = (
-  repoContext: RepoContext,
-  pullRequest: PullRequestWithDecentData,
-): Options => {
-  const automergeLabel = repoContext.labels['merge/automerge'];
-  const skipCiLabel = repoContext.labels['merge/skip-ci'];
-
-  const prHasSkipCiLabel = hasLabelInPR(pullRequest.labels, skipCiLabel);
-  const prHasAutoMergeLabel = hasLabelInPR(pullRequest.labels, automergeLabel);
-
-  return {
-    ...repoContext.config.prDefaultOptions,
-    autoMergeWithSkipCi: prHasSkipCiLabel,
-    autoMerge: prHasAutoMergeLabel,
-  };
-};
-
-export const syncLabelsAfterCommentBodyEdited = async <
-  Name extends EventsWithRepository,
->(
+export const commentBodyEdited = async <Name extends EventsWithRepository>(
   pullRequest: PullRequestFromRestEndpoint,
   context: ProbotEvent<Name>,
+  appContext: AppContext,
   repoContext: RepoContext,
   reviewflowPrContext: ReviewflowPrContext,
 ): Promise<void> => {
@@ -43,7 +26,7 @@ export const syncLabelsAfterCommentBodyEdited = async <
   const prHasSkipCiLabel = hasLabelInPR(pullRequest.labels, skipCiLabel);
   const prHasAutoMergeLabel = hasLabelInPR(pullRequest.labels, automergeLabel);
 
-  const { commentBody, options } = updateCommentOptions(
+  const { commentBody, options, actions } = updateCommentOptions(
     context.payload.repository.html_url,
     repoContext.config.labels.list,
     reviewflowPrContext.commentBody,
@@ -62,6 +45,28 @@ export const syncLabelsAfterCommentBodyEdited = async <
           skipCiLabel,
           prHasSkipCiLabel,
         ),
+
+      actions.includes('updateBranch') &&
+        updateBranch(pullRequest, context, context.payload.sender.login),
+      actions.includes('updateChecks') &&
+        Promise.all([
+          editOpenedPR(
+            pullRequest,
+            context,
+            appContext,
+            repoContext,
+            reviewflowPrContext,
+            true,
+          ),
+          updateStatusCheckFromLabels(
+            pullRequest,
+            context,
+            appContext,
+            repoContext,
+            reviewflowPrContext,
+            pullRequest.labels,
+          ),
+        ]),
       automergeLabel &&
         syncLabel(
           pullRequest,

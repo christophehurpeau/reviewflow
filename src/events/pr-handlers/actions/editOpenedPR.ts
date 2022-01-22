@@ -8,9 +8,9 @@ import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { checkIfUserIsBot } from '../utils/isBotUser';
 import { readCommitsAndUpdateInfos } from './readCommitsAndUpdateInfos';
-import { calcDefaultOptions } from './syncLabelsAfterCommentBodyEdited';
 import { updatePrIfNeeded } from './updatePr';
 import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
+import { calcDefaultOptions } from './utils/body/prOptions';
 import {
   updateCommentBodyInfos,
   defaultCommentBody,

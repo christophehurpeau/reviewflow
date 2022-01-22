@@ -1,3 +1,5 @@
+import type { ActionKeys } from './prActions';
+import { actionRegexps } from './prActions';
 import { optionsRegexps } from './prOptions';
 import type { Options } from './prOptions';
 
@@ -17,6 +19,19 @@ export const parseOptions = (
   });
 
   return options as Options;
+};
+
+export const parseActions = (content: string): ActionKeys[] => {
+  const actions: ActionKeys[] = [];
+
+  actionRegexps.forEach(({ key, regexp }) => {
+    const match = regexp.exec(content);
+    if (match && (match[1] === 'x' || match[1] === 'X')) {
+      actions.push(key);
+    }
+  });
+
+  return actions;
 };
 
 export const parseCommitNotes = (content: string): string => {

@@ -1,6 +1,8 @@
 import type { LabelList, StatusInfo } from 'accountConfigs/types';
 import type { Options } from './parseBody';
-import { parseOptions } from './parseBody';
+import { parseActions, parseOptions } from './parseBody';
+import type { ActionKeys } from './prActions';
+import { actionDescriptions } from './prActions';
 import { optionsDescriptions } from './prOptions';
 
 export const defaultCommentBody = 'This will be auto filled by reviewflow.';
@@ -29,6 +31,28 @@ const toMarkdownOptions = (
     .join('\n');
 };
 
+const toMarkdownActions = (
+  repoLink: string,
+  labelsConfig: LabelList,
+): string => {
+  return actionDescriptions
+    .map(({ key, labelKey, description, icon: iconValue }) => {
+      // should always update without ticking the box
+      const checkboxWithId = `[ ] <!-- reviewflow-${key} -->`;
+
+      const labelDescription = labelKey && labelsConfig[labelKey];
+      const labelLink = labelDescription
+        ? `[${labelDescription.name}](${repoLink}/labels/${encodeURIComponent(
+            labelDescription.name,
+          )}): `
+        : '';
+      const icon = labelLink || !iconValue ? '' : `${iconValue} `;
+
+      return `- ${checkboxWithId}${icon}${labelLink}${description}`;
+    })
+    .join('\n');
+};
+
 const toMarkdownInfos = (infos: StatusInfo[]): string => {
   return infos
     .map((info) => {
@@ -41,6 +65,7 @@ const toMarkdownInfos = (infos: StatusInfo[]): string => {
 interface UpdatedBodyWithOptions {
   commentBody: string;
   options?: Options;
+  actions: ActionKeys[];
 }
 
 const getInfosReplacement = (infos?: StatusInfo[]): string => {
@@ -75,7 +100,7 @@ const internalUpdateBodyOptionsAndInfos = (
     repoLink,
     labelsConfig,
     options,
-  )}`;
+  )}\n### Actions:\n${toMarkdownActions(repoLink, labelsConfig)}`;
 };
 
 export const createCommentBody = (
@@ -105,6 +130,7 @@ export const updateCommentOptions = (
 
   return {
     options: updatedOptions,
+    actions: parseActions(commentBody),
     commentBody: internalUpdateBodyOptionsAndInfos(
       repoLink,
       labelsConfig,
