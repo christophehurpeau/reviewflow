@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.94.2](https://github.com/christophehurpeau/reviewflow/compare/v1.94.1...v1.94.2) (2022-01-22)
+
+
+### Bug Fixes
+
+* also edit status check from labels on edited event ([631cbcf](https://github.com/christophehurpeau/reviewflow/commit/631cbcf31bd4178a48922a043ce268682a7426ab))
+
 ### [1.94.1](https://github.com/christophehurpeau/reviewflow/compare/v1.94.0...v1.94.1) (2022-01-21)
 
 
