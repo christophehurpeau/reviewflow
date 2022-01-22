@@ -2,6 +2,7 @@
 import { jest } from '@jest/globals';
 import type { Probot } from 'probot';
 import pullRequestEdited from '../../../fixtures/pull_request_30.edited.json';
+import pullRequestCommits from '../../../fixtures/pull_request_30_commits.json';
 import { voidTeamSlack } from '../../context/slack/voidTeamSlack';
 import {
   initializeProbotApp,
@@ -45,15 +46,26 @@ describe('edited', (): void => {
         body: '### Options:\n- [ ] <!-- reviewflow-autoMergeWithSkipCi -->Add `[skip ci]` on merge commit\n- [ ] <!-- reviewflow-autoMerge -->Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless "Update branch" triggers)\n- [x] <!-- reviewflow-deleteAfterMerge -->Automatic branch delete after this PR is merged',
       })
 
+      .get('/repos/reviewflow/reviewflow-test/pulls/30/commits?per_page=100')
+      .reply(200, pullRequestCommits)
+
       .get(
         '/repos/reviewflow/reviewflow-test/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da/check-runs',
       )
+      .times(2)
       .reply(200, { check_runs: [] })
 
       .post(
         '/repos/reviewflow/reviewflow-test/statuses/2ab411d5c55f25f3dc2de6a3244f290a804e33da',
+        '{"context":"reviewflow-dev/lint-pr","state":"success","description":"✓ PR is valid"}',
       )
-      .reply(200);
+      .reply(200, {})
+
+      .post(
+        '/repos/reviewflow/reviewflow-test/statuses/2ab411d5c55f25f3dc2de6a3244f290a804e33da',
+        '{"context":"reviewflow-dev","state":"failure","description":"Awaiting review from: dev. Perhaps request someone ?"}',
+      )
+      .reply(200, {});
 
     await probot.receive({
       id: '1',
