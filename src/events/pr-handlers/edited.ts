@@ -2,6 +2,7 @@ import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { editOpenedPR } from './actions/editOpenedPR';
+import { updateStatusCheckFromLabels } from './actions/updateStatusCheckFromLabels';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
 import { checkIfIsThisBot } from './utils/isBotUser';
@@ -33,14 +34,25 @@ export default function edited(app: Probot, appContext: AppContext): void {
         context.payload.pull_request.number,
       );
 
-      await editOpenedPR(
-        updatedPullRequest,
-        context,
-        appContext,
-        repoContext,
-        reviewflowPrContext,
-        false,
-      );
+      await Promise.all([
+        editOpenedPR(
+          updatedPullRequest,
+          context,
+          appContext,
+          repoContext,
+          reviewflowPrContext,
+          true,
+        ),
+        updateStatusCheckFromLabels(
+          updatedPullRequest,
+          context,
+          appContext,
+          repoContext,
+          reviewflowPrContext,
+          updatedPullRequest.labels,
+        ),
+      ]);
+
       await autoMergeIfPossible(
         updatedPullRequest,
         context,
