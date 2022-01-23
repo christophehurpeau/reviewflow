@@ -10,8 +10,7 @@ import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
 import { updateStatusCheckFromLabels } from './updateStatusCheckFromLabels';
 import { calcDefaultOptions } from './utils/body/prOptions';
 import { updateCommentOptions } from './utils/body/updateBody';
-import hasLabelInPR from './utils/hasLabelInPR';
-import syncLabel from './utils/syncLabel';
+import { syncLabels, removeLabel } from './utils/syncLabel';
 
 export const commentBodyEdited = async <Name extends EventsWithRepository>(
   pullRequest: PullRequestFromRestEndpoint,
@@ -22,9 +21,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
 ): Promise<void> => {
   const automergeLabel = repoContext.labels['merge/automerge'];
   const skipCiLabel = repoContext.labels['merge/skip-ci'];
-
-  const prHasSkipCiLabel = hasLabelInPR(pullRequest.labels, skipCiLabel);
-  const prHasAutoMergeLabel = hasLabelInPR(pullRequest.labels, automergeLabel);
+  const updateBranchLabel = repoContext.labels['merge/update-branch'];
 
   const { commentBody, options, actions } = updateCommentOptions(
     context.payload.repository.html_url,
@@ -35,19 +32,8 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
 
   await updatePrCommentBodyIfNeeded(context, reviewflowPrContext, commentBody);
 
-  if (options && automergeLabel) {
+  if (options) {
     await Promise.all([
-      skipCiLabel &&
-        syncLabel(
-          pullRequest,
-          context,
-          options.autoMergeWithSkipCi,
-          skipCiLabel,
-          prHasSkipCiLabel,
-        ),
-
-      actions.includes('updateBranch') &&
-        updateBranch(pullRequest, context, context.payload.sender.login),
       actions.includes('updateChecks') &&
         Promise.all([
           editOpenedPR(
@@ -67,32 +53,44 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
             pullRequest.labels,
           ),
         ]),
-      automergeLabel &&
-        syncLabel(
-          pullRequest,
-          context,
-          options.autoMerge,
-          automergeLabel,
-          prHasAutoMergeLabel,
-          {
-            onAdd: async (prLabels) => {
-              await autoMergeIfPossible(
-                pullRequest,
-                context,
-                repoContext,
-                reviewflowPrContext,
-                prLabels,
-              );
-            },
-            onRemove: async () => {
-              await repoContext.removePrFromAutomergeQueue(
-                context,
-                pullRequest,
-                'label removed',
-              );
-            },
+      syncLabels(pullRequest, context, [
+        {
+          shouldHaveLabel: options.autoMergeWithSkipCi,
+          label: skipCiLabel,
+        },
+        {
+          shouldHaveLabel: actions.includes('updateBranch') ? true : null,
+          label: updateBranchLabel,
+          onAdd: async () => {
+            await updateBranch(
+              pullRequest,
+              context,
+              context.payload.sender.login,
+            );
+            await removeLabel(context, updateBranchLabel);
           },
-        ),
+        },
+        {
+          shouldHaveLabel: options.autoMerge,
+          label: automergeLabel,
+          onAdd: async (prLabels) => {
+            await autoMergeIfPossible(
+              pullRequest,
+              context,
+              repoContext,
+              reviewflowPrContext,
+              prLabels,
+            );
+          },
+          onRemove: async () => {
+            await repoContext.removePrFromAutomergeQueue(
+              context,
+              pullRequest,
+              'label removed',
+            );
+          },
+        },
+      ]),
     ]);
   }
 };
