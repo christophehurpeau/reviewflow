@@ -7,5 +7,5 @@ export const cleanTitle = (title: string): string =>
     )
     .replace(/^([A-Za-z]+)[/:]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `)
     .replace(/^Revert "([^"]+)"$/, 'revert: $1')
-    .replace(/\s+[[\]]\s*no\s*isss?ue\s*[[\]]$/i, ' [no issue]')
+    .replace(/\s+[()[\]]\s*no\s*isss?ue\s*[()[\]]$/i, ' [no issue]')
     .replace(/^(revert:.*)(\s+\(#\d+\))$/, '$1');
