@@ -17,8 +17,8 @@ import {
   createCommentBody,
   removeDeprecatedReviewflowInPrBody,
 } from './utils/body/updateBody';
-import { cleanTitle } from './utils/cleanTitle';
 import createStatus, { isSameStatus } from './utils/createStatus';
+import { cleanTitle } from './utils/prTitle';
 
 export interface ReviewflowStatus {
   name: string;
@@ -162,7 +162,6 @@ export const editOpenedPR = async <Name extends EventsWithRepository>(
   const body = removeDeprecatedReviewflowInPrBody(pullRequest.body);
 
   const promises: Promise<unknown>[] = [
-    updatePrIfNeeded(pullRequest, context, { title, body }),
     Promise.all(updateStatusesPromises).then(() => {
       // only update reviewflowPr if all create successful
       return appContext.mongoStores.prs.partialUpdateOne(
@@ -202,7 +201,7 @@ export const editOpenedPR = async <Name extends EventsWithRepository>(
   const shouldCreateCommentBody =
     reviewflowPrContext.commentBody === defaultCommentBody;
 
-  const newBody = shouldCreateCommentBody
+  const newCommentBody = shouldCreateCommentBody
     ? createCommentBody(
         context.payload.repository.html_url,
         repoContext.config.labels.list,
@@ -218,12 +217,15 @@ export const editOpenedPR = async <Name extends EventsWithRepository>(
         context,
         repoContext,
         reviewflowPrContext,
-        newBody,
+        title,
+        body,
+        newCommentBody,
       ),
     );
   } else {
     promises.push(
-      updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newBody),
+      updatePrIfNeeded(pullRequest, context, { title, body }),
+      updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newCommentBody),
     );
   }
 

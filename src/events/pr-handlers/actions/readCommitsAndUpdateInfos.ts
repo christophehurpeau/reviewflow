@@ -1,20 +1,15 @@
-import * as commitlintParse from '@commitlint/parse';
 import type { CommitNote } from '@commitlint/types';
 import type { RestEndpointMethodTypes } from '@octokit/rest';
 import type { EventsWithRepository, RepoContext } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
 import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
+import { updatePrIfNeeded } from './updatePr';
 import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
 import { updateCommentBodyCommitsNotes } from './utils/body/updateBody';
+import { parseCommitMessage } from './utils/commitMessages';
 import { readPullRequestCommits } from './utils/readPullRequestCommits';
 import syncLabel from './utils/syncLabel';
-
-const parseCommit = (
-  (commitlintParse.default as any).default
-    ? (commitlintParse.default as any).default
-    : commitlintParse.default
-) as typeof commitlintParse.default;
 
 interface BreakingChangesCommits {
   commit: RestEndpointMethodTypes['pulls']['listCommits']['response']['data'][number];
@@ -28,6 +23,8 @@ export const readCommitsAndUpdateInfos = async <
   context: ProbotEvent<Name>,
   repoContext: RepoContext,
   reviewflowPrContext: ReviewflowPrContext,
+  prTitle: string,
+  prBody: string,
   commentBody = reviewflowPrContext.commentBody,
 ): Promise<void> => {
   // tmp.data[0].sha
@@ -36,7 +33,7 @@ export const readCommitsAndUpdateInfos = async <
   const commits = await readPullRequestCommits(context, pullRequest);
 
   const conventionalCommits = await Promise.all(
-    commits.map((c) => parseCommit(c.commit.message)),
+    commits.map((c) => parseCommitMessage(c.commit.message)),
   );
 
   const breakingChangesCommits: BreakingChangesCommits[] = [];
@@ -66,15 +63,13 @@ export const readCommitsAndUpdateInfos = async <
           .join('\n')}`,
   );
 
-  await Promise.all([
-    syncLabel(
-      pullRequest,
-      context,
-      breakingChangesCommits.length > 0,
-      breakingChangesLabel,
-    ),
-    updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newCommentBody),
-  ]);
+  const hasBreakingChanges = breakingChangesCommits.length > 0;
 
   // TODO auto update ! in front of : to signal a breaking change when https://github.com/conventional-changelog/commitlint/issues/658 is closed
+
+  await Promise.all([
+    updatePrIfNeeded(pullRequest, context, { title: prTitle, body: prBody }),
+    syncLabel(pullRequest, context, hasBreakingChanges, breakingChangesLabel),
+    updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newCommentBody),
+  ]);
 };

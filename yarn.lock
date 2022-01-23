@@ -682,7 +682,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/config-conventional@npm:^16.0.0":
+"@commitlint/config-conventional@npm:16.0.0, @commitlint/config-conventional@npm:^16.0.0":
   version: 16.0.0
   resolution: "@commitlint/config-conventional@npm:16.0.0"
   dependencies:
@@ -3829,14 +3829,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"conventional-changelog-conventionalcommits@npm:^4.3.1":
-  version: 4.6.1
-  resolution: "conventional-changelog-conventionalcommits@npm:4.6.1"
+"conventional-changelog-conventionalcommits@npm:4.6.3, conventional-changelog-conventionalcommits@npm:^4.3.1":
+  version: 4.6.3
+  resolution: "conventional-changelog-conventionalcommits@npm:4.6.3"
   dependencies:
     compare-func: ^2.0.0
     lodash: ^4.17.15
     q: ^1.5.1
-  checksum: f866616c8f6f21cea005b42792451bfbd16bd4d82872867d1218f67a7993a53c5d87e26d6b483d9252e8022f2e4570e6cf9fa2a409aae5a3d73eea92ccf78b13
+  checksum: 7b8e8a21ebb56f9aaa510e12917b7c609202072c3e71089e0a09630c37c2e8146cdb04364809839b0e3eb55f807fe84d03b2079500b37f6186d505848be5c562
   languageName: node
   linkType: hard
 
@@ -9382,6 +9382,7 @@ resolve@^2.0.0-next.3:
   dependencies:
     "@babel/core": 7.16.12
     "@babel/preset-react": 7.16.7
+    "@commitlint/config-conventional": 16.0.0
     "@commitlint/parse": 16.0.0
     "@octokit/core": 3.5.1
     "@octokit/rest": 18.12.0
@@ -9404,6 +9405,7 @@ resolve@^2.0.0-next.3:
     "@types/simple-oauth2": 4.1.1
     body-parser: 1.19.1
     check-package-dependencies: 3.0.2
+    conventional-changelog-conventionalcommits: 4.6.3
     cookie-parser: 1.4.6
     dotenv: 8.6.0
     emoji-regex: 10.0.0
