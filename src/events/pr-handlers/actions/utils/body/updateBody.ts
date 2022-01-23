@@ -56,6 +56,9 @@ const toMarkdownActions = (
 const toMarkdownInfos = (infos: StatusInfo[]): string => {
   return infos
     .map((info) => {
+      if (info.details) {
+        return info.details;
+      }
       if (info.url) return `[${info.title}](${info.url})`;
       return info.title;
     })

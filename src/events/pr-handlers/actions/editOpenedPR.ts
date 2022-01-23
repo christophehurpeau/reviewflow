@@ -17,6 +17,7 @@ import {
   createCommentBody,
   removeDeprecatedReviewflowInPrBody,
 } from './utils/body/updateBody';
+import { lintCommitMessage } from './utils/commitMessages';
 import createStatus, { isSameStatus } from './utils/createStatus';
 import { cleanTitle } from './utils/prTitle';
 
@@ -51,28 +52,58 @@ export const editOpenedPR = async <Name extends EventsWithRepository>(
   const statuses: ReviewflowStatus[] = [];
   let errorStatus: StatusInfo | undefined;
 
-  getKeys(repoContext.config.parsePR).forEach((parsePRKey) => {
-    const rules = repoContext.config.parsePR[parsePRKey];
-    if (!rules) return;
+  if (
+    repoContext.config.experimentalFeatures
+      ?.lintPullRequestTitleWithConventionalCommit
+  ) {
+    try {
+      const lintOutcome = await lintCommitMessage(title);
+      if (!lintOutcome.valid) {
+        errorStatus = {
+          inBody: true,
+          type: 'failure',
+          title: 'Title does not match conventional commit.',
+          summary: '',
+          url: 'https://www.conventionalcommits.org/',
+          details: `Pull Request's title does not match [conventional commit](https://www.conventionalcommits.org/):\n${lintOutcome.errors
+            .map((error) => `:x: ${error.message}`)
+            .join('\n')}`,
+        };
+      }
+    } catch {
+      errorStatus = {
+        type: 'failure',
+        title: 'Failed to lint title with conventional commit linter.',
+        summary: '',
+      };
+    }
+  }
 
-    const value = parsePRValue[parsePRKey];
-    rules.forEach((rule) => {
-      if (rule.bot === false && isPrFromBot) return;
+  if (repoContext.config.parsePR) {
+    const parsePR = repoContext.config.parsePR;
+    getKeys(parsePR).forEach((parsePRKey) => {
+      const rules = parsePR[parsePRKey];
+      if (!rules) return;
 
-      const match = rule.regExp.exec(value);
-      const status = rule.createStatusInfo(match, parsePRValue, isPrFromBot);
+      const value = parsePRValue[parsePRKey];
+      rules.forEach((rule) => {
+        if (rule.bot === false && isPrFromBot) return;
 
-      if (status !== null) {
-        if (rule.status) {
-          statuses.push({ name: rule.status, status });
-        } else if (status.type === 'failure') {
-          if (!errorStatus) {
-            errorStatus = status;
+        const match = rule.regExp.exec(value);
+        const status = rule.createStatusInfo(match, parsePRValue, isPrFromBot);
+
+        if (status !== null) {
+          if (rule.status) {
+            statuses.push({ name: rule.status, status });
+          } else if (status.type === 'failure') {
+            if (!errorStatus) {
+              errorStatus = status;
+            }
           }
         }
-      }
+      });
     });
-  });
+  }
 
   const date = new Date().toISOString();
 
@@ -104,6 +135,8 @@ export const editOpenedPR = async <Name extends EventsWithRepository>(
       title: errorStatus ? errorStatus.title : '✓ PR is valid',
       summary: errorStatus ? errorStatus.summary : '',
       url: errorStatus ? errorStatus.url : undefined,
+      inBody: errorStatus ? errorStatus.inBody : undefined,
+      details: errorStatus ? errorStatus.details : undefined,
     },
   };
 

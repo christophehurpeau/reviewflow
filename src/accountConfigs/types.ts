@@ -7,6 +7,7 @@ export interface StatusInfo {
   url?: string;
   title: string;
   summary: string;
+  details?: string;
 }
 
 export type Group = Record<string, string | null>;
@@ -33,7 +34,7 @@ export interface ParsePRRule {
 }
 
 export interface ParsePR {
-  title: ParsePRRule[];
+  title?: ParsePRRule[];
   head?: ParsePRRule[];
   base?: ParsePRRule[];
 }
@@ -65,13 +66,18 @@ export interface LabelsConfig<GroupNames extends string> {
   review: ReviewConfig<GroupNames>;
 }
 
+interface ExperimentalFeatures {
+  lintPullRequestTitleWithConventionalCommit?: true;
+}
+
 export interface Config<GroupNames extends string, TeamNames extends string> {
   autoAssignToCreator?: boolean;
   trimTitle?: boolean;
   ignoreRepoPattern?: string;
   requiresReviewRequest?: boolean;
   autoMergeRenovateWithSkipCi?: boolean;
-  parsePR: ParsePR;
+  experimentalFeatures?: ExperimentalFeatures;
+  parsePR?: ParsePR;
   prDefaultOptions: Options;
 
   botUsers?: string[];
