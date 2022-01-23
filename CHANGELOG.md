@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.96.0](https://github.com/christophehurpeau/reviewflow/compare/v1.95.0...v1.96.0) (2022-01-23)
+
+
+### Features
+
+* add experimental feature lintPullRequestTitleWithConventionalCommit ([06d5b37](https://github.com/christophehurpeau/reviewflow/commit/06d5b3747923f9d04987c8033afe79895223ad05))
+* parse commit message with @commitlint/config-conventional ([bf0ca6a](https://github.com/christophehurpeau/reviewflow/commit/bf0ca6a926acbfa60d1352a5ea916b1015c84e33))
+
+
+### Bug Fixes
+
+* clean (no issue) typo ([eec7009](https://github.com/christophehurpeau/reviewflow/commit/eec70098be97dfbba7907e9e3ec304b3029db148))
+* clean [no isssue] typo ([21c20b7](https://github.com/christophehurpeau/reviewflow/commit/21c20b7dc395ea920d04c499e7c6f93345d0fe1e))
+* **deps:** update dependency probot to v12.2.1 ([#421](https://github.com/christophehurpeau/reviewflow/issues/421)) ([94d04b7](https://github.com/christophehurpeau/reviewflow/commit/94d04b7d7ffc4e8c72ebab8e41c5622de416c233))
+* use label to prevent multiple update branch action at the same time ([ebd8a06](https://github.com/christophehurpeau/reviewflow/commit/ebd8a06f9850d5a85e7ec4147fb4c6f0b888c423))
+
 ## [1.95.0](https://github.com/christophehurpeau/reviewflow/compare/v1.94.2...v1.95.0) (2022-01-22)
 
 
