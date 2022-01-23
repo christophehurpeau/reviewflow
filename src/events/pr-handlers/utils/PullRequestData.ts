@@ -1,3 +1,4 @@
+import type { CustomExtract, EventsWithRepository } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
 import type { EventsWithPullRequest } from './createPullRequestHandler';
 import type { PullRequestFromRestEndpoint } from './fetchPr';
@@ -5,8 +6,14 @@ import type { PullRequestFromRestEndpoint } from './fetchPr';
 export type PullRequestWithDecentDataFromWebhook =
   ProbotEvent<EventsWithPullRequest>['payload']['pull_request'];
 
-export type PullRequestFromWebhook = PullRequestWithDecentDataFromWebhook;
-// | EventPayloads.WebhookPayloadCheckRunCheckRunPullRequestsItem;
+export type PullRequestFromWebhook =
+  | PullRequestWithDecentDataFromWebhook
+  | ProbotEvent<
+      CustomExtract<EventsWithRepository, 'check_run.completed'>
+    >['payload']['check_run']['pull_requests'][number]
+  | ProbotEvent<
+      CustomExtract<EventsWithRepository, 'check_suite.completed'>
+    >['payload']['check_suite']['pull_requests'][number];
 
 export type { PullRequestFromRestEndpoint } from './fetchPr';
 

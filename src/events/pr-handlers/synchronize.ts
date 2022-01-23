@@ -30,6 +30,14 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
       const previousSha = (context.payload as any).before as string;
 
       await Promise.all([
+        appContext.mongoStores.prs.partialUpdateOne(
+          reviewflowPrContext.reviewflowPr,
+          {
+            $set: {
+              headSha: pullRequest.head.sha,
+            },
+          },
+        ),
         editOpenedPR(
           updatedPr,
           context,

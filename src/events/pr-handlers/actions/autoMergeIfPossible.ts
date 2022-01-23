@@ -10,6 +10,7 @@ import type {
 } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { areCommitsAllMadeByBots } from '../utils/isBotUser';
+import { createMergeLockPrFromPr } from '../utils/mergeLock';
 import { updateBranch } from './updateBranch';
 import { parseBody } from './utils/body/parseBody';
 import type { ParsedBody } from './utils/body/parseBody';
@@ -125,16 +126,11 @@ export const autoMergeIfPossible = async <
     //   'success',
     //   description,
     // );
+    // TODO also update status in repoContext.removePrFromAutomergeQueue !
     return Promise.resolve();
   };
 
   const isRenovatePr = pullRequest.head.ref.startsWith('renovate/');
-
-  const createMergeLockPrFromPr = () => ({
-    id: pullRequest.id,
-    number: pullRequest.number,
-    branch: pullRequest.head.ref,
-  });
 
   if (pullRequest.state !== 'open') {
     await repoContext.removePrFromAutomergeQueue(
@@ -222,11 +218,11 @@ export const autoMergeIfPossible = async <
       },
       'automerge not possible: locked pr',
     );
-    await repoContext.pushAutomergeQueue(createMergeLockPrFromPr());
+    await repoContext.pushAutomergeQueue(createMergeLockPrFromPr(pullRequest));
     return false;
   }
 
-  await repoContext.addMergeLockPr(createMergeLockPrFromPr());
+  await repoContext.addMergeLockPr(createMergeLockPrFromPr(pullRequest));
 
   if (pullRequest.mergeable == null) {
     const prResult = await context.octokit.pulls.get(
@@ -262,7 +258,11 @@ export const autoMergeIfPossible = async <
     addLog('unknown mergeable_state', 'reschedule');
     await createAutomergeStatus('unknown mergeable_state, rescheduling');
     // GitHub is determining whether the pull request is mergeable
-    await repoContext.reschedule(context, createMergeLockPrFromPr(), false);
+    await repoContext.reschedule(
+      context,
+      createMergeLockPrFromPr(pullRequest),
+      'short',
+    );
     return false;
   }
 
@@ -360,7 +360,11 @@ export const autoMergeIfPossible = async <
       return false;
     }
     // waiting for reschedule in status (pr-handler/status.ts), or retry anyway and if it fails remove from queue
-    await repoContext.reschedule(context, createMergeLockPrFromPr(), true);
+    await repoContext.reschedule(
+      context,
+      createMergeLockPrFromPr(pullRequest),
+      'long+timeout',
+    );
     return false;
   }
 
@@ -368,7 +372,11 @@ export const autoMergeIfPossible = async <
     addLog('blocked mergeable_state', 'wait');
     await createAutomergeStatus('mergeable_state is blocked');
     // waiting for reschedule in status (pr-handler/status.ts), or retry anyway and if it fails remove from queue
-    await repoContext.reschedule(context, createMergeLockPrFromPr(), true);
+    await repoContext.reschedule(
+      context,
+      createMergeLockPrFromPr(pullRequest),
+      'long+timeout',
+    );
     return false;
   }
 
@@ -427,7 +435,11 @@ export const autoMergeIfPossible = async <
     return Boolean('merged' in mergeResult.data && mergeResult.data.merged);
   } catch (err: any) {
     context.log.info({ errorMessage: err?.message }, 'could not merge:');
-    await repoContext.reschedule(context, createMergeLockPrFromPr(), false);
+    await repoContext.reschedule(
+      context,
+      createMergeLockPrFromPr(pullRequest),
+      'short',
+    );
     return false;
   }
 };

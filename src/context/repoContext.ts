@@ -73,6 +73,8 @@ export type EventsWithRepository = CustomExtract<
   | 'status'
 >;
 
+type RescheduleTime = 'short' | 'long+timeout';
+
 interface RepoContextWithoutTeamContext<GroupNames extends string> {
   appContext: AppContext;
   repoFullName: string;
@@ -108,8 +110,13 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   ) => Promise<void>;
   reschedule: <EventName extends EmitterWebhookEventName>(
     context: ProbotEvent<EventName>,
-    pr: LockedMergePr,
-    longTime: boolean,
+    pr: PullRequestDataMinimumData,
+    time: RescheduleTime,
+  ) => Promise<void>;
+  rescheduleOnChecksUpdated: <EventName extends EmitterWebhookEventName>(
+    context: ProbotEvent<EventName>,
+    pr: PullRequestDataMinimumData,
+    isSuccessful: boolean,
   ) => Promise<void>;
   pushAutomergeQueue: (pr: LockedMergePr) => Promise<void>;
 }
@@ -265,7 +272,7 @@ async function initRepoContext<
   if (automergeQueue.length > 0) {
     setTimeout(() => {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define, @typescript-eslint/no-floating-promises
-      reschedule(context, automergeQueue[0], false);
+      reschedule(context, automergeQueue[0], 'short');
     }, 10);
   }
 
@@ -349,7 +356,7 @@ async function initRepoContext<
         removePrContext.log(lockMergePr, `merge lock: next ${fullName}`);
         await Promise.all([
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          reschedule(removePrContext, lockMergePr, false),
+          reschedule(removePrContext, lockMergePr, 'short'),
           updateAutomergeQueueInDb(automergeQueue),
         ]);
       }
@@ -363,18 +370,20 @@ async function initRepoContext<
           `merge lock: remove ${fullName}#${pr.number}: ${reason}`,
         );
         await updateAutomergeQueueInDb(automergeQueue);
+        // TODO update status check in PR
       }
     }
   };
 
   const reschedule = async (
     rescheduleContext: ProbotEvent<any>,
-    pr: LockedMergePr,
-    longTime: boolean,
+    pr: PullRequestDataMinimumData,
+    time: RescheduleTime,
   ): Promise<void> => {
     if (!pr) throw new Error('Cannot reschedule undefined');
+
     clearWaitingToReschedule(pr.id);
-    rescheduleContext.log.info(pr, 'reschedule', { longTime });
+    rescheduleContext.log.info(pr, 'reschedule', { time });
     const timeout = setTimeout(
       () => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -391,7 +400,7 @@ async function initRepoContext<
                 repoContext,
                 reviewflowPrContext,
               );
-              if (!didMerge && longTime) {
+              if (!didMerge && time === 'long+timeout') {
                 await removePrFromAutomergeQueue(
                   rescheduleContext,
                   pr,
@@ -409,9 +418,51 @@ async function initRepoContext<
           });
         });
       },
-      longTime ? 60_000 * 10 /* 10 min */ : 10_000 /* 10s */,
+      time === 'long+timeout' ? 60_000 * 10 /* 10 min */ : 10_000 /* 10s */,
     );
     waitingToReschedule.set(String(pr.id), timeout);
+  };
+
+  const rescheduleOnChecksUpdated = async (
+    rescheduleContext: ProbotEvent<any>,
+    pr: PullRequestDataMinimumData,
+    isSuccessful: boolean,
+  ): Promise<void> => {
+    // - if already in queue and locked pr is another PR
+    const lockedPr = repoContext.getMergeLockedPr();
+    if (
+      lockedPr &&
+      String(lockedPr.number) !== String(pr.number) &&
+      automergeQueue.some((item) => item.number === pr.number)
+    ) {
+      // Note: some unsucessful checks are ignored, so we should not remove the PR from queue here
+      // if (!isSuccessful) {
+      //   await removePrFromAutomergeQueue(
+      //     rescheduleContext,
+      //     pr,
+      //     'check not successful',
+      //   );
+      // }
+
+      // no need to reschedule: will reschedule when queue will get to this PR.
+      return;
+    }
+
+    if (isSuccessful) {
+      // - if is merge locked => will run automerge and might merge
+      // - if not in queue => might add it back if other conditions are met
+      // TODO: save condition in mongo to avoid rescheduling if not necessary
+      await reschedule(rescheduleContext, pr, 'short');
+    } else {
+      // remove from queue as the check was not successful
+      // Note: some unsucessful checks are ignored, so we should not remove the PR from queue here
+      await reschedule(rescheduleContext, pr, 'short');
+      // await removePrFromAutomergeQueue(
+      //   rescheduleContext,
+      //   pr,
+      //   'check not successful',
+      // );
+    }
   };
 
   return Object.assign(repoContext, {
@@ -458,6 +509,7 @@ async function initRepoContext<
       }
     },
     reschedule,
+    rescheduleOnChecksUpdated,
 
     lockPR,
     lockPullRequest,

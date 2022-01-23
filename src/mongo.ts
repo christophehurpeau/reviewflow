@@ -149,6 +149,7 @@ export interface ReviewflowPr extends MongoBaseModel {
   repo: RepoEmbed;
   pr: PrEmbed;
   commentId: number;
+  headSha?: string;
   lastLintStatusesCommit?: string;
   lintStatuses?: ReviewflowStatus[];
   lastFlowStatusCommit?: string;
@@ -278,6 +279,11 @@ export default function init(): MongoStores {
       },
       { unique: true },
     );
+    coll.createIndex({
+      'account.id': 1,
+      'repo.id': 1,
+      headSha: 1,
+    });
     // remove older than 12 * 30 days
     coll.deleteMany({
       created: { $lt: new Date(Date.now() - 12 * 30 * 24 * 60 * 60 * 1000) },

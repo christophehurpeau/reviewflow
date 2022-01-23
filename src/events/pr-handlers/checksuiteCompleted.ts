@@ -1,9 +1,6 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
-import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
-import { getReviewflowPrContext } from './utils/createPullRequestContext';
 import { createPullRequestsHandler } from './utils/createPullRequestHandler';
-import { fetchPr } from './utils/fetchPr';
 
 export default function checksuiteCompleted(
   app: Probot,
@@ -18,16 +15,10 @@ export default function checksuiteCompleted(
       return payload.check_suite.pull_requests;
     },
     async (pullRequest, context, repoContext) => {
-      const [updatedPr, reviewflowPrContext] = await Promise.all([
-        fetchPr(context, pullRequest.number),
-        getReviewflowPrContext(pullRequest, context, repoContext),
-      ]);
-
-      await autoMergeIfPossible(
-        updatedPr,
+      await repoContext.rescheduleOnChecksUpdated(
         context,
-        repoContext,
-        reviewflowPrContext,
+        pullRequest,
+        context.payload.check_suite.conclusion === 'success',
       );
     },
   );

@@ -125,7 +125,7 @@ export const createPullRequestsHandler = <
   getPrs: (
     payload: ProbotEvent<EventName>['payload'],
     repoContext: RepoContext<GroupNames>,
-  ) => U[],
+  ) => U[] | Promise<U[]>,
   callbackPr: (
     pullRequest: U,
     context: ProbotEvent<EventName>,
@@ -138,7 +138,7 @@ export const createPullRequestsHandler = <
         appContext,
         context,
       );
-      const prs = getPrs(context.payload, repoContext);
+      const prs = await getPrs(context.payload, repoContext);
       if (prs.length === 0) return;
 
       await Promise.all(
