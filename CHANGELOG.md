@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.97.0](https://github.com/christophehurpeau/reviewflow/compare/v1.96.0...v1.97.0) (2022-01-29)
+
+
+### Features
+
+* **deps:** update dependency @slack/web-api to v6.6.0 ([#424](https://github.com/christophehurpeau/reviewflow/issues/424)) ([2035990](https://github.com/christophehurpeau/reviewflow/commit/2035990c6076c0582de0f1d45abdd658f6ca9ca2))
+
 ## [1.96.0](https://github.com/christophehurpeau/reviewflow/compare/v1.95.0...v1.96.0) (2022-01-23)
 
 
