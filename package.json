@@ -93,7 +93,7 @@
     "@octokit/core": "3.5.1",
     "@octokit/rest": "18.12.0",
     "@octokit/webhooks": "9.21.0",
-    "@slack/web-api": "6.5.1",
+    "@slack/web-api": "6.6.0",
     "body-parser": "1.19.1",
     "conventional-changelog-conventionalcommits": "4.6.3",
     "cookie-parser": "1.4.6",
