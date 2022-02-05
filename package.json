@@ -129,7 +129,7 @@
     "@types/simple-oauth2": "4.1.1",
     "check-package-dependencies": "3.1.0",
     "eslint": "8.8.0",
-    "jest": "27.4.7",
+    "jest": "27.5.0",
     "nock": "13.2.2",
     "pob-babel": "30.0.0",
     "prettier": "2.5.1",
