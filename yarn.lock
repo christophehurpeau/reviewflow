@@ -4277,7 +4277,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dotenv@npm:8.6.0, dotenv@npm:^8.2.0":
+"dotenv@npm:15.0.1":
+  version: 15.0.1
+  resolution: "dotenv@npm:15.0.1"
+  checksum: acebaa5b0bb23fdbbdc50827936bdf6782e935b73c6048e949df352515576ec9542455a93f58cc3eefd839e45c670fbfed250a1061eb72f536dab05745d1bf33
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^8.2.0":
   version: 8.6.0
   resolution: "dotenv@npm:8.6.0"
   checksum: 38e902c80b0666ab59e9310a3d24ed237029a7ce34d976796349765ac96b8d769f6df19090f1f471b77a25ca391971efde8a1ea63bb83111bd8bec8e5cc9b2cd
@@ -9398,7 +9405,7 @@ resolve@^2.0.0-next.3:
     check-package-dependencies: 3.2.0
     conventional-changelog-conventionalcommits: 4.6.3
     cookie-parser: 1.4.6
-    dotenv: 8.6.0
+    dotenv: 15.0.1
     emoji-regex: 10.0.0
     eslint: 8.8.0
     issue-parser: 6.0.0
