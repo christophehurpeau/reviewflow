@@ -3554,9 +3554,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"check-package-dependencies@npm:3.1.0":
-  version: 3.1.0
-  resolution: "check-package-dependencies@npm:3.1.0"
+"check-package-dependencies@npm:3.2.0":
+  version: 3.2.0
+  resolution: "check-package-dependencies@npm:3.2.0"
   dependencies:
     chalk: ^4.1.0
     glob: ^7.1.6
@@ -3564,7 +3564,7 @@ __metadata:
     type-fest: ^2.0.0
   bin:
     check-package-dependencies: bin/check-package-dependencies.js
-  checksum: 5d8e02fad155050651e17ccce8cb78f1b56103066ff59bfd96b98163f950a887ba4f76662620d580f53d5a8d56902fd51696522c6281f9a62c844968e7a93bcb
+  checksum: 51159bb7bfac95d3afc3f63eca42bdb481e32dd5fddcdac4218770f4faf46afb0b61dbb13e0936b5ad86a326b8f336ecda670da9229d02c0b689854b73e1b546
   languageName: node
   linkType: hard
 
@@ -9395,7 +9395,7 @@ resolve@^2.0.0-next.3:
     "@types/react-dom": 17.0.11
     "@types/simple-oauth2": 4.1.1
     body-parser: 1.19.1
-    check-package-dependencies: 3.1.0
+    check-package-dependencies: 3.2.0
     conventional-changelog-conventionalcommits: 4.6.3
     cookie-parser: 1.4.6
     dotenv: 8.6.0
