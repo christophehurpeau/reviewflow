@@ -1457,11 +1457,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pob/eslint-config-typescript-react@npm:48.1.0":
-  version: 48.1.0
-  resolution: "@pob/eslint-config-typescript-react@npm:48.1.0"
+"@pob/eslint-config-typescript-react@npm:48.1.1":
+  version: 48.1.1
+  resolution: "@pob/eslint-config-typescript-react@npm:48.1.1"
   dependencies:
-    "@pob/eslint-config": 48.1.0
+    "@pob/eslint-config": 48.1.1
     eslint-config-airbnb: ^19.0.4
     eslint-plugin-import: ^2.25.3
     eslint-plugin-jsx-a11y: ^6.5.1
@@ -1482,15 +1482,15 @@ __metadata:
       optional: true
     eslint-plugin-react-hooks:
       optional: true
-  checksum: bce15514985ac1cbd23d68a8ac65ba14ad5191a972ecac844ea0ceab1067a36acdff27ac443508f6fa5bbdaf6752abd1078af110aab035fbae304ff4754e88b6
+  checksum: 2c7a490c8722913ab69716bf9fff85548fdc92640fb6091ad2f12a110c8dcfb36fa5048550220f3764b6e52e429c0e8904e269efc3ba1212506e8b6d8f039feb
   languageName: node
   linkType: hard
 
-"@pob/eslint-config-typescript@npm:48.1.0":
-  version: 48.1.0
-  resolution: "@pob/eslint-config-typescript@npm:48.1.0"
+"@pob/eslint-config-typescript@npm:48.1.1":
+  version: 48.1.1
+  resolution: "@pob/eslint-config-typescript@npm:48.1.1"
   dependencies:
-    "@pob/eslint-config": 48.1.0
+    "@pob/eslint-config": 48.1.1
     "@pob/use-eslint-plugin": ^48.0.0
     "@typescript-eslint/eslint-plugin": ^5.3.1
     "@typescript-eslint/parser": ^5.3.1
@@ -1512,13 +1512,13 @@ __metadata:
       optional: true
     eslint-plugin-node:
       optional: true
-  checksum: 1120896215a7d47ca335deaced3e46675bf5965c19225b7c8c172990dcbbc8b53e71144730b108fff576370c48021eae0ebd8da344bcc274cfdd32fa06c3e1d4
+  checksum: aee45f4fc1d1c18cab88dfa982d45eb198fa43e4255acbccc5e306ebfb27999c7fa0833e961deb47ea86f40a557f0c30e3bbf0737db6df8fccb478e7867f35d5
   languageName: node
   linkType: hard
 
-"@pob/eslint-config@npm:48.1.0":
-  version: 48.1.0
-  resolution: "@pob/eslint-config@npm:48.1.0"
+"@pob/eslint-config@npm:48.1.1":
+  version: 48.1.1
+  resolution: "@pob/eslint-config@npm:48.1.1"
   dependencies:
     "@pob/use-eslint-plugin": ^48.0.0
     eslint-config-airbnb-base: ^15.0.0
@@ -1538,7 +1538,7 @@ __metadata:
       optional: true
     eslint-plugin-unicorn:
       optional: true
-  checksum: 6849697d503df02f6919ed5cce081bd1f71a814e45777ad508ee2500404a1b98c11c8fdb6bdaa15979ad1d9b6365cf60269260857c632abe25fb9208c8213a8a
+  checksum: 657b84d9c28d94b17e7f119661655bd7369717ac76704955b4fe04aaa0f541ad6c6d3b3dce1f6061cd0ac203974fc691fe00c98cd167a4662abfe75d2ebaa765
   languageName: node
   linkType: hard
 
@@ -9379,9 +9379,9 @@ resolve@^2.0.0-next.3:
     "@octokit/rest": 18.12.0
     "@octokit/webhooks": 9.22.0
     "@pob/commitlint-config": 4.1.0
-    "@pob/eslint-config": 48.1.0
-    "@pob/eslint-config-typescript": 48.1.0
-    "@pob/eslint-config-typescript-react": 48.1.0
+    "@pob/eslint-config": 48.1.1
+    "@pob/eslint-config-typescript": 48.1.1
+    "@pob/eslint-config-typescript-react": 48.1.1
     "@pob/root": 6.6.0
     "@slack/web-api": 6.6.0
     "@types/body-parser": 1.19.2
