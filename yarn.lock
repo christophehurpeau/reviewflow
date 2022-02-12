@@ -9417,7 +9417,7 @@ resolve@^2.0.0-next.3:
     simple-oauth2: 4.3.0
     slackify-markdown: 4.3.1
     smee-client: 1.2.2
-    type-fest: 2.11.0
+    type-fest: 2.11.2
     typescript: 4.5.5
   languageName: unknown
   linkType: soft
@@ -10448,10 +10448,10 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"type-fest@npm:2.11.0, type-fest@npm:^2.0.0":
-  version: 2.11.0
-  resolution: "type-fest@npm:2.11.0"
-  checksum: 267d8d6d36a87d72a050354b79daf644daed24c9880979bb688d7636dca5afc23dfba616dd0fbccfbbb77cc6511dc312e758cea08ab54160d09fda5ca0ef2eed
+"type-fest@npm:2.11.2, type-fest@npm:^2.0.0":
+  version: 2.11.2
+  resolution: "type-fest@npm:2.11.2"
+  checksum: b36f73b9e739d4044f511fa3233eb36d365f5fbf5b120810ec5c6a31b8a6c7a2caeba2fb725491ccfb41a37aac8862e67f4383fc178a0c6074d27c424fe7c764
   languageName: node
   linkType: hard
 
