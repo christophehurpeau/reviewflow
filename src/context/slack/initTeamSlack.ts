@@ -174,7 +174,9 @@ export const initTeamSlack = async <GroupNames extends string>(
       }
       const user = membersMap.get(githubLogin);
       if (!user) return githubLogin;
-      return `<@${user.member.id}>`;
+      return process.env.REVIEWFLOW_DEBUG
+        ? `<@${user.member.id}> (${githubLogin})`
+        : `<@${user.member.id}>`;
     },
     postMessage: async (
       category: MessageCategory,
@@ -214,12 +216,16 @@ export const initTeamSlack = async <GroupNames extends string>(
       const result = await user.slackClient.chat.postMessage({
         username: process.env.REVIEWFLOW_NAME,
         channel: user.im.id,
-        text: message.text,
+        text: process.env.REVIEWFLOW_DEBUG
+          ? `${message.text} (${category})`
+          : message.text,
         blocks: message.blocks,
         attachments: message.secondaryBlocks
           ? [{ blocks: message.secondaryBlocks }]
           : undefined,
-        thread_ts: message.ts,
+        thread_ts: message.threadTs,
+        unfurl_links: false,
+        unfurl_media: false,
       });
       if (!result.ok) return null;
       return {

@@ -1,18 +1,25 @@
+/* eslint-disable max-lines */
 import type { RestEndpointMethodTypes } from '@octokit/rest';
+import delay from 'delay';
 import type { Probot, Context } from 'probot';
 import type { AccountInfo } from 'context/getOrCreateAccount';
+import type { MessageCategory } from 'dm/MessageCategory';
 import type { AppContext } from '../../context/AppContext';
 import type { SlackMessage } from '../../context/slack/SlackMessage';
-import type { PostSlackMessageResult } from '../../context/slack/TeamSlack';
+import type {
+  PostSlackMessageResult,
+  SlackMessageResult,
+} from '../../context/slack/TeamSlack';
 import type { AccountEmbed } from '../../mongo';
 import * as slackUtils from '../../slack/utils';
-import { ExcludesFalsy, ExcludesNullish } from '../../utils/Excludes';
+import { ExcludesNullish } from '../../utils/Excludes';
 import type { ProbotEvent } from '../probot-types';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { createSlackMessageWithSecondaryBlock } from './utils/createSlackMessageWithSecondaryBlock';
 import { fetchPr } from './utils/fetchPr';
 import { getPullRequestFromPayload } from './utils/getPullRequestFromPayload';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
+import { getRolesFromPullRequestAndReviewers } from './utils/getRolesFromPullRequestAndReviewers';
 import { checkIfUserIsBot, checkIfIsThisBot } from './utils/isBotUser';
 import { parseMentions } from './utils/parseMentions';
 import { slackifyCommentBody } from './utils/slackifyCommentBody';
@@ -126,53 +133,43 @@ export default function prCommentCreated(
       const prUser = pr.user;
       if (!prUser) return;
       const { comment } = context.payload;
-      const type = (comment as any).pull_request_review_id
-        ? 'review-comment'
-        : 'issue-comment';
+      const isReviewComment = !!(comment as any).pull_request_review_id;
+      const type = isReviewComment ? 'review-comment' : 'issue-comment';
 
       const body = comment.body;
       if (!body) return;
 
-      const commentByOwner = prUser.login === comment.user.login;
-      const [discussion, { reviewers }] = await Promise.all([
-        getDiscussion(context, comment),
-        getReviewersAndReviewStates(context, repoContext),
-      ]);
+      const [discussion, { reviewers }, reviewSlackMessages] =
+        await Promise.all([
+          getDiscussion(context, comment),
+          getReviewersAndReviewStates(context, repoContext),
+          (comment as any).pull_request_review_id
+            ? appContext.mongoStores.slackSentMessages.findAll({
+                'account.id': repoContext.accountEmbed.id,
+                'account.type': repoContext.accountEmbed.type,
+                type: 'review-submitted',
+                typeId: (comment as any).pull_request_review_id,
+              })
+            : null,
+        ]);
 
-      const followers: AccountInfo[] = reviewers.filter(
-        (u) => u.id !== prUser.id && u.id !== comment.user.id,
-      );
-
-      if (pr.requested_reviewers) {
-        followers.push(
-          ...pr.requested_reviewers
-            .filter((rr) => {
-              return (
-                rr &&
-                !followers.some((f) => f.id === rr.id) &&
-                rr.id !== (comment.user && comment.user.id) &&
-                rr.id !== prUser.id
-              );
-            })
-            .filter(ExcludesFalsy)
-            .map<AccountInfo>((rr) => ({
-              id: rr.id,
-              login: rr.login,
-              type: rr.type,
-            })),
-        );
-      }
+      const { owner, assignees, followers } =
+        getRolesFromPullRequestAndReviewers(pr as any, reviewers, {
+          excludeIds: [comment.user.id],
+        });
 
       const usersInThread = getUsersInThread(discussion).filter(
         (u) =>
           u.id !== prUser.id &&
           u.id !== comment.user.id &&
+          !assignees.some((a) => a.id === u.id) &&
           !followers.some((f) => f.id === u.id),
       );
       const mentions = getMentions(discussion).filter(
         (m) =>
           m !== prUser.login &&
           m !== comment.user.login &&
+          !assignees.some((a) => a.login === m) &&
           !followers.some((f) => f.login === m) &&
           !usersInThread.some((u) => u.login === m),
       );
@@ -182,22 +179,26 @@ export default function prCommentCreated(
       const ownerMention = repoContext.slack.mention(prUser.login);
       const commentLink = slackUtils.createLink(
         comment.html_url,
-        (comment as any).in_reply_to_id ? 'replied' : 'commented',
+        (comment as any).in_reply_to_id
+          ? 'replied'
+          : isReviewComment
+          ? 'reviewed'
+          : 'commented',
+      );
+      const commentLinkPathText = slackUtils.createLink(
+        comment.html_url,
+        (comment as any).path,
       );
 
-      const createMessage = (toOwner?: boolean): string => {
+      const createMessage = (
+        toOwner?: boolean,
+        isAssignedTo?: boolean,
+      ): string => {
         const ownerPart = toOwner
           ? 'your PR'
-          : `${
-              (prUser && prUser.id) === comment.user.id
-                ? 'his'
-                : `${ownerMention}'s`
-            } PR`;
+          : `${ownerMention}'s PR${isAssignedTo ? " you're assigned to" : ''}`;
         return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
       };
-
-      const promisesOwner: Promise<PostSlackMessageResult>[] = [];
-      const promisesNotOwner: Promise<PostSlackMessageResult>[] = [];
 
       const slackifiedBody = slackifyCommentBody(
         comment.body,
@@ -205,79 +206,164 @@ export default function prCommentCreated(
       );
 
       const ownerSlackMessage = createSlackMessageWithSecondaryBlock(
-        createMessage(true),
-        slackifiedBody,
+        createMessage(true, false),
+        isReviewComment ? undefined : slackifiedBody,
+      );
+      const assignedToSlackMessage = createSlackMessageWithSecondaryBlock(
+        createMessage(true, true),
+        isReviewComment ? undefined : slackifiedBody,
       );
       const notOwnerSlackMessage = createSlackMessageWithSecondaryBlock(
         createMessage(false),
+        isReviewComment ? undefined : slackifiedBody,
+      );
+
+      const threadMessage = createSlackMessageWithSecondaryBlock(
+        commentLinkPathText,
         slackifiedBody,
       );
 
       const isBotUser = checkIfUserIsBot(repoContext, comment.user);
 
-      if (!commentByOwner) {
-        promisesOwner.push(
-          repoContext.slack.postMessage(
-            isBotUser ? 'pr-comment-bots' : 'pr-comment',
-            prUser,
-            ownerSlackMessage,
-          ),
-        );
-      }
+      const mentioned = await (mentions.length > 0
+        ? appContext.mongoStores.users.findAll({ login: { $in: mentions } })
+        : []);
 
-      promisesNotOwner.push(
-        ...followers.map((follower) =>
-          repoContext.slack.postMessage(
-            isBotUser ? 'pr-comment-follow-bots' : 'pr-comment-follow',
-            follower,
-            notOwnerSlackMessage,
-          ),
-        ),
-        ...usersInThread.map((user) =>
-          repoContext.slack.postMessage(
-            'pr-comment-thread',
-            user,
-            notOwnerSlackMessage,
-          ),
-        ),
-      );
+      const postMessageInReviewThreadOrNewMessage = async (
+        category: MessageCategory,
+        toUser: AccountInfo,
+        threadParentMessageIfNotFound: SlackMessage,
+        threadMessage: SlackMessage,
+        forTeamId?: number,
+      ): Promise<SlackMessageResult | null> => {
+        if (isReviewComment) {
+          let reviewSlackMessageTs: string | null = null;
+          if (reviewSlackMessages) {
+            reviewSlackMessages.forEach((reviewSlackMessage) => {
+              reviewSlackMessage.sentTo.forEach((sentTo) => {
+                if (
+                  sentTo.user.id === toUser.id &&
+                  sentTo.user.type === toUser.type
+                ) {
+                  reviewSlackMessageTs = sentTo.ts;
+                }
+              });
+            });
+          }
 
-      if (mentions.length > 0) {
-        await appContext.mongoStores.users
-          .findAll({ login: { $in: mentions } })
-          .then((users) => {
-            promisesNotOwner.push(
-              ...users.map((u) =>
-                repoContext.slack.postMessage(
-                  'pr-comment-mention',
-                  { id: u._id, login: u.login, type: u.type },
-                  notOwnerSlackMessage,
-                ),
-              ),
+          // a comment on a file without a review, or might also be undefined if review submit is ignored
+          if (!reviewSlackMessageTs) {
+            const newMessage = await repoContext.slack.postMessage(
+              category,
+              toUser,
+              threadParentMessageIfNotFound,
+              forTeamId,
             );
-          });
-      }
+            if (newMessage) {
+              reviewSlackMessageTs = newMessage.ts;
+            }
+          }
+
+          if (reviewSlackMessageTs) {
+            return repoContext.slack.postMessage(
+              category,
+              toUser,
+              { ...threadMessage, threadTs: reviewSlackMessageTs },
+              forTeamId,
+            );
+          }
+          return null;
+        } else {
+          return repoContext.slack.postMessage(
+            category,
+            toUser,
+            threadParentMessageIfNotFound,
+            forTeamId,
+          );
+        }
+      };
 
       await Promise.all([
-        Promise.all(promisesOwner).then((results) =>
+        Promise.all(
+          assignees
+            .filter((a) => a.id === owner.id)
+            .map((owner) =>
+              postMessageInReviewThreadOrNewMessage(
+                isBotUser ? 'pr-comment-bots' : 'pr-comment',
+                owner,
+                ownerSlackMessage,
+                threadMessage,
+              ),
+            ),
+        ).then((results) =>
           saveInDb(
             type,
             comment.id,
             repoContext.accountEmbed,
             results,
-            ownerSlackMessage,
+            isReviewComment ? threadMessage : ownerSlackMessage,
           ),
         ),
-        Promise.all(promisesNotOwner).then((results) =>
+        Promise.all(
+          assignees
+            .filter((a) => a.id !== owner.id)
+            .map((assignee) =>
+              postMessageInReviewThreadOrNewMessage(
+                isBotUser ? 'pr-comment-bots' : 'pr-comment',
+                assignee,
+                assignedToSlackMessage,
+                threadMessage,
+              ),
+            ),
+        ).then((results) =>
           saveInDb(
             type,
             comment.id,
             repoContext.accountEmbed,
             results,
-            notOwnerSlackMessage,
+            isReviewComment ? threadMessage : assignedToSlackMessage,
+          ),
+        ),
+        Promise.all([
+          ...followers.map((follower) =>
+            postMessageInReviewThreadOrNewMessage(
+              isBotUser ? 'pr-comment-follow-bots' : 'pr-comment-follow',
+              follower,
+              notOwnerSlackMessage,
+              threadMessage,
+            ),
+          ),
+          ...usersInThread.map((user) =>
+            postMessageInReviewThreadOrNewMessage(
+              'pr-comment-thread',
+              user,
+              notOwnerSlackMessage,
+              threadMessage,
+            ),
+          ),
+          ...mentioned.map((u) =>
+            postMessageInReviewThreadOrNewMessage(
+              'pr-comment-mention',
+              { id: u._id, login: u.login, type: u.type },
+              notOwnerSlackMessage,
+              threadMessage,
+            ),
+          ),
+        ]).then((results) =>
+          saveInDb(
+            type,
+            comment.id,
+            repoContext.accountEmbed,
+            results,
+            isReviewComment ? threadMessage : notOwnerSlackMessage,
           ),
         ),
       ]);
+    },
+    async () => {
+      // make sure review submitted is processed before this, as github could send both at the same time
+      await delay(100);
+      return {};
     },
   );
 }

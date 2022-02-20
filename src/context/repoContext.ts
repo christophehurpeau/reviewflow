@@ -90,12 +90,14 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   hasApprovesReview: (labels: PullRequestLabels) => boolean;
   getNeedsReviewGroupNames: (labels: PullRequestLabels) => GroupNames[];
   lockPullRequest: (
+    eventName: string,
     pullRequest: PullRequestDataMinimumData,
     callback: () => Promise<void> | void,
   ) => Promise<void>;
 
   /** @deprecated */
   lockPR: (
+    eventName: string,
     prId: string,
     prNumber: number,
     callback: () => Promise<void> | void,
@@ -300,6 +302,7 @@ async function initRepoContext<
   };
 
   const lockPR = (
+    eventName: string,
     prOrPrIssueId: string,
     prNumber: number,
     callback: () => Promise<void> | void,
@@ -307,6 +310,7 @@ async function initRepoContext<
     new Promise((resolve, reject) => {
       const prNumberAsString = String(prNumber);
       const logInfos = {
+        eventName,
         repo: fullName,
         prOrPrIssueId,
         prNumber,
@@ -331,10 +335,16 @@ async function initRepoContext<
     });
 
   const lockPullRequest = (
+    eventName: string,
     pullRequest: PullRequestDataMinimumData,
     callback: () => Promise<void> | void,
   ): Promise<void> => {
-    return lockPR(String(pullRequest.id), pullRequest.number, callback);
+    return lockPR(
+      eventName,
+      String(pullRequest.id),
+      pullRequest.number,
+      callback,
+    );
   };
 
   const removePrFromAutomergeQueue = async (
@@ -387,8 +397,8 @@ async function initRepoContext<
     const timeout = setTimeout(
       () => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        lockPR('reschedule', -1, () => {
-          return lockPR(String(pr.id), pr.number, async () => {
+        lockPR('reschedule', 'reschedule', -1, () => {
+          return lockPR('reschedule', String(pr.id), pr.number, async () => {
             try {
               const [pullRequest, reviewflowPrContext] = await Promise.all([
                 fetchPr(context, pr.number),

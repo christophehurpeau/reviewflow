@@ -76,7 +76,7 @@ export const createPullRequestHandler = <
     pullRequest: PullRequestFromProbotEvent<EventName>,
     context: ProbotEvent<EventName>,
     repoContext: RepoContext<GroupNames>,
-  ) => CreatePrContextOptions,
+  ) => CreatePrContextOptions | Promise<CreatePrContextOptions>,
 ): void => {
   app.on(eventName, async (context: ProbotEvent<EventName>) => {
     return catchExceptedErrors(async () => {
@@ -86,30 +86,34 @@ export const createPullRequestHandler = <
 
       if (pullRequest === null) return;
       const options = callbackBeforeLock
-        ? callbackBeforeLock(pullRequest, context, repoContext)
+        ? await callbackBeforeLock(pullRequest, context, repoContext)
         : {};
 
-      await repoContext.lockPullRequest(pullRequest, async () => {
-        /*
-         * When repo are ignored, only slack notifications are sent.
-         * PR is not linted, commented, nor auto merged.
-         */
-        const reviewflowPrContext = repoContext.shouldIgnore
-          ? null
-          : await getReviewflowPrContext(
-              pullRequest,
-              context,
-              repoContext,
-              options.reviewflowCommentPromise,
-            );
+      await repoContext.lockPullRequest(
+        `${context.name}:${context.payload.action}`,
+        pullRequest,
+        async () => {
+          /*
+           * When repo are ignored, only slack notifications are sent.
+           * PR is not linted, commented, nor auto merged.
+           */
+          const reviewflowPrContext = repoContext.shouldIgnore
+            ? null
+            : await getReviewflowPrContext(
+                pullRequest,
+                context,
+                repoContext,
+                options.reviewflowCommentPromise,
+              );
 
-        return callbackPr(
-          pullRequest,
-          context,
-          repoContext,
-          reviewflowPrContext,
-        );
-      });
+          return callbackPr(
+            pullRequest,
+            context,
+            repoContext,
+            reviewflowPrContext,
+          );
+        },
+      );
     });
   });
 };
@@ -143,9 +147,13 @@ export const createPullRequestsHandler = <
 
       await Promise.all(
         prs.map((pr) =>
-          repoContext.lockPullRequest(pr, async () => {
-            return callbackPr(pr, context, repoContext);
-          }),
+          repoContext.lockPullRequest(
+            `${context.name}:${(context.payload as any).action}`,
+            pr,
+            async () => {
+              return callbackPr(pr, context, repoContext);
+            },
+          ),
         ),
       );
     });

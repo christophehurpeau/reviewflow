@@ -4,5 +4,5 @@ export interface SlackMessage {
   text: string;
   blocks?: KnownBlock[];
   secondaryBlocks?: KnownBlock[];
-  ts?: string;
+  threadTs?: string;
 }

@@ -1,7 +1,11 @@
 import type { Probot } from 'probot';
 import slackifyMarkdown from 'slackify-markdown';
+import type { SlackMessage } from 'context/slack/SlackMessage';
+import type { PostSlackMessageResult } from 'context/slack/TeamSlack';
+import type { AccountEmbed } from 'mongo';
 import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
+import { ExcludesNullish } from '../../utils/Excludes';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
@@ -25,6 +29,24 @@ export default function reviewSubmitted(
   app: Probot,
   appContext: AppContext,
 ): void {
+  const saveInDb = async (
+    reviewId: number,
+    accountEmbed: AccountEmbed,
+    results: PostSlackMessageResult[],
+    message: SlackMessage,
+  ): Promise<void> => {
+    const filtered = results.filter(ExcludesNullish);
+    if (filtered.length === 0) return;
+
+    await appContext.mongoStores.slackSentMessages.insertOne({
+      type: 'review-submitted',
+      typeId: reviewId,
+      message,
+      account: accountEmbed,
+      sentTo: filtered,
+    });
+  };
+
   createPullRequestHandler(
     app,
     appContext,
@@ -42,6 +64,7 @@ export default function reviewSubmitted(
         user: reviewer,
         state,
         body,
+        id: reviewId,
         html_url: reviewUrl,
       } = payload.review;
 
@@ -50,12 +73,10 @@ export default function reviewSubmitted(
         repoContext,
       );
       const { owner, assignees, followers } =
-        getRolesFromPullRequestAndReviewers(pullRequest, reviewers);
+        getRolesFromPullRequestAndReviewers(pullRequest, reviewers, {
+          excludeIds: [reviewer.id],
+        });
       const isReviewByOwner = owner.login === reviewer.login;
-
-      const filteredFollowers = followers.filter(
-        (follower) => follower.id !== reviewer.id,
-      );
 
       if (!isReviewByOwner) {
         const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
@@ -126,9 +147,7 @@ export default function reviewSubmitted(
             repoContext.slack.updateHome(assignee.login);
           });
         }
-        if (!assignees.some((assignee) => assignee.login === reviewer.login)) {
-          repoContext.slack.updateHome(reviewer.login);
-        }
+        repoContext.slack.updateHome(reviewer.login);
 
         const sentMessageRequestedReview =
           await appContext.mongoStores.slackSentMessages.findOne({
@@ -168,10 +187,6 @@ export default function reviewSubmitted(
           ]);
         }
 
-        if (!body && state !== 'changes_requested' && state !== 'approved') {
-          return;
-        }
-
         const mention = repoContext.slack.mention(reviewer.login);
         const prUrl = slackUtils.createPrLink(pullRequest, repoContext);
         const ownerMention = repoContext.slack.mention(owner.login);
@@ -203,25 +218,75 @@ export default function reviewSubmitted(
 
         const slackifiedBody = slackifyMarkdown(body as unknown as string);
 
-        assignees.forEach((assignee) => {
-          repoContext.slack.postMessage(
-            'pr-review',
-            assignee,
-            createSlackMessageWithSecondaryBlock(
-              createMessage(assignee.id === owner.id, true),
-              slackifiedBody,
-            ),
-          );
-        });
-
-        const message = createSlackMessageWithSecondaryBlock(
+        const messageToOwner = createSlackMessageWithSecondaryBlock(
+          createMessage(true, true),
+          slackifiedBody,
+        );
+        const messageToAssignee = createSlackMessageWithSecondaryBlock(
+          createMessage(false, true),
+          slackifiedBody,
+        );
+        const messageToFollower = createSlackMessageWithSecondaryBlock(
           createMessage(false),
           slackifiedBody,
         );
 
-        filteredFollowers.forEach((follower) => {
-          repoContext.slack.postMessage('pr-review-follow', follower, message);
-        });
+        await Promise.all([
+          Promise.all(
+            assignees
+              .filter((assignee) => assignee.id === owner.id)
+              .map((assigneeIsOwner) => {
+                return repoContext.slack.postMessage(
+                  'pr-review',
+                  assigneeIsOwner,
+                  messageToOwner,
+                );
+              }),
+          ).then((results) => {
+            return saveInDb(
+              reviewId,
+              repoContext.accountEmbed,
+              results,
+              messageToOwner,
+            );
+          }),
+
+          Promise.all(
+            assignees
+              .filter((assignee) => assignee.id !== owner.id)
+              .map((assignee) => {
+                return repoContext.slack.postMessage(
+                  'pr-review',
+                  assignee,
+                  messageToAssignee,
+                );
+              }),
+          ).then((results) => {
+            return saveInDb(
+              reviewId,
+              repoContext.accountEmbed,
+              results,
+              messageToAssignee,
+            );
+          }),
+
+          Promise.all(
+            followers.map((follower) => {
+              return repoContext.slack.postMessage(
+                'pr-review-follow',
+                follower,
+                messageToFollower,
+              );
+            }),
+          ).then((results) => {
+            return saveInDb(
+              reviewId,
+              repoContext.accountEmbed,
+              results,
+              messageToFollower,
+            );
+          }),
+        ]);
       } else if (body) {
         const mention = repoContext.slack.mention(reviewer.login);
         const prUrl = slackUtils.createPrLink(pullRequest, repoContext);
@@ -232,9 +297,45 @@ export default function reviewSubmitted(
           body,
         );
 
-        filteredFollowers.forEach((follower) => {
-          repoContext.slack.postMessage('pr-review-follow', follower, message);
-        });
+        await Promise.all([
+          Promise.all(
+            assignees
+              .filter((assignee) => assignee.id !== reviewer.id)
+              .map((assignee) => {
+                return repoContext.slack.postMessage(
+                  'pr-review',
+                  assignee,
+                  message,
+                );
+              }),
+          ).then((results) => {
+            return saveInDb(
+              reviewId,
+              repoContext.accountEmbed,
+              results,
+              message,
+            );
+          }),
+
+          Promise.all(
+            followers
+              .filter((follower) => follower.id !== reviewer.id)
+              .map((follower) => {
+                return repoContext.slack.postMessage(
+                  'pr-review-follow',
+                  follower,
+                  message,
+                );
+              }),
+          ).then((results) => {
+            return saveInDb(
+              reviewId,
+              repoContext.accountEmbed,
+              results,
+              message,
+            );
+          }),
+        ]);
       }
     },
   );
