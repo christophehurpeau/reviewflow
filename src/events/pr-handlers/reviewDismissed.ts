@@ -1,10 +1,12 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
+import { autoApproveAndAutoMerge } from './actions/autoApproveAndAutoMerge';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
+import { checkIfIsThisBot } from './utils/isBotUser';
 
 export default function reviewDismissed(
   app: Probot,
@@ -23,6 +25,19 @@ export default function reviewDismissed(
     ): Promise<void> => {
       const sender = context.payload.sender;
       const reviewer = context.payload.review.user;
+
+      // if reviewflow's approval was dismissed (probably by "stale" option when a new commit is pushed)
+      if (reviewflowPrContext && checkIfIsThisBot(reviewer)) {
+        const pr = await fetchPr(context, pullRequest.number);
+        await autoApproveAndAutoMerge(
+          pr,
+          context,
+          repoContext,
+          reviewflowPrContext,
+        );
+        return;
+      }
+
       const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
 
       if (
