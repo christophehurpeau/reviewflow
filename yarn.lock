@@ -677,12 +677,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/config-conventional@npm:16.0.0, @commitlint/config-conventional@npm:^16.0.0":
-  version: 16.0.0
-  resolution: "@commitlint/config-conventional@npm:16.0.0"
+"@commitlint/config-conventional@npm:16.2.1, @commitlint/config-conventional@npm:^16.0.0":
+  version: 16.2.1
+  resolution: "@commitlint/config-conventional@npm:16.2.1"
   dependencies:
     conventional-changelog-conventionalcommits: ^4.3.1
-  checksum: a0c923c506eed8b460503247efcecb64f7376c0fcfd9a05330651334d2b0b38a41db2698b1886198ec1e71bcf67dad4e190253e684a3cb668c7cfc76e9e959d5
+  checksum: 23dac76a8fbe5624433e1c948bc53eaf0a60b77f418fe7f94eea8e17abf9605d7ae9418188d8c1a38c2e6d5cb865c8e2d0894826c3eb41fb052af95e79bc02d3
   languageName: node
   linkType: hard
 
@@ -723,7 +723,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/is-ignored@npm:^16.0.0, @commitlint/is-ignored@npm:^16.2.1":
+"@commitlint/is-ignored@npm:^16.2.1":
   version: 16.2.1
   resolution: "@commitlint/is-ignored@npm:16.2.1"
   dependencies:
@@ -733,19 +733,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/lint@npm:16.0.0":
-  version: 16.0.0
-  resolution: "@commitlint/lint@npm:16.0.0"
-  dependencies:
-    "@commitlint/is-ignored": ^16.0.0
-    "@commitlint/parse": ^16.0.0
-    "@commitlint/rules": ^16.0.0
-    "@commitlint/types": ^16.0.0
-  checksum: 1c9dbcdc230386e39f32492436f558d7c8235f5d96ab3f990f70c6ba36044cc16214e0bea989d1d8b9a9fba22d3c8c8ade86ea69a1f7a75683a967a1f211b866
-  languageName: node
-  linkType: hard
-
-"@commitlint/lint@npm:^16.2.1":
+"@commitlint/lint@npm:16.2.1, @commitlint/lint@npm:^16.2.1":
   version: 16.2.1
   resolution: "@commitlint/lint@npm:16.2.1"
   dependencies:
@@ -783,18 +771,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/parse@npm:16.0.0":
-  version: 16.0.0
-  resolution: "@commitlint/parse@npm:16.0.0"
-  dependencies:
-    "@commitlint/types": ^16.0.0
-    conventional-changelog-angular: ^5.0.11
-    conventional-commits-parser: ^3.2.2
-  checksum: 1d31e044b99fc9b1de9ee698bade0a6dc04ba514d5c677a7181ac379e7899b0975f4523b8831c7080109c2acb4bf8457b12bc094d06c6d18a8053c571056b90e
-  languageName: node
-  linkType: hard
-
-"@commitlint/parse@npm:^16.0.0, @commitlint/parse@npm:^16.2.1":
+"@commitlint/parse@npm:16.2.1, @commitlint/parse@npm:^16.2.1":
   version: 16.2.1
   resolution: "@commitlint/parse@npm:16.2.1"
   dependencies:
@@ -831,7 +808,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/rules@npm:^16.0.0, @commitlint/rules@npm:^16.2.1":
+"@commitlint/rules@npm:^16.2.1":
   version: 16.2.1
   resolution: "@commitlint/rules@npm:16.2.1"
   dependencies:
@@ -860,7 +837,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/types@npm:^16.0.0, @commitlint/types@npm:^16.2.1":
+"@commitlint/types@npm:^16.2.1":
   version: 16.2.1
   resolution: "@commitlint/types@npm:16.2.1"
   dependencies:
@@ -9466,9 +9443,9 @@ resolve@^2.0.0-next.3:
   dependencies:
     "@babel/core": 7.17.5
     "@babel/preset-react": 7.16.7
-    "@commitlint/config-conventional": 16.0.0
-    "@commitlint/lint": 16.0.0
-    "@commitlint/parse": 16.0.0
+    "@commitlint/config-conventional": 16.2.1
+    "@commitlint/lint": 16.2.1
+    "@commitlint/parse": 16.2.1
     "@octokit/core": 3.5.1
     "@octokit/rest": 18.12.0
     "@octokit/webhooks": 9.22.0
