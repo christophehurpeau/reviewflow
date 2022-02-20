@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.99.0](https://github.com/christophehurpeau/reviewflow/compare/v1.98.0...v1.99.0) (2022-02-20)
+
+
+### Features
+
+* enable for liwijs ([55ef686](https://github.com/christophehurpeau/reviewflow/commit/55ef68652ac48bc58e6d05b877db04e901f23345))
+
 ## [1.98.0](https://github.com/christophehurpeau/reviewflow/compare/v1.97.0...v1.98.0) (2022-02-20)
 
 
