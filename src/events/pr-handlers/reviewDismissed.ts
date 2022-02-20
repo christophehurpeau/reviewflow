@@ -34,6 +34,7 @@ export default function reviewDismissed(
           context,
           repoContext,
           reviewflowPrContext,
+          true,
         );
         return;
       }

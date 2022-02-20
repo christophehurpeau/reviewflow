@@ -12,10 +12,11 @@ export const autoApproveAndAutoMerge = async <
   context: ProbotEvent<Name>,
   repoContext: RepoContext,
   reviewflowPrContext: ReviewflowPrContext,
+  ignoreLabel = false,
 ): Promise<boolean> => {
   // const autoMergeLabel = repoContext.labels['merge/automerge'];
   const codeApprovedLabel = repoContext.labels['code/approved'];
-  if (hasLabelInPR(pullRequest.labels, codeApprovedLabel)) {
+  if (ignoreLabel || hasLabelInPR(pullRequest.labels, codeApprovedLabel)) {
     await context.octokit.pulls.createReview(
       context.pullRequest({ event: 'APPROVE' }),
     );
