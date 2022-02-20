@@ -1,6 +1,5 @@
 import type { Router } from 'express';
 import type { ProbotOctokit } from 'probot';
-import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server.js';
 import { syncUser } from '../events/account-handlers/actions/syncUser';
 import type { MongoStores } from '../mongo';

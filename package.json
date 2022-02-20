@@ -12,30 +12,30 @@
     "node": "^14.13.1 || >=16.0.0"
   },
   "packageManager": "yarn@3.1.1",
-  "main": "./dist/index-node14.mjs",
+  "main": "./build/index-node14.mjs",
   "exports": {
     "./package.json": "./package.json",
     ".": {
       "node": {
-        "import": "./dist/index-node14.mjs"
+        "import": "./build/index-node14.mjs"
       }
     }
   },
-  "module:node": "./dist/index-node14.mjs",
+  "module:node": "./build/index-node14.mjs",
   "scripts": {
-    "build": "pob-build",
+    "build": "yarn clean:build && rollup --config rollup.config.mjs",
     "checks": "node scripts/check-package.js",
-    "clean": "rm -Rf dist",
+    "clean": "yarn clean:build",
+    "clean:build": "rm -Rf build",
     "generate:test-coverage": "rm -Rf docs/coverage/ ; NODE_ENV=production BABEL_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --coverage --coverageReporters=pob-lcov-reporter --coverageDirectory=docs/coverage/",
     "lint": "yarn run lint:prettier && tsc && yarn run lint:eslint",
     "lint:eslint": "eslint --report-unused-disable-directives --resolve-plugins-relative-to . --quiet *.{js,cjs,mjs} src scripts",
     "lint:prettier": "prettier --check .",
     "postinstall": "pob-root-postinstall",
-    "start": "pob-watch",
+    "start": "yarn clean:build && rollup --config rollup.config.mjs --watch",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
-    "version": "pob-version",
-    "watch": "pob-watch"
+    "version": "pob-version"
   },
   "prettier": {
     "trailingComma": "all",
@@ -113,10 +113,10 @@
     "@babel/core": "7.17.5",
     "@babel/preset-react": "7.16.7",
     "@pob/commitlint-config": "4.1.0",
-    "@pob/eslint-config": "48.1.1",
-    "@pob/eslint-config-typescript": "48.1.1",
-    "@pob/eslint-config-typescript-react": "48.1.1",
-    "@pob/root": "6.6.0",
+    "@pob/eslint-config": "49.0.0",
+    "@pob/eslint-config-typescript": "49.0.0",
+    "@pob/eslint-config-typescript-react": "49.0.1",
+    "@pob/root": "6.10.0",
     "@types/body-parser": "1.19.2",
     "@types/cookie-parser": "1.4.2",
     "@types/express": "4.17.13",
@@ -131,7 +131,7 @@
     "eslint": "8.9.0",
     "jest": "27.5.1",
     "nock": "13.2.4",
-    "pob-babel": "30.0.0",
+    "pob-babel": "32.2.0",
     "prettier": "2.5.1",
     "smee-client": "1.2.2",
     "type-fest": "2.11.0",

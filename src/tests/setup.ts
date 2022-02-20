@@ -2,7 +2,7 @@
 import { jest } from '@jest/globals';
 import nock from 'nock';
 import { Probot } from 'probot';
-import repoLabels from '../../fixtures/labels.json';
+import repoLabels from '../__fixtures__/labels.json';
 import initApp from '../initApp';
 
 export { default as nock } from 'nock';

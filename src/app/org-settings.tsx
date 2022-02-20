@@ -2,7 +2,6 @@
 import bodyParser from 'body-parser';
 import type { Router } from 'express';
 import type { ProbotOctokit } from 'probot';
-import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server.js';
 import { accountConfigs } from '../accountConfigs';
 import { getTeamsAndGroups } from '../context/accountContext';

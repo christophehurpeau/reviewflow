@@ -12,8 +12,10 @@ module.exports = function babelConfig(api) {
       [
         '@babel/preset-react',
         {
+          runtime: 'automatic',
           development: false,
           useBuiltIns: true,
+          useSpread: true,
         },
       ],
     ],

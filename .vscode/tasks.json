@@ -2,5 +2,98 @@
   // See https://go.microsoft.com/fwlink/?LinkId=733558
   // for the documentation about the tasks.json format
   "version": "2.0.0",
-  "tasks": []
+  "tasks": [
+    {
+      "label": "build",
+      "problemMatcher": [],
+      "type": "npm",
+      "script": "build",
+      "group": "build",
+      "presentation": { "panel": "dedicated", "group": "build", "clear": true }
+    },
+    {
+      "label": "checks",
+      "problemMatcher": [],
+      "type": "npm",
+      "script": "checks",
+      "presentation": { "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "clean",
+      "problemMatcher": [],
+      "type": "npm",
+      "script": "clean",
+      "presentation": { "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "clean:build",
+      "problemMatcher": [],
+      "type": "npm",
+      "script": "clean:build",
+      "presentation": { "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "generate:test-coverage",
+      "problemMatcher": [],
+      "type": "npm",
+      "script": "generate:test-coverage",
+      "presentation": { "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "lint:eslint",
+      "problemMatcher": ["$eslint-stylish"],
+      "type": "npm",
+      "script": "lint:eslint",
+      "group": "lint",
+      "presentation": { "panel": "dedicated", "group": "lint", "clear": true }
+    },
+    {
+      "label": "lint:prettier",
+      "problemMatcher": [],
+      "type": "npm",
+      "script": "lint:prettier",
+      "group": "lint",
+      "presentation": { "panel": "dedicated", "group": "lint", "clear": true }
+    },
+    {
+      "label": "start",
+      "problemMatcher": [],
+      "type": "npm",
+      "script": "start",
+      "group": "build",
+      "presentation": { "panel": "dedicated", "group": "build", "clear": true },
+      "isBackground": true
+    },
+    {
+      "label": "test",
+      "problemMatcher": [],
+      "type": "npm",
+      "script": "test",
+      "group": "test",
+      "presentation": { "panel": "dedicated", "group": "test", "clear": true }
+    },
+    {
+      "label": "test:watch",
+      "problemMatcher": [],
+      "type": "npm",
+      "script": "test:watch",
+      "group": "test",
+      "presentation": { "panel": "dedicated", "group": "test", "clear": true }
+    },
+    {
+      "label": "version",
+      "problemMatcher": [],
+      "type": "npm",
+      "script": "version",
+      "presentation": { "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "watch",
+      "problemMatcher": [],
+      "type": "npm",
+      "script": "watch",
+      "presentation": { "panel": "dedicated", "clear": true },
+      "isBackground": true
+    }
+  ]
 }

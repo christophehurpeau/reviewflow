@@ -2,8 +2,8 @@
 import { jest } from '@jest/globals';
 import type { Probot } from 'probot';
 import type { ProbotEvent } from 'events/probot-types';
-import pullRequestOpened from '../../../fixtures/pull_request_30.opened.json';
-import pullRequestCommits from '../../../fixtures/pull_request_30_commits.json';
+import pullRequestOpened from '../../__fixtures__/pull_request_30.opened.json';
+import pullRequestCommits from '../../__fixtures__/pull_request_30_commits.json';
 import { voidTeamSlack } from '../../context/slack/voidTeamSlack';
 import {
   initializeProbotApp,

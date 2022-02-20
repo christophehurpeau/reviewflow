@@ -1,7 +1,6 @@
 import { WebClient } from '@slack/web-api';
 import type { Router, Request, Response } from 'express';
 import type { MongoInsertType } from 'liwi-mongo';
-import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server.js';
 import type { SetRequired } from 'type-fest';
 import { slackOAuth2, slackOAuth2Version2 } from '../auth/slack';

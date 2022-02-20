@@ -1,8 +1,8 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { jest } from '@jest/globals';
 import type { Probot } from 'probot';
-import pullRequestEdited from '../../../fixtures/pull_request_30.edited.json';
-import pullRequestCommits from '../../../fixtures/pull_request_30_commits.json';
+import pullRequestEdited from '../../__fixtures__/pull_request_30.edited.json';
+import pullRequestCommits from '../../__fixtures__/pull_request_30_commits.json';
 import { voidTeamSlack } from '../../context/slack/voidTeamSlack';
 import {
   initializeProbotApp,
