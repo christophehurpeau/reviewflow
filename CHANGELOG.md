@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.98.0](https://github.com/christophehurpeau/reviewflow/compare/v1.97.0...v1.98.0) (2022-02-20)
+
+
+### Features
+
+* **deps:** update commitlint monorepo to v16.2.1 ([#461](https://github.com/christophehurpeau/reviewflow/issues/461)) ([4bb914a](https://github.com/christophehurpeau/reviewflow/commit/4bb914aa8d6465d14d93982c01c1e3c1eaa8218b))
+* **deps:** update dependency @octokit/webhooks to v9.22.0 ([#402](https://github.com/christophehurpeau/reviewflow/issues/402)) ([1358ee0](https://github.com/christophehurpeau/reviewflow/commit/1358ee00a6befccb3046862718c17af75810ddc7))
+* review comments in threads ([69b8cbe](https://github.com/christophehurpeau/reviewflow/commit/69b8cbe11dd8834cca43e0a8c7294161fddfc353))
+* support assigned and unassigned events ([ff50bc1](https://github.com/christophehurpeau/reviewflow/commit/ff50bc12080c83dd1e9533e1fc9cf8e3bb6ac925))
+
+
+### Bug Fixes
+
+* auto approve again when reviewflow approval was dismissed ([7fcb5b9](https://github.com/christophehurpeau/reviewflow/commit/7fcb5b9d5510ee1b68b1484746db061de0d68db2))
+* **deps:** update dependency body-parser to v1.19.2 ([#463](https://github.com/christophehurpeau/reviewflow/issues/463)) ([751dd45](https://github.com/christophehurpeau/reviewflow/commit/751dd454aecac6f6b088714b6116a2e4040792cc))
+* ignore code approved label for dismissed review ([ca31932](https://github.com/christophehurpeau/reviewflow/commit/ca31932bf757006628f08c3a28432e65a96f9f51))
+* make sure db and server are closed properly ([15495f1](https://github.com/christophehurpeau/reviewflow/commit/15495f1ba4552a3acc284d9b97b435b53e77a9d7))
+
 ## [1.97.0](https://github.com/christophehurpeau/reviewflow/compare/v1.96.0...v1.97.0) (2022-01-29)
 
 
