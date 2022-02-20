@@ -4,6 +4,7 @@ import type { AppContext } from './context/AppContext';
 import membershipChanged from './events/account-handlers/membershipChanged';
 import orgMemberAddedOrRemoved from './events/account-handlers/orgMemberAddedOrRemoved';
 import teamChanged from './events/account-handlers/teamChanged';
+import assignedOrUnassignedHandler from './events/pr-handlers/assignedOrUnassigned';
 import checkrunCompleted from './events/pr-handlers/checkrunCompleted';
 import checksuiteCompleted from './events/pr-handlers/checksuiteCompleted';
 import closedHandler from './events/pr-handlers/closed';
@@ -38,6 +39,7 @@ export default function initApp(app: Probot, appContext: AppContext): void {
 
   // PR
   /* https://developer.github.com/webhooks/event-payloads/#pull_request */
+  assignedOrUnassignedHandler(app, appContext);
   openedHandler(app, appContext);
   editedHandler(app, appContext);
   closedHandler(app, appContext);
