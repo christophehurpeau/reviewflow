@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.100.0](https://github.com/christophehurpeau/reviewflow/compare/v1.99.0...v1.100.0) (2022-03-12)
+
+
+### Features
+
+* **deps:** update dependency @slack/web-api to v6.7.0 ([#471](https://github.com/christophehurpeau/reviewflow/issues/471)) ([f523127](https://github.com/christophehurpeau/reviewflow/commit/f523127f0c4a4703ba65f08e502cc4849b0a0ae5))
+
+
+### Bug Fixes
+
+* **deps:** update dependency emoji-regex to v10.0.1 ([#481](https://github.com/christophehurpeau/reviewflow/issues/481)) ([f04fec8](https://github.com/christophehurpeau/reviewflow/commit/f04fec89833d9ec587d7c99ad899d6d9ef69addc))
+
 ## [1.99.0](https://github.com/christophehurpeau/reviewflow/compare/v1.98.0...v1.99.0) (2022-02-20)
 
 
