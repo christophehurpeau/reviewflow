@@ -2,6 +2,7 @@ import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
+import { checkIfIsThisBot } from './utils/isBotUser';
 
 export default function assignedOrUnassignedHandler(
   app: Probot,
@@ -12,6 +13,10 @@ export default function assignedOrUnassignedHandler(
     appContext,
     ['pull_request.assigned', 'pull_request.unassigned'],
     (payload, context, repoContext) => {
+      if (checkIfIsThisBot(payload.sender)) {
+        // ignore assigned from this bot
+        return null;
+      }
       return payload.pull_request;
     },
     async (
