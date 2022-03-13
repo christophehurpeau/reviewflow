@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.100.1](https://github.com/christophehurpeau/reviewflow/compare/v1.100.0...v1.100.1) (2022-03-13)
+
+
+### Bug Fixes
+
+* ignore sending slack message when assigned by reviewflow ([0e9d5a7](https://github.com/christophehurpeau/reviewflow/commit/0e9d5a7300f0e91adc9954cd562b2a5945297ed8))
+
 ## [1.100.0](https://github.com/christophehurpeau/reviewflow/compare/v1.99.0...v1.100.0) (2022-03-12)
 
 
