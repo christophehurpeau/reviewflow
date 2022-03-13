@@ -3,7 +3,6 @@ import { createCheckPackage } from 'check-package-dependencies';
 createCheckPackage()
   .checkRecommended({
     isLibrary: false,
-    directDuplicateDependenciesOnlyWarnsFor: ['@types/node', 'type-fest'],
   })
   .checkSatisfiesVersionsFromDependency('probot', {
     dependencies: ['@octokit/core', '@octokit/webhooks'],
