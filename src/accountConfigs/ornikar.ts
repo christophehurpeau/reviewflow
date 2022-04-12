@@ -183,6 +183,8 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         'PSniezak',
         'aenario',
         'Goldiggy',
+        'pauldeblicker',
+        'mattp94',
       ],
       labels: ['teams/frontend'],
     },
