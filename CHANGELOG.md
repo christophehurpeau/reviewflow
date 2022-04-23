@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.100.2](https://github.com/christophehurpeau/reviewflow/compare/v1.100.1...v1.100.2) (2022-04-23)
+
+
+### Bug Fixes
+
+* **deps:** update dependency probot to v12.2.2 ([#484](https://github.com/christophehurpeau/reviewflow/issues/484)) ([c92b699](https://github.com/christophehurpeau/reviewflow/commit/c92b699e77ad6f0778e50539c1baf0a27ed8329f))
+
 ### [1.100.1](https://github.com/christophehurpeau/reviewflow/compare/v1.100.0...v1.100.1) (2022-03-13)
 
 
