@@ -6,6 +6,11 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
   ignoreRepoPattern: '(infra-.*|devenv|bigquery-dbt)',
   requiresReviewRequest: true,
   autoMergeRenovateWithSkipCi: false,
+  checksAllowedToFail: [
+    'codecov/',
+    'ci/circleci: test-e2e',
+    'SonarCloud Code Analysis',
+  ],
   prDefaultOptions: {
     autoMergeWithSkipCi: false,
     autoMerge: false,

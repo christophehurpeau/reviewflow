@@ -54,33 +54,53 @@ const getFailedOrWaitingStatusOrChecks = async <
 >(
   pr: PullRequestData,
   context: ProbotEvent<Name>,
+  repoContext: RepoContext,
 ): Promise<FailedOrWaitingStatusOrChecks> => {
-  const checks = await context.octokit.checks.listForRef(
-    context.repo({
-      ref: pr.head.sha,
-      per_page: 100,
-    }),
-  );
+  const [checks, combinedStatus] = await Promise.all([
+    context.octokit.checks.listForRef(
+      context.repo({
+        ref: pr.head.sha,
+        per_page: 100,
+      }),
+    ),
+    context.octokit.repos.getCombinedStatusForRef(
+      context.repo({
+        ref: pr.head.sha,
+        per_page: 100,
+      }),
+    ),
+  ]);
 
   const failedChecks = checks.data.check_runs
     .filter((check) => check.conclusion === 'failure')
-    .filter((check) => !check.name?.includes('codecov'))
+    .filter(
+      (check) =>
+        !check.name ||
+        !repoContext.config.checksAllowedToFail ||
+        repoContext.config.checksAllowedToFail.every((name) =>
+          name.endsWith('/')
+            ? !check.name.startsWith(name)
+            : check.name !== name,
+        ),
+    )
     .map((check) => check.name);
 
   const pendingChecks = checks.data.check_runs
     .filter((check) => check.conclusion == null)
     .map((check) => check.name);
 
-  const combinedStatus = await context.octokit.repos.getCombinedStatusForRef(
-    context.repo({
-      ref: pr.head.sha,
-      per_page: 100,
-    }),
-  );
-
   const failedStatuses = combinedStatus.data.statuses
     .filter((status) => status.state === 'failure' || status.state === 'error')
-    .filter((status) => !status.context?.includes('test-e2e'))
+    .filter(
+      (status) =>
+        !status.context ||
+        !repoContext.config.checksAllowedToFail ||
+        repoContext.config.checksAllowedToFail.every((name) =>
+          name.endsWith('/')
+            ? !status.context.startsWith(name)
+            : status.context !== name,
+        ),
+    )
     .map((status) => status.context);
 
   const pendingStatuses = combinedStatus.data.statuses
@@ -337,7 +357,7 @@ export const autoMergeIfPossible = async <
   }
 
   const { failedChecks, failedStatuses, pendingChecks, pendingStatuses } =
-    await getFailedOrWaitingStatusOrChecks(pullRequest, context);
+    await getFailedOrWaitingStatusOrChecks(pullRequest, context, repoContext);
   if (failedChecks.length > 0 || failedStatuses.length > 0) {
     addLog('failed status or checks', 'remove');
     await createAutomergeStatus('failed statuses or checks');

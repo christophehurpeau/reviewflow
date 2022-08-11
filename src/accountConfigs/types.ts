@@ -76,6 +76,7 @@ export interface Config<GroupNames extends string, TeamNames extends string> {
   ignoreRepoPattern?: string;
   requiresReviewRequest?: boolean;
   autoMergeRenovateWithSkipCi?: boolean;
+  checksAllowedToFail?: string[];
   experimentalFeatures?: ExperimentalFeatures;
   parsePR?: ParsePR;
   prDefaultOptions: Options;
