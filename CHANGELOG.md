@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.101.0](https://github.com/christophehurpeau/reviewflow/compare/v1.100.1...v1.101.0) (2022-08-11)
+
+
+### Features
+
+* enable auto merge for bot prs when requiresReviewRequest is enabled ([e10911a](https://github.com/christophehurpeau/reviewflow/commit/e10911a70b3ae664e0c799ec59952f6ff34502ce))
+* ignore draft prs in requested reviews of slack home ([4a7c4b8](https://github.com/christophehurpeau/reviewflow/commit/4a7c4b84a3654861d854d3297b37191a7fdae481))
+* request reviews only when pr is not in draft ([fa66067](https://github.com/christophehurpeau/reviewflow/commit/fa66067a9112861d698a0100e5b142cefd9319b3))
+
+
+### Bug Fixes
+
+* **deps:** update dependency probot to v12.2.2 ([#484](https://github.com/christophehurpeau/reviewflow/issues/484)) ([c92b699](https://github.com/christophehurpeau/reviewflow/commit/c92b699e77ad6f0778e50539c1baf0a27ed8329f))
+
 ### [1.100.1](https://github.com/christophehurpeau/reviewflow/compare/v1.100.0...v1.100.1) (2022-03-13)
 
 
