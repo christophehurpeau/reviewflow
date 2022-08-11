@@ -90,7 +90,7 @@
     "@commitlint/config-conventional": "16.2.1",
     "@commitlint/lint": "16.2.1",
     "@commitlint/parse": "16.2.1",
-    "@octokit/core": "3.5.1",
+    "@octokit/core": "3.6.0",
     "@octokit/rest": "18.12.0",
     "@octokit/webhooks": "9.26.0",
     "@slack/web-api": "6.7.2",
