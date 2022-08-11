@@ -92,7 +92,7 @@
     "@commitlint/parse": "16.2.1",
     "@octokit/core": "3.5.1",
     "@octokit/rest": "18.12.0",
-    "@octokit/webhooks": "9.22.0",
+    "@octokit/webhooks": "9.26.0",
     "@slack/web-api": "6.7.0",
     "body-parser": "1.19.2",
     "conventional-changelog-conventionalcommits": "4.6.3",

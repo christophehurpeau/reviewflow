@@ -1425,22 +1425,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/webhooks-types@npm:5.2.0":
-  version: 5.2.0
-  resolution: "@octokit/webhooks-types@npm:5.2.0"
-  checksum: d9a70012b3aeb071955bc4a474f4c7877a7c31da5972697a12aeb4de1993a90fa72b9b1bbb3ce4dcf55606a9677b0dcda27704643190e255ee2d6619f90ce46a
+"@octokit/webhooks-types@npm:5.8.0":
+  version: 5.8.0
+  resolution: "@octokit/webhooks-types@npm:5.8.0"
+  checksum: a5103ef5224e0fab201845fa23333f21415aebae7650f1b6ffe64c11377847139411a1a37fff5931aead13658b94b79ab0abbad24b9c30bfc4d2c9528ceb72d1
   languageName: node
   linkType: hard
 
-"@octokit/webhooks@npm:9.22.0, @octokit/webhooks@npm:^9.8.4":
-  version: 9.22.0
-  resolution: "@octokit/webhooks@npm:9.22.0"
+"@octokit/webhooks@npm:9.26.0, @octokit/webhooks@npm:^9.8.4":
+  version: 9.26.0
+  resolution: "@octokit/webhooks@npm:9.26.0"
   dependencies:
     "@octokit/request-error": ^2.0.2
     "@octokit/webhooks-methods": ^2.0.0
-    "@octokit/webhooks-types": 5.2.0
+    "@octokit/webhooks-types": 5.8.0
     aggregate-error: ^3.1.0
-  checksum: 8d0c4d6716406a69687deeeb3cb3cc9d04b390240859e3feea2ff61a960b1be5d127168d3f52c7978dab36e8efb413c2d2a947d86b410f6b60f2140a1952bf36
+  checksum: 97da13d2464095d68068ff2fd7d2aa42d1c88e6271eb929ae50890396d16862debfa2078e650823bacf42c4a1c606137d3715a5f970bfcbc2bbdf66bca38760e
   languageName: node
   linkType: hard
 
@@ -9441,7 +9441,7 @@ resolve@^2.0.0-next.3:
     "@commitlint/parse": 16.2.1
     "@octokit/core": 3.5.1
     "@octokit/rest": 18.12.0
-    "@octokit/webhooks": 9.22.0
+    "@octokit/webhooks": 9.26.0
     "@pob/commitlint-config": 4.1.0
     "@pob/eslint-config": 49.0.0
     "@pob/eslint-config-typescript": 49.0.0
