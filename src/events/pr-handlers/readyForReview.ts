@@ -1,6 +1,5 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
-import type { User } from '../../mongo';
 import * as slackUtils from '../../slack/utils';
 import { ExcludesFalsy } from '../../utils/Excludes';
 import { editOpenedPR } from './actions/editOpenedPR';
@@ -35,9 +34,8 @@ export default function readyForReview(
 
       const reviewerGroups = [
         ...new Set([
-          ...(pullRequest.requested_reviewers as unknown as User[]).map(
-            (requestedReviewer) =>
-              repoContext.getReviewerGroup(requestedReviewer.login),
+          ...pullRequest.requested_reviewers.map((requestedReviewer) =>
+            repoContext.getReviewerGroup((requestedReviewer as any).login),
           ),
           ...pullRequest.requested_teams.map((requestedTeam) =>
             repoContext.getTeamGroup(requestedTeam.name),
@@ -94,16 +92,14 @@ export default function readyForReview(
         });
       }
 
-      (pullRequest.requested_reviewers as unknown as User[]).forEach(
-        (requestedReviewer) => {
-          if (loginsAskedToUpdateSlackHome.includes(requestedReviewer.login)) {
-            return;
-          }
+      pullRequest.requested_reviewers.forEach((requestedReviewer: any) => {
+        if (loginsAskedToUpdateSlackHome.includes(requestedReviewer.login)) {
+          return;
+        }
 
-          loginsAskedToUpdateSlackHome.push(requestedReviewer.login);
-          repoContext.slack.updateHome(requestedReviewer.login);
-        },
-      );
+        loginsAskedToUpdateSlackHome.push(requestedReviewer.login);
+        repoContext.slack.updateHome(requestedReviewer.login);
+      });
 
       membersForTeams.forEach(({ members }) => {
         members.forEach((teamMember) => {
@@ -137,28 +133,26 @@ export default function readyForReview(
         };
 
         await Promise.all([
-          ...(pullRequest.requested_reviewers as unknown as User[]).map(
-            async (potentialReviewer) => {
-              if (sender.login === potentialReviewer.login) return;
+          ...pullRequest.requested_reviewers.map(async (potentialReviewer) => {
+            if (sender.id === potentialReviewer.id) return;
 
-              const result = await repoContext.slack.postMessage(
-                'pr-review',
-                potentialReviewer as any,
-                messageRequestedReviewers,
-                // requestedTeam ? requestedTeam.id : undefined,
-                undefined,
-              );
-              if (result) {
-                await appContext.mongoStores.slackSentMessages.insertOne({
-                  type: 'review-requested',
-                  typeId: `${pullRequest.id}_${''}${potentialReviewer.id}`,
-                  message: messageRequestedReviewers,
-                  account: repoContext.accountEmbed,
-                  sentTo: [result],
-                });
-              }
-            },
-          ),
+            const result = await repoContext.slack.postMessage(
+              'pr-review',
+              potentialReviewer as any,
+              messageRequestedReviewers,
+              // requestedTeam ? requestedTeam.id : undefined,
+              undefined,
+            );
+            if (result) {
+              await appContext.mongoStores.slackSentMessages.insertOne({
+                type: 'review-requested',
+                typeId: `${pullRequest.id}_${''}${potentialReviewer.id}`,
+                message: messageRequestedReviewers,
+                account: repoContext.accountEmbed,
+                sentTo: [result],
+              });
+            }
+          }),
           ...membersForTeams.map(({ requestedTeam, members }) => {
             const message = { text: createText({ requestedTeam }) };
 
