@@ -19,17 +19,21 @@ export default function reviewRequested(
       repoContext,
       reviewflowPrContext,
     ): Promise<void> => {
+      // don't send notification when PR is still in draft. Notifications will be send when the PR is ready to review.
+      if (pullRequest.draft) return;
+
       const sender = context.payload.sender;
 
       const requestedReviewer = (context.payload as any).requested_reviewer;
       const requestedTeam = (context.payload as any).requested_team;
       const requestedReviewers = requestedReviewer
         ? [requestedReviewer]
-        : await repoContext.getMembersForTeam(requestedTeam.id);
+        : await repoContext.getMembersForTeams([requestedTeam.id]);
 
       const reviewerGroup = requestedReviewer
         ? repoContext.getReviewerGroup(requestedReviewer.login)
         : repoContext.getTeamGroup(requestedTeam.name);
+
       const shouldWait = false;
       // repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, { includesWaitForGroups: true });
 
@@ -52,6 +56,7 @@ export default function reviewRequested(
           },
         );
 
+        /* update slack home */
         const assigneesLogins: string[] = [];
         if (pullRequest.assignees) {
           pullRequest.assignees.forEach((assignee) => {
@@ -61,11 +66,12 @@ export default function reviewRequested(
         }
 
         requestedReviewers.forEach((potentialReviewer) => {
-          if (assigneesLogins.includes(potentialReviewer)) return;
+          if (assigneesLogins.includes(potentialReviewer.login)) return;
           repoContext.slack.updateHome(potentialReviewer.login);
         });
       }
 
+      /* send slack notification */
       if (!shouldWait && repoContext.slack) {
         const text = `:eyes: ${repoContext.slack.mention(
           sender.login,

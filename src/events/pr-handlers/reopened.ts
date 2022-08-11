@@ -58,14 +58,12 @@ export default function reopened(app: Probot, appContext: AppContext): void {
       }
 
       if (pullRequest.requested_teams) {
-        await Promise.all(
-          pullRequest.requested_teams.map(async (team) => {
-            const members = await repoContext.getMembersForTeam(team.id);
-            members.forEach((member) => {
-              repoContext.slack.updateHome(member.login);
-            });
-          }),
+        const members = await repoContext.getMembersForTeams(
+          pullRequest.requested_teams.map((team) => team.id),
         );
+        members.forEach((member) => {
+          repoContext.slack.updateHome(member.login);
+        });
       }
 
       if (pullRequest.assignees) {

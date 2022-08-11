@@ -36,7 +36,7 @@ export interface AccountContext<
   getReviewerGroups: (githubLogins: string[]) => GroupNames[];
   getTeamGroup: (teamName: string) => GroupNames | undefined;
   getGithubTeamsGroups: (teamNames: string[]) => GroupNames[];
-  getMembersForTeam: (teamId: number) => Promise<AccountEmbedWithoutType[]>;
+  getMembersForTeams: (teamIds: number[]) => Promise<AccountEmbedWithoutType[]>;
   getTeamsForLogin: (githubLogin: string) => TeamNames[];
   updateGithubTeamMembers: () => Promise<void>;
   approveShouldWait: (
@@ -195,7 +195,8 @@ const initAccountContext = async <
     getTeamsForLogin: (githubLogin): string[] =>
       githubLoginToTeams.get(githubLogin) || [],
 
-    getMembersForTeam: async (teamId): Promise<AccountEmbedWithoutType[]> => {
+    getMembersForTeams: async (teamIds): Promise<AccountEmbedWithoutType[]> => {
+      if (teamIds.length === 0) return [];
       if (accountInfo.type !== 'Organization') {
         throw new Error(
           `Invalid account type "${accountInfo.type}" for getMembersForTeam`,
@@ -205,7 +206,7 @@ const initAccountContext = async <
         Pick<OrgMember, 'user'>
       >({
         'org.id': account._id,
-        'teams.id': teamId,
+        'teams.id': { $in: teamIds },
       });
       await cursor.limit(100);
       const orgMembers = await cursor.toArray();

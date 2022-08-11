@@ -27,7 +27,7 @@ export default function reviewRequestRemoved(
       const requestedTeam = (context.payload as any).requested_team;
       const requestedReviewers = requestedReviewer
         ? [requestedReviewer]
-        : await repoContext.getMembersForTeam(requestedTeam.id);
+        : await repoContext.getMembersForTeams([requestedTeam.id]);
       let isMerged = false;
 
       const reviewerGroup = requestedReviewer
