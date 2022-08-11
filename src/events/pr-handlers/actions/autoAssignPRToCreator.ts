@@ -12,7 +12,7 @@ export const autoAssignPRToCreator = async <
 ): Promise<void> => {
   if (!repoContext.config.autoAssignToCreator) return;
   if (!pullRequest.assignees || pullRequest.assignees.length > 0) return;
-  if (!pullRequest.user || pullRequest.user.type === 'Bot') return;
+  if (!pullRequest.user) return;
 
   await context.octokit.issues.addAssignees(
     context.issue({
