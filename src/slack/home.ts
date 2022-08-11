@@ -26,7 +26,7 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
       prsInDraft,
     ] = await Promise.all([
       octokit.search.issuesAndPullRequests({
-        q: `is:pr user:${member.org.login} is:open review-requested:${member.user.login} `,
+        q: `is:pr user:${member.org.login} is:open review-requested:${member.user.login} draft:false`,
         sort: 'created',
         order: 'desc',
       }),
