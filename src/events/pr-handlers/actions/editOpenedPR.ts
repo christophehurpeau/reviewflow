@@ -26,15 +26,27 @@ export interface ReviewflowStatus {
   status: StatusInfo;
 }
 
-export const editOpenedPR = async <Name extends EventsWithRepository>(
-  pullRequest: PullRequestWithDecentData,
-  context: ProbotEvent<Name>,
-  appContext: AppContext,
-  repoContext: RepoContext,
-  reviewflowPrContext: ReviewflowPrContext,
-  shouldUpdateCommentBodyInfos: boolean,
-  previousSha?: string,
-): Promise<void> => {
+export interface EditOpenedPullRequestOptions<
+  Name extends EventsWithRepository,
+> {
+  pullRequest: PullRequestWithDecentData;
+  context: ProbotEvent<Name>;
+  appContext: AppContext;
+  repoContext: RepoContext;
+  reviewflowPrContext: ReviewflowPrContext;
+  shouldUpdateCommentBodyInfos: boolean;
+  previousSha?: string;
+}
+
+export const editOpenedPR = async <Name extends EventsWithRepository>({
+  pullRequest,
+  context,
+  appContext,
+  repoContext,
+  reviewflowPrContext,
+  shouldUpdateCommentBodyInfos,
+  previousSha,
+}: EditOpenedPullRequestOptions<Name>): Promise<void> => {
   const title = repoContext.config.trimTitle
     ? cleanTitle(pullRequest.title)
     : pullRequest.title;

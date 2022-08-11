@@ -35,14 +35,14 @@ export default function edited(app: Probot, appContext: AppContext): void {
       );
 
       await Promise.all([
-        editOpenedPR(
-          updatedPullRequest,
+        editOpenedPR({
+          pullRequest: updatedPullRequest,
           context,
           appContext,
           repoContext,
           reviewflowPrContext,
-          true,
-        ),
+          shouldUpdateCommentBodyInfos: true,
+        }),
         updateStatusCheckFromLabels(
           updatedPullRequest,
           context,

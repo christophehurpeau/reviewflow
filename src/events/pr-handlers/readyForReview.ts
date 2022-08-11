@@ -35,14 +35,14 @@ export default function readyForReview(
               add: ['needsReview'],
             },
           ),
-          editOpenedPR(
+          editOpenedPR({
             pullRequest,
             context,
             appContext,
             repoContext,
             reviewflowPrContext,
-            true,
-          ),
+            shouldUpdateCommentBodyInfos: true,
+          }),
         ]);
       }
     },

@@ -38,14 +38,14 @@ export default function reopened(app: Probot, appContext: AppContext): void {
               remove: fromRenovate ? [] : ['approved'],
             },
           ),
-          editOpenedPR(
+          editOpenedPR({
             pullRequest,
             context,
             appContext,
             repoContext,
             reviewflowPrContext,
-            true,
-          ),
+            shouldUpdateCommentBodyInfos: true,
+          }),
         ]);
       }
 

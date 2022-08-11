@@ -22,14 +22,14 @@ export default function opened(app: Probot, appContext: AppContext): void {
 
       await Promise.all<unknown>([
         autoAssignPRToCreator(pullRequest, context, repoContext),
-        editOpenedPR(
+        editOpenedPR({
           pullRequest,
           context,
           appContext,
           repoContext,
           reviewflowPrContext,
-          true,
-        ),
+          shouldUpdateCommentBodyInfos: true,
+        }),
         fromRenovate
           ? fetchPr(context, pullRequest.number).then((updatedPr) =>
               autoApproveAndAutoMerge(

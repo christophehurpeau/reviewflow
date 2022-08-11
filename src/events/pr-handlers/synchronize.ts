@@ -38,15 +38,15 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
             },
           },
         ),
-        editOpenedPR(
-          updatedPr,
+        editOpenedPR({
+          pullRequest: updatedPr,
           context,
           appContext,
           repoContext,
           reviewflowPrContext,
-          true,
+          shouldUpdateCommentBodyInfos: true,
           previousSha,
-        ),
+        }),
         // addStatusCheckToLatestCommit
         updateStatusCheckFromLabels(
           updatedPr,

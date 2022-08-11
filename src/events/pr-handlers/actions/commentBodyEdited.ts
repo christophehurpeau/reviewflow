@@ -36,14 +36,14 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
     await Promise.all([
       actions.includes('updateChecks') &&
         Promise.all([
-          editOpenedPR(
+          editOpenedPR({
             pullRequest,
             context,
             appContext,
             repoContext,
             reviewflowPrContext,
-            true,
-          ),
+            shouldUpdateCommentBodyInfos: true,
+          }),
           updateStatusCheckFromLabels(
             pullRequest,
             context,
