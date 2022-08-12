@@ -26,16 +26,19 @@ export default function opened(app: Probot, appContext: AppContext): void {
       const fromRenovate = pullRequest.head.ref.startsWith('renovate/');
       const autoMergeLabel = repoContext.labels['merge/automerge'];
 
+      if (isFromBot && repoContext.config.requiresReviewRequest) {
+        // sync labels before `editOpenedPR` to make sure comment has automerge selected
+        await syncLabels(pullRequest, context, [
+          {
+            shouldHaveLabel: true,
+            label: autoMergeLabel,
+          },
+        ]);
+      }
+
       await Promise.all<unknown>([
         !isFromBot && autoAssignPRToCreator(pullRequest, context, repoContext),
-        isFromBot &&
-          repoContext.config.requiresReviewRequest &&
-          syncLabels(pullRequest, context, [
-            {
-              shouldHaveLabel: true,
-              label: autoMergeLabel,
-            },
-          ]),
+
         editOpenedPR({
           pullRequest,
           context,
