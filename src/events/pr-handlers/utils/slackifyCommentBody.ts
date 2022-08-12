@@ -10,6 +10,7 @@ export const slackifyCommentBody = (
       .replace(
         '```suggestion\r\n```',
         `_Suggestion to remove line${multipleLines ? 's' : ''}._\n`,
-      ),
+      )
+      .slice(0, 3000),
   );
 };
