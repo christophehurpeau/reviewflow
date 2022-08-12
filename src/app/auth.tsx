@@ -2,7 +2,7 @@ import { promisify } from 'util';
 import { Octokit } from '@octokit/rest';
 import type { Router, Request, Response } from 'express';
 import jsonwebtoken from 'jsonwebtoken';
-import { renderToStaticMarkup } from 'react-dom/server.js';
+import { renderToStaticMarkup } from 'react-dom/server';
 import * as githubAuth from '../auth/github';
 import Layout from '../views/Layout';
 

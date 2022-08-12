@@ -2,7 +2,7 @@
 import bodyParser from 'body-parser';
 import type { Router } from 'express';
 import type { ProbotOctokit } from 'probot';
-import { renderToStaticMarkup } from 'react-dom/server.js';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { accountConfigs } from '../accountConfigs';
 import { getTeamsAndGroups } from '../context/accountContext';
 import type { MessageCategory } from '../dm/MessageCategory';
