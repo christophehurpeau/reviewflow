@@ -9,7 +9,7 @@ import type {
 } from '../../../context/repoContext';
 import { obtainRepoContext } from '../../../context/repoContext';
 import { fetchCommit } from './fetchCommit';
-import type { CommitFromRestEndpoint} from './fetchCommit';
+import type { CommitFromRestEndpoint } from './fetchCommit';
 
 export type EventsWithCommit = CustomExtract<
   EventsWithRepository,
