@@ -1,5 +1,6 @@
 import type { Probot } from 'probot';
 import type { AppContext } from 'context/AppContext';
+import { checkIfUserIsBot } from '../../utils/github/isBotUser';
 import { autoApproveAndAutoMerge } from './actions/autoApproveAndAutoMerge';
 import { autoAssignPRToCreator } from './actions/autoAssignPRToCreator';
 import { editOpenedPR } from './actions/editOpenedPR';
@@ -7,7 +8,6 @@ import { updateReviewStatus } from './actions/updateReviewStatus';
 import { syncLabels } from './actions/utils/syncLabel';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
-import { checkIfUserIsBot } from './utils/isBotUser';
 
 export default function opened(app: Probot, appContext: AppContext): void {
   createPullRequestHandler(

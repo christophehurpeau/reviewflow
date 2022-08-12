@@ -1,12 +1,12 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
+import { checkIfIsThisBot } from '../../utils/github/isBotUser';
 import { autoApproveAndAutoMerge } from './actions/autoApproveAndAutoMerge';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
-import { checkIfIsThisBot } from './utils/isBotUser';
 
 export default function reviewDismissed(
   app: Probot,

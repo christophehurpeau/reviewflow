@@ -1,8 +1,8 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
+import { checkIfIsThisBot } from '../../utils/github/isBotUser';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
-import { checkIfIsThisBot } from './utils/isBotUser';
 
 export default function assignedOrUnassignedHandler(
   app: Probot,

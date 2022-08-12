@@ -1,11 +1,11 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
+import { checkIfIsThisBot } from '../../utils/github/isBotUser';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { updateStatusCheckFromLabels } from './actions/updateStatusCheckFromLabels';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
-import { checkIfIsThisBot } from './utils/isBotUser';
 
 export default function edited(app: Probot, appContext: AppContext): void {
   createPullRequestHandler(

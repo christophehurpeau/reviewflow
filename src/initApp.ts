@@ -4,6 +4,7 @@ import type { AppContext } from './context/AppContext';
 import membershipChanged from './events/account-handlers/membershipChanged';
 import orgMemberAddedOrRemoved from './events/account-handlers/orgMemberAddedOrRemoved';
 import teamChanged from './events/account-handlers/teamChanged';
+import commitCommentCreated from './events/commit-handlers/commitCommentCreated';
 import assignedOrUnassignedHandler from './events/pr-handlers/assignedOrUnassigned';
 import checkrunCompleted from './events/pr-handlers/checkrunCompleted';
 import checksuiteCompleted from './events/pr-handlers/checksuiteCompleted';
@@ -36,6 +37,10 @@ export default function initApp(app: Probot, appContext: AppContext): void {
   // Repo
   /* https://developer.github.com/webhooks/event-payloads/#repository */
   repoEdited(app, appContext);
+
+  // Commit
+  /* https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#commit_comment */
+  commitCommentCreated(app, appContext);
 
   // PR
   /* https://developer.github.com/webhooks/event-payloads/#pull_request */

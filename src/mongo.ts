@@ -108,7 +108,8 @@ export type SlackMessageType =
   | 'issue-comment'
   | 'review-comment'
   | 'review-requested'
-  | 'review-submitted';
+  | 'review-submitted'
+  | 'commit-comment';
 
 export interface SlackSentMessage extends MongoBaseModel {
   type: SlackMessageType;

@@ -13,16 +13,19 @@ import type {
 import type { AccountEmbed } from '../../mongo';
 import * as slackUtils from '../../slack/utils';
 import { ExcludesNullish } from '../../utils/Excludes';
+import {
+  checkIfUserIsBot,
+  checkIfIsThisBot,
+} from '../../utils/github/isBotUser';
+import { parseMentions } from '../../utils/github/parseMentions';
+import { createSlackMessageWithSecondaryBlock } from '../../utils/slack/createSlackMessageWithSecondaryBlock';
+import { slackifyCommentBody } from '../../utils/slackifyCommentBody';
 import type { ProbotEvent } from '../probot-types';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
-import { createSlackMessageWithSecondaryBlock } from './utils/createSlackMessageWithSecondaryBlock';
 import { fetchPr } from './utils/fetchPr';
 import { getPullRequestFromPayload } from './utils/getPullRequestFromPayload';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 import { getRolesFromPullRequestAndReviewers } from './utils/getRolesFromPullRequestAndReviewers';
-import { checkIfUserIsBot, checkIfIsThisBot } from './utils/isBotUser';
-import { parseMentions } from './utils/parseMentions';
-import { slackifyCommentBody } from './utils/slackifyCommentBody';
 
 type Comment = ProbotEvent<
   'pull_request_review_comment.created' | 'issue_comment.created'

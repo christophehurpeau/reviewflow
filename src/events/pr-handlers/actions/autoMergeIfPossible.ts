@@ -3,13 +3,13 @@ import type { EmitterWebhookEventName } from '@octokit/webhooks';
 import type { EventsWithRepository, RepoContext } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
 import type { AutomergeLog } from 'mongo';
+import { areCommitsAllMadeByBots } from '../../../utils/github/isBotUser';
 import type {
   PullRequestData,
   PullRequestFromRestEndpoint,
   PullRequestLabels,
 } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
-import { areCommitsAllMadeByBots } from '../utils/isBotUser';
 import { createMergeLockPrFromPr } from '../utils/mergeLock';
 import { updateBranch } from './updateBranch';
 import { parseBody } from './utils/body/parseBody';

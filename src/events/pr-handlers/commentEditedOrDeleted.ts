@@ -1,12 +1,12 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
+import { checkIfIsThisBot } from '../../utils/github/isBotUser';
+import { createMrkdwnSectionBlock } from '../../utils/slack/createSlackMessageWithSecondaryBlock';
+import { slackifyCommentBody } from '../../utils/slackifyCommentBody';
 import { commentBodyEdited } from './actions/commentBodyEdited';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
-import { createMrkdwnSectionBlock } from './utils/createSlackMessageWithSecondaryBlock';
 import { fetchPr } from './utils/fetchPr';
 import { getPullRequestFromPayload } from './utils/getPullRequestFromPayload';
-import { checkIfIsThisBot } from './utils/isBotUser';
-import { slackifyCommentBody } from './utils/slackifyCommentBody';
 
 export default function prCommentEditedOrDeleted(
   app: Probot,

@@ -10,4 +10,9 @@ export type MessageCategory =
   | 'pr-comment-thread'
   | 'pr-comment-mention'
   | 'pr-merge-conflicts'
+  | 'commit-comment'
+  | 'commit-comment-bots'
+  | 'commit-comment-follow'
+  | 'commit-comment-follow-bots'
+  | 'commit-comment-mention'
   | 'issue-comment-mention';

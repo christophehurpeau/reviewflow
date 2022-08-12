@@ -12,5 +12,10 @@ export const defaultDmSettings: Record<MessageCategory, boolean> = {
   'pr-comment-mention': true,
   'pr-comment-thread': true,
   'pr-merge-conflicts': true,
+  'commit-comment': true,
+  'commit-comment-bots': true,
+  'commit-comment-follow': true,
+  'commit-comment-follow-bots': false,
+  'commit-comment-mention': true,
   'issue-comment-mention': true,
 };
