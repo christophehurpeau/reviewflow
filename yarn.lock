@@ -2310,12 +2310,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:17.0.15":
-  version: 17.0.15
-  resolution: "@types/react-dom@npm:17.0.15"
+"@types/react-dom@npm:17.0.17":
+  version: 17.0.17
+  resolution: "@types/react-dom@npm:17.0.17"
   dependencies:
     "@types/react": ^17
-  checksum: 7b90372bd7207d3860e1043ebfe10fd21fbd9ec3417a29593ca14359774830c888ba4ebb25cf0510628607496f8d35b09d23d329ea709b9311f5866185c5fd67
+  checksum: 23caf98aa03e968811560f92a2c8f451694253ebe16b670929b24eaf0e7fa62ba549abe9db0ac028a9d8a9086acd6ab9c6c773f163fa21224845edbc00ba6232
   languageName: node
   linkType: hard
 
@@ -9486,7 +9486,7 @@ resolve@^2.0.0-next.3:
     "@types/jsonwebtoken": 8.5.8
     "@types/node": 16.11.47
     "@types/react": 17.0.48
-    "@types/react-dom": 17.0.15
+    "@types/react-dom": 17.0.17
     "@types/simple-oauth2": 4.1.1
     body-parser: 1.20.0
     check-package-dependencies: 3.5.2
