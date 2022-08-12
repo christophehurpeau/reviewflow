@@ -5,16 +5,26 @@ import initialAfterEditSimpleWithInfosV1 from './mocks/commentBody-v1-initialAft
 import initialAfterEditSimpleV2 from './mocks/commentBody-v2-initialAfterEdit-simple';
 import initialAfterEditSimpleWithInfosV2 from './mocks/commentBody-v2-initialAfterEdit-simpleWithInfos';
 import type { Options } from './prOptions';
+import type { RepositoryOptions } from './repositoryOptions';
 import {
   updateCommentOptions,
   updateCommentBodyCommitsNotes,
   updateCommentBodyInfos,
 } from './updateBody';
 
+const repositoryOptions: RepositoryOptions = {
+  defaultBranch: 'main',
+  deleteBranchOnMerge: false,
+  allowAutoMerge: false,
+  allowRebaseMerge: false,
+  allowSquashMerge: true,
+  allowMergeCommit: true,
+};
+
 const defaultConfig: Options = {
   autoMerge: false,
   autoMergeWithSkipCi: false,
-  deleteAfterMerge: true,
+  deleteAfterMerge: false,
 };
 
 const repoLinkMock = 'https://github.com/christophehurpeau/reviewflow';
@@ -61,6 +71,7 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
       it('should update initial description', () => {
         expect(
           updateCommentOptions(
+            repositoryOptions,
             repoLinkMock,
             labels,
             initialSimple,
@@ -72,6 +83,7 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
       it('should keep infos on update', () => {
         expect(
           updateCommentOptions(
+            repositoryOptions,
             repoLinkMock,
             labels,
             initialAfterEditSimpleWithInfos,
@@ -83,6 +95,7 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
       it('should update options', () => {
         expect(
           updateCommentOptions(
+            repositoryOptions,
             repoLinkMock,
             labels,
             initialAfterEditSimpleWithInfos,
@@ -183,3 +196,22 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
     });
   },
 );
+
+describe('Repository Options', () => {
+  it('should sjhow automerge if in default options', () => {
+    expect(
+      updateCommentOptions(
+        { ...repositoryOptions, deleteBranchOnMerge: false },
+        repoLinkMock,
+        labels,
+        initialSimpleV1,
+        { ...defaultConfig, deleteAfterMerge: true },
+      ).commentBody,
+    ).toEqual(
+      initialAfterEditSimpleLatest.replace(
+        '### Actions',
+        '- [x] <!-- reviewflow-deleteAfterMerge -->:recycle: Automatically delete the branch after this PR is merged. (:warning: Legacy Option: [Delete branch with Github Setting](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-the-automatic-deletion-of-branches))\n### Actions',
+      ),
+    );
+  });
+});

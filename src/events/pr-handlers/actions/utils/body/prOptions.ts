@@ -1,6 +1,7 @@
 import type { RepoContext } from 'context/repoContext';
 import type { PullRequestWithDecentData } from 'events/pr-handlers/utils/PullRequestData';
 import hasLabelInPR from '../hasLabelInPR';
+import type { RepositoryOptions } from './repositoryOptions';
 
 export type OptionsKeys =
   | 'autoMerge'
@@ -27,6 +28,10 @@ interface OptionDisplay {
   labelKey?: string;
   icon?: string;
   description: string;
+  legacy?: {
+    repositoryOptionKey: keyof RepositoryOptions;
+    legacyMessage?: string;
+  };
 }
 
 export const optionsDescriptions: OptionDisplay[] = [
@@ -46,6 +51,11 @@ export const optionsDescriptions: OptionDisplay[] = [
     key: 'deleteAfterMerge',
     icon: ':recycle:',
     description: 'Automatically delete the branch after this PR is merged.',
+    legacy: {
+      repositoryOptionKey: 'deleteBranchOnMerge',
+      legacyMessage:
+        '[Delete branch with Github Setting](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-the-automatic-deletion-of-branches)',
+    },
   },
 ];
 

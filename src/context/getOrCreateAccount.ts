@@ -1,8 +1,8 @@
 import type { EmitterWebhookEventName } from '@octokit/webhooks';
-import type { ProbotEvent } from 'events/probot-types';
 import { syncOrg } from '../events/account-handlers/actions/syncOrg';
 import { syncTeamsAndTeamMembers } from '../events/account-handlers/actions/syncTeams';
 import { syncUser } from '../events/account-handlers/actions/syncUser';
+import type { ProbotEvent } from '../events/probot-types';
 import type { Org, User } from '../mongo';
 import type { AppContext } from './AppContext';
 

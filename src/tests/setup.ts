@@ -19,6 +19,7 @@ export const initializeProbotApp = async ({
   users,
   prs,
   repositoryMergeQueue,
+  repositories,
 }: Partial<any> = {}): Promise<Probot> => {
   const probot = new Probot({
     appId: APP_ID,
@@ -29,6 +30,10 @@ export const initializeProbotApp = async ({
     orgs: {
       findByKey: () => Promise.resolve({ _id: 1, installationId: 1 }),
       ...orgs,
+    },
+    repositories: {
+      findByKey: () => Promise.resolve({ _id: 1, options: {} }),
+      ...repositories,
     },
     orgMembers: {
       findAll: () => Promise.resolve([]),

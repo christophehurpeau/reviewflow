@@ -1,18 +1,19 @@
 /* eslint-disable max-lines */
 import type { EmitterWebhookEventName } from '@octokit/webhooks';
 import { Lock } from 'lock';
-import type { ProbotEvent } from 'events/probot-types';
 import type { Config } from '../accountConfigs';
 import { accountConfigs, defaultConfig } from '../accountConfigs';
 import type { GroupLabels } from '../accountConfigs/types';
 import { autoMergeIfPossible } from '../events/pr-handlers/actions/autoMergeIfPossible';
+import { parseRepositoryOptions } from '../events/pr-handlers/actions/utils/body/repositoryOptions';
 import type {
   PullRequestDataMinimumData,
   PullRequestLabels,
 } from '../events/pr-handlers/utils/PullRequestData';
 import { getReviewflowPrContext } from '../events/pr-handlers/utils/createPullRequestContext';
 import { fetchPr } from '../events/pr-handlers/utils/fetchPr';
-import type { RepositoryMergeQueue } from '../mongo';
+import type { ProbotEvent } from '../events/probot-types';
+import type { RepositoryMergeQueue, Repository } from '../mongo';
 import { ExcludesFalsy } from '../utils/Excludes';
 import type { AppContext } from './AppContext';
 import type { AccountContext } from './accountContext';
@@ -83,6 +84,7 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   repoFullName: string;
   repoEmbed: { id: number; name: string };
   repoEmoji: string | undefined;
+  defaultBranch: string;
   labels: LabelsRecord;
   protectedLabelIds: readonly LabelResponse['id'][];
   shouldIgnore: boolean;
@@ -179,7 +181,6 @@ async function initRepoContext<
     owner: org,
     description,
   } = context.payload.repository;
-  const repoEmoji = getEmojiFromRepoDescription(description);
 
   const accountContext = await obtainAccountContext<T>(
     appContext,
@@ -191,6 +192,24 @@ async function initRepoContext<
 
   const shouldIgnore = shouldIgnoreRepo(name, config);
 
+  const findOrCreateRepository = async (): Promise<Repository> => {
+    const res = await appContext.mongoStores.repositories.findByKey(id, {
+      'account.id': accountContext.accountEmbed.id,
+    });
+
+    if (res) {
+      return res;
+    }
+
+    const repoEmoji = getEmojiFromRepoDescription(description);
+    return appContext.mongoStores.repositories.insertOne({
+      _id: id,
+      account: accountContext.accountEmbed,
+      emoji: repoEmoji,
+      fullName,
+      options: parseRepositoryOptions(context.payload.repository),
+    });
+  };
   const findOrCreateRepositoryMergeQueue =
     async (): Promise<RepositoryMergeQueue> => {
       const res = await appContext.mongoStores.repositoryMergeQueue.findOne({
@@ -209,8 +228,9 @@ async function initRepoContext<
       });
     };
 
-  const [repoLabels, repositoryMergeQueue] = await Promise.all([
+  const [repoLabels, repository, repositoryMergeQueue] = await Promise.all([
     shouldIgnore ? {} : initRepoLabels(context, config),
+    findOrCreateRepository(),
     findOrCreateRepositoryMergeQueue(),
   ]);
 
@@ -483,7 +503,8 @@ async function initRepoContext<
     labels: repoLabels,
     repoFullName: fullName,
     repoEmbed: { id, name },
-    repoEmoji,
+    repoEmoji: repository.emoji,
+    defaultBranch: context.payload.repository.default_branch,
     protectedLabelIds,
     shouldIgnore,
     hasNeedsReview,

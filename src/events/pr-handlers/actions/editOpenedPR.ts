@@ -11,6 +11,7 @@ import { readCommitsAndUpdateInfos } from './readCommitsAndUpdateInfos';
 import { updatePrIfNeeded } from './updatePr';
 import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
 import { calcDefaultOptions } from './utils/body/prOptions';
+import { parseRepositoryOptions } from './utils/body/repositoryOptions';
 import {
   updateCommentBodyInfos,
   defaultCommentBody,
@@ -248,6 +249,7 @@ export const editOpenedPR = async <Name extends EventsWithRepository>({
 
   const newCommentBody = shouldCreateCommentBody
     ? createCommentBody(
+        parseRepositoryOptions(context.payload.repository),
         context.payload.repository.html_url,
         repoContext.config.labels.list,
         calcDefaultOptions(repoContext, pullRequest),

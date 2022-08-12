@@ -433,6 +433,7 @@
       "open_issues": 4,
       "watchers": 0,
       "default_branch": "master",
+      "delete_branch_on_merge": true,
       "is_template": false,
       "topics": [],
       "visibility": "public"

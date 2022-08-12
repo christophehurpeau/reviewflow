@@ -2,10 +2,11 @@
 import type { MongoBaseModel } from 'liwi-mongo';
 import { MongoStore, MongoConnection } from 'liwi-mongo';
 import type { LockedMergePr } from 'context/repoContext';
-import type { ReviewflowStatus } from 'events/pr-handlers/actions/editOpenedPR';
 import type { AccountInfo } from './context/getOrCreateAccount';
 import type { SlackMessage } from './context/slack/SlackMessage';
 import type { MessageCategory } from './dm/MessageCategory';
+import type { ReviewflowStatus } from './events/pr-handlers/actions/editOpenedPR';
+import type { RepositoryOptions } from './events/pr-handlers/actions/utils/body/repositoryOptions';
 
 // export interface PrEventsModel extends MongoModel {
 //   owner: string;
@@ -21,11 +22,6 @@ export interface AccountEmbed {
   id: number;
   login: string;
   type: AccountType;
-}
-
-interface RepoEmbed {
-  id: number;
-  name: string;
 }
 
 interface PrEmbed {
@@ -60,6 +56,18 @@ export interface Org extends BaseAccount {
   /** @deprecated */
   slackToken?: string;
   config: OrgConfig;
+}
+
+export interface Repository extends MongoBaseModel<number> {
+  account: AccountEmbed;
+  fullName: string;
+  emoji: string;
+  options: RepositoryOptions;
+}
+
+interface RepoEmbed {
+  id: Repository['_id'];
+  name: Repository['fullName'];
 }
 
 export interface OrgTeam extends MongoBaseModel<number> {
@@ -170,6 +178,7 @@ export interface MongoStores {
   users: MongoStore<User>;
   orgs: MongoStore<Org>;
   orgMembers: MongoStore<OrgMember>;
+  repositories: MongoStore<Repository>;
   orgTeams: MongoStore<OrgTeam>;
   slackTeams: MongoStore<SlackTeam>;
   slackTeamInstallations: MongoStore<SlackTeamInstallation>;
@@ -296,6 +305,12 @@ export default function init(): MongoStores {
     connection,
     'slackTeamsInstallations',
   );
+  const repositories = new MongoStore<Repository>(connection, 'repositories');
+  repositories.collection.then((coll) => {
+    coll.createIndex({
+      'account.id': 1,
+    });
+  });
 
   const repositoryMergeQueue = new MongoStore<RepositoryMergeQueue>(
     connection,
@@ -323,6 +338,7 @@ export default function init(): MongoStores {
     slackTeamInstallations,
     slackSentMessages,
     automergeLogs,
+    repositories,
     prs,
     repositoryMergeQueue,
   };

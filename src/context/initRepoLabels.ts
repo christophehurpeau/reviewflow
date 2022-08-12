@@ -1,7 +1,7 @@
 import type { RestEndpointMethodTypes } from '@octokit/rest';
 import type { EmitterWebhookEventName } from '@octokit/webhooks';
-import type { ProbotEvent } from 'events/probot-types';
 import type { Config } from '../accountConfigs';
+import type { ProbotEvent } from '../events/probot-types';
 
 export interface LabelResponse {
   id: number;

@@ -1,11 +1,11 @@
 import { Lock } from 'lock';
-import type { EventsWithOrganisation } from 'events/account-handlers/utils/createHandlerOrgChange';
+import type { Config } from '../accountConfigs';
+import type { EventsWithOrganisation } from '../events/account-handlers/utils/createHandlerOrgChange';
 import type {
   PullRequestWithDecentData,
   PullRequestWithDecentDataFromWebhook,
-} from 'events/pr-handlers/utils/PullRequestData';
-import type { ProbotEvent } from 'events/probot-types';
-import type { Config } from '../accountConfigs';
+} from '../events/pr-handlers/utils/PullRequestData';
+import type { ProbotEvent } from '../events/probot-types';
 import type {
   Org,
   User,

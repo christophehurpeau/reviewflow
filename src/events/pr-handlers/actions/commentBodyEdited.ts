@@ -9,6 +9,7 @@ import { updateBranch } from './updateBranch';
 import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
 import { updateStatusCheckFromLabels } from './updateStatusCheckFromLabels';
 import { calcDefaultOptions } from './utils/body/prOptions';
+import { parseRepositoryOptions } from './utils/body/repositoryOptions';
 import { updateCommentOptions } from './utils/body/updateBody';
 import { syncLabels, removeLabel } from './utils/syncLabel';
 
@@ -24,6 +25,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
   const updateBranchLabel = repoContext.labels['merge/update-branch'];
 
   const { commentBody, options, actions } = updateCommentOptions(
+    parseRepositoryOptions(context.payload.repository),
     context.payload.repository.html_url,
     repoContext.config.labels.list,
     reviewflowPrContext.commentBody,

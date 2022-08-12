@@ -4,16 +4,26 @@ import { parseActions, parseOptions } from './parseBody';
 import type { ActionKeys } from './prActions';
 import { actionDescriptions } from './prActions';
 import { optionsDescriptions } from './prOptions';
+import type { RepositoryOptions } from './repositoryOptions';
 
 export const defaultCommentBody = 'This will be auto filled by reviewflow.';
 
 const toMarkdownOptions = (
+  repositoryOptions: RepositoryOptions,
   repoLink: string,
   labelsConfig: LabelList,
   options: Options,
+  defaultOptions: Options,
 ): string => {
   return optionsDescriptions
-    .map(({ key, labelKey, description, icon: iconValue }) => {
+    .map(({ key, labelKey, description, icon: iconValue, legacy }) => {
+      if (
+        legacy &&
+        (repositoryOptions[legacy.repositoryOptionKey] || !defaultOptions[key])
+      ) {
+        return null;
+      }
+
       const checkboxWithId = `[${
         options[key] ? 'x' : ' '
       }] <!-- reviewflow-${key} -->`;
@@ -26,8 +36,11 @@ const toMarkdownOptions = (
         : '';
       const icon = labelLink || !iconValue ? '' : `${iconValue} `;
 
-      return `- ${checkboxWithId}${icon}${labelLink}${description}`;
+      return `- ${checkboxWithId}${icon}${labelLink}${description}${
+        legacy ? ` (:warning: Legacy Option: ${legacy.legacyMessage})` : ''
+      }`;
     })
+    .filter(Boolean)
     .join('\n');
 };
 
@@ -87,10 +100,12 @@ const updateOptions = (
 };
 
 const internalUpdateBodyOptionsAndInfos = (
+  repositoryOptions: RepositoryOptions,
   repoLink: string,
   labelsConfig: LabelList,
   body: string,
   options: Options,
+  defaultOptions: Options,
   infos?: StatusInfo[],
 ): string => {
   const infosAndCommitNotesParagraph = body.replace(
@@ -100,28 +115,34 @@ const internalUpdateBodyOptionsAndInfos = (
   );
 
   return `${infosAndCommitNotesParagraph}### Options:\n${toMarkdownOptions(
+    repositoryOptions,
     repoLink,
     labelsConfig,
     options,
+    defaultOptions,
   )}\n### Actions:\n${toMarkdownActions(repoLink, labelsConfig)}`;
 };
 
 export const createCommentBody = (
+  repositoryOptions: RepositoryOptions,
   repoLink: string,
   labelsConfig: LabelList,
   defaultOptions: Options,
   infos?: StatusInfo[],
 ): string => {
   return internalUpdateBodyOptionsAndInfos(
+    repositoryOptions,
     repoLink,
     labelsConfig,
     '',
+    defaultOptions,
     defaultOptions,
     infos,
   );
 };
 
 export const updateCommentOptions = (
+  repositoryOptions: RepositoryOptions,
   repoLink: string,
   labelsConfig: LabelList,
   commentBody: string,
@@ -135,10 +156,12 @@ export const updateCommentOptions = (
     options: updatedOptions,
     actions: parseActions(commentBody),
     commentBody: internalUpdateBodyOptionsAndInfos(
+      repositoryOptions,
       repoLink,
       labelsConfig,
       commentBody,
       updatedOptions,
+      defaultOptions,
     ),
   };
 };
