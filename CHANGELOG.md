@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.102.0](https://github.com/christophehurpeau/reviewflow/compare/v1.101.0...v1.102.0) (2022-08-12)
+
+
+### Features
+
+* add commit comment created slack notification ([de59f28](https://github.com/christophehurpeau/reviewflow/commit/de59f2808ab62c19f38a85a449dfb09b28cf18ca))
+* **deps:** update dependency @octokit/core to v3.6.0 ([#492](https://github.com/christophehurpeau/reviewflow/issues/492)) ([2816888](https://github.com/christophehurpeau/reviewflow/commit/28168885833dd89b419c47ff530f3d37eb0e8001))
+* **deps:** update dependency @octokit/webhooks to v9.26.0 ([#493](https://github.com/christophehurpeau/reviewflow/issues/493)) ([1f786dc](https://github.com/christophehurpeau/reviewflow/commit/1f786dcd6c88fb6ac9415550932b322e57f34472))
+* **deps:** update dependency body-parser to v1.20.0 ([#507](https://github.com/christophehurpeau/reviewflow/issues/507)) ([8605ac3](https://github.com/christophehurpeau/reviewflow/commit/8605ac3b2fd0e296f1b8da16d2b906f0f2bd4744))
+* **deps:** update dependency emoji-regex to v10.1.0 ([#508](https://github.com/christophehurpeau/reviewflow/issues/508)) ([c1b9035](https://github.com/christophehurpeau/reviewflow/commit/c1b90351ed89a7c949e92dd65d4195e00be1c3e6))
+* initial work for legacy deleteAfterMerge option ([77001be](https://github.com/christophehurpeau/reviewflow/commit/77001be1777a6a4ea9cd3df23825f556d3dcd09f))
+
+
+### Bug Fixes
+
+* **deps:** update commitlint monorepo to v16.2.4 ([#524](https://github.com/christophehurpeau/reviewflow/issues/524)) ([c15bfd7](https://github.com/christophehurpeau/reviewflow/commit/c15bfd7722bb599ba3aacf8f405eaa8291283dfe))
+* **deps:** update dependency @slack/web-api to v6.7.2 ([#505](https://github.com/christophehurpeau/reviewflow/issues/505)) ([83a96f8](https://github.com/christophehurpeau/reviewflow/commit/83a96f8592fe2d3fcd8c96464fa32dee3d8eca24))
+* **deps:** update dependency probot to v12.2.5 ([#526](https://github.com/christophehurpeau/reviewflow/issues/526)) ([92dfba6](https://github.com/christophehurpeau/reviewflow/commit/92dfba6a1c0215db2d632d09c15ea003a38c9fde))
+* make sure slack message max length is 3000 ([85ad78a](https://github.com/christophehurpeau/reviewflow/commit/85ad78a190de1ba776044e8451e3d8588312536b))
+* opened event synclabel before update reviewflow comment ([c0b1c7b](https://github.com/christophehurpeau/reviewflow/commit/c0b1c7b5ac417120065f13716cf4444734dce726))
+* replies should be inline, not in thread with single message ([851a44e](https://github.com/christophehurpeau/reviewflow/commit/851a44e9a5a2da07e6de633a8cc3deca9edf478c))
+
 ## [1.101.0](https://github.com/christophehurpeau/reviewflow/compare/v1.100.1...v1.101.0) (2022-08-11)
 
 
