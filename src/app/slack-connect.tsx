@@ -119,7 +119,7 @@ export default function slackConnect(
             renderToStaticMarkup(
               <Layout>
                 Could not get access token:{' '}
-                {req.query.error_description || req.query.error}.
+                {String(req.query.error_description || req.query.error)}.
               </Layout>,
             ),
           );
