@@ -124,7 +124,7 @@
     "@types/issue-parser": "3.0.1",
     "@types/jest": "27.4.1",
     "@types/jsonwebtoken": "8.5.8",
-    "@types/node": "16.11.47",
+    "@types/node": "16.11.48",
     "@types/react": "17.0.48",
     "@types/react-dom": "17.0.17",
     "@types/simple-oauth2": "4.1.1",
