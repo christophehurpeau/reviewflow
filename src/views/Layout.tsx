@@ -14,6 +14,7 @@ export default function Layout({
   return (
     <html lang={lang}>
       <head>
+        {/* eslint-disable-next-line unicorn/text-encoding-identifier-case */}
         <meta charSet="UTF-8" />
         <meta name="robots" content="noindex" />
         <title>{title}</title>
