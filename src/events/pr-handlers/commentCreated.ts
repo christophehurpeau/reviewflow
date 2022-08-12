@@ -133,7 +133,9 @@ export default function prCommentCreated(
       const prUser = pr.user;
       if (!prUser) return;
       const { comment } = context.payload;
-      const isReviewComment = !!(comment as any).pull_request_review_id;
+      const isReviewComment =
+        !!(comment as any).pull_request_review_id &&
+        !(comment as any).in_reply_to_id;
       const type = isReviewComment ? 'review-comment' : 'issue-comment';
 
       const body = comment.body;
