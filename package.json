@@ -123,7 +123,7 @@
     "@types/cookie-parser": "1.4.3",
     "@types/express": "4.17.13",
     "@types/issue-parser": "3.0.1",
-    "@types/jest": "28.1.6",
+    "@types/jest": "28.1.7",
     "@types/jsonwebtoken": "8.5.8",
     "@types/node": "16.11.48",
     "@types/react": "18.0.17",
