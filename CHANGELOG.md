@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.103.0](https://github.com/christophehurpeau/reviewflow/compare/v1.102.0...v1.103.0) (2022-08-17)
+
+
+### Features
+
+* add ci/circleci: tests-e2e as ignored failing ci job ([1f2a081](https://github.com/christophehurpeau/reviewflow/commit/1f2a0818fa57659c7b28802399517d722e198cd7))
+
 ## [1.102.0](https://github.com/christophehurpeau/reviewflow/compare/v1.101.0...v1.102.0) (2022-08-12)
 
 
