@@ -9,6 +9,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
   checksAllowedToFail: [
     'codecov/',
     'ci/circleci: test-e2e',
+    'ci/circleci: tests-e2e',
     'SonarCloud Code Analysis',
   ],
   prDefaultOptions: {
