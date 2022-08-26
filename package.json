@@ -135,7 +135,7 @@
     "nock": "13.2.9",
     "pob-babel": "34.0.0",
     "smee-client": "1.2.3",
-    "type-fest": "2.18.0",
+    "type-fest": "2.19.0",
     "typescript": "4.7.4"
   }
 }
