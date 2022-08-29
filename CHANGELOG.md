@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.103.1](https://github.com/christophehurpeau/reviewflow/compare/v1.103.0...v1.103.1) (2022-08-29)
+
+
+### Bug Fixes
+
+* ignore assigned/unassigned notifications if pr is closed or merged ([f78d1d6](https://github.com/christophehurpeau/reviewflow/commit/f78d1d68ae99c826dca1afa819e5eeb496a952b2))
+
 ## [1.103.0](https://github.com/christophehurpeau/reviewflow/compare/v1.102.0...v1.103.0) (2022-08-17)
 
 
