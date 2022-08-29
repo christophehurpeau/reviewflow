@@ -17,6 +17,11 @@ export default function assignedOrUnassignedHandler(
         // ignore assigned from this bot
         return null;
       }
+
+      if (payload.pull_request.closed_at) {
+        // ignore notifications for assigned/unassigned if pr is closed or merged
+        return null;
+      }
       return payload.pull_request;
     },
     async (
