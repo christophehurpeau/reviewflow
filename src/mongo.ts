@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import type { MongoBaseModel } from 'liwi-mongo';
 import { MongoStore, MongoConnection } from 'liwi-mongo';
@@ -172,8 +173,43 @@ export interface RepositoryMergeQueue extends MongoBaseModel {
   queue: LockedMergePr[];
 }
 
+interface DailyStatsData {
+  // number of pr created on that day
+  createdPRs: {
+    total: number;
+  };
+  // number of pr created or still opened on that day
+  openedPRs: {
+    total: number;
+    draft: number;
+    hasRequestedReviewers: number;
+  };
+  // number of pr closed (or merged) on that day
+  closedPRs: {
+    merged: number;
+    total: number;
+  };
+}
+
+interface DailyStatsPerMember extends DailyStatsData {
+  user: AccountEmbed;
+}
+
+interface DailyStatsPerRepository extends DailyStatsData {
+  repo: RepoEmbed;
+}
+
+export interface AccountDailyStats extends MongoBaseModel {
+  day: string;
+  account: AccountEmbed;
+  stats: DailyStatsData;
+  statsPerRepository: DailyStatsPerRepository[];
+  statsPerMember: DailyStatsPerMember[];
+}
+
 export interface MongoStores {
   connection: MongoConnection;
+  dailyClean: () => Promise<void>;
   userDmSettings: MongoStore<UserDmSettings>;
   users: MongoStore<User>;
   orgs: MongoStore<Org>;
@@ -186,6 +222,7 @@ export interface MongoStores {
   automergeLogs: MongoStore<AutomergeLog>;
   prs: MongoStore<ReviewflowPr>;
   repositoryMergeQueue: MongoStore<RepositoryMergeQueue>;
+  accountDailyStats: MongoStore<AccountDailyStats>;
   // prEvents: MongoStore<PrEventsModel>;
 }
 
@@ -254,10 +291,6 @@ export default function init(): MongoStores {
       type: 1,
       typeId: 1,
     });
-    // remove older than 14 days
-    coll.deleteMany({
-      created: { $lt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) },
-    });
   });
 
   const automergeLogs = new MongoStore<AutomergeLog>(
@@ -272,10 +305,6 @@ export default function init(): MongoStores {
     coll.createIndex({
       repoFullName: 1,
       'pr.number': 1,
-    });
-    // remove older than 30 days
-    coll.deleteMany({
-      created: { $lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
     });
   });
 
@@ -293,10 +322,6 @@ export default function init(): MongoStores {
       'account.id': 1,
       'repo.id': 1,
       headSha: 1,
-    });
-    // remove older than 12 * 30 days
-    coll.deleteMany({
-      created: { $lt: new Date(Date.now() - 12 * 30 * 24 * 60 * 60 * 1000) },
     });
   });
 
@@ -326,8 +351,45 @@ export default function init(): MongoStores {
     );
   });
 
+  const accountDailyStats = new MongoStore<AccountDailyStats>(
+    connection,
+    'accountDailyStats',
+  );
+
   // return { connection, prEvents };
   return {
+    dailyClean: async (): Promise<void> => {
+      await Promise.all([
+        slackSentMessages.collection.then((coll) => {
+          // remove older than 14 days
+          coll.deleteMany({
+            created: { $lt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) },
+          });
+        }),
+        automergeLogs.collection.then((coll) => {
+          // remove older than 30 days
+          coll.deleteMany({
+            created: { $lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+          });
+        }),
+        prs.collection.then((coll) =>
+          // remove older than 12 * 30 days
+          coll.deleteMany({
+            created: {
+              $lt: new Date(Date.now() - 12 * 30 * 24 * 60 * 60 * 1000),
+            },
+          }),
+        ),
+        accountDailyStats.collection.then((coll) =>
+          // remove older than 6 * 30 days
+          coll.deleteMany({
+            created: {
+              $lt: new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000),
+            },
+          }),
+        ),
+      ]);
+    },
     connection,
     userDmSettings,
     users,
@@ -341,5 +403,6 @@ export default function init(): MongoStores {
     repositories,
     prs,
     repositoryMergeQueue,
+    accountDailyStats,
   };
 }

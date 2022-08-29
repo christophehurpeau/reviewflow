@@ -5,6 +5,7 @@ import { run } from 'probot';
 import appRouter from './appRouter';
 import type { AppContext } from './context/AppContext';
 import initApp from './initApp';
+import initScheduler from './initScheduler';
 import mongoInit from './mongo';
 import { createSlackHomeWorker } from './slack/home';
 
@@ -21,22 +22,22 @@ console.log({ name: process.env.REVIEWFLOW_NAME });
 
 // let config = await getConfig(context, 'reviewflow.yml');
 
-let mongoConnection: MongoConnection | null = null;
+const mongoStores = mongoInit();
+const mongoConnection: MongoConnection = mongoStores.connection;
+const slackHome = createSlackHomeWorker(mongoStores);
+const appContext: AppContext = { mongoStores, slackHome };
 
 const serverPromise = run((app, { getRouter }) => {
-  const mongoStores = mongoInit();
-  mongoConnection = mongoStores.connection;
-  const slackHome = createSlackHomeWorker(mongoStores);
-  const appContext: AppContext = { mongoStores, slackHome };
   appRouter(app, getRouter, appContext);
   initApp(app, appContext);
+  initScheduler(app, appContext);
   slackHome.scheduleUpdateAllOrgs((id: number) => app.auth(id));
 });
 
-const gracefulExit = function () {
+const gracefulExit = function (): void {
   Promise.all([
     serverPromise.then((server) => server.stop()),
-    mongoConnection && mongoConnection.close(),
+    mongoConnection?.close(),
   ]).then(() => {
     // eslint-disable-next-line unicorn/no-process-exit
     process.exit(0);
