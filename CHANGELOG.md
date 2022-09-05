@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.104.0](https://github.com/christophehurpeau/reviewflow/compare/v1.103.1...v1.104.0) (2022-09-05)
+
+
+### Features
+
+* clean - in pr title no issue ([b0bf3b4](https://github.com/christophehurpeau/reviewflow/commit/b0bf3b4e0c292119699d86e0bc8391fc25c1e5df))
+* ornikar config mandatory pr body ([e8b74db](https://github.com/christophehurpeau/reviewflow/commit/e8b74db1b634f65e7e9362534966075d53bfb7f3))
+
 ## [1.103.1](https://github.com/christophehurpeau/reviewflow/compare/v1.103.0...v1.103.1) (2022-08-29)
 
 
