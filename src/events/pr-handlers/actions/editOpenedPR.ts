@@ -54,6 +54,7 @@ export const editOpenedPR = async <Name extends EventsWithRepository>({
 
   const parsePRValue = {
     title,
+    body: pullRequest.body || '',
     head: pullRequest.head.ref,
     base: pullRequest.base.ref,
   };

@@ -35,6 +35,7 @@ export interface ParsePRRule {
 
 export interface ParsePR {
   title?: ParsePRRule[];
+  body?: ParsePRRule[];
   head?: ParsePRRule[];
   base?: ParsePRRule[];
 }

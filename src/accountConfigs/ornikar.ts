@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import type { Config } from './types';
 
 const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
@@ -71,6 +72,40 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
             title: 'Title does not have Jira issue',
             summary: 'The PR title should end with ONK-0000, or [no issue]',
           };
+        },
+      },
+    ],
+    body: [
+      {
+        bot: false,
+        regExp: /^(.*)$/s,
+        createStatusInfo: (match) => {
+          const description = match?.[1];
+          if (!description || !description.trim()) {
+            return {
+              type: 'failure',
+              title: 'Body is empty',
+              summary: 'The PR body should not be empty',
+            };
+          }
+          const descriptionStripTitlesAndComments =
+            description &&
+            description
+              .replace(/^\s*#+\s+.*/gm, '')
+              .replace(/(<!--.*?-->)|(<!--[\S\s]+?-->)|(<!--[\S\s]*?$)/gs, '');
+
+          if (
+            !descriptionStripTitlesAndComments ||
+            !descriptionStripTitlesAndComments.trim()
+          ) {
+            return {
+              type: 'failure',
+              title: 'Body has no meaningful content',
+              summary:
+                'The PR body should not contains only titles and comments',
+            };
+          }
+          return null;
         },
       },
     ],
