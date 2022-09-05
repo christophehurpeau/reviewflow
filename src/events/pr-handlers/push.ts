@@ -71,7 +71,7 @@ export default function status(app: Probot, appContext: AppContext): void {
         }
       }
 
-      if (hasReviewStarted) {
+      if (!isClosedPr && hasReviewStarted) {
         await context.octokit.issues.createComment(
           context.repo({
             issue_number: pullRequest.number,
