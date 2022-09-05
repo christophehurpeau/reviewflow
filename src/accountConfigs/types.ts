@@ -71,12 +71,18 @@ interface ExperimentalFeatures {
   lintPullRequestTitleWithConventionalCommit?: true;
 }
 
+interface WarnOnForcePushAfterReviewStarted {
+  repositoryNames?: string[];
+  message: string;
+}
+
 export interface Config<GroupNames extends string, TeamNames extends string> {
   autoAssignToCreator?: boolean;
   trimTitle?: boolean;
   ignoreRepoPattern?: string;
   requiresReviewRequest?: boolean;
   autoMergeRenovateWithSkipCi?: boolean;
+  warnOnForcePushAfterReviewStarted?: WarnOnForcePushAfterReviewStarted;
   checksAllowedToFail?: string[];
   experimentalFeatures?: ExperimentalFeatures;
   parsePR?: ParsePR;

@@ -15,6 +15,7 @@ import convertedToDraft from './events/pr-handlers/convertedToDraft';
 import editedHandler from './events/pr-handlers/edited';
 import labelsChanged from './events/pr-handlers/labelsChanged';
 import openedHandler from './events/pr-handlers/opened';
+import pushHandler from './events/pr-handlers/push';
 import readyForReview from './events/pr-handlers/readyForReview';
 import reopenedHandler from './events/pr-handlers/reopened';
 import reviewDismissedHandler from './events/pr-handlers/reviewDismissed';
@@ -37,6 +38,10 @@ export default function initApp(app: Probot, appContext: AppContext): void {
   // Repo
   /* https://developer.github.com/webhooks/event-payloads/#repository */
   repoEdited(app, appContext);
+
+  // Push
+  /* https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#push */
+  pushHandler(app, appContext);
 
   // Commit
   /* https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#commit_comment */

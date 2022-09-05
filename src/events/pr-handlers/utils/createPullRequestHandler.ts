@@ -46,7 +46,7 @@ export type EventsWithPullRequest = CustomExtract<
 
 export type EventsWithPullRequests = CustomExtract<
   EventsWithRepository,
-  'check_run.completed' | 'check_suite.completed' | 'status'
+  'check_run.completed' | 'check_suite.completed' | 'push' | 'status'
 >;
 
 export type EventsWithIssue = CustomExtract<
@@ -129,6 +129,7 @@ export const createPullRequestsHandler = <
   getPrs: (
     payload: ProbotEvent<EventName>['payload'],
     repoContext: RepoContext<GroupNames>,
+    context: ProbotEvent<EventName>,
   ) => U[] | Promise<U[]>,
   callbackPr: (
     pullRequest: U,
@@ -142,7 +143,7 @@ export const createPullRequestsHandler = <
         appContext,
         context,
       );
-      const prs = await getPrs(context.payload, repoContext);
+      const prs = await getPrs(context.payload, repoContext, context);
       if (prs.length === 0) return;
 
       await Promise.all(

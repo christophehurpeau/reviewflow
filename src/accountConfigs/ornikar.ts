@@ -7,6 +7,19 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
   ignoreRepoPattern: '(infra-.*|devenv|bigquery-dbt)',
   requiresReviewRequest: true,
   autoMergeRenovateWithSkipCi: false,
+  warnOnForcePushAfterReviewStarted: {
+    repositoryNames: [
+      'shared-configs',
+      'shared-apps',
+      'components',
+      'kitt',
+      'learner-apps',
+      'sherwood-webapp',
+      'vitrine',
+    ],
+    message:
+      'Force-pushing after the review started is a bad practice. See https://ornikar.atlassian.net/wiki/spaces/TECH/pages/2972090451/Commits+and+Pull+Requests#Code-Review for more information.',
+  },
   checksAllowedToFail: [
     'codecov/',
     'ci/circleci: test-e2e',

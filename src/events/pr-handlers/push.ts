@@ -1,0 +1,86 @@
+import type { RestEndpointMethodTypes } from '@octokit/rest';
+import type { Probot } from 'probot';
+import type { AppContext } from '../../context/AppContext';
+import { createPullRequestsHandler } from './utils/createPullRequestHandler';
+
+export default function status(app: Probot, appContext: AppContext): void {
+  createPullRequestsHandler(
+    app,
+    appContext,
+    'push',
+    async (
+      payload,
+      repoContext,
+      context,
+    ): Promise<
+      RestEndpointMethodTypes['repos']['listPullRequestsAssociatedWithCommit']['response']['data']
+    > => {
+      if (repoContext.shouldIgnore) return [];
+
+      // filter config warnOnForcePushAfterReviewStarted enabled only
+      if (!repoContext.config.warnOnForcePushAfterReviewStarted) return [];
+
+      // filter only whitelisted repositories
+      if (
+        repoContext.config.warnOnForcePushAfterReviewStarted.repositoryNames &&
+        !repoContext.config.warnOnForcePushAfterReviewStarted.repositoryNames.includes(
+          payload.repository.name,
+        )
+      ) {
+        return [];
+      }
+
+      // filter only force-push
+      if (!payload.forced || !payload.pusher.name) return [];
+
+      if (!payload.ref.startsWith('refs/heads/')) return [];
+
+      const prs = await context.octokit.pulls.list(
+        context.repo({
+          state: 'open',
+          head: `${payload.repository.owner.login}:${payload.ref.slice(
+            'refs/heads/'.length,
+          )}`,
+        }),
+      );
+
+      return prs.data;
+    },
+    async (pullRequest, context, repoContext): Promise<void> => {
+      const login =
+        context.payload.pusher.username || context.payload.pusher.name;
+
+      const isClosedPr = !!pullRequest.closed_at;
+      let hasReviewStarted: boolean =
+        !pullRequest.draft &&
+        !!(
+          pullRequest.requested_reviewers?.length ||
+          pullRequest.requested_teams?.length
+        );
+
+      if (!isClosedPr && !hasReviewStarted) {
+        const reviewsResponse = await context.octokit.pulls.listReviews(
+          context.repo({
+            pull_number: pullRequest.number,
+            per_page: 1,
+          }),
+        );
+        const hadReviews = reviewsResponse.data.length > 0;
+        if (hadReviews) {
+          hasReviewStarted = true;
+        }
+      }
+
+      if (hasReviewStarted) {
+        await context.octokit.issues.createComment(
+          context.repo({
+            issue_number: pullRequest.number,
+            body: `${login ? `@${login} ` : ''}: ${
+              repoContext.config.warnOnForcePushAfterReviewStarted
+            }`,
+          }),
+        );
+      }
+    },
+  );
+}

@@ -56,6 +56,7 @@ export type EventsWithRepository = CustomExtract<
   | 'pull_request_review_comment.created'
   | 'pull_request_review_comment.deleted'
   | 'pull_request_review_comment.edited'
+  | 'push'
   | 'repository.archived'
   | 'repository.created'
   | 'repository.deleted'

@@ -5,6 +5,9 @@ import type { Config } from './types';
 const config: Config<'dev', never> = {
   ...chrisconfig,
   requiresReviewRequest: true,
+  warnOnForcePushAfterReviewStarted: {
+    message: 'Force-pushing after the review started is a bad practice',
+  },
   groups: {
     dev: {
       christophehurpeau: 'christophe@hurpeau.com',
