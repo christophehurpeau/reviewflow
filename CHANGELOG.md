@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.105.0](https://github.com/christophehurpeau/reviewflow/compare/v1.104.0...v1.105.0) (2022-09-05)
+
+
+### Features
+
+* config to comment on force-push ([30beab7](https://github.com/christophehurpeau/reviewflow/commit/30beab7bb345187e5b6d53e7c0d84b16f7d2f4d3))
+
 ## [1.104.0](https://github.com/christophehurpeau/reviewflow/compare/v1.103.1...v1.104.0) (2022-09-05)
 
 
