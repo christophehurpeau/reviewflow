@@ -3,8 +3,16 @@ import type { RepoContext } from '../context/repoContext';
 import type { CommitFromRestEndpoint } from '../events/commit-handlers/utils/fetchCommit';
 import type { PullRequestWithDecentData } from '../events/pr-handlers/utils/PullRequestData';
 
+// https://api.slack.com/reference/surfaces/formatting#escaping
+export const escapeText = (text: string): string => {
+  return text
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+};
+
 export const createLink = (url: string, text: string): string => {
-  return `<${url}|${text}>`;
+  return `<${url}|${escapeText(text)}>`;
 };
 
 export const createPrLink = (
