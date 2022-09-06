@@ -12,7 +12,7 @@ export const escapeText = (text: string): string => {
 };
 
 export const createLink = (url: string, text: string): string => {
-  return `<${url}|${escapeText(text)}>`;
+  return `<${url}|${escapeText(text || '')}>`;
 };
 
 export const createPrLink = (
