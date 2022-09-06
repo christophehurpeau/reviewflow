@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.106.1](https://github.com/christophehurpeau/reviewflow/compare/v1.106.0...v1.106.1) (2022-09-06)
+
+
+### Bug Fixes
+
+* use replace instead of replaceAll ([fd32789](https://github.com/christophehurpeau/reviewflow/commit/fd327894179daa04e85f50e3919544825e58a85a))
+
 ## [1.106.0](https://github.com/christophehurpeau/reviewflow/compare/v1.105.0...v1.106.0) (2022-09-06)
 
 
