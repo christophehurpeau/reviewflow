@@ -71,12 +71,16 @@ export default function status(app: Probot, appContext: AppContext): void {
         }
       }
 
-      if (!isClosedPr && hasReviewStarted) {
+      if (
+        !isClosedPr &&
+        hasReviewStarted &&
+        repoContext.config.warnOnForcePushAfterReviewStarted
+      ) {
         await context.octokit.issues.createComment(
           context.repo({
             issue_number: pullRequest.number,
             body: `${login ? `@${login} ` : ''}: ${
-              repoContext.config.warnOnForcePushAfterReviewStarted
+              repoContext.config.warnOnForcePushAfterReviewStarted.message
             }`,
           }),
         );
