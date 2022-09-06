@@ -6,9 +6,9 @@ import type { PullRequestWithDecentData } from '../events/pr-handlers/utils/Pull
 // https://api.slack.com/reference/surfaces/formatting#escaping
 export const escapeText = (text: string): string => {
   return text
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;');
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 };
 
 export const createLink = (url: string, text: string): string => {
