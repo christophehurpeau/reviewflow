@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.106.0](https://github.com/christophehurpeau/reviewflow/compare/v1.105.0...v1.106.0) (2022-09-06)
+
+
+### Features
+
+* **deps:** update commitlint monorepo to v17.1.0 ([#561](https://github.com/christophehurpeau/reviewflow/issues/561)) ([44b6d5f](https://github.com/christophehurpeau/reviewflow/commit/44b6d5f3e942595dc44f152416323b8bcc8b9d0b))
+
+
+### Bug Fixes
+
+* escape slack chars in links ([69eedb1](https://github.com/christophehurpeau/reviewflow/commit/69eedb13db1030580e3d08b81d6a6b9b9dae3f92))
+* force-push comment missing message ([fb6a6f7](https://github.com/christophehurpeau/reviewflow/commit/fb6a6f7ad2cbb58a8d1c0ea0123651ee613cdf6a))
+
 ## [1.105.0](https://github.com/christophehurpeau/reviewflow/compare/v1.104.0...v1.105.0) (2022-09-05)
 
 
