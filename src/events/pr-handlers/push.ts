@@ -1,6 +1,7 @@
 import type { RestEndpointMethodTypes } from '@octokit/rest';
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
+import { checkIfUserIsBot } from '../../utils/github/isBotUser';
 import { createPullRequestsHandler } from './utils/createPullRequestHandler';
 
 export default function status(app: Probot, appContext: AppContext): void {
@@ -50,6 +51,11 @@ export default function status(app: Probot, appContext: AppContext): void {
       const login =
         context.payload.pusher.username || context.payload.pusher.name;
 
+      const isPushedByBot = checkIfUserIsBot(
+        repoContext,
+        context.payload.sender,
+      );
+
       const isClosedPr = !!pullRequest.closed_at;
       let hasReviewStarted: boolean =
         !pullRequest.draft &&
@@ -58,7 +64,7 @@ export default function status(app: Probot, appContext: AppContext): void {
           pullRequest.requested_teams?.length
         );
 
-      if (!isClosedPr && !hasReviewStarted) {
+      if (!isPushedByBot && !isClosedPr && !hasReviewStarted) {
         const reviewsResponse = await context.octokit.pulls.listReviews(
           context.repo({
             pull_number: pullRequest.number,
@@ -72,6 +78,7 @@ export default function status(app: Probot, appContext: AppContext): void {
       }
 
       if (
+        !isPushedByBot &&
         !isClosedPr &&
         hasReviewStarted &&
         repoContext.config.warnOnForcePushAfterReviewStarted
