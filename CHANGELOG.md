@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.106.3](https://github.com/christophehurpeau/reviewflow/compare/v1.106.2...v1.106.3) (2022-09-25)
+
+
+### Bug Fixes
+
+* dont show message if bot force-push ([e79245f](https://github.com/christophehurpeau/reviewflow/commit/e79245f9979f1de54ba20a202d232ae0f575a8ac))
+
 ## [1.106.2](https://github.com/christophehurpeau/reviewflow/compare/v1.106.1...v1.106.2) (2022-09-06)
 
 
