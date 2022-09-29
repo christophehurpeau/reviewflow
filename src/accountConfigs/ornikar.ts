@@ -63,12 +63,16 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
                 summary: '',
               };
             }
+            // The 'OD' JIRA Project is hosted on guidewire's JIRA
+            const url = issue.startsWith('OD-')
+              ? `https://gwjira.atlassian.net/browse/${issue}`
+              : `https://ornikar.atlassian.net/browse/${issue}`;
             return {
               type: 'success',
               inBody: true,
               title: `✓ JIRA issue: ${issue}`,
-              summary: `[${issue}](https://ornikar.atlassian.net/browse/${issue})`,
-              url: `https://ornikar.atlassian.net/browse/${issue}`,
+              summary: `[${issue}](${url})`,
+              url,
             };
           }
 
