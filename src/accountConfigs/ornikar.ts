@@ -218,6 +218,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         'camillebaronnet',
         'olivier-martinez',
         'tnesztler',
+        'rimokhy',
       ],
       labels: ['teams/backend'],
     },
