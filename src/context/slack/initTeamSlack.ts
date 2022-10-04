@@ -49,7 +49,7 @@ export const initTeamSlack = async <GroupNames extends string>(
     return voidTeamSlack();
   }
 
-  // eslint-disable-next-line unicorn/no-array-reduce, unicorn/prefer-object-from-entries -- this will be removed soon
+  // eslint-disable-next-line unicorn/no-array-reduce -- this will be removed soon
   const githubLoginToSlackEmail = getKeys(config.groups).reduce<
     Record<string, string>
   >((acc, groupName) => {
