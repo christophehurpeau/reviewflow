@@ -985,7 +985,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jest/core@npm:^29.1.1, @jest/core@npm:^29.1.2":
+"@jest/core@npm:^29.1.2":
   version: 29.1.2
   resolution: "@jest/core@npm:29.1.2"
   dependencies:
@@ -1188,7 +1188,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jest/types@npm:^29.1.0, @jest/types@npm:^29.1.2":
+"@jest/types@npm:^29.1.2":
   version: 29.1.2
   resolution: "@jest/types@npm:29.1.2"
   dependencies:
@@ -6064,7 +6064,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-cli@npm:^29.1.1":
+"jest-cli@npm:^29.1.2":
   version: 29.1.2
   resolution: "jest-cli@npm:29.1.2"
   dependencies:
@@ -6450,14 +6450,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest@npm:29.1.1":
-  version: 29.1.1
-  resolution: "jest@npm:29.1.1"
+"jest@npm:29.1.2":
+  version: 29.1.2
+  resolution: "jest@npm:29.1.2"
   dependencies:
-    "@jest/core": ^29.1.1
-    "@jest/types": ^29.1.0
+    "@jest/core": ^29.1.2
+    "@jest/types": ^29.1.2
     import-local: ^3.0.2
-    jest-cli: ^29.1.1
+    jest-cli: ^29.1.2
   peerDependencies:
     node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
   peerDependenciesMeta:
@@ -6465,7 +6465,7 @@ __metadata:
       optional: true
   bin:
     jest: bin/jest.js
-  checksum: 58ca853d2474b71f2cb9d4318026e0d2eb20f0cde91d522732a9377cd6ae79ddda8644a3c33c227df7ceb914c59cdcec7e37d36f4192d879be57868e14a7ce4e
+  checksum: 6b5fca89c6ad1a0c9338a70144542933ed3491d849b6256618ec8d3a420bc6e60ed2c5b952e452ee4bdeaf590bf4c81c6727581c71d6b989faa8dedd7b6e2905
   languageName: node
   linkType: hard
 
@@ -8959,7 +8959,7 @@ resolve@^2.0.0-next.3:
     emoji-regex: 10.1.0
     eslint: 8.23.0
     issue-parser: 6.0.0
-    jest: 29.1.1
+    jest: 29.1.2
     jsonwebtoken: 8.5.1
     liwi-mongo: 8.3.1
     lock: 1.1.0
