@@ -7,17 +7,12 @@ import createConventionalCommitsConfig from 'conventional-changelog-conventional
 
 const conventionalCommitsConfig = await createConventionalCommitsConfig({});
 
-export const commitlintParse = (
-  (commitlintParseModule.default as any).default
-    ? (commitlintParseModule.default as any).default
-    : commitlintParseModule.default
-) as typeof commitlintParseModule.default;
+export const commitlintParse = ((commitlintParseModule.default as any)
+  .default ||
+  commitlintParseModule.default) as typeof commitlintParseModule.default;
 
-export const commitlintLint = (
-  (commitlintLintModule.default as any).default
-    ? (commitlintLintModule.default as any).default
-    : commitlintLintModule.default
-) as typeof commitlintLintModule.default;
+export const commitlintLint = ((commitlintLintModule.default as any).default ||
+  commitlintLintModule.default) as typeof commitlintLintModule.default;
 
 export const parseCommitMessage = (
   message: string,
