@@ -1,12 +1,12 @@
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 import createRollupConfig from 'pob-babel/createRollupConfig.js';
 import run from 'pob-babel/plugin-run.cjs';
 
 const watch = process.env.ROLLUP_WATCH === 'true';
 
 export default createRollupConfig({
-  cwd: new URL('.', import.meta.url).pathname.slice(
-    process.platform === 'win32' ? 1 : 0,
-  ),
+  cwd: dirname(fileURLToPath(import.meta.url)),
   outDirectory: 'build',
   plugins: [watch && run({ execArgv: ['--enable-source-maps'] })],
 });
