@@ -114,7 +114,7 @@
   "devDependencies": {
     "@babel/core": "7.19.3",
     "@babel/preset-react": "7.18.6",
-    "@pob/commitlint-config": "4.3.0",
+    "@pob/commitlint-config": "4.4.0",
     "@pob/eslint-config": "49.4.0",
     "@pob/eslint-config-typescript": "49.4.0",
     "@pob/eslint-config-typescript-react": "49.4.0",
