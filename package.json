@@ -127,7 +127,7 @@
     "@types/jsonwebtoken": "8.5.9",
     "@types/node": "16.11.65",
     "@types/react": "18.0.24",
-    "@types/react-dom": "18.0.6",
+    "@types/react-dom": "18.0.8",
     "@types/simple-oauth2": "4.1.1",
     "check-package-dependencies": "3.10.0",
     "eslint": "8.25.0",
