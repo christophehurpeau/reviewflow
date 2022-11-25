@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.107.0](https://github.com/christophehurpeau/reviewflow/compare/v1.106.3...v1.107.0) (2022-11-25)
+
+
+### Features
+
+* **deps:** update commitlint monorepo to v17.2.0 ([#600](https://github.com/christophehurpeau/reviewflow/issues/600)) ([282d59f](https://github.com/christophehurpeau/reviewflow/commit/282d59f6a5d9b954e833e967b84901d5695836db))
+* **deps:** update dependency emoji-regex to v10.2.1 ([#583](https://github.com/christophehurpeau/reviewflow/issues/583)) ([a4516fb](https://github.com/christophehurpeau/reviewflow/commit/a4516fb728ca4f1594ffacd906a4ea4a4867dc18))
+* disable automerge for ornikar ([0c35d87](https://github.com/christophehurpeau/reviewflow/commit/0c35d87070684c0605f7d707bc889d1544979799))
+* use gw jira url for OD-XX issues ([#572](https://github.com/christophehurpeau/reviewflow/issues/572)) ([7f3ab1c](https://github.com/christophehurpeau/reviewflow/commit/7f3ab1c28340140e9a8e8b71939bf034d4a69802))
+
+
+### Bug Fixes
+
+* **deps:** update dependency body-parser to v1.20.1 ([#594](https://github.com/christophehurpeau/reviewflow/issues/594)) ([bfa5d13](https://github.com/christophehurpeau/reviewflow/commit/bfa5d13e5d7342c49bb2b3009788b64be5a30692))
+* fix settings link ([46f4b90](https://github.com/christophehurpeau/reviewflow/commit/46f4b90eafb623fe565b9c580aac7cf5800383d1))
+* fix tsc ([2fea340](https://github.com/christophehurpeau/reviewflow/commit/2fea340b95882b7d6618de659c23e54f2527beee))
+
 ## [1.106.3](https://github.com/christophehurpeau/reviewflow/compare/v1.106.2...v1.106.3) (2022-09-25)
 
 
