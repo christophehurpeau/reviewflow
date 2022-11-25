@@ -126,6 +126,8 @@ export const autoMergeIfPossible = async <
   const repo = pullRequest.head.repo;
   if (!repo) return false;
 
+  if (repoContext.config.disableAutoMerge) return false;
+
   const autoMergeLabel = repoContext.labels['merge/automerge'];
 
   if (!hasLabelInPR(prLabels, autoMergeLabel)) {
