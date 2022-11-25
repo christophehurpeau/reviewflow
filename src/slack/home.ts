@@ -56,7 +56,7 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
           text: `Configure your ${
             process.env.REVIEWFLOW_NAME
           } settings ${createLink(
-            `${process.env.REVIEWFLOW_APP_URL}/${member.org.login}`,
+            `${process.env.REVIEWFLOW_APP_URL}/org/${member.org.login}`,
             'here',
           )}.`,
         },
