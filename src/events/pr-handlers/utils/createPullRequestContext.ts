@@ -70,6 +70,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
       await appContext.mongoStores.prs.partialUpdateByKey(existing._id, {
         $set: { commentId: newComment.id },
       });
+      return { reviewflowPr: existing, commentBody: newComment.body! };
     }
   } else if (!existing) {
     const reviewflowPr = await appContext.mongoStores.prs.insertOne({
@@ -81,5 +82,5 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
     return { reviewflowPr, commentBody: comment.body! };
   }
 
-  return { reviewflowPr: existing, commentBody: comment!.body! };
+  return { reviewflowPr: existing, commentBody: comment.body! };
 };
