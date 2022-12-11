@@ -3,7 +3,8 @@ import type { AppContext } from '../../context/AppContext';
 import { checkIfIsThisBot } from '../../utils/github/isBotUser';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { editOpenedPR } from './actions/editOpenedPR';
-import { updateStatusCheckFromLabels } from './actions/updateStatusCheckFromLabels';
+import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
+import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
 
@@ -34,6 +35,11 @@ export default function edited(app: Probot, appContext: AppContext): void {
         context.payload.pull_request.number,
       );
 
+      const stepsState = calcStepsState({
+        repoContext,
+        pullRequest: updatedPullRequest,
+      });
+
       await Promise.all([
         editOpenedPR({
           pullRequest: updatedPullRequest,
@@ -43,13 +49,12 @@ export default function edited(app: Probot, appContext: AppContext): void {
           reviewflowPrContext,
           shouldUpdateCommentBodyInfos: true,
         }),
-        updateStatusCheckFromLabels(
+        updateStatusCheckFromStepsState(
+          stepsState,
           updatedPullRequest,
           context,
           appContext,
-          repoContext,
           reviewflowPrContext,
-          updatedPullRequest.labels,
         ),
       ]);
 

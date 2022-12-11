@@ -3,6 +3,8 @@ import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateReviewStatus } from './actions/updateReviewStatus';
+import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
+import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
@@ -67,29 +69,45 @@ export default function reviewRequestRemoved(
         const newLabels = await updateReviewStatus(
           updatedPr,
           context,
-          appContext,
           repoContext,
-          reviewflowPrContext,
-          reviewerGroup,
-          {
-            add: [
-              // if changes requested by the one which requests was removed (should still be in changed requested anyway, but we never know)
-              hasChangesRequestedInReviews && 'changesRequested',
-              // if was already approved by another member in the group and has no other requests waiting
-              approved && 'approved',
-            ],
-            // remove labels if has no other requests waiting
-            remove: [
-              approved && 'needsReview',
-              !hasRequestedReviewsForGroup && 'requested',
-              pullRequest.draft &&
-              !hasRequestedReviewsForGroup &&
-              !hasChangesRequestedInReviews
-                ? 'needsReview'
-                : undefined,
-            ],
-          },
+          [
+            {
+              reviewGroup: reviewerGroup,
+              add: [
+                // if changes requested by the one which requests was removed (should still be in changed requested anyway, but we never know)
+                hasChangesRequestedInReviews && 'changesRequested',
+                // if was already approved by another member in the group and has no other requests waiting
+                approved && 'approved',
+              ],
+              // remove labels if has no other requests waiting
+              remove: [
+                approved && 'needsReview',
+                !hasRequestedReviewsForGroup && 'requested',
+                pullRequest.draft &&
+                !hasRequestedReviewsForGroup &&
+                !hasChangesRequestedInReviews
+                  ? 'needsReview'
+                  : undefined,
+              ],
+            },
+          ],
         );
+
+        if (newLabels !== pullRequest.labels) {
+          const stepsState = calcStepsState({
+            repoContext,
+            pullRequest,
+            labels: newLabels,
+          });
+
+          await updateStatusCheckFromStepsState(
+            stepsState,
+            pullRequest,
+            context,
+            appContext,
+            reviewflowPrContext,
+          );
+        }
 
         if (approved && !hasChangesRequestedInReviews) {
           isMerged = await autoMergeIfPossible(

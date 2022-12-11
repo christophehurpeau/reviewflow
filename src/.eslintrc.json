@@ -22,10 +22,10 @@
   "rules": {
     "no-console": "error",
     "camelcase": "off",
+    "max-lines": "off",
     "complexity": "off",
     "no-use-before-define": "off",
     "import/no-cycle": "off",
-    "max-lines": ["error", 350],
     "node/no-extraneous-import": "off",
     "unicorn/no-reduce": "warn",
     "unicorn/require-post-message-target-origin": "warn",

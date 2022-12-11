@@ -1,14 +1,12 @@
 import type { AppContext } from 'context/AppContext';
-import type { EventsWithRepository, RepoContext } from 'context/repoContext';
+import type { EventsWithRepository } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
 import type { StatusInfo } from '../../../accountConfigs/types';
 import { ExcludesFalsy } from '../../../utils/Excludes';
-import type {
-  PullRequestLabels,
-  PullRequestWithDecentData,
-} from '../utils/PullRequestData';
+import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import createStatus, { isSameStatus } from './utils/createStatus';
+import type { StepsState } from './utils/steps/calcStepsState';
 
 const addStatusCheck = async function <EventName extends EventsWithRepository>(
   pullRequest: PullRequestWithDecentData,
@@ -96,26 +94,16 @@ const addStatusCheck = async function <EventName extends EventsWithRepository>(
   }
 };
 
-export const updateStatusCheckFromLabels = <
+export const updateStatusCheckFromStepsState = <
   EventName extends EventsWithRepository,
 >(
+  stepsState: StepsState,
   pullRequest: PullRequestWithDecentData,
   context: ProbotEvent<EventName>,
   appContext: AppContext,
-  repoContext: RepoContext,
   reviewflowPrContext: ReviewflowPrContext,
-  labels: PullRequestLabels = pullRequest.labels || [],
   previousSha?: string,
 ): Promise<void> => {
-  context.log.debug(
-    {
-      labels: labels.map((l) => l?.name),
-      hasNeedsReview: repoContext.hasNeedsReview(labels),
-      hasApprovesReview: repoContext.hasApprovesReview(labels),
-    },
-    'updateStatusCheckFromLabels',
-  );
-
   const createFailedStatusCheck = (description: string): Promise<void> =>
     addStatusCheck(
       pullRequest,
@@ -129,48 +117,72 @@ export const updateStatusCheckFromLabels = <
       previousSha,
     );
 
-  if (pullRequest.draft) {
-    return createFailedStatusCheck('PR is still in draft');
-  }
-
-  if (
-    (pullRequest.requested_reviewers &&
-      pullRequest.requested_reviewers.length > 0) ||
-    (pullRequest.requested_teams && pullRequest.requested_teams.length > 0)
-  ) {
-    return createFailedStatusCheck(
-      `Awaiting review from: ${[
-        ...(pullRequest.requested_reviewers || []),
-        ...(pullRequest.requested_teams || []),
-      ]
-        .map((rr) => (!rr ? undefined : 'name' in rr ? rr.name : rr.login))
-        .filter(ExcludesFalsy)
-        .join(', ')}`,
+  // PR Merged
+  if (pullRequest.merged_at) {
+    return addStatusCheck(
+      pullRequest,
+      context,
+      appContext,
+      reviewflowPrContext,
+      {
+        state: 'success',
+        description: '✓ PR merged',
+      },
+      previousSha,
     );
   }
 
-  if (repoContext.hasChangesRequestedReview(labels)) {
-    return createFailedStatusCheck(
-      'Changes requested ! Push commits or discuss changes then re-request a review.',
-    );
+  // STEP 1: Draft
+  if (!stepsState.write.pass) {
+    if (stepsState.write.isDraft) {
+      return createFailedStatusCheck('PR is still in draft');
+    }
+    if (stepsState.write.isClosed) {
+      return createFailedStatusCheck('PR is closed');
+    }
+    return createFailedStatusCheck('Write step failed, unknown reason');
   }
 
-  const needsReviewGroupNames = repoContext.getNeedsReviewGroupNames(labels);
+  // STEP 2: CI
+  // TODO
 
-  if (needsReviewGroupNames.length > 0) {
-    return createFailedStatusCheck(
-      `Awaiting review from: ${needsReviewGroupNames.join(
-        ', ',
-      )}. Perhaps request someone ?`,
-    );
-  }
-
-  if (!repoContext.hasApprovesReview(labels)) {
-    if (repoContext.config.requiresReviewRequest) {
+  // STEP 3 & 4: Code Review
+  if (!stepsState.codeReview.pass) {
+    if (
+      stepsState.codeReview.hasRequestedReviewers ||
+      stepsState.codeReview.hasRequestedTeams
+    ) {
       return createFailedStatusCheck(
-        'Awaiting review... Perhaps request someone ?',
+        `Awaiting review from: ${[
+          ...(pullRequest.requested_reviewers || []),
+          ...(pullRequest.requested_teams || []),
+        ]
+          .map((rr) => (!rr ? undefined : 'name' in rr ? rr.name : rr.login))
+          .filter(ExcludesFalsy)
+          .join(', ')}`,
       );
     }
+
+    if (stepsState.codeReview.hasChangesRequested) {
+      return createFailedStatusCheck(
+        'Changes requested ! Push commits or discuss changes then re-request a review.',
+      );
+    }
+
+    const needsReviewGroupNames = stepsState.codeReview.needsReviewGroupNames;
+    if (needsReviewGroupNames.length > 0) {
+      return createFailedStatusCheck(
+        `Awaiting review from: ${needsReviewGroupNames.join(
+          ', ',
+        )}. Perhaps request someone ?`,
+      );
+    }
+  }
+
+  if (stepsState.codeReview.isMissingApprobation) {
+    return createFailedStatusCheck(
+      'Awaiting review... Perhaps request someone ?',
+    );
   }
 
   // if (

@@ -4,6 +4,8 @@ import * as slackUtils from '../../slack/utils';
 import { ExcludesFalsy } from '../../utils/Excludes';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { updateReviewStatus } from './actions/updateReviewStatus';
+import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
+import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 
 export default function readyForReview(
@@ -32,7 +34,7 @@ export default function readyForReview(
         })),
       );
 
-      const reviewerGroups = [
+      const requestedReviewerGroups = [
         ...new Set([
           ...pullRequest.requested_reviewers.map((requestedReviewer) =>
             repoContext.getReviewerGroup((requestedReviewer as any).login),
@@ -45,42 +47,48 @@ export default function readyForReview(
 
       /* if repo is not ignored */
       if (reviewflowPrContext) {
-        await Promise.all([
-          ...reviewerGroups.map((reviewerGroup) =>
-            updateReviewStatus(
-              pullRequest,
-              context,
-              appContext,
-              repoContext,
-              reviewflowPrContext,
-              reviewerGroup,
-              {
-                add: ['needsReview', 'requested'],
-              },
-            ),
-          ),
-          !reviewerGroups.includes('dev') &&
-            repoContext.config.requiresReviewRequest &&
-            updateReviewStatus(
-              pullRequest,
-              context,
-              appContext,
-              repoContext,
-              reviewflowPrContext,
-              'dev',
-              {
-                add: ['needsReview'],
-              },
-            ),
-          editOpenedPR({
-            pullRequest,
-            context,
-            appContext,
-            repoContext,
-            reviewflowPrContext,
-            shouldUpdateCommentBodyInfos: true,
-          }),
-        ]);
+        const newLabels = await updateReviewStatus(
+          pullRequest,
+          context,
+          repoContext,
+          [
+            ...requestedReviewerGroups.map((reviewGroup) => ({
+              reviewGroup,
+              add: ['needsReview', 'requested'],
+            })),
+            ...(!requestedReviewerGroups.includes('dev') &&
+            repoContext.config.requiresReviewRequest
+              ? [
+                  {
+                    reviewGroup: 'dev',
+                    add: ['needsReview'],
+                  },
+                ]
+              : ([] as any)),
+          ],
+        );
+        await editOpenedPR({
+          pullRequest,
+          context,
+          appContext,
+          repoContext,
+          reviewflowPrContext,
+          shouldUpdateCommentBodyInfos: true,
+        });
+
+        const stepsState = calcStepsState({
+          repoContext,
+          pullRequest,
+          labels: newLabels,
+        });
+
+        await updateStatusCheckFromStepsState(
+          stepsState,
+          pullRequest,
+          context,
+          appContext,
+          reviewflowPrContext,
+        );
       }
 
       /* update slack home */

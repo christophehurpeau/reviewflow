@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import type { RestEndpointMethodTypes } from '@octokit/rest';
 import delay from 'delay';
 import type { Probot, Context } from 'probot';

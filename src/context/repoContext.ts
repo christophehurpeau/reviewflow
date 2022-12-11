@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import type { EmitterWebhookEventName } from '@octokit/webhooks';
 import { Lock } from 'lock';
 import type { Config } from '../accountConfigs';

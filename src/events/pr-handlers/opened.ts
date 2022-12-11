@@ -5,6 +5,8 @@ import { autoApproveAndAutoMerge } from './actions/autoApproveAndAutoMerge';
 import { autoAssignPRToCreator } from './actions/autoAssignPRToCreator';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { updateReviewStatus } from './actions/updateReviewStatus';
+import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
+import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { syncLabels } from './actions/utils/syncLabel';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
@@ -56,35 +58,53 @@ export default function opened(app: Probot, appContext: AppContext): void {
                 reviewflowPrContext,
               ).then(async (approved: boolean): Promise<void> => {
                 if (!approved) {
-                  await updateReviewStatus(
-                    pullRequest,
-                    context,
-                    appContext,
-                    repoContext,
-                    reviewflowPrContext,
-                    'dev',
+                  await updateReviewStatus(pullRequest, context, repoContext, [
                     {
+                      reviewGroup: 'dev',
                       add: ['needsReview'],
                     },
-                  );
+                  ]).then(async (newLabels) => {
+                    const stepsState = calcStepsState({
+                      repoContext,
+                      pullRequest,
+                      labels: newLabels,
+                    });
+
+                    await updateStatusCheckFromStepsState(
+                      stepsState,
+                      pullRequest,
+                      context,
+                      appContext,
+                      reviewflowPrContext,
+                    );
+                  });
                 }
               }),
             )
-          : updateReviewStatus(
-              pullRequest,
-              context,
-              appContext,
-              repoContext,
-              reviewflowPrContext,
-              'dev',
+          : updateReviewStatus(pullRequest, context, repoContext, [
               {
+                reviewGroup: 'dev',
                 add:
                   repoContext.config.requiresReviewRequest && !pullRequest.draft
                     ? ['needsReview']
                     : [],
                 remove: ['approved', 'changesRequested'],
               },
-            ),
+            ]).then(async (newLabels) => {
+              const stepsState = calcStepsState({
+                repoContext,
+                pullRequest,
+                labels: newLabels,
+              });
+
+              await updateStatusCheckFromStepsState(
+                stepsState,
+                pullRequest,
+                context,
+                appContext,
+                reviewflowPrContext,
+              );
+            }),
       ]);
     },
   );

@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import bodyParser from 'body-parser';
 import type { Router } from 'express';
 import type { ProbotOctokit } from 'probot';

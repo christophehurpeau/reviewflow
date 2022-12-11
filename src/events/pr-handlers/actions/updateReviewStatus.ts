@@ -1,4 +1,3 @@
-import type { AppContext } from 'context/AppContext';
 import type { RepoContext } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
 import type { GroupLabels } from '../../../accountConfigs/types';
@@ -7,9 +6,13 @@ import type {
   PullRequestLabels,
   PullRequestWithDecentData,
 } from '../utils/PullRequestData';
-import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import type { EventsWithPullRequest } from '../utils/createPullRequestHandler';
-import { updateStatusCheckFromLabels } from './updateStatusCheckFromLabels';
+
+interface UpdateForReviewGroup<GroupNames extends string> {
+  reviewGroup: GroupNames;
+  add?: (GroupLabels | false | undefined)[];
+  remove?: (GroupLabels | false | undefined)[];
+}
 
 export const updateReviewStatus = async <
   EventName extends EventsWithPullRequest,
@@ -17,80 +20,66 @@ export const updateReviewStatus = async <
 >(
   pullRequest: PullRequestWithDecentData,
   context: ProbotEvent<EventName>,
-  appContext: AppContext,
-  repoContext: RepoContext,
-  reviewflowPrContext: ReviewflowPrContext,
-  reviewGroup: GroupNames,
-  {
-    add: labelsToAdd,
-    remove: labelsToRemove,
-  }: {
-    add?: (GroupLabels | false | undefined)[];
-    remove?: (GroupLabels | false | undefined)[];
-  },
+  repoContext: RepoContext<GroupNames>,
+  updates: UpdateForReviewGroup<GroupNames>[],
 ): Promise<PullRequestLabels> => {
   context.log.debug(
     {
-      reviewGroup,
-      labelsToAdd,
-      labelsToRemove,
+      updates,
     },
     'updateReviewStatus',
   );
 
-  let prLabels: PullRequestLabels = pullRequest.labels || [];
-  if (!reviewGroup) return prLabels;
+  let prLabels: PullRequestLabels = pullRequest.labels;
+  if (!updates || updates.length === 0) return prLabels;
 
   const newLabelNames = new Set<string>(
     prLabels.map((label) => label.name).filter(ExcludesFalsy),
   );
 
-  const toAdd = new Set<GroupLabels | string>();
   const toAddNames = new Set<string>();
-  const toDelete = new Set<GroupLabels>();
   const toDeleteNames = new Set<string>();
   const labels = repoContext.labels;
 
-  const getLabelFromKey = (
-    key: GroupLabels,
-  ): undefined | PullRequestLabels[number] => {
-    const reviewConfig = repoContext.config.labels.review[reviewGroup];
-    if (!reviewConfig) return undefined;
+  for (const update of updates) {
+    const getLabelFromKey = (
+      key: GroupLabels,
+    ): undefined | PullRequestLabels[number] => {
+      const reviewConfig = repoContext.config.labels.review[update.reviewGroup];
+      if (!reviewConfig) return undefined;
 
-    return reviewConfig[key] && labels[reviewConfig[key]]
-      ? labels[reviewConfig[key]]
-      : undefined;
-  };
+      return reviewConfig[key] && labels[reviewConfig[key]]
+        ? labels[reviewConfig[key]]
+        : undefined;
+    };
 
-  if (labelsToAdd) {
-    labelsToAdd.forEach((key) => {
-      if (!key) return;
-      const label = getLabelFromKey(key);
-      if (
-        !label ||
-        !label.name ||
-        prLabels.some((prLabel) => prLabel.id === label.id)
-      ) {
-        return;
+    if (update.add) {
+      for (const key of update.add) {
+        const label = key ? getLabelFromKey(key) : undefined;
+
+        if (
+          label?.name &&
+          !prLabels.some((prLabel) => prLabel.id === label.id)
+        ) {
+          newLabelNames.add(label.name);
+          toAddNames.add(label.name);
+        }
       }
-      newLabelNames.add(label.name);
-      toAdd.add(key);
-      toAddNames.add(label.name);
-    });
-  }
+    }
 
-  if (labelsToRemove) {
-    labelsToRemove.forEach((key) => {
-      if (!key) return;
-      const label = getLabelFromKey(key);
-      if (!label) return;
-      const existing = prLabels.find((prLabel) => prLabel.id === label.id);
-      if (existing && existing.name) {
-        newLabelNames.delete(existing.name);
-        toDelete.add(key);
-        toDeleteNames.add(existing.name);
+    if (update.remove) {
+      for (const key of update.remove) {
+        const label = key ? getLabelFromKey(key) : undefined;
+
+        if (label) {
+          const existing = prLabels.find((prLabel) => prLabel.id === label.id);
+          if (existing?.name) {
+            newLabelNames.delete(existing.name);
+            toDeleteNames.add(existing.name);
+          }
+        }
       }
-    });
+    }
   }
 
   // TODO move that elsewhere
@@ -102,7 +91,6 @@ export const updateReviewStatus = async <
           const label = repoContext.labels[labelKey];
           if (label && !prLabels.some((prLabel) => prLabel.id === label.id)) {
             newLabelNames.add(label.name);
-            toAdd.add(labelKey);
             toAddNames.add(label.name);
           }
         });
@@ -112,20 +100,17 @@ export const updateReviewStatus = async <
 
   // if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return;
 
-  if (toAdd.size > 0 || toDelete.size > 0) {
-    if (toDelete.size === 0 || toDelete.size < 4) {
+  if (toAddNames.size > 0 || toDeleteNames.size > 0) {
+    if (toDeleteNames.size === 0 || toDeleteNames.size < 4) {
       context.log.debug(
         {
-          reviewGroup,
-          toAdd: [...toAdd],
-          toDelete: [...toDelete],
           toAddNames: [...toAddNames],
           toDeleteNames: [...toDeleteNames],
         },
         'updateReviewStatus',
       );
 
-      if (toAdd.size > 0) {
+      if (toAddNames.size > 0) {
         const result = await context.octokit.issues.addLabels(
           context.issue({
             labels: [...toAddNames],
@@ -134,7 +119,7 @@ export const updateReviewStatus = async <
         prLabels = result.data;
       }
 
-      if (toDelete.size > 0) {
+      if (toDeleteNames.size > 0) {
         for (const toDeleteName of toDeleteNames) {
           try {
             const result = await context.octokit.issues.removeLabel(
@@ -158,9 +143,6 @@ export const updateReviewStatus = async <
 
       context.log.debug(
         {
-          reviewGroup,
-          toAdd: [...toAdd],
-          toDelete: [...toDelete],
           oldLabels: prLabels.map((l) => l.name),
           newLabelNames: newLabelNamesArray,
         },
@@ -175,22 +157,6 @@ export const updateReviewStatus = async <
       prLabels = result.data;
     }
   }
-
-  // if (toAdd.has('needsReview')) {
-  //   createInProgressStatusCheck(context);
-  // } else if (
-  //   toDelete.has('needsReview') ||
-  //   (prLabels.length === 0 && toAdd.size === 1 && toAdd.has('approved'))
-  // ) {
-  await updateStatusCheckFromLabels(
-    pullRequest,
-    context,
-    appContext,
-    repoContext,
-    reviewflowPrContext,
-    prLabels,
-  );
-  // }
 
   return prLabels;
 };

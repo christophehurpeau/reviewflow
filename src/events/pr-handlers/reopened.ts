@@ -4,6 +4,8 @@ import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { updateReviewStatus } from './actions/updateReviewStatus';
+import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
+import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 import { getRolesFromPullRequestAndReviewers } from './utils/getRolesFromPullRequestAndReviewers';
@@ -26,18 +28,27 @@ export default function reopened(app: Probot, appContext: AppContext): void {
       /* if repo is not ignored */
       if (reviewflowPrContext) {
         await Promise.all([
-          updateReviewStatus(
-            pullRequest,
-            context,
-            appContext,
-            repoContext,
-            reviewflowPrContext,
-            'dev',
+          updateReviewStatus(pullRequest, context, repoContext, [
             {
+              reviewGroup: 'dev',
               add: fromRenovate || pullRequest.draft ? [] : ['needsReview'],
               remove: fromRenovate ? [] : ['approved'],
             },
-          ),
+          ]).then(async (newLabels) => {
+            const stepsState = calcStepsState({
+              repoContext,
+              pullRequest,
+              labels: newLabels,
+            });
+
+            await updateStatusCheckFromStepsState(
+              stepsState,
+              pullRequest,
+              context,
+              appContext,
+              reviewflowPrContext,
+            );
+          }),
           editOpenedPR({
             pullRequest,
             context,

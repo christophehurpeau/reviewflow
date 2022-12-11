@@ -4,6 +4,8 @@ import * as slackUtils from '../../slack/utils';
 import { checkIfIsThisBot } from '../../utils/github/isBotUser';
 import { autoApproveAndAutoMerge } from './actions/autoApproveAndAutoMerge';
 import { updateReviewStatus } from './actions/updateReviewStatus';
+import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
+import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
@@ -63,30 +65,46 @@ export default function reviewDismissed(
           { includesReviewerGroup: true },
         );
 
-        await updateReviewStatus(
+        const newLabels = await updateReviewStatus(
           updatedPr,
           context,
-          appContext,
           repoContext,
-          reviewflowPrContext,
-          reviewerGroup,
-          {
-            add: [
-              !hasApprovals && 'needsReview',
-              hasApprovals &&
+          [
+            {
+              reviewGroup: reviewerGroup,
+              add: [
+                !hasApprovals && 'needsReview',
+                hasApprovals &&
+                  !hasRequestedReviewsForGroup &&
+                  !hasChangesRequestedInReviews &&
+                  'approved',
+              ],
+              remove: [
                 !hasRequestedReviewsForGroup &&
-                !hasChangesRequestedInReviews &&
-                'approved',
-            ],
-            remove: [
-              !hasRequestedReviewsForGroup &&
-                !hasChangesRequestedInReviews &&
-                'requested',
-              !hasChangesRequestedInReviews && 'changesRequested',
-              !hasApprovals && 'approved',
-            ],
-          },
+                  !hasChangesRequestedInReviews &&
+                  'requested',
+                !hasChangesRequestedInReviews && 'changesRequested',
+                !hasApprovals && 'approved',
+              ],
+            },
+          ],
         );
+
+        if (newLabels !== pullRequest.labels) {
+          const stepsState = calcStepsState({
+            repoContext,
+            pullRequest,
+            labels: newLabels,
+          });
+
+          await updateStatusCheckFromStepsState(
+            stepsState,
+            pullRequest,
+            context,
+            appContext,
+            reviewflowPrContext,
+          );
+        }
 
         if (updatedPr.assignees) {
           updatedPr.assignees.forEach((assignee) => {

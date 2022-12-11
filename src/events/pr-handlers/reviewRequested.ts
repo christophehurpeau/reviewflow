@@ -2,6 +2,8 @@ import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
 import { updateReviewStatus } from './actions/updateReviewStatus';
+import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
+import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 
 export default function reviewRequested(
@@ -43,18 +45,33 @@ export default function reviewRequested(
         reviewerGroup &&
         repoContext.config.labels.review[reviewerGroup]
       ) {
-        await updateReviewStatus(
+        const newLabels = await updateReviewStatus(
           pullRequest,
           context,
-          appContext,
           repoContext,
-          reviewflowPrContext,
-          reviewerGroup,
-          {
-            add: ['needsReview', !shouldWait && 'requested'],
-            remove: ['approved'],
-          },
+          [
+            {
+              reviewGroup: reviewerGroup,
+              add: ['needsReview', !shouldWait && 'requested'],
+              remove: ['approved'],
+            },
+          ],
         );
+        if (newLabels !== pullRequest.labels) {
+          const stepsState = calcStepsState({
+            repoContext,
+            pullRequest,
+            labels: newLabels,
+          });
+
+          await updateStatusCheckFromStepsState(
+            stepsState,
+            pullRequest,
+            context,
+            appContext,
+            reviewflowPrContext,
+          );
+        }
 
         /* update slack home */
         const assigneesLogins: string[] = [];

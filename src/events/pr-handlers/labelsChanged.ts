@@ -9,8 +9,9 @@ import {
 import { updateBranch } from './actions/updateBranch';
 import { updatePrCommentBodyOptions } from './actions/updatePrCommentBody';
 import { updateReviewStatus } from './actions/updateReviewStatus';
-import { updateStatusCheckFromLabels } from './actions/updateStatusCheckFromLabels';
+import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
 import hasLabelInPR from './actions/utils/hasLabelInPR';
+import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
 
@@ -83,40 +84,46 @@ export default function labelsChanged(
               labels = result.data;
             }
             if (hasLabelInPR(labels, codeNeedsReviewLabel)) {
-              await updateReviewStatus(
+              labels = await updateReviewStatus(
                 updatedPr,
                 context,
-                appContext,
                 repoContext,
-                reviewflowPrContext,
-                'dev',
-                {
-                  remove: ['needsReview'],
-                },
-              );
-            } else {
-              await updateStatusCheckFromLabels(
-                updatedPr,
-                context,
-                appContext,
-                repoContext,
-                reviewflowPrContext,
-                labels,
+                [
+                  {
+                    reviewGroup: 'dev',
+                    remove: ['needsReview'],
+                  },
+                ],
               );
             }
-
-            await updatePrCommentBodyOptions(
-              context,
+            const stepsState = calcStepsState({
+              pullRequest: updatedPr,
               repoContext,
-              reviewflowPrContext,
-              {
-                autoMergeWithSkipCi,
-                // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
-                autoMerge: hasLabelInPR(labels, autoMergeLabel)
-                  ? true
-                  : repoContext.config.prDefaultOptions.autoMerge,
-              },
-            );
+              labels,
+            });
+
+            await Promise.all([
+              updateStatusCheckFromStepsState(
+                stepsState,
+                updatedPr,
+                context,
+                appContext,
+                reviewflowPrContext,
+              ),
+
+              updatePrCommentBodyOptions(
+                context,
+                repoContext,
+                reviewflowPrContext,
+                {
+                  autoMergeWithSkipCi,
+                  // force label to avoid racing events (when both events are sent in the same time, reviewflow treats them one by one but the second event wont have its body updated)
+                  autoMerge: hasLabelInPR(labels, autoMergeLabel)
+                    ? true
+                    : repoContext.config.prDefaultOptions.autoMerge,
+                },
+              ),
+            ]);
             // }
           } else if (autoMergeLabel && label.id === autoMergeLabel.id) {
             await updatePrCommentBodyOptions(
@@ -179,11 +186,16 @@ export default function labelsChanged(
         return;
       }
 
-      await updateStatusCheckFromLabels(
+      const stepsState = calcStepsState({
+        repoContext,
+        pullRequest: updatedPr,
+      });
+
+      await updateStatusCheckFromStepsState(
+        stepsState,
         updatedPr,
         context,
         appContext,
-        repoContext,
         reviewflowPrContext,
       );
 

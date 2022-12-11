@@ -4,6 +4,10 @@ import type { Config } from './types';
 
 const config: Config<'dev', never> = {
   ...chrisconfig,
+  experimentalFeatures: {
+    ...chrisconfig.experimentalFeatures,
+    stepsInComment: true,
+  },
   requiresReviewRequest: true,
   warnOnForcePushAfterReviewStarted: {
     message: 'Force-pushing after the review started is a bad practice',

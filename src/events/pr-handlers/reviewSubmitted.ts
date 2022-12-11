@@ -9,6 +9,8 @@ import { ExcludesNullish } from '../../utils/Excludes';
 import { createSlackMessageWithSecondaryBlock } from '../../utils/slack/createSlackMessageWithSecondaryBlock';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { updateReviewStatus } from './actions/updateReviewStatus';
+import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
+import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
@@ -110,26 +112,42 @@ export default function reviewSubmitted(
           const newLabels = await updateReviewStatus(
             updatedPr,
             context,
-            appContext,
             repoContext,
-            reviewflowPrContext,
-            reviewerGroup,
-            {
-              add: [
-                approved && 'approved',
-                state === 'changes_requested' && 'needsReview',
-                state === 'changes_requested' && 'changesRequested',
-              ],
-              remove: [
-                approved && 'needsReview',
-                !hasRequestedReviewsForGroup && 'requested',
-                state === 'approved' &&
-                  !hasChangesRequestedInReviews &&
-                  'changesRequested',
-                state === 'changes_requested' && 'approved',
-              ],
-            },
+            [
+              {
+                reviewGroup: reviewerGroup,
+                add: [
+                  approved && 'approved',
+                  state === 'changes_requested' && 'needsReview',
+                  state === 'changes_requested' && 'changesRequested',
+                ],
+                remove: [
+                  approved && 'needsReview',
+                  !hasRequestedReviewsForGroup && 'requested',
+                  state === 'approved' &&
+                    !hasChangesRequestedInReviews &&
+                    'changesRequested',
+                  state === 'changes_requested' && 'approved',
+                ],
+              },
+            ],
           );
+
+          if (newLabels !== pullRequest.labels) {
+            const stepsState = calcStepsState({
+              repoContext,
+              pullRequest,
+              labels: newLabels,
+            });
+
+            await updateStatusCheckFromStepsState(
+              stepsState,
+              pullRequest,
+              context,
+              appContext,
+              reviewflowPrContext,
+            );
+          }
 
           if (approved && !hasChangesRequestedInReviews) {
             merged = await autoMergeIfPossible(

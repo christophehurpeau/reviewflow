@@ -2,7 +2,8 @@ import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { editOpenedPR } from './actions/editOpenedPR';
-import { updateStatusCheckFromLabels } from './actions/updateStatusCheckFromLabels';
+import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
+import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
 
@@ -29,6 +30,11 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
       // const { before, after } = context.payload;
       const previousSha = (context.payload as any).before as string;
 
+      const stepsState = calcStepsState({
+        repoContext,
+        pullRequest: updatedPr,
+      });
+
       await Promise.all([
         appContext.mongoStores.prs.partialUpdateOne(
           reviewflowPrContext.reviewflowPr,
@@ -48,13 +54,12 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
           previousSha,
         }),
         // addStatusCheckToLatestCommit
-        updateStatusCheckFromLabels(
+        updateStatusCheckFromStepsState(
+          stepsState,
           updatedPr,
           context,
           appContext,
-          repoContext,
           reviewflowPrContext,
-          updatedPr.labels,
           previousSha,
         ),
       ]);

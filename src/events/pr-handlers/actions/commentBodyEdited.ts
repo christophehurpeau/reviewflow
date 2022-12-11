@@ -11,9 +11,10 @@ import {
 } from './enableGithubAutoMerge';
 import { updateBranch } from './updateBranch';
 import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
-import { updateStatusCheckFromLabels } from './updateStatusCheckFromLabels';
+import { updateStatusCheckFromStepsState } from './updateStatusCheckFromStepsState';
 import { calcDefaultOptions } from './utils/body/prOptions';
 import { updateCommentOptions } from './utils/body/updateBody';
+import { calcStepsState } from './utils/steps/calcStepsState';
 import { syncLabels, removeLabel } from './utils/syncLabel';
 
 export const commentBodyEdited = async <Name extends EventsWithRepository>(
@@ -49,13 +50,15 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
             reviewflowPrContext,
             shouldUpdateCommentBodyInfos: true,
           }),
-          updateStatusCheckFromLabels(
+          updateStatusCheckFromStepsState(
+            calcStepsState({
+              repoContext,
+              pullRequest,
+            }),
             pullRequest,
             context,
             appContext,
-            repoContext,
             reviewflowPrContext,
-            pullRequest.labels,
           ),
         ]),
       syncLabels(pullRequest, context, [

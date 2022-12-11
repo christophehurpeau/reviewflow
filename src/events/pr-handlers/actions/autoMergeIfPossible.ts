@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import type { EmitterWebhookEventName } from '@octokit/webhooks';
 import type { EventsWithRepository, RepoContext } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';

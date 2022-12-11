@@ -3,7 +3,9 @@ import type { AccountInfo } from 'context/getOrCreateAccount';
 import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
 import { updateReviewStatus } from './actions/updateReviewStatus';
+import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
 import { parseOptions } from './actions/utils/body/parseBody';
+import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 import { getRolesFromPullRequestAndReviewers } from './utils/getRolesFromPullRequestAndReviewers';
@@ -42,22 +44,28 @@ export default function closed(app: Probot, appContext: AppContext): void {
               : undefined,
           ]);
         } else {
+          const stepsState = calcStepsState({
+            repoContext,
+            pullRequest,
+          });
           await Promise.all([
             repoContext.removePrFromAutomergeQueue(
               context,
               pullRequest,
               'pr closed',
             ),
-            updateReviewStatus(
+            updateReviewStatus(pullRequest, context, repoContext, [
+              {
+                reviewGroup: 'dev',
+                remove: ['needsReview'],
+              },
+            ]),
+            updateStatusCheckFromStepsState(
+              stepsState,
               pullRequest,
               context,
               appContext,
-              repoContext,
               reviewflowPrContext,
-              'dev',
-              {
-                remove: ['needsReview'],
-              },
             ),
           ]);
         }
