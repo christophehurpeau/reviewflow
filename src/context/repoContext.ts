@@ -5,7 +5,8 @@ import type { Config } from '../accountConfigs';
 import { accountConfigs, defaultConfig } from '../accountConfigs';
 import type { GroupLabels } from '../accountConfigs/types';
 import { autoMergeIfPossible } from '../events/pr-handlers/actions/autoMergeIfPossible';
-import { parseRepositoryOptions } from '../events/pr-handlers/actions/utils/body/repositoryOptions';
+import type { RepositorySettings } from '../events/pr-handlers/actions/utils/body/repositorySettings';
+import { createRepositorySettings } from '../events/pr-handlers/actions/utils/body/repositorySettings';
 import type {
   PullRequestDataMinimumData,
   PullRequestLabels,
@@ -15,6 +16,7 @@ import { fetchPr } from '../events/pr-handlers/utils/fetchPr';
 import type { ProbotEvent } from '../events/probot-types';
 import type { RepositoryMergeQueue, Repository } from '../mongo';
 import { ExcludesFalsy } from '../utils/Excludes';
+import { getRepositorySettings } from '../utils/github/repo/getRepositorySettings';
 import type { AppContext } from './AppContext';
 import type { AccountContext } from './accountContext';
 import { obtainAccountContext } from './accountContext';
@@ -85,7 +87,7 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   repoFullName: string;
   repoEmbed: { id: number; name: string };
   repoEmoji: string | undefined;
-  defaultBranch: string;
+  settings: RepositorySettings;
   labels: LabelsRecord;
   protectedLabelIds: readonly LabelResponse['id'][];
   shouldIgnore: boolean;
@@ -199,8 +201,27 @@ async function initRepoContext<
     });
 
     if (res) {
+      if (!res.settings) {
+        const repoSettingsResult = await getRepositorySettings(context);
+
+        await appContext.mongoStores.repositories.partialUpdateByKey(
+          res._id,
+          {
+            $set: {
+              settings: createRepositorySettings(repoSettingsResult),
+            },
+            // remove legacy options settings
+            $unset: { options: '' },
+          },
+          {
+            'account.id': accountContext.accountEmbed.id,
+          },
+        );
+      }
       return res;
     }
+
+    const repoSettingsResult = await getRepositorySettings(context);
 
     const repoEmoji = getEmojiFromRepoDescription(description);
     return appContext.mongoStores.repositories.insertOne({
@@ -208,7 +229,7 @@ async function initRepoContext<
       account: accountContext.accountEmbed,
       emoji: repoEmoji,
       fullName,
-      options: parseRepositoryOptions(context.payload.repository),
+      settings: createRepositorySettings(repoSettingsResult),
     });
   };
   const findOrCreateRepositoryMergeQueue =
@@ -505,7 +526,7 @@ async function initRepoContext<
     repoFullName: fullName,
     repoEmbed: { id, name },
     repoEmoji: repository.emoji,
-    defaultBranch: context.payload.repository.default_branch,
+    settings: repository.settings,
     protectedLabelIds,
     shouldIgnore,
     hasNeedsReview,

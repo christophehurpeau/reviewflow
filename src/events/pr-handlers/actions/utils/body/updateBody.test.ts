@@ -5,14 +5,14 @@ import initialAfterEditSimpleWithInfosV1 from './mocks/commentBody-v1-initialAft
 import initialAfterEditSimpleV2 from './mocks/commentBody-v2-initialAfterEdit-simple';
 import initialAfterEditSimpleWithInfosV2 from './mocks/commentBody-v2-initialAfterEdit-simpleWithInfos';
 import type { Options } from './prOptions';
-import type { RepositoryOptions } from './repositoryOptions';
+import type { RepositorySettings } from './repositorySettings';
 import {
   updateCommentOptions,
   updateCommentBodyCommitsNotes,
   updateCommentBodyInfos,
 } from './updateBody';
 
-const repositoryOptions: RepositoryOptions = {
+const repositorySettings: RepositorySettings = {
   defaultBranch: 'main',
   deleteBranchOnMerge: false,
   allowAutoMerge: false,
@@ -71,7 +71,7 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
       it('should update initial description', () => {
         expect(
           updateCommentOptions(
-            repositoryOptions,
+            repositorySettings,
             repoLinkMock,
             labels,
             initialSimple,
@@ -83,7 +83,7 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
       it('should keep infos on update', () => {
         expect(
           updateCommentOptions(
-            repositoryOptions,
+            repositorySettings,
             repoLinkMock,
             labels,
             initialAfterEditSimpleWithInfos,
@@ -95,7 +95,7 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
       it('should update options', () => {
         expect(
           updateCommentOptions(
-            repositoryOptions,
+            repositorySettings,
             repoLinkMock,
             labels,
             initialAfterEditSimpleWithInfos,
@@ -201,7 +201,7 @@ describe('Repository Options', () => {
   it('should sjhow automerge if in default options', () => {
     expect(
       updateCommentOptions(
-        { ...repositoryOptions, deleteBranchOnMerge: false },
+        { ...repositorySettings, deleteBranchOnMerge: false },
         repoLinkMock,
         labels,
         initialSimpleV1,

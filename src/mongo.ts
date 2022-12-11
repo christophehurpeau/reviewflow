@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import type { MongoBaseModel } from 'liwi-mongo';
 import { MongoStore, MongoConnection } from 'liwi-mongo';
-import type { LockedMergePr } from 'context/repoContext';
 import type { AccountInfo } from './context/getOrCreateAccount';
+import type { LockedMergePr } from './context/repoContext';
 import type { SlackMessage } from './context/slack/SlackMessage';
 import type { MessageCategory } from './dm/MessageCategory';
 import type { ReviewflowStatus } from './events/pr-handlers/actions/editOpenedPR';
-import type { RepositoryOptions } from './events/pr-handlers/actions/utils/body/repositoryOptions';
+import type { RepositorySettings } from './events/pr-handlers/actions/utils/body/repositorySettings';
 
 // export interface PrEventsModel extends MongoModel {
 //   owner: string;
@@ -62,7 +62,7 @@ export interface Repository extends MongoBaseModel<number> {
   account: AccountEmbed;
   fullName: string;
   emoji: string;
-  options: RepositoryOptions;
+  settings: RepositorySettings;
 }
 
 interface RepoEmbed {

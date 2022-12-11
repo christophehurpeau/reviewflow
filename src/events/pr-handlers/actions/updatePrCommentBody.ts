@@ -2,7 +2,6 @@ import type { EventsWithRepository, RepoContext } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import type { Options } from './utils/body/prOptions';
-import { parseRepositoryOptions } from './utils/body/repositoryOptions';
 import { updateCommentOptions } from './utils/body/updateBody';
 
 const updatePrCommentBody = async <Name extends EventsWithRepository>(
@@ -40,7 +39,7 @@ export const updatePrCommentBodyOptions = async <
   updateOptions: Partial<Options>,
 ): Promise<void> => {
   const { commentBody: newBody } = updateCommentOptions(
-    parseRepositoryOptions(context.payload.repository),
+    repoContext.settings,
     context.payload.repository.html_url,
     repoContext.config.labels.list,
     reviewflowPrContext.commentBody,

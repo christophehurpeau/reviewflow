@@ -4,12 +4,12 @@ import { parseActions, parseOptions } from './parseBody';
 import type { ActionKeys } from './prActions';
 import { actionDescriptions } from './prActions';
 import { optionsDescriptions } from './prOptions';
-import type { RepositoryOptions } from './repositoryOptions';
+import type { RepositorySettings } from './repositorySettings';
 
 export const defaultCommentBody = 'This will be auto filled by reviewflow.';
 
 const toMarkdownOptions = (
-  repositoryOptions: RepositoryOptions,
+  repositorySettings: RepositorySettings,
   repoLink: string,
   labelsConfig: LabelList,
   options: Options,
@@ -19,7 +19,8 @@ const toMarkdownOptions = (
     .map(({ key, labelKey, description, icon: iconValue, legacy }) => {
       if (
         legacy &&
-        (repositoryOptions[legacy.repositoryOptionKey] || !defaultOptions[key])
+        (repositorySettings[legacy.repositorySettingKey] ||
+          !defaultOptions[key])
       ) {
         return null;
       }
@@ -100,7 +101,7 @@ const updateOptions = (
 };
 
 const internalUpdateBodyOptionsAndInfos = (
-  repositoryOptions: RepositoryOptions,
+  repositorySettings: RepositorySettings,
   repoLink: string,
   labelsConfig: LabelList,
   body: string,
@@ -115,7 +116,7 @@ const internalUpdateBodyOptionsAndInfos = (
   );
 
   return `${infosAndCommitNotesParagraph}### Options:\n${toMarkdownOptions(
-    repositoryOptions,
+    repositorySettings,
     repoLink,
     labelsConfig,
     options,
@@ -124,14 +125,14 @@ const internalUpdateBodyOptionsAndInfos = (
 };
 
 export const createCommentBody = (
-  repositoryOptions: RepositoryOptions,
+  repositorySettings: RepositorySettings,
   repoLink: string,
   labelsConfig: LabelList,
   defaultOptions: Options,
   infos?: StatusInfo[],
 ): string => {
   return internalUpdateBodyOptionsAndInfos(
-    repositoryOptions,
+    repositorySettings,
     repoLink,
     labelsConfig,
     '',
@@ -142,7 +143,7 @@ export const createCommentBody = (
 };
 
 export const updateCommentOptions = (
-  repositoryOptions: RepositoryOptions,
+  repositorySettings: RepositorySettings,
   repoLink: string,
   labelsConfig: LabelList,
   commentBody: string,
@@ -156,7 +157,7 @@ export const updateCommentOptions = (
     options: updatedOptions,
     actions: parseActions(commentBody),
     commentBody: internalUpdateBodyOptionsAndInfos(
-      repositoryOptions,
+      repositorySettings,
       repoLink,
       labelsConfig,
       commentBody,
