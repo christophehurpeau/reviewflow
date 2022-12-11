@@ -16,10 +16,12 @@ import {
   defaultCommentBody,
   createCommentBody,
   removeDeprecatedReviewflowInPrBody,
+  updateCommentBodyProgress,
 } from './utils/body/updateBody';
 import { lintCommitMessage } from './utils/commitMessages';
 import createStatus, { isSameStatus } from './utils/createStatus';
 import { cleanTitle } from './utils/prTitle';
+import type { StepsState } from './utils/steps/calcStepsState';
 
 export interface ReviewflowStatus {
   name: string;
@@ -35,6 +37,8 @@ export interface EditOpenedPullRequestOptions<
   repoContext: RepoContext;
   reviewflowPrContext: ReviewflowPrContext;
   shouldUpdateCommentBodyInfos: boolean;
+  shouldUpdateCommentBodyProgress: boolean;
+  stepsState: StepsState;
   previousSha?: string;
 }
 
@@ -45,6 +49,8 @@ export const editOpenedPR = async <Name extends EventsWithRepository>({
   repoContext,
   reviewflowPrContext,
   shouldUpdateCommentBodyInfos,
+  shouldUpdateCommentBodyProgress,
+  stepsState,
   previousSha,
 }: EditOpenedPullRequestOptions<Name>): Promise<void> => {
   const title = repoContext.config.trimTitle
@@ -247,15 +253,25 @@ export const editOpenedPR = async <Name extends EventsWithRepository>({
   const shouldCreateCommentBody =
     reviewflowPrContext.commentBody === defaultCommentBody;
 
-  const newCommentBody = shouldCreateCommentBody
+  let newCommentBody = shouldCreateCommentBody
     ? createCommentBody(
         repoContext.settings,
         context.payload.repository.html_url,
         repoContext.config.labels.list,
         calcDefaultOptions(repoContext, pullRequest),
+        repoContext.config.experimentalFeatures?.progressInComment
+          ? stepsState
+          : undefined,
         commentBodyInfos,
       )
     : updateCommentBodyInfos(reviewflowPrContext.commentBody, commentBodyInfos);
+
+  if (
+    repoContext.config.experimentalFeatures?.progressInComment &&
+    shouldUpdateCommentBodyProgress
+  ) {
+    newCommentBody = updateCommentBodyProgress(newCommentBody, stepsState);
+  }
 
   if (shouldCreateCommentBody || shouldUpdateCommentBodyInfos) {
     promises.push(

@@ -67,14 +67,6 @@ export default function readyForReview(
               : ([] as any)),
           ],
         );
-        await editOpenedPR({
-          pullRequest,
-          context,
-          appContext,
-          repoContext,
-          reviewflowPrContext,
-          shouldUpdateCommentBodyInfos: true,
-        });
 
         const stepsState = calcStepsState({
           repoContext,
@@ -82,13 +74,25 @@ export default function readyForReview(
           labels: newLabels,
         });
 
-        await updateStatusCheckFromStepsState(
-          stepsState,
-          pullRequest,
-          context,
-          appContext,
-          reviewflowPrContext,
-        );
+        await Promise.all([
+          editOpenedPR({
+            stepsState,
+            pullRequest,
+            context,
+            appContext,
+            repoContext,
+            reviewflowPrContext,
+            shouldUpdateCommentBodyInfos: true,
+            shouldUpdateCommentBodyProgress: true,
+          }),
+          updateStatusCheckFromStepsState(
+            stepsState,
+            pullRequest,
+            context,
+            appContext,
+            reviewflowPrContext,
+          ),
+        ]);
       }
 
       /* update slack home */

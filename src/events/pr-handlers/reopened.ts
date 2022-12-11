@@ -27,34 +27,40 @@ export default function reopened(app: Probot, appContext: AppContext): void {
       const fromRenovate = pullRequest.head.ref.startsWith('renovate/');
       /* if repo is not ignored */
       if (reviewflowPrContext) {
-        await Promise.all([
-          updateReviewStatus(pullRequest, context, repoContext, [
+        const newLabels = await updateReviewStatus(
+          pullRequest,
+          context,
+          repoContext,
+          [
             {
               reviewGroup: 'dev',
               add: fromRenovate || pullRequest.draft ? [] : ['needsReview'],
               remove: fromRenovate ? [] : ['approved'],
             },
-          ]).then(async (newLabels) => {
-            const stepsState = calcStepsState({
-              repoContext,
-              pullRequest,
-              labels: newLabels,
-            });
+          ],
+        );
+        const stepsState = calcStepsState({
+          repoContext,
+          pullRequest,
+          labels: newLabels,
+        });
 
-            await updateStatusCheckFromStepsState(
-              stepsState,
-              pullRequest,
-              context,
-              appContext,
-              reviewflowPrContext,
-            );
-          }),
+        await Promise.all([
+          updateStatusCheckFromStepsState(
+            stepsState,
+            pullRequest,
+            context,
+            appContext,
+            reviewflowPrContext,
+          ),
           editOpenedPR({
             pullRequest,
             context,
             appContext,
             repoContext,
             reviewflowPrContext,
+            stepsState,
+            shouldUpdateCommentBodyProgress: true,
             shouldUpdateCommentBodyInfos: true,
           }),
         ]);

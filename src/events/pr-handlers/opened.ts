@@ -1,15 +1,15 @@
 import type { Probot } from 'probot';
 import type { AppContext } from 'context/AppContext';
 import { checkIfUserIsBot } from '../../utils/github/isBotUser';
-import { autoApproveAndAutoMerge } from './actions/autoApproveAndAutoMerge';
 import { autoAssignPRToCreator } from './actions/autoAssignPRToCreator';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
+import { defaultCommentBody } from './actions/utils/body/updateBody';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { syncLabels } from './actions/utils/syncLabel';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
-import { fetchPr } from './utils/fetchPr';
+import { createReviewflowComment } from './utils/reviewflowComment';
 
 export default function opened(app: Probot, appContext: AppContext): void {
   createPullRequestHandler(
@@ -25,7 +25,6 @@ export default function opened(app: Probot, appContext: AppContext): void {
       const isFromBot = !pullRequest.user
         ? false
         : checkIfUserIsBot(repoContext, pullRequest.user);
-      const fromRenovate = pullRequest.head.ref.startsWith('renovate/');
       const autoMergeLabel = repoContext.labels['merge/automerge'];
 
       if (isFromBot && repoContext.config.requiresReviewRequest) {
@@ -41,71 +40,51 @@ export default function opened(app: Probot, appContext: AppContext): void {
       await Promise.all<unknown>([
         !isFromBot && autoAssignPRToCreator(pullRequest, context, repoContext),
 
-        editOpenedPR({
-          pullRequest,
-          context,
-          appContext,
-          repoContext,
-          reviewflowPrContext,
-          shouldUpdateCommentBodyInfos: true,
-        }),
-        fromRenovate
-          ? fetchPr(context, pullRequest.number).then((updatedPr) =>
-              autoApproveAndAutoMerge(
-                updatedPr,
-                context,
-                repoContext,
-                reviewflowPrContext,
-              ).then(async (approved: boolean): Promise<void> => {
-                if (!approved) {
-                  await updateReviewStatus(pullRequest, context, repoContext, [
-                    {
-                      reviewGroup: 'dev',
-                      add: ['needsReview'],
-                    },
-                  ]).then(async (newLabels) => {
-                    const stepsState = calcStepsState({
-                      repoContext,
-                      pullRequest,
-                      labels: newLabels,
-                    });
+        updateReviewStatus(pullRequest, context, repoContext, [
+          {
+            reviewGroup: 'dev',
+            add:
+              (repoContext.config.requiresReviewRequest || isFromBot) &&
+              !pullRequest.draft
+                ? ['needsReview']
+                : [],
+            remove: ['approved', 'changesRequested'],
+          },
+        ]).then(async (newLabels) => {
+          const stepsState = calcStepsState({
+            repoContext,
+            pullRequest,
+            labels: newLabels,
+          });
 
-                    await updateStatusCheckFromStepsState(
-                      stepsState,
-                      pullRequest,
-                      context,
-                      appContext,
-                      reviewflowPrContext,
-                    );
-                  });
-                }
-              }),
-            )
-          : updateReviewStatus(pullRequest, context, repoContext, [
-              {
-                reviewGroup: 'dev',
-                add:
-                  repoContext.config.requiresReviewRequest && !pullRequest.draft
-                    ? ['needsReview']
-                    : [],
-                remove: ['approved', 'changesRequested'],
-              },
-            ]).then(async (newLabels) => {
-              const stepsState = calcStepsState({
-                repoContext,
-                pullRequest,
-                labels: newLabels,
-              });
-
-              await updateStatusCheckFromStepsState(
-                stepsState,
-                pullRequest,
-                context,
-                appContext,
-                reviewflowPrContext,
-              );
+          await Promise.all([
+            updateStatusCheckFromStepsState(
+              stepsState,
+              pullRequest,
+              context,
+              appContext,
+              reviewflowPrContext,
+            ),
+            editOpenedPR({
+              pullRequest,
+              context,
+              appContext,
+              repoContext,
+              reviewflowPrContext,
+              stepsState,
+              shouldUpdateCommentBodyInfos: true,
+              shouldUpdateCommentBodyProgress: true,
             }),
+          ]);
+        }),
       ]);
     },
+    (pullRequest, context) => ({
+      reviewflowCommentPromise: createReviewflowComment(
+        pullRequest.number,
+        context,
+        defaultCommentBody,
+      ),
+    }),
   );
 }

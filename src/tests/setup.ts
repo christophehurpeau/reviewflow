@@ -32,7 +32,8 @@ export const initializeProbotApp = async ({
       ...orgs,
     },
     repositories: {
-      findByKey: () => Promise.resolve({ _id: 1, options: {} }),
+      findByKey: () =>
+        Promise.resolve({ _id: 1, settings: { deleteBranchOnMerge: true } }),
       ...repositories,
     },
     orgMembers: {

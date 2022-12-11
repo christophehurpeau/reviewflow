@@ -6,7 +6,7 @@ const config: Config<'dev', never> = {
   ...chrisconfig,
   experimentalFeatures: {
     ...chrisconfig.experimentalFeatures,
-    stepsInComment: true,
+    progressInComment: process.env.NODE_ENV !== 'test',
   },
   requiresReviewRequest: true,
   warnOnForcePushAfterReviewStarted: {

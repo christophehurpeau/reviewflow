@@ -41,21 +41,25 @@ export default function convertedToDraft(
               labels: newLabels,
             });
 
-            await updateStatusCheckFromStepsState(
-              stepsState,
-              pullRequest,
-              context,
-              appContext,
-              reviewflowPrContext,
-            );
-          }),
-          editOpenedPR({
-            pullRequest,
-            context,
-            appContext,
-            repoContext,
-            reviewflowPrContext,
-            shouldUpdateCommentBodyInfos: true,
+            await Promise.all([
+              updateStatusCheckFromStepsState(
+                stepsState,
+                pullRequest,
+                context,
+                appContext,
+                reviewflowPrContext,
+              ),
+              editOpenedPR({
+                pullRequest,
+                context,
+                appContext,
+                repoContext,
+                reviewflowPrContext,
+                stepsState,
+                shouldUpdateCommentBodyInfos: true,
+                shouldUpdateCommentBodyProgress: true,
+              }),
+            ]);
           }),
         ]);
       }

@@ -47,7 +47,9 @@ export default function edited(app: Probot, appContext: AppContext): void {
           appContext,
           repoContext,
           reviewflowPrContext,
+          stepsState,
           shouldUpdateCommentBodyInfos: true,
+          shouldUpdateCommentBodyProgress: true,
         }),
         updateStatusCheckFromStepsState(
           stepsState,

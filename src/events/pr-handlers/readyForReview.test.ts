@@ -87,7 +87,8 @@ describe('edited', (): void => {
       payload: pullRequestReadyForReview.payload as any,
     });
 
-    expect(partialUpdateOnePr).toHaveBeenNthCalledWith(1, expect.any(Object), {
+    expect(partialUpdateOnePr).toHaveBeenCalledTimes(2);
+    expect(partialUpdateOnePr).toHaveBeenCalledWith(expect.any(Object), {
       $set: {
         lastLintStatusesCommit: 'f354ffb37cf238108fbb4c915f155d925d82a61b',
         lintStatuses: [
@@ -103,7 +104,7 @@ describe('edited', (): void => {
         ],
       },
     });
-    expect(partialUpdateOnePr).toHaveBeenNthCalledWith(2, expect.any(Object), {
+    expect(partialUpdateOnePr).toHaveBeenCalledWith(expect.any(Object), {
       $set: {
         flowStatus: {
           summary: '',

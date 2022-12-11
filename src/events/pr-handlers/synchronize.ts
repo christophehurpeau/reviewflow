@@ -50,7 +50,9 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
           appContext,
           repoContext,
           reviewflowPrContext,
+          stepsState,
           shouldUpdateCommentBodyInfos: true,
+          shouldUpdateCommentBodyProgress: false,
           previousSha,
         }),
         // addStatusCheckToLatestCommit

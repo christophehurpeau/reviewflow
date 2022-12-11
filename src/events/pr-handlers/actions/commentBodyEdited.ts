@@ -39,28 +39,35 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
   await updatePrCommentBodyIfNeeded(context, reviewflowPrContext, commentBody);
 
   if (options) {
+    let updateCheckPromise: Promise<unknown> | undefined;
+
+    if (actions.includes('updateChecks')) {
+      const stepsState = calcStepsState({
+        repoContext,
+        pullRequest,
+      });
+      updateCheckPromise = Promise.all([
+        editOpenedPR({
+          pullRequest,
+          context,
+          appContext,
+          repoContext,
+          reviewflowPrContext,
+          stepsState,
+          shouldUpdateCommentBodyProgress: true,
+          shouldUpdateCommentBodyInfos: true,
+        }),
+        updateStatusCheckFromStepsState(
+          stepsState,
+          pullRequest,
+          context,
+          appContext,
+          reviewflowPrContext,
+        ),
+      ]);
+    }
     await Promise.all([
-      actions.includes('updateChecks') &&
-        Promise.all([
-          editOpenedPR({
-            pullRequest,
-            context,
-            appContext,
-            repoContext,
-            reviewflowPrContext,
-            shouldUpdateCommentBodyInfos: true,
-          }),
-          updateStatusCheckFromStepsState(
-            calcStepsState({
-              repoContext,
-              pullRequest,
-            }),
-            pullRequest,
-            context,
-            appContext,
-            reviewflowPrContext,
-          ),
-        ]),
+      actions.includes('updateChecks') && updateCheckPromise,
       syncLabels(pullRequest, context, [
         {
           shouldHaveLabel: options.autoMergeWithSkipCi,

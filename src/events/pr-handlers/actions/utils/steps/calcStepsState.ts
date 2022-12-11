@@ -1,8 +1,12 @@
 import type { Except } from 'type-fest';
 import type { RepoContext } from 'context/repoContext';
 import type { PullRequestWithDecentData } from 'events/pr-handlers/utils/PullRequestData';
+import type { CIStepState } from './ciStep';
+import { calcCIStep } from './ciStep';
 import type { CodeReviewStepState } from './codeReviewStep';
 import { calcCodeReviewStep } from './codeReviewStep';
+import type { MergeStepState } from './mergeStep';
+import { calcMergeStep } from './mergeStep';
 import type { WriteStepState } from './writeStep';
 import { calcWriteStep } from './writeStep';
 
@@ -15,20 +19,33 @@ export interface CalcStepsStateOptions<GroupNames extends string> {
 
 export interface StepsState<GroupNames extends string = any> {
   write: WriteStepState;
+  ci: CIStepState;
   codeReview: CodeReviewStepState<GroupNames>;
+  merge: MergeStepState;
 }
 
-const steps = [
+// TODO update pr comment when necessary to update this: reviewRequested, etc...
+// try to look next to updateStatusCheckFromStepsState and when editOpenedPR is not called
+export const steps = [
   {
     name: 'Step 1: ✏️ Write code',
     key: 'write',
     fn: calcWriteStep,
   },
-  // Step 2: ✅ CI passes
+  {
+    name: 'Step 2: ✅ CI passes (not implemented)',
+    key: 'ci',
+    fn: calcCIStep,
+  },
   {
     name: 'Step 3: 👌 Code Review',
     key: 'codeReview',
     fn: calcCodeReviewStep,
+  },
+  {
+    name: 'Step 4: 🚦 Merging Pull Request',
+    key: 'merge',
+    fn: calcMergeStep,
   },
 ] as const;
 

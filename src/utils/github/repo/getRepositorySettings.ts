@@ -15,8 +15,20 @@ export interface RepositorySettingsQueryResult {
 
 export const getRepositorySettings = (
   context: Context,
-): Promise<RepositorySettingsQueryResult> =>
-  context.octokit.graphql(
+): Promise<RepositorySettingsQueryResult> => {
+  if (process.env.NODE_ENV === 'test') {
+    return Promise.resolve({
+      repository: {
+        autoMergeAllowed: true,
+        deleteBranchOnMerge: true,
+        defaultBranchRef: { name: 'main' },
+        mergeCommitAllowed: true,
+        rebaseMergeAllowed: true,
+        squashMergeAllowed: true,
+      },
+    });
+  }
+  return context.octokit.graphql(
     `
 query repository($owner: String!, $repo: String!) {
   repository(owner: $owner, name: $repo) {
@@ -32,3 +44,4 @@ query repository($owner: String!, $repo: String!) {
 }`,
     context.repo(),
   );
+};

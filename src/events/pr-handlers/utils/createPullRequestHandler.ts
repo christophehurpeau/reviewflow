@@ -85,9 +85,15 @@ export const createPullRequestHandler = <
         getPullRequestInPayload(context.payload, context, repoContext);
 
       if (pullRequest === null) return;
-      const options = callbackBeforeLock
-        ? await callbackBeforeLock(pullRequest, context, repoContext)
+      let res = callbackBeforeLock
+        ? callbackBeforeLock(pullRequest, context, repoContext)
         : {};
+
+      if (res && typeof (res as Promise<any>).then === 'function') {
+        // avoid calling await if not necessary, for opened event we need to keep it synchronous
+        res = await res;
+      }
+      const options: CreatePrContextOptions = res as CreatePrContextOptions;
 
       await repoContext.lockPullRequest(
         `${context.name}:${context.payload.action}`,

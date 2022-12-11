@@ -1,4 +1,6 @@
 import type { LabelList, StatusInfo } from 'accountConfigs/types';
+import { steps } from '../steps/calcStepsState';
+import type { StepsState } from '../steps/calcStepsState';
 import type { Options } from './parseBody';
 import { parseActions, parseOptions } from './parseBody';
 import type { ActionKeys } from './prActions';
@@ -85,11 +87,17 @@ interface UpdatedBodyWithOptions {
   actions: ActionKeys[];
 }
 
+const getProgressReplacement = (stepsState: StepsState): string => {
+  return `### Progress\n\n${steps
+    .map(({ name, key }) => `${stepsState[key].pass ? '✔️' : '⬜'} ${name}`)
+    .join('\n')}\n\n`;
+};
+
 const getInfosReplacement = (infos?: StatusInfo[]): string => {
-  if (!infos) return '$1$2';
+  if (!infos) return '$1$2$3';
   return infos.length > 0
-    ? `### Infos:\n\n${toMarkdownInfos(infos)}\n\n$2`
-    : '$2';
+    ? `$1### Infos:\n\n${toMarkdownInfos(infos)}\n\n$3`
+    : '$1$3';
 };
 
 const updateOptions = (
@@ -111,7 +119,7 @@ const internalUpdateBodyOptionsAndInfos = (
 ): string => {
   const infosAndCommitNotesParagraph = body.replace(
     // eslint-disable-next-line unicorn/no-unsafe-regex
-    /^\s*(?:(####? Infos:.*)?(####? Commits Notes:.*)?####? Options:)?.*$/s,
+    /^\s*(?:(####? Progress:?.*)?(####? Infos:?.*)?(####? Commits Notes:?.*)?####? Options:?)?.*$/s,
     getInfosReplacement(infos),
   );
 
@@ -129,13 +137,14 @@ export const createCommentBody = (
   repoLink: string,
   labelsConfig: LabelList,
   defaultOptions: Options,
+  stepsState?: StepsState,
   infos?: StatusInfo[],
 ): string => {
   return internalUpdateBodyOptionsAndInfos(
     repositorySettings,
     repoLink,
     labelsConfig,
-    '',
+    stepsState ? getProgressReplacement(stepsState) : '',
     defaultOptions,
     defaultOptions,
     infos,
@@ -175,8 +184,21 @@ export const updateCommentBodyInfos = (
     // *  - zero or more
     // *? - zero or more (non-greedy)
     // eslint-disable-next-line unicorn/no-unsafe-regex
-    /^\s*(?:(####? Infos:.*?)?(####? Commits Notes:.*?)?(####? Options:.*?)?)?$/s,
-    `${getInfosReplacement(infos)}$3`,
+    /^\s*(####? Progress:?.*?)?(?:(####? Infos:?.*?)?(####? Commits Notes:?.*?)?(####? Options:?.*?)?)?$/s,
+    `$1${getInfosReplacement(infos)}$4`,
+  );
+};
+
+export const updateCommentBodyProgress = (
+  commentBody: string,
+  stepsState: StepsState,
+): string => {
+  return commentBody.replace(
+    // *  - zero or more
+    // *? - zero or more (non-greedy)
+    // eslint-disable-next-line unicorn/no-unsafe-regex
+    /^\s*(####? Progress:?.*?)?(?:(####? Infos:?.*?)?(####? Commits Notes:?.*?)?(####? Options:?.*?)?)?$/s,
+    `${getProgressReplacement(stepsState)}$2$3$4`,
   );
 };
 
