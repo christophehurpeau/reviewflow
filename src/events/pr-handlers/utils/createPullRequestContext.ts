@@ -5,6 +5,7 @@ import { defaultCommentBody } from '../actions/utils/body/updateBody';
 import type { PullRequestDataMinimumData } from './PullRequestData';
 import {
   createReviewflowComment,
+  findReviewflowComment,
   getReviewflowCommentById,
 } from './reviewflowComment';
 
@@ -42,15 +43,15 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
     'repo.id': repoContext.repoEmbed.id,
     'pr.number': prEmbed.number,
   });
-  const comment =
-    existing &&
-    (await getReviewflowCommentById(
-      pullRequest.number,
-      context,
-      existing.commentId,
-    ));
+  const comment = existing
+    ? await getReviewflowCommentById(
+        pullRequest.number,
+        context,
+        existing.commentId,
+      )
+    : await findReviewflowComment(pullRequest.number, context);
 
-  if (!comment || !existing) {
+  if (!comment) {
     const newComment = await createReviewflowComment(
       pullRequest.number,
       context,
@@ -70,6 +71,14 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
         $set: { commentId: newComment.id },
       });
     }
+  } else if (!existing) {
+    const reviewflowPr = await appContext.mongoStores.prs.insertOne({
+      account: repoContext.accountEmbed,
+      repo: repoContext.repoEmbed,
+      pr: prEmbed,
+      commentId: comment.id,
+    });
+    return { reviewflowPr, commentBody: comment.body! };
   }
 
   return { reviewflowPr: existing, commentBody: comment!.body! };
