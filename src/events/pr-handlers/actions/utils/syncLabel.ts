@@ -5,7 +5,10 @@ import type { ProbotEvent } from 'events/probot-types';
 import type { LabelResponse } from '../../../../context/initRepoLabels';
 import hasLabelInPR from './hasLabelInPR';
 
-type SyncLabelCallback = (prLabels: LabelResponse[]) => void | Promise<void>;
+type SyncLabelCallback = (
+  prLabels: LabelResponse[],
+  // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+) => void | undefined | boolean | Promise<void | undefined | boolean>;
 
 interface SyncLabelOptions {
   onRemove?: SyncLabelCallback;
@@ -27,13 +30,25 @@ export default async function syncLabel<
     const response = await context.octokit.issues.removeLabel(
       context.issue({ name: label.name }),
     );
-    if (onRemove) await onRemove(response.data);
+    if (onRemove) {
+      if ((await onRemove(response.data)) === false) {
+        await context.octokit.issues.addLabels(
+          context.issue({ labels: [label.name] }),
+        );
+      }
+    }
   }
   if (shouldHaveLabel && !prHasLabel) {
     const response = await context.octokit.issues.addLabels(
       context.issue({ labels: [label.name] }),
     );
-    if (onAdd) await onAdd(response.data);
+    if (onAdd) {
+      if ((await onAdd(response.data)) === false) {
+        await context.octokit.issues.removeLabel(
+          context.issue({ name: label.name }),
+        );
+      }
+    }
   }
 }
 
@@ -75,6 +90,7 @@ export async function syncLabels<EventName extends EmitterWebhookEventName>(
         onRemove,
         onAdd,
       }) => {
+        if (!label) return;
         if (prHasLabel && shouldHaveLabel === false) {
           labelsToRemove.push(label);
           if (onRemove) callbacks.push(onRemove);

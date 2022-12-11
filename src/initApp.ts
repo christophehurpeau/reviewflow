@@ -6,6 +6,7 @@ import orgMemberAddedOrRemoved from './events/account-handlers/orgMemberAddedOrR
 import teamChanged from './events/account-handlers/teamChanged';
 import commitCommentCreated from './events/commit-handlers/commitCommentCreated';
 import assignedOrUnassignedHandler from './events/pr-handlers/assignedOrUnassigned';
+import autoMergeChangedHandler from './events/pr-handlers/autoMergeChanged';
 import checkrunCompleted from './events/pr-handlers/checkrunCompleted';
 import checksuiteCompleted from './events/pr-handlers/checksuiteCompleted';
 import closedHandler from './events/pr-handlers/closed';
@@ -63,6 +64,7 @@ export default function initApp(app: Probot, appContext: AppContext): void {
   reviewDismissedHandler(app, appContext);
   labelsChanged(app, appContext);
   synchronizeHandler(app, appContext);
+  autoMergeChangedHandler(app, appContext);
 
   /* https://developer.github.com/webhooks/event-payloads/#pull_request_review_comment */
   /* https://developer.github.com/webhooks/event-payloads/#issue_comment */

@@ -11,6 +11,7 @@ const config: Config<'dev', never> = {
   },
   experimentalFeatures: {
     lintPullRequestTitleWithConventionalCommit: true,
+    githubAutoMerge: true,
   },
   groups: {
     dev: {

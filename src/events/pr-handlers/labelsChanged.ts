@@ -2,6 +2,10 @@ import type { Probot } from 'probot';
 import type { ProbotEvent } from 'events/probot-types';
 import type { AppContext } from '../../context/AppContext';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
+import {
+  enableGithubAutoMerge,
+  disableGithubAutoMerge,
+} from './actions/enableGithubAutoMerge';
 import { updateBranch } from './actions/updateBranch';
 import { updatePrCommentBodyOptions } from './actions/updatePrCommentBody';
 import { updateReviewStatus } from './actions/updateReviewStatus';
@@ -46,12 +50,16 @@ export default function labelsChanged(
       const fromRenovate = isFromRenovate(context.payload);
       const updatedPr = await fetchPr(context, pullRequest.number);
 
+      const updateBranchLabel = repoContext.labels['merge/update-branch'];
+      const autoMergeLabel = repoContext.labels['merge/automerge'];
+      const autoMergeSkipCiLabel = repoContext.labels['merge/skip-ci'];
+
       const label = context.payload.label;
+      let successful = true;
+
       if (fromRenovate) {
         const codeApprovedLabel = repoContext.labels['code/approved'];
         const codeNeedsReviewLabel = repoContext.labels['code/needs-review'];
-        const autoMergeLabel = repoContext.labels['merge/automerge'];
-        const autoMergeSkipCiLabel = repoContext.labels['merge/skip-ci'];
         if (context.payload.action === 'labeled') {
           if (codeApprovedLabel && label.id === codeApprovedLabel.id) {
             // const { data: reviews } = await context.octokit.pulls.listReviews(
@@ -127,13 +135,33 @@ export default function labelsChanged(
                   : repoContext.config.prDefaultOptions.autoMergeWithSkipCi,
               },
             );
+
+            if (
+              repoContext.settings.allowAutoMerge &&
+              repoContext.config.experimentalFeatures?.githubAutoMerge
+            ) {
+              await enableGithubAutoMerge(
+                pullRequest,
+                context,
+                repoContext,
+                reviewflowPrContext,
+              );
+            }
           }
-          await autoMergeIfPossible(
-            updatedPr,
-            context,
-            repoContext,
-            reviewflowPrContext,
-          );
+
+          if (
+            !(
+              repoContext.settings.allowAutoMerge &&
+              repoContext.config.experimentalFeatures?.githubAutoMerge
+            )
+          ) {
+            await autoMergeIfPossible(
+              updatedPr,
+              context,
+              repoContext,
+              reviewflowPrContext,
+            );
+          }
         }
         return;
       }
@@ -159,51 +187,93 @@ export default function labelsChanged(
         reviewflowPrContext,
       );
 
-      const updateBranchLabel = repoContext.labels['merge/update-branch'];
-      const automergeLabel = repoContext.labels['merge/automerge'];
-      const skipCiLabel = repoContext.labels['merge/skip-ci'];
-
-      const option = (() => {
-        if (automergeLabel && label.id === automergeLabel.id) {
-          return 'autoMerge';
-        }
-        if (skipCiLabel && label.id === skipCiLabel.id) {
-          return 'autoMergeWithSkipCi';
-        }
-        return null;
-      })();
-
-      if (option) {
-        await updatePrCommentBodyOptions(
-          context,
-          repoContext,
-          reviewflowPrContext,
-          {
-            [option]: context.payload.action === 'labeled',
-          },
-        );
-      } // not an else if
-      if (automergeLabel && label.id === automergeLabel.id) {
+      // not an else if
+      if (autoMergeLabel && label.id === autoMergeLabel.id) {
         if (context.payload.action === 'labeled') {
-          await autoMergeIfPossible(
-            updatedPr,
-            context,
-            repoContext,
-            reviewflowPrContext,
-          );
+          if (
+            repoContext.settings.allowAutoMerge &&
+            repoContext.config.experimentalFeatures?.githubAutoMerge
+          ) {
+            successful =
+              (await enableGithubAutoMerge(
+                pullRequest,
+                context,
+                repoContext,
+                reviewflowPrContext,
+                context.payload.sender.login,
+              )) !== null;
+
+            // if not successful, remove label
+            if (!successful) {
+              await context.octokit.issues.removeLabel(
+                context.issue({ name: label.name }),
+              );
+            }
+          } else {
+            await autoMergeIfPossible(
+              updatedPr,
+              context,
+              repoContext,
+              reviewflowPrContext,
+            );
+          }
         } else {
-          await repoContext.removePrFromAutomergeQueue(
-            context,
-            pullRequest,
-            'automerge label removed',
-          );
+          // eslint-disable-next-line no-lonely-if
+          if (
+            repoContext.settings.allowAutoMerge &&
+            repoContext.config.experimentalFeatures?.githubAutoMerge
+          ) {
+            successful = await disableGithubAutoMerge(
+              pullRequest,
+              context,
+              repoContext,
+              reviewflowPrContext,
+              context.payload.sender.login,
+            );
+            // if not successful, add label back
+            if (!successful) {
+              await context.octokit.issues.addLabels(
+                context.issue({ labels: [label.name] }),
+              );
+            }
+          } else {
+            await repoContext.removePrFromAutomergeQueue(
+              context,
+              pullRequest,
+              'automerge label removed',
+            );
+          }
         }
       }
+
       if (updateBranchLabel && label.id === updateBranchLabel.id) {
         if (context.payload.action === 'labeled') {
           await updateBranch(updatedPr, context, context.payload.sender.login);
           await context.octokit.issues.removeLabel(
             context.issue({ name: label.name }),
+          );
+        }
+      }
+
+      if (successful) {
+        const option = (() => {
+          if (autoMergeLabel && label.id === autoMergeLabel.id) {
+            return 'autoMerge';
+          }
+          if (autoMergeSkipCiLabel && label.id === autoMergeSkipCiLabel.id) {
+            return 'autoMergeWithSkipCi';
+          }
+          return null;
+        })();
+
+        if (option) {
+          await updatePrCommentBodyOptions(
+            context,
+            repoContext,
+            reviewflowPrContext,
+            {
+              [option]: context.payload.action === 'labeled',
+            },
           );
         }
       }

@@ -8,6 +8,7 @@ import type {
   PullRequestData,
   PullRequestFromRestEndpoint,
   PullRequestLabels,
+  PullRequestWithDecentData,
 } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { createMergeLockPrFromPr } from '../utils/mergeLock';
@@ -19,7 +20,7 @@ import hasLabelInPR from './utils/hasLabelInPR';
 import { readPullRequestCommits } from './utils/readPullRequestCommits';
 
 interface CreateCommitMessageOptions {
-  pullRequest: PullRequestFromRestEndpoint;
+  pullRequest: PullRequestWithDecentData;
   parsedBody: ParsedBody;
   options: Options;
 }
@@ -127,6 +128,7 @@ export const autoMergeIfPossible = async <
   if (!repo) return false;
 
   if (repoContext.config.disableAutoMerge) return false;
+  if (repoContext.config.experimentalFeatures?.githubAutoMerge) return false;
 
   const autoMergeLabel = repoContext.labels['merge/automerge'];
 

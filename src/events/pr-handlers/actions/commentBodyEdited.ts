@@ -5,6 +5,10 @@ import type { PullRequestFromRestEndpoint } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { autoMergeIfPossible } from './autoMergeIfPossible';
 import { editOpenedPR } from './editOpenedPR';
+import {
+  disableGithubAutoMerge,
+  enableGithubAutoMerge,
+} from './enableGithubAutoMerge';
 import { updateBranch } from './updateBranch';
 import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
 import { updateStatusCheckFromLabels } from './updateStatusCheckFromLabels';
@@ -75,20 +79,48 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
           shouldHaveLabel: options.autoMerge,
           label: automergeLabel,
           onAdd: async (prLabels) => {
-            await autoMergeIfPossible(
-              pullRequest,
-              context,
-              repoContext,
-              reviewflowPrContext,
-              prLabels,
-            );
+            if (
+              repoContext.settings.allowAutoMerge &&
+              repoContext.config.experimentalFeatures?.githubAutoMerge
+            ) {
+              return (
+                (await enableGithubAutoMerge(
+                  pullRequest,
+                  context,
+                  repoContext,
+                  reviewflowPrContext,
+                )) !== null
+              );
+            } else {
+              await autoMergeIfPossible(
+                pullRequest,
+                context,
+                repoContext,
+                reviewflowPrContext,
+                prLabels,
+              );
+              return true;
+            }
           },
           onRemove: async () => {
-            await repoContext.removePrFromAutomergeQueue(
-              context,
-              pullRequest,
-              'label removed',
-            );
+            if (
+              repoContext.settings.allowAutoMerge &&
+              repoContext.config.experimentalFeatures?.githubAutoMerge
+            ) {
+              return disableGithubAutoMerge(
+                pullRequest,
+                context,
+                repoContext,
+                reviewflowPrContext,
+              );
+            } else {
+              await repoContext.removePrFromAutomergeQueue(
+                context,
+                pullRequest,
+                'label removed',
+              );
+              return true;
+            }
           },
         },
       ]),

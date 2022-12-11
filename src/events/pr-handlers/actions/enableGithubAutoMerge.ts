@@ -1,0 +1,104 @@
+import type { EventsWithRepository, RepoContext } from 'context/repoContext';
+import type { AutoMergeRequest } from '../../../utils/github/pullRequest/autoMerge';
+import {
+  enableGithubAutoMergeMutation,
+  disableGithubAutoMergeMutation,
+} from '../../../utils/github/pullRequest/autoMerge';
+import type { ProbotEvent } from '../../probot-types';
+import type { PullRequestWithDecentData } from '../utils/PullRequestData';
+import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
+import { createCommitMessage } from './autoMergeIfPossible';
+import { parseBody } from './utils/body/parseBody';
+
+export const enableGithubAutoMerge = async <
+  EventName extends EventsWithRepository,
+>(
+  pullRequest: PullRequestWithDecentData,
+  context: ProbotEvent<EventName>,
+  repoContext: RepoContext,
+  reviewflowPrContext: ReviewflowPrContext,
+  login?: string,
+): Promise<AutoMergeRequest | null> => {
+  // TODO prevent merge when statuses are failing (see autoMergeIfPossible) => add in reviewflow status check
+
+  const parsedBody = parseBody(
+    reviewflowPrContext.commentBody,
+    repoContext.config.prDefaultOptions,
+  );
+  const options = parsedBody?.options || repoContext.config.prDefaultOptions;
+
+  const [commitHeadline, commitBody] = createCommitMessage({
+    pullRequest,
+    parsedBody,
+    options,
+  });
+
+  try {
+    /* Conditions:
+Allow auto-merge enabled in settings.
+The pull request base must have a branch protection rule with at least one requirement enabled.
+The pull request must be in a state where requirements have not yet been satisfied. If the pull request can already be merged, attempting to enable auto-merge will fail.
+*/
+    const response = await enableGithubAutoMergeMutation(context, {
+      pullRequestId: pullRequest.node_id,
+      mergeMethod: 'SQUASH',
+      commitHeadline,
+      commitBody,
+    });
+    return response.enablePullRequestAutoMerge.pullRequest.autoMergeRequest;
+  } catch (err) {
+    context.log.error(
+      'Could not enable automerge',
+      context.repo({
+        issue_number: pullRequest.number,
+      }),
+      err,
+    );
+    context.octokit.issues.createComment(
+      context.repo({
+        issue_number: pullRequest.number,
+        body: `${login ? `@${login} ` : ''}Could not enable automerge`,
+      }),
+    );
+  }
+  return null;
+};
+
+export const disableGithubAutoMerge = async <
+  EventName extends EventsWithRepository,
+>(
+  pullRequest: PullRequestWithDecentData,
+  context: ProbotEvent<EventName>,
+  repoContext: RepoContext,
+  reviewflowPrContext: ReviewflowPrContext,
+  login?: string,
+): Promise<boolean> => {
+  try {
+    /* Conditions:
+Allow auto-merge enabled in settings.
+The pull request base must have a branch protection rule with at least one requirement enabled.
+The pull request must be in a state where requirements have not yet been satisfied. If the pull request can already be merged, attempting to enable auto-merge will fail.
+*/
+    const response = await disableGithubAutoMergeMutation(context, {
+      pullRequestId: pullRequest.node_id,
+    });
+    return (
+      response.disablePullRequestAutoMerge.pullRequest.autoMergeRequest === null
+    );
+  } catch (err) {
+    context.log.error(
+      'Could not disable automerge',
+      context.repo({
+        issue_number: pullRequest.number,
+      }),
+      err,
+    );
+    context.octokit.issues.createComment(
+      context.repo({
+        issue_number: pullRequest.number,
+        body: `${login ? `@${login} ` : ''}Could not disable automerge`,
+      }),
+    );
+    return false;
+  }
+};
