@@ -33,13 +33,10 @@ export default function assignedOrUnassignedHandler(
       const { assignee: newlyAssigned, sender } = context.payload;
       const isUnassigned = context.payload.action === 'unassigned';
 
-      /* if repo is not ignored */
-      if (reviewflowPrContext) {
+      if (repoContext.slack) {
         // update new assignee slack home
         repoContext.slack.updateHome(newlyAssigned.login);
-      }
 
-      if (repoContext.slack) {
         await Promise.all(
           [
             ...pullRequest.assignees,
