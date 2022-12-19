@@ -198,7 +198,7 @@ export default function reviewRequestRemoved(
               const message = sentMessageRequestedReview.message;
               await Promise.all([
                 repoContext.slack.updateMessage(
-                  sentMessageRequestedReview.account,
+                  sentTo.user,
                   sentTo.ts,
                   sentTo.channel,
                   {
@@ -210,7 +210,7 @@ export default function reviewRequestRemoved(
                   },
                 ),
                 repoContext.slack.addReaction(
-                  sentMessageRequestedReview.account,
+                  sentTo.user,
                   sentTo.ts,
                   sentTo.channel,
                   'skull_and_crossbones',

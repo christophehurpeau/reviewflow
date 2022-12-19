@@ -176,37 +176,41 @@ export default function reviewSubmitted(
         repoContext.slack.updateHome(reviewer.login);
 
         const sentMessageRequestedReview =
-          await appContext.mongoStores.slackSentMessages.findOne({
-            'account.id': repoContext.accountEmbed.id,
-            'account.type': repoContext.accountEmbed.type,
-            type: 'review-requested',
-            typeId: `${pullRequest.id}_${reviewer.id}`,
-          });
+          await appContext.mongoStores.slackSentMessages.findOne(
+            {
+              'account.id': repoContext.accountEmbed.id,
+              'account.type': repoContext.accountEmbed.type,
+              type: 'review-requested',
+              typeId: `${pullRequest.id}_${reviewer.id}`,
+            },
+            { created: -1 },
+          );
 
         const emoji = getEmojiFromState(state);
 
         if (sentMessageRequestedReview) {
-          const sentTo = sentMessageRequestedReview.sentTo[0];
           const message = sentMessageRequestedReview.message;
           await Promise.all([
-            repoContext.slack.updateMessage(
-              sentMessageRequestedReview.account,
-              sentTo.ts,
-              sentTo.channel,
-              {
-                ...message,
-                text: message.text
-                  .split('\n')
-                  .map((l) => `~${l}~`)
-                  .join('\n'),
-              },
-            ),
-            repoContext.slack.addReaction(
-              sentMessageRequestedReview.account,
-              sentTo.ts,
-              sentTo.channel,
-              emoji,
-            ),
+            ...sentMessageRequestedReview.sentTo.map((sentTo) => [
+              repoContext.slack.updateMessage(
+                sentTo.user,
+                sentTo.ts,
+                sentTo.channel,
+                {
+                  ...message,
+                  text: message.text
+                    .split('\n')
+                    .map((l) => `~${l}~`)
+                    .join('\n'),
+                },
+              ),
+              repoContext.slack.addReaction(
+                sentTo.user,
+                sentTo.ts,
+                sentTo.channel,
+                emoji,
+              ),
+            ]),
             appContext.mongoStores.slackSentMessages.deleteOne(
               sentMessageRequestedReview,
             ),

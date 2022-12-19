@@ -117,6 +117,7 @@ export default function reviewRequested(
               message,
               requestedTeam ? requestedTeam.id : undefined,
             );
+
             if (result) {
               await appContext.mongoStores.slackSentMessages.insertOne({
                 type: 'review-requested',
