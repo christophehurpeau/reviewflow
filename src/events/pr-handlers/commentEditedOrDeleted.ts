@@ -13,6 +13,7 @@ export default function prCommentEditedOrDeleted(
   appContext: AppContext,
 ): void {
   createPullRequestHandler<
+    | 'pull_request_review.edited'
     | 'pull_request_review_comment.edited'
     | 'pull_request_review_comment.deleted'
     | 'issue_comment.edited'
@@ -21,6 +22,7 @@ export default function prCommentEditedOrDeleted(
     app,
     appContext,
     [
+      'pull_request_review.edited',
       'pull_request_review_comment.edited',
       'pull_request_review_comment.deleted',
       // comments without review and without path are sent with issue_comment.created.
@@ -41,12 +43,14 @@ export default function prCommentEditedOrDeleted(
       repoContext,
       reviewflowPrContext,
     ): Promise<void> => {
-      const { comment } = context.payload;
-
+      // Comment updated is reviewflow comment body
       if (
+        context.name === 'issue_comment' &&
+        context.payload.action === 'edited' &&
+        context.payload.comment &&
         reviewflowPrContext !== null &&
         context.payload.action === 'edited' &&
-        checkIfIsThisBot(comment.user)
+        checkIfIsThisBot(context.payload.comment.user)
       ) {
         const updatedPr = await fetchPr(context, pullRequest.number);
         if (!updatedPr.closed_at) {
@@ -61,10 +65,22 @@ export default function prCommentEditedOrDeleted(
         return;
       }
 
-      const type =
-        'pull_request_review_id' in comment
-          ? 'review-comment'
-          : 'issue-comment';
+      const getTypeAndComment = () => {
+        if ('review' in context.payload) {
+          return ['review-submitted', context.payload.review] as const;
+        }
+
+        const comment = context.payload.comment;
+
+        return [
+          'pull_request_review_id' in comment
+            ? 'review-comment'
+            : 'issue-comment',
+          comment,
+        ] as const;
+      };
+
+      const [type, comment] = getTypeAndComment();
 
       const criteria = {
         'account.id': repoContext.accountEmbed.id,
@@ -101,7 +117,7 @@ export default function prCommentEditedOrDeleted(
         const secondaryBlocks = [
           createMrkdwnSectionBlock(
             slackifyCommentBody(
-              comment.body,
+              comment.body || '',
               (comment as any).start_line !== null,
             ),
           ),
