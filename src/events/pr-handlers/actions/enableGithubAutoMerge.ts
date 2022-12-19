@@ -33,6 +33,39 @@ export const enableGithubAutoMerge = async <
     options,
   });
 
+  if (
+    'mergeable_state' in pullRequest &&
+    (pullRequest.mergeable_state === 'clean' ||
+      pullRequest.mergeable_state === 'has_hooks' ||
+      pullRequest.mergeable_state === 'unstable')
+  ) {
+    try {
+      await context.octokit.pulls.merge({
+        merge_method: 'squash',
+        owner: pullRequest.base.repo.owner.login,
+        repo: pullRequest.base.repo.name,
+        pull_number: pullRequest.number,
+        commit_title: commitHeadline,
+        commit_message: commitBody,
+      });
+    } catch (err) {
+      context.log.error(
+        'Could not automerge',
+        context.repo({
+          issue_number: pullRequest.number,
+        }),
+        err,
+      );
+      context.octokit.issues.createComment(
+        context.repo({
+          issue_number: pullRequest.number,
+          body: `${login ? `@${login} ` : ''}Could not automerge`,
+        }),
+      );
+    }
+    return null;
+  }
+
   try {
     /* Conditions:
 Allow auto-merge enabled in settings.
