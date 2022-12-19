@@ -1,6 +1,7 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
+import { updateCommentBodyProgressFromStepsState } from './actions/updateCommentBodyProgressFromStepsState';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
@@ -64,13 +65,20 @@ export default function reviewRequested(
             labels: newLabels,
           });
 
-          await updateStatusCheckFromStepsState(
-            stepsState,
-            pullRequest,
-            context,
-            appContext,
-            reviewflowPrContext,
-          );
+          await Promise.all([
+            updateStatusCheckFromStepsState(
+              stepsState,
+              pullRequest,
+              context,
+              appContext,
+              reviewflowPrContext,
+            ),
+            updateCommentBodyProgressFromStepsState(
+              stepsState,
+              context,
+              reviewflowPrContext,
+            ),
+          ]);
         }
 
         /* update slack home */

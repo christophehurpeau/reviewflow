@@ -3,6 +3,7 @@ import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
 import { checkIfIsThisBot } from '../../utils/github/isBotUser';
 import { autoApproveAndAutoMerge } from './actions/autoApproveAndAutoMerge';
+import { updateCommentBodyProgressFromStepsState } from './actions/updateCommentBodyProgressFromStepsState';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
@@ -97,13 +98,20 @@ export default function reviewDismissed(
             labels: newLabels,
           });
 
-          await updateStatusCheckFromStepsState(
-            stepsState,
-            pullRequest,
-            context,
-            appContext,
-            reviewflowPrContext,
-          );
+          await Promise.all([
+            updateStatusCheckFromStepsState(
+              stepsState,
+              pullRequest,
+              context,
+              appContext,
+              reviewflowPrContext,
+            ),
+            updateCommentBodyProgressFromStepsState(
+              stepsState,
+              context,
+              reviewflowPrContext,
+            ),
+          ]);
         }
 
         if (updatedPr.assignees) {

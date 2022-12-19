@@ -8,6 +8,7 @@ import * as slackUtils from '../../slack/utils';
 import { ExcludesNullish } from '../../utils/Excludes';
 import { createSlackMessageWithSecondaryBlock } from '../../utils/slack/createSlackMessageWithSecondaryBlock';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
+import { updateCommentBodyProgressFromStepsState } from './actions/updateCommentBodyProgressFromStepsState';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
@@ -140,13 +141,20 @@ export default function reviewSubmitted(
               labels: newLabels,
             });
 
-            await updateStatusCheckFromStepsState(
-              stepsState,
-              pullRequest,
-              context,
-              appContext,
-              reviewflowPrContext,
-            );
+            await Promise.all([
+              updateStatusCheckFromStepsState(
+                stepsState,
+                pullRequest,
+                context,
+                appContext,
+                reviewflowPrContext,
+              ),
+              updateCommentBodyProgressFromStepsState(
+                stepsState,
+                context,
+                reviewflowPrContext,
+              ),
+            ]);
           }
 
           if (approved && !hasChangesRequestedInReviews) {
