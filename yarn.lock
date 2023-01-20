@@ -1379,6 +1379,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@octokit/openapi-types@npm:^16.0.0":
+  version: 16.0.0
+  resolution: "@octokit/openapi-types@npm:16.0.0"
+  checksum: 844f30a545da380d63c712e0eb733366bc567d1aab34529c79fdfbec3d73810e81d83f06fdab13058a5cbc7dae786db1a9b90b5b61b1e606854ee45d5ec5f194
+  languageName: node
+  linkType: hard
+
 "@octokit/plugin-enterprise-compatibility@npm:^1.2.8":
   version: 1.2.8
   resolution: "@octokit/plugin-enterprise-compatibility@npm:1.2.8"
@@ -1486,6 +1493,15 @@ __metadata:
   dependencies:
     "@octokit/openapi-types": ^11.2.0
   checksum: f122b9aee8f6baddd515e34a0913e73b21d4bc82d6ee59d77a8aaf01b4a02c10867dd013003d087a83dc96db23511893669015af6d30c27cece185e21cf1df89
+  languageName: node
+  linkType: hard
+
+"@octokit/types@npm:^8.0.0":
+  version: 8.2.0
+  resolution: "@octokit/types@npm:8.2.0"
+  dependencies:
+    "@octokit/openapi-types": ^16.0.0
+  checksum: cdb73ba5f18d85dc5d5d72ee3152920dfdfc413eeadc827ac201bb807f40e4223f8147a7b2e0bdfde7ea4e1ab8f2e7c0f25f9d30609c5d38a4fdf591d96c709e
   languageName: node
   linkType: hard
 
@@ -8490,9 +8506,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"probot@npm:12.2.5":
-  version: 12.2.5
-  resolution: "probot@npm:12.2.5"
+"probot@npm:12.3.0":
+  version: 12.3.0
+  resolution: "probot@npm:12.3.0"
   dependencies:
     "@octokit/core": ^3.2.4
     "@octokit/plugin-enterprise-compatibility": ^1.2.8
@@ -8500,7 +8516,7 @@ __metadata:
     "@octokit/plugin-rest-endpoint-methods": ^5.0.1
     "@octokit/plugin-retry": ^3.0.6
     "@octokit/plugin-throttling": ^3.3.4
-    "@octokit/types": ^6.1.1
+    "@octokit/types": ^8.0.0
     "@octokit/webhooks": ^9.8.4
     "@probot/get-private-key": ^1.1.0
     "@probot/octokit-plugin-config": ^1.0.0
@@ -8529,7 +8545,7 @@ __metadata:
     uuid: ^8.3.2
   bin:
     probot: bin/probot.js
-  checksum: d623627c62f213732151b2400d5fea763d80f1c8d93bd70885c6aaad2b9fbbda6a910b410062e36fd23421f90f8738f2d6d094797207a99b1ba69c50881b38a3
+  checksum: 0dbdf23f4b99c9c0545637055a21b225820115e3fe7aecd7150f823f025e15bc454fb7a2a77a36f857f4f5e0da6f58a12ca98e19a532d812007fe7a7945e336c
   languageName: node
   linkType: hard
 
@@ -9054,7 +9070,7 @@ resolve@^2.0.0-next.3:
     lock: 1.1.0
     nock: 13.3.0
     pob-babel: 34.1.0
-    probot: 12.2.5
+    probot: 12.3.0
     react: 18.2.0
     react-dom: 18.2.0
     simple-oauth2: 4.3.0
