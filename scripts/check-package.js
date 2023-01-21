@@ -1,6 +1,6 @@
 import { createCheckPackage } from 'check-package-dependencies';
 
-createCheckPackage()
+await createCheckPackage()
   .checkRecommended({
     isLibrary: false,
   })
@@ -12,4 +12,5 @@ createCheckPackage()
       '@octokit/plugin-rest-endpoint-methods',
       '@octokit/plugin-paginate-rest',
     ],
-  });
+  })
+  .run();
