@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.110.0](https://github.com/christophehurpeau/reviewflow/compare/v1.109.0...v1.110.0) (2023-01-21)
+
+
+### Features
+
+* **deps:** update dependency jsonwebtoken to v9 [security] ([#606](https://github.com/christophehurpeau/reviewflow/issues/606)) ([bedeffa](https://github.com/christophehurpeau/reviewflow/commit/bedeffa08e099de03a0cf8fc890c446fc2985323))
+
+
+### Bug Fixes
+
+* update progress on closed and reopened events ([acdf3d7](https://github.com/christophehurpeau/reviewflow/commit/acdf3d77b221c5438fe3e05c23c9574f064cab1a))
+
 ## [1.109.0](https://github.com/christophehurpeau/reviewflow/compare/v1.108.1...v1.109.0) (2023-01-21)
 
 
