@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.108.1](https://github.com/christophehurpeau/reviewflow/compare/v1.108.0...v1.108.1) (2023-01-21)
+
+
+### Bug Fixes
+
+* fix settings ([869712a](https://github.com/christophehurpeau/reviewflow/commit/869712ac6d94577ff810c8ab943f937df8dde2bd))
+* missing settings check ([6b989ba](https://github.com/christophehurpeau/reviewflow/commit/6b989ba7c11124c76065c58642ad091ddebfedfc))
+* try to enable automerge if disabled on synchronize ([b9c7729](https://github.com/christophehurpeau/reviewflow/commit/b9c77298622b40d279abca6c17f2f37c3c69bf4c))
+
 ## [1.108.0](https://github.com/christophehurpeau/reviewflow/compare/v1.107.0...v1.108.0) (2023-01-21)
 
 
