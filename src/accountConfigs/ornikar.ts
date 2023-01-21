@@ -252,6 +252,17 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
   },
   labels: {
     list: {
+      /* checks */
+      'checks/in-progress': {
+        name: ':green_heart: checks/in-progress',
+        color: '#DAE1E6',
+      },
+      'checks/failed': { name: ':green_heart: checks/fail', color: '#e11d21' },
+      'checks/passed': {
+        name: ':green_heart: checks/passed',
+        color: '#64DD17',
+      },
+
       // /* ci */
       // 'ci/in-progress': { name: ':green_heart: ci/in-progress', color: '#0052cc' },
       // 'ci/fail': { name: ':green_heart: ci/fail', color: '#e11d21' },
