@@ -21,6 +21,9 @@ export const enableGithubAutoMerge = async <
   login?: string,
 ): Promise<AutoMergeRequest | null> => {
   if (pullRequest.merged_at) return null;
+  if (pullRequest.auto_merge) {
+    return { enabledBy: pullRequest.auto_merge.enabled_by };
+  }
 
   if (
     !('mergeable_state' in pullRequest) ||
