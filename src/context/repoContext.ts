@@ -210,11 +210,14 @@ async function initRepoContext<
       if (!res.settings) {
         const repoSettingsResult = await getRepositorySettings(context);
 
+        const settings = createRepositorySettings(repoSettingsResult);
+        res.settings = settings;
+
         await appContext.mongoStores.repositories.partialUpdateByKey(
           res._id,
           {
             $set: {
-              settings: createRepositorySettings(repoSettingsResult),
+              settings,
             },
             // remove legacy options settings
             $unset: { options: '' },
