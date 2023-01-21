@@ -74,7 +74,9 @@ export default function reviewSubmitted(
       const [{ reviewers, reviewStates }, reviewerGithubTeams] =
         await Promise.all([
           getReviewersAndReviewStates(context, repoContext),
-          repoContext.getGithubTeamsForMember(reviewer.id),
+          repoContext.accountEmbed.type !== 'Organization'
+            ? []
+            : repoContext.getGithubTeamsForMember(reviewer.id),
         ]);
       const { owner, assignees, followers } =
         getRolesFromPullRequestAndReviewers(pullRequest, reviewers, {

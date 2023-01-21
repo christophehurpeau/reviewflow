@@ -216,7 +216,7 @@ const initAccountContext = async <
     getGithubTeamsForMember: async (memberId): Promise<OrgMember['teams']> => {
       if (accountInfo.type !== 'Organization') {
         throw new Error(
-          `Invalid account type "${accountInfo.type}" for getTeamsForMember`,
+          `Invalid account type "${accountInfo.type}" for getGithubTeamsForMember`,
         );
       }
       const orgMember = await appContext.mongoStores.orgMembers.findOne({
