@@ -506,7 +506,8 @@ async function initRepoContext<
     isSuccessful: boolean,
   ): Promise<void> => {
     if (
-      accountContext.config.experimentalFeatures?.githubAutoMerge ||
+      (repoContext.settings.allowAutoMerge &&
+        accountContext.config.experimentalFeatures?.githubAutoMerge) ||
       accountContext.config.disableAutoMerge
     ) {
       return;
