@@ -186,7 +186,7 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
       queueKeys.delete(key);
 
       updateMember(github, slackClient, member);
-    }, 9000); // 7/min 60s 1min = 1 ttes les 8.5s max
+    }, 10_000); // 7/min 60s 1min = 1 ttes les 8.5s max (with 9s we have rate limit errors)
   };
 
   const scheduleUpdateMember = (
