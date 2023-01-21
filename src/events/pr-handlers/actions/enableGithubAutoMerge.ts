@@ -22,18 +22,6 @@ export const enableGithubAutoMerge = async <
 ): Promise<AutoMergeRequest | null> => {
   if (pullRequest.merged_at) return null;
 
-  const parsedBody = parseBody(
-    reviewflowPrContext.commentBody,
-    repoContext.config.prDefaultOptions,
-  );
-  const options = parsedBody?.options || repoContext.config.prDefaultOptions;
-
-  const [commitHeadline, commitBody] = createCommitMessage({
-    pullRequest,
-    parsedBody,
-    options,
-  });
-
   if (
     !('mergeable_state' in pullRequest) ||
     pullRequest.mergeable_state === 'unknown'
@@ -47,6 +35,18 @@ export const enableGithubAutoMerge = async <
     );
     return null;
   }
+
+  const parsedBody = parseBody(
+    reviewflowPrContext.commentBody,
+    repoContext.config.prDefaultOptions,
+  );
+  const options = parsedBody?.options || repoContext.config.prDefaultOptions;
+
+  const [commitHeadline, commitBody] = createCommitMessage({
+    pullRequest,
+    parsedBody,
+    options,
+  });
 
   if (
     pullRequest.mergeable_state === 'clean' ||
