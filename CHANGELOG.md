@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.111.1](https://github.com/christophehurpeau/reviewflow/compare/v1.111.0...v1.111.1) (2023-01-21)
+
+
+### Bug Fixes
+
+* call to getGithubTeamsForMember when not an org ([5403fb0](https://github.com/christophehurpeau/reviewflow/commit/5403fb0b8442b87ac5add3ee4f3c019e3ed5585d))
+
 ## [1.111.0](https://github.com/christophehurpeau/reviewflow/compare/v1.110.0...v1.111.0) (2023-01-21)
 
 
