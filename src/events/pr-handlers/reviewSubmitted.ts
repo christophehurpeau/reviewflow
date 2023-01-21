@@ -71,10 +71,11 @@ export default function reviewSubmitted(
         html_url: reviewUrl,
       } = payload.review;
 
-      const { reviewers, reviewStates } = await getReviewersAndReviewStates(
-        context,
-        repoContext,
-      );
+      const [{ reviewers, reviewStates }, reviewerGithubTeams] =
+        await Promise.all([
+          getReviewersAndReviewStates(context, repoContext),
+          repoContext.getGithubTeamsForMember(reviewer.id),
+        ]);
       const { owner, assignees, followers } =
         getRolesFromPullRequestAndReviewers(pullRequest, reviewers, {
           excludeIds: [reviewer.id],
@@ -168,15 +169,18 @@ export default function reviewSubmitted(
           }
         }
 
-        if (assignees) {
-          assignees.forEach((assignee) => {
-            repoContext.slack.updateHome(assignee.login);
-          });
-        }
-        repoContext.slack.updateHome(reviewer.login);
+        const createTeamsRegex = () => {
+          if (reviewerGithubTeams.length === 1) {
+            return reviewerGithubTeams[0].id;
+          }
+          return `(${reviewerGithubTeams.map((team) => team.id).join('|')})`;
+        };
 
-        const sentMessageRequestedReview =
-          await appContext.mongoStores.slackSentMessages.findOne(
+        const [
+          sentMessageRequestedReview,
+          sentMessageRequestedReviewForReviewerTeams,
+        ] = await Promise.all([
+          appContext.mongoStores.slackSentMessages.findOne(
             {
               'account.id': repoContext.accountEmbed.id,
               'account.type': repoContext.accountEmbed.type,
@@ -184,35 +188,99 @@ export default function reviewSubmitted(
               typeId: `${pullRequest.id}_${reviewer.id}`,
             },
             { created: -1 },
-          );
+          ),
+          reviewerGithubTeams.length > 0
+            ? appContext.mongoStores.slackSentMessages.findAll(
+                {
+                  'account.id': repoContext.accountEmbed.id,
+                  'account.type': repoContext.accountEmbed.type,
+                  type: 'review-requested',
+                  typeId: {
+                    $regex: `^${pullRequest.id}_${createTeamsRegex()}_`,
+                  },
+                },
+                { created: -1 },
+              )
+            : [],
+        ]);
+
+        repoContext.slack.updateHome(reviewer.login);
+        if (assignees) {
+          assignees.forEach((assignee) => {
+            repoContext.slack.updateHome(assignee.login);
+          });
+        }
+
+        for (const sentMessageRequestedReviewForReviewerTeam of sentMessageRequestedReviewForReviewerTeams) {
+          for (const {
+            user,
+          } of sentMessageRequestedReviewForReviewerTeam.sentTo) {
+            repoContext.slack.updateHome(user.login);
+          }
+        }
 
         const emoji = getEmojiFromState(state);
 
-        if (sentMessageRequestedReview) {
-          const message = sentMessageRequestedReview.message;
+        if (
+          sentMessageRequestedReview ||
+          sentMessageRequestedReviewForReviewerTeams.length > 0
+        ) {
           await Promise.all([
-            ...sentMessageRequestedReview.sentTo.map((sentTo) => [
-              repoContext.slack.updateMessage(
-                sentTo.user,
-                sentTo.ts,
-                sentTo.channel,
-                {
-                  ...message,
-                  text: message.text
-                    .split('\n')
-                    .map((l) => `~${l}~`)
-                    .join('\n'),
-                },
-              ),
-              repoContext.slack.addReaction(
-                sentTo.user,
-                sentTo.ts,
-                sentTo.channel,
-                emoji,
-              ),
-            ]),
-            appContext.mongoStores.slackSentMessages.deleteOne(
-              sentMessageRequestedReview,
+            ...(sentMessageRequestedReview
+              ? [
+                  ...sentMessageRequestedReview.sentTo.map((sentTo) => [
+                    repoContext.slack.updateMessage(
+                      sentTo.user,
+                      sentTo.ts,
+                      sentTo.channel,
+                      {
+                        ...sentMessageRequestedReview.message,
+                        text: sentMessageRequestedReview.message.text
+                          .split('\n')
+                          .map((l) => `~${l}~`)
+                          .join('\n'),
+                      },
+                    ),
+                    repoContext.slack.addReaction(
+                      sentTo.user,
+                      sentTo.ts,
+                      sentTo.channel,
+                      emoji,
+                    ),
+                  ]),
+                  appContext.mongoStores.slackSentMessages.deleteOne(
+                    sentMessageRequestedReview,
+                  ),
+                ]
+              : []),
+            ...sentMessageRequestedReviewForReviewerTeams.flatMap(
+              (sentMessageRequestedReviewForReviewerTeam) => [
+                ...sentMessageRequestedReviewForReviewerTeam.sentTo.map(
+                  (sentTo) => [
+                    repoContext.slack.updateMessage(
+                      sentTo.user,
+                      sentTo.ts,
+                      sentTo.channel,
+                      {
+                        ...sentMessageRequestedReviewForReviewerTeam.message,
+                        text: sentMessageRequestedReviewForReviewerTeam.message.text
+                          .split('\n')
+                          .map((l) => `~${l}~`)
+                          .join('\n'),
+                      },
+                    ),
+                    repoContext.slack.addReaction(
+                      sentTo.user,
+                      sentTo.ts,
+                      sentTo.channel,
+                      emoji,
+                    ),
+                  ],
+                ),
+                appContext.mongoStores.slackSentMessages.deleteOne(
+                  sentMessageRequestedReviewForReviewerTeam,
+                ),
+              ],
             ),
           ]);
         }

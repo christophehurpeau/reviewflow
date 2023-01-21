@@ -37,6 +37,7 @@ export interface AccountContext<
   getTeamGroup: (teamName: string) => GroupNames | undefined;
   getGithubTeamsGroups: (teamNames: string[]) => GroupNames[];
   getMembersForTeams: (teamIds: number[]) => Promise<AccountEmbedWithoutType[]>;
+  getGithubTeamsForMember: (memberId: number) => Promise<OrgMember['teams']>;
   getTeamsForLogin: (githubLogin: string) => TeamNames[];
   updateGithubTeamMembers: () => Promise<void>;
   approveShouldWait: (
@@ -211,6 +212,18 @@ const initAccountContext = async <
       await cursor.limit(100);
       const orgMembers = await cursor.toArray();
       return orgMembers.map((member) => member.user);
+    },
+    getGithubTeamsForMember: async (memberId): Promise<OrgMember['teams']> => {
+      if (accountInfo.type !== 'Organization') {
+        throw new Error(
+          `Invalid account type "${accountInfo.type}" for getTeamsForMember`,
+        );
+      }
+      const orgMember = await appContext.mongoStores.orgMembers.findOne({
+        'org.id': account._id,
+        'user.id': memberId,
+      });
+      return orgMember ? orgMember.teams : [];
     },
     updateGithubTeamMembers,
 
