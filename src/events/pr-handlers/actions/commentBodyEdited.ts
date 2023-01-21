@@ -1,8 +1,10 @@
 import type { EventsWithRepository, RepoContext } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
 import type { AppContext } from '../../../context/AppContext';
+import { getChecksAndStatusesForPullRequest } from '../../../utils/github/pullRequest/checksAndStatuses';
 import type { PullRequestFromRestEndpoint } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
+import { getFailedOrWaitingChecksAndStatuses } from '../utils/getFailedOrWaitingChecksAndStatuses';
 import { autoMergeIfPossible } from './autoMergeIfPossible';
 import { editOpenedPR } from './editOpenedPR';
 import {
@@ -14,7 +16,9 @@ import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
 import { updateStatusCheckFromStepsState } from './updateStatusCheckFromStepsState';
 import { calcDefaultOptions } from './utils/body/prOptions';
 import { updateCommentOptions } from './utils/body/updateBody';
+import { getStateChecksLabelsToSync } from './utils/labels/getStateChecksLabelsToSync';
 import { calcStepsState } from './utils/steps/calcStepsState';
+import type { LabelToSync } from './utils/syncLabel';
 import { syncLabels, removeLabel } from './utils/syncLabel';
 
 export const commentBodyEdited = async <Name extends EventsWithRepository>(
@@ -39,14 +43,105 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
   await updatePrCommentBodyIfNeeded(context, reviewflowPrContext, commentBody);
 
   if (options) {
-    let updateCheckPromise: Promise<unknown> | undefined;
+    const shouldUpdateChecks = actions.includes('updateChecks');
 
-    if (actions.includes('updateChecks')) {
+    const checksAndStatuses = shouldUpdateChecks
+      ? await getChecksAndStatusesForPullRequest(context, pullRequest)
+      : undefined;
+
+    const calcStateLabels = async (): Promise<LabelToSync[]> => {
+      const { state } = getFailedOrWaitingChecksAndStatuses(
+        checksAndStatuses!,
+        repoContext,
+      );
+      return getStateChecksLabelsToSync(repoContext, state);
+    };
+
+    const updatedLabels = await syncLabels(pullRequest, context, [
+      {
+        shouldHaveLabel: options.autoMergeWithSkipCi,
+        label: skipCiLabel,
+      },
+      {
+        shouldHaveLabel: actions.includes('updateBranch') ? true : null,
+        label: updateBranchLabel,
+        onAdd: async () => {
+          await updateBranch(
+            pullRequest,
+            context,
+            context.payload.sender.login,
+          );
+          await removeLabel(context, pullRequest, updateBranchLabel);
+        },
+      },
+      {
+        shouldHaveLabel: options.autoMerge,
+        label: automergeLabel,
+        onAdd: async (prLabels) => {
+          if (
+            repoContext.settings.allowAutoMerge &&
+            repoContext.config.experimentalFeatures?.githubAutoMerge
+          ) {
+            return (
+              (await enableGithubAutoMerge(
+                pullRequest,
+                context,
+                repoContext,
+                reviewflowPrContext,
+              )) !== null
+            );
+          } else {
+            await autoMergeIfPossible(
+              pullRequest,
+              context,
+              repoContext,
+              reviewflowPrContext,
+              prLabels,
+            );
+            return true;
+          }
+        },
+        onRemove: async () => {
+          if (
+            repoContext.settings.allowAutoMerge &&
+            repoContext.config.experimentalFeatures?.githubAutoMerge
+          ) {
+            return disableGithubAutoMerge(
+              pullRequest,
+              context,
+              repoContext,
+              reviewflowPrContext,
+            );
+          } else {
+            await repoContext.removePrFromAutomergeQueue(
+              context,
+              pullRequest,
+              'label removed',
+            );
+            return true;
+          }
+        },
+      },
+
+      ...(shouldUpdateChecks ? await calcStateLabels() : []),
+    ]);
+
+    // update checks, after labels update.
+    if (shouldUpdateChecks) {
       const stepsState = calcStepsState({
         repoContext,
         pullRequest,
+        labels: updatedLabels,
       });
-      updateCheckPromise = Promise.all([
+
+      if (checksAndStatuses) {
+        reviewflowPrContext.reviewflowPr.checksConclusion =
+          checksAndStatuses.checksConclusionRecord;
+        reviewflowPrContext.reviewflowPr.statusesConclusion =
+          checksAndStatuses.statusesConclusionRecord;
+      }
+
+      await Promise.all([
         editOpenedPR({
           pullRequest,
           context,
@@ -56,6 +151,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
           stepsState,
           shouldUpdateCommentBodyProgress: true,
           shouldUpdateCommentBodyInfos: true,
+          checksAndStatuses,
         }),
         updateStatusCheckFromStepsState(
           stepsState,
@@ -66,74 +162,5 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
         ),
       ]);
     }
-    await Promise.all([
-      actions.includes('updateChecks') && updateCheckPromise,
-      syncLabels(pullRequest, context, [
-        {
-          shouldHaveLabel: options.autoMergeWithSkipCi,
-          label: skipCiLabel,
-        },
-        {
-          shouldHaveLabel: actions.includes('updateBranch') ? true : null,
-          label: updateBranchLabel,
-          onAdd: async () => {
-            await updateBranch(
-              pullRequest,
-              context,
-              context.payload.sender.login,
-            );
-            await removeLabel(context, updateBranchLabel);
-          },
-        },
-        {
-          shouldHaveLabel: options.autoMerge,
-          label: automergeLabel,
-          onAdd: async (prLabels) => {
-            if (
-              repoContext.settings.allowAutoMerge &&
-              repoContext.config.experimentalFeatures?.githubAutoMerge
-            ) {
-              return (
-                (await enableGithubAutoMerge(
-                  pullRequest,
-                  context,
-                  repoContext,
-                  reviewflowPrContext,
-                )) !== null
-              );
-            } else {
-              await autoMergeIfPossible(
-                pullRequest,
-                context,
-                repoContext,
-                reviewflowPrContext,
-                prLabels,
-              );
-              return true;
-            }
-          },
-          onRemove: async () => {
-            if (
-              repoContext.settings.allowAutoMerge &&
-              repoContext.config.experimentalFeatures?.githubAutoMerge
-            ) {
-              return disableGithubAutoMerge(
-                pullRequest,
-                context,
-                repoContext,
-                reviewflowPrContext,
-              );
-            } else {
-              await repoContext.removePrFromAutomergeQueue(
-                context,
-                pullRequest,
-                'label removed',
-              );
-              return true;
-            }
-          },
-        },
-      ]),
-    ]);
   }
 };

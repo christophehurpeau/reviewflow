@@ -65,6 +65,11 @@ export const initRepoLabels = async <
           (label) => label.name === 'automerge/skip-ci',
         );
       }
+      if (labelKey.includes('checks/')) {
+        existingLabel = labels.find(
+          (label) => label.name === labelConfig.name.replace('checks/', 'ci/'),
+        );
+      }
     }
 
     if (!existingLabel) {

@@ -25,10 +25,16 @@ const config: Config<'dev', never> = {
   teams: {},
   labels: {
     list: {
-      // /* ci */
-      // 'ci/in-progress': { name: ':green_heart: ci/in-progress', color: '#0052cc' },
-      // 'ci/fail': { name: ':green_heart: ci/fail', color: '#e11d21' },
-      // 'ci/passed': { name: ':green_heart: ci/passed', color: '#86f9b4' },
+      /* checks */
+      'checks/in-progress': {
+        name: ':green_heart: checks/in-progress',
+        color: '#B2E1FF',
+      },
+      'checks/failed': { name: ':green_heart: checks/fail', color: '#e11d21' },
+      'checks/passed': {
+        name: ':green_heart: checks/passed',
+        color: '#64DD17',
+      },
 
       /* code */
       'code/needs-review': {
@@ -76,10 +82,10 @@ const config: Config<'dev', never> = {
     },
 
     review: {
-      ci: {
-        inProgress: 'ci/in-progress',
-        succeeded: 'ci/success',
-        failed: 'ci/fail',
+      checks: {
+        inProgress: 'checks/in-progress',
+        succeeded: 'checks/passed',
+        failed: 'checks/failed',
       },
       dev: {
         needsReview: 'code/needs-review',

@@ -2,8 +2,10 @@ import type { Probot } from 'probot';
 import type { ProbotEvent } from 'events/probot-types';
 import type { AppContext } from '../../context/AppContext';
 import type { LockedMergePr } from '../../context/repoContext';
+import { calcAndUpdateLabels } from './actions/calcAndUpdateLabels';
 import type { PullRequestDataMinimumData } from './utils/PullRequestData';
 import { createPullRequestsHandler } from './utils/createPullRequestHandler';
+import { fetchPr } from './utils/fetchPr';
 
 const isSameBranch = (
   payload: ProbotEvent<'status'>['payload'],
@@ -20,7 +22,7 @@ export default function status(app: Probot, appContext: AppContext): void {
     'status',
     async (payload, repoContext): Promise<PullRequestDataMinimumData[]> => {
       if (repoContext.shouldIgnore) return [];
-      if (payload.state === 'pending') return [];
+      if (payload.context === process.env.REVIEWFLOW_NAME) return [];
 
       const lockedPr = repoContext.getMergeLockedPr();
 
@@ -36,12 +38,59 @@ export default function status(app: Probot, appContext: AppContext): void {
 
       return prsForShaCursor.map((reviewflowPr) => reviewflowPr.pr);
     },
-    async (pullRequest, context, repoContext): Promise<void> => {
-      await repoContext.rescheduleOnChecksUpdated(
-        context,
-        pullRequest,
-        context.payload.state === 'success',
-      );
+    async (
+      pullRequest,
+      context,
+      repoContext,
+      reviewflowPrContext,
+    ): Promise<void> => {
+      if (context.payload.state !== 'pending') {
+        await repoContext.rescheduleOnChecksUpdated(
+          context,
+          pullRequest,
+          context.payload.state === 'success',
+        );
+      }
+
+      if (reviewflowPrContext?.reviewflowPr.statusesConclusion) {
+        const key = context.payload.context.replace(/[\s.]/g, '_');
+
+        if (
+          reviewflowPrContext.reviewflowPr.statusesConclusion[key]?.state ===
+          context.payload.state
+        ) {
+          return;
+        }
+
+        reviewflowPrContext.reviewflowPr.statusesConclusion[key] = {
+          state: context.payload.state,
+          context: context.payload.context,
+        };
+
+        // TODO calc and update ci step state
+        await Promise.all([
+          fetchPr(context, pullRequest.number).then((pr) =>
+            calcAndUpdateLabels(
+              context,
+              appContext,
+              repoContext,
+              pr,
+              reviewflowPrContext,
+            ),
+          ),
+          appContext.mongoStores.prs.partialUpdateOne(
+            reviewflowPrContext.reviewflowPr,
+            {
+              $set: {
+                [`statusesConclusion.${key}`]: {
+                  context: context.payload.context,
+                  state: context.payload.state,
+                },
+              },
+            },
+          ),
+        ]);
+      }
     },
   );
 }

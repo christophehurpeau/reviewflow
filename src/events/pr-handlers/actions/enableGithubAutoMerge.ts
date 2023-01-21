@@ -7,6 +7,7 @@ import {
 import type { ProbotEvent } from '../../probot-types';
 import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
+import { createMergeLockPrFromPr } from '../utils/mergeLock';
 import { createCommitMessage } from './autoMergeIfPossible';
 import { parseBody } from './utils/body/parseBody';
 
@@ -19,7 +20,7 @@ export const enableGithubAutoMerge = async <
   reviewflowPrContext: ReviewflowPrContext,
   login?: string,
 ): Promise<AutoMergeRequest | null> => {
-  // TODO prevent merge when statuses are failing (see autoMergeIfPossible) => add in reviewflow status check
+  if (pullRequest.merged_at) return null;
 
   const parsedBody = parseBody(
     reviewflowPrContext.commentBody,
@@ -34,10 +35,23 @@ export const enableGithubAutoMerge = async <
   });
 
   if (
-    'mergeable_state' in pullRequest &&
-    (pullRequest.mergeable_state === 'clean' ||
-      pullRequest.mergeable_state === 'has_hooks' ||
-      pullRequest.mergeable_state === 'unstable')
+    !('mergeable_state' in pullRequest) ||
+    pullRequest.mergeable_state === 'unknown'
+  ) {
+    // GitHub is determining whether the pull request is mergeable
+    await repoContext.reschedule(
+      context,
+      createMergeLockPrFromPr(pullRequest),
+      'short',
+      login,
+    );
+    return null;
+  }
+
+  if (
+    pullRequest.mergeable_state === 'clean' ||
+    pullRequest.mergeable_state === 'has_hooks' ||
+    pullRequest.mergeable_state === 'unstable'
   ) {
     try {
       await context.octokit.pulls.merge({
@@ -49,13 +63,12 @@ export const enableGithubAutoMerge = async <
         commit_message: commitBody,
       });
     } catch (err) {
-      context.log.error(
-        'Could not automerge',
-        context.repo({
+      context.log.error('Could not automerge', {
+        ...context.repo({
           issue_number: pullRequest.number,
         }),
         err,
-      );
+      });
       context.octokit.issues.createComment(
         context.repo({
           issue_number: pullRequest.number,

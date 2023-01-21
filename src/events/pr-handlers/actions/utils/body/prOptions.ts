@@ -1,6 +1,6 @@
 import type { RepoContext } from 'context/repoContext';
 import type { PullRequestWithDecentData } from 'events/pr-handlers/utils/PullRequestData';
-import hasLabelInPR from '../hasLabelInPR';
+import hasLabelInPR from '../labels/hasLabelInPR';
 import type { RepositorySettings } from './repositorySettings';
 
 export type OptionsKeys =

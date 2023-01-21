@@ -4,6 +4,7 @@ import type { Config } from '../accountConfigs';
 import { accountConfigs, defaultConfig } from '../accountConfigs';
 import type { GroupLabels } from '../accountConfigs/types';
 import { autoMergeIfPossible } from '../events/pr-handlers/actions/autoMergeIfPossible';
+import { enableGithubAutoMerge } from '../events/pr-handlers/actions/enableGithubAutoMerge';
 import type { RepositorySettings } from '../events/pr-handlers/actions/utils/body/repositorySettings';
 import { createRepositorySettings } from '../events/pr-handlers/actions/utils/body/repositorySettings';
 import type {
@@ -74,8 +75,13 @@ export type EventsWithRepository = CustomExtract<
   | 'commit_comment.created'
   // | 'commit_comment.deleted'
   // | 'commit_comment.edited'
+  | 'check_run.created'
+  | 'check_run.rerequested'
   | 'check_run.completed'
   | 'check_suite.completed'
+  | 'workflow_run.requested'
+  // | 'workflow_run.in_progress'
+  | 'workflow_run.completed'
   | 'status'
 >;
 
@@ -121,6 +127,7 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
     context: ProbotEvent<EventName>,
     pr: PullRequestDataMinimumData,
     time: RescheduleTime,
+    login?: string,
   ) => Promise<void>;
   rescheduleOnChecksUpdated: <EventName extends EmitterWebhookEventName>(
     context: ProbotEvent<EventName>,
@@ -433,8 +440,10 @@ async function initRepoContext<
     rescheduleContext: ProbotEvent<any>,
     pr: PullRequestDataMinimumData,
     time: RescheduleTime,
+    login?: string,
   ): Promise<void> => {
     if (!pr) throw new Error('Cannot reschedule undefined');
+    if (repoContext.config.disableAutoMerge) return;
 
     clearWaitingToReschedule(pr.id);
     rescheduleContext.log.info(pr, 'reschedule', { time });
@@ -448,18 +457,32 @@ async function initRepoContext<
                 fetchPr(context, pr.number),
                 getReviewflowPrContext(pr, rescheduleContext, repoContext),
               ]);
-              const didMerge = await autoMergeIfPossible(
-                pullRequest,
-                rescheduleContext,
-                repoContext,
-                reviewflowPrContext,
-              );
-              if (!didMerge && time === 'long+timeout') {
-                await removePrFromAutomergeQueue(
-                  rescheduleContext,
-                  pr,
-                  'reschedule: !didMerge && longTime => abort lock',
+
+              if (
+                repoContext.settings.allowAutoMerge &&
+                repoContext.config.experimentalFeatures?.githubAutoMerge
+              ) {
+                await enableGithubAutoMerge(
+                  pullRequest,
+                  context,
+                  repoContext,
+                  reviewflowPrContext,
+                  login,
                 );
+              } else {
+                const didMerge = await autoMergeIfPossible(
+                  pullRequest,
+                  rescheduleContext,
+                  repoContext,
+                  reviewflowPrContext,
+                );
+                if (!didMerge && time === 'long+timeout') {
+                  await removePrFromAutomergeQueue(
+                    rescheduleContext,
+                    pr,
+                    'reschedule: !didMerge && longTime => abort lock',
+                  );
+                }
               }
             } catch (err) {
               await removePrFromAutomergeQueue(
@@ -482,6 +505,12 @@ async function initRepoContext<
     pr: PullRequestDataMinimumData,
     isSuccessful: boolean,
   ): Promise<void> => {
+    if (
+      accountContext.config.experimentalFeatures?.githubAutoMerge ||
+      accountContext.config.disableAutoMerge
+    ) {
+      return;
+    }
     // - if already in queue and locked pr is another PR
     const lockedPr = repoContext.getMergeLockedPr();
     if (

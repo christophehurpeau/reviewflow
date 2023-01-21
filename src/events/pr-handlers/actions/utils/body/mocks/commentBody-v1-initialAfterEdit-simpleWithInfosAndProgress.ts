@@ -1,4 +1,7 @@
 export default `
+### Infos:
+Some informations here, like links.
+
 ### Progress
 
 ☑️ Step 1: ✏️ Write code

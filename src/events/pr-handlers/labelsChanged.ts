@@ -10,7 +10,7 @@ import { updateBranch } from './actions/updateBranch';
 import { updatePrCommentBodyOptions } from './actions/updatePrCommentBody';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
-import hasLabelInPR from './actions/utils/hasLabelInPR';
+import hasLabelInPR from './actions/utils/labels/hasLabelInPR';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
@@ -77,7 +77,8 @@ export default function labelsChanged(
               repoContext.config.autoMergeRenovateWithSkipCi;
             if (autoMergeWithSkipCi) {
               const result = await context.octokit.issues.addLabels(
-                context.issue({
+                context.repo({
+                  issue_number: pullRequest.number,
                   labels: [autoMergeSkipCiLabel.name],
                 }),
               );
@@ -176,11 +177,17 @@ export default function labelsChanged(
       if (repoContext.protectedLabelIds.includes(label.id)) {
         if (context.payload.action === 'labeled') {
           await context.octokit.issues.removeLabel(
-            context.issue({ name: label.name }),
+            context.repo({
+              issue_number: pullRequest.number,
+              name: label.name,
+            }),
           );
         } else {
           await context.octokit.issues.addLabels(
-            context.issue({ labels: [label.name] }),
+            context.repo({
+              issue_number: pullRequest.number,
+              labels: [label.name],
+            }),
           );
         }
         return;
@@ -218,7 +225,10 @@ export default function labelsChanged(
             // if not successful, remove label
             if (!successful) {
               await context.octokit.issues.removeLabel(
-                context.issue({ name: label.name }),
+                context.repo({
+                  issue_number: pullRequest.number,
+                  name: label.name,
+                }),
               );
             }
           } else {
@@ -245,7 +255,10 @@ export default function labelsChanged(
             // if not successful, add label back
             if (!successful) {
               await context.octokit.issues.addLabels(
-                context.issue({ labels: [label.name] }),
+                context.repo({
+                  issue_number: pullRequest.number,
+                  labels: [label.name],
+                }),
               );
             }
           } else {
@@ -262,7 +275,10 @@ export default function labelsChanged(
         if (context.payload.action === 'labeled') {
           await updateBranch(updatedPr, context, context.payload.sender.login);
           await context.octokit.issues.removeLabel(
-            context.issue({ name: label.name }),
+            context.repo({
+              issue_number: pullRequest.number,
+              name: label.name,
+            }),
           );
         }
       }

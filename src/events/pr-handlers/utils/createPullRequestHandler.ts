@@ -46,7 +46,14 @@ export type EventsWithPullRequest = CustomExtract<
 
 export type EventsWithPullRequests = CustomExtract<
   EventsWithRepository,
-  'check_run.completed' | 'check_suite.completed' | 'push' | 'status'
+  | 'check_run.created'
+  | 'check_run.completed'
+  | 'check_suite.completed'
+  | 'workflow_run.requested'
+  // | 'workflow_run.in_progress'
+  | 'workflow_run.completed'
+  | 'push'
+  | 'status'
 >;
 
 export type EventsWithIssue = CustomExtract<
@@ -131,7 +138,7 @@ export const createPullRequestsHandler = <
 >(
   app: Probot,
   appContext: AppContext,
-  eventName: EventName,
+  eventName: EventName | EventName[],
   getPrs: (
     payload: ProbotEvent<EventName>['payload'],
     repoContext: RepoContext<GroupNames>,
@@ -141,6 +148,7 @@ export const createPullRequestsHandler = <
     pullRequest: U,
     context: ProbotEvent<EventName>,
     repoContext: RepoContext<GroupNames>,
+    reviewflowPrContext: ReviewflowPrContext | null,
   ) => void | Promise<void>,
 ): void => {
   app.on(eventName, (context) => {
@@ -158,7 +166,11 @@ export const createPullRequestsHandler = <
             `${context.name}:${(context.payload as any).action}`,
             pr,
             async () => {
-              return callbackPr(pr, context, repoContext);
+              const reviewflowPrContext = repoContext.shouldIgnore
+                ? null
+                : await getReviewflowPrContext(pr, context, repoContext);
+
+              return callbackPr(pr, context, repoContext, reviewflowPrContext);
             },
           ),
         ),

@@ -11,7 +11,7 @@ import {
   mockLabels,
   nock,
 } from '../../tests/setup';
-import commentBodyV2InitialAfterEditSimple from './actions/utils/body/mocks/commentBody-v2-initialAfterEdit-simple';
+import commentBodyV2InitialAfterEditSimple from './actions/utils/body/mocks/commentBody-v2-initialAfterEdit-simpleWithProgress';
 
 jest.unstable_mockModule('../../context/slack/initTeamSlack', () => ({
   initTeamSlack: () => Promise.resolve(voidTeamSlack()),
@@ -82,10 +82,15 @@ describe('opened', (): void => {
       ])
 
       .get(
-        '/repos/reviewflow/reviewflow-test/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da/check-runs',
+        '/repos/reviewflow/reviewflow-test/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da/check-runs?per_page=100',
       )
       .times(2)
       .reply(200, { check_runs: [] })
+
+      .get(
+        '/repos/reviewflow/reviewflow-test/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da/status?per_page=100',
+      )
+      .reply(200, { statuses: [] })
 
       .post(
         '/repos/reviewflow/reviewflow-test/statuses/2ab411d5c55f25f3dc2de6a3244f290a804e33da',

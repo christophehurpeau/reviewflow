@@ -3,7 +3,7 @@ import type { ProbotEvent } from 'events/probot-types';
 import type { PullRequestFromRestEndpoint } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { autoMergeIfPossible } from './autoMergeIfPossible';
-import hasLabelInPR from './utils/hasLabelInPR';
+import hasLabelInPR from './utils/labels/hasLabelInPR';
 
 export const autoApproveAndAutoMerge = async <
   Name extends EventsWithRepository,

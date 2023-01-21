@@ -1,5 +1,41 @@
 [
   {
+    "id": 2362665907,
+    "node_id": "MDU6TGFiZWwyMzYyNjY1OTA3",
+    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:arrows_counterclockwise:%20update%20branch",
+    "name": ":arrows_counterclockwise: update branch",
+    "color": "64DD17",
+    "default": false,
+    "description": "Synced by reviewflow for merge/update-branch"
+  },
+  {
+    "id": 4930607708,
+    "node_id": "LA_kwDOCgFbpc8AAAABJeMaXA",
+    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:green_heart:%20checks/fail",
+    "name": ":green_heart: checks/fail",
+    "color": "e11d21",
+    "default": false,
+    "description": "Synced by reviewflow for checks/failed"
+  },
+  {
+    "id": 4930607687,
+    "node_id": "LA_kwDOCgFbpc8AAAABJeMaRw",
+    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:green_heart:%20checks/in-progress",
+    "name": ":green_heart: checks/in-progress",
+    "color": "B2E1FF",
+    "default": false,
+    "description": "Synced by reviewflow for checks/in-progress"
+  },
+  {
+    "id": 4930607742,
+    "node_id": "LA_kwDOCgFbpc8AAAABJeMafg",
+    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:green_heart:%20checks/passed",
+    "name": ":green_heart: checks/passed",
+    "color": "64DD17",
+    "default": false,
+    "description": "Synced by reviewflow for checks/passed"
+  },
+  {
     "id": 1210432963,
     "node_id": "MDU6TGFiZWwxMjEwNDMyOTYz",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:ok_hand:%20code/approved",
@@ -63,13 +99,13 @@
     "description": "Synced by reviewflow for merge/automerge"
   },
   {
-    "id": 1285313521,
-    "node_id": "MDU6TGFiZWwxMjg1MzEzNTIx",
-    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/::arrows_counterclockwise:%20update%20branch",
-    "name": ":arrows_counterclockwise: update branch",
-    "color": "64DD17",
+    "id": 1517089313,
+    "node_id": "MDU6TGFiZWwxNTE3MDg5MzEz",
+    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:vertical_traffic_light:%20skip-ci",
+    "name": ":vertical_traffic_light: skip-ci",
+    "color": "e1e8ed",
     "default": false,
-    "description": "Synced by reviewflow for merge/update-branch"
+    "description": "Synced by reviewflow for merge/skip-ci"
   },
   {
     "id": 1526652856,
@@ -88,15 +124,6 @@
     "color": "e4e669",
     "default": false,
     "description": "This doesn't seem right"
-  },
-  {
-    "id": 1517089313,
-    "node_id": "MDU6TGFiZWwxNTE3MDg5MzEz",
-    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:vertical_traffic_light:%20skip-ci",
-    "name": ":vertical_traffic_light: skip-ci",
-    "color": "e1e8ed",
-    "default": false,
-    "description": "Synced by reviewflow for merge/skip-ci"
   },
   {
     "id": 1210424790,

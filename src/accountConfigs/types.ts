@@ -58,7 +58,7 @@ export type ReviewConfig<GroupNames extends string> = Record<
   GroupNames,
   Record<GroupLabels, string>
 > &
-  Record<'ci', Record<CiLabels, string>>;
+  Record<'checks', Record<CiLabels, string>>;
 
 export type LabelList = Record<string, LabelDescriptor>;
 
@@ -70,7 +70,6 @@ export interface LabelsConfig<GroupNames extends string> {
 interface ExperimentalFeatures {
   lintPullRequestTitleWithConventionalCommit?: true;
   githubAutoMerge?: true;
-  progressInComment?: boolean;
 }
 
 interface WarnOnForcePushAfterReviewStarted {

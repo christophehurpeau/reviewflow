@@ -1,8 +1,7 @@
-import type { Except } from 'type-fest';
 import type { RepoContext } from 'context/repoContext';
 import type { PullRequestWithDecentData } from 'events/pr-handlers/utils/PullRequestData';
-import type { CIStepState } from './ciStep';
-import { calcCIStep } from './ciStep';
+import type { ChecksStepState } from './checksStep';
+import { calcChecksStep } from './checksStep';
 import type { CodeReviewStepState } from './codeReviewStep';
 import { calcCodeReviewStep } from './codeReviewStep';
 import type { MergeStepState } from './mergeStep';
@@ -14,12 +13,11 @@ export interface CalcStepsStateOptions<GroupNames extends string> {
   repoContext: RepoContext<GroupNames>;
   pullRequest: PullRequestWithDecentData;
   labels?: PullRequestWithDecentData['labels'];
-  bail?: boolean;
 }
 
-export interface StepsState<GroupNames extends string = any> {
+export interface StepsState<GroupNames extends string> {
   write: WriteStepState;
-  ci: CIStepState;
+  checks: ChecksStepState;
   codeReview: CodeReviewStepState<GroupNames>;
   merge: MergeStepState;
 }
@@ -33,9 +31,9 @@ export const steps = [
     fn: calcWriteStep,
   },
   {
-    name: 'Step 2: ✅ CI passes (not implemented)',
-    key: 'ci',
-    fn: calcCIStep,
+    name: 'Step 2: 💚 Checks',
+    key: 'checks',
+    fn: calcChecksStep,
   },
   {
     name: 'Step 3: 👌 Code Review',
@@ -49,24 +47,15 @@ export const steps = [
   },
 ] as const;
 
-export function calcStepsState<
-  GroupNames extends string,
-  Options extends CalcStepsStateOptions<GroupNames>,
->(
-  {
-    repoContext,
-    pullRequest,
-    labels = pullRequest.labels,
-    bail = false,
-  }: Options = {} as Options,
-): Options['bail'] extends true
-  ? Partial<StepsState<GroupNames>>
-  : StepsState<GroupNames> {
+export function calcStepsState<GroupNames extends string>({
+  repoContext,
+  pullRequest,
+  labels = pullRequest.labels,
+}: CalcStepsStateOptions<GroupNames>): StepsState<GroupNames> {
   const stepsState: Partial<StepsState<GroupNames>> = {};
 
   for (const step of steps) {
     stepsState[step.key] = step.fn({ repoContext, pullRequest, labels }) as any;
-    if (bail) return stepsState as StepsState<GroupNames>;
   }
 
   return stepsState as StepsState<GroupNames>;
@@ -79,7 +68,7 @@ export function updateStepsState<GroupNames extends string>(
     repoContext,
     pullRequest,
     labels = pullRequest.labels,
-  }: Except<CalcStepsStateOptions<GroupNames>, 'bail'>,
+  }: CalcStepsStateOptions<GroupNames>,
 ): StepsState<GroupNames> {
   const updatedStepsState = { ...stepsState };
 

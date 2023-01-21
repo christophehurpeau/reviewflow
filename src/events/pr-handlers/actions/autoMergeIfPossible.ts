@@ -1,21 +1,21 @@
-import type { EmitterWebhookEventName } from '@octokit/webhooks';
 import type { EventsWithRepository, RepoContext } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
 import type { AutomergeLog } from 'mongo';
 import { areCommitsAllMadeByBots } from '../../../utils/github/isBotUser';
+import { getChecksAndStatusesForPullRequest } from '../../../utils/github/pullRequest/checksAndStatuses';
 import type {
-  PullRequestData,
   PullRequestFromRestEndpoint,
   PullRequestLabels,
   PullRequestWithDecentData,
 } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
+import { getFailedOrWaitingChecksAndStatuses } from '../utils/getFailedOrWaitingChecksAndStatuses';
 import { createMergeLockPrFromPr } from '../utils/mergeLock';
 import { updateBranch } from './updateBranch';
 import { parseBody } from './utils/body/parseBody';
 import type { ParsedBody } from './utils/body/parseBody';
 import type { Options } from './utils/body/prOptions';
-import hasLabelInPR from './utils/hasLabelInPR';
+import hasLabelInPR from './utils/labels/hasLabelInPR';
 import { readPullRequestCommits } from './utils/readPullRequestCommits';
 
 interface CreateCommitMessageOptions {
@@ -42,77 +42,6 @@ export const createCommitMessage = ({
   ];
 };
 
-interface FailedOrWaitingStatusOrChecks {
-  failedChecks: string[];
-  pendingChecks: string[];
-  failedStatuses: string[];
-  pendingStatuses: string[];
-}
-
-const getFailedOrWaitingStatusOrChecks = async <
-  Name extends EmitterWebhookEventName,
->(
-  pr: PullRequestData,
-  context: ProbotEvent<Name>,
-  repoContext: RepoContext,
-): Promise<FailedOrWaitingStatusOrChecks> => {
-  const [checks, combinedStatus] = await Promise.all([
-    context.octokit.checks.listForRef(
-      context.repo({
-        ref: pr.head.sha,
-        per_page: 100,
-      }),
-    ),
-    context.octokit.repos.getCombinedStatusForRef(
-      context.repo({
-        ref: pr.head.sha,
-        per_page: 100,
-      }),
-    ),
-  ]);
-
-  const failedChecks = checks.data.check_runs
-    .filter((check) => check.conclusion === 'failure')
-    .filter(
-      (check) =>
-        !check.name ||
-        !repoContext.config.checksAllowedToFail ||
-        repoContext.config.checksAllowedToFail.every((name) =>
-          name.endsWith('/')
-            ? !check.name.startsWith(name)
-            : check.name !== name,
-        ),
-    )
-    .map((check) => check.name);
-
-  const pendingChecks = checks.data.check_runs
-    .filter((check) => check.conclusion == null)
-    .map((check) => check.name);
-
-  const failedStatuses = combinedStatus.data.statuses
-    .filter((status) => status.state === 'failure' || status.state === 'error')
-    .filter(
-      (status) =>
-        !status.context ||
-        !repoContext.config.checksAllowedToFail ||
-        repoContext.config.checksAllowedToFail.every((name) =>
-          name.endsWith('/')
-            ? !status.context.startsWith(name)
-            : status.context !== name,
-        ),
-    )
-    .map((status) => status.context);
-
-  const pendingStatuses = combinedStatus.data.statuses
-    .filter(
-      (status) =>
-        status.state === 'pending' && !status.context?.includes('/hold-'),
-    )
-    .map((status) => status.context);
-
-  return { failedChecks, pendingChecks, failedStatuses, pendingStatuses };
-};
-
 export const autoMergeIfPossible = async <
   EventName extends EventsWithRepository,
 >(
@@ -127,7 +56,12 @@ export const autoMergeIfPossible = async <
   if (!repo) return false;
 
   if (repoContext.config.disableAutoMerge) return false;
-  if (repoContext.config.experimentalFeatures?.githubAutoMerge) return false;
+  if (
+    repoContext.settings.allowAutoMerge &&
+    repoContext.config.experimentalFeatures?.githubAutoMerge
+  ) {
+    return false;
+  }
 
   const autoMergeLabel = repoContext.labels['merge/automerge'];
 
@@ -360,7 +294,10 @@ export const autoMergeIfPossible = async <
   }
 
   const { failedChecks, failedStatuses, pendingChecks, pendingStatuses } =
-    await getFailedOrWaitingStatusOrChecks(pullRequest, context, repoContext);
+    getFailedOrWaitingChecksAndStatuses(
+      await getChecksAndStatusesForPullRequest(context, pullRequest),
+      repoContext,
+    );
   if (failedChecks.length > 0 || failedStatuses.length > 0) {
     addLog('failed status or checks', 'remove');
     await createAutomergeStatus('failed statuses or checks');

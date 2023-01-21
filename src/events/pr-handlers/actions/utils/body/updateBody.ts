@@ -1,4 +1,5 @@
 import type { LabelList, StatusInfo } from 'accountConfigs/types';
+import type { StepState } from '../steps/BaseStepState';
 import { steps } from '../steps/calcStepsState';
 import type { StepsState } from '../steps/calcStepsState';
 import type { Options } from './parseBody';
@@ -87,17 +88,38 @@ interface UpdatedBodyWithOptions {
   actions: ActionKeys[];
 }
 
-const getProgressReplacement = (stepsState: StepsState): string => {
+const getEmojiFromStepsState = (stepState: StepState): string => {
+  switch (stepState) {
+    case 'not-started':
+      return '⬜';
+    case 'in-progress':
+      return '🟡';
+    case 'failed':
+      return '🔴';
+    case 'passed':
+      return '☑️';
+  }
+  // fallback
+  return '';
+};
+
+const getProgressReplacement = <GroupNames extends string>(
+  stepsState: StepsState<GroupNames>,
+): string => {
   return `### Progress\n\n${steps
-    .map(({ name, key }) => `${stepsState[key].pass ? '✔️' : '⬜'} ${name}`)
+    .map(
+      ({ name, key }) =>
+        `${getEmojiFromStepsState(stepsState[key].state)} ${name}`,
+    )
     .join('\n')}\n\n`;
 };
 
-const getInfosReplacement = (infos?: StatusInfo[]): string => {
-  if (!infos) return '$1$2$3';
-  return infos.length > 0
-    ? `$1### Infos:\n\n${toMarkdownInfos(infos)}\n\n$3`
-    : '$1$3';
+const getInfosReplacement = (
+  infoReplacement: string,
+  infos?: StatusInfo[],
+): string => {
+  if (!infos) return infoReplacement;
+  return infos.length > 0 ? `### Infos:\n\n${toMarkdownInfos(infos)}\n\n` : '';
 };
 
 const updateOptions = (
@@ -120,7 +142,7 @@ const internalUpdateBodyOptionsAndInfos = (
   const infosAndCommitNotesParagraph = body.replace(
     // eslint-disable-next-line unicorn/no-unsafe-regex
     /^\s*(?:(####? Progress:?.*)?(####? Infos:?.*)?(####? Commits Notes:?.*)?####? Options:?)?.*$/s,
-    getInfosReplacement(infos),
+    `$1${getInfosReplacement('$2', infos)}$3`,
   );
 
   return `${infosAndCommitNotesParagraph}### Options:\n${toMarkdownOptions(
@@ -132,12 +154,12 @@ const internalUpdateBodyOptionsAndInfos = (
   )}\n### Actions:\n${toMarkdownActions(repoLink, labelsConfig)}`;
 };
 
-export const createCommentBody = (
+export const createCommentBody = <GroupNames extends string>(
   repositorySettings: RepositorySettings,
   repoLink: string,
   labelsConfig: LabelList,
   defaultOptions: Options,
-  stepsState?: StepsState,
+  stepsState?: StepsState<GroupNames>,
   infos?: StatusInfo[],
 ): string => {
   return internalUpdateBodyOptionsAndInfos(
@@ -185,13 +207,13 @@ export const updateCommentBodyInfos = (
     // *? - zero or more (non-greedy)
     // eslint-disable-next-line unicorn/no-unsafe-regex
     /^\s*(####? Progress:?.*?)?(?:(####? Infos:?.*?)?(####? Commits Notes:?.*?)?(####? Options:?.*?)?)?$/s,
-    `$1${getInfosReplacement(infos)}$4`,
+    `$1${getInfosReplacement('$2', infos)}$3$4`,
   );
 };
 
-export const updateCommentBodyProgress = (
+export const updateCommentBodyProgress = <GroupNames extends string>(
   commentBody: string,
-  stepsState: StepsState,
+  stepsState: StepsState<GroupNames>,
 ): string => {
   return commentBody.replace(
     // *  - zero or more

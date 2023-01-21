@@ -30,10 +30,10 @@ const config: Config<never, never> = {
     },
 
     review: {
-      ci: {
-        inProgress: 'ci/in-progress',
-        succeeded: 'ci/success',
-        failed: 'ci/fail',
+      checks: {
+        inProgress: 'checks/in-progress',
+        succeeded: 'checks/success',
+        failed: 'checks/fail',
       },
     },
   },

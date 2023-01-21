@@ -25,6 +25,7 @@ const addStatusCheck = async function <EventName extends EventsWithRepository>(
     } = await context.octokit.checks.listForRef(
       context.repo({
         ref: pullRequest.head.sha,
+        per_page: 100,
       }),
     );
     prCheck = checkRuns.find(
@@ -96,8 +97,9 @@ const addStatusCheck = async function <EventName extends EventsWithRepository>(
 
 export const updateStatusCheckFromStepsState = <
   EventName extends EventsWithRepository,
+  GroupNames extends string,
 >(
-  stepsState: StepsState,
+  stepsState: StepsState<GroupNames>,
   pullRequest: PullRequestWithDecentData,
   context: ProbotEvent<EventName>,
   appContext: AppContext,
@@ -133,7 +135,7 @@ export const updateStatusCheckFromStepsState = <
   }
 
   // STEP 1: Draft
-  if (!stepsState.write.pass) {
+  if (stepsState.write.state !== 'passed') {
     if (stepsState.write.isDraft) {
       return createFailedStatusCheck('PR is still in draft');
     }
@@ -143,11 +145,42 @@ export const updateStatusCheckFromStepsState = <
     return createFailedStatusCheck('Write step failed, unknown reason');
   }
 
-  // STEP 2: CI
-  // TODO
+  // STEP 2: CHECKS
+  if (stepsState.checks.state !== 'passed') {
+    if (stepsState.checks.isFailed) {
+      const failedChecks =
+        reviewflowPrContext.reviewflowPr.checksConclusion &&
+        Object.values(reviewflowPrContext.reviewflowPr.checksConclusion)
+          .filter(({ conclusion }) => conclusion === 'failure')
+          .map(({ name }) => name);
+
+      const failedStatuses =
+        reviewflowPrContext.reviewflowPr.statusesConclusion &&
+        Object.values(reviewflowPrContext.reviewflowPr.statusesConclusion)
+          .filter(({ state }) => state === 'failure')
+          .map(({ context }) => context);
+
+      const failedChecksAndStatuses = [
+        ...(failedChecks || []),
+        ...(failedStatuses || []),
+      ].filter(ExcludesFalsy);
+
+      return createFailedStatusCheck(
+        `Checks failed${
+          failedChecksAndStatuses.length > 0
+            ? `: ${failedChecksAndStatuses.join(', ')}`
+            : ''
+        }`,
+      );
+    }
+
+    if (stepsState.checks.isInProgress) {
+      return createFailedStatusCheck('Checks in progress');
+    }
+  }
 
   // STEP 3 & 4: Code Review
-  if (!stepsState.codeReview.pass) {
+  if (stepsState.codeReview.state !== 'passed') {
     if (
       stepsState.codeReview.hasRequestedReviewers ||
       stepsState.codeReview.hasRequestedTeams

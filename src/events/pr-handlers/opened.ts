@@ -1,6 +1,7 @@
 import type { Probot } from 'probot';
 import type { AppContext } from 'context/AppContext';
 import { checkIfUserIsBot } from '../../utils/github/isBotUser';
+import { getChecksAndStatusesForPullRequest } from '../../utils/github/pullRequest/checksAndStatuses';
 import { autoAssignPRToCreator } from './actions/autoAssignPRToCreator';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { updateReviewStatus } from './actions/updateReviewStatus';
@@ -40,17 +41,21 @@ export default function opened(app: Probot, appContext: AppContext): void {
       await Promise.all<unknown>([
         !isFromBot && autoAssignPRToCreator(pullRequest, context, repoContext),
 
-        updateReviewStatus(pullRequest, context, repoContext, [
-          {
-            reviewGroup: 'dev',
-            add:
-              (repoContext.config.requiresReviewRequest || isFromBot) &&
-              !pullRequest.draft
-                ? ['needsReview']
-                : [],
-            remove: ['approved', 'changesRequested'],
-          },
-        ]).then(async (newLabels) => {
+        Promise.all([
+          getChecksAndStatusesForPullRequest(context, pullRequest), // get required (pending) statuses or checks
+          updateReviewStatus(pullRequest, context, repoContext, [
+            {
+              reviewGroup: 'dev',
+              add:
+                (repoContext.config.requiresReviewRequest || isFromBot) &&
+                !pullRequest.draft
+                  ? ['needsReview']
+                  : [],
+              remove: ['approved', 'changesRequested'],
+            },
+          ]),
+        ]).then(async ([checksAndStatuses, newLabels]) => {
+          // TODO calc steps state AFTER updating checksAndStatuses
           const stepsState = calcStepsState({
             repoContext,
             pullRequest,
@@ -74,6 +79,7 @@ export default function opened(app: Probot, appContext: AppContext): void {
               stepsState,
               shouldUpdateCommentBodyInfos: true,
               shouldUpdateCommentBodyProgress: true,
+              checksAndStatuses,
             }),
           ]);
         }),

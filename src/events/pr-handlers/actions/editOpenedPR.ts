@@ -5,6 +5,7 @@ import type { AppContext } from '../../../context/AppContext';
 import { getKeys } from '../../../context/utils';
 import { ExcludesFalsy } from '../../../utils/Excludes';
 import { checkIfUserIsBot } from '../../../utils/github/isBotUser';
+import type { ChecksAndStatuses } from '../../../utils/github/pullRequest/checksAndStatuses';
 import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { readCommitsAndUpdateInfos } from './readCommitsAndUpdateInfos';
@@ -29,20 +30,25 @@ export interface ReviewflowStatus {
 }
 
 export interface EditOpenedPullRequestOptions<
-  Name extends EventsWithRepository,
+  EventName extends EventsWithRepository,
+  GroupNames extends string,
 > {
   pullRequest: PullRequestWithDecentData;
-  context: ProbotEvent<Name>;
+  context: ProbotEvent<EventName>;
   appContext: AppContext;
-  repoContext: RepoContext;
+  repoContext: RepoContext<GroupNames>;
   reviewflowPrContext: ReviewflowPrContext;
   shouldUpdateCommentBodyInfos: boolean;
   shouldUpdateCommentBodyProgress: boolean;
-  stepsState: StepsState;
+  stepsState: StepsState<GroupNames>;
   previousSha?: string;
+  checksAndStatuses?: ChecksAndStatuses;
 }
 
-export const editOpenedPR = async <Name extends EventsWithRepository>({
+export const editOpenedPR = async <
+  EventName extends EventsWithRepository,
+  GroupNames extends string,
+>({
   pullRequest,
   context,
   appContext,
@@ -52,7 +58,8 @@ export const editOpenedPR = async <Name extends EventsWithRepository>({
   shouldUpdateCommentBodyProgress,
   stepsState,
   previousSha,
-}: EditOpenedPullRequestOptions<Name>): Promise<void> => {
+  checksAndStatuses,
+}: EditOpenedPullRequestOptions<EventName, GroupNames>): Promise<void> => {
   const title = repoContext.config.trimTitle
     ? cleanTitle(pullRequest.title)
     : pullRequest.title;
@@ -128,13 +135,18 @@ export const editOpenedPR = async <Name extends EventsWithRepository>({
 
   let hasLegacyLintPrCheck = false;
 
-  if (!reviewflowPrContext.reviewflowPr.lintStatuses) {
+  if (checksAndStatuses) {
+    hasLegacyLintPrCheck =
+      `${process.env.REVIEWFLOW_NAME}/lint-pr` in
+      checksAndStatuses.checksConclusionRecord;
+  } else if (!reviewflowPrContext.reviewflowPr.lintStatuses) {
     // if it is the first time we see this PR or it's before we started saving statuses
     const {
       data: { check_runs: checkRuns },
     } = await context.octokit.checks.listForRef(
       context.repo({
         ref: pullRequest.head.sha,
+        per_page: 100,
       }),
     );
     hasLegacyLintPrCheck = checkRuns.some(
@@ -213,7 +225,7 @@ export const editOpenedPR = async <Name extends EventsWithRepository>({
 
   const body = removeDeprecatedReviewflowInPrBody(pullRequest.body);
 
-  const promises: Promise<unknown>[] = [
+  const promises: (Promise<unknown> | undefined)[] = [
     Promise.all(updateStatusesPromises).then(() => {
       // only update reviewflowPr if all create successful
       return appContext.mongoStores.prs.partialUpdateOne(
@@ -226,6 +238,18 @@ export const editOpenedPR = async <Name extends EventsWithRepository>({
         },
       );
     }),
+    checksAndStatuses
+      ? appContext.mongoStores.prs.partialUpdateOne(
+          reviewflowPrContext.reviewflowPr,
+          {
+            $set: {
+              headSha: pullRequest.head.sha,
+              checksConclusion: checksAndStatuses.checksConclusionRecord,
+              statusesConclusion: checksAndStatuses.statusesConclusionRecord,
+            },
+          },
+        )
+      : undefined,
   ];
 
   const commentBodyInfos: StatusInfo[] = statuses
@@ -259,17 +283,12 @@ export const editOpenedPR = async <Name extends EventsWithRepository>({
         context.payload.repository.html_url,
         repoContext.config.labels.list,
         calcDefaultOptions(repoContext, pullRequest),
-        repoContext.config.experimentalFeatures?.progressInComment
-          ? stepsState
-          : undefined,
+        stepsState,
         commentBodyInfos,
       )
     : updateCommentBodyInfos(reviewflowPrContext.commentBody, commentBodyInfos);
 
-  if (
-    repoContext.config.experimentalFeatures?.progressInComment &&
-    shouldUpdateCommentBodyProgress
-  ) {
+  if (shouldUpdateCommentBodyProgress) {
     newCommentBody = updateCommentBodyProgress(newCommentBody, stepsState);
   }
 

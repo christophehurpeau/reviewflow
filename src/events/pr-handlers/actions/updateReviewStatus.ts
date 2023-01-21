@@ -112,7 +112,8 @@ export const updateReviewStatus = async <
 
       if (toAddNames.size > 0) {
         const result = await context.octokit.issues.addLabels(
-          context.issue({
+          context.repo({
+            issue_number: pullRequest.number,
             labels: [...toAddNames],
           }),
         );
@@ -123,7 +124,8 @@ export const updateReviewStatus = async <
         for (const toDeleteName of toDeleteNames) {
           try {
             const result = await context.octokit.issues.removeLabel(
-              context.issue({
+              context.repo({
+                issue_number: pullRequest.number,
                 name: toDeleteName,
               }),
             );
@@ -150,7 +152,8 @@ export const updateReviewStatus = async <
       );
 
       const result = await context.octokit.issues.setLabels(
-        context.issue({
+        context.repo({
+          issue_number: pullRequest.number,
           labels: newLabelNamesArray as string[] & { name: string }[],
         }),
       );

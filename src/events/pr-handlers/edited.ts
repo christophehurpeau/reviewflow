@@ -1,6 +1,7 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import { checkIfIsThisBot } from '../../utils/github/isBotUser';
+import { getChecksAndStatusesForPullRequest } from '../../utils/github/pullRequest/checksAndStatuses';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
@@ -30,10 +31,13 @@ export default function edited(app: Probot, appContext: AppContext): void {
         return;
       }
 
-      const updatedPullRequest = await fetchPr(
-        context,
-        context.payload.pull_request.number,
-      );
+      const [updatedPullRequest, checksAndStatuses] = await Promise.all([
+        fetchPr(context, context.payload.pull_request.number),
+        context.payload.changes.base ||
+        !reviewflowPrContext.reviewflowPr.checksConclusion
+          ? getChecksAndStatusesForPullRequest(context, pullRequest)
+          : undefined,
+      ]);
 
       const stepsState = calcStepsState({
         repoContext,
@@ -50,6 +54,7 @@ export default function edited(app: Probot, appContext: AppContext): void {
           stepsState,
           shouldUpdateCommentBodyInfos: true,
           shouldUpdateCommentBodyProgress: true,
+          checksAndStatuses,
         }),
         updateStatusCheckFromStepsState(
           stepsState,

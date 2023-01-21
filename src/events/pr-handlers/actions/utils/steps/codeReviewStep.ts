@@ -22,18 +22,22 @@ export function calcCodeReviewStep<GroupNames extends string>({
     pullRequest.requested_teams && pullRequest.requested_teams.length > 0,
   );
   const hasChangesRequested = repoContext.hasChangesRequestedReview(labels);
+  const hasApproves = repoContext.hasApprovesReview(labels);
   const needsReviewGroupNames = repoContext.getNeedsReviewGroupNames(labels);
   const isMissingApprobation = repoContext.config.requiresReviewRequest
     ? !repoContext.hasApprovesReview(labels)
     : false;
 
   return {
-    pass:
-      !hasRequestedReviewers &&
-      !hasRequestedTeams &&
-      !hasChangesRequested &&
-      needsReviewGroupNames.length === 0 &&
-      !isMissingApprobation,
+    state: (() => {
+      if (hasChangesRequested) return 'failed';
+      if (hasRequestedReviewers || hasRequestedTeams) return 'in-progress';
+      if (needsReviewGroupNames.length === 0 && !isMissingApprobation) {
+        return 'passed';
+      }
+      if (hasApproves) return 'in-progress';
+      return 'not-started';
+    })(),
     hasRequestedReviewers,
     hasRequestedTeams,
     hasChangesRequested,

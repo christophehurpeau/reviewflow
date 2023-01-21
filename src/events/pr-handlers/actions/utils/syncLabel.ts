@@ -3,7 +3,7 @@ import type { SetRequired } from 'type-fest';
 import type { PullRequestWithDecentData } from 'events/pr-handlers/utils/PullRequestData';
 import type { ProbotEvent } from 'events/probot-types';
 import type { LabelResponse } from '../../../../context/initRepoLabels';
-import hasLabelInPR from './hasLabelInPR';
+import hasLabelInPR from './labels/hasLabelInPR';
 
 type SyncLabelCallback = (
   prLabels: LabelResponse[],
@@ -28,24 +28,36 @@ export default async function syncLabel<
 ): Promise<void> {
   if (prHasLabel && !shouldHaveLabel) {
     const response = await context.octokit.issues.removeLabel(
-      context.issue({ name: label.name }),
+      context.repo({
+        issue_number: pullRequest.number,
+        name: label.name,
+      }),
     );
     if (onRemove) {
       if ((await onRemove(response.data)) === false) {
         await context.octokit.issues.addLabels(
-          context.issue({ labels: [label.name] }),
+          context.repo({
+            issue_number: pullRequest.number,
+            labels: [label.name],
+          }),
         );
       }
     }
   }
   if (shouldHaveLabel && !prHasLabel) {
     const response = await context.octokit.issues.addLabels(
-      context.issue({ labels: [label.name] }),
+      context.repo({
+        issue_number: pullRequest.number,
+        labels: [label.name],
+      }),
     );
     if (onAdd) {
       if ((await onAdd(response.data)) === false) {
         await context.octokit.issues.removeLabel(
-          context.issue({ name: label.name }),
+          context.repo({
+            issue_number: pullRequest.number,
+            name: label.name,
+          }),
         );
       }
     }
@@ -54,15 +66,19 @@ export default async function syncLabel<
 
 export const removeLabel = async <EventName extends EmitterWebhookEventName>(
   context: ProbotEvent<EventName>,
+  pullRequest: PullRequestWithDecentData,
   label: LabelResponse,
 ): Promise<LabelResponse[]> => {
   const response = await context.octokit.issues.removeLabel(
-    context.issue({ name: label.name }),
+    context.repo({
+      issue_number: pullRequest.number,
+      name: label.name,
+    }),
   );
   return response.data;
 };
 
-interface LabelToSync extends SyncLabelOptions {
+export interface LabelToSync extends SyncLabelOptions {
   shouldHaveLabel: boolean | null;
   label?: LabelResponse;
   prHasLabel?: boolean;
@@ -106,12 +122,15 @@ export async function syncLabels<EventName extends EmitterWebhookEventName>(
 
   if (labelsToRemove.length > 0) {
     for (const label of labelsToRemove) {
-      updatedLabels = await removeLabel(context, label);
+      updatedLabels = await removeLabel(context, pullRequest, label);
     }
   }
   if (labelsToAdd.length > 0) {
     const response = await context.octokit.issues.addLabels(
-      context.issue({ labels: labelsToAdd }),
+      context.repo({
+        issue_number: pullRequest.number,
+        labels: labelsToAdd,
+      }),
     );
     updatedLabels = response.data;
   }

@@ -43,17 +43,22 @@ describe('edited', (): void => {
       .times(1)
       .reply(200, {
         id: 1,
-        body: '### Options:\n- [ ] <!-- reviewflow-autoMergeWithSkipCi -->Add `[skip ci]` on merge commit\n- [ ] <!-- reviewflow-autoMerge -->Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless "Update branch" triggers)\n- [x] <!-- reviewflow-deleteAfterMerge -->Automatic branch delete after this PR is merged',
+        body: '### Progress\n\n☑️ Step 1: ✏️ Write code\n☑️ Step 2: 💚 Checks\n⬜ Step 3: 👌 Code Review\n⬜ Step 4: 🚦 Merging Pull Request\n\n### Options:\n- [ ] <!-- reviewflow-autoMergeWithSkipCi -->Add `[skip ci]` on merge commit\n- [ ] <!-- reviewflow-autoMerge -->Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless "Update branch" triggers)\n- [x] <!-- reviewflow-deleteAfterMerge -->Automatic branch delete after this PR is merged',
       })
 
       .get('/repos/reviewflow/reviewflow-test/pulls/30/commits?per_page=100')
       .reply(200, pullRequestCommits)
 
       .get(
-        '/repos/reviewflow/reviewflow-test/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da/check-runs',
+        '/repos/reviewflow/reviewflow-test/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da/check-runs?per_page=100',
       )
       .times(2)
       .reply(200, { check_runs: [] })
+
+      .get(
+        '/repos/reviewflow/reviewflow-test/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da/status?per_page=100',
+      )
+      .reply(200, { statuses: [] })
 
       .post(
         '/repos/reviewflow/reviewflow-test/statuses/2ab411d5c55f25f3dc2de6a3244f290a804e33da',

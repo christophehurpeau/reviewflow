@@ -7,7 +7,7 @@ import teamChanged from './events/account-handlers/teamChanged';
 import commitCommentCreated from './events/commit-handlers/commitCommentCreated';
 import assignedOrUnassignedHandler from './events/pr-handlers/assignedOrUnassigned';
 import autoMergeChangedHandler from './events/pr-handlers/autoMergeChanged';
-import checkrunCompleted from './events/pr-handlers/checkrunCompleted';
+import checkrunCompleted from './events/pr-handlers/checkrun';
 import checksuiteCompleted from './events/pr-handlers/checksuiteCompleted';
 import closedHandler from './events/pr-handlers/closed';
 import commentCreated from './events/pr-handlers/commentCreated';

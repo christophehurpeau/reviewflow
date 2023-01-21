@@ -12,7 +12,10 @@ export function calcWriteStep<GroupNames extends string>({
   const isClosed = !!pullRequest.closed_at;
 
   return {
-    pass: !isDraft,
+    state: (() => {
+      if (isDraft) return 'in-progress';
+      return 'passed';
+    })(),
     isDraft,
     isClosed,
   };

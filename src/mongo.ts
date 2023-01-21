@@ -7,6 +7,7 @@ import type { SlackMessage } from './context/slack/SlackMessage';
 import type { MessageCategory } from './dm/MessageCategory';
 import type { ReviewflowStatus } from './events/pr-handlers/actions/editOpenedPR';
 import type { RepositorySettings } from './events/pr-handlers/actions/utils/body/repositorySettings';
+import type { ChecksAndStatuses } from './utils/github/pullRequest/checksAndStatuses';
 
 // export interface PrEventsModel extends MongoModel {
 //   owner: string;
@@ -164,6 +165,8 @@ export interface ReviewflowPr extends MongoBaseModel {
   lastFlowStatusCommit?: string;
   flowStatus?: ReviewflowStatus['status'];
   automergeStatus?: ReviewflowStatus['status'];
+  checksConclusion?: ChecksAndStatuses['checksConclusionRecord'];
+  statusesConclusion?: ChecksAndStatuses['statusesConclusionRecord'];
 }
 
 export interface RepositoryMergeQueue extends MongoBaseModel {

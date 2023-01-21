@@ -198,7 +198,7 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
 );
 
 describe('Repository Options', () => {
-  it('should sjhow automerge if in default options', () => {
+  it('should show automerge if in default options', () => {
     expect(
       updateCommentOptions(
         { ...repositorySettings, deleteBranchOnMerge: false },
