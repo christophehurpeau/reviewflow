@@ -2,6 +2,7 @@ import type { Probot } from 'probot';
 import type { AccountInfo } from 'context/getOrCreateAccount';
 import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
+import { updateCommentBodyProgressFromStepsState } from './actions/updateCommentBodyProgressFromStepsState';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
 import { parseOptions } from './actions/utils/body/parseBody';
@@ -21,6 +22,11 @@ export default function closed(app: Probot, appContext: AppContext): void {
       if (reviewflowPrContext) {
         /* update status, update automerge queue, delete branch */
         const repo = context.payload.repository;
+
+        const stepsState = calcStepsState({
+          repoContext,
+          pullRequest,
+        });
 
         if ((pullRequest as any).merged) {
           const isNotFork = pullRequest.head.repo.id === repo.id;
@@ -42,12 +48,13 @@ export default function closed(app: Probot, appContext: AppContext): void {
                   )
                   .catch(() => {})
               : undefined,
+            updateCommentBodyProgressFromStepsState(
+              stepsState,
+              context,
+              reviewflowPrContext,
+            ),
           ]);
         } else {
-          const stepsState = calcStepsState({
-            repoContext,
-            pullRequest,
-          });
           await Promise.all([
             repoContext.removePrFromAutomergeQueue(
               context,
@@ -65,6 +72,11 @@ export default function closed(app: Probot, appContext: AppContext): void {
               pullRequest,
               context,
               appContext,
+              reviewflowPrContext,
+            ),
+            updateCommentBodyProgressFromStepsState(
+              stepsState,
+              context,
               reviewflowPrContext,
             ),
           ]);
