@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.111.0](https://github.com/christophehurpeau/reviewflow/compare/v1.110.0...v1.111.0) (2023-01-21)
+
+
+### Features
+
+* rename step 4 Merge ([262cc6b](https://github.com/christophehurpeau/reviewflow/commit/262cc6bb2c0b2a98571b31250871d02f38ea320b))
+
+
+### Bug Fixes
+
+* dont try to merge when automerge is already enabled ([c276981](https://github.com/christophehurpeau/reviewflow/commit/c27698169e235ad42d63fb3ff8325192457d0b02))
+* update slack home and slack message for team after review done by one member ([534ef29](https://github.com/christophehurpeau/reviewflow/commit/534ef29c9156d2985eefe051618920ebf7058014))
+
 ## [1.110.0](https://github.com/christophehurpeau/reviewflow/compare/v1.109.0...v1.110.0) (2023-01-21)
 
 
