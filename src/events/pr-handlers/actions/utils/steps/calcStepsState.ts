@@ -41,7 +41,7 @@ export const steps = [
     fn: calcCodeReviewStep,
   },
   {
-    name: 'Step 4: 🚦 Merging Pull Request',
+    name: 'Step 4: 🚦 Merge Pull Request',
     key: 'merge',
     fn: calcMergeStep,
   },

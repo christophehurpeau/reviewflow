@@ -4,7 +4,7 @@ export default `
 ☑️ Step 1: ✏️ Write code
 ☑️ Step 2: 💚 Checks
 ⬜ Step 3: 👌 Code Review
-⬜ Step 4: 🚦 Merging Pull Request
+⬜ Step 4: 🚦 Merge Pull Request
 
 ### Options:
 - [ ] <!-- reviewflow-autoMerge -->[:vertical_traffic_light: automerge](https://github.com/christophehurpeau/reviewflow/labels/%3Avertical_traffic_light%3A%20automerge): Automatically merge when this PR is ready and has no failed statuses. When the repository requires _branches to be up to date before merging_, it merges default branch, with a queue per repo to prevent multiple merges when several PRs are ready. A fail job prevents the merge.

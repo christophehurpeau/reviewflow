@@ -4,7 +4,7 @@ export default `
 ☑️ Step 1: ✏️ Write code
 ☑️ Step 2: 💚 Checks
 ⬜ Step 3: 👌 Code Review
-⬜ Step 4: 🚦 Merging Pull Request
+⬜ Step 4: 🚦 Merge Pull Request
 
 ### Options:
 - [ ] <!-- reviewflow-featureBranch -->This PR is a feature branch
