@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.108.0](https://github.com/christophehurpeau/reviewflow/compare/v1.107.0...v1.108.0) (2023-01-21)
+
+
+### Features
+
+* checks, progress and automerge with github ([98191c3](https://github.com/christophehurpeau/reviewflow/commit/98191c35ae80610c7fe8b14ac24cef98fd30f21e))
+* get repository settings from graphql ([668ed28](https://github.com/christophehurpeau/reviewflow/commit/668ed28622f8bccee7d3b60d6bd33c5f9a3586f7))
+* initial progress implementation ([0e87631](https://github.com/christophehurpeau/reviewflow/commit/0e8763159193e94dcd833659a9148edcf6054927))
+* support review comment edition ([abfda2c](https://github.com/christophehurpeau/reviewflow/commit/abfda2c9204675437ff33b771d9f0d1ce6914da4))
+* update comment steps state on review events ([c94c102](https://github.com/christophehurpeau/reviewflow/commit/c94c102a0d1e7e227fc5b6376021777e099fbed4))
+* use github automerge as experimental feature ([ac14990](https://github.com/christophehurpeau/reviewflow/commit/ac14990e226c945ef856c1a4802c111a83940e1c))
+
+
+### Bug Fixes
+
+* find comment after it was removed from db (pr with no updates for more than 12 months) ([defe264](https://github.com/christophehurpeau/reviewflow/commit/defe264ca0c03876f9a1af1c690c17a0e8d68efe))
+* fix Cannot read properties of null ([56fb74e](https://github.com/christophehurpeau/reviewflow/commit/56fb74e60363d782d3ba231bd878aeaf9ebe3099))
+* fix slack message edition and reaction ([8d4054f](https://github.com/christophehurpeau/reviewflow/commit/8d4054fe74c257c7235461e043c803945b26cb9a))
+* merge when pr is in mergeable state ([b03bd10](https://github.com/christophehurpeau/reviewflow/commit/b03bd10b8d0c0367987a0ef2dbead5b2bb5d8261))
+* update slack home on assignedOrUnassigned even if repo is ignored ([369b7c9](https://github.com/christophehurpeau/reviewflow/commit/369b7c95d0c6959ef2c78a04c2462782a9fabc46))
+
 ## [1.107.0](https://github.com/christophehurpeau/reviewflow/compare/v1.106.3...v1.107.0) (2022-11-25)
 
 
