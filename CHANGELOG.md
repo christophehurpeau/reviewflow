@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.115.1](https://github.com/christophehurpeau/reviewflow/compare/v1.115.0...v1.115.1) (2023-01-22)
+
+
+### Bug Fixes
+
+* support draft flow with automerge ([9825095](https://github.com/christophehurpeau/reviewflow/commit/9825095d3908dedd9f9e37ce49a538c536d8b501))
+
 ## [1.115.0](https://github.com/christophehurpeau/reviewflow/compare/v1.114.0...v1.115.0) (2023-01-22)
 
 
