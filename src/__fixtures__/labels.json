@@ -4,7 +4,7 @@
     "node_id": "MDU6TGFiZWwyMzYyNjY1OTA3",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:arrows_counterclockwise:%20update%20branch",
     "name": ":arrows_counterclockwise: update branch",
-    "color": "64DD17",
+    "color": "1f6feb",
     "default": false,
     "description": "Synced by reviewflow for merge/update-branch"
   },
@@ -13,7 +13,7 @@
     "node_id": "LA_kwDOCgFbpc8AAAABJeMaXA",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:green_heart:%20checks/fail",
     "name": ":green_heart: checks/fail",
-    "color": "e11d21",
+    "color": "da3633",
     "default": false,
     "description": "Synced by reviewflow for checks/failed"
   },
@@ -22,7 +22,7 @@
     "node_id": "LA_kwDOCgFbpc8AAAABJeMaRw",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:green_heart:%20checks/in-progress",
     "name": ":green_heart: checks/in-progress",
-    "color": "B2E1FF",
+    "color": "6e7681",
     "default": false,
     "description": "Synced by reviewflow for checks/in-progress"
   },
@@ -31,7 +31,7 @@
     "node_id": "LA_kwDOCgFbpc8AAAABJeMafg",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:green_heart:%20checks/passed",
     "name": ":green_heart: checks/passed",
-    "color": "64DD17",
+    "color": "238636",
     "default": false,
     "description": "Synced by reviewflow for checks/passed"
   },
@@ -40,7 +40,7 @@
     "node_id": "MDU6TGFiZWwxMjEwNDMyOTYz",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:ok_hand:%20code/approved",
     "name": ":ok_hand: code/approved",
-    "color": "64DD17",
+    "color": "238636",
     "default": false,
     "description": "Synced by reviewflow for code/approved"
   },
@@ -49,7 +49,7 @@
     "node_id": "MDU6TGFiZWwxMjEwNDMyOTYy",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:ok_hand:%20code/changes-requested",
     "name": ":ok_hand: code/changes-requested",
-    "color": "e11d21",
+    "color": "da3633",
     "default": false,
     "description": "Synced by reviewflow for code/changes-requested"
   },
@@ -58,7 +58,7 @@
     "node_id": "MDU6TGFiZWwxMjEwNDMyOTIw",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:ok_hand:%20code/needs-review",
     "name": ":ok_hand: code/needs-review",
-    "color": "FFD57F",
+    "color": "9e6a03",
     "default": false,
     "description": "Synced by reviewflow for code/needs-review"
   },
@@ -67,34 +67,16 @@
     "node_id": "MDU6TGFiZWwxMjEwNDMyOTM3",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:ok_hand:%20code/review-requested",
     "name": ":ok_hand: code/review-requested",
-    "color": "B2E1FF",
+    "color": "6e7681",
     "default": false,
     "description": "Synced by reviewflow for code/review-requested"
-  },
-  {
-    "id": 1285316261,
-    "node_id": "MDU6TGFiZWwxMjg1MzE2MjYx",
-    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:recycle:%20delete%20branch%20after%20merge",
-    "name": ":recycle: delete branch after merge",
-    "color": "64DD17",
-    "default": false,
-    "description": null
-  },
-  {
-    "id": 1285313537,
-    "node_id": "MDU6TGFiZWwxMjg1MzEzNTM3",
-    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:recycle:%20merge/delete-branch",
-    "name": ":recycle: merge/delete-branch",
-    "color": "64DD17",
-    "default": false,
-    "description": null
   },
   {
     "id": 1285313520,
     "node_id": "MDU6TGFiZWwxMjg1MzEzNTIw",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:vertical_traffic_light:%20automerge",
     "name": ":vertical_traffic_light: automerge",
-    "color": "64DD17",
+    "color": "238636",
     "default": false,
     "description": "Synced by reviewflow for merge/automerge"
   },
@@ -103,7 +85,7 @@
     "node_id": "MDU6TGFiZWwxNTE3MDg5MzEz",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:vertical_traffic_light:%20skip-ci",
     "name": ":vertical_traffic_light: skip-ci",
-    "color": "e1e8ed",
+    "color": "a5d6ff",
     "default": false,
     "description": "Synced by reviewflow for merge/skip-ci"
   },
@@ -112,7 +94,7 @@
     "node_id": "MDU6TGFiZWwxNTI2NjUyODU2",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:warning:%20Breaking%20Changes",
     "name": ":warning: Breaking Changes",
-    "color": "ef7934",
+    "color": "9e6a03",
     "default": false,
     "description": "Synced by reviewflow for breaking-changes"
   },
@@ -157,7 +139,7 @@
     "node_id": "MDU6TGFiZWwxMzc2NzI1NTAx",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/feature-branch",
     "name": "feature-branch",
-    "color": "7FCEFF",
+    "color": "1f6feb",
     "default": false,
     "description": "Synced by reviewflow for feature-branch"
   },

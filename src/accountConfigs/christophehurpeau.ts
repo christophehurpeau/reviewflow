@@ -1,5 +1,16 @@
 import type { Config } from './types';
 
+const githubPalette = {
+  accentEmphasis: '#1f6feb',
+  neutralEmphasis: '#6e7681',
+  successEmphasis: '#238636',
+  attentionEmphasis: '#9e6a03',
+  severeEmphasis: '#bd561d',
+  dangerEmphasis: '#da3633',
+  doneEmphasis: '#8957e5',
+  scaleBlue1: '#a5d6ff',
+};
+
 const config: Config<'dev', never> = {
   autoAssignToCreator: true,
   trimTitle: true,
@@ -28,56 +39,59 @@ const config: Config<'dev', never> = {
       /* checks */
       'checks/in-progress': {
         name: ':green_heart: checks/in-progress',
-        color: '#B2E1FF',
+        color: githubPalette.neutralEmphasis,
       },
-      'checks/failed': { name: ':green_heart: checks/fail', color: '#e11d21' },
+      'checks/failed': {
+        name: ':green_heart: checks/fail',
+        color: githubPalette.dangerEmphasis,
+      },
       'checks/passed': {
         name: ':green_heart: checks/passed',
-        color: '#64DD17',
+        color: githubPalette.successEmphasis,
       },
 
       /* code */
       'code/needs-review': {
         name: ':ok_hand: code/needs-review',
-        color: '#FFD57F',
+        color: githubPalette.attentionEmphasis,
       },
       'code/review-requested': {
         name: ':ok_hand: code/review-requested',
-        color: '#B2E1FF',
+        color: githubPalette.neutralEmphasis,
       },
       'code/changes-requested': {
         name: ':ok_hand: code/changes-requested',
-        color: '#e11d21',
+        color: githubPalette.dangerEmphasis,
       },
       'code/approved': {
         name: ':ok_hand: code/approved',
-        color: '#64DD17',
+        color: githubPalette.successEmphasis,
       },
 
       /* auto merge */
       'merge/automerge': {
         name: ':vertical_traffic_light: automerge',
-        color: '#64DD17',
+        color: githubPalette.successEmphasis,
       },
       'merge/skip-ci': {
         name: ':vertical_traffic_light: skip-ci',
-        color: '#e1e8ed',
+        color: githubPalette.scaleBlue1,
       },
       'merge/update-branch': {
         name: ':arrows_counterclockwise: update branch',
-        color: '#64DD17',
+        color: githubPalette.accentEmphasis,
       },
 
       /* feature-branch */
       'feature-branch': {
         name: 'feature-branch',
-        color: '#7FCEFF',
+        color: githubPalette.accentEmphasis,
       },
 
       /* infos */
       'breaking-changes': {
         name: ':warning: Breaking Changes',
-        color: '#ef7934',
+        color: githubPalette.attentionEmphasis,
       },
     },
 

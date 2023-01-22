@@ -61,7 +61,7 @@ describe('edited', (): void => {
           node_id: 'MDU6TGFiZWwxMjEwNDMyOTIw',
           url: 'https://api.github.com/repos/reviewflow/reviewflow-test/labels/:ok_hand:%20code/needs-review',
           name: ':ok_hand: code/needs-review',
-          color: 'FFD57F',
+          color: '9e6a03',
           default: false,
           description: null,
         },
