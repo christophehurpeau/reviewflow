@@ -1,6 +1,5 @@
 import type { Probot } from 'probot';
 // import commands from 'probot-commands';
-import repoRenamed from 'events/repository-handlers/repoRenamed';
 import type { AppContext } from './context/AppContext';
 import membershipChanged from './events/account-handlers/membershipChanged';
 import orgMemberAddedOrRemoved from './events/account-handlers/orgMemberAddedOrRemoved';
@@ -27,6 +26,7 @@ import reviewSubmittedHandler from './events/pr-handlers/reviewSubmitted';
 import status from './events/pr-handlers/status';
 import synchronizeHandler from './events/pr-handlers/synchronize';
 import repoEdited from './events/repository-handlers/repoEdited';
+import repoRenamed from './events/repository-handlers/repoRenamed';
 
 export default function initApp(app: Probot, appContext: AppContext): void {
   // Account
