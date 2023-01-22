@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.115.0](https://github.com/christophehurpeau/reviewflow/compare/v1.114.0...v1.115.0) (2023-01-22)
+
+
+### Features
+
+* use of github palette in all configs ([59542d7](https://github.com/christophehurpeau/reviewflow/commit/59542d7a8af5b6943babd2fe2694eecb0992f809))
+
 ## [1.114.0](https://github.com/christophehurpeau/reviewflow/compare/v1.113.0...v1.114.0) (2023-01-22)
 
 
