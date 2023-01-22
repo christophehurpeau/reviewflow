@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.113.0](https://github.com/christophehurpeau/reviewflow/compare/v1.112.0...v1.113.0) (2023-01-22)
+
+
+### Features
+
+* **deps:** update commitlint monorepo to v17.4.2 ([#623](https://github.com/christophehurpeau/reviewflow/issues/623)) ([e1c44cb](https://github.com/christophehurpeau/reviewflow/commit/e1c44cb92a67bab4bbf9405408a935e6923d7f77))
+* update reviewflow colors based on github palette ([d0ed641](https://github.com/christophehurpeau/reviewflow/commit/d0ed641d09a65eb8b2720774d255f8dc0c878cdc))
+
 ## [1.112.0](https://github.com/christophehurpeau/reviewflow/compare/v1.111.1...v1.112.0) (2023-01-22)
 
 
