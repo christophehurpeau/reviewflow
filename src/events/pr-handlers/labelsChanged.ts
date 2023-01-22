@@ -3,7 +3,7 @@ import type { ProbotEvent } from 'events/probot-types';
 import type { AppContext } from '../../context/AppContext';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import {
-  enableGithubAutoMerge,
+  mergeOrEnableGithubAutoMerge,
   disableGithubAutoMerge,
 } from './actions/enableGithubAutoMerge';
 import { updateBranch } from './actions/updateBranch';
@@ -150,7 +150,7 @@ export default function labelsChanged(
               repoContext.settings.allowAutoMerge &&
               repoContext.config.experimentalFeatures?.githubAutoMerge
             ) {
-              await enableGithubAutoMerge(
+              await mergeOrEnableGithubAutoMerge(
                 pullRequest,
                 context,
                 repoContext,
@@ -239,7 +239,7 @@ export default function labelsChanged(
             repoContext.config.experimentalFeatures?.githubAutoMerge
           ) {
             successful =
-              (await enableGithubAutoMerge(
+              (await mergeOrEnableGithubAutoMerge(
                 pullRequest,
                 context,
                 repoContext,

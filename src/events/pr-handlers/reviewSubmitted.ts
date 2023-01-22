@@ -8,10 +8,11 @@ import * as slackUtils from '../../slack/utils';
 import { ExcludesNullish } from '../../utils/Excludes';
 import { createSlackMessageWithSecondaryBlock } from '../../utils/slack/createSlackMessageWithSecondaryBlock';
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
-import { enableGithubAutoMerge } from './actions/enableGithubAutoMerge';
+import { mergeOrEnableGithubAutoMerge } from './actions/enableGithubAutoMerge';
 import { updateCommentBodyProgressFromStepsState } from './actions/updateCommentBodyProgressFromStepsState';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
+import hasLabelInPR from './actions/utils/labels/hasLabelInPR';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
@@ -163,25 +164,29 @@ export default function reviewSubmitted(
           }
 
           if (approved && !hasChangesRequestedInReviews) {
-            if (
-              repoContext.settings.allowAutoMerge &&
-              repoContext.config.experimentalFeatures?.githubAutoMerge
-            ) {
-              await enableGithubAutoMerge(
-                pullRequest,
-                context,
-                repoContext,
-                reviewflowPrContext,
-                context.payload.sender.login,
-              );
-            } else {
-              merged = await autoMergeIfPossible(
-                updatedPr,
-                context,
-                repoContext,
-                reviewflowPrContext,
-                newLabels,
-              );
+            const autoMergeLabel = repoContext.labels['merge/automerge'];
+
+            if (hasLabelInPR(newLabels, autoMergeLabel)) {
+              if (
+                repoContext.settings.allowAutoMerge &&
+                repoContext.config.experimentalFeatures?.githubAutoMerge
+              ) {
+                await mergeOrEnableGithubAutoMerge(
+                  pullRequest,
+                  context,
+                  repoContext,
+                  reviewflowPrContext,
+                  context.payload.sender.login,
+                );
+              } else {
+                merged = await autoMergeIfPossible(
+                  updatedPr,
+                  context,
+                  repoContext,
+                  reviewflowPrContext,
+                  newLabels,
+                );
+              }
             }
           }
         }

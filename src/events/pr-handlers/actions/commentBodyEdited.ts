@@ -9,7 +9,7 @@ import { autoMergeIfPossible } from './autoMergeIfPossible';
 import { editOpenedPR } from './editOpenedPR';
 import {
   disableGithubAutoMerge,
-  enableGithubAutoMerge,
+  mergeOrEnableGithubAutoMerge,
 } from './enableGithubAutoMerge';
 import { updateBranch } from './updateBranch';
 import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
@@ -83,7 +83,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
             repoContext.config.experimentalFeatures?.githubAutoMerge
           ) {
             return (
-              (await enableGithubAutoMerge(
+              (await mergeOrEnableGithubAutoMerge(
                 pullRequest,
                 context,
                 repoContext,

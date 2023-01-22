@@ -3,7 +3,7 @@ import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
 import { ExcludesFalsy } from '../../utils/Excludes';
 import { editOpenedPR } from './actions/editOpenedPR';
-import { enableGithubAutoMerge } from './actions/enableGithubAutoMerge';
+import { mergeOrEnableGithubAutoMerge } from './actions/enableGithubAutoMerge';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
 import hasLabelInPR from './actions/utils/labels/hasLabelInPR';
@@ -95,17 +95,22 @@ export default function readyForReview(
             repoContext,
             appContext,
             reviewflowPrContext,
-          ),
-          autoMergeLabel &&
-            repoContext.settings.allowAutoMerge &&
-            repoContext.config.experimentalFeatures?.githubAutoMerge &&
-            hasLabelInPR(newLabels, autoMergeLabel) &&
-            enableGithubAutoMerge(
-              pullRequest,
-              context,
-              repoContext,
-              reviewflowPrContext,
-            ),
+          ).then(async (statusCheckResult) => {
+            if (
+              repoContext.settings.allowAutoMerge &&
+              repoContext.config.experimentalFeatures?.githubAutoMerge &&
+              hasLabelInPR(newLabels, autoMergeLabel)
+            ) {
+              await mergeOrEnableGithubAutoMerge(
+                pullRequest,
+                context,
+                repoContext,
+                reviewflowPrContext,
+                undefined,
+                statusCheckResult === 'failure',
+              );
+            }
+          }),
         ]);
       }
 

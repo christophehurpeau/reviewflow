@@ -11,7 +11,7 @@ import { createMergeLockPrFromPr } from '../utils/mergeLock';
 import { createCommitMessage } from './autoMergeIfPossible';
 import { parseBody } from './utils/body/parseBody';
 
-export const enableGithubAutoMerge = async <
+export const mergeOrEnableGithubAutoMerge = async <
   EventName extends EventsWithRepository,
 >(
   pullRequest: PullRequestWithDecentData,
@@ -19,6 +19,7 @@ export const enableGithubAutoMerge = async <
   repoContext: RepoContext,
   reviewflowPrContext: ReviewflowPrContext,
   login?: string,
+  skipCheckMergeableState?: boolean,
 ): Promise<AutoMergeRequest | null> => {
   if (pullRequest.merged_at || pullRequest.draft) return null;
   if (pullRequest.auto_merge) {
@@ -52,9 +53,10 @@ export const enableGithubAutoMerge = async <
   });
 
   if (
-    pullRequest.mergeable_state === 'clean' ||
-    pullRequest.mergeable_state === 'has_hooks' ||
-    pullRequest.mergeable_state === 'unstable'
+    !skipCheckMergeableState &&
+    (pullRequest.mergeable_state === 'clean' ||
+      pullRequest.mergeable_state === 'has_hooks' ||
+      pullRequest.mergeable_state === 'unstable')
   ) {
     try {
       await context.octokit.pulls.merge({

@@ -9,12 +9,17 @@ import createStatus, { isSameStatus } from './utils/createStatus';
 import hasLabelInPR from './utils/labels/hasLabelInPR';
 import type { StepsState } from './utils/steps/calcStepsState';
 
+type ReviewflowStatusCheckState = 'failure' | 'success';
+
 const addStatusCheck = async function <EventName extends EventsWithRepository>(
   pullRequest: PullRequestWithDecentData,
   context: ProbotEvent<EventName>,
   appContext: AppContext,
   reviewflowPrContext: ReviewflowPrContext,
-  { state, description }: { state: 'failure' | 'success'; description: string },
+  {
+    state,
+    description,
+  }: { state: ReviewflowStatusCheckState; description: string },
   previousSha?: string,
 ): Promise<void> {
   const previousStatus = reviewflowPrContext.reviewflowPr.flowStatus;
@@ -107,8 +112,10 @@ export const updateStatusCheckFromStepsState = <
   appContext: AppContext,
   reviewflowPrContext: ReviewflowPrContext,
   previousSha?: string,
-): Promise<void> => {
-  const createFailedStatusCheck = (description: string): Promise<void> =>
+): Promise<ReviewflowStatusCheckState> => {
+  const createFailedStatusCheck = (
+    description: string,
+  ): Promise<ReviewflowStatusCheckState> =>
     addStatusCheck(
       pullRequest,
       context,
@@ -119,7 +126,7 @@ export const updateStatusCheckFromStepsState = <
         description,
       },
       previousSha,
-    );
+    ).then(() => 'failure');
 
   // PR Merged
   if (pullRequest.merged_at) {
@@ -133,7 +140,7 @@ export const updateStatusCheckFromStepsState = <
         description: '✓ PR merged',
       },
       previousSha,
-    );
+    ).then(() => 'success');
   }
 
   // STEP 1: Draft
@@ -163,7 +170,7 @@ export const updateStatusCheckFromStepsState = <
         description: '⚠️ PR merge bypass',
       },
       previousSha,
-    );
+    ).then(() => 'success');
   }
 
   // STEP 2: CHECKS
@@ -262,6 +269,6 @@ export const updateStatusCheckFromStepsState = <
       description: '✓ PR ready to merge !',
     },
     previousSha,
-  );
+  ).then(() => 'success');
   // }
 };

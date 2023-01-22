@@ -4,7 +4,7 @@ import type { Config } from '../accountConfigs';
 import { accountConfigs, defaultConfig } from '../accountConfigs';
 import type { GroupLabels } from '../accountConfigs/types';
 import { autoMergeIfPossible } from '../events/pr-handlers/actions/autoMergeIfPossible';
-import { enableGithubAutoMerge } from '../events/pr-handlers/actions/enableGithubAutoMerge';
+import { mergeOrEnableGithubAutoMerge } from '../events/pr-handlers/actions/enableGithubAutoMerge';
 import type { RepositorySettings } from '../events/pr-handlers/actions/utils/body/repositorySettings';
 import { createRepositorySettings } from '../events/pr-handlers/actions/utils/body/repositorySettings';
 import type {
@@ -465,7 +465,7 @@ async function initRepoContext<
                 repoContext.settings.allowAutoMerge &&
                 repoContext.config.experimentalFeatures?.githubAutoMerge
               ) {
-                await enableGithubAutoMerge(
+                await mergeOrEnableGithubAutoMerge(
                   pullRequest,
                   context,
                   repoContext,

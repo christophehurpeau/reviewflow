@@ -4,7 +4,7 @@ import { getChecksAndStatusesForPullRequest } from '../../utils/github/pullReque
 import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { calcAndUpdateLabels } from './actions/calcAndUpdateLabels';
 import { editOpenedPR } from './actions/editOpenedPR';
-import { enableGithubAutoMerge } from './actions/enableGithubAutoMerge';
+import { mergeOrEnableGithubAutoMerge } from './actions/enableGithubAutoMerge';
 import hasLabelInPR from './actions/utils/labels/hasLabelInPR';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
@@ -78,11 +78,8 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
       ) {
         const autoMergeLabel = repoContext.labels['merge/automerge'];
 
-        if (
-          !pullRequest.auto_merge &&
-          hasLabelInPR(pullRequest.labels, autoMergeLabel)
-        ) {
-          await enableGithubAutoMerge(
+        if (hasLabelInPR(pullRequest.labels, autoMergeLabel)) {
+          await mergeOrEnableGithubAutoMerge(
             pullRequest,
             context,
             repoContext,
