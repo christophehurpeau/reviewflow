@@ -628,12 +628,23 @@ export const obtainRepoContext = <T extends EventsWithRepository>(
     accountConfig = defaultConfig as Config<any, any>;
   }
 
-  const promise = initRepoContext(appContext, context, accountConfig);
+  const promise = initRepoContext(appContext, context, accountConfig).then(
+    (repoContext) => {
+      // this must be included in the `promise` to make sure `repoContexts.set` is not called after in `deleteRepoContext`
+      repoContextsPromise.delete(key);
+      repoContexts.set(key, repoContext);
+      return repoContext;
+    },
+  );
   repoContextsPromise.set(key, promise);
 
-  return promise.then((repoContext) => {
-    repoContextsPromise.delete(key);
-    repoContexts.set(key, repoContext);
-    return repoContext;
-  });
+  return promise;
+};
+
+export const deleteRepoContext = async (
+  repositoryId: number,
+): Promise<void> => {
+  const existingPromise = repoContextsPromise.get(repositoryId);
+  if (existingPromise) await existingPromise;
+  repoContexts.delete(repositoryId);
 };

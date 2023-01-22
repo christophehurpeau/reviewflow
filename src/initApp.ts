@@ -1,5 +1,6 @@
 import type { Probot } from 'probot';
 // import commands from 'probot-commands';
+import repoRenamed from 'events/repository-handlers/repoRenamed';
 import type { AppContext } from './context/AppContext';
 import membershipChanged from './events/account-handlers/membershipChanged';
 import orgMemberAddedOrRemoved from './events/account-handlers/orgMemberAddedOrRemoved';
@@ -39,6 +40,7 @@ export default function initApp(app: Probot, appContext: AppContext): void {
   // Repo
   /* https://developer.github.com/webhooks/event-payloads/#repository */
   repoEdited(app, appContext);
+  repoRenamed(app, appContext);
 
   // Push
   /* https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#push */
