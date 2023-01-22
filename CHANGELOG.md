@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.112.0](https://github.com/christophehurpeau/reviewflow/compare/v1.111.1...v1.112.0) (2023-01-22)
+
+
+### Features
+
+* enable bypass checks for merge via label ([14a09b8](https://github.com/christophehurpeau/reviewflow/commit/14a09b8d2b80fd5171f9fc11ece09147fca2902f))
+* update ornikar colors ([51f3c0e](https://github.com/christophehurpeau/reviewflow/commit/51f3c0e8a5be5c797f9d1a0dfae6ec5be6d2988c))
+
+
+### Bug Fixes
+
+* disable reviewflow comment creation before callback ([ae1f7f9](https://github.com/christophehurpeau/reviewflow/commit/ae1f7f974eb4b3ff71cf5500f894a39c835eaea7))
+* on approve, run enableGithubAutoMerge ([f53e8a2](https://github.com/christophehurpeau/reviewflow/commit/f53e8a2ae5c47fa4b6aa45b7634d5ffc92e829df))
+
 ## [1.111.1](https://github.com/christophehurpeau/reviewflow/compare/v1.111.0...v1.111.1) (2023-01-21)
 
 
