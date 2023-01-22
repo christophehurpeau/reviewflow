@@ -39,6 +39,10 @@ describe('opened', (): void => {
 
   test('edits the pull request when pull request is opened', async (): Promise<void> => {
     const scope = nock('https://api.github.com')
+      .get('/repos/reviewflow/reviewflow-test/issues/30/comments')
+      .times(1)
+      .reply(200, [])
+
       .post(
         '/repos/reviewflow/reviewflow-test/issues/30/comments',
         '{"body":"This will be auto filled by reviewflow."}',

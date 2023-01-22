@@ -6,11 +6,11 @@ import { autoAssignPRToCreator } from './actions/autoAssignPRToCreator';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
-import { defaultCommentBody } from './actions/utils/body/updateBody';
+// import { defaultCommentBody } from './actions/utils/body/updateBody';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { syncLabels } from './actions/utils/syncLabel';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
-import { createReviewflowComment } from './utils/reviewflowComment';
+// import { createReviewflowComment } from './utils/reviewflowComment';
 
 export default function opened(app: Probot, appContext: AppContext): void {
   createPullRequestHandler(
@@ -86,12 +86,14 @@ export default function opened(app: Probot, appContext: AppContext): void {
         }),
       ]);
     },
-    (pullRequest, context) => ({
-      reviewflowCommentPromise: createReviewflowComment(
-        pullRequest.number,
-        context,
-        defaultCommentBody,
-      ),
-    }),
+    // https://sentry.io/organizations/chrp/issues/3888881569/?project=1243466&query=is%3Aunresolved&referrer=issue-stream
+    // https://github.com/christophehurpeau/reviewflow/pull/617
+    // (pullRequest, context) => ({
+    //   reviewflowCommentPromise: createReviewflowComment(
+    //     pullRequest.number,
+    //     context,
+    //     defaultCommentBody,
+    //   ),
+    // }),
   );
 }
