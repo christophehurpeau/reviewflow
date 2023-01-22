@@ -84,6 +84,7 @@ export interface Config<GroupNames extends string, TeamNames extends string> {
   requiresReviewRequest?: boolean;
   autoMergeRenovateWithSkipCi?: boolean;
   disableAutoMerge?: boolean;
+  disableBypassMergeFor?: RegExp;
   warnOnForcePushAfterReviewStarted?: WarnOnForcePushAfterReviewStarted;
   checksAllowedToFail?: string[];
   experimentalFeatures?: ExperimentalFeatures;

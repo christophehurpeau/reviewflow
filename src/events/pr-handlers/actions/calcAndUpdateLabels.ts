@@ -63,6 +63,7 @@ export async function calcAndUpdateLabels<
         stepsState,
         pullRequest,
         context,
+        repoContext,
         appContext,
         reviewflowPrContext,
       ),

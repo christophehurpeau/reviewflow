@@ -60,6 +60,7 @@ export default function edited(app: Probot, appContext: AppContext): void {
           stepsState,
           updatedPullRequest,
           context,
+          repoContext,
           appContext,
           reviewflowPrContext,
         ),

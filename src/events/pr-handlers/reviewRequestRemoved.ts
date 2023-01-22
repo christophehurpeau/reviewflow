@@ -106,6 +106,7 @@ export default function reviewRequestRemoved(
               stepsState,
               pullRequest,
               context,
+              repoContext,
               appContext,
               reviewflowPrContext,
             ),

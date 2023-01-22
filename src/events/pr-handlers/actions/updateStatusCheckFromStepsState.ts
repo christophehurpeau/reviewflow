@@ -1,11 +1,12 @@
 import type { AppContext } from 'context/AppContext';
-import type { EventsWithRepository } from 'context/repoContext';
+import type { EventsWithRepository, RepoContext } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
 import type { StatusInfo } from '../../../accountConfigs/types';
 import { ExcludesFalsy } from '../../../utils/Excludes';
 import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import createStatus, { isSameStatus } from './utils/createStatus';
+import hasLabelInPR from './utils/labels/hasLabelInPR';
 import type { StepsState } from './utils/steps/calcStepsState';
 
 const addStatusCheck = async function <EventName extends EventsWithRepository>(
@@ -102,6 +103,7 @@ export const updateStatusCheckFromStepsState = <
   stepsState: StepsState<GroupNames>,
   pullRequest: PullRequestWithDecentData,
   context: ProbotEvent<EventName>,
+  repoContext: RepoContext<GroupNames>,
   appContext: AppContext,
   reviewflowPrContext: ReviewflowPrContext,
   previousSha?: string,
@@ -145,6 +147,25 @@ export const updateStatusCheckFromStepsState = <
     return createFailedStatusCheck('Write step failed, unknown reason');
   }
 
+  // bypass
+  const bypassProgressLabel = repoContext.labels['merge/bypass-progress'];
+  if (
+    bypassProgressLabel &&
+    hasLabelInPR(pullRequest.labels, bypassProgressLabel)
+  ) {
+    return addStatusCheck(
+      pullRequest,
+      context,
+      appContext,
+      reviewflowPrContext,
+      {
+        state: 'success',
+        description: '⚠️ PR merge bypass',
+      },
+      previousSha,
+    );
+  }
+
   // STEP 2: CHECKS
   if (stepsState.checks.state !== 'passed') {
     if (stepsState.checks.isFailed) {
@@ -179,7 +200,7 @@ export const updateStatusCheckFromStepsState = <
     }
   }
 
-  // STEP 3 & 4: Code Review
+  // STEP 3: Code Review
   if (stepsState.codeReview.state !== 'passed') {
     if (
       stepsState.codeReview.hasRequestedReviewers ||

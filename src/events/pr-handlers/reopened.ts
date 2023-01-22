@@ -50,6 +50,7 @@ export default function reopened(app: Probot, appContext: AppContext): void {
             stepsState,
             pullRequest,
             context,
+            repoContext,
             appContext,
             reviewflowPrContext,
           ),

@@ -157,6 +157,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
           stepsState,
           pullRequest,
           context,
+          repoContext,
           appContext,
           reviewflowPrContext,
         ),

@@ -71,6 +71,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
               stepsState,
               pullRequest,
               context,
+              repoContext,
               appContext,
               reviewflowPrContext,
             ),

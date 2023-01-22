@@ -26,6 +26,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
     'ci/circleci: tests-e2e',
     'SonarCloud Code Analysis',
   ],
+  disableBypassMergeFor: /(shared-|orb|-configs)/,
   prDefaultOptions: {
     autoMergeWithSkipCi: false,
     autoMerge: false,
@@ -330,6 +331,10 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       'merge/update-branch': {
         name: ':arrows_counterclockwise: update branch',
         color: '#e1e8ed',
+      },
+      'merge/bypass-progress': {
+        name: ':soon: bypass progress',
+        color: '#e11d21',
       },
 
       /* feature-branch */

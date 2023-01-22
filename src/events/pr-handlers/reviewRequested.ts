@@ -70,6 +70,7 @@ export default function reviewRequested(
               stepsState,
               pullRequest,
               context,
+              repoContext,
               appContext,
               reviewflowPrContext,
             ),

@@ -54,6 +54,7 @@ export default function labelsChanged(
       const updateBranchLabel = repoContext.labels['merge/update-branch'];
       const autoMergeLabel = repoContext.labels['merge/automerge'];
       const autoMergeSkipCiLabel = repoContext.labels['merge/skip-ci'];
+      const bypassProgressLabel = repoContext.labels['merge/bypass-progress'];
 
       const label = context.payload.label;
       let successful = true;
@@ -108,6 +109,7 @@ export default function labelsChanged(
                 stepsState,
                 updatedPr,
                 context,
+                repoContext,
                 appContext,
                 reviewflowPrContext,
               ),
@@ -193,15 +195,37 @@ export default function labelsChanged(
         return;
       }
 
+      let labels = pullRequest.labels;
+
+      if (bypassProgressLabel && label.id === bypassProgressLabel.id) {
+        if (
+          context.payload.action === 'labeled' &&
+          repoContext.config.disableBypassMergeFor &&
+          repoContext.config.disableBypassMergeFor.test(
+            repoContext.repoEmbed.name,
+          )
+        ) {
+          await context.octokit.issues.removeLabel(
+            context.repo({
+              issue_number: pullRequest.number,
+              name: label.name,
+            }),
+          );
+          labels = labels.filter((l) => l.id !== bypassProgressLabel.id);
+        }
+      }
+
       const stepsState = calcStepsState({
         repoContext,
         pullRequest: updatedPr,
+        labels,
       });
 
       await updateStatusCheckFromStepsState(
         stepsState,
         updatedPr,
         context,
+        repoContext,
         appContext,
         reviewflowPrContext,
       );

@@ -149,6 +149,7 @@ export default function reviewSubmitted(
                 stepsState,
                 pullRequest,
                 context,
+                repoContext,
                 appContext,
                 reviewflowPrContext,
               ),

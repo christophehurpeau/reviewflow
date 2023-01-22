@@ -67,6 +67,7 @@ export default function opened(app: Probot, appContext: AppContext): void {
               stepsState,
               pullRequest,
               context,
+              repoContext,
               appContext,
               reviewflowPrContext,
             ),

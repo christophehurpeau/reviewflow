@@ -103,6 +103,7 @@ export default function reviewDismissed(
               stepsState,
               pullRequest,
               context,
+              repoContext,
               appContext,
               reviewflowPrContext,
             ),
