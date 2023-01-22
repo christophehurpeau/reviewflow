@@ -20,7 +20,7 @@ export const enableGithubAutoMerge = async <
   reviewflowPrContext: ReviewflowPrContext,
   login?: string,
 ): Promise<AutoMergeRequest | null> => {
-  if (pullRequest.merged_at) return null;
+  if (pullRequest.merged_at || pullRequest.draft) return null;
   if (pullRequest.auto_merge) {
     return { enabledBy: pullRequest.auto_merge.enabled_by };
   }

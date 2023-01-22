@@ -3,8 +3,10 @@ import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
 import { ExcludesFalsy } from '../../utils/Excludes';
 import { editOpenedPR } from './actions/editOpenedPR';
+import { enableGithubAutoMerge } from './actions/enableGithubAutoMerge';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
+import hasLabelInPR from './actions/utils/labels/hasLabelInPR';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 
@@ -68,6 +70,7 @@ export default function readyForReview(
           ],
         );
 
+        const autoMergeLabel = repoContext.labels['merge/automerge'];
         const stepsState = calcStepsState({
           repoContext,
           pullRequest,
@@ -93,6 +96,16 @@ export default function readyForReview(
             appContext,
             reviewflowPrContext,
           ),
+          autoMergeLabel &&
+            repoContext.settings.allowAutoMerge &&
+            repoContext.config.experimentalFeatures?.githubAutoMerge &&
+            hasLabelInPR(newLabels, autoMergeLabel) &&
+            enableGithubAutoMerge(
+              pullRequest,
+              context,
+              repoContext,
+              reviewflowPrContext,
+            ),
         ]);
       }
 
