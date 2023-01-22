@@ -2,7 +2,7 @@
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "compilerOptions": {
     "rootDir": "src",
-    /* No emit in default config file. See build config file for config to build declaration files */
+    "newLine": "lf",
     "noEmit": true,
 
     /* No need to check .d.ts files */
