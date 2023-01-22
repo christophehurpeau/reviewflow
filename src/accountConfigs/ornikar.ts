@@ -1,5 +1,36 @@
 import type { Config } from './types';
 
+const lateOceanColorPalette = {
+  lateOcean: '#4C34E0',
+  lateOceanLight1: '#705DE6',
+  lateOceanLight2: '#9485EC',
+  lateOceanLight3: '#D6BAF9',
+
+  warmEmbrace: '#F4D3CE',
+  warmEmbraceLight1: '#FFEDE6',
+
+  black1000: '#000000',
+  black800: '#333333',
+  black555: '#737373',
+  black400: '#999999',
+  black200: '#CCCCCC',
+  black100: '#E5E5E5',
+  black50: '#F2F2F2',
+  black25: '#F9F9F9',
+  white: '#FFFFFF',
+
+  viride: '#38836D',
+  englishVermillon: '#D44148',
+  goldCrayola: '#F8C583',
+  aero: '#89BDDD',
+  seaShell: '#FFF9F3',
+
+  transparent: 'transparent',
+
+  moonPurple: '#DBD6F9',
+  moonPurpleLight1: '#EDEBFC',
+};
+
 const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
   autoAssignToCreator: true,
   trimTitle: true,
@@ -256,138 +287,141 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       /* checks */
       'checks/in-progress': {
         name: ':green_heart: checks/in-progress',
-        color: '#DAE1E6',
+        color: lateOceanColorPalette.warmEmbrace,
       },
-      'checks/failed': { name: ':green_heart: checks/fail', color: '#e11d21' },
+      'checks/failed': {
+        name: ':green_heart: checks/fail',
+        color: lateOceanColorPalette.englishVermillon,
+      },
       'checks/passed': {
         name: ':green_heart: checks/passed',
-        color: '#64DD17',
+        color: lateOceanColorPalette.viride,
       },
 
       // /* ci */
       // 'ci/in-progress': { name: ':green_heart: ci/in-progress', color: '#0052cc' },
-      // 'ci/fail': { name: ':green_heart: ci/fail', color: '#e11d21' },
+      // 'ci/fail': { name: ':green_heart: ci/fail', color: lateOceanColorPalette.englishVermillon },
       // 'ci/passed': { name: ':green_heart: ci/passed', color: '#86f9b4' },
 
       /* code */
       'code/needs-review': {
         name: ':ok_hand: code/needs-review',
-        color: '#FFC44C',
+        color: lateOceanColorPalette.goldCrayola,
       },
       'code/review-requested': {
         name: ':ok_hand: code/review-requested',
-        color: '#DAE1E6',
+        color: lateOceanColorPalette.warmEmbrace,
       },
       'code/changes-requested': {
         name: ':ok_hand: code/changes-requested',
-        color: '#e11d21',
+        color: lateOceanColorPalette.englishVermillon,
       },
       'code/approved': {
         name: ':ok_hand: code/approved',
-        color: '#64DD17',
+        color: lateOceanColorPalette.viride,
       },
 
       /* design */
       'design/needs-review': {
         name: ':art: design/needs-review',
-        color: '#FFC44C',
+        color: lateOceanColorPalette.goldCrayola,
       },
       'design/review-requested': {
         name: ':art: design/review-requested',
-        color: '#DAE1E6',
+        color: lateOceanColorPalette.warmEmbrace,
       },
       'design/changes-requested': {
         name: ':art: design/changes-requested',
-        color: '#e11d21',
+        color: lateOceanColorPalette.englishVermillon,
       },
       'design/approved': {
         name: ':art: design/approved',
-        color: '#64DD17',
+        color: lateOceanColorPalette.viride,
       },
 
       /* teams */
       'teams/ops': {
         name: 'ops',
-        color: '#003b55',
+        color: lateOceanColorPalette.warmEmbrace,
       },
       'teams/backend': {
         name: 'backend',
-        color: '#6ad8cb',
+        color: lateOceanColorPalette.aero,
       },
       'teams/frontend': {
         name: 'frontend',
-        color: '#8a5abc',
+        color: lateOceanColorPalette.lateOcean,
       },
 
       /* auto merge */
       'merge/automerge': {
         name: ':soon: automerge',
-        color: '#64DD17',
+        color: lateOceanColorPalette.viride,
       },
       'merge/skip-ci': {
         name: ':vertical_traffic_light: skip-ci',
-        color: '#e1e8ed',
+        color: lateOceanColorPalette.seaShell,
       },
       'merge/update-branch': {
         name: ':arrows_counterclockwise: update branch',
-        color: '#e1e8ed',
+        color: lateOceanColorPalette.seaShell,
       },
       'merge/bypass-progress': {
         name: ':soon: bypass progress',
-        color: '#e11d21',
+        color: lateOceanColorPalette.englishVermillon,
       },
 
       /* feature-branch */
       'feature-branch': {
         name: 'feature-branch',
-        color: '#7FCEFF',
+        color: lateOceanColorPalette.aero,
       },
 
       /* infos */
       'breaking-changes': {
         name: ':warning: Breaking Changes',
         description: 'This issue or pull request will need a new major version',
-        color: '#FF6F00',
+        color: lateOceanColorPalette.lateOcean,
       },
       duplicate: {
         name: 'duplicate',
         description: 'This issue or pull request already exists',
-        color: '#ECEFF1',
+        color: lateOceanColorPalette.moonPurple,
       },
       documentation: {
         name: 'documentation',
         description: 'Improvements or additions to documentation',
-        color: '#7FCEFF',
+        color: lateOceanColorPalette.lateOceanLight3,
       },
       rfc: {
         name: 'RFC',
         description: 'Request For Comments',
-        color: '#FFD3B2',
+        color: lateOceanColorPalette.lateOceanLight1,
       },
       bug: {
         name: 'bug',
         description: "Something isn't working",
-        color: '#FF3D00',
+        color: lateOceanColorPalette.englishVermillon,
       },
       enhancement: {
         name: 'enhancement',
         description: 'New feature or request',
-        color: '#7FCEFF',
+        color: lateOceanColorPalette.aero,
       },
       'help-wanted': {
         name: 'help wanted',
         description: 'Extra attention is needed',
-        color: '#B1EE8B',
+        color: lateOceanColorPalette.goldCrayola,
       },
       question: {
         name: 'question',
         description: 'Further information is requested',
-        color: '#F860A4',
+        color: lateOceanColorPalette.lateOceanLight2,
       },
       wontfix: {
         name: 'wontfix',
         description: 'This will not be worked on',
-        color: '#ECEFF1',
+        color: lateOceanColorPalette.moonPurple,
       },
     },
 
