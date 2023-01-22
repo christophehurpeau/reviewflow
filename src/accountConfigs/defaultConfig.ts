@@ -1,3 +1,4 @@
+import { githubPalette } from './color-palettes/githubPalette';
 import type { Config } from './types';
 
 const config: Config<never, never> = {
@@ -17,15 +18,24 @@ const config: Config<never, never> = {
   teams: {},
   labels: {
     list: {
-      // /* ci */
-      // 'ci/in-progress': { name: ':green_heart: ci/in-progress', color: '#0052cc' },
-      // 'ci/fail': { name: ':green_heart: ci/fail', color: '#e11d21' },
-      // 'ci/passed': { name: ':green_heart: ci/passed', color: '#86f9b4' },
+      /* checks */
+      'checks/in-progress': {
+        name: ':green_heart: checks/in-progress',
+        color: githubPalette.scaleGray6,
+      },
+      'checks/failed': {
+        name: ':green_heart: checks/fail',
+        color: githubPalette.dangerEmphasis,
+      },
+      'checks/passed': {
+        name: ':green_heart: checks/passed',
+        color: githubPalette.successEmphasis,
+      },
 
       /* infos */
       'breaking-changes': {
         name: ':warning: Breaking Changes',
-        color: '#ef7934',
+        color: githubPalette.attentionEmphasis,
       },
     },
 

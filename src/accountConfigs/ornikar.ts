@@ -1,3 +1,4 @@
+import { githubPalette } from './color-palettes/githubPalette';
 import type { Config } from './types';
 
 const lateOceanColorPalette = {
@@ -287,15 +288,15 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       /* checks */
       'checks/in-progress': {
         name: ':green_heart: checks/in-progress',
-        color: lateOceanColorPalette.warmEmbrace,
+        color: githubPalette.scaleGray6,
       },
       'checks/failed': {
         name: ':green_heart: checks/fail',
-        color: lateOceanColorPalette.englishVermillon,
+        color: githubPalette.dangerEmphasis,
       },
       'checks/passed': {
         name: ':green_heart: checks/passed',
-        color: lateOceanColorPalette.viride,
+        color: githubPalette.successEmphasis,
       },
 
       // /* ci */
@@ -306,37 +307,37 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       /* code */
       'code/needs-review': {
         name: ':ok_hand: code/needs-review',
-        color: lateOceanColorPalette.goldCrayola,
+        color: githubPalette.attentionEmphasis,
       },
       'code/review-requested': {
         name: ':ok_hand: code/review-requested',
-        color: lateOceanColorPalette.warmEmbrace,
+        color: githubPalette.scaleGray6,
       },
       'code/changes-requested': {
         name: ':ok_hand: code/changes-requested',
-        color: lateOceanColorPalette.englishVermillon,
+        color: githubPalette.dangerEmphasis,
       },
       'code/approved': {
         name: ':ok_hand: code/approved',
-        color: lateOceanColorPalette.viride,
+        color: githubPalette.successEmphasis,
       },
 
       /* design */
       'design/needs-review': {
         name: ':art: design/needs-review',
-        color: lateOceanColorPalette.goldCrayola,
+        color: githubPalette.attentionEmphasis,
       },
       'design/review-requested': {
         name: ':art: design/review-requested',
-        color: lateOceanColorPalette.warmEmbrace,
+        color: githubPalette.scaleGray6,
       },
       'design/changes-requested': {
         name: ':art: design/changes-requested',
-        color: lateOceanColorPalette.englishVermillon,
+        color: githubPalette.dangerEmphasis,
       },
       'design/approved': {
         name: ':art: design/approved',
-        color: lateOceanColorPalette.viride,
+        color: githubPalette.successEmphasis,
       },
 
       /* teams */
@@ -356,32 +357,32 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       /* auto merge */
       'merge/automerge': {
         name: ':soon: automerge',
-        color: lateOceanColorPalette.viride,
+        color: githubPalette.successEmphasis,
       },
       'merge/skip-ci': {
         name: ':vertical_traffic_light: skip-ci',
-        color: lateOceanColorPalette.seaShell,
+        color: githubPalette.scaleBlue1,
       },
       'merge/update-branch': {
         name: ':arrows_counterclockwise: update branch',
-        color: lateOceanColorPalette.seaShell,
+        color: githubPalette.accentEmphasis,
       },
       'merge/bypass-progress': {
         name: ':soon: bypass progress',
-        color: lateOceanColorPalette.englishVermillon,
+        color: githubPalette.dangerEmphasis,
       },
 
       /* feature-branch */
       'feature-branch': {
         name: 'feature-branch',
-        color: lateOceanColorPalette.aero,
+        color: githubPalette.accentEmphasis,
       },
 
       /* infos */
       'breaking-changes': {
         name: ':warning: Breaking Changes',
         description: 'This issue or pull request will need a new major version',
-        color: lateOceanColorPalette.lateOcean,
+        color: githubPalette.attentionEmphasis,
       },
       duplicate: {
         name: 'duplicate',
