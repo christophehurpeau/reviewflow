@@ -2,13 +2,13 @@ import type { Config } from './types';
 
 const githubPalette = {
   accentEmphasis: '#1f6feb',
-  neutralEmphasis: '#6e7681',
   successEmphasis: '#238636',
   attentionEmphasis: '#9e6a03',
   severeEmphasis: '#bd561d',
   dangerEmphasis: '#da3633',
   doneEmphasis: '#8957e5',
   scaleBlue1: '#a5d6ff',
+  scaleGray6: '#57606a',
 };
 
 const config: Config<'dev', never> = {
@@ -39,7 +39,7 @@ const config: Config<'dev', never> = {
       /* checks */
       'checks/in-progress': {
         name: ':green_heart: checks/in-progress',
-        color: githubPalette.neutralEmphasis,
+        color: githubPalette.scaleGray6,
       },
       'checks/failed': {
         name: ':green_heart: checks/fail',
@@ -57,7 +57,7 @@ const config: Config<'dev', never> = {
       },
       'code/review-requested': {
         name: ':ok_hand: code/review-requested',
-        color: githubPalette.neutralEmphasis,
+        color: githubPalette.scaleGray6,
       },
       'code/changes-requested': {
         name: ':ok_hand: code/changes-requested',

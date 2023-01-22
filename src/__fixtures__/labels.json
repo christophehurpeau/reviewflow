@@ -22,7 +22,7 @@
     "node_id": "LA_kwDOCgFbpc8AAAABJeMaRw",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:green_heart:%20checks/in-progress",
     "name": ":green_heart: checks/in-progress",
-    "color": "6e7681",
+    "color": "57606a",
     "default": false,
     "description": "Synced by reviewflow for checks/in-progress"
   },
@@ -67,7 +67,7 @@
     "node_id": "MDU6TGFiZWwxMjEwNDMyOTM3",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:ok_hand:%20code/review-requested",
     "name": ":ok_hand: code/review-requested",
-    "color": "6e7681",
+    "color": "57606a",
     "default": false,
     "description": "Synced by reviewflow for code/review-requested"
   },
