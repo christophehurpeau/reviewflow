@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.114.0](https://github.com/christophehurpeau/reviewflow/compare/v1.113.0...v1.114.0) (2023-01-22)
+
+
+### Features
+
+* **deps:** update dependency @slack/web-api to v6.8.0 ([#625](https://github.com/christophehurpeau/reviewflow/issues/625)) ([4e616e8](https://github.com/christophehurpeau/reviewflow/commit/4e616e8271a01060e0e9a953b8eea333c06b7635))
+
+
+### Bug Fixes
+
+* use scaleGray6 in github palette ([5ebd162](https://github.com/christophehurpeau/reviewflow/commit/5ebd1620903e29a6035ac346af723900cc148c3b))
+
 ## [1.113.0](https://github.com/christophehurpeau/reviewflow/compare/v1.112.0...v1.113.0) (2023-01-22)
 
 
