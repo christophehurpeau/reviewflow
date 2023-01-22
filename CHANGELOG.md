@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.116.3](https://github.com/christophehurpeau/reviewflow/compare/v1.116.2...v1.116.3) (2023-01-22)
+
+
+### Bug Fixes
+
+* update status check on synchronize ([baa0a57](https://github.com/christophehurpeau/reviewflow/commit/baa0a57f186479db0d9825b459c9187ae307b961))
+
 ## [1.116.2](https://github.com/christophehurpeau/reviewflow/compare/v1.116.1...v1.116.2) (2023-01-22)
 
 
