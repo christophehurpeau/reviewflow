@@ -5,6 +5,7 @@ import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { calcAndUpdateLabels } from './actions/calcAndUpdateLabels';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { mergeOrEnableGithubAutoMerge } from './actions/enableGithubAutoMerge';
+import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
 import hasLabelInPR from './actions/utils/labels/hasLabelInPR';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
@@ -59,18 +60,31 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
       });
 
       // headSha is updated there too
-      await editOpenedPR({
-        pullRequest: updatedPr,
-        context,
-        appContext,
-        repoContext,
-        reviewflowPrContext,
-        stepsState,
-        shouldUpdateCommentBodyInfos: true,
-        shouldUpdateCommentBodyProgress: true, // CI
-        previousSha,
-        checksAndStatuses,
-      });
+      await Promise.all([
+        editOpenedPR({
+          pullRequest: updatedPr,
+          context,
+          appContext,
+          repoContext,
+          reviewflowPrContext,
+          stepsState,
+          shouldUpdateCommentBodyInfos: true,
+          shouldUpdateCommentBodyProgress: true, // CI
+          previousSha,
+          checksAndStatuses,
+        }),
+        // update status check if new commit is pushed
+        previousSha &&
+          updateStatusCheckFromStepsState(
+            stepsState,
+            pullRequest,
+            context,
+            repoContext,
+            appContext,
+            reviewflowPrContext,
+            previousSha,
+          ),
+      ]);
 
       if (
         repoContext.settings.allowAutoMerge &&
