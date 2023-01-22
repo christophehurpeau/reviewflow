@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.116.1](https://github.com/christophehurpeau/reviewflow/compare/v1.116.0...v1.116.1) (2023-01-22)
+
+
+### Bug Fixes
+
+* fix path import ([823955b](https://github.com/christophehurpeau/reviewflow/commit/823955b5c900a5781e83dc2d2a3448c0efe04889))
+
 ## [1.116.0](https://github.com/christophehurpeau/reviewflow/compare/v1.115.1...v1.116.0) (2023-01-22)
 
 
