@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.116.0](https://github.com/christophehurpeau/reviewflow/compare/v1.115.1...v1.116.0) (2023-01-22)
+
+
+### Features
+
+* support event repository.renamed ([8054432](https://github.com/christophehurpeau/reviewflow/commit/8054432d5243e33ec9f13ede66adbcd28e0d69d4))
+
+
+### Bug Fixes
+
+* fix try to merge when check state failed ([7e5d0b5](https://github.com/christophehurpeau/reviewflow/commit/7e5d0b502b5b994560806cccd1d78dcd3bd9cb69))
+
 ## [1.115.1](https://github.com/christophehurpeau/reviewflow/compare/v1.115.0...v1.115.1) (2023-01-22)
 
 
