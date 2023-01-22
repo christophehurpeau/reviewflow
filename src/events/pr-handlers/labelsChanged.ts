@@ -155,6 +155,7 @@ export default function labelsChanged(
                 context,
                 repoContext,
                 reviewflowPrContext,
+                context.payload.sender.login,
               );
             }
           }
