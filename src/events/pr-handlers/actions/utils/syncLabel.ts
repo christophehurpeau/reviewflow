@@ -122,7 +122,16 @@ export async function syncLabels<EventName extends EmitterWebhookEventName>(
 
   if (labelsToRemove.length > 0) {
     for (const label of labelsToRemove) {
-      updatedLabels = await removeLabel(context, pullRequest, label);
+      try {
+        updatedLabels = await removeLabel(context, pullRequest, label);
+      } catch (err) {
+        // can happen on old prs without all labels reviewflow expects
+        if ((err as any).status === 404) {
+          // do nothing, continue
+        } else {
+          throw err;
+        }
+      }
     }
   }
   if (labelsToAdd.length > 0) {
