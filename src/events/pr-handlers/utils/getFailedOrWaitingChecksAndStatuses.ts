@@ -43,7 +43,10 @@ export const getFailedOrWaitingChecksAndStatuses = <GroupNames extends string>(
     .map(([checkName]) => checkName);
 
   const pendingChecks = checksEntries
-    .filter(([checkId, { conclusion }]) => conclusion == null)
+    .filter(
+      ([checkId, { name, conclusion }]) =>
+        conclusion == null && !isPendingCheckShouldBeIgnored(name),
+    )
     .map(([checkId, { name }]) => name);
 
   const failedStatuses = statusesEntries
