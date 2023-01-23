@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.118.0](https://github.com/christophehurpeau/reviewflow/compare/v1.117.0...v1.118.0) (2023-01-23)
+
+
+### Features
+
+* add data-engineering as dev in ornikar config ([0eb7c0b](https://github.com/christophehurpeau/reviewflow/commit/0eb7c0b8c565c7ae2cd7f73475d37a4a0830b390))
+* ornikar config allow develop as default branch ([bdd5620](https://github.com/christophehurpeau/reviewflow/commit/bdd5620009f3bfd0b612d35619c3a602b3b46286))
+* ornikar config allow SCOPED-STAGING to fail ([415e541](https://github.com/christophehurpeau/reviewflow/commit/415e541b6ab4d862dd6316513d556250192f81cc))
+
+
+### Bug Fixes
+
+* display only non ignored failed checks in status check ([e1241cb](https://github.com/christophehurpeau/reviewflow/commit/e1241cbeccc87f85a4814f240eddf644d92fc2a1))
+* fix 404 when remove label that is not on the pr ([8586e76](https://github.com/christophehurpeau/reviewflow/commit/8586e76dde29f8434697b4e59cbb2ae71e13de76))
+
 ## [1.117.0](https://github.com/christophehurpeau/reviewflow/compare/v1.116.3...v1.117.0) (2023-01-23)
 
 
