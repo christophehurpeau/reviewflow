@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.117.0](https://github.com/christophehurpeau/reviewflow/compare/v1.116.3...v1.117.0) (2023-01-23)
+
+
+### Features
+
+* enable automerge ([f34e704](https://github.com/christophehurpeau/reviewflow/commit/f34e704ef6bde727b552cf7ec770383819891727))
+
+
+### Bug Fixes
+
+* fix ignore pending checks from codecov ([63db188](https://github.com/christophehurpeau/reviewflow/commit/63db1880d9a3b730c3b2c56a0218a52959319ff4))
+
 ## [1.116.3](https://github.com/christophehurpeau/reviewflow/compare/v1.116.2...v1.116.3) (2023-01-22)
 
 
