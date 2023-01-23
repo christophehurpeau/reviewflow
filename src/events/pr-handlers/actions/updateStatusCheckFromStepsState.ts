@@ -5,6 +5,7 @@ import type { StatusInfo } from '../../../accountConfigs/types';
 import { ExcludesFalsy } from '../../../utils/Excludes';
 import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
+import { getFailedOrWaitingChecksAndStatuses } from '../utils/getFailedOrWaitingChecksAndStatuses';
 import createStatus, { isSameStatus } from './utils/createStatus';
 import hasLabelInPR from './utils/labels/hasLabelInPR';
 import type { StepsState } from './utils/steps/calcStepsState';
@@ -176,23 +177,25 @@ export const updateStatusCheckFromStepsState = <
   // STEP 2: CHECKS
   if (stepsState.checks.state !== 'passed') {
     if (stepsState.checks.isFailed) {
-      const failedChecks =
+      let failedChecksAndStatuses: string[] = [];
+
+      if (
         reviewflowPrContext.reviewflowPr.checksConclusion &&
-        Object.values(reviewflowPrContext.reviewflowPr.checksConclusion)
-          .filter(({ conclusion }) => conclusion === 'failure')
-          .map(({ name }) => name);
+        reviewflowPrContext.reviewflowPr.statusesConclusion
+      ) {
+        const { failedChecks, failedStatuses } =
+          getFailedOrWaitingChecksAndStatuses(
+            {
+              checksConclusionRecord:
+                reviewflowPrContext.reviewflowPr.checksConclusion,
+              statusesConclusionRecord:
+                reviewflowPrContext.reviewflowPr.statusesConclusion,
+            },
+            repoContext,
+          );
 
-      const failedStatuses =
-        reviewflowPrContext.reviewflowPr.statusesConclusion &&
-        Object.values(reviewflowPrContext.reviewflowPr.statusesConclusion)
-          .filter(({ state }) => state === 'failure')
-          .map(({ context }) => context);
-
-      const failedChecksAndStatuses = [
-        ...(failedChecks || []),
-        ...(failedStatuses || []),
-      ].filter(ExcludesFalsy);
-
+        failedChecksAndStatuses = [...failedChecks, ...failedStatuses];
+      }
       return createFailedStatusCheck(
         `Checks failed${
           failedChecksAndStatuses.length > 0
