@@ -56,6 +56,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
     'ci/circleci: test-e2e',
     'ci/circleci: tests-e2e',
     'SonarCloud Code Analysis',
+    'SCOPED-STAGING',
   ],
   disableBypassMergeFor: /(shared-|orb|-configs)/,
   prDefaultOptions: {
