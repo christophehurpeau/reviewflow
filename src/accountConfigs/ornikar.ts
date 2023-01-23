@@ -38,7 +38,6 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
   ignoreRepoPattern: '(infra-.*|devenv|bigquery-dbt)',
   requiresReviewRequest: true,
   autoMergeRenovateWithSkipCi: false,
-  disableAutoMerge: true,
   warnOnForcePushAfterReviewStarted: {
     repositoryNames: [
       'shared-configs',
