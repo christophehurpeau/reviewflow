@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.118.1](https://github.com/christophehurpeau/reviewflow/compare/v1.118.0...v1.118.1) (2023-01-23)
+
+
+### Bug Fixes
+
+* ornikar config make branch-name optional by setting it to success ([aafe890](https://github.com/christophehurpeau/reviewflow/commit/aafe8902924bcc316572dad4c885baa0c8e1823e))
+
 ## [1.118.0](https://github.com/christophehurpeau/reviewflow/compare/v1.117.0...v1.118.0) (2023-01-23)
 
 
