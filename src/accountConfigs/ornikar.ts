@@ -231,6 +231,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       'frontend-architects',
       'external-bam',
       'external-padok',
+      'data-engineering',
     ],
     design: ['design'],
   },
