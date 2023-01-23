@@ -174,8 +174,8 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
 
           if (!match) {
             return {
-              type: 'failure',
-              title: `Suggested branch name: "${idealBranchName}"`,
+              type: 'success',
+              title: `⚠️ Suggested branch name: "${idealBranchName}"`,
               summary: '',
             };
           }
