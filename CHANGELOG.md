@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.118.2](https://github.com/christophehurpeau/reviewflow/compare/v1.118.1...v1.118.2) (2023-01-29)
+
+
+### Bug Fixes
+
+* always add automerge label for bots prs ([84b8767](https://github.com/christophehurpeau/reviewflow/commit/84b8767bbd2366ce21ca20c1badd029f717c66e5))
+* make sure PRs are reviewed before merged unless the config allows it and it is the owner ([e95363a](https://github.com/christophehurpeau/reviewflow/commit/e95363ad99ec0cac86f2e8081b2789a13c60213f))
+
 ## [1.118.1](https://github.com/christophehurpeau/reviewflow/compare/v1.118.0...v1.118.1) (2023-01-23)
 
 
