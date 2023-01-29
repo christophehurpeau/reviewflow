@@ -24,9 +24,12 @@ export function calcCodeReviewStep<GroupNames extends string>({
   const hasChangesRequested = repoContext.hasChangesRequestedReview(labels);
   const hasApproves = repoContext.hasApprovesReview(labels);
   const needsReviewGroupNames = repoContext.getNeedsReviewGroupNames(labels);
-  const isMissingApprobation = repoContext.config.requiresReviewRequest
-    ? !repoContext.hasApprovesReview(labels)
-    : false;
+  const isMissingApprobation =
+    repoContext.config.requiresReviewRequest ||
+    pullRequest.user?.type === 'Bot' ||
+    pullRequest.user?.id !== repoContext.accountEmbed.id
+      ? !repoContext.hasApprovesReview(labels)
+      : false;
 
   return {
     state: (() => {

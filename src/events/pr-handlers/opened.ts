@@ -47,7 +47,10 @@ export default function opened(app: Probot, appContext: AppContext): void {
             {
               reviewGroup: 'dev',
               add:
-                (repoContext.config.requiresReviewRequest || isFromBot) &&
+                (repoContext.config.requiresReviewRequest ||
+                  isFromBot ||
+                  pullRequest.user.id !==
+                    context.payload.repository.owner.id) &&
                 !pullRequest.draft
                   ? ['needsReview']
                   : [],
