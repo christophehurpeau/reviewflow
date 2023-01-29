@@ -81,6 +81,7 @@ export default function readyForReview(
           editOpenedPR({
             stepsState,
             pullRequest,
+            pullRequestLabels: newLabels,
             context,
             appContext,
             repoContext,

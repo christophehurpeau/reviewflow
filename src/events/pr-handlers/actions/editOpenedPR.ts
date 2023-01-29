@@ -6,7 +6,10 @@ import { getKeys } from '../../../context/utils';
 import { ExcludesFalsy } from '../../../utils/Excludes';
 import { checkIfUserIsBot } from '../../../utils/github/isBotUser';
 import type { ChecksAndStatuses } from '../../../utils/github/pullRequest/checksAndStatuses';
-import type { PullRequestWithDecentData } from '../utils/PullRequestData';
+import type {
+  PullRequestLabels,
+  PullRequestWithDecentData,
+} from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { readCommitsAndUpdateInfos } from './readCommitsAndUpdateInfos';
 import { updatePrIfNeeded } from './updatePr';
@@ -34,6 +37,7 @@ export interface EditOpenedPullRequestOptions<
   GroupNames extends string,
 > {
   pullRequest: PullRequestWithDecentData;
+  pullRequestLabels?: PullRequestLabels;
   context: ProbotEvent<EventName>;
   appContext: AppContext;
   repoContext: RepoContext<GroupNames>;
@@ -50,6 +54,7 @@ export const editOpenedPR = async <
   GroupNames extends string,
 >({
   pullRequest,
+  pullRequestLabels = pullRequest.labels,
   context,
   appContext,
   repoContext,
@@ -282,7 +287,7 @@ export const editOpenedPR = async <
         repoContext.settings,
         context.payload.repository.html_url,
         repoContext.config.labels.list,
-        calcDefaultOptions(repoContext, pullRequest),
+        calcDefaultOptions(repoContext, pullRequestLabels),
         stepsState,
         commentBodyInfos,
       )

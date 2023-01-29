@@ -37,7 +37,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
     context.payload.repository.html_url,
     repoContext.config.labels.list,
     reviewflowPrContext.commentBody,
-    calcDefaultOptions(repoContext, pullRequest),
+    calcDefaultOptions(repoContext, pullRequest.labels),
   );
 
   await updatePrCommentBodyIfNeeded(context, reviewflowPrContext, commentBody);

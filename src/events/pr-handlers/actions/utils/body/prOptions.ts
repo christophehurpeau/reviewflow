@@ -61,13 +61,13 @@ export const optionsDescriptions: OptionDisplay[] = [
 
 export const calcDefaultOptions = (
   repoContext: RepoContext,
-  pullRequest: PullRequestWithDecentData,
+  pullRequestLabels: PullRequestWithDecentData['labels'],
 ): Options => {
   const automergeLabel = repoContext.labels['merge/automerge'];
   const skipCiLabel = repoContext.labels['merge/skip-ci'];
 
-  const prHasSkipCiLabel = hasLabelInPR(pullRequest.labels, skipCiLabel);
-  const prHasAutoMergeLabel = hasLabelInPR(pullRequest.labels, automergeLabel);
+  const prHasSkipCiLabel = hasLabelInPR(pullRequestLabels, skipCiLabel);
+  const prHasAutoMergeLabel = hasLabelInPR(pullRequestLabels, automergeLabel);
 
   return {
     ...repoContext.config.prDefaultOptions,

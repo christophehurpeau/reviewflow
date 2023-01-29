@@ -56,6 +56,7 @@ export default function reopened(app: Probot, appContext: AppContext): void {
           ),
           editOpenedPR({
             pullRequest,
+            pullRequestLabels: newLabels,
             context,
             appContext,
             repoContext,

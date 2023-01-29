@@ -9,6 +9,7 @@ import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFrom
 // import { defaultCommentBody } from './actions/utils/body/updateBody';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { syncLabels } from './actions/utils/syncLabel';
+import type { PullRequestLabels } from './utils/PullRequestData';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 // import { createReviewflowComment } from './utils/reviewflowComment';
 
@@ -27,10 +28,11 @@ export default function opened(app: Probot, appContext: AppContext): void {
         ? false
         : checkIfUserIsBot(repoContext, pullRequest.user);
       const autoMergeLabel = repoContext.labels['merge/automerge'];
+      let pullRequestLabels: PullRequestLabels = pullRequest.labels;
 
       if (isFromBot) {
         // sync labels before `editOpenedPR` to make sure comment has automerge selected
-        await syncLabels(pullRequest, context, [
+        pullRequestLabels = await syncLabels(pullRequest, context, [
           {
             shouldHaveLabel: true,
             label: autoMergeLabel,
@@ -76,6 +78,7 @@ export default function opened(app: Probot, appContext: AppContext): void {
             ),
             editOpenedPR({
               pullRequest,
+              pullRequestLabels,
               context,
               appContext,
               repoContext,
