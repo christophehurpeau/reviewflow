@@ -28,7 +28,7 @@ export default function opened(app: Probot, appContext: AppContext): void {
         : checkIfUserIsBot(repoContext, pullRequest.user);
       const autoMergeLabel = repoContext.labels['merge/automerge'];
 
-      if (isFromBot && repoContext.config.requiresReviewRequest) {
+      if (isFromBot) {
         // sync labels before `editOpenedPR` to make sure comment has automerge selected
         await syncLabels(pullRequest, context, [
           {
