@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.118.3](https://github.com/christophehurpeau/reviewflow/compare/v1.118.2...v1.118.3) (2023-01-29)
+
+
+### Bug Fixes
+
+* correctly initialize options based on updated labels ([6b181f6](https://github.com/christophehurpeau/reviewflow/commit/6b181f633f5f6554ef897cd1bffc5909c2b3b9bf))
+
 ## [1.118.2](https://github.com/christophehurpeau/reviewflow/compare/v1.118.1...v1.118.2) (2023-01-29)
 
 
