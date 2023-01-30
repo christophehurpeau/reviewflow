@@ -35,7 +35,7 @@ export const getPullRequestFromPayload = <
     'pull_request' in payload ? payload.pull_request : undefined;
 
   if (pullRequest) {
-    return pullRequest;
+    return pullRequest as PullRequestFromProbotEvent<EventName>;
   }
 
   const issue = 'issue' in payload ? payload.issue : undefined;
