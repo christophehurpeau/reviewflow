@@ -6,7 +6,10 @@ import type { GroupLabels } from '../accountConfigs/types';
 import { autoMergeIfPossible } from '../events/pr-handlers/actions/autoMergeIfPossible';
 import { mergeOrEnableGithubAutoMerge } from '../events/pr-handlers/actions/enableGithubAutoMerge';
 import type { RepositorySettings } from '../events/pr-handlers/actions/utils/body/repositorySettings';
-import { createRepositorySettings } from '../events/pr-handlers/actions/utils/body/repositorySettings';
+import {
+  isSettingsLastUpdatedExpired,
+  createRepositorySettings,
+} from '../events/pr-handlers/actions/utils/body/repositorySettings';
 import type {
   PullRequestDataMinimumData,
   PullRequestLabels,
@@ -207,7 +210,11 @@ async function initRepoContext<
     });
 
     if (res) {
-      if (!res.settings) {
+      if (
+        !res.settings ||
+        !res.settings.lastUpdated ||
+        isSettingsLastUpdatedExpired(res.settings)
+      ) {
         const repoSettingsResult = await getRepositorySettings(context);
 
         const settings = createRepositorySettings(repoSettingsResult);

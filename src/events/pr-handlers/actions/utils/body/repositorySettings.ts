@@ -7,6 +7,7 @@ export interface RepositorySettings {
   allowRebaseMerge?: boolean;
   allowSquashMerge?: boolean;
   allowMergeCommit?: boolean;
+  lastUpdated?: Date;
 }
 
 export function createRepositorySettings({
@@ -19,5 +20,17 @@ export function createRepositorySettings({
     allowRebaseMerge: repository.rebaseMergeAllowed,
     allowSquashMerge: repository.squashMergeAllowed,
     allowMergeCommit: repository.mergeCommitAllowed,
+    lastUpdated: new Date(),
   };
+}
+
+export function isSettingsLastUpdatedExpired({
+  lastUpdated,
+}: RepositorySettings): boolean {
+  if (!lastUpdated) return false;
+
+  const date = new Date();
+  date.setMinutes(date.getMinutes() - 1);
+
+  return lastUpdated.getTime() < date.getTime();
 }

@@ -33,7 +33,13 @@ export const initializeProbotApp = async ({
     },
     repositories: {
       findByKey: () =>
-        Promise.resolve({ _id: 1, settings: { deleteBranchOnMerge: true } }),
+        Promise.resolve({
+          _id: 1,
+          settings: {
+            deleteBranchOnMerge: true,
+            lastUpdated: new Date(2099, 0, 1),
+          },
+        }),
       ...repositories,
     },
     orgMembers: {
