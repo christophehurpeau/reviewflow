@@ -12,6 +12,7 @@ import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
 import hasLabelInPR from './actions/utils/labels/hasLabelInPR';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
+import type { PullRequestLabels } from './utils/PullRequestData';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
 
@@ -72,7 +73,7 @@ export default function labelsChanged(
               context.pullRequest({ event: 'APPROVE' }),
             );
 
-            let labels = updatedPr.labels;
+            let labels: PullRequestLabels = updatedPr.labels;
             const autoMergeWithSkipCi =
               autoMergeSkipCiLabel &&
               repoContext.config.autoMergeRenovateWithSkipCi;

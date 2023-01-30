@@ -1,5 +1,8 @@
 import type { RepoContext } from 'context/repoContext';
-import type { PullRequestWithDecentData } from 'events/pr-handlers/utils/PullRequestData';
+import type {
+  PullRequestWithDecentData,
+  PullRequestLabels,
+} from 'events/pr-handlers/utils/PullRequestData';
 import type { ChecksStepState } from './checksStep';
 import { calcChecksStep } from './checksStep';
 import type { CodeReviewStepState } from './codeReviewStep';
@@ -12,7 +15,7 @@ import { calcWriteStep } from './writeStep';
 export interface CalcStepsStateOptions<GroupNames extends string> {
   repoContext: RepoContext<GroupNames>;
   pullRequest: PullRequestWithDecentData;
-  labels?: PullRequestWithDecentData['labels'];
+  labels?: PullRequestLabels;
 }
 
 export interface StepsState<GroupNames extends string> {

@@ -1,5 +1,5 @@
 import type { RepoContext } from 'context/repoContext';
-import type { PullRequestWithDecentData } from 'events/pr-handlers/utils/PullRequestData';
+import type { PullRequestLabels } from 'events/pr-handlers/utils/PullRequestData';
 import hasLabelInPR from '../labels/hasLabelInPR';
 import type { RepositorySettings } from './repositorySettings';
 
@@ -61,7 +61,7 @@ export const optionsDescriptions: OptionDisplay[] = [
 
 export const calcDefaultOptions = (
   repoContext: RepoContext,
-  pullRequestLabels: PullRequestWithDecentData['labels'],
+  pullRequestLabels: PullRequestLabels,
 ): Options => {
   const automergeLabel = repoContext.labels['merge/automerge'];
   const skipCiLabel = repoContext.labels['merge/skip-ci'];
