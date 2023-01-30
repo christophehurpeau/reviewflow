@@ -1,3 +1,4 @@
+import type { LabelResponse } from 'context/initRepoLabels';
 import type { CustomExtract, EventsWithRepository } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
 import type { EventsWithPullRequest } from './createPullRequestHandler';
@@ -30,4 +31,6 @@ export type PullRequestWithDecentData =
   | PullRequestFromRestEndpoint
   | PullRequestWithDecentDataFromWebhook;
 
-export type PullRequestLabels = PullRequestWithDecentData['labels'];
+export type PullRequestLabels =
+  | PullRequestWithDecentData['labels']
+  | LabelResponse[];

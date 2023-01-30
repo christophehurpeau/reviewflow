@@ -92,6 +92,8 @@ export const initRepoLabels = async <
           name: existingLabel.name !== labelConfig.name && labelConfig.name,
           color: existingLabel.color !== labelColor && labelColor,
           description: existingLabel.description !== description && description,
+          existingLabel,
+          labelColor,
         },
         'Needs to update label',
       );
