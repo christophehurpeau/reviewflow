@@ -192,7 +192,7 @@ export default function reviewRequestRemoved(
                 typeId: `${pullRequest.id}_${
                   requestedTeam ? `${requestedTeam.id}_` : ''
                 }${potentialReviewer.id}`,
-              });
+              } as const);
 
             if (sentMessageRequestedReview) {
               const sentTo = sentMessageRequestedReview.sentTo[0];

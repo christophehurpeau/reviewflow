@@ -19,7 +19,7 @@ async function getSlackAccountFromAccount(
 ): Promise<string | undefined> {
   // This is first for legacy org using their own slackToken and slack app. Keep using them.
   if ('slackToken' in account) return account.slackToken;
-  if ('slackTeamId' in account) {
+  if ('slackTeamId' in account && account.slackTeamId != null) {
     const slackTeam = await mongoStores.slackTeams.findByKey(
       account.slackTeamId,
     );

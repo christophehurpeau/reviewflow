@@ -153,7 +153,7 @@ export default function prCommentCreated(
                 'account.type': repoContext.accountEmbed.type,
                 type: 'review-submitted',
                 typeId: (comment as any).pull_request_review_id,
-              })
+              } as const)
             : null,
         ]);
 
