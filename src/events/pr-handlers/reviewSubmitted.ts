@@ -208,7 +208,7 @@ export default function reviewSubmitted(
               'account.type': repoContext.accountEmbed.type,
               type: 'review-requested',
               typeId: `${pullRequest.id}_${reviewer.id}`,
-            },
+            } as const,
             { created: -1 },
           ),
           reviewerGithubTeams.length > 0
@@ -220,7 +220,7 @@ export default function reviewSubmitted(
                   typeId: {
                     $regex: `^${pullRequest.id}_${createTeamsRegex()}_`,
                   },
-                },
+                } as const,
                 { created: -1 },
               )
             : [],

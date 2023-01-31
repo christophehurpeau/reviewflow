@@ -226,7 +226,7 @@ async function initRepoContext<
             $set: {
               settings,
             },
-            // remove legacy options settings
+            // @ts-expect-error -- remove legacy options settings
             $unset: { options: '' },
           },
           {
