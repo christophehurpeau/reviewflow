@@ -52,6 +52,8 @@ export const mergeOrEnableGithubAutoMerge = async <
     options,
   });
 
+  let triedToMerge = false;
+
   if (
     !skipCheckMergeableState &&
     (pullRequest.mergeable_state === 'clean' ||
@@ -67,21 +69,16 @@ export const mergeOrEnableGithubAutoMerge = async <
         commit_title: commitHeadline,
         commit_message: commitBody,
       });
+      return null;
     } catch (err) {
+      triedToMerge = true;
       context.log.error('Could not automerge', {
         ...context.repo({
           issue_number: pullRequest.number,
         }),
         err,
       });
-      context.octokit.issues.createComment(
-        context.repo({
-          issue_number: pullRequest.number,
-          body: `${login ? `@${login} ` : ''}Could not automerge`,
-        }),
-      );
     }
-    return null;
   }
 
   try {
@@ -105,12 +102,23 @@ The pull request must be in a state where requirements have not yet been satisfi
       }),
       err,
     );
-    context.octokit.issues.createComment(
-      context.repo({
-        issue_number: pullRequest.number,
-        body: `${login ? `@${login} ` : ''}Could not enable automerge`,
-      }),
-    );
+    if (triedToMerge) {
+      context.octokit.issues.createComment(
+        context.repo({
+          issue_number: pullRequest.number,
+          body: `${
+            login ? `@${login} ` : ''
+          }Could not automerge nor enable automerge`,
+        }),
+      );
+    } else {
+      context.octokit.issues.createComment(
+        context.repo({
+          issue_number: pullRequest.number,
+          body: `${login ? `@${login} ` : ''}Could not enable automerge`,
+        }),
+      );
+    }
   }
   return null;
 };
