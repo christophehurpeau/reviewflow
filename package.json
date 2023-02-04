@@ -1,7 +1,7 @@
 {
   "name": "reviewflow",
   "private": true,
-  "version": "1.119.0",
+  "version": "1.119.1",
   "description": "🚦 Open Source GitHub bot that improves PR flow from opening to merging.",
   "author": "Christophe Hurpeau <christophe@hurpeau.com> (https://christophe.hurpeau.com)",
   "license": "ISC",

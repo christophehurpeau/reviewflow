@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.119.1](https://github.com/christophehurpeau/reviewflow/compare/v1.119.0...v1.119.1) (2023-02-04)
+
+
+### Bug Fixes
+
+* enable automerge on automergeable pr on opened ([fbdf8d1](https://github.com/christophehurpeau/reviewflow/commit/fbdf8d1db1129d3b605d2e9d24d9ebf6fe8efb5e))
+
 ## [1.119.0](https://github.com/christophehurpeau/reviewflow/compare/v1.118.3...v1.119.0) (2023-02-04)
 
 
