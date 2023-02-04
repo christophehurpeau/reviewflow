@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.119.0](https://github.com/christophehurpeau/reviewflow/compare/v1.118.3...v1.119.0) (2023-02-04)
+
+
+### Features
+
+* after restart, update settings if more than one day ([1ea95b6](https://github.com/christophehurpeau/reviewflow/commit/1ea95b63107a9c099cc7e147d160b1810d37ca4c))
+* **deps:** update dependency liwi-mongo to v9 ([#477](https://github.com/christophehurpeau/reviewflow/issues/477)) ([d4bd189](https://github.com/christophehurpeau/reviewflow/commit/d4bd189660fdb5bd49eebf6d46e1d6dfeb9e16b4))
+* **deps:** update dependency probot to v12.3.0 ([#566](https://github.com/christophehurpeau/reviewflow/issues/566)) ([d2f9590](https://github.com/christophehurpeau/reviewflow/commit/d2f9590c7ab43d0e9c6761a0d3171709a8bbced2))
+
+
+### Bug Fixes
+
+* if merge fails, try to enable auto merge ([4725147](https://github.com/christophehurpeau/reviewflow/commit/4725147db3e271dc54b8c8dfb5227032c9747431))
+
 ## [1.118.3](https://github.com/christophehurpeau/reviewflow/compare/v1.118.2...v1.118.3) (2023-01-29)
 
 
