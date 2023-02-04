@@ -4,6 +4,7 @@ import { checkIfUserIsBot } from '../../utils/github/isBotUser';
 import { getChecksAndStatusesForPullRequest } from '../../utils/github/pullRequest/checksAndStatuses';
 import { autoAssignPRToCreator } from './actions/autoAssignPRToCreator';
 import { editOpenedPR } from './actions/editOpenedPR';
+import { mergeOrEnableGithubAutoMerge } from './actions/enableGithubAutoMerge';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
 // import { defaultCommentBody } from './actions/utils/body/updateBody';
@@ -68,6 +69,15 @@ export default function opened(app: Probot, appContext: AppContext): void {
           });
 
           await Promise.all([
+            isFromBot &&
+              mergeOrEnableGithubAutoMerge(
+                pullRequest,
+                context,
+                repoContext,
+                reviewflowPrContext,
+                context.payload.sender.login,
+                true,
+              ),
             updateStatusCheckFromStepsState(
               stepsState,
               pullRequest,
