@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.120.0](https://github.com/christophehurpeau/reviewflow/compare/v1.119.1...v1.120.0) (2023-02-24)
+
+
+### Features
+
+* checks labels are now optional and removed from ornikar config ([09cd9a4](https://github.com/christophehurpeau/reviewflow/commit/09cd9a43e57c1b206395487d05d6c79a04a3864c))
+
 ## [1.119.1](https://github.com/christophehurpeau/reviewflow/compare/v1.119.0...v1.119.1) (2023-02-04)
 
 
