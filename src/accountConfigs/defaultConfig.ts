@@ -17,12 +17,14 @@ const config: Config<never, never> = {
   waitForGroups: {},
   teams: {},
   labels: {
-    list: {
-      /* checks */
+    legacyToRemove: {
       'checks/in-progress': {
         name: ':green_heart: checks/in-progress',
         color: githubPalette.scaleGray6,
       },
+    },
+    list: {
+      /* checks */
       'checks/failed': {
         name: ':green_heart: checks/fail',
         color: githubPalette.dangerEmphasis,

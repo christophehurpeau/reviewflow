@@ -1,4 +1,5 @@
 import type { RepoContext } from 'context/repoContext';
+import type { ReviewflowPrContext } from 'events/pr-handlers/utils/createPullRequestContext';
 import type {
   PullRequestLabels,
   PullRequestWithDecentData,
@@ -13,5 +14,6 @@ export interface BaseStepState {
 export interface CalcStepOptions<GroupNames extends string> {
   repoContext: RepoContext<GroupNames>;
   pullRequest: PullRequestWithDecentData;
+  reviewflowPrContext: ReviewflowPrContext;
   labels: PullRequestLabels;
 }

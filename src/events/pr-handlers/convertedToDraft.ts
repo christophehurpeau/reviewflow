@@ -38,6 +38,7 @@ export default function convertedToDraft(
             const stepsState = calcStepsState({
               repoContext,
               pullRequest,
+              reviewflowPrContext,
               labels: newLabels,
             });
 

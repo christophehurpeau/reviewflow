@@ -52,17 +52,15 @@ export type GroupLabels =
   | 'changesRequested'
   | 'approved';
 
-export type CiLabels = 'inProgress' | 'succeeded' | 'failed';
-
 export type ReviewConfig<GroupNames extends string> = Record<
   GroupNames,
   Record<GroupLabels, string>
-> &
-  Record<'checks', Record<CiLabels, string>>;
+>;
 
 export type LabelList = Record<string, LabelDescriptor>;
 
 export interface LabelsConfig<GroupNames extends string> {
+  legacyToRemove?: LabelList;
   list: LabelList;
   review: ReviewConfig<GroupNames>;
 }

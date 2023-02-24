@@ -53,9 +53,17 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
         false,
       );
 
+      if (checksAndStatuses) {
+        reviewflowPrContext.reviewflowPr.checksConclusion =
+          checksAndStatuses.checksConclusionRecord;
+        reviewflowPrContext.reviewflowPr.statusesConclusion =
+          checksAndStatuses.statusesConclusionRecord;
+      }
+
       const stepsState = calcStepsState({
         repoContext,
         pullRequest: updatedPr,
+        reviewflowPrContext,
         labels: updatedLabels,
       });
 

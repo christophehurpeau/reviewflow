@@ -62,6 +62,7 @@ export default function reviewRequested(
           const stepsState = calcStepsState({
             repoContext,
             pullRequest,
+            reviewflowPrContext,
             labels: newLabels,
           });
 

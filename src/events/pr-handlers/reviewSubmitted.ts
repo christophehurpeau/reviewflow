@@ -143,6 +143,7 @@ export default function reviewSubmitted(
             const stepsState = calcStepsState({
               repoContext,
               pullRequest,
+              reviewflowPrContext,
               labels: newLabels,
             });
 

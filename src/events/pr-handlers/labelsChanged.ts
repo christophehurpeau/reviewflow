@@ -103,6 +103,7 @@ export default function labelsChanged(
               pullRequest: updatedPr,
               repoContext,
               labels,
+              reviewflowPrContext,
             });
 
             await Promise.all([
@@ -221,6 +222,7 @@ export default function labelsChanged(
         repoContext,
         pullRequest: updatedPr,
         labels,
+        reviewflowPrContext,
       });
 
       await updateStatusCheckFromStepsState(

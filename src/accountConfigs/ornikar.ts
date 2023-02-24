@@ -285,7 +285,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
     design: ['dev'],
   },
   labels: {
-    list: {
+    legacyToRemove: {
       /* checks */
       'checks/in-progress': {
         name: ':green_heart: checks/in-progress',
@@ -299,12 +299,8 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         name: ':green_heart: checks/passed',
         color: githubPalette.successEmphasis,
       },
-
-      // /* ci */
-      // 'ci/in-progress': { name: ':green_heart: ci/in-progress', color: '#0052cc' },
-      // 'ci/fail': { name: ':green_heart: ci/fail', color: lateOceanColorPalette.englishVermillon },
-      // 'ci/passed': { name: ':green_heart: ci/passed', color: '#86f9b4' },
-
+    },
+    list: {
       /* code */
       'code/needs-review': {
         name: ':ok_hand: code/needs-review',
@@ -428,11 +424,6 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
     },
 
     review: {
-      checks: {
-        inProgress: 'checks/in-progress',
-        succeeded: 'checks/success',
-        failed: 'checks/fail',
-      },
       dev: {
         needsReview: 'code/needs-review',
         requested: 'code/review-requested',

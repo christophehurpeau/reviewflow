@@ -42,6 +42,7 @@ export default function reopened(app: Probot, appContext: AppContext): void {
         const stepsState = calcStepsState({
           repoContext,
           pullRequest,
+          reviewflowPrContext,
           labels: newLabels,
         });
 

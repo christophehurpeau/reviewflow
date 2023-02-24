@@ -25,12 +25,14 @@ const config: Config<'dev', never> = {
   },
   teams: {},
   labels: {
-    list: {
-      /* checks */
+    legacyToRemove: {
       'checks/in-progress': {
         name: ':green_heart: checks/in-progress',
         color: githubPalette.scaleGray6,
       },
+    },
+    list: {
+      /* checks */
       'checks/failed': {
         name: ':green_heart: checks/fail',
         color: githubPalette.dangerEmphasis,
@@ -86,11 +88,6 @@ const config: Config<'dev', never> = {
     },
 
     review: {
-      checks: {
-        inProgress: 'checks/in-progress',
-        succeeded: 'checks/passed',
-        failed: 'checks/failed',
-      },
       dev: {
         needsReview: 'code/needs-review',
         requested: 'code/review-requested',

@@ -74,6 +74,7 @@ export default function readyForReview(
         const stepsState = calcStepsState({
           repoContext,
           pullRequest,
+          reviewflowPrContext,
           labels: newLabels,
         });
 

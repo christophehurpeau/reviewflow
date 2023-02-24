@@ -98,6 +98,7 @@ export default function reviewRequestRemoved(
           const stepsState = calcStepsState({
             repoContext,
             pullRequest,
+            reviewflowPrContext,
             labels: newLabels,
           });
 

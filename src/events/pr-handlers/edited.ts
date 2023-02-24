@@ -39,9 +39,17 @@ export default function edited(app: Probot, appContext: AppContext): void {
           : undefined,
       ]);
 
+      if (checksAndStatuses) {
+        reviewflowPrContext.reviewflowPr.checksConclusion =
+          checksAndStatuses.checksConclusionRecord;
+        reviewflowPrContext.reviewflowPr.statusesConclusion =
+          checksAndStatuses.statusesConclusionRecord;
+      }
+
       const stepsState = calcStepsState({
         repoContext,
         pullRequest: updatedPullRequest,
+        reviewflowPrContext,
       });
 
       await Promise.all([

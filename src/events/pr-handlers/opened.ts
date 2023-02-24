@@ -61,10 +61,17 @@ export default function opened(app: Probot, appContext: AppContext): void {
             },
           ]),
         ]).then(async ([checksAndStatuses, newLabels]) => {
-          // TODO calc steps state AFTER updating checksAndStatuses
+          if (checksAndStatuses) {
+            reviewflowPrContext.reviewflowPr.checksConclusion =
+              checksAndStatuses.checksConclusionRecord;
+            reviewflowPrContext.reviewflowPr.statusesConclusion =
+              checksAndStatuses.statusesConclusionRecord;
+          }
+
           const stepsState = calcStepsState({
             repoContext,
             pullRequest,
+            reviewflowPrContext,
             labels: newLabels,
           });
 

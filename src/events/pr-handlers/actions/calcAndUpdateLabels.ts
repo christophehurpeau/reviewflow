@@ -48,13 +48,11 @@ export async function calcAndUpdateLabels<
     getStateChecksLabelsToSync(repoContext, state),
   );
 
-  if (
-    updatedLabels !== pullRequest.labels &&
-    updateStatusCheckAndBodyProgress
-  ) {
+  if (updateStatusCheckAndBodyProgress) {
     const stepsState = calcStepsState({
       repoContext,
       pullRequest,
+      reviewflowPrContext,
       labels: updatedLabels,
     });
 

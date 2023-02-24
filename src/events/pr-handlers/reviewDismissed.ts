@@ -95,6 +95,7 @@ export default function reviewDismissed(
           const stepsState = calcStepsState({
             repoContext,
             pullRequest,
+            reviewflowPrContext,
             labels: newLabels,
           });
 

@@ -26,6 +26,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
         const stepsState = calcStepsState({
           repoContext,
           pullRequest,
+          reviewflowPrContext,
         });
 
         if ((pullRequest as any).merged) {

@@ -128,18 +128,19 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
 
     // update checks, after labels update.
     if (shouldUpdateChecks) {
-      const stepsState = calcStepsState({
-        repoContext,
-        pullRequest,
-        labels: updatedLabels,
-      });
-
       if (checksAndStatuses) {
         reviewflowPrContext.reviewflowPr.checksConclusion =
           checksAndStatuses.checksConclusionRecord;
         reviewflowPrContext.reviewflowPr.statusesConclusion =
           checksAndStatuses.statusesConclusionRecord;
       }
+
+      const stepsState = calcStepsState({
+        repoContext,
+        pullRequest,
+        reviewflowPrContext,
+        labels: updatedLabels,
+      });
 
       await Promise.all([
         editOpenedPR({

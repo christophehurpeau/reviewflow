@@ -3,6 +3,7 @@ import type {
   PullRequestWithDecentData,
   PullRequestLabels,
 } from 'events/pr-handlers/utils/PullRequestData';
+import type { ReviewflowPrContext } from 'events/pr-handlers/utils/createPullRequestContext';
 import type { ChecksStepState } from './checksStep';
 import { calcChecksStep } from './checksStep';
 import type { CodeReviewStepState } from './codeReviewStep';
@@ -14,6 +15,7 @@ import { calcWriteStep } from './writeStep';
 
 export interface CalcStepsStateOptions<GroupNames extends string> {
   repoContext: RepoContext<GroupNames>;
+  reviewflowPrContext: ReviewflowPrContext;
   pullRequest: PullRequestWithDecentData;
   labels?: PullRequestLabels;
 }
@@ -52,38 +54,20 @@ export const steps = [
 
 export function calcStepsState<GroupNames extends string>({
   repoContext,
+  reviewflowPrContext,
   pullRequest,
   labels = pullRequest.labels,
 }: CalcStepsStateOptions<GroupNames>): StepsState<GroupNames> {
   const stepsState: Partial<StepsState<GroupNames>> = {};
 
   for (const step of steps) {
-    stepsState[step.key] = step.fn({ repoContext, pullRequest, labels }) as any;
+    stepsState[step.key] = step.fn({
+      repoContext,
+      pullRequest,
+      reviewflowPrContext,
+      labels,
+    }) as any;
   }
 
   return stepsState as StepsState<GroupNames>;
-}
-
-export function updateStepsState<GroupNames extends string>(
-  stepsState: StepsState<GroupNames>,
-  stepKeys: (keyof StepsState<GroupNames>)[],
-  {
-    repoContext,
-    pullRequest,
-    labels = pullRequest.labels,
-  }: CalcStepsStateOptions<GroupNames>,
-): StepsState<GroupNames> {
-  const updatedStepsState = { ...stepsState };
-
-  for (const step of steps) {
-    if (stepKeys.includes(step.key)) {
-      stepsState[step.key] = step.fn({
-        repoContext,
-        pullRequest,
-        labels,
-      }) as any;
-    }
-  }
-
-  return updatedStepsState;
 }
