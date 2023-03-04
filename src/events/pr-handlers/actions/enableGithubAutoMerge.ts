@@ -24,7 +24,7 @@ export const mergeOrEnableGithubAutoMerge = async <
   reviewflowPrContext: ReviewflowPrContext,
   user?: BasicUser,
   skipCheckMergeableState?: boolean,
-): Promise<AutoMergeRequest | null> => {
+): Promise<AutoMergeRequest | true | null> => {
   if (pullRequest.merged_at || pullRequest.draft) return null;
 
   // don't enable auto merge merge for forks unless there is a login
@@ -81,7 +81,7 @@ export const mergeOrEnableGithubAutoMerge = async <
         commit_title: commitHeadline,
         commit_message: commitBody,
       });
-      return null;
+      return true;
     } catch (err) {
       triedToMerge = true;
       context.log.error('Could not automerge', {

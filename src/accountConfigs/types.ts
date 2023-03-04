@@ -63,7 +63,6 @@ export interface LabelsConfig {
 
 interface ExperimentalFeatures {
   lintPullRequestTitleWithConventionalCommit?: true;
-  githubAutoMerge?: true;
 }
 
 interface WarnOnForcePushAfterReviewStarted {

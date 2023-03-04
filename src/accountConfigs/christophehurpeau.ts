@@ -12,7 +12,6 @@ const config: Config<never> = {
   },
   experimentalFeatures: {
     lintPullRequestTitleWithConventionalCommit: true,
-    githubAutoMerge: true,
   },
   teams: {},
   labels: {

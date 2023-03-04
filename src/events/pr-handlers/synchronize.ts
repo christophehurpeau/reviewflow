@@ -1,12 +1,10 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import { getChecksAndStatusesForPullRequest } from '../../utils/github/pullRequest/checksAndStatuses';
-import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
 import { calcAndUpdateLabels } from './actions/calcAndUpdateLabels';
 import { editOpenedPR } from './actions/editOpenedPR';
-import { mergeOrEnableGithubAutoMerge } from './actions/enableGithubAutoMerge';
+import { tryToAutomerge } from './actions/tryToAutomerge';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
-import hasLabelInPR from './actions/utils/labels/hasLabelInPR';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
@@ -86,30 +84,12 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
           ),
       ]);
 
-      if (
-        repoContext.settings.allowAutoMerge &&
-        repoContext.config.experimentalFeatures?.githubAutoMerge
-      ) {
-        const autoMergeLabel = repoContext.labels['merge/automerge'];
-
-        if (hasLabelInPR(pullRequest.labels, autoMergeLabel)) {
-          await mergeOrEnableGithubAutoMerge(
-            pullRequest,
-            context,
-            repoContext,
-            reviewflowPrContext,
-            context.payload.sender,
-          );
-        }
-      } else {
-        // call autoMergeIfPossible to re-add to the queue when push is fixed
-        await autoMergeIfPossible(
-          updatedPr,
-          context,
-          repoContext,
-          reviewflowPrContext,
-        );
-      }
+      await tryToAutomerge({
+        pullRequest: updatedPr,
+        context,
+        repoContext,
+        reviewflowPrContext,
+      });
     },
   );
 }

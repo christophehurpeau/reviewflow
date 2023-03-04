@@ -2,7 +2,7 @@ import type { EmitterWebhookEventName } from '@octokit/webhooks';
 import { Lock } from 'lock';
 import type { Config } from '../accountConfigs';
 import { accountConfigs, defaultConfig } from '../accountConfigs';
-import { autoMergeIfPossible } from '../events/pr-handlers/actions/autoMergeIfPossible';
+import { autoMergeIfPossibleLegacy } from '../events/pr-handlers/actions/autoMergeIfPossible';
 import { mergeOrEnableGithubAutoMerge } from '../events/pr-handlers/actions/enableGithubAutoMerge';
 import type { RepositorySettings } from '../events/pr-handlers/actions/utils/body/repositorySettings';
 import {
@@ -411,10 +411,7 @@ async function initRepoContext<
                 getReviewflowPrContext(pr, rescheduleContext, repoContext),
               ]);
 
-              if (
-                repoContext.settings.allowAutoMerge &&
-                repoContext.config.experimentalFeatures?.githubAutoMerge
-              ) {
+              if (repoContext.settings.allowAutoMerge) {
                 await mergeOrEnableGithubAutoMerge(
                   pullRequest,
                   context,
@@ -423,7 +420,7 @@ async function initRepoContext<
                   user,
                 );
               } else {
-                const didMerge = await autoMergeIfPossible(
+                const didMerge = await autoMergeIfPossibleLegacy(
                   pullRequest,
                   rescheduleContext,
                   repoContext,
@@ -459,8 +456,7 @@ async function initRepoContext<
     isSuccessful: boolean,
   ): Promise<void> => {
     if (
-      (repoContext.settings.allowAutoMerge &&
-        accountContext.config.experimentalFeatures?.githubAutoMerge) ||
+      repoContext.settings.allowAutoMerge ||
       accountContext.config.disableAutoMerge
     ) {
       return;

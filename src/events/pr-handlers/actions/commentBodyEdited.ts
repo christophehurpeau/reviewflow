@@ -7,12 +7,9 @@ import type { PullRequestFromRestEndpoint } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { getFailedOrWaitingChecksAndStatuses } from '../utils/getFailedOrWaitingChecksAndStatuses';
 import { groupReviewsWithState } from '../utils/groupReviewsWithState';
-import { autoMergeIfPossible } from './autoMergeIfPossible';
 import { editOpenedPR } from './editOpenedPR';
-import {
-  disableGithubAutoMerge,
-  mergeOrEnableGithubAutoMerge,
-} from './enableGithubAutoMerge';
+import { disableGithubAutoMerge } from './enableGithubAutoMerge';
+import { tryToAutomerge } from './tryToAutomerge';
 import { updateBranch } from './updateBranch';
 import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
 import { updateReviewStatus } from './updateReviewStatus';
@@ -84,35 +81,16 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
         shouldHaveLabel: options.autoMerge,
         label: automergeLabel,
         onAdd: async (prLabels) => {
-          if (
-            repoContext.settings.allowAutoMerge &&
-            repoContext.config.experimentalFeatures?.githubAutoMerge
-          ) {
-            return (
-              (await mergeOrEnableGithubAutoMerge(
-                pullRequest,
-                context,
-                repoContext,
-                reviewflowPrContext,
-                context.payload.sender,
-              )) !== null
-            );
-          } else {
-            await autoMergeIfPossible(
-              pullRequest,
-              context,
-              repoContext,
-              reviewflowPrContext,
-              prLabels,
-            );
-            return true;
-          }
+          await tryToAutomerge({
+            pullRequest,
+            pullRequestLabels: prLabels,
+            context,
+            repoContext,
+            reviewflowPrContext,
+          });
         },
         onRemove: async () => {
-          if (
-            repoContext.settings.allowAutoMerge &&
-            repoContext.config.experimentalFeatures?.githubAutoMerge
-          ) {
+          if (repoContext.settings.allowAutoMerge) {
             return disableGithubAutoMerge(
               pullRequest,
               context,

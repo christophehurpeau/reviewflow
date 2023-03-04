@@ -42,7 +42,7 @@ export const createCommitMessage = ({
   ];
 };
 
-export const autoMergeIfPossible = async <
+export const autoMergeIfPossibleLegacy = async <
   EventName extends EventsWithRepository,
 >(
   pullRequest: PullRequestFromRestEndpoint,
@@ -60,10 +60,7 @@ export const autoMergeIfPossible = async <
   }
 
   if (repoContext.config.disableAutoMerge) return false;
-  if (
-    repoContext.settings.allowAutoMerge &&
-    repoContext.config.experimentalFeatures?.githubAutoMerge
-  ) {
+  if (repoContext.settings.allowAutoMerge) {
     return false;
   }
 

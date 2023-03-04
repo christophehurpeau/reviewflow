@@ -66,7 +66,6 @@ export default function readyForReview(
           ).then(async (statusCheckResult) => {
             if (
               repoContext.settings.allowAutoMerge &&
-              repoContext.config.experimentalFeatures?.githubAutoMerge &&
               hasLabelInPR(pullRequest.labels, autoMergeLabel)
             ) {
               await mergeOrEnableGithubAutoMerge(

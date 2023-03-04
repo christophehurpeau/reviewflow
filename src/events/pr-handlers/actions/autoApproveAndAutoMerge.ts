@@ -2,7 +2,7 @@ import type { EventsWithRepository, RepoContext } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
 import type { PullRequestFromRestEndpoint } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
-import { autoMergeIfPossible } from './autoMergeIfPossible';
+import { tryToAutomerge } from './tryToAutomerge';
 import hasLabelInPR from './utils/labels/hasLabelInPR';
 
 export const autoApproveAndAutoMerge = async <
@@ -24,12 +24,13 @@ export const autoApproveAndAutoMerge = async <
     await context.octokit.pulls.createReview(
       context.pullRequest({ event: 'APPROVE' }),
     );
-    await autoMergeIfPossible(
+
+    await tryToAutomerge({
       pullRequest,
       context,
       repoContext,
       reviewflowPrContext,
-    );
+    });
     return true;
   }
 

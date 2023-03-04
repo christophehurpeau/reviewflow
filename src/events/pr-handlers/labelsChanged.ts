@@ -1,7 +1,7 @@
 import type { Probot } from 'probot';
 import type { ProbotEvent } from 'events/probot-types';
 import type { AppContext } from '../../context/AppContext';
-import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
+import { autoMergeIfPossibleLegacy } from './actions/autoMergeIfPossible';
 import {
   mergeOrEnableGithubAutoMerge,
   disableGithubAutoMerge,
@@ -134,10 +134,7 @@ export default function labelsChanged(
               },
             );
 
-            if (
-              repoContext.settings.allowAutoMerge &&
-              repoContext.config.experimentalFeatures?.githubAutoMerge
-            ) {
+            if (repoContext.settings.allowAutoMerge) {
               await mergeOrEnableGithubAutoMerge(
                 pullRequest,
                 context,
@@ -148,13 +145,8 @@ export default function labelsChanged(
             }
           }
 
-          if (
-            !(
-              repoContext.settings.allowAutoMerge &&
-              repoContext.config.experimentalFeatures?.githubAutoMerge
-            )
-          ) {
-            await autoMergeIfPossible(
+          if (!repoContext.settings.allowAutoMerge) {
+            await autoMergeIfPossibleLegacy(
               updatedPr,
               context,
               repoContext,
@@ -219,10 +211,7 @@ export default function labelsChanged(
       // not an else if
       if (autoMergeLabel && label.id === autoMergeLabel.id) {
         if (context.payload.action === 'labeled') {
-          if (
-            repoContext.settings.allowAutoMerge &&
-            repoContext.config.experimentalFeatures?.githubAutoMerge
-          ) {
+          if (repoContext.settings.allowAutoMerge) {
             successful =
               (await mergeOrEnableGithubAutoMerge(
                 pullRequest,
@@ -242,7 +231,7 @@ export default function labelsChanged(
               );
             }
           } else {
-            await autoMergeIfPossible(
+            await autoMergeIfPossibleLegacy(
               updatedPr,
               context,
               repoContext,
@@ -251,10 +240,7 @@ export default function labelsChanged(
           }
         } else {
           // eslint-disable-next-line no-lonely-if
-          if (
-            repoContext.settings.allowAutoMerge &&
-            repoContext.config.experimentalFeatures?.githubAutoMerge
-          ) {
+          if (repoContext.settings.allowAutoMerge) {
             successful = await disableGithubAutoMerge(
               pullRequest,
               context,
