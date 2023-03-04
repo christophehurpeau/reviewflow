@@ -1,9 +1,10 @@
 import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
+import type { BasicUser } from 'events/pr-handlers/utils/PullRequestData';
 import type { RepoContext } from '../../context/repoContext';
 
 export const checkIfUserIsBot = (
   repoContext: RepoContext,
-  user: { login: string; type: string },
+  user: BasicUser,
 ): boolean => {
   if (user.type === 'Bot') return true;
   if (user.login.endsWith('-bot')) return true;

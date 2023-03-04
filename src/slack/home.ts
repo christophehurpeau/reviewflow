@@ -1,5 +1,6 @@
+import type { KnownBlock } from '@slack/web-api';
 import { WebClient } from '@slack/web-api';
-import type { MongoStores, Org, OrgMember } from '../mongo';
+import type { MongoStores, Org, OrgMember, ReviewflowPr } from '../mongo';
 import type { Octokit } from '../octokit';
 import { createLink } from './utils';
 
@@ -9,6 +10,9 @@ interface QueueItem {
   member: OrgMember;
 }
 
+const buildPullRequestUrl = (reviewflowPullRequest: ReviewflowPr): string =>
+  `https://github.com/${reviewflowPullRequest.account.login}/${reviewflowPullRequest.repo.name}/pull/${reviewflowPullRequest.pr.number}`;
+
 export const createSlackHomeWorker = (mongoStores: MongoStores) => {
   const updateMember = async (
     octokit: Octokit,
@@ -16,7 +20,6 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
     member: OrgMember,
   ): Promise<void> => {
     if (!member.slack?.id) return;
-    // console.log('update member', member.org.login, member.user.login);
 
     /* search limit: 30 requests per minute = 7 update/min max */
     const [
@@ -30,16 +33,24 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
         sort: 'created',
         order: 'desc',
       }),
-      octokit.search.issuesAndPullRequests({
-        q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} label:":ok_hand: code/approved"`,
-        sort: 'created',
-        order: 'desc',
-      }),
-      octokit.search.issuesAndPullRequests({
-        q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} label:":ok_hand: code/changes-requested"`,
-        sort: 'created',
-        order: 'desc',
-      }),
+      mongoStores.prs.findAll(
+        {
+          'account.id': member.org.id,
+          'assignees.id': member.user.id,
+          'reviews.reviewRequested': { $exists: true, $eq: [] },
+          'reviews.changesRequested': { $exists: true, $eq: [] },
+          'reviews.approved': { $exists: true, $ne: [] },
+        },
+        { created: -1 },
+      ),
+      mongoStores.prs.findAll(
+        {
+          'account.id': member.org.id,
+          'assignees.id': member.user.id,
+          'reviews.changesRequested': { $exists: true, $ne: [] },
+        },
+        { created: -1 },
+      ),
       octokit.search.issuesAndPullRequests({
         q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} draft:true`,
         sort: 'created',
@@ -70,21 +81,36 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
       },
     ];
 
-    const buildBlocks = (title: string, results: any) => {
+    const createTitleBlock = (title: string): KnownBlock => ({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `*${title}*`,
+      },
+    });
+    const createDividerBlock = (): KnownBlock => ({ type: 'divider' });
+    const createPlaceholderImageBlock = (): KnownBlock => ({
+      type: 'context',
+      elements: [
+        {
+          type: 'image',
+          image_url:
+            'https://api.slack.com/img/blocks/bkb_template_images/placeholder.png',
+          alt_text: 'placeholder',
+        },
+      ],
+    });
+
+    const buildBlocksForDataFromGithub = (
+      title: string,
+      results: typeof prsWithRequestedReviews.data,
+    ) => {
       if (!results.total_count) return;
 
       blocks.push(
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `*${title}*`,
-          },
-        },
-        {
-          type: 'divider',
-        },
-        ...results.items.flatMap((pr: any) => {
+        createTitleBlock(title),
+        createDividerBlock(),
+        ...results.items.flatMap((pr) => {
           const repoName = pr.repository_url.slice(
             'https://api.github.com/repos/'.length,
           );
@@ -108,37 +134,99 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
                     pr.draft ? '· _Draft_' : ''
                   }`,
                 },
-                {
+                pr.user && {
                   type: 'image',
                   image_url: pr.user.avatar_url,
                   alt_text: pr.user.login,
                 },
-                {
+                pr.user && {
                   type: 'mrkdwn',
                   text: `${pr.user.login}`,
                 },
+              ].filter(Boolean),
+            },
+          ];
+        }),
+        createPlaceholderImageBlock(),
+      );
+    };
+
+    const buildBlocksForDataFromMongo = (
+      title: string,
+      results: typeof prsToMerge,
+    ) => {
+      if (results.length === 0) return;
+
+      blocks.push(
+        createTitleBlock(title),
+        createDividerBlock(),
+        ...results.flatMap((pr) => {
+          const repoName = pr.repo.name;
+          const prFullName = `${repoName}#${pr.pr.id}`;
+          const prUrl = buildPullRequestUrl(pr);
+
+          return [
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `*${createLink(prUrl, pr.title)}*`,
+                //  ${pr.labels.map((l) => `{${l.name}}`).join(' · ')}
+              },
+            },
+            {
+              type: 'context',
+              elements: [
+                {
+                  type: 'mrkdwn',
+                  text: `${createLink(prUrl, prFullName)} ${
+                    pr.isDraft ? '· _Draft_' : ''
+                  }`,
+                },
+                ...(pr.assignees && pr.assignees.length > 0
+                  ? pr.assignees.flatMap((assignee) => [
+                      {
+                        type: 'image',
+                        image_url: assignee.avatar_url,
+                        alt_text: assignee.login,
+                      },
+                      {
+                        type: 'mrkdwn',
+                        text: `${assignee.login}`,
+                      },
+                    ])
+                  : [
+                      pr.creator && {
+                        type: 'image',
+                        image_url: pr.creator.avatar_url,
+                        alt_text: pr.creator.login,
+                      },
+                      pr.creator && {
+                        type: 'mrkdwn',
+                        text: `${pr.creator.login}`,
+                      },
+                    ].filter(Boolean)),
               ],
             },
           ];
         }),
-        {
-          type: 'context',
-          elements: [
-            {
-              type: 'image',
-              image_url:
-                'https://api.slack.com/img/blocks/bkb_template_images/placeholder.png',
-              alt_text: 'placeholder',
-            },
-          ],
-        },
+        createPlaceholderImageBlock(),
       );
     };
 
-    buildBlocks(':eyes: Requested Reviews', prsWithRequestedReviews.data);
-    buildBlocks(':white_check_mark: Ready to Merge', prsToMerge.data);
-    buildBlocks(':x: Changes Requested', prsWithRequestedChanges.data);
-    buildBlocks(':construction: Drafts', prsInDraft.data);
+    buildBlocksForDataFromGithub(
+      ':eyes: Requested reviews',
+      prsWithRequestedReviews.data,
+    );
+    buildBlocksForDataFromMongo(
+      ':white_check_mark: Ready to merge',
+      prsToMerge,
+    );
+    buildBlocksForDataFromMongo(
+      ':x: Changes requested',
+      prsWithRequestedChanges,
+    );
+    buildBlocksForDataFromGithub(':construction: Drafts', prsInDraft.data);
 
     if (blocks.length === 2) {
       blocks.push({

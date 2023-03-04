@@ -54,6 +54,10 @@ export const autoMergeIfPossible = async <
   if (reviewflowPrContext === null) return false;
   const repo = pullRequest.head.repo;
   if (!repo) return false;
+  // don't merge from forks
+  if (pullRequest.head.repo?.full_name !== pullRequest.base.repo.full_name) {
+    return false;
+  }
 
   if (repoContext.config.disableAutoMerge) return false;
   if (
@@ -118,22 +122,6 @@ export const autoMergeIfPossible = async <
       action,
     });
   };
-
-  if (
-    repoContext.hasNeedsReview(prLabels) ||
-    repoContext.hasRequestedReview(prLabels)
-  ) {
-    addLog('review incomplete', 'remove');
-    await Promise.all([
-      createAutomergeStatus('review incomplete'),
-      repoContext.removePrFromAutomergeQueue(
-        context,
-        pullRequest,
-        'blocking labels',
-      ),
-    ]);
-    return false;
-  }
 
   if (
     pullRequest.requested_reviewers &&

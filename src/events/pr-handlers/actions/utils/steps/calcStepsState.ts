@@ -1,8 +1,5 @@
 import type { RepoContext } from 'context/repoContext';
-import type {
-  PullRequestWithDecentData,
-  PullRequestLabels,
-} from 'events/pr-handlers/utils/PullRequestData';
+import type { PullRequestWithDecentData } from 'events/pr-handlers/utils/PullRequestData';
 import type { ReviewflowPrContext } from 'events/pr-handlers/utils/createPullRequestContext';
 import type { ChecksStepState } from './checksStep';
 import { calcChecksStep } from './checksStep';
@@ -13,17 +10,16 @@ import { calcMergeStep } from './mergeStep';
 import type { WriteStepState } from './writeStep';
 import { calcWriteStep } from './writeStep';
 
-export interface CalcStepsStateOptions<GroupNames extends string> {
-  repoContext: RepoContext<GroupNames>;
+export interface CalcStepsStateOptions<TeamNames extends string> {
+  repoContext: RepoContext<TeamNames>;
   reviewflowPrContext: ReviewflowPrContext;
   pullRequest: PullRequestWithDecentData;
-  labels?: PullRequestLabels;
 }
 
-export interface StepsState<GroupNames extends string> {
+export interface StepsState {
   write: WriteStepState;
   checks: ChecksStepState;
-  codeReview: CodeReviewStepState<GroupNames>;
+  codeReview: CodeReviewStepState;
   merge: MergeStepState;
 }
 
@@ -52,22 +48,26 @@ export const steps = [
   },
 ] as const;
 
-export function calcStepsState<GroupNames extends string>({
+export function calcStepsState<TeamNames extends string>({
   repoContext,
   reviewflowPrContext,
   pullRequest,
-  labels = pullRequest.labels,
-}: CalcStepsStateOptions<GroupNames>): StepsState<GroupNames> {
-  const stepsState: Partial<StepsState<GroupNames>> = {};
+}: CalcStepsStateOptions<TeamNames>): StepsState {
+  const stepsState: Partial<StepsState> = {};
 
   for (const step of steps) {
     stepsState[step.key] = step.fn({
       repoContext,
       pullRequest,
       reviewflowPrContext,
-      labels,
     }) as any;
   }
 
-  return stepsState as StepsState<GroupNames>;
+  return stepsState as StepsState;
+}
+
+export function isAllStepsExceptMergePassed(stepsState: StepsState): boolean {
+  return steps.every(
+    ({ key }) => key === 'merge' || stepsState[key].state === 'passed',
+  );
 }

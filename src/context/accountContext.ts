@@ -1,10 +1,6 @@
 import { Lock } from 'lock';
 import type { Config } from '../accountConfigs';
 import type { EventsWithOrganisation } from '../events/account-handlers/utils/createHandlerOrgChange';
-import type {
-  PullRequestWithDecentData,
-  PullRequestWithDecentDataFromWebhook,
-} from '../events/pr-handlers/utils/PullRequestData';
 import type { ProbotEvent } from '../events/probot-types';
 import type {
   Org,
@@ -14,7 +10,6 @@ import type {
   AccountEmbedWithoutType,
   OrgMember,
 } from '../mongo';
-import { ExcludesFalsy } from '../utils/Excludes';
 import type { AppContext } from './AppContext';
 import type { AccountInfo } from './getOrCreateAccount';
 import { getOrCreateAccount } from './getOrCreateAccount';
@@ -23,62 +18,34 @@ import type { TeamSlack } from './slack/initTeamSlack';
 import { initTeamSlack } from './slack/initTeamSlack';
 import { getKeys } from './utils';
 
-export interface AccountContext<
-  GroupNames extends string = any,
-  TeamNames extends string = any,
-> {
-  config: Config<GroupNames, TeamNames>;
+export interface AccountContext<TeamNames extends string = any> {
+  config: Config<TeamNames>;
   accountEmbed: AccountEmbed;
   slack: TeamSlack;
   /** init slack after installation in webapp */
   initSlack: () => Promise<void>;
-  getReviewerGroup: (githubLogin: string) => GroupNames | undefined;
-  getReviewerGroups: (githubLogins: string[]) => GroupNames[];
-  getTeamGroup: (teamName: string) => GroupNames | undefined;
-  getGithubTeamsGroups: (teamNames: string[]) => GroupNames[];
   getMembersForTeams: (teamIds: number[]) => Promise<AccountEmbedWithoutType[]>;
   getGithubTeamsForMember: (memberId: number) => Promise<OrgMember['teams']>;
   getTeamsForLogin: (githubLogin: string) => TeamNames[];
   updateGithubTeamMembers: () => Promise<void>;
-  approveShouldWait: (
-    reviewerGroup: GroupNames | undefined,
-    pullRequest: PullRequestWithDecentData,
-    {
-      includesReviewerGroup,
-      includesWaitForGroups,
-    }: { includesReviewerGroup?: boolean; includesWaitForGroups?: boolean },
-  ) => boolean;
-
   lock: (callback: () => Promise<void> | void) => Promise<void>;
 }
 
-interface TeamsAndGroups {
-  groupName?: string;
-  teamNames: string[];
-}
-
-export const getTeamsAndGroups = (
-  config: Config,
+export const getTeams = <TeamNames extends string>(
+  config: Config<TeamNames>,
   member: OrgMember,
-): TeamsAndGroups => {
-  const { groupsGithubTeams, teams } = config;
-
-  const groupName = !groupsGithubTeams
-    ? undefined
-    : (getKeys(groupsGithubTeams).find((groupName) => {
-        return member.teams.some((team) => {
-          return groupsGithubTeams[groupName].includes(team.name);
-        });
-      }) as string);
+): TeamNames[] => {
+  const { teams } = config;
 
   const teamNames = getKeys(teams).filter((teamName) => {
     const githubTeamName = teams[teamName].githubTeamName;
     if (!githubTeamName) {
-      return teams[teamName].logins.includes(member.user.login);
+      return false;
     }
     return member.teams.some((team) => team.name === githubTeamName);
   });
-  return { groupName, teamNames };
+
+  return teamNames;
 };
 
 const initAccountContext = async <
@@ -101,24 +68,8 @@ const initAccountContext = async <
     initTeamSlack(appContext, context, config, account);
   const slackPromise = initSlack(account);
 
-  const githubLoginToGroup = new Map<string, string>();
-  const githubTeamNameToGroup = new Map<string, string>();
   const githubLoginToTeams = new Map<string, string[]>();
   // TODO const githubLoginToSlackId = new Map<string, string>();
-
-  for (const groupName of getKeys(config.groups)) {
-    Object.keys(config.groups[groupName]).forEach((login) => {
-      githubLoginToGroup.set(login, groupName);
-    });
-  }
-
-  if (config.groupsGithubTeams) {
-    for (const groupName of getKeys(config.groupsGithubTeams)) {
-      config.groupsGithubTeams[groupName].forEach((teamName) => {
-        githubTeamNameToGroup.set(teamName, groupName);
-      });
-    }
-  }
 
   const updateGithubTeamMembers = async (): Promise<void> => {
     if (accountInfo.type !== 'Organization') {
@@ -130,30 +81,12 @@ const initAccountContext = async <
     });
 
     members.forEach((member) => {
-      const { groupName, teamNames } = getTeamsAndGroups(config, member);
-      if (groupName) {
-        githubLoginToGroup.set(member.user.login, groupName);
-      }
+      const teamNames = getTeams(config, member);
       githubLoginToTeams.set(member.user.login, teamNames);
     });
   };
 
   await updateGithubTeamMembers();
-
-  const getReviewerGroups = (githubLogins: string[]): string[] => [
-    ...new Set(
-      githubLogins
-        .map((githubLogin) => githubLoginToGroup.get(githubLogin))
-        .filter(ExcludesFalsy),
-    ),
-  ];
-  const getGithubTeamsGroups = (githubTeamNames: string[]): string[] => [
-    ...new Set(
-      githubTeamNames
-        .map((teamName) => githubTeamNameToGroup.get(teamName))
-        .filter(ExcludesFalsy),
-    ),
-  ];
 
   const lock = Lock();
 
@@ -186,12 +119,6 @@ const initAccountContext = async <
         });
       });
     },
-    getReviewerGroup: (githubLogin): string | undefined =>
-      githubLoginToGroup.get(githubLogin),
-    getReviewerGroups,
-    getTeamGroup: (githubTeamName): string | undefined =>
-      githubTeamNameToGroup.get(githubTeamName),
-    getGithubTeamsGroups,
 
     getTeamsForLogin: (githubLogin): string[] =>
       githubLoginToTeams.get(githubLogin) || [],
@@ -226,60 +153,6 @@ const initAccountContext = async <
       return orgMember ? orgMember.teams : [];
     },
     updateGithubTeamMembers,
-
-    approveShouldWait: (
-      reviewerGroup,
-      pullRequest,
-      { includesReviewerGroup, includesWaitForGroups },
-    ): boolean => {
-      if (
-        !reviewerGroup ||
-        !pullRequest.requested_reviewers ||
-        !pullRequest.requested_teams
-      ) {
-        return false;
-      }
-
-      const requestedReviewerGroups = [
-        ...new Set([
-          ...getReviewerGroups(
-            (
-              pullRequest.requested_reviewers as PullRequestWithDecentDataFromWebhook['requested_reviewers']
-            )
-              .map((request) => {
-                if (!request) return undefined;
-                return 'name' in request ? request.name : request.login;
-              })
-              .filter(ExcludesFalsy),
-          ),
-          ...(!pullRequest.requested_teams
-            ? []
-            : getGithubTeamsGroups(
-                (
-                  pullRequest.requested_teams as PullRequestWithDecentDataFromWebhook['requested_teams']
-                ).map((team) => team.name),
-              )),
-        ]),
-      ];
-
-      // contains another request of a reviewer in the same group
-      if (
-        includesReviewerGroup &&
-        requestedReviewerGroups.includes(reviewerGroup)
-      ) {
-        return true;
-      }
-
-      // contains a request from a dependent group
-      if (config.waitForGroups && includesWaitForGroups) {
-        const waitForGroups = config.waitForGroups;
-        return requestedReviewerGroups.some((group) =>
-          waitForGroups[reviewerGroup].includes(group),
-        );
-      }
-
-      return false;
-    },
 
     slack: await slackPromise,
 

@@ -14,6 +14,10 @@ export const autoApproveAndAutoMerge = async <
   reviewflowPrContext: ReviewflowPrContext,
   ignoreLabel = false,
 ): Promise<boolean> => {
+  // don't approve from forks
+  if (pullRequest.head.repo?.full_name !== pullRequest.base.repo.full_name) {
+    return false;
+  }
   // const autoMergeLabel = repoContext.labels['merge/automerge'];
   const codeApprovedLabel = repoContext.labels['code/approved'];
   if (ignoreLabel || hasLabelInPR(pullRequest.labels, codeApprovedLabel)) {

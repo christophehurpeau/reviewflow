@@ -14,6 +14,11 @@ export const autoAssignPRToCreator = async <
   if (!pullRequest.assignees || pullRequest.assignees.length > 0) return;
   if (!pullRequest.user) return;
 
+  // don't assign pr from forks
+  if (pullRequest.head.repo?.full_name !== pullRequest.base.repo.full_name) {
+    return;
+  }
+
   await context.octokit.issues.addAssignees(
     context.issue({
       assignees: [pullRequest.user.login],

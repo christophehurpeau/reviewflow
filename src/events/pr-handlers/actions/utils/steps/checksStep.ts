@@ -6,10 +6,10 @@ export interface ChecksStepState extends BaseStepState {
   isFailed: boolean;
 }
 
-export function calcChecksStep<GroupNames extends string>({
+export function calcChecksStep<TeamNames extends string>({
   repoContext,
   reviewflowPrContext,
-}: CalcStepOptions<GroupNames>): ChecksStepState {
+}: CalcStepOptions<TeamNames>): ChecksStepState {
   const { state } = getFailedOrWaitingChecksAndStatuses(
     {
       checksConclusionRecord:

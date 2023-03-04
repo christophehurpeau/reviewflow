@@ -25,9 +25,9 @@ export const isPendingCheckShouldBeIgnored = (checkName: string): boolean =>
   // see https://github.com/christophehurpeau/nightingale/pull/643, when label change codecov check goes to in-progress again
   checkName?.includes('codecov') || checkName?.includes('/hold-');
 
-export const getFailedOrWaitingChecksAndStatuses = <GroupNames extends string>(
+export const getFailedOrWaitingChecksAndStatuses = <TeamNames extends string>(
   { checksConclusionRecord, statusesConclusionRecord }: ChecksAndStatuses,
-  repoContext: RepoContext<GroupNames>,
+  repoContext: RepoContext<TeamNames>,
 ): FailedOrWaitingChecksAndStatuses => {
   const checksEntries = Object.entries(checksConclusionRecord);
   const statusesEntries = Object.entries(statusesConclusionRecord);

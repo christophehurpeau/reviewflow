@@ -104,12 +104,12 @@ const addStatusCheck = async function <EventName extends EventsWithRepository>(
 
 export const updateStatusCheckFromStepsState = <
   EventName extends EventsWithRepository,
-  GroupNames extends string,
+  TeamNames extends string,
 >(
-  stepsState: StepsState<GroupNames>,
+  stepsState: StepsState,
   pullRequest: PullRequestWithDecentData,
   context: ProbotEvent<EventName>,
-  repoContext: RepoContext<GroupNames>,
+  repoContext: RepoContext<TeamNames>,
   appContext: AppContext,
   reviewflowPrContext: ReviewflowPrContext,
   previousSha?: string,
@@ -230,15 +230,6 @@ export const updateStatusCheckFromStepsState = <
     if (stepsState.codeReview.hasChangesRequested) {
       return createFailedStatusCheck(
         'Changes requested ! Push commits or discuss changes then re-request a review.',
-      );
-    }
-
-    const needsReviewGroupNames = stepsState.codeReview.needsReviewGroupNames;
-    if (needsReviewGroupNames.length > 0) {
-      return createFailedStatusCheck(
-        `Awaiting review from: ${needsReviewGroupNames.join(
-          ', ',
-        )}. Perhaps request someone ?`,
       );
     }
   }

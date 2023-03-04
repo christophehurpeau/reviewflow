@@ -62,8 +62,8 @@ export type EventsWithIssue = CustomExtract<
 >;
 
 export const createPullRequestHandler = <
+  TeamNames extends string,
   EventName extends EventsWithPullRequest | EventsWithIssue,
-  GroupNames extends string = string,
 >(
   app: Probot,
   appContext: AppContext,
@@ -71,18 +71,18 @@ export const createPullRequestHandler = <
   getPullRequestInPayload: (
     payload: ProbotEvent<EventName>['payload'],
     context: ProbotEvent<EventName>,
-    repoContext: RepoContext<GroupNames>,
+    repoContext: RepoContext<TeamNames>,
   ) => PullRequestFromProbotEvent<EventName> | null,
   callbackPr: (
     pullRequest: PullRequestFromProbotEvent<EventName>,
     context: ProbotEvent<EventName>,
-    repoContext: RepoContext<GroupNames>,
+    repoContext: RepoContext<TeamNames>,
     reviewflowPrContext: ReviewflowPrContext | null,
   ) => void | Promise<void>,
   callbackBeforeLock?: (
     pullRequest: PullRequestFromProbotEvent<EventName>,
     context: ProbotEvent<EventName>,
-    repoContext: RepoContext<GroupNames>,
+    repoContext: RepoContext<TeamNames>,
   ) => CreatePrContextOptions | Promise<CreatePrContextOptions>,
 ): void => {
   app.on(eventName, async (context: ProbotEvent<EventName>) => {
@@ -134,20 +134,20 @@ export const createPullRequestHandler = <
 export const createPullRequestsHandler = <
   EventName extends EventsWithPullRequests,
   U extends PullRequestDataMinimumData,
-  GroupNames extends string,
+  TeamNames extends string,
 >(
   app: Probot,
   appContext: AppContext,
   eventName: EventName | EventName[],
   getPrs: (
     payload: ProbotEvent<EventName>['payload'],
-    repoContext: RepoContext<GroupNames>,
+    repoContext: RepoContext<TeamNames>,
     context: ProbotEvent<EventName>,
   ) => U[] | Promise<U[]>,
   callbackPr: (
     pullRequest: U,
     context: ProbotEvent<EventName>,
-    repoContext: RepoContext<GroupNames>,
+    repoContext: RepoContext<TeamNames>,
     reviewflowPrContext: ReviewflowPrContext | null,
   ) => void | Promise<void>,
 ): void => {

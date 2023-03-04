@@ -14,7 +14,6 @@ export type Group = Record<string, string | null>;
 
 export interface Team {
   githubTeamName?: string;
-  logins: string[];
   labels?: string[];
 }
 
@@ -46,23 +45,20 @@ export interface LabelDescriptor {
   color: string;
 }
 
-export type GroupLabels =
+export type ReviewLabels =
   | 'needsReview'
   | 'requested'
   | 'changesRequested'
   | 'approved';
 
-export type ReviewConfig<GroupNames extends string> = Record<
-  GroupNames,
-  Record<GroupLabels, string>
->;
+export type ReviewConfig = Record<ReviewLabels, string>;
 
 export type LabelList = Record<string, LabelDescriptor>;
 
-export interface LabelsConfig<GroupNames extends string> {
+export interface LabelsConfig {
   legacyToRemove?: LabelList;
   list: LabelList;
-  review: ReviewConfig<GroupNames>;
+  review?: ReviewConfig;
 }
 
 interface ExperimentalFeatures {
@@ -75,7 +71,7 @@ interface WarnOnForcePushAfterReviewStarted {
   message: string;
 }
 
-export interface Config<GroupNames extends string, TeamNames extends string> {
+export interface Config<TeamNames extends string> {
   autoAssignToCreator?: boolean;
   trimTitle?: boolean;
   ignoreRepoPattern?: string;
@@ -90,11 +86,8 @@ export interface Config<GroupNames extends string, TeamNames extends string> {
   prDefaultOptions: Options;
 
   botUsers?: string[];
-  groups: Record<GroupNames, Group>;
-  groupsGithubTeams?: Record<GroupNames, string[]>;
   teams: Record<TeamNames, Team>;
-  waitForGroups?: Record<GroupNames, GroupNames[]>;
 
-  labels: LabelsConfig<GroupNames>;
+  labels: LabelsConfig;
   defaultDmSettings?: Partial<Record<MessageCategory, boolean>>;
 }

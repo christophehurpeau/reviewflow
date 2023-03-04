@@ -91,6 +91,9 @@ describe('opened', (): void => {
       .times(2)
       .reply(200, { check_runs: [] })
 
+      .get('/repos/reviewflow/reviewflow-test/pulls/30/reviews')
+      .reply(200, [])
+
       .get(
         '/repos/reviewflow/reviewflow-test/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da/status?per_page=100',
       )
@@ -104,7 +107,7 @@ describe('opened', (): void => {
 
       .post(
         '/repos/reviewflow/reviewflow-test/statuses/2ab411d5c55f25f3dc2de6a3244f290a804e33da',
-        '{"context":"reviewflow-dev","state":"failure","description":"Awaiting review from: dev. Perhaps request someone ?"}',
+        '{"context":"reviewflow-dev","state":"failure","description":"Awaiting review... Perhaps request someone ?"}',
       )
       .reply(200, {});
 

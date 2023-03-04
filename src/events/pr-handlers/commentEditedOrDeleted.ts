@@ -8,11 +8,12 @@ import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
 import { getPullRequestFromPayload } from './utils/getPullRequestFromPayload';
 
-export default function prCommentEditedOrDeleted(
+export default function prCommentEditedOrDeleted<TeamNames extends string>(
   app: Probot,
   appContext: AppContext,
 ): void {
   createPullRequestHandler<
+    TeamNames,
     | 'pull_request_review.edited'
     | 'pull_request_review_comment.edited'
     | 'pull_request_review_comment.deleted'

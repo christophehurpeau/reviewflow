@@ -10,9 +10,8 @@ import type { StepsState } from './utils/steps/calcStepsState';
 
 export async function updateCommentBodyProgressFromStepsState<
   Name extends EventsWithRepository,
-  GroupNames extends string,
 >(
-  stepsState: StepsState<GroupNames>,
+  stepsState: StepsState,
   context: ProbotEvent<Name>,
   reviewflowPrContext: ReviewflowPrContext,
 ): Promise<void> {

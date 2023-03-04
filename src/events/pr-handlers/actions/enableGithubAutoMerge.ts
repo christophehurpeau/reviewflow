@@ -1,11 +1,15 @@
 import type { EventsWithRepository, RepoContext } from 'context/repoContext';
+import { checkIfUserIsBot } from '../../../utils/github/isBotUser';
 import type { AutoMergeRequest } from '../../../utils/github/pullRequest/autoMerge';
 import {
   enableGithubAutoMergeMutation,
   disableGithubAutoMergeMutation,
 } from '../../../utils/github/pullRequest/autoMerge';
 import type { ProbotEvent } from '../../probot-types';
-import type { PullRequestWithDecentData } from '../utils/PullRequestData';
+import type {
+  BasicUser,
+  PullRequestWithDecentData,
+} from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { createMergeLockPrFromPr } from '../utils/mergeLock';
 import { createCommitMessage } from './autoMergeIfPossible';
@@ -18,10 +22,18 @@ export const mergeOrEnableGithubAutoMerge = async <
   context: ProbotEvent<EventName>,
   repoContext: RepoContext,
   reviewflowPrContext: ReviewflowPrContext,
-  login?: string,
+  user?: BasicUser,
   skipCheckMergeableState?: boolean,
 ): Promise<AutoMergeRequest | null> => {
   if (pullRequest.merged_at || pullRequest.draft) return null;
+
+  // don't enable auto merge merge for forks unless there is a login
+  if (!user || checkIfUserIsBot(repoContext, user)) {
+    if (pullRequest.head.repo?.full_name !== pullRequest.base.repo.full_name) {
+      return null;
+    }
+  }
+
   if (pullRequest.auto_merge) {
     return { enabledBy: pullRequest.auto_merge.enabled_by };
   }
@@ -35,7 +47,7 @@ export const mergeOrEnableGithubAutoMerge = async <
       context,
       createMergeLockPrFromPr(pullRequest),
       'short',
-      login,
+      user,
     );
     return null;
   }
@@ -107,7 +119,7 @@ The pull request must be in a state where requirements have not yet been satisfi
         context.repo({
           issue_number: pullRequest.number,
           body: `${
-            login ? `@${login} ` : ''
+            user?.login ? `@${user.login} ` : ''
           }Could not automerge nor enable automerge`,
         }),
       );
@@ -115,7 +127,9 @@ The pull request must be in a state where requirements have not yet been satisfi
       context.octokit.issues.createComment(
         context.repo({
           issue_number: pullRequest.number,
-          body: `${login ? `@${login} ` : ''}Could not enable automerge`,
+          body: `${
+            user?.login ? `@${user.login} ` : ''
+          }Could not enable automerge`,
         }),
       );
     }

@@ -1,7 +1,7 @@
 import { githubPalette } from './color-palettes/githubPalette';
 import type { Config } from './types';
 
-const config: Config<'dev', never> = {
+const config: Config<never> = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: false,
@@ -14,15 +14,6 @@ const config: Config<'dev', never> = {
     lintPullRequestTitleWithConventionalCommit: true,
     githubAutoMerge: true,
   },
-  groups: {
-    dev: {
-      christophehurpeau: 'christophe@hurpeau.com',
-      tilap: 'jlavinh@gmail.com',
-    },
-  },
-  waitForGroups: {
-    dev: [],
-  },
   teams: {},
   labels: {
     legacyToRemove: {
@@ -32,6 +23,12 @@ const config: Config<'dev', never> = {
       },
     },
     list: {
+      /* auto approve */
+      'review/auto-approve': {
+        name: ':white_check_mark: bot approval',
+        color: githubPalette.successEmphasis,
+      },
+
       /* checks */
       'checks/failed': {
         name: ':green_heart: checks/fail',
@@ -88,12 +85,10 @@ const config: Config<'dev', never> = {
     },
 
     review: {
-      dev: {
-        needsReview: 'code/needs-review',
-        requested: 'code/review-requested',
-        changesRequested: 'code/changes-requested',
-        approved: 'code/approved',
-      },
+      needsReview: 'code/needs-review',
+      requested: 'code/review-requested',
+      changesRequested: 'code/changes-requested',
+      approved: 'code/approved',
     },
   },
 };

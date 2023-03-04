@@ -62,12 +62,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
               pullRequest,
               'pr closed',
             ),
-            updateReviewStatus(pullRequest, context, repoContext, [
-              {
-                reviewGroup: 'dev',
-                remove: ['needsReview'],
-              },
-            ]),
+            updateReviewStatus(pullRequest, context, repoContext, stepsState),
             updateStatusCheckFromStepsState(
               stepsState,
               pullRequest,
@@ -109,10 +104,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
       }
 
       /* send notifications to assignees and followers */
-      const { reviewers } = await getReviewersAndReviewStates(
-        context,
-        repoContext,
-      );
+      const { reviewers } = await getReviewersAndReviewStates(context);
       const { owner, assignees, followers } =
         getRolesFromPullRequestAndReviewers(pullRequest, reviewers);
 

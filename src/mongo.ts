@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import type { MongoBaseModel } from 'liwi-mongo';
 import { MongoStore, MongoConnection } from 'liwi-mongo';
+import type { BasicUser } from 'events/pr-handlers/utils/PullRequestData';
+import type { ReviewersGroupedByState } from 'events/pr-handlers/utils/groupReviewsWithState';
 import type { AccountInfo } from './context/getOrCreateAccount';
 import type { LockedMergePr } from './context/repoContext';
 import type { SlackMessage } from './context/slack/SlackMessage';
@@ -160,6 +162,8 @@ export interface ReviewflowPr extends MongoBaseModel {
   pr: PrEmbed;
   commentId: number;
   headSha?: string;
+  title: string;
+  isDraft: boolean;
   lastLintStatusesCommit?: string;
   lintStatuses?: ReviewflowStatus[];
   lastFlowStatusCommit?: string;
@@ -167,6 +171,9 @@ export interface ReviewflowPr extends MongoBaseModel {
   automergeStatus?: ReviewflowStatus['status'];
   checksConclusion?: ChecksAndStatuses['checksConclusionRecord'];
   statusesConclusion?: ChecksAndStatuses['statusesConclusionRecord'];
+  reviews: ReviewersGroupedByState;
+  creator?: BasicUser;
+  assignees: BasicUser[];
 }
 
 export interface RepositoryMergeQueue extends MongoBaseModel {
@@ -297,9 +304,13 @@ export default function init(): MongoStores {
       'repo.id': 1,
       headSha: 1,
     });
-    // remove older than 12 * 30 days
+    coll.createIndex({
+      'account.id': 1,
+      'assignees.id': 1,
+    });
+    // remove with no activity for 12 * 30 days
     coll.deleteMany({
-      created: { $lt: new Date(Date.now() - 12 * 30 * 24 * 60 * 60 * 1000) },
+      updated: { $lt: new Date(Date.now() - 12 * 30 * 24 * 60 * 60 * 1000) },
     });
   });
 

@@ -44,69 +44,52 @@ export default function opened(app: Probot, appContext: AppContext): void {
       await Promise.all<unknown>([
         !isFromBot && autoAssignPRToCreator(pullRequest, context, repoContext),
 
-        Promise.all([
-          getChecksAndStatusesForPullRequest(context, pullRequest), // get required (pending) statuses or checks
-          updateReviewStatus(pullRequest, context, repoContext, [
-            {
-              reviewGroup: 'dev',
-              add:
-                (repoContext.config.requiresReviewRequest ||
-                  isFromBot ||
-                  pullRequest.user.id !==
-                    context.payload.repository.owner.id) &&
-                !pullRequest.draft
-                  ? ['needsReview']
-                  : [],
-              remove: ['approved', 'changesRequested'],
-            },
-          ]),
-        ]).then(async ([checksAndStatuses, newLabels]) => {
-          if (checksAndStatuses) {
+        getChecksAndStatusesForPullRequest(context, pullRequest) // get required (pending) statuses or checks
+          .then(async (checksAndStatuses) => {
             reviewflowPrContext.reviewflowPr.checksConclusion =
               checksAndStatuses.checksConclusionRecord;
             reviewflowPrContext.reviewflowPr.statusesConclusion =
               checksAndStatuses.statusesConclusionRecord;
-          }
 
-          const stepsState = calcStepsState({
-            repoContext,
-            pullRequest,
-            reviewflowPrContext,
-            labels: newLabels,
-          });
+            const stepsState = calcStepsState({
+              repoContext,
+              pullRequest,
+              reviewflowPrContext,
+            });
 
-          await Promise.all([
-            isFromBot &&
-              mergeOrEnableGithubAutoMerge(
+            await Promise.all([
+              updateReviewStatus(pullRequest, context, repoContext, stepsState),
+              isFromBot &&
+                mergeOrEnableGithubAutoMerge(
+                  pullRequest,
+                  context,
+                  repoContext,
+                  reviewflowPrContext,
+                  context.payload.sender,
+                  true,
+                ),
+              updateStatusCheckFromStepsState(
+                stepsState,
                 pullRequest,
                 context,
                 repoContext,
+                appContext,
                 reviewflowPrContext,
-                context.payload.sender.login,
-                true,
               ),
-            updateStatusCheckFromStepsState(
-              stepsState,
-              pullRequest,
-              context,
-              repoContext,
-              appContext,
-              reviewflowPrContext,
-            ),
-            editOpenedPR({
-              pullRequest,
-              pullRequestLabels,
-              context,
-              appContext,
-              repoContext,
-              reviewflowPrContext,
-              stepsState,
-              shouldUpdateCommentBodyInfos: true,
-              shouldUpdateCommentBodyProgress: true,
-              checksAndStatuses,
-            }),
-          ]);
-        }),
+              editOpenedPR({
+                pullRequest,
+                pullRequestLabels,
+                context,
+                appContext,
+                repoContext,
+                reviewflowPrContext,
+                stepsState,
+                shouldUpdateCommentBodyInfos: true,
+                shouldUpdateCommentBodyProgress: true,
+                checksAndStatuses,
+              }),
+            ]);
+          }),
       ]);
     },
     // https://sentry.io/organizations/chrp/issues/3888881569/?project=1243466&query=is%3Aunresolved&referrer=issue-stream

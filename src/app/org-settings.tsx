@@ -3,7 +3,7 @@ import type { Router } from 'express';
 import type { ProbotOctokit } from 'probot';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { accountConfigs } from '../accountConfigs';
-import { getTeamsAndGroups } from '../context/accountContext';
+import { getTeams } from '../context/accountContext';
 import type { MessageCategory } from '../dm/MessageCategory';
 import { getUserDmSettings, updateCache } from '../dm/getUserDmSettings';
 import { syncOrg } from '../events/account-handlers/actions/syncOrg';
@@ -144,9 +144,7 @@ export default function orgSettings(
           }),
           getUserDmSettings(mongoStores, org.login, org.id, user.authInfo.id),
         ]);
-        const teamsAndGroups = orgMember
-          ? getTeamsAndGroups(accountConfig, orgMember)
-          : { groupName: undefined, teamNames: [] };
+        const teams = orgMember ? getTeams(accountConfig, orgMember) : [];
 
         res.send(
           renderToStaticMarkup(
@@ -218,13 +216,7 @@ export default function orgSettings(
                       <>User not found in database</>
                     ) : (
                       <>
-                        <div>
-                          Group Name: {teamsAndGroups.groupName || 'No groups'}
-                        </div>
-                        <div>
-                          Team Names:{' '}
-                          {teamsAndGroups.teamNames.join(', ') || 'No teams'}
-                        </div>
+                        <div>Team Names: {teams.join(', ') || 'No teams'}</div>
                         <div>
                           Github Teams:{' '}
                           {orgMember.teams

@@ -2,9 +2,11 @@ import type { EventsWithRepository, RepoContext } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
 import type { AppContext } from '../../../context/AppContext';
 import { getChecksAndStatusesForPullRequest } from '../../../utils/github/pullRequest/checksAndStatuses';
+import { getReviewersWithState } from '../../../utils/github/pullRequest/reviews';
 import type { PullRequestFromRestEndpoint } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { getFailedOrWaitingChecksAndStatuses } from '../utils/getFailedOrWaitingChecksAndStatuses';
+import { groupReviewsWithState } from '../utils/groupReviewsWithState';
 import { autoMergeIfPossible } from './autoMergeIfPossible';
 import { editOpenedPR } from './editOpenedPR';
 import {
@@ -13,6 +15,7 @@ import {
 } from './enableGithubAutoMerge';
 import { updateBranch } from './updateBranch';
 import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
+import { updateReviewStatus } from './updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './updateStatusCheckFromStepsState';
 import { calcDefaultOptions } from './utils/body/prOptions';
 import { updateCommentOptions } from './utils/body/updateBody';
@@ -45,19 +48,22 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
   if (options) {
     const shouldUpdateChecks = actions.includes('updateChecks');
 
-    const checksAndStatuses = shouldUpdateChecks
-      ? await getChecksAndStatusesForPullRequest(context, pullRequest)
-      : undefined;
+    const [checksAndStatuses, reviewersWithState] = await Promise.all([
+      shouldUpdateChecks &&
+        getChecksAndStatusesForPullRequest(context, pullRequest),
+      shouldUpdateChecks && getReviewersWithState(context, pullRequest),
+    ]);
 
     const calcStateLabels = async (): Promise<LabelToSync[]> => {
+      if (!checksAndStatuses) return [];
       const { state } = getFailedOrWaitingChecksAndStatuses(
-        checksAndStatuses!,
+        checksAndStatuses,
         repoContext,
       );
       return getStateChecksLabelsToSync(repoContext, state);
     };
 
-    const updatedLabels = await syncLabels(pullRequest, context, [
+    await syncLabels(pullRequest, context, [
       {
         shouldHaveLabel: options.autoMergeWithSkipCi,
         label: skipCiLabel,
@@ -88,6 +94,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
                 context,
                 repoContext,
                 reviewflowPrContext,
+                context.payload.sender,
               )) !== null
             );
           } else {
@@ -126,23 +133,23 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
       ...(shouldUpdateChecks ? await calcStateLabels() : []),
     ]);
 
-    // update checks, after labels update.
-    if (shouldUpdateChecks) {
-      if (checksAndStatuses) {
-        reviewflowPrContext.reviewflowPr.checksConclusion =
-          checksAndStatuses.checksConclusionRecord;
-        reviewflowPrContext.reviewflowPr.statusesConclusion =
-          checksAndStatuses.statusesConclusionRecord;
-      }
+    // update checks and reviews after labels update.
+    if (shouldUpdateChecks && checksAndStatuses && reviewersWithState) {
+      reviewflowPrContext.reviewflowPr.reviews =
+        groupReviewsWithState(reviewersWithState);
+      reviewflowPrContext.reviewflowPr.checksConclusion =
+        checksAndStatuses.checksConclusionRecord;
+      reviewflowPrContext.reviewflowPr.statusesConclusion =
+        checksAndStatuses.statusesConclusionRecord;
 
       const stepsState = calcStepsState({
         repoContext,
         pullRequest,
         reviewflowPrContext,
-        labels: updatedLabels,
       });
 
       await Promise.all([
+        updateReviewStatus(pullRequest, context, repoContext, stepsState),
         editOpenedPR({
           pullRequest,
           context,
@@ -153,6 +160,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
           shouldUpdateCommentBodyProgress: true,
           shouldUpdateCommentBodyInfos: true,
           checksAndStatuses,
+          reviews: reviewflowPrContext.reviewflowPr.reviews,
         }),
         updateStatusCheckFromStepsState(
           stepsState,

@@ -2,8 +2,8 @@ import type { CIState } from 'events/pr-handlers/utils/getFailedOrWaitingChecksA
 import type { RepoContext } from '../../../../../context/repoContext';
 import type { LabelToSync } from '../syncLabel';
 
-export const getStateChecksLabelsToSync = <GroupNames extends string>(
-  repoContext: RepoContext<GroupNames>,
+export const getStateChecksLabelsToSync = <TeamNames extends string>(
+  repoContext: RepoContext<TeamNames>,
   state: CIState,
 ): LabelToSync[] => {
   return [

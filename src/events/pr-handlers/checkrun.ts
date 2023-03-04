@@ -60,7 +60,7 @@ export default function checkrun(app: Probot, appContext: AppContext): void {
                   reviewflowPrContext.reviewflowPr.checksConclusion[
                     checkConclusionKey
                   ],
-              },
+              } as any,
             },
           ),
         ]);

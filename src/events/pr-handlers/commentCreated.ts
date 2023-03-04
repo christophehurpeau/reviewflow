@@ -146,7 +146,7 @@ export default function prCommentCreated(
       const [discussion, { reviewers }, reviewSlackMessages] =
         await Promise.all([
           getDiscussion(context, comment),
-          getReviewersAndReviewStates(context, repoContext),
+          getReviewersAndReviewStates(context),
           (comment as any).pull_request_review_id
             ? appContext.mongoStores.slackSentMessages.findAll({
                 'account.id': repoContext.accountEmbed.id,

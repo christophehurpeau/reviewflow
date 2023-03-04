@@ -16,11 +16,11 @@ import { syncLabels } from './utils/syncLabel';
 
 export async function calcAndUpdateLabels<
   EventName extends EventsWithRepository,
-  GroupNames extends string,
+  TeamNames extends string,
 >(
   context: ProbotEvent<EventName>,
   appContext: AppContext,
-  repoContext: RepoContext<GroupNames>,
+  repoContext: RepoContext<TeamNames>,
   pullRequest: PullRequestWithDecentData,
   reviewflowPrContext: ReviewflowPrContext,
   updateStatusCheckAndBodyProgress = true,
@@ -53,7 +53,6 @@ export async function calcAndUpdateLabels<
       repoContext,
       pullRequest,
       reviewflowPrContext,
-      labels: updatedLabels,
     });
 
     await Promise.all([

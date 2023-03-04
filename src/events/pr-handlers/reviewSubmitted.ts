@@ -6,14 +6,9 @@ import type { AccountEmbed } from 'mongo';
 import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
 import { ExcludesNullish } from '../../utils/Excludes';
+import { getReviewersWithState } from '../../utils/github/pullRequest/reviews';
 import { createSlackMessageWithSecondaryBlock } from '../../utils/slack/createSlackMessageWithSecondaryBlock';
-import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
-import { mergeOrEnableGithubAutoMerge } from './actions/enableGithubAutoMerge';
-import { updateCommentBodyProgressFromStepsState } from './actions/updateCommentBodyProgressFromStepsState';
-import { updateReviewStatus } from './actions/updateReviewStatus';
-import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
-import hasLabelInPR from './actions/utils/labels/hasLabelInPR';
-import { calcStepsState } from './actions/utils/steps/calcStepsState';
+import { updateAfterReviewChange } from './actions/updateAfterReviewChange';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
@@ -73,13 +68,12 @@ export default function reviewSubmitted(
         html_url: reviewUrl,
       } = payload.review;
 
-      const [{ reviewers, reviewStates }, reviewerGithubTeams] =
-        await Promise.all([
-          getReviewersAndReviewStates(context, repoContext),
-          repoContext.accountEmbed.type !== 'Organization'
-            ? []
-            : repoContext.getGithubTeamsForMember(reviewer.id),
-        ]);
+      const [{ reviewers }, reviewerGithubTeams] = await Promise.all([
+        getReviewersAndReviewStates(context),
+        repoContext.accountEmbed.type !== 'Organization'
+          ? []
+          : repoContext.getGithubTeamsForMember(reviewer.id),
+      ]);
       const { owner, assignees, followers } =
         getRolesFromPullRequestAndReviewers(pullRequest, reviewers, {
           excludeIds: [reviewer.id],
@@ -87,109 +81,22 @@ export default function reviewSubmitted(
       const isReviewByOwner = owner.login === reviewer.login;
 
       if (!isReviewByOwner) {
-        const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
         let merged: boolean;
 
-        if (
-          reviewflowPrContext &&
-          !repoContext.shouldIgnore &&
-          reviewerGroup &&
-          repoContext.config.labels.review[reviewerGroup]
-        ) {
-          const updatedPr = await fetchPr(context, pullRequest.number);
-          const hasRequestedReviewsForGroup = repoContext.approveShouldWait(
-            reviewerGroup,
-            updatedPr,
-            {
-              includesReviewerGroup: true,
-              // TODO reenable this when accepted can notify request review to slack (dev accepted => design requested) and flag to disable for label (approved design ; still waiting for dev ?)
-              // includesWaitForGroups: true,
-            },
-          );
+        if (reviewflowPrContext && !repoContext.shouldIgnore) {
+          const [updatedPr, reviewersWithState] = await Promise.all([
+            fetchPr(context, pullRequest.number),
+            getReviewersWithState(context, pullRequest),
+          ]);
 
-          const hasChangesRequestedInReviews =
-            reviewStates[reviewerGroup].changesRequested !== 0;
-
-          const approved =
-            !hasRequestedReviewsForGroup &&
-            !hasChangesRequestedInReviews &&
-            state === 'approved';
-
-          const newLabels = await updateReviewStatus(
+          await updateAfterReviewChange(
             updatedPr,
             context,
+            appContext,
             repoContext,
-            [
-              {
-                reviewGroup: reviewerGroup,
-                add: [
-                  approved && 'approved',
-                  state === 'changes_requested' && 'needsReview',
-                  state === 'changes_requested' && 'changesRequested',
-                ],
-                remove: [
-                  approved && 'needsReview',
-                  !hasRequestedReviewsForGroup && 'requested',
-                  state === 'approved' &&
-                    !hasChangesRequestedInReviews &&
-                    'changesRequested',
-                  state === 'changes_requested' && 'approved',
-                ],
-              },
-            ],
+            reviewflowPrContext,
+            reviewersWithState,
           );
-
-          if (newLabels !== pullRequest.labels) {
-            const stepsState = calcStepsState({
-              repoContext,
-              pullRequest,
-              reviewflowPrContext,
-              labels: newLabels,
-            });
-
-            await Promise.all([
-              updateStatusCheckFromStepsState(
-                stepsState,
-                pullRequest,
-                context,
-                repoContext,
-                appContext,
-                reviewflowPrContext,
-              ),
-              updateCommentBodyProgressFromStepsState(
-                stepsState,
-                context,
-                reviewflowPrContext,
-              ),
-            ]);
-          }
-
-          if (approved && !hasChangesRequestedInReviews) {
-            const autoMergeLabel = repoContext.labels['merge/automerge'];
-
-            if (hasLabelInPR(newLabels, autoMergeLabel)) {
-              if (
-                repoContext.settings.allowAutoMerge &&
-                repoContext.config.experimentalFeatures?.githubAutoMerge
-              ) {
-                await mergeOrEnableGithubAutoMerge(
-                  pullRequest,
-                  context,
-                  repoContext,
-                  reviewflowPrContext,
-                  context.payload.sender.login,
-                );
-              } else {
-                merged = await autoMergeIfPossible(
-                  updatedPr,
-                  context,
-                  repoContext,
-                  reviewflowPrContext,
-                  newLabels,
-                );
-              }
-            }
-          }
         }
 
         const createTeamsRegex = () => {

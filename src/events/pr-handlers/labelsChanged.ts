@@ -8,7 +8,6 @@ import {
 } from './actions/enableGithubAutoMerge';
 import { updateBranch } from './actions/updateBranch';
 import { updatePrCommentBodyOptions } from './actions/updatePrCommentBody';
-import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
 import hasLabelInPR from './actions/utils/labels/hasLabelInPR';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
@@ -62,13 +61,13 @@ export default function labelsChanged(
 
       if (fromRenovate) {
         const codeApprovedLabel = repoContext.labels['code/approved'];
-        const codeNeedsReviewLabel = repoContext.labels['code/needs-review'];
+        const autoApproveLabel = repoContext.labels['review/auto-approve'];
+
         if (context.payload.action === 'labeled') {
-          if (codeApprovedLabel && label.id === codeApprovedLabel.id) {
-            // const { data: reviews } = await context.octokit.pulls.listReviews(
-            //   context.pullRequest({ per_page: 1 }),
-            // );
-            // if (reviews.length !== 0) {
+          if (
+            (codeApprovedLabel && label.id === codeApprovedLabel.id) ||
+            (autoApproveLabel && label.id === autoApproveLabel.id)
+          ) {
             await context.octokit.pulls.createReview(
               context.pullRequest({ event: 'APPROVE' }),
             );
@@ -86,23 +85,10 @@ export default function labelsChanged(
               );
               labels = result.data;
             }
-            if (hasLabelInPR(labels, codeNeedsReviewLabel)) {
-              labels = await updateReviewStatus(
-                updatedPr,
-                context,
-                repoContext,
-                [
-                  {
-                    reviewGroup: 'dev',
-                    remove: ['needsReview'],
-                  },
-                ],
-              );
-            }
+
             const stepsState = calcStepsState({
               pullRequest: updatedPr,
               repoContext,
-              labels,
               reviewflowPrContext,
             });
 
@@ -157,7 +143,7 @@ export default function labelsChanged(
                 context,
                 repoContext,
                 reviewflowPrContext,
-                context.payload.sender.login,
+                context.payload.sender,
               );
             }
           }
@@ -198,8 +184,6 @@ export default function labelsChanged(
         return;
       }
 
-      let labels = pullRequest.labels;
-
       if (bypassProgressLabel && label.id === bypassProgressLabel.id) {
         if (
           context.payload.action === 'labeled' &&
@@ -214,14 +198,12 @@ export default function labelsChanged(
               name: label.name,
             }),
           );
-          labels = labels.filter((l) => l.id !== bypassProgressLabel.id);
         }
       }
 
       const stepsState = calcStepsState({
         repoContext,
         pullRequest: updatedPr,
-        labels,
         reviewflowPrContext,
       });
 
@@ -247,7 +229,7 @@ export default function labelsChanged(
                 context,
                 repoContext,
                 reviewflowPrContext,
-                context.payload.sender.login,
+                context.payload.sender,
               )) !== null;
 
             // if not successful, remove label

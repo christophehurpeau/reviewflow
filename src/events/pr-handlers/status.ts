@@ -86,7 +86,7 @@ export default function status(app: Probot, appContext: AppContext): void {
                   context: context.payload.context,
                   state: context.payload.state,
                 },
-              },
+              } as any,
             },
           ),
         ]);

@@ -1,11 +1,10 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
-import { updateCommentBodyProgressFromStepsState } from './actions/updateCommentBodyProgressFromStepsState';
-import { updateReviewStatus } from './actions/updateReviewStatus';
-import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
-import { calcStepsState } from './actions/utils/steps/calcStepsState';
+import { getReviewersWithState } from '../../utils/github/pullRequest/reviews';
+import { updateAfterReviewChange } from './actions/updateAfterReviewChange';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
+import { fetchPr } from './utils/fetchPr';
 
 export default function reviewRequested(
   app: Probot,
@@ -22,9 +21,6 @@ export default function reviewRequested(
       repoContext,
       reviewflowPrContext,
     ): Promise<void> => {
-      // don't send notification when PR is still in draft. Notifications will be send when the PR is ready to review.
-      if (pullRequest.draft) return;
-
       const sender = context.payload.sender;
 
       const requestedReviewer = (context.payload as any).requested_reviewer;
@@ -33,73 +29,42 @@ export default function reviewRequested(
         ? [requestedReviewer]
         : await repoContext.getMembersForTeams([requestedTeam.id]);
 
-      const reviewerGroup = requestedReviewer
-        ? repoContext.getReviewerGroup(requestedReviewer.login)
-        : repoContext.getTeamGroup(requestedTeam.name);
-
-      const shouldWait = false;
-      // repoContext.approveShouldWait(reviewerGroup, pr.requested_reviewers, { includesWaitForGroups: true });
-
       if (
         /* repo is not ignored */
-        reviewflowPrContext &&
-        reviewerGroup &&
-        repoContext.config.labels.review[reviewerGroup]
+        reviewflowPrContext
       ) {
-        const newLabels = await updateReviewStatus(
-          pullRequest,
+        const [updatedPr, reviewersWithState] = await Promise.all([
+          fetchPr(context, pullRequest.number),
+          getReviewersWithState(context, pullRequest),
+        ]);
+
+        await updateAfterReviewChange(
+          updatedPr,
           context,
+          appContext,
           repoContext,
-          [
-            {
-              reviewGroup: reviewerGroup,
-              add: ['needsReview', !shouldWait && 'requested'],
-              remove: ['approved'],
-            },
-          ],
+          reviewflowPrContext,
+          reviewersWithState,
         );
-        if (newLabels !== pullRequest.labels) {
-          const stepsState = calcStepsState({
-            repoContext,
-            pullRequest,
-            reviewflowPrContext,
-            labels: newLabels,
-          });
+      }
 
-          await Promise.all([
-            updateStatusCheckFromStepsState(
-              stepsState,
-              pullRequest,
-              context,
-              repoContext,
-              appContext,
-              reviewflowPrContext,
-            ),
-            updateCommentBodyProgressFromStepsState(
-              stepsState,
-              context,
-              reviewflowPrContext,
-            ),
-          ]);
-        }
+      // don't send notification when PR is still in draft. Notifications will be send when the PR is ready to review.
+      if (pullRequest.draft) return;
 
+      /* send slack notification */
+      if (repoContext.slack) {
         /* update slack home */
-        const assigneesLogins: string[] = [];
+        repoContext.slack.updateHome(pullRequest.user.login);
         if (pullRequest.assignees) {
           pullRequest.assignees.forEach((assignee) => {
-            assigneesLogins.push(assignee.login);
             repoContext.slack.updateHome(assignee.login);
           });
         }
 
         requestedReviewers.forEach((potentialReviewer) => {
-          if (assigneesLogins.includes(potentialReviewer.login)) return;
           repoContext.slack.updateHome(potentialReviewer.login);
         });
-      }
 
-      /* send slack notification */
-      if (!shouldWait && repoContext.slack) {
         const text = `:eyes: ${repoContext.slack.mention(
           sender.login,
         )} requests ${

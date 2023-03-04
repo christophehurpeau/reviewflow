@@ -2,6 +2,7 @@ import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
 import { checkIfIsThisBot } from '../../utils/github/isBotUser';
+import { toBasicUser } from './utils/PullRequestData';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 
 export default function assignedOrUnassignedHandler(
@@ -32,6 +33,17 @@ export default function assignedOrUnassignedHandler(
     ): Promise<void> => {
       const { assignee: newlyAssigned, sender } = context.payload;
       const isUnassigned = context.payload.action === 'unassigned';
+
+      if (reviewflowPrContext) {
+        await appContext.mongoStores.prs.partialUpdateOne(
+          reviewflowPrContext.reviewflowPr,
+          {
+            $set: {
+              assignees: pullRequest.assignees.map(toBasicUser),
+            },
+          },
+        );
+      }
 
       if (repoContext.slack) {
         // update new assignee slack home

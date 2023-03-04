@@ -36,6 +36,15 @@
     "description": "Synced by reviewflow for code/approved"
   },
   {
+    "id": 1210432964,
+    "node_id": "MDU6TGFiZWwxMjEwNDMyOTYz",
+    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:white_check_mark:%20bot%20approval",
+    "name": ":white_check_mark: bot approval",
+    "color": "238636",
+    "default": false,
+    "description": "Synced by reviewflow for review/auto-approve"
+  },
+  {
     "id": 1210432962,
     "node_id": "MDU6TGFiZWwxMjEwNDMyOTYy",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:ok_hand:%20code/changes-requested",

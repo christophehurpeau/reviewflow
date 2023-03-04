@@ -44,7 +44,7 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
       reviewflowPrContext.reviewflowPr.statusesConclusion =
         checksAndStatuses.statusesConclusionRecord;
 
-      const updatedLabels = await calcAndUpdateLabels(
+      await calcAndUpdateLabels(
         context,
         appContext,
         repoContext,
@@ -53,18 +53,10 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
         false,
       );
 
-      if (checksAndStatuses) {
-        reviewflowPrContext.reviewflowPr.checksConclusion =
-          checksAndStatuses.checksConclusionRecord;
-        reviewflowPrContext.reviewflowPr.statusesConclusion =
-          checksAndStatuses.statusesConclusionRecord;
-      }
-
       const stepsState = calcStepsState({
         repoContext,
         pullRequest: updatedPr,
         reviewflowPrContext,
-        labels: updatedLabels,
       });
 
       // headSha is updated there too
@@ -106,6 +98,7 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
             context,
             repoContext,
             reviewflowPrContext,
+            context.payload.sender,
           );
         }
       } else {

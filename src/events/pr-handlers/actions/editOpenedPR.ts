@@ -1,5 +1,6 @@
 import type { EventsWithRepository, RepoContext } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
+import type { ReviewflowPr } from 'mongo';
 import type { StatusInfo } from '../../../accountConfigs/types';
 import type { AppContext } from '../../../context/AppContext';
 import { getKeys } from '../../../context/utils';
@@ -10,6 +11,7 @@ import type {
   PullRequestLabels,
   PullRequestWithDecentData,
 } from '../utils/PullRequestData';
+import { toBasicUser } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { readCommitsAndUpdateInfos } from './readCommitsAndUpdateInfos';
 import { updatePrIfNeeded } from './updatePr';
@@ -34,24 +36,25 @@ export interface ReviewflowStatus {
 
 export interface EditOpenedPullRequestOptions<
   EventName extends EventsWithRepository,
-  GroupNames extends string,
+  TeamNames extends string,
 > {
   pullRequest: PullRequestWithDecentData;
   pullRequestLabels?: PullRequestLabels;
   context: ProbotEvent<EventName>;
   appContext: AppContext;
-  repoContext: RepoContext<GroupNames>;
+  repoContext: RepoContext<TeamNames>;
   reviewflowPrContext: ReviewflowPrContext;
   shouldUpdateCommentBodyInfos: boolean;
   shouldUpdateCommentBodyProgress: boolean;
-  stepsState: StepsState<GroupNames>;
+  stepsState: StepsState;
   previousSha?: string;
   checksAndStatuses?: ChecksAndStatuses;
+  reviews?: ReviewflowPr['reviews'];
 }
 
 export const editOpenedPR = async <
   EventName extends EventsWithRepository,
-  GroupNames extends string,
+  TeamNames extends string,
 >({
   pullRequest,
   pullRequestLabels = pullRequest.labels,
@@ -64,7 +67,8 @@ export const editOpenedPR = async <
   stepsState,
   previousSha,
   checksAndStatuses,
-}: EditOpenedPullRequestOptions<EventName, GroupNames>): Promise<void> => {
+  reviews,
+}: EditOpenedPullRequestOptions<EventName, TeamNames>): Promise<void> => {
   const title = repoContext.config.trimTitle
     ? cleanTitle(pullRequest.title)
     : pullRequest.title;
@@ -249,12 +253,33 @@ export const editOpenedPR = async <
           {
             $set: {
               headSha: pullRequest.head.sha,
+              title,
+              isDraft: pullRequest.draft === true,
               checksConclusion: checksAndStatuses.checksConclusionRecord,
               statusesConclusion: checksAndStatuses.statusesConclusionRecord,
+              ...(reviews ? { reviews } : {}),
+              // update old data
+              ...(!reviewflowPrContext.reviewflowPr.assignees &&
+              pullRequest.assignees
+                ? { assignees: pullRequest.assignees.map(toBasicUser) }
+                : {}),
             },
           },
         )
-      : undefined,
+      : appContext.mongoStores.prs.partialUpdateOne(
+          reviewflowPrContext.reviewflowPr,
+          {
+            $set: {
+              title,
+              isDraft: pullRequest.draft === true,
+              // update old data
+              ...(!reviewflowPrContext.reviewflowPr.assignees &&
+              pullRequest.assignees
+                ? { assignees: pullRequest.assignees.map(toBasicUser) }
+                : {}),
+            },
+          },
+        ),
   ];
 
   const commentBodyInfos: StatusInfo[] = statuses
@@ -267,7 +292,7 @@ export const editOpenedPR = async <
     // should not happen, but ts needs it
     pullRequest.user?.login &&
     // belongs to the organization
-    repoContext.getReviewerGroup(pullRequest.user.login) &&
+    pullRequest.head.repo?.full_name === pullRequest.base.repo.full_name &&
     // has not connected its slack account yet
     repoContext.slack.shouldShowLoginMessage(pullRequest.user.login)
   ) {

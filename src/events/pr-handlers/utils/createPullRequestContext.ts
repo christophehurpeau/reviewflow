@@ -1,8 +1,19 @@
+import type { MongoInsertType } from 'liwi-mongo';
 import type { EventsWithRepository, RepoContext } from 'context/repoContext';
 import type { ProbotEvent } from 'events/probot-types';
 import type { ReviewflowPr } from 'mongo';
+import { getReviewersWithState } from '../../../utils/github/pullRequest/reviews';
 import { defaultCommentBody } from '../actions/utils/body/updateBody';
-import type { PullRequestDataMinimumData } from './PullRequestData';
+import type {
+  PullRequestDataMinimumData,
+  PullRequestWithDecentData,
+} from './PullRequestData';
+import { toBasicUser } from './PullRequestData';
+import { fetchPr } from './fetchPr';
+import {
+  createEmptyReviews,
+  groupReviewsWithState,
+} from './groupReviewsWithState';
 import {
   createReviewflowComment,
   findReviewflowComment,
@@ -19,7 +30,7 @@ export interface ReviewflowPrContext {
 }
 
 export const getReviewflowPrContext = async <T extends EventsWithRepository>(
-  pullRequest: PullRequestDataMinimumData,
+  pullRequest: PullRequestDataMinimumData | PullRequestWithDecentData,
   context: ProbotEvent<T>,
   repoContext: RepoContext,
   reviewflowCommentPromise?: ReturnType<typeof createReviewflowComment>,
@@ -34,6 +45,13 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
       repo: repoContext.repoEmbed,
       pr: prEmbed,
       commentId: comment.id,
+      title: 'title' in pullRequest ? pullRequest.title : 'Unknown Title',
+      isDraft: 'draft' in pullRequest && pullRequest.draft === true,
+      reviews: createEmptyReviews(),
+      assignees:
+        'assignees' in pullRequest && pullRequest.assignees
+          ? pullRequest.assignees.map(toBasicUser)
+          : [],
     });
     return { reviewflowPr, commentBody: comment.body! };
   }
@@ -43,13 +61,40 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
     'repo.id': repoContext.repoEmbed.id,
     'pr.number': prEmbed.number,
   });
-  const comment = existing
-    ? await getReviewflowCommentById(
-        pullRequest.number,
-        context,
-        existing.commentId,
-      )
-    : await findReviewflowComment(pullRequest.number, context);
+
+  const [comment, reviewersWithState] = existing
+    ? await Promise.all([
+        getReviewflowCommentById(
+          pullRequest.number,
+          context,
+          existing.commentId,
+        ),
+      ])
+    : await Promise.all([
+        findReviewflowComment(pullRequest.number, context),
+        getReviewersWithState(
+          context,
+          'assignees' in pullRequest
+            ? pullRequest
+            : await fetchPr(context, pullRequest.number),
+        ),
+      ]);
+
+  const createReviewflowPr = (
+    commentId: number,
+  ): MongoInsertType<ReviewflowPr> => ({
+    account: repoContext.accountEmbed,
+    repo: repoContext.repoEmbed,
+    pr: prEmbed,
+    title: 'title' in pullRequest ? pullRequest.title : 'Unknown Title',
+    isDraft: 'draft' in pullRequest && pullRequest.draft === true,
+    commentId,
+    reviews: groupReviewsWithState(reviewersWithState!),
+    assignees:
+      'assignees' in pullRequest && pullRequest.assignees
+        ? pullRequest.assignees.map(toBasicUser)
+        : [],
+  });
 
   if (!comment) {
     const newComment = await createReviewflowComment(
@@ -59,12 +104,9 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
     );
 
     if (!existing) {
-      const reviewflowPr = await appContext.mongoStores.prs.insertOne({
-        account: repoContext.accountEmbed,
-        repo: repoContext.repoEmbed,
-        pr: prEmbed,
-        commentId: newComment.id,
-      });
+      const reviewflowPr = await appContext.mongoStores.prs.insertOne(
+        createReviewflowPr(newComment.id),
+      );
       return { reviewflowPr, commentBody: newComment.body! };
     } else {
       await appContext.mongoStores.prs.partialUpdateByKey(existing._id, {
@@ -73,12 +115,9 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
       return { reviewflowPr: existing, commentBody: newComment.body! };
     }
   } else if (!existing) {
-    const reviewflowPr = await appContext.mongoStores.prs.insertOne({
-      account: repoContext.accountEmbed,
-      repo: repoContext.repoEmbed,
-      pr: prEmbed,
-      commentId: comment.id,
-    });
+    const reviewflowPr = await appContext.mongoStores.prs.insertOne(
+      createReviewflowPr(comment.id),
+    );
     return { reviewflowPr, commentBody: comment.body! };
   }
 

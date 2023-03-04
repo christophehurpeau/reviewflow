@@ -32,7 +32,7 @@ const lateOceanColorPalette = {
   moonPurpleLight1: '#EDEBFC',
 };
 
-const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
+const config: Config<'ops' | 'frontends' | 'backends'> = {
   autoAssignToCreator: true,
   trimTitle: true,
   ignoreRepoPattern: '(infra-.*|devenv|bigquery-dbt)',
@@ -217,73 +217,20 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
 
   botUsers: ['michael-robot'],
 
-  groups: {
-    dev: {},
-    design: {},
-  },
-
-  groupsGithubTeams: {
-    dev: [
-      'ops',
-      'dev',
-      'backend',
-      'frontend',
-      'frontend-architects',
-      'external-bam',
-      'external-padok',
-      'data-engineering',
-    ],
-    design: ['design'],
-  },
-
   teams: {
     ops: {
       githubTeamName: 'ops',
-      logins: ['JulienBreux', 'TheR3aLp3nGuinJM', 'AymenBac'],
-      labels: ['teams/ops'],
     },
 
     backends: {
       githubTeamName: 'backend',
-      logins: [
-        'abarreir',
-        'arthurflachs',
-        'damienorny',
-        'Thierry-girod',
-        'darame07',
-        'Pixy',
-        'machartier',
-        'camillebaronnet',
-        'olivier-martinez',
-        'tnesztler',
-      ],
-      labels: ['teams/backend'],
     },
 
     frontends: {
       githubTeamName: 'frontend',
-      logins: [
-        'christophehurpeau',
-        'HugoGarrido',
-        'LentnerStefan',
-        'CorentinAndre',
-        'Mxime',
-        'vlbr',
-        'budet-b',
-        'mdcarter',
-        'ChibiBlasphem',
-        'PSniezak',
-        'aenario',
-        'Goldiggy',
-      ],
-      labels: ['teams/frontend'],
     },
   },
 
-  waitForGroups: {
-    dev: [],
-    design: ['dev'],
-  },
   labels: {
     legacyToRemove: {
       /* checks */
@@ -299,8 +246,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         name: ':green_heart: checks/passed',
         color: githubPalette.successEmphasis,
       },
-    },
-    list: {
+
       /* code */
       'code/needs-review': {
         name: ':ok_hand: code/needs-review',
@@ -349,6 +295,13 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       'teams/frontend': {
         name: 'frontend',
         color: lateOceanColorPalette.lateOcean,
+      },
+    },
+    list: {
+      /* auto approve */
+      'review/auto-approve': {
+        name: ':white_check_mark: bot approval',
+        color: githubPalette.successEmphasis,
       },
 
       /* auto merge */
@@ -420,21 +373,6 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         name: 'wontfix',
         description: 'This will not be worked on',
         color: lateOceanColorPalette.moonPurple,
-      },
-    },
-
-    review: {
-      dev: {
-        needsReview: 'code/needs-review',
-        requested: 'code/review-requested',
-        changesRequested: 'code/changes-requested',
-        approved: 'code/approved',
-      },
-      design: {
-        needsReview: 'design/needs-review',
-        requested: 'design/review-requested',
-        changesRequested: 'design/changes-requested',
-        approved: 'design/approved',
       },
     },
   },

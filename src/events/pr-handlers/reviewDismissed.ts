@@ -2,14 +2,11 @@ import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
 import { checkIfIsThisBot } from '../../utils/github/isBotUser';
+import { getReviewersWithState } from '../../utils/github/pullRequest/reviews';
 import { autoApproveAndAutoMerge } from './actions/autoApproveAndAutoMerge';
-import { updateCommentBodyProgressFromStepsState } from './actions/updateCommentBodyProgressFromStepsState';
-import { updateReviewStatus } from './actions/updateReviewStatus';
-import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
-import { calcStepsState } from './actions/utils/steps/calcStepsState';
+import { updateAfterReviewChange } from './actions/updateAfterReviewChange';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
-import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 
 export default function reviewDismissed(
   app: Probot,
@@ -42,98 +39,33 @@ export default function reviewDismissed(
         return;
       }
 
-      const reviewerGroup = repoContext.getReviewerGroup(reviewer.login);
-
       if (
         /* repo is not ignored */
-        reviewflowPrContext &&
-        reviewerGroup &&
-        repoContext.config.labels.review[reviewerGroup]
+        reviewflowPrContext
       ) {
-        const updatedPr = await fetchPr(context, pullRequest.number);
+        const [updatedPr, reviewersWithState] = await Promise.all([
+          fetchPr(context, pullRequest.number),
+          getReviewersWithState(context, pullRequest),
+        ]);
 
-        const { reviewStates } = await getReviewersAndReviewStates(
-          context,
-          repoContext,
-        );
-
-        const hasChangesRequestedInReviews =
-          reviewStates[reviewerGroup].changesRequested !== 0;
-        const hasApprovals = reviewStates[reviewerGroup].approved !== 0;
-        const hasRequestedReviewsForGroup = repoContext.approveShouldWait(
-          reviewerGroup,
-          updatedPr,
-          { includesReviewerGroup: true },
-        );
-
-        const newLabels = await updateReviewStatus(
+        await updateAfterReviewChange(
           updatedPr,
           context,
+          appContext,
           repoContext,
-          [
-            {
-              reviewGroup: reviewerGroup,
-              add: [
-                !hasApprovals && 'needsReview',
-                hasApprovals &&
-                  !hasRequestedReviewsForGroup &&
-                  !hasChangesRequestedInReviews &&
-                  'approved',
-              ],
-              remove: [
-                !hasRequestedReviewsForGroup &&
-                  !hasChangesRequestedInReviews &&
-                  'requested',
-                !hasChangesRequestedInReviews && 'changesRequested',
-                !hasApprovals && 'approved',
-              ],
-            },
-          ],
+          reviewflowPrContext,
+          reviewersWithState,
         );
-
-        if (newLabels !== pullRequest.labels) {
-          const stepsState = calcStepsState({
-            repoContext,
-            pullRequest,
-            reviewflowPrContext,
-            labels: newLabels,
-          });
-
-          await Promise.all([
-            updateStatusCheckFromStepsState(
-              stepsState,
-              pullRequest,
-              context,
-              repoContext,
-              appContext,
-              reviewflowPrContext,
-            ),
-            updateCommentBodyProgressFromStepsState(
-              stepsState,
-              context,
-              reviewflowPrContext,
-            ),
-          ]);
-        }
-
-        if (updatedPr.assignees) {
-          updatedPr.assignees.forEach((assignee) => {
-            if (assignee) {
-              repoContext.slack.updateHome(assignee.login);
-            }
-          });
-        }
-        if (
-          !updatedPr.assignees ||
-          !updatedPr.assignees.some(
-            (assignee) => assignee && assignee.login === reviewer.login,
-          )
-        ) {
-          repoContext.slack.updateHome(reviewer.login);
-        }
       }
 
       if (repoContext.slack) {
+        if (pullRequest.assignees) {
+          pullRequest.assignees.forEach((assignee) => {
+            repoContext.slack.updateHome(assignee.login);
+          });
+        }
+        repoContext.slack.updateHome(reviewer.login);
+
         if (sender.login === reviewer.login) {
           pullRequest.assignees.forEach((assignee) => {
             repoContext.slack.postMessage('pr-review', assignee, {

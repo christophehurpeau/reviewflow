@@ -28,10 +28,10 @@ export const getLabelsForRepo = async <T extends EmitterWebhookEventName>(
 
 export const initRepoLabels = async <
   T extends EmitterWebhookEventName,
-  GroupNames extends string,
+  TeamNames extends string,
 >(
   context: ProbotEvent<T>,
-  config: Config<GroupNames>,
+  config: Config<TeamNames>,
 ): Promise<LabelsRecord> => {
   const labels = await getLabelsForRepo<T>(context);
   const finalLabels: Record<string, LabelResponse> = {};

@@ -34,3 +34,18 @@ export type PullRequestWithDecentData =
 export type PullRequestLabels =
   | PullRequestWithDecentData['labels']
   | LabelResponse[];
+
+export interface BasicUser {
+  id: number;
+  login: string;
+  type: 'User' | 'Bot' | string;
+  avatar_url: string;
+}
+export function toBasicUser<U extends BasicUser>(user: U): BasicUser {
+  return {
+    id: user.id,
+    login: user.login,
+    type: user.type,
+    avatar_url: user.avatar_url,
+  };
+}

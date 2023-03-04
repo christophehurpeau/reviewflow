@@ -24,29 +24,22 @@ export default function reopened(app: Probot, appContext: AppContext): void {
       repoContext,
       reviewflowPrContext,
     ): Promise<void> => {
-      const fromRenovate = pullRequest.head.ref.startsWith('renovate/');
       /* if repo is not ignored */
       if (reviewflowPrContext) {
-        const newLabels = await updateReviewStatus(
-          pullRequest,
-          context,
-          repoContext,
-          [
-            {
-              reviewGroup: 'dev',
-              add: fromRenovate || pullRequest.draft ? [] : ['needsReview'],
-              remove: fromRenovate ? [] : ['approved'],
-            },
-          ],
-        );
         const stepsState = calcStepsState({
           repoContext,
           pullRequest,
           reviewflowPrContext,
-          labels: newLabels,
         });
 
         await Promise.all([
+          appContext.mongoStores.prs.partialUpdateOne(
+            reviewflowPrContext.reviewflowPr,
+            {
+              $set: { isDraft: pullRequest.draft === true },
+            },
+          ),
+          updateReviewStatus(pullRequest, context, repoContext, stepsState),
           updateStatusCheckFromStepsState(
             stepsState,
             pullRequest,
@@ -57,7 +50,6 @@ export default function reopened(app: Probot, appContext: AppContext): void {
           ),
           editOpenedPR({
             pullRequest,
-            pullRequestLabels: newLabels,
             context,
             appContext,
             repoContext,
@@ -93,10 +85,7 @@ export default function reopened(app: Probot, appContext: AppContext): void {
       }
 
       /* send notifications to assignees and followers */
-      const { reviewers } = await getReviewersAndReviewStates(
-        context,
-        repoContext,
-      );
+      const { reviewers } = await getReviewersAndReviewStates(context);
       const { owner, assignees, followers } =
         getRolesFromPullRequestAndReviewers(pullRequest, reviewers);
 

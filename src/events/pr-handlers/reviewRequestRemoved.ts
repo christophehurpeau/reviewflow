@@ -1,14 +1,10 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
-import { autoMergeIfPossible } from './actions/autoMergeIfPossible';
-import { updateCommentBodyProgressFromStepsState } from './actions/updateCommentBodyProgressFromStepsState';
-import { updateReviewStatus } from './actions/updateReviewStatus';
-import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
-import { calcStepsState } from './actions/utils/steps/calcStepsState';
+import { getReviewersWithState } from '../../utils/github/pullRequest/reviews';
+import { updateAfterReviewChange } from './actions/updateAfterReviewChange';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
-import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 
 export default function reviewRequestRemoved(
   app: Probot,
@@ -31,119 +27,38 @@ export default function reviewRequestRemoved(
       const requestedReviewers = requestedReviewer
         ? [requestedReviewer]
         : await repoContext.getMembersForTeams([requestedTeam.id]);
-      let isMerged = false;
+      const isMerged = false;
 
-      const reviewerGroup = requestedReviewer
-        ? repoContext.getReviewerGroup(requestedReviewer.login)
-        : repoContext.getTeamGroup(requestedTeam.name);
+      if (reviewflowPrContext && !repoContext.shouldIgnore) {
+        const [updatedPr, reviewersWithState] = await Promise.all([
+          fetchPr(context, pullRequest.number),
+          getReviewersWithState(context, pullRequest),
+        ]);
 
-      if (
-        reviewflowPrContext &&
-        !repoContext.shouldIgnore &&
-        reviewerGroup &&
-        repoContext.config.labels.review[reviewerGroup]
-      ) {
-        const updatedPr = await fetchPr(context, pullRequest.number);
-        const hasRequestedReviewsForGroup = repoContext.approveShouldWait(
-          reviewerGroup,
-          updatedPr,
-          {
-            includesReviewerGroup: true,
-          },
-        );
-
-        const { reviewStates } = await getReviewersAndReviewStates(
-          context,
-          repoContext,
-        );
-
-        const hasChangesRequestedInReviews =
-          reviewStates[reviewerGroup].changesRequested !== 0;
-
-        const hasApprovedInReviews = reviewStates[reviewerGroup].approved !== 0;
-
-        const approved =
-          !hasRequestedReviewsForGroup &&
-          !hasChangesRequestedInReviews &&
-          hasApprovedInReviews;
-
-        const newLabels = await updateReviewStatus(
+        await updateAfterReviewChange(
           updatedPr,
           context,
+          appContext,
           repoContext,
-          [
-            {
-              reviewGroup: reviewerGroup,
-              add: [
-                // if changes requested by the one which requests was removed (should still be in changed requested anyway, but we never know)
-                hasChangesRequestedInReviews && 'changesRequested',
-                // if was already approved by another member in the group and has no other requests waiting
-                approved && 'approved',
-              ],
-              // remove labels if has no other requests waiting
-              remove: [
-                approved && 'needsReview',
-                !hasRequestedReviewsForGroup && 'requested',
-                pullRequest.draft &&
-                !hasRequestedReviewsForGroup &&
-                !hasChangesRequestedInReviews
-                  ? 'needsReview'
-                  : undefined,
-              ],
-            },
-          ],
+          reviewflowPrContext,
+          reviewersWithState,
         );
+      }
 
-        if (newLabels !== pullRequest.labels) {
-          const stepsState = calcStepsState({
-            repoContext,
-            pullRequest,
-            reviewflowPrContext,
-            labels: newLabels,
-          });
+      // don't send notification when PR is still in draft. Notifications will be send when the PR is ready to review.
+      if (pullRequest.draft) return;
 
-          await Promise.all([
-            updateStatusCheckFromStepsState(
-              stepsState,
-              pullRequest,
-              context,
-              repoContext,
-              appContext,
-              reviewflowPrContext,
-            ),
-            updateCommentBodyProgressFromStepsState(
-              stepsState,
-              context,
-              reviewflowPrContext,
-            ),
-          ]);
-        }
-
-        if (approved && !hasChangesRequestedInReviews) {
-          isMerged = await autoMergeIfPossible(
-            updatedPr,
-            context,
-            repoContext,
-            reviewflowPrContext,
-            newLabels,
-          );
-        }
-
-        const assigneesLogins: string[] = [];
+      if (repoContext.slack) {
         if (pullRequest.assignees) {
           pullRequest.assignees.forEach((assignee) => {
-            assigneesLogins.push(assignee.login);
             repoContext.slack.updateHome(assignee.login);
           });
         }
 
         requestedReviewers.forEach((potentialReviewer) => {
-          if (assigneesLogins.includes(potentialReviewer)) return;
           repoContext.slack.updateHome(potentialReviewer.login);
         });
-      }
 
-      if (repoContext.slack) {
         if (requestedReviewers.some((rr) => rr.login === sender.login)) {
           requestedReviewers.forEach((potentialReviewer) => {
             if (potentialReviewer.login === sender.login) return;
