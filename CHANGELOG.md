@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.121.0](https://github.com/christophehurpeau/reviewflow/compare/v1.120.0...v1.121.0) (2023-03-04)
+
+
+### Features
+
+* make labels optional, remove groups ([94e7201](https://github.com/christophehurpeau/reviewflow/commit/94e7201162befe7546cffb98baed58849e43601c))
+* pass automerge from github to stable ([10c2611](https://github.com/christophehurpeau/reviewflow/commit/10c26112b23eaca1e6ba6ef7d0da160444c01aee))
+
+
+### Bug Fixes
+
+* **deps:** update commitlint monorepo to v17.4.4 ([#663](https://github.com/christophehurpeau/reviewflow/issues/663)) ([7ee607a](https://github.com/christophehurpeau/reviewflow/commit/7ee607ac2ba4699cc3d197a506b553980ea540c0))
+* **deps:** update dependency @slack/web-api to v6.8.1 ([#664](https://github.com/christophehurpeau/reviewflow/issues/664)) ([d62e8aa](https://github.com/christophehurpeau/reviewflow/commit/d62e8aa23f6cdebd80f8708cdf0d1915c860a81f))
+
 ## [1.120.0](https://github.com/christophehurpeau/reviewflow/compare/v1.119.1...v1.120.0) (2023-02-24)
 
 
