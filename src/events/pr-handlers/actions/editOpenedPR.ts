@@ -255,6 +255,7 @@ export const editOpenedPR = async <
               headSha: pullRequest.head.sha,
               title,
               isDraft: pullRequest.draft === true,
+              isClosed: !!pullRequest.closed_at,
               checksConclusion: checksAndStatuses.checksConclusionRecord,
               statusesConclusion: checksAndStatuses.statusesConclusionRecord,
               ...(reviews ? { reviews } : {}),

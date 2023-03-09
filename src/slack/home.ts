@@ -37,6 +37,7 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
         {
           'account.id': member.org.id,
           'assignees.id': member.user.id,
+          isClosed: false,
           'reviews.reviewRequested': { $exists: true, $eq: [] },
           'reviews.changesRequested': { $exists: true, $eq: [] },
           'reviews.approved': { $exists: true, $ne: [] },

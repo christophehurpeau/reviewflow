@@ -46,6 +46,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
       pr: prEmbed,
       commentId: comment.id,
       title: 'title' in pullRequest ? pullRequest.title : 'Unknown Title',
+      isClosed: 'closed_at' in pullRequest ? !!pullRequest.closed_at : false,
       isDraft: 'draft' in pullRequest && pullRequest.draft === true,
       reviews: createEmptyReviews(),
       assignees:
@@ -87,6 +88,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
     repo: repoContext.repoEmbed,
     pr: prEmbed,
     title: 'title' in pullRequest ? pullRequest.title : 'Unknown Title',
+    isClosed: 'closed_at' in pullRequest ? !!pullRequest.closed_at : false,
     isDraft: 'draft' in pullRequest && pullRequest.draft === true,
     commentId,
     reviews: groupReviewsWithState(reviewersWithState!),

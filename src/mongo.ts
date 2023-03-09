@@ -164,6 +164,7 @@ export interface ReviewflowPr extends MongoBaseModel {
   headSha?: string;
   title: string;
   isDraft: boolean;
+  isClosed: boolean;
   lastLintStatusesCommit?: string;
   lintStatuses?: ReviewflowStatus[];
   lastFlowStatusCommit?: string;

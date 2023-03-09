@@ -29,6 +29,15 @@ export default function closed(app: Probot, appContext: AppContext): void {
           reviewflowPrContext,
         });
 
+        const updateClosedPromise = appContext.mongoStores.prs.partialUpdateOne(
+          reviewflowPrContext.reviewflowPr,
+          {
+            $set: {
+              isClosed: true,
+            },
+          },
+        );
+
         if ((pullRequest as any).merged) {
           const isNotFork = pullRequest.head.repo.id === repo.id;
           const options = parseOptions(
@@ -37,6 +46,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
           );
 
           await Promise.all([
+            updateClosedPromise,
             repoContext.removePrFromAutomergeQueue(
               context,
               pullRequest,
@@ -57,6 +67,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
           ]);
         } else {
           await Promise.all([
+            updateClosedPromise,
             repoContext.removePrFromAutomergeQueue(
               context,
               pullRequest,
