@@ -301,6 +301,8 @@ const config: Config<'ops' | 'frontends' | 'backends'> = {
       /* auto approve */
       'review/auto-approve': {
         name: ':white_check_mark: bot approval',
+        description:
+          'Adding this label will trigger reviewflow approval for PRs opened by bots',
         color: githubPalette.successEmphasis,
       },
 
