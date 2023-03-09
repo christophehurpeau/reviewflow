@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.122.0](https://github.com/christophehurpeau/reviewflow/compare/v1.121.0...v1.122.0) (2023-03-09)
+
+
+### Features
+
+* add description for review/auto-approve ([7f4b235](https://github.com/christophehurpeau/reviewflow/commit/7f4b2354d41fe8f8e9fee93335ff5dd06bbac9ce))
+
+
+### Bug Fixes
+
+* fix merged pr still marked as prs to merge ([087a0e7](https://github.com/christophehurpeau/reviewflow/commit/087a0e7ac2c428bfe99372e76d4e467058343dbb))
+
 ## [1.121.0](https://github.com/christophehurpeau/reviewflow/compare/v1.120.0...v1.121.0) (2023-03-04)
 
 
