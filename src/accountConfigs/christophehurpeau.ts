@@ -12,6 +12,7 @@ const config: Config<never> = {
   },
   experimentalFeatures: {
     lintPullRequestTitleWithConventionalCommit: true,
+    conventionalCommitBangBreakingChange: true,
   },
   teams: {},
   labels: {

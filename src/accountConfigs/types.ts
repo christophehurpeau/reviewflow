@@ -63,6 +63,7 @@ export interface LabelsConfig {
 
 interface ExperimentalFeatures {
   lintPullRequestTitleWithConventionalCommit?: true;
+  conventionalCommitBangBreakingChange?: true;
 }
 
 interface WarnOnForcePushAfterReviewStarted {

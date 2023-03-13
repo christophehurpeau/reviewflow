@@ -27,5 +27,7 @@ export const parseCommitMessage = (
 export const lintCommitMessage = (
   message: string,
 ): ReturnType<typeof commitlintLint> => {
-  return commitlintLint(message, commitlintConventialConfig.rules);
+  return commitlintLint(message, commitlintConventialConfig.rules, {
+    parserOpts: conventionalCommitsConfig.parserOpts,
+  });
 };
