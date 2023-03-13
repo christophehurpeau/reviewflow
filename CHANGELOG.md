@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.123.0](https://github.com/christophehurpeau/reviewflow/compare/v1.122.0...v1.123.0) (2023-03-13)
+
+
+### Features
+
+* add experimental conventionalCommitBangBreakingChange ([6ad5b1b](https://github.com/christophehurpeau/reviewflow/commit/6ad5b1badaa729187a5730d8b0c1152c514fbf32))
+
 ## [1.122.0](https://github.com/christophehurpeau/reviewflow/compare/v1.121.0...v1.122.0) (2023-03-09)
 
 
