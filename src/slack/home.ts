@@ -163,7 +163,7 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
         createDividerBlock(),
         ...results.flatMap((pr) => {
           const repoName = pr.repo.name;
-          const prFullName = `${repoName}#${pr.pr.id}`;
+          const prFullName = `${repoName}#${pr.pr.number}`;
           const prUrl = buildPullRequestUrl(pr);
 
           return [
