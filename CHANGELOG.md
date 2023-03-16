@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.123.1](https://github.com/christophehurpeau/reviewflow/compare/v1.123.0...v1.123.1) (2023-03-15)
+
+
+### Bug Fixes
+
+* fix displayed number instead of id in slack home ([94a732e](https://github.com/christophehurpeau/reviewflow/commit/94a732e90a688cec1d5bbb0d002db16ab65f0973))
+
 ## [1.123.0](https://github.com/christophehurpeau/reviewflow/compare/v1.122.0...v1.123.0) (2023-03-13)
 
 
