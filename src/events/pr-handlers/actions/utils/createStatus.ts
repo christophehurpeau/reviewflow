@@ -1,6 +1,6 @@
-import type { EventsWithRepository } from 'context/repoContext';
-import type { ProbotEvent } from 'events/probot-types';
 import type { StatusInfo } from '../../../../accountConfigs/types';
+import type { EventsWithRepository } from '../../../../context/repoContext';
+import type { ProbotEvent } from '../../../probot-types';
 
 export default async function createStatus<
   EventName extends EventsWithRepository,

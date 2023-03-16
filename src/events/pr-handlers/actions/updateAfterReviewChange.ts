@@ -1,7 +1,7 @@
-import type { AppContext } from 'context/AppContext';
-import type { RepoContext } from 'context/repoContext';
-import type { ProbotEvent } from 'events/probot-types';
+import type { AppContext } from '../../../context/AppContext';
+import type { RepoContext } from '../../../context/repoContext';
 import type { ReviewerWithState } from '../../../utils/github/pullRequest/reviews';
+import type { ProbotEvent } from '../../probot-types';
 import type { PullRequestFromRestEndpoint } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import type { EventsWithPullRequest } from '../utils/createPullRequestHandler';

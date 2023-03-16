@@ -115,7 +115,7 @@ export default function readyForReview(
         const createText = ({
           requestedTeam,
         }: {
-          requestedTeam?: typeof pullRequest.requested_teams[number];
+          requestedTeam?: (typeof pullRequest.requested_teams)[number];
         }): string =>
           `:eyes: ${repoContext.slack.mention(
             sender.login,

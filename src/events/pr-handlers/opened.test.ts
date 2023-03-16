@@ -1,7 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { jest } from '@jest/globals';
 import type { Probot } from 'probot';
-import type { ProbotEvent } from 'events/probot-types';
 import pullRequestOpened from '../../__fixtures__/pull_request_30.opened.json';
 import pullRequestCommits from '../../__fixtures__/pull_request_30_commits.json';
 import { voidTeamSlack } from '../../context/slack/voidTeamSlack';
@@ -11,6 +10,7 @@ import {
   mockLabels,
   nock,
 } from '../../tests/setup';
+import type { ProbotEvent } from '../probot-types';
 import commentBodyV2InitialAfterEditSimple from './actions/utils/body/mocks/commentBody-v2-initialAfterEdit-simpleWithProgress';
 
 jest.unstable_mockModule('../../context/slack/initTeamSlack', () => ({

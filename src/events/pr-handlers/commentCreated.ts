@@ -1,14 +1,14 @@
 import type { RestEndpointMethodTypes } from '@octokit/rest';
 import delay from 'delay';
 import type { Probot, Context } from 'probot';
-import type { AccountInfo } from 'context/getOrCreateAccount';
-import type { MessageCategory } from 'dm/MessageCategory';
 import type { AppContext } from '../../context/AppContext';
+import type { AccountInfo } from '../../context/getOrCreateAccount';
 import type { SlackMessage } from '../../context/slack/SlackMessage';
 import type {
   PostSlackMessageResult,
   SlackMessageResult,
 } from '../../context/slack/TeamSlack';
+import type { MessageCategory } from '../../dm/MessageCategory';
 import type { AccountEmbed } from '../../mongo';
 import * as slackUtils from '../../slack/utils';
 import { ExcludesNullish } from '../../utils/Excludes';

@@ -1,6 +1,6 @@
 import type { Probot } from 'probot';
-import type { ProbotEvent } from 'events/probot-types';
 import type { AppContext } from '../../context/AppContext';
+import type { ProbotEvent } from '../probot-types';
 import { autoMergeIfPossibleLegacy } from './actions/autoMergeIfPossible';
 import {
   mergeOrEnableGithubAutoMerge,

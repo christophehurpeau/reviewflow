@@ -1,6 +1,6 @@
 import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
-import type { BasicUser } from 'events/pr-handlers/utils/PullRequestData';
 import type { RepoContext } from '../../context/repoContext';
+import type { BasicUser } from '../../events/pr-handlers/utils/PullRequestData';
 
 export const checkIfUserIsBot = (
   repoContext: RepoContext,

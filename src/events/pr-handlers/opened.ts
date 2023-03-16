@@ -1,5 +1,5 @@
 import type { Probot } from 'probot';
-import type { AppContext } from 'context/AppContext';
+import type { AppContext } from '../../context/AppContext';
 import { checkIfUserIsBot } from '../../utils/github/isBotUser';
 import { getChecksAndStatusesForPullRequest } from '../../utils/github/pullRequest/checksAndStatuses';
 import { autoAssignPRToCreator } from './actions/autoAssignPRToCreator';

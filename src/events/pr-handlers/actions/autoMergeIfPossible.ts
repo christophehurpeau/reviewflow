@@ -1,8 +1,11 @@
-import type { EventsWithRepository, RepoContext } from 'context/repoContext';
-import type { ProbotEvent } from 'events/probot-types';
-import type { AutomergeLog } from 'mongo';
+import type {
+  EventsWithRepository,
+  RepoContext,
+} from '../../../context/repoContext';
+import type { AutomergeLog } from '../../../mongo';
 import { areCommitsAllMadeByBots } from '../../../utils/github/isBotUser';
 import { getChecksAndStatusesForPullRequest } from '../../../utils/github/pullRequest/checksAndStatuses';
+import type { ProbotEvent } from '../../probot-types';
 import type {
   PullRequestFromRestEndpoint,
   PullRequestLabels,
@@ -105,7 +108,7 @@ export const autoMergeIfPossibleLegacy = async <
   ): void => {
     const repoFullName = repo.full_name;
     context.log.info(`automerge: ${repoFullName}#${pullRequest.id} ${type}`);
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+
     repoContext.appContext.mongoStores.automergeLogs.insertOne({
       account: repoContext.accountEmbed,
       repoFullName,

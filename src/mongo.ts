@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import type { MongoBaseModel } from 'liwi-mongo';
 import { MongoStore, MongoConnection } from 'liwi-mongo';
-import type { BasicUser } from 'events/pr-handlers/utils/PullRequestData';
-import type { ReviewersGroupedByState } from 'events/pr-handlers/utils/groupReviewsWithState';
 import type { AccountInfo } from './context/getOrCreateAccount';
 import type { LockedMergePr } from './context/repoContext';
 import type { SlackMessage } from './context/slack/SlackMessage';
 import type { MessageCategory } from './dm/MessageCategory';
 import type { ReviewflowStatus } from './events/pr-handlers/actions/editOpenedPR';
 import type { RepositorySettings } from './events/pr-handlers/actions/utils/body/repositorySettings';
+import type { BasicUser } from './events/pr-handlers/utils/PullRequestData';
+import type { ReviewersGroupedByState } from './events/pr-handlers/utils/groupReviewsWithState';
 import type { ChecksAndStatuses } from './utils/github/pullRequest/checksAndStatuses';
 
 // export interface PrEventsModel extends MongoModel {

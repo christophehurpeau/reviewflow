@@ -1,6 +1,6 @@
 import type { EmitterWebhookEventName } from '@octokit/webhooks';
-import type { AccountInfo } from 'context/getOrCreateAccount';
-import type { ProbotEvent } from 'events/probot-types';
+import type { AccountInfo } from '../../../context/getOrCreateAccount';
+import type { ProbotEvent } from '../../probot-types';
 
 type ReviewState = 'APPROVED' | 'CHANGES_REQUESTED' | 'DISMISSED';
 

@@ -1,11 +1,11 @@
 import type { EmitterWebhookEventName } from '@octokit/webhooks';
 import type { Probot } from 'probot';
-import type { CustomExtract } from 'context/repoContext';
-import type { ProbotEvent } from 'events/probot-types';
 import { accountConfigs, defaultConfig } from '../../../accountConfigs';
 import type { AppContext } from '../../../context/AppContext';
 import type { AccountContext } from '../../../context/accountContext';
 import { obtainAccountContext } from '../../../context/accountContext';
+import type { CustomExtract } from '../../../context/repoContext';
+import type { ProbotEvent } from '../../probot-types';
 
 export type EventsWithOrganisation = CustomExtract<
   EmitterWebhookEventName,

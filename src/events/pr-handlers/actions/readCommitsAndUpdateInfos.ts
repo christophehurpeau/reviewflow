@@ -1,7 +1,10 @@
 import type { CommitNote } from '@commitlint/types';
 import type { RestEndpointMethodTypes } from '@octokit/rest';
-import type { EventsWithRepository, RepoContext } from 'context/repoContext';
-import type { ProbotEvent } from 'events/probot-types';
+import type {
+  EventsWithRepository,
+  RepoContext,
+} from '../../../context/repoContext';
+import type { ProbotEvent } from '../../probot-types';
 import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { updatePrIfNeeded } from './updatePr';

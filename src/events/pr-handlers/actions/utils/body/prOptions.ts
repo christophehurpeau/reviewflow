@@ -1,5 +1,5 @@
-import type { RepoContext } from 'context/repoContext';
-import type { PullRequestLabels } from 'events/pr-handlers/utils/PullRequestData';
+import type { RepoContext } from '../../../../../context/repoContext';
+import type { PullRequestLabels } from '../../../utils/PullRequestData';
 import hasLabelInPR from '../labels/hasLabelInPR';
 import type { RepositorySettings } from './repositorySettings';
 

@@ -1,7 +1,7 @@
-import type { AccountInfo } from 'context/getOrCreateAccount';
-import type { EventsWithRepository } from 'context/repoContext';
-import type { PullRequestWithDecentData } from 'events/pr-handlers/utils/PullRequestData';
-import type { ProbotEvent } from 'events/probot-types';
+import type { AccountInfo } from '../../../context/getOrCreateAccount';
+import type { EventsWithRepository } from '../../../context/repoContext';
+import type { PullRequestWithDecentData } from '../../../events/pr-handlers/utils/PullRequestData';
+import type { ProbotEvent } from '../../../events/probot-types';
 
 type ReviewState =
   | 'REVIEW_REQUESTED'

@@ -1,8 +1,11 @@
-import type { AppContext } from 'context/AppContext';
-import type { EventsWithRepository, RepoContext } from 'context/repoContext';
-import type { ProbotEvent } from 'events/probot-types';
 import type { StatusInfo } from '../../../accountConfigs/types';
+import type { AppContext } from '../../../context/AppContext';
+import type {
+  EventsWithRepository,
+  RepoContext,
+} from '../../../context/repoContext';
 import { ExcludesFalsy } from '../../../utils/Excludes';
+import type { ProbotEvent } from '../../probot-types';
 import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { getFailedOrWaitingChecksAndStatuses } from '../utils/getFailedOrWaitingChecksAndStatuses';

@@ -1,6 +1,6 @@
-import type { RepoContext } from 'context/repoContext';
-import type { ReviewflowPrContext } from 'events/pr-handlers/utils/createPullRequestContext';
+import type { RepoContext } from '../../../../../context/repoContext';
 import type { PullRequestWithDecentData } from '../../../utils/PullRequestData';
+import type { ReviewflowPrContext } from '../../../utils/createPullRequestContext';
 
 export type StepState = 'not-started' | 'in-progress' | 'failed' | 'passed';
 

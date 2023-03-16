@@ -1,5 +1,5 @@
-import type { ProbotEvent } from 'events/probot-types';
 import { ExpectedError } from '../../../ExpectedError';
+import type { ProbotEvent } from '../../probot-types';
 import type {
   EventsWithIssue,
   EventsWithPullRequest,

@@ -1,6 +1,9 @@
-import type { EventsWithRepository, RepoContext } from 'context/repoContext';
-import type { ProbotEvent } from 'events/probot-types';
 import type { ReviewLabels } from '../../../accountConfigs/types';
+import type {
+  EventsWithRepository,
+  RepoContext,
+} from '../../../context/repoContext';
+import type { ProbotEvent } from '../../probot-types';
 import type {
   PullRequestLabels,
   PullRequestWithDecentData,

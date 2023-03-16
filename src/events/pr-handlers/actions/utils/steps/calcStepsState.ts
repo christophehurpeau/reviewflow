@@ -1,6 +1,6 @@
-import type { RepoContext } from 'context/repoContext';
-import type { PullRequestWithDecentData } from 'events/pr-handlers/utils/PullRequestData';
-import type { ReviewflowPrContext } from 'events/pr-handlers/utils/createPullRequestContext';
+import type { RepoContext } from '../../../../../context/repoContext';
+import type { PullRequestWithDecentData } from '../../../utils/PullRequestData';
+import type { ReviewflowPrContext } from '../../../utils/createPullRequestContext';
 import type { ChecksStepState } from './checksStep';
 import { calcChecksStep } from './checksStep';
 import type { CodeReviewStepState } from './codeReviewStep';

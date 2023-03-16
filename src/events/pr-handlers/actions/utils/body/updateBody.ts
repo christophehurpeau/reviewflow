@@ -1,4 +1,7 @@
-import type { LabelList, StatusInfo } from 'accountConfigs/types';
+import type {
+  LabelList,
+  StatusInfo,
+} from '../../../../../accountConfigs/types';
 import type { StepState } from '../steps/BaseStepState';
 import { steps } from '../steps/calcStepsState';
 import type { StepsState } from '../steps/calcStepsState';

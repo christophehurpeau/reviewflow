@@ -1,4 +1,4 @@
-import type { AccountInfo } from 'context/getOrCreateAccount';
+import type { AccountInfo } from '../../../context/getOrCreateAccount';
 import type { PullRequestWithDecentDataFromWebhook } from './PullRequestData';
 import type { Reviewer } from './getReviewersAndReviewStates';
 

@@ -1,8 +1,11 @@
 import type { MongoInsertType } from 'liwi-mongo';
-import type { EventsWithRepository, RepoContext } from 'context/repoContext';
-import type { ProbotEvent } from 'events/probot-types';
-import type { ReviewflowPr } from 'mongo';
+import type {
+  EventsWithRepository,
+  RepoContext,
+} from '../../../context/repoContext';
+import type { ReviewflowPr } from '../../../mongo';
 import { getReviewersWithState } from '../../../utils/github/pullRequest/reviews';
+import type { ProbotEvent } from '../../probot-types';
 import { defaultCommentBody } from '../actions/utils/body/updateBody';
 import type {
   PullRequestDataMinimumData,

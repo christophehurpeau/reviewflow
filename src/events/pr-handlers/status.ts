@@ -1,7 +1,7 @@
 import type { Probot } from 'probot';
-import type { ProbotEvent } from 'events/probot-types';
 import type { AppContext } from '../../context/AppContext';
 import type { LockedMergePr } from '../../context/repoContext';
+import type { ProbotEvent } from '../probot-types';
 import { calcAndUpdateLabels } from './actions/calcAndUpdateLabels';
 import type { PullRequestDataMinimumData } from './utils/PullRequestData';
 import { createPullRequestsHandler } from './utils/createPullRequestHandler';

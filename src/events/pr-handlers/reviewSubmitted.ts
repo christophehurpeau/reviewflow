@@ -1,9 +1,9 @@
 import type { Probot } from 'probot';
 import slackifyMarkdown from 'slackify-markdown';
-import type { SlackMessage } from 'context/slack/SlackMessage';
-import type { PostSlackMessageResult } from 'context/slack/TeamSlack';
-import type { AccountEmbed } from 'mongo';
 import type { AppContext } from '../../context/AppContext';
+import type { SlackMessage } from '../../context/slack/SlackMessage';
+import type { PostSlackMessageResult } from '../../context/slack/TeamSlack';
+import type { AccountEmbed } from '../../mongo';
 import * as slackUtils from '../../slack/utils';
 import { ExcludesNullish } from '../../utils/Excludes';
 import { getReviewersWithState } from '../../utils/github/pullRequest/reviews';

@@ -1,6 +1,6 @@
 import type { Probot } from 'probot';
-import type { AccountInfo } from 'context/getOrCreateAccount';
 import type { AppContext } from '../../context/AppContext';
+import type { AccountInfo } from '../../context/getOrCreateAccount';
 import * as slackUtils from '../../slack/utils';
 import { updateCommentBodyProgressFromStepsState } from './actions/updateCommentBodyProgressFromStepsState';
 import { updateReviewStatus } from './actions/updateReviewStatus';

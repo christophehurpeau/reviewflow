@@ -1,6 +1,9 @@
-import type { LabelResponse } from 'context/initRepoLabels';
-import type { CustomExtract, EventsWithRepository } from 'context/repoContext';
-import type { ProbotEvent } from 'events/probot-types';
+import type { LabelResponse } from '../../../context/initRepoLabels';
+import type {
+  CustomExtract,
+  EventsWithRepository,
+} from '../../../context/repoContext';
+import type { ProbotEvent } from '../../probot-types';
 import type { EventsWithPullRequest } from './createPullRequestHandler';
 import type { PullRequestFromRestEndpoint } from './fetchPr';
 

@@ -1,5 +1,5 @@
-import type { CommonOctokitInterface } from 'octokit';
 import type { MongoStores, Org } from '../../../mongo';
+import type { CommonOctokitInterface } from '../../../octokit';
 
 interface OrgInfo {
   login: string;

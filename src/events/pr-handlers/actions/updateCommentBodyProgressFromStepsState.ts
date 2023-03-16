@@ -1,4 +1,4 @@
-import type { EventsWithRepository } from 'context/repoContext';
+import type { EventsWithRepository } from '../../../context/repoContext';
 import type { ProbotEvent } from '../../probot-types';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';

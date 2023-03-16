@@ -1,4 +1,7 @@
-import type { EventsWithRepository, RepoContext } from 'context/repoContext';
+import type {
+  EventsWithRepository,
+  RepoContext,
+} from '../../../context/repoContext';
 import { checkIfUserIsBot } from '../../../utils/github/isBotUser';
 import type { AutoMergeRequest } from '../../../utils/github/pullRequest/autoMerge';
 import {

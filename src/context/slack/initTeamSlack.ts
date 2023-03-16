@@ -1,8 +1,8 @@
 import { WebClient } from '@slack/web-api';
-import type { ProbotEvent } from 'events/probot-types';
 import type { Config } from '../../accountConfigs';
 import type { MessageCategory } from '../../dm/MessageCategory';
 import { getUserDmSettings } from '../../dm/getUserDmSettings';
+import type { ProbotEvent } from '../../events/probot-types';
 import type { Org, User, MongoStores } from '../../mongo';
 import type { AppContext } from '../AppContext';
 import type { AccountInfo } from '../getOrCreateAccount';

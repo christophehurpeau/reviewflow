@@ -1,5 +1,8 @@
-import type { EventsWithRepository, RepoContext } from 'context/repoContext';
-import type { ProbotEvent } from 'events/probot-types';
+import type {
+  EventsWithRepository,
+  RepoContext,
+} from '../../../context/repoContext';
+import type { ProbotEvent } from '../../probot-types';
 import type { PullRequestFromRestEndpoint } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { tryToAutomerge } from './tryToAutomerge';

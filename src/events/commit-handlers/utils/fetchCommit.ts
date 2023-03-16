@@ -1,6 +1,6 @@
 import type { RestEndpointMethodTypes } from '@octokit/rest';
 import type { EmitterWebhookEventName } from '@octokit/webhooks';
-import type { ProbotEvent } from 'events/probot-types';
+import type { ProbotEvent } from '../../probot-types';
 
 export type CommitFromRestEndpoint =
   RestEndpointMethodTypes['repos']['getCommit']['response']['data'];

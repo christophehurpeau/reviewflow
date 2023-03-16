@@ -1,5 +1,4 @@
 import type { Probot } from 'probot';
-import type { ProbotEvent } from 'events/probot-types';
 import { catchExceptedErrors } from '../../../ExpectedError';
 import type { AppContext } from '../../../context/AppContext';
 import type {
@@ -8,6 +7,7 @@ import type {
   EventsWithRepository,
 } from '../../../context/repoContext';
 import { obtainRepoContext } from '../../../context/repoContext';
+import type { ProbotEvent } from '../../probot-types';
 import type { PullRequestDataMinimumData } from './PullRequestData';
 import type {
   CreatePrContextOptions,

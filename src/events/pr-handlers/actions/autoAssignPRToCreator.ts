@@ -1,6 +1,6 @@
 import type { EmitterWebhookEventName } from '@octokit/webhooks';
-import type { RepoContext } from 'context/repoContext';
-import type { ProbotEvent } from 'events/probot-types';
+import type { RepoContext } from '../../../context/repoContext';
+import type { ProbotEvent } from '../../probot-types';
 import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 
 export const autoAssignPRToCreator = async <

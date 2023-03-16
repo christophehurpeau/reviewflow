@@ -1,12 +1,15 @@
-import type { EventsWithRepository, RepoContext } from 'context/repoContext';
-import type { ProbotEvent } from 'events/probot-types';
-import type { ReviewflowPr } from 'mongo';
 import type { StatusInfo } from '../../../accountConfigs/types';
 import type { AppContext } from '../../../context/AppContext';
+import type {
+  EventsWithRepository,
+  RepoContext,
+} from '../../../context/repoContext';
 import { getKeys } from '../../../context/utils';
+import type { ReviewflowPr } from '../../../mongo';
 import { ExcludesFalsy } from '../../../utils/Excludes';
 import { checkIfUserIsBot } from '../../../utils/github/isBotUser';
 import type { ChecksAndStatuses } from '../../../utils/github/pullRequest/checksAndStatuses';
+import type { ProbotEvent } from '../../probot-types';
 import type {
   PullRequestLabels,
   PullRequestWithDecentData,

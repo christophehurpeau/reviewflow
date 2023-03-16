@@ -1,5 +1,5 @@
 import type { EmitterWebhookEventName } from '@octokit/webhooks';
-import type { ProbotEvent } from 'events/probot-types';
+import type { ProbotEvent } from '../../probot-types';
 import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 
 interface UpdatePr {

@@ -1,5 +1,5 @@
-import type { CIState } from 'events/pr-handlers/utils/getFailedOrWaitingChecksAndStatuses';
 import type { RepoContext } from '../../../../../context/repoContext';
+import type { CIState } from '../../../utils/getFailedOrWaitingChecksAndStatuses';
 import type { LabelToSync } from '../syncLabel';
 
 export const getStateChecksLabelsToSync = <TeamNames extends string>(

@@ -1,7 +1,7 @@
 import type { RestEndpointMethodTypes } from '@octokit/rest';
-import type { EventsWithRepository } from 'context/repoContext';
-import type { ProbotEvent } from 'events/probot-types';
+import type { EventsWithRepository } from '../../../context/repoContext';
 import { checkIfIsThisBot } from '../../../utils/github/isBotUser';
+import type { ProbotEvent } from '../../probot-types';
 import { defaultCommentBody } from '../actions/utils/body/updateBody';
 import type { PullRequestWithDecentDataFromWebhook } from './PullRequestData';
 
