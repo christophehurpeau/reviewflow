@@ -23,7 +23,7 @@ export const updateReviewStatus = async <
 ): Promise<PullRequestLabels> => {
   const getLabelFromKey = (
     key: ReviewLabels,
-  ): undefined | PullRequestLabels[number] => {
+  ): PullRequestLabels[number] | undefined => {
     const reviewConfig = repoContext.config.labels.review;
     if (!reviewConfig) return undefined;
 

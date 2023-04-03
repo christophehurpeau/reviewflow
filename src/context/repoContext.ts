@@ -35,6 +35,21 @@ export type CustomExtract<T, U extends T> = U;
 
 export type EventsWithRepository = CustomExtract<
   EmitterWebhookEventName,
+  | 'check_run.completed'
+  | 'check_run.created'
+  | 'check_run.rerequested'
+  | 'check_suite.completed'
+  | 'commit_comment.created'
+  | 'issue_comment.created'
+  | 'issue_comment.deleted'
+  | 'issue_comment.edited'
+  | 'pull_request_review_comment.created'
+  | 'pull_request_review_comment.deleted'
+  | 'pull_request_review_comment.edited'
+  | 'pull_request_review_comment'
+  | 'pull_request_review.dismissed'
+  | 'pull_request_review.edited'
+  | 'pull_request_review.submitted'
   | 'pull_request.assigned'
   | 'pull_request.auto_merge_disabled'
   | 'pull_request.auto_merge_enabled'
@@ -52,13 +67,6 @@ export type EventsWithRepository = CustomExtract<
   | 'pull_request.unassigned'
   | 'pull_request.unlabeled'
   | 'pull_request.unlocked'
-  | 'pull_request_review.dismissed'
-  | 'pull_request_review.edited'
-  | 'pull_request_review.submitted'
-  | 'pull_request_review_comment'
-  | 'pull_request_review_comment.created'
-  | 'pull_request_review_comment.deleted'
-  | 'pull_request_review_comment.edited'
   | 'push'
   | 'repository.archived'
   | 'repository.created'
@@ -70,23 +78,14 @@ export type EventsWithRepository = CustomExtract<
   | 'repository.transferred'
   | 'repository.unarchived'
   | 'status'
-  | 'issue_comment.created'
-  | 'issue_comment.deleted'
-  | 'issue_comment.edited'
-  | 'commit_comment.created'
+  | 'workflow_run.completed'
+  | 'workflow_run.requested'
   // | 'commit_comment.deleted'
   // | 'commit_comment.edited'
-  | 'check_run.created'
-  | 'check_run.rerequested'
-  | 'check_run.completed'
-  | 'check_suite.completed'
-  | 'workflow_run.requested'
   // | 'workflow_run.in_progress'
-  | 'workflow_run.completed'
-  | 'status'
 >;
 
-type RescheduleTime = 'short' | 'long+timeout';
+type RescheduleTime = 'long+timeout' | 'short';
 
 interface RepoContextWithoutTeamContext {
   appContext: AppContext;

@@ -27,15 +27,15 @@ import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates
 import { getRolesFromPullRequestAndReviewers } from './utils/getRolesFromPullRequestAndReviewers';
 
 type Comment = ProbotEvent<
-  'pull_request_review_comment.created' | 'issue_comment.created'
+  'issue_comment.created' | 'pull_request_review_comment.created'
 >['payload']['comment'];
 
 const getDiscussion = async (
   context: Context,
   comment: Comment,
 ): Promise<
-  | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data']
   | Comment[]
+  | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data']
 > => {
   if (!('in_reply_to_id' in comment) || !comment.in_reply_to_id) {
     return [comment];
@@ -57,8 +57,8 @@ const getDiscussion = async (
 
 const getMentions = (
   discussion:
-    | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data']
-    | Comment[],
+    | Comment[]
+    | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data'],
 ): string[] => {
   const mentions = new Set<string>();
 
@@ -71,8 +71,8 @@ const getMentions = (
 
 const getUsersInThread = (
   discussion:
-    | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data']
-    | Comment[],
+    | Comment[]
+    | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data'],
 ): AccountInfo[] => {
   const userIds = new Set<number>();
   const users: AccountInfo[] = [];
@@ -91,7 +91,7 @@ export default function prCommentCreated(
   appContext: AppContext,
 ): void {
   const saveInDb = async (
-    type: 'review-comment' | 'issue-comment',
+    type: 'issue-comment' | 'review-comment',
     commentId: number,
     accountEmbed: AccountEmbed,
     results: PostSlackMessageResult[],

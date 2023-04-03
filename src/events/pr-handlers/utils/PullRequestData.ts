@@ -11,13 +11,10 @@ export type PullRequestWithDecentDataFromWebhook =
   ProbotEvent<EventsWithPullRequest>['payload']['pull_request'];
 
 export type PullRequestFromWebhook =
-  | PullRequestWithDecentDataFromWebhook
   | ProbotEvent<
       CustomExtract<EventsWithRepository, 'check_run.completed'>
     >['payload']['check_run']['pull_requests'][number]
-  | ProbotEvent<
-      CustomExtract<EventsWithRepository, 'check_suite.completed'>
-    >['payload']['check_suite']['pull_requests'][number];
+  | PullRequestWithDecentDataFromWebhook;
 
 export type { PullRequestFromRestEndpoint } from './fetchPr';
 
@@ -35,13 +32,13 @@ export type PullRequestWithDecentData =
   | PullRequestWithDecentDataFromWebhook;
 
 export type PullRequestLabels =
-  | PullRequestWithDecentData['labels']
-  | LabelResponse[];
+  | LabelResponse[]
+  | PullRequestWithDecentData['labels'];
 
 export interface BasicUser {
   id: number;
   login: string;
-  type: 'User' | 'Bot' | string;
+  type: string | 'Bot' | 'User';
   avatar_url: string;
 }
 export function toBasicUser<U extends BasicUser>(user: U): BasicUser {

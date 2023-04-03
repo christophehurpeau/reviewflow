@@ -8,7 +8,7 @@ import hasLabelInPR from './labels/hasLabelInPR';
 type SyncLabelCallback = (
   prLabels: LabelResponse[],
   // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-) => void | undefined | boolean | Promise<void | undefined | boolean>;
+) => Promise<boolean | undefined | void> | boolean | undefined | void;
 
 interface SyncLabelOptions {
   onRemove?: SyncLabelCallback;

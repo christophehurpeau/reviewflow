@@ -32,7 +32,7 @@ const lateOceanColorPalette = {
   moonPurpleLight1: '#EDEBFC',
 };
 
-const config: Config<'ops' | 'frontends' | 'backends'> = {
+const config: Config<'backends' | 'frontends' | 'ops'> = {
   autoAssignToCreator: true,
   trimTitle: true,
   ignoreRepoPattern: '(infra-.*|devenv|bigquery-dbt)',

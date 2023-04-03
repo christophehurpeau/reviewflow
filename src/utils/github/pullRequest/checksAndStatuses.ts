@@ -8,7 +8,7 @@ export interface ChecksAndStatuses {
     string,
     Pick<
       RestEndpointMethodTypes['checks']['listForRef']['response']['data']['check_runs'][number],
-      'name' | 'conclusion'
+      'conclusion' | 'name'
     >
   >;
   statusesConclusionRecord: Record<
