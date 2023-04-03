@@ -37,7 +37,33 @@ export const mergeOrEnableGithubAutoMerge = async <
     }
   }
 
+  const parsedBody = parseBody(
+    reviewflowPrContext.commentBody,
+    repoContext.config.prDefaultOptions,
+  );
+  const options = parsedBody?.options || repoContext.config.prDefaultOptions;
+
+  const [commitHeadline, commitBody] = createCommitMessage({
+    pullRequest,
+    parsedBody,
+    options,
+  });
+
   if (pullRequest.auto_merge) {
+    if (
+      pullRequest.auto_merge.commit_title !== commitHeadline ||
+      pullRequest.auto_merge.commit_message !== commitBody
+    ) {
+      await disableGithubAutoMergeMutation(context, {
+        pullRequestId: pullRequest.node_id,
+      });
+      await enableGithubAutoMergeMutation(context, {
+        pullRequestId: pullRequest.node_id,
+        mergeMethod: 'SQUASH',
+        commitHeadline,
+        commitBody,
+      });
+    }
     return { enabledBy: pullRequest.auto_merge.enabled_by };
   }
 
@@ -54,18 +80,6 @@ export const mergeOrEnableGithubAutoMerge = async <
     );
     return null;
   }
-
-  const parsedBody = parseBody(
-    reviewflowPrContext.commentBody,
-    repoContext.config.prDefaultOptions,
-  );
-  const options = parsedBody?.options || repoContext.config.prDefaultOptions;
-
-  const [commitHeadline, commitBody] = createCommitMessage({
-    pullRequest,
-    parsedBody,
-    options,
-  });
 
   let triedToMerge = false;
 
