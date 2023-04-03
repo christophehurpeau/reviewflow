@@ -49,7 +49,7 @@ export const getTeams = <TeamNames extends string>(
 };
 
 const initAccountContext = async <
-  EventName extends EventsWithRepository | EventsWithOrganisation,
+  EventName extends EventsWithOrganisation | EventsWithRepository,
 >(
   appContext: AppContext,
   context: ProbotEvent<EventName>,
@@ -186,7 +186,7 @@ export const getExistingAccountContext = (
 };
 
 export const obtainAccountContext = <
-  EventName extends EventsWithRepository | EventsWithOrganisation,
+  EventName extends EventsWithOrganisation | EventsWithRepository,
 >(
   appContext: AppContext,
   context: ProbotEvent<EventName>,

@@ -1,7 +1,7 @@
 import type { RepoContext } from '../../../context/repoContext';
 import type { ChecksAndStatuses } from '../../../utils/github/pullRequest/checksAndStatuses';
 
-export type CIState = 'pending' | 'passed' | 'failed';
+export type CIState = 'failed' | 'passed' | 'pending';
 
 export interface FailedOrWaitingChecksAndStatuses {
   failedChecks: string[];

@@ -27,7 +27,7 @@ export const createCommitHandler = <
     commit: CommitFromRestEndpoint,
     context: ProbotEvent<EventName>,
     repoContext: RepoContext<TeamNames>,
-  ) => void | Promise<void>,
+  ) => Promise<void> | void,
 ): void => {
   app.on(eventName, async (context: ProbotEvent<EventName>) => {
     return catchExceptedErrors(async () => {

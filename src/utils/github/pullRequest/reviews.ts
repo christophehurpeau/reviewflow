@@ -4,10 +4,10 @@ import type { PullRequestWithDecentData } from '../../../events/pr-handlers/util
 import type { ProbotEvent } from '../../../events/probot-types';
 
 type ReviewState =
-  | 'REVIEW_REQUESTED'
   | 'APPROVED'
   | 'CHANGES_REQUESTED'
-  | 'DISMISSED';
+  | 'DISMISSED'
+  | 'REVIEW_REQUESTED';
 
 export type Reviewer = AccountInfo;
 

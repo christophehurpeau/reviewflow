@@ -22,7 +22,7 @@ export const updatePrIfNeeded = async <Name extends EmitterWebhookEventName>(
     update.body && checkIfHasDiff(pullRequest.body, update.body);
 
   if (hasDiffInTitle || hasDiffInBody) {
-    const diff: Partial<Record<'title' | 'body', string>> = {};
+    const diff: Partial<Record<'body' | 'title', string>> = {};
     if (hasDiffInTitle) {
       diff.title = update.title;
       pullRequest.title = update.title!;

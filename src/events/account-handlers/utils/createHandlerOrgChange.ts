@@ -9,20 +9,20 @@ import type { ProbotEvent } from '../../probot-types';
 
 export type EventsWithOrganisation = CustomExtract<
   EmitterWebhookEventName,
+  | 'membership.added'
+  | 'membership.removed'
+  | 'organization.member_added'
+  | 'organization.member_removed'
+  | 'repository.archived'
+  | 'repository.edited'
+  | 'repository.privatized'
+  | 'repository.publicized'
+  | 'repository.renamed'
+  | 'repository.transferred'
+  | 'repository.unarchived'
   | 'team.created'
   | 'team.deleted'
   | 'team.edited'
-  | 'repository.edited'
-  | 'repository.renamed'
-  | 'repository.archived'
-  | 'repository.transferred'
-  | 'repository.unarchived'
-  | 'repository.privatized'
-  | 'repository.publicized'
-  | 'organization.member_added'
-  | 'organization.member_removed'
-  | 'membership.added'
-  | 'membership.removed'
 >;
 
 type CallbackContextAndAccountContext<
@@ -30,7 +30,7 @@ type CallbackContextAndAccountContext<
 > = (
   context: ProbotEvent<EventName>,
   accountContext: AccountContext,
-) => void | Promise<void>;
+) => Promise<void> | void;
 
 export const createHandlerOrgChange = <
   EventName extends EventsWithOrganisation,

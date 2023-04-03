@@ -116,11 +116,11 @@ export interface SlackTeamInstallation extends SlackTeam {
 }
 
 export type SlackMessageType =
+  | 'commit-comment'
   | 'issue-comment'
   | 'review-comment'
   | 'review-requested'
-  | 'review-submitted'
-  | 'commit-comment';
+  | 'review-submitted';
 
 export interface SlackSentMessage extends MongoBaseModel {
   type: SlackMessageType;
@@ -148,11 +148,11 @@ export interface AutomergeLog extends MongoBaseModel {
     | 'behind mergeable_state'
     | 'blocked mergeable_state'
     | 'failed status or checks'
-    | 'pending status or checks'
     | 'not mergeable'
+    | 'pending status or checks'
     | 'rebase-renovate'
-    | 'unknown mergeable_state'
-    | 'review incomplete';
+    | 'review incomplete'
+    | 'unknown mergeable_state';
   action: 'remove' | 'reschedule' | 'update branch' | 'wait';
 }
 

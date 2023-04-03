@@ -2,7 +2,7 @@ import type { MessageCategory } from '../dm/MessageCategory';
 import type { Options } from '../events/pr-handlers/actions/utils/body/prOptions';
 
 export interface StatusInfo {
-  type: 'success' | 'failure';
+  type: 'failure' | 'success';
   inBody?: true;
   url?: string;
   title: string;
@@ -46,10 +46,10 @@ export interface LabelDescriptor {
 }
 
 export type ReviewLabels =
-  | 'needsReview'
-  | 'requested'
+  | 'approved'
   | 'changesRequested'
-  | 'approved';
+  | 'needsReview'
+  | 'requested';
 
 export type ReviewConfig = Record<ReviewLabels, string>;
 

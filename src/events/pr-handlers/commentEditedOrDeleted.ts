@@ -14,11 +14,11 @@ export default function prCommentEditedOrDeleted<TeamNames extends string>(
 ): void {
   createPullRequestHandler<
     TeamNames,
-    | 'pull_request_review.edited'
-    | 'pull_request_review_comment.edited'
-    | 'pull_request_review_comment.deleted'
-    | 'issue_comment.edited'
     | 'issue_comment.deleted'
+    | 'issue_comment.edited'
+    | 'pull_request_review_comment.deleted'
+    | 'pull_request_review_comment.edited'
+    | 'pull_request_review.edited'
   >(
     app,
     appContext,
