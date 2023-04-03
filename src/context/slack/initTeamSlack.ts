@@ -190,21 +190,26 @@ export const initTeamSlack = async <TeamNames extends string>(
       const user = membersMap.get(toUser.login);
       if (!user || !user.slackClient || !user.im) return null;
 
-      const result = await user.slackClient.chat.update({
-        ts,
-        channel,
-        text: message.text,
-        blocks: message.blocks,
-        attachments: message.secondaryBlocks
-          ? [{ blocks: message.secondaryBlocks }]
-          : undefined,
-      });
-      if (!result.ok) return null;
-      return {
-        ts: result.ts!,
-        channel: result.channel!,
-        user: toUser,
-      };
+      try {
+        const result = await user.slackClient.chat.update({
+          ts,
+          channel,
+          text: message.text,
+          blocks: message.blocks,
+          attachments: message.secondaryBlocks
+            ? [{ blocks: message.secondaryBlocks }]
+            : undefined,
+        });
+        if (!result.ok) return null;
+        return {
+          ts: result.ts!,
+          channel: result.channel!,
+          user: toUser,
+        };
+      } catch (err) {
+        context.log.error({ error: err }, 'could not update message');
+        return null;
+      }
     },
     deleteMessage: async (
       toUser: AccountInfo,

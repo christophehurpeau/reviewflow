@@ -101,12 +101,15 @@ export const mergeOrEnableGithubAutoMerge = async <
       return true;
     } catch (err) {
       triedToMerge = true;
-      context.log.error('Could not automerge', {
-        ...context.repo({
-          issue_number: pullRequest.number,
-        }),
-        err,
-      });
+      context.log.error(
+        {
+          ...context.repo({
+            issue_number: pullRequest.number,
+          }),
+          err,
+        },
+        'Could not automerge',
+      );
     }
   }
 
