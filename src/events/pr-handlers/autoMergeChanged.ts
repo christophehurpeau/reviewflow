@@ -50,6 +50,7 @@ export default function autoMergeChangedHandler(
             repoContext,
             reviewflowPrContext,
             context.payload.sender,
+            true,
           ),
       ]);
     },
