@@ -178,7 +178,14 @@ export const updateStatusCheckFromStepsState = <
   }
 
   // STEP 2: CHECKS
-  if (stepsState.checks.state !== 'passed') {
+  const autormergeLabel = repoContext.labels['merge/automerge'];
+
+  if (
+    (!repoContext.config.onlyEnforceProgressWhenAutomergeEnabled ||
+      (autormergeLabel &&
+        hasLabelInPR(pullRequest.labels, bypassProgressLabel))) &&
+    stepsState.checks.state !== 'passed'
+  ) {
     if (stepsState.checks.isFailed) {
       let failedChecksAndStatuses: string[] = [];
 
@@ -214,7 +221,10 @@ export const updateStatusCheckFromStepsState = <
   }
 
   // STEP 3: Code Review
-  if (stepsState.codeReview.state !== 'passed') {
+  if (
+    !repoContext.config.onlyEnforceProgressWhenAutomergeEnabled &&
+    stepsState.codeReview.state !== 'passed'
+  ) {
     if (
       stepsState.codeReview.hasRequestedReviewers ||
       stepsState.codeReview.hasRequestedTeams

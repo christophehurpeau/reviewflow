@@ -134,6 +134,21 @@ export default function labelsChanged(
               },
             );
 
+            const stepsState = calcStepsState({
+              repoContext,
+              pullRequest: updatedPr,
+              reviewflowPrContext,
+            });
+
+            await updateStatusCheckFromStepsState(
+              stepsState,
+              updatedPr,
+              context,
+              repoContext,
+              appContext,
+              reviewflowPrContext,
+            );
+
             if (repoContext.settings.allowAutoMerge) {
               await mergeOrEnableGithubAutoMerge(
                 pullRequest,

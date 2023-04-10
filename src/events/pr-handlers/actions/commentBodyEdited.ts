@@ -84,6 +84,19 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
         shouldHaveLabel: options.autoMerge,
         label: automergeLabel,
         onAdd: async (prLabels) => {
+          const stepsState = calcStepsState({
+            repoContext,
+            pullRequest,
+            reviewflowPrContext,
+          });
+          await updateStatusCheckFromStepsState(
+            stepsState,
+            pullRequest,
+            context,
+            repoContext,
+            appContext,
+            reviewflowPrContext,
+          );
           await tryToAutomerge({
             pullRequest,
             pullRequestLabels: prLabels,
@@ -93,6 +106,19 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
           });
         },
         onRemove: async () => {
+          const stepsState = calcStepsState({
+            repoContext,
+            pullRequest,
+            reviewflowPrContext,
+          });
+          await updateStatusCheckFromStepsState(
+            stepsState,
+            pullRequest,
+            context,
+            repoContext,
+            appContext,
+            reviewflowPrContext,
+          );
           if (repoContext.settings.allowAutoMerge) {
             return disableGithubAutoMerge(
               pullRequest,
