@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/christophehurpeau/reviewflow/compare/v1.123.1...v2.0.0) (2023-04-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop node 14
+
+### Features
+
+* drop node 14 ([eaec32a](https://github.com/christophehurpeau/reviewflow/commit/eaec32abf524945a40f5685a3950fdbf168238c4))
+
+
+### Bug Fixes
+
+* better log errors to debug ([a95ef54](https://github.com/christophehurpeau/reviewflow/commit/a95ef543e4914750a0da21c581c43071c2a9f217))
+* fix qs security alert ([4c91e15](https://github.com/christophehurpeau/reviewflow/commit/4c91e15baf837bb8953b0890be80f564118e59f6))
+* skipCheckMergeableState in autoMergeChanged ([41b9b8e](https://github.com/christophehurpeau/reviewflow/commit/41b9b8e15914437947f81a56b6cfed3050ea9fe6))
+* when user change pr title or enable automerge, update body and title if necessary ([d03820c](https://github.com/christophehurpeau/reviewflow/commit/d03820ce6181242584b5588140f86804d95b8730))
+
 ## [1.123.1](https://github.com/christophehurpeau/reviewflow/compare/v1.123.0...v1.123.1) (2023-03-15)
 
 
