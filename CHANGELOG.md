@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.0](https://github.com/christophehurpeau/reviewflow/compare/v2.0.0...v2.1.0) (2023-05-29)
+
+
+### Features
+
+* allow main-* or master-* or develop-* in ornikar config as base branches ([35621e2](https://github.com/christophehurpeau/reviewflow/commit/35621e294b747adefde0048ba3fb7028728d5819))
+
 ## [2.0.0](https://github.com/christophehurpeau/reviewflow/compare/v1.123.1...v2.0.0) (2023-04-10)
 
 
