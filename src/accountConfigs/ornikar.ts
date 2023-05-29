@@ -198,7 +198,7 @@ const config: Config<'backends' | 'frontends' | 'ops'> = {
     ],
     base: [
       {
-        regExp: /^(master|main|develop)$/,
+        regExp: /^(master|main|develop)(-|$)/,
         createStatusInfo: (match) => {
           if (match) {
             return null;
