@@ -56,6 +56,14 @@ describe('cleanTitle', () => {
     ).toBe('revert: chore(deps): update node.js to v8.14');
   });
 
+  it('should write correct revert with no issue', () => {
+    expect(
+      cleanTitle(
+        'Revert "chore(deps): update node.js to v8.14 (#296)" [no issue]',
+      ),
+    ).toBe('revert: chore(deps): update node.js to v8.14 [no issue]');
+  });
+
   it('should clean no issue', () => {
     expect(cleanTitle('feat: add something [no issue[')).toBe(
       'feat: add something [no issue]',
