@@ -86,5 +86,8 @@ describe('cleanTitle', () => {
     expect(cleanTitle('feat: add something [no-issue]')).toBe(
       'feat: add something [no issue]',
     );
+    expect(cleanTitle('feat: add something - [no-issue]')).toBe(
+      'feat: add something [no issue]',
+    );
   });
 });
