@@ -15,15 +15,7 @@ export const createSlackMessageWithSecondaryBlock = (
 ): SlackMessage => {
   return {
     text: message,
-    blocks: [
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: message,
-        },
-      },
-    ],
+    blocks: [createMrkdwnSectionBlock(message)],
     secondaryBlocks: !secondaryBlockText
       ? undefined
       : [createMrkdwnSectionBlock(secondaryBlockText)],
