@@ -64,6 +64,7 @@ export interface LabelsConfig {
 interface ExperimentalFeatures {
   lintPullRequestTitleWithConventionalCommit?: true;
   conventionalCommitBangBreakingChange?: true;
+  betterSlackify?: true;
 }
 
 interface WarnOnForcePushAfterReviewStarted {

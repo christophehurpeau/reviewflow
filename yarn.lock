@@ -3006,10 +3006,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@slack/types@npm:^2.0.0":
-  version: 2.4.0
-  resolution: "@slack/types@npm:2.4.0"
-  checksum: f2661ab4f6bb20a67f01879f8e32e82bb1ef2b9384cc4c854091cd1f6c0f26db95bc10f630355c1ae8f99eb377a92c84a8ec26cf56cbd547fc9b4d7efbcc78d7
+"@slack/types@npm:^2.0.0, @slack/types@npm:^2.1.0":
+  version: 2.8.0
+  resolution: "@slack/types@npm:2.8.0"
+  checksum: 3142433fb0a8f986d850615bb09732c24130b6017d9c24722adcb67a14aad993317295817e56a310e27ce038ee606de6ffa37ace4c3e19761d08e289cd747f79
   languageName: node
   linkType: hard
 
@@ -3036,6 +3036,17 @@ __metadata:
   version: 1.1.2
   resolution: "@tootallnate/once@npm:1.1.2"
   checksum: e1fb1bbbc12089a0cb9433dc290f97bddd062deadb6178ce9bcb93bb7c1aecde5e60184bc7065aec42fe1663622a213493c48bbd4972d931aae48315f18e1be9
+  languageName: node
+  linkType: hard
+
+"@tryfabric/mack@npm:1.2.1":
+  version: 1.2.1
+  resolution: "@tryfabric/mack@npm:1.2.1"
+  dependencies:
+    "@slack/types": ^2.1.0
+    fast-xml-parser: ^4.0.6
+    marked: ^4.0.12
+  checksum: e7fb6fc4b1dae181f2ee3b6050a90369923adb349e816908f5ed43b6df2c6a77e4713fe28ef9d7444f56b12c94d3d7665ab3437caf1aacc809076622f30a09df
   languageName: node
   linkType: hard
 
@@ -6014,6 +6025,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fast-xml-parser@npm:^4.0.6":
+  version: 4.2.4
+  resolution: "fast-xml-parser@npm:4.2.4"
+  dependencies:
+    strnum: ^1.0.5
+  bin:
+    fxparser: src/cli/cli.js
+  checksum: d3b4d0c0152c09f98def792769fca6bb3fa1d597f9745d9564451c239089bd86bdf573c9263b4944860028cb7edb81752d64399c1aff8b87c9225ecef96905f7
+  languageName: node
+  linkType: hard
+
 "fastq@npm:^1.6.0":
   version: 1.10.0
   resolution: "fastq@npm:1.10.0"
@@ -8372,6 +8394,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"marked@npm:^4.0.12":
+  version: 4.3.0
+  resolution: "marked@npm:4.3.0"
+  bin:
+    marked: bin/marked.js
+  checksum: 0db6817893952c3ec710eb9ceafb8468bf5ae38cb0f92b7b083baa13d70b19774674be04db5b817681fa7c5c6a088f61300815e4dd75a59696f4716ad69f6260
+  languageName: node
+  linkType: hard
+
 "mdast-util-from-markdown@npm:^0.8.0":
   version: 0.8.4
   resolution: "mdast-util-from-markdown@npm:0.8.4"
@@ -10136,6 +10167,7 @@ resolve@^2.0.0-next.3:
     "@pob/eslint-config-typescript-react": 50.0.5
     "@pob/root": 7.5.0
     "@slack/web-api": 6.8.1
+    "@tryfabric/mack": 1.2.1
     "@types/body-parser": 1.19.2
     "@types/cookie-parser": 1.4.3
     "@types/express": 4.17.17

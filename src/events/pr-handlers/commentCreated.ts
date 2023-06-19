@@ -204,27 +204,28 @@ export default function prCommentCreated(
         return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
       };
 
-      const slackifiedBody = slackifyCommentBody(
+      const slackifiedBodyBlocks = await slackifyCommentBody(
+        repoContext,
         comment.body,
         (comment as any).start_line !== null,
       );
 
       const ownerSlackMessage = createSlackMessageWithSecondaryBlock(
         createMessage(true, false),
-        isReviewComment ? undefined : slackifiedBody,
+        isReviewComment ? undefined : slackifiedBodyBlocks,
       );
       const assignedToSlackMessage = createSlackMessageWithSecondaryBlock(
         createMessage(true, true),
-        isReviewComment ? undefined : slackifiedBody,
+        isReviewComment ? undefined : slackifiedBodyBlocks,
       );
       const notOwnerSlackMessage = createSlackMessageWithSecondaryBlock(
         createMessage(false),
-        isReviewComment ? undefined : slackifiedBody,
+        isReviewComment ? undefined : slackifiedBodyBlocks,
       );
 
       const threadMessage = createSlackMessageWithSecondaryBlock(
         commentLinkPathText,
-        slackifiedBody,
+        slackifiedBodyBlocks,
       );
 
       const isBotUser = checkIfUserIsBot(repoContext, comment.user);

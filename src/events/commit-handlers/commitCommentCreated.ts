@@ -90,18 +90,19 @@ export default function commitCommentCreated(
         return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${commitUrl}`;
       };
 
-      const slackifiedBody = slackifyCommentBody(
+      const slackifiedBodyBlocks = await slackifyCommentBody(
+        repoContext,
         comment.body,
         (comment as any).start_line !== null,
       );
 
       const authorSlackMessage = createSlackMessageWithSecondaryBlock(
         createMessage(true),
-        slackifiedBody,
+        slackifiedBodyBlocks,
       );
       const notAuthorSlackMessage = createSlackMessageWithSecondaryBlock(
         createMessage(false),
-        slackifiedBody,
+        slackifiedBodyBlocks,
       );
 
       const isBotUser = checkIfUserIsBot(repoContext, comment.user);

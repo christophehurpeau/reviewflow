@@ -13,6 +13,7 @@ const config: Config<never> = {
   experimentalFeatures: {
     lintPullRequestTitleWithConventionalCommit: true,
     conventionalCommitBangBreakingChange: true,
+    betterSlackify: true,
   },
   teams: {},
   labels: {

@@ -1,7 +1,6 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import { checkIfIsThisBot } from '../../utils/github/isBotUser';
-import { createMrkdwnSectionBlock } from '../../utils/slack/createSlackMessageWithSecondaryBlock';
 import { slackifyCommentBody } from '../../utils/slackifyCommentBody';
 import { commentBodyEdited } from './actions/commentBodyEdited';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
@@ -115,14 +114,11 @@ export default function prCommentEditedOrDeleted<TeamNames extends string>(
           appContext.mongoStores.slackSentMessages.deleteMany(criteria),
         ]);
       } else {
-        const secondaryBlocks = [
-          createMrkdwnSectionBlock(
-            slackifyCommentBody(
-              comment.body || '',
-              (comment as any).start_line !== null,
-            ),
-          ),
-        ];
+        const secondaryBlocks = await slackifyCommentBody(
+          repoContext,
+          comment.body || '',
+          (comment as any).start_line !== null,
+        );
 
         await Promise.all([
           Promise.all(
