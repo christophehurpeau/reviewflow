@@ -65,18 +65,43 @@ export default function reviewRequested(
           repoContext.slack.updateHome(potentialReviewer.login);
         });
 
+        const requestedByNameInTeam = requestedTeam
+          ? pullRequest.requested_reviewers
+              .map((reviewer) => (reviewer as any).login)
+              .filter(
+                (login) =>
+                  login &&
+                  login !== sender.login &&
+                  requestedReviewers.some((rr) => rr.login === login),
+              )
+          : [];
+
         const text = `:eyes: ${repoContext.slack.mention(
           sender.login,
         )} requests ${
           requestedReviewer ? 'your' : `your team _${requestedTeam.name}_`
         } review on ${slackUtils.createPrLink(pullRequest, repoContext)} !\n> ${
           pullRequest.title
+        }${
+          requestedByNameInTeam.length > 0
+            ? ` (team members requested by name: ${requestedByNameInTeam.join(
+                ', ',
+              )})`
+            : ''
         }`;
+
         const message = { text };
 
         await Promise.all(
           requestedReviewers.map(async (potentialReviewer) => {
             if (sender.login === potentialReviewer.login) return;
+
+            if (requestedTeam) {
+              if (requestedByNameInTeam.includes(potentialReviewer.login)) {
+                // skip notification for team if user is already requested by name
+                return;
+              }
+            }
 
             const result = await repoContext.slack.postMessage(
               'pr-review',
