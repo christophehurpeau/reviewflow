@@ -9635,9 +9635,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"probot@npm:12.3.0":
-  version: 12.3.0
-  resolution: "probot@npm:12.3.0"
+"probot@npm:12.3.1":
+  version: 12.3.1
+  resolution: "probot@npm:12.3.1"
   dependencies:
     "@octokit/core": ^3.2.4
     "@octokit/plugin-enterprise-compatibility": ^1.2.8
@@ -9674,7 +9674,7 @@ __metadata:
     uuid: ^8.3.2
   bin:
     probot: bin/probot.js
-  checksum: 0dbdf23f4b99c9c0545637055a21b225820115e3fe7aecd7150f823f025e15bc454fb7a2a77a36f857f4f5e0da6f58a12ca98e19a532d812007fe7a7945e336c
+  checksum: 4fccd3f327b64f11c04330dd1600a100277a4dbc0b6dfef03ad04c280cd5825fb14df2140cb2b6cb96e1577a248b2457a224f6129351204269e2fe683e62a497
   languageName: node
   linkType: hard
 
@@ -10193,7 +10193,7 @@ resolve@^2.0.0-next.3:
     lock: 1.1.0
     nock: 13.3.0
     pob-babel: 35.6.2
-    probot: 12.3.0
+    probot: 12.3.1
     react: 18.2.0
     react-dom: 18.2.0
     simple-oauth2: 4.3.0
