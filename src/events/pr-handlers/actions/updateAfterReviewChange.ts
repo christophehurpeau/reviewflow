@@ -28,7 +28,7 @@ export async function updateOnlyReviewflowPrReviews(
 }
 
 export interface UpdateAfterReviewChangeResult {
-  isMerged: boolean;
+  wasMerged: boolean;
 }
 
 export async function updateAfterReviewChange<
@@ -73,13 +73,14 @@ export async function updateAfterReviewChange<
     ),
   ]);
 
+  const { wasMerged } = await tryToAutomerge({
+    pullRequest: await fetchPr(context, pullRequest.number),
+    context,
+    repoContext,
+    reviewflowPrContext,
+    stepsState,
+  });
   return {
-    isMerged: await tryToAutomerge({
-      pullRequest: await fetchPr(context, pullRequest.number),
-      context,
-      repoContext,
-      reviewflowPrContext,
-      stepsState,
-    }),
+    wasMerged,
   };
 }

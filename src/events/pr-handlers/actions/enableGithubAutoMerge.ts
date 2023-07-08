@@ -18,6 +18,14 @@ import { createMergeLockPrFromPr } from '../utils/mergeLock';
 import { createCommitMessage } from './autoMergeIfPossible';
 import { parseBody } from './utils/body/parseBody';
 
+export interface MergeOrEnableGithubAutoMergeResult {
+  wasMerged: boolean;
+  wasAlreadyMerged?: boolean;
+  isRescheduled?: boolean;
+  didFailedToEnableAutoMerge?: boolean;
+  mergedRequest?: AutoMergeRequest;
+}
+
 export const mergeOrEnableGithubAutoMerge = async <
   EventName extends EventsWithRepository,
 >(
@@ -27,13 +35,21 @@ export const mergeOrEnableGithubAutoMerge = async <
   reviewflowPrContext: ReviewflowPrContext,
   user?: BasicUser,
   skipCheckMergeableState?: boolean,
-): Promise<AutoMergeRequest | true | null> => {
-  if (pullRequest.merged_at || pullRequest.draft) return null;
+): Promise<MergeOrEnableGithubAutoMergeResult> => {
+  if (pullRequest.merged_at || pullRequest.draft) {
+    return {
+      wasMerged: false,
+      wasAlreadyMerged: true,
+    };
+  }
 
   // don't enable auto merge merge for forks unless there is a login
   if (!user || checkIfUserIsBot(repoContext, user)) {
     if (pullRequest.head.repo?.full_name !== pullRequest.base.repo.full_name) {
-      return null;
+      return {
+        wasMerged: false,
+        didFailedToEnableAutoMerge: true,
+      };
     }
   }
 
@@ -64,7 +80,10 @@ export const mergeOrEnableGithubAutoMerge = async <
         commitBody,
       });
     }
-    return { enabledBy: pullRequest.auto_merge.enabled_by };
+    return {
+      wasMerged: false,
+      mergedRequest: { enabledBy: pullRequest.auto_merge.enabled_by },
+    };
   }
 
   if (
@@ -78,7 +97,10 @@ export const mergeOrEnableGithubAutoMerge = async <
       'short',
       user,
     );
-    return null;
+    return {
+      wasMerged: false,
+      isRescheduled: true,
+    };
   }
 
   let triedToMerge = false;
@@ -98,7 +120,9 @@ export const mergeOrEnableGithubAutoMerge = async <
         commit_title: commitHeadline,
         commit_message: commitBody,
       });
-      return true;
+      return {
+        wasMerged: true,
+      };
     } catch (err) {
       triedToMerge = true;
       context.log.error(
@@ -125,7 +149,11 @@ The pull request must be in a state where requirements have not yet been satisfi
       commitHeadline,
       commitBody,
     });
-    return response.enablePullRequestAutoMerge.pullRequest.autoMergeRequest;
+    return {
+      wasMerged: false,
+      mergedRequest:
+        response.enablePullRequestAutoMerge.pullRequest.autoMergeRequest,
+    };
   } catch (err) {
     context.log.error(
       'Could not enable automerge',
@@ -154,7 +182,10 @@ The pull request must be in a state where requirements have not yet been satisfi
       );
     }
   }
-  return null;
+  return {
+    wasMerged: false,
+    didFailedToEnableAutoMerge: triedToMerge,
+  };
 };
 
 export const disableGithubAutoMerge = async <

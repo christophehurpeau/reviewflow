@@ -75,6 +75,7 @@ export default function opened(app: Probot, appContext: AppContext): void {
                 repoContext,
                 appContext,
                 reviewflowPrContext,
+                pullRequestLabels,
               ),
               editOpenedPR({
                 pullRequest,

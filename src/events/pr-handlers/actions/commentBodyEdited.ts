@@ -63,7 +63,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
       return getStateChecksLabelsToSync(repoContext, state);
     };
 
-    await syncLabels(pullRequest, context, [
+    const updatedLabels = await syncLabels(pullRequest, context, [
       {
         shouldHaveLabel: options.autoMergeWithSkipCi,
         label: skipCiLabel,
@@ -84,15 +84,44 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
         shouldHaveLabel: options.autoMerge,
         label: automergeLabel,
         onAdd: async (prLabels) => {
+          const stepsState = calcStepsState({
+            repoContext,
+            pullRequest,
+            reviewflowPrContext,
+          });
+          await updateStatusCheckFromStepsState(
+            stepsState,
+            pullRequest,
+            context,
+            repoContext,
+            appContext,
+            reviewflowPrContext,
+            prLabels,
+          );
           await tryToAutomerge({
             pullRequest,
             pullRequestLabels: prLabels,
             context,
             repoContext,
             reviewflowPrContext,
+            stepsState,
           });
         },
-        onRemove: async () => {
+        onRemove: async (prLabels) => {
+          const stepsState = calcStepsState({
+            repoContext,
+            pullRequest,
+            reviewflowPrContext,
+          });
+          await updateStatusCheckFromStepsState(
+            stepsState,
+            pullRequest,
+            context,
+            repoContext,
+            appContext,
+            reviewflowPrContext,
+            prLabels,
+          );
           if (repoContext.settings.allowAutoMerge) {
             return disableGithubAutoMerge(
               pullRequest,
@@ -133,6 +162,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
         updateReviewStatus(pullRequest, context, repoContext, stepsState),
         editOpenedPR({
           pullRequest,
+          pullRequestLabels: updatedLabels,
           context,
           appContext,
           repoContext,
@@ -150,6 +180,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
           repoContext,
           appContext,
           reviewflowPrContext,
+          updatedLabels,
         ),
       ]);
     }

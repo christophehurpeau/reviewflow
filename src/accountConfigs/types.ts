@@ -82,6 +82,7 @@ export interface Config<TeamNames extends string> {
   disableBypassMergeFor?: RegExp;
   warnOnForcePushAfterReviewStarted?: WarnOnForcePushAfterReviewStarted;
   checksAllowedToFail?: string[];
+  onlyEnforceProgressWhenAutomergeEnabled?: boolean;
   experimentalFeatures?: ExperimentalFeatures;
   parsePR?: ParsePR;
   prDefaultOptions: Options;

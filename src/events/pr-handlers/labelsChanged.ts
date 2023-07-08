@@ -2,10 +2,8 @@ import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import type { ProbotEvent } from '../probot-types';
 import { autoMergeIfPossibleLegacy } from './actions/autoMergeIfPossible';
-import {
-  mergeOrEnableGithubAutoMerge,
-  disableGithubAutoMerge,
-} from './actions/enableGithubAutoMerge';
+import { disableGithubAutoMerge } from './actions/enableGithubAutoMerge';
+import { tryToAutomerge } from './actions/tryToAutomerge';
 import { updateBranch } from './actions/updateBranch';
 import { updatePrCommentBodyOptions } from './actions/updatePrCommentBody';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
@@ -100,6 +98,7 @@ export default function labelsChanged(
                 repoContext,
                 appContext,
                 reviewflowPrContext,
+                labels,
               ),
 
               updatePrCommentBodyOptions(
@@ -134,15 +133,29 @@ export default function labelsChanged(
               },
             );
 
-            if (repoContext.settings.allowAutoMerge) {
-              await mergeOrEnableGithubAutoMerge(
-                pullRequest,
-                context,
-                repoContext,
-                reviewflowPrContext,
-                context.payload.sender,
-              );
-            }
+            const stepsState = calcStepsState({
+              repoContext,
+              pullRequest: updatedPr,
+              reviewflowPrContext,
+            });
+
+            await updateStatusCheckFromStepsState(
+              stepsState,
+              updatedPr,
+              context,
+              repoContext,
+              appContext,
+              reviewflowPrContext,
+            );
+
+            await tryToAutomerge({
+              pullRequest: updatedPr,
+              repoContext,
+              context,
+              reviewflowPrContext,
+              stepsState,
+            });
+            return;
           }
 
           if (!repoContext.settings.allowAutoMerge) {
@@ -153,6 +166,7 @@ export default function labelsChanged(
               reviewflowPrContext,
             );
           }
+        } else if (context.payload.action === 'unlabeled') {
         }
         return;
       }
@@ -211,31 +225,21 @@ export default function labelsChanged(
       // not an else if
       if (autoMergeLabel && label.id === autoMergeLabel.id) {
         if (context.payload.action === 'labeled') {
-          if (repoContext.settings.allowAutoMerge) {
-            successful =
-              (await mergeOrEnableGithubAutoMerge(
-                pullRequest,
-                context,
-                repoContext,
-                reviewflowPrContext,
-                context.payload.sender,
-              )) !== null;
+          const { didFailedToEnableAutoMerge } = await tryToAutomerge({
+            pullRequest: updatedPr,
+            context,
+            repoContext,
+            reviewflowPrContext,
+            stepsState,
+          });
 
-            // if not successful, remove label
-            if (!successful) {
-              await context.octokit.issues.removeLabel(
-                context.repo({
-                  issue_number: pullRequest.number,
-                  name: label.name,
-                }),
-              );
-            }
-          } else {
-            await autoMergeIfPossibleLegacy(
-              updatedPr,
-              context,
-              repoContext,
-              reviewflowPrContext,
+          // if not successful, remove label
+          if (didFailedToEnableAutoMerge) {
+            await context.octokit.issues.removeLabel(
+              context.repo({
+                issue_number: pullRequest.number,
+                name: label.name,
+              }),
             );
           }
         } else {

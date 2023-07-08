@@ -42,7 +42,7 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
       reviewflowPrContext.reviewflowPr.statusesConclusion =
         checksAndStatuses.statusesConclusionRecord;
 
-      await calcAndUpdateLabels(
+      const updatedLabels = await calcAndUpdateLabels(
         context,
         appContext,
         repoContext,
@@ -80,6 +80,7 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
             repoContext,
             appContext,
             reviewflowPrContext,
+            updatedLabels,
             previousSha,
           ),
       ]);

@@ -63,6 +63,7 @@ export async function calcAndUpdateLabels<
         repoContext,
         appContext,
         reviewflowPrContext,
+        updatedLabels,
       ),
       updateCommentBodyProgressFromStepsState(
         stepsState,

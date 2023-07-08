@@ -7,6 +7,7 @@ import type { BasicUser, PullRequestLabels } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import type { PullRequestFromRestEndpoint } from '../utils/fetchPr';
 import { autoMergeIfPossibleLegacy } from './autoMergeIfPossible';
+import type { MergeOrEnableGithubAutoMergeResult } from './enableGithubAutoMerge';
 import { mergeOrEnableGithubAutoMerge } from './enableGithubAutoMerge';
 import hasLabelInPR from './utils/labels/hasLabelInPR';
 import type { StepsState } from './utils/steps/calcStepsState';
@@ -43,34 +44,39 @@ export async function tryToAutomerge<
     reviewflowPrContext,
   }),
   user = context.payload.sender,
-}: TryToAutomergeOptions<EventName, TeamNames>): Promise<boolean> {
+}: TryToAutomergeOptions<
+  EventName,
+  TeamNames
+>): Promise<MergeOrEnableGithubAutoMergeResult> {
   const autoMergeLabel = repoContext.labels['merge/automerge'];
 
   if (!hasLabelInPR(pullRequestLabels, autoMergeLabel)) {
-    return false;
+    return { wasMerged: false, didFailedToEnableAutoMerge: true };
   }
 
   if (repoContext.settings.allowAutoMerge) {
-    return (
-      (await mergeOrEnableGithubAutoMerge(
-        pullRequest,
-        context,
-        repoContext,
-        reviewflowPrContext,
-        user,
-        !isAllStepsExceptMergePassed(stepsState),
-      )) === true
+    return mergeOrEnableGithubAutoMerge(
+      pullRequest,
+      context,
+      repoContext,
+      reviewflowPrContext,
+      user,
+      !isAllStepsExceptMergePassed(stepsState),
     );
   } else {
     if (!isAllStepsExceptMergePassed(stepsState)) {
-      return false;
+      return {
+        wasMerged: false,
+      };
     }
 
-    return autoMergeIfPossibleLegacy(
+    const wasMerged = await autoMergeIfPossibleLegacy(
       pullRequest,
       context,
       repoContext,
       reviewflowPrContext,
     );
+
+    return { wasMerged };
   }
 }
