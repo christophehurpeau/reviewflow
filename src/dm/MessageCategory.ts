@@ -5,6 +5,7 @@ export type MessageCategory =
   | 'commit-comment-mention'
   | 'commit-comment'
   | 'issue-comment-mention'
+  | 'pr-checksAndStatuses'
   | 'pr-comment-bots'
   | 'pr-comment-follow-bots'
   | 'pr-comment-follow'

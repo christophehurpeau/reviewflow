@@ -1,5 +1,8 @@
 import type { AccountInfo } from '../../../context/getOrCreateAccount';
-import type { PullRequestWithDecentDataFromWebhook } from './PullRequestData';
+import type {
+  PullRequestWithDecentData,
+  PullRequestWithDecentDataFromWebhook,
+} from './PullRequestData';
 import type { Reviewer } from './getReviewersAndReviewStates';
 
 export interface RequestedReviewers extends AccountInfo {
@@ -11,18 +14,35 @@ interface GetRolesFromPullRequestAndReviewersOptions {
   excludeIds?: number[];
 }
 
+interface PullRequestOwners {
+  owner: PullRequestWithDecentDataFromWebhook['user'];
+  assigneesNotOwner: PullRequestWithDecentDataFromWebhook['assignees'];
+}
+
+export function getOwnersFromPullRequest(
+  pullRequest: PullRequestWithDecentData,
+): PullRequestOwners {
+  const pr = pullRequest as PullRequestWithDecentDataFromWebhook; // fix typings
+  return {
+    owner: pr.user,
+    assigneesNotOwner: pr.assignees
+      ? pr.assignees.filter((u) => u.id !== pr.user.id)
+      : [],
+  } as PullRequestOwners;
+}
+
 export function getRolesFromPullRequestAndReviewers(
   pullRequest: PullRequestWithDecentDataFromWebhook,
   reviewers: Reviewer[],
   { excludeIds = [] }: GetRolesFromPullRequestAndReviewersOptions = {},
 ): {
   owner: PullRequestWithDecentDataFromWebhook['user'];
+  assigneesNotOwner: PullRequestWithDecentDataFromWebhook['assignees'];
   assignees: PullRequestWithDecentDataFromWebhook['assignees'];
   reviewers: Reviewer[];
   requestedReviewers: RequestedReviewers[];
   followers: AccountInfo[];
 } {
-  const owner = pullRequest.user;
   const assignees = pullRequest.assignees.filter(
     (a) => !excludeIds.includes(a.id),
   );
@@ -61,7 +81,7 @@ export function getRolesFromPullRequestAndReviewers(
   }
 
   return {
-    owner,
+    ...getOwnersFromPullRequest(pullRequest),
     assignees,
     reviewers,
     requestedReviewers,

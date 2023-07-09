@@ -1,7 +1,7 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import { getChecksAndStatusesForPullRequest } from '../../utils/github/pullRequest/checksAndStatuses';
-import { calcAndUpdateLabels } from './actions/calcAndUpdateLabels';
+import { calcAndUpdateChecksAndStatuses } from './actions/calcAndUpdateChecksAndStatuses';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { tryToAutomerge } from './actions/tryToAutomerge';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
@@ -36,19 +36,20 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
       // const { before, after } = context.payload;
       const previousSha = (context.payload as any).before as string;
 
-      // update reviewflowPrContext for calcAndUpdateLabels
+      // update reviewflowPrContext for calcAndUpdateChecksAndStatuses
       reviewflowPrContext.reviewflowPr.checksConclusion =
         checksAndStatuses.checksConclusionRecord;
       reviewflowPrContext.reviewflowPr.statusesConclusion =
         checksAndStatuses.statusesConclusionRecord;
 
-      const updatedLabels = await calcAndUpdateLabels(
+      const updatedLabels = await calcAndUpdateChecksAndStatuses(
         context,
         appContext,
         repoContext,
-        pullRequest,
+        updatedPr,
         reviewflowPrContext,
         false,
+        previousSha,
       );
 
       const stepsState = calcStepsState({

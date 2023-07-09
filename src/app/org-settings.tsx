@@ -13,6 +13,7 @@ import Layout from '../views/Layout';
 import { getUser } from './auth';
 
 const dmMessages: Record<MessageCategory, string> = {
+  'pr-checksAndStatuses': 'Your PR has failed checks or statuses',
   'pr-lifecycle': 'Your PR is closed, merged, reopened',
   'pr-lifecycle-follow':
     "Someone closed, merged, reopened a PR you're reviewing",

@@ -1,14 +1,14 @@
 import type { RepoContext } from '../../../context/repoContext';
 import type { ChecksAndStatuses } from '../../../utils/github/pullRequest/checksAndStatuses';
 
-export type CIState = 'failed' | 'passed' | 'pending';
+export type ChecksAndStatusesState = 'failed' | 'passed' | 'pending';
 
 export interface FailedOrWaitingChecksAndStatuses {
   failedChecks: string[];
   pendingChecks: string[];
   failedStatuses: string[];
   pendingStatuses: string[];
-  state: CIState;
+  state: ChecksAndStatusesState;
 }
 
 export const isCheckNotAllowedToFail = (
@@ -65,7 +65,7 @@ export const getFailedOrWaitingChecksAndStatuses = <TeamNames extends string>(
     )
     .map(([, { context: statusContext }]) => statusContext);
 
-  const calcState = (): CIState => {
+  const calcState = (): ChecksAndStatusesState => {
     if (failedChecks.length > 0 || failedStatuses.length > 0) return 'failed';
     if (pendingChecks.length > 0 || pendingStatuses.length > 0) {
       return 'pending';

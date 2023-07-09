@@ -3,6 +3,11 @@ import type { AppContext } from '../../context/AppContext';
 import { checkIfIsThisBot } from '../../utils/github/isBotUser';
 import { slackifyCommentBody } from '../../utils/slackifyCommentBody';
 import { commentBodyEdited } from './actions/commentBodyEdited';
+import {
+  deleteSlackSentMessages,
+  findSlackSentMessages,
+  updateSlackSentMessages,
+} from './actions/utils/slackUtils';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
 import { getPullRequestFromPayload } from './utils/getPullRequestFromPayload';
@@ -81,70 +86,40 @@ export default function prCommentEditedOrDeleted<TeamNames extends string>(
       };
 
       const [type, comment] = getTypeAndComment();
+      const typeId = comment.id;
 
-      const criteria = {
-        'account.id': repoContext.accountEmbed.id,
-        'account.type': repoContext.accountEmbed.type,
-        type,
-        typeId: comment.id,
-      };
+      if (context.payload.action === 'deleted') {
+        await deleteSlackSentMessages(appContext, repoContext, {
+          type,
+          typeId,
+        });
+        return;
+      }
 
-      const sentMessages =
-        await appContext.mongoStores.slackSentMessages.findAll(criteria);
+      const sentMessages = await findSlackSentMessages(
+        appContext,
+        repoContext,
+        {
+          type,
+          typeId,
+        },
+      );
 
       if (sentMessages.length === 0) return;
 
-      if (context.payload.action === 'deleted') {
-        await Promise.all([
-          Promise.all(
-            sentMessages.map((sentMessage) =>
-              Promise.all(
-                sentMessage.sentTo.map(
-                  (sentTo) =>
-                    sentTo.user && // legacy
-                    repoContext.slack.deleteMessage(
-                      sentTo.user,
-                      sentTo.ts,
-                      sentTo.channel,
-                    ),
-                ),
-              ),
-            ),
-          ),
-          appContext.mongoStores.slackSentMessages.deleteMany(criteria),
-        ]);
-      } else {
-        const secondaryBlocks = await slackifyCommentBody(
-          repoContext,
-          comment.body || '',
-          (comment as any).start_line !== null,
-        );
+      const secondaryBlocks = await slackifyCommentBody(
+        repoContext,
+        comment.body || '',
+        (comment as any).start_line !== null,
+      );
 
-        await Promise.all([
-          Promise.all(
-            sentMessages.map((sentMessage) =>
-              Promise.all(
-                sentMessage.sentTo.map(
-                  (sentTo) =>
-                    sentTo.user && // legacy
-                    repoContext.slack.updateMessage(
-                      sentTo.user,
-                      sentTo.ts,
-                      sentTo.channel,
-                      {
-                        ...sentMessage.message,
-                        secondaryBlocks,
-                      },
-                    ),
-                ),
-              ),
-            ),
-          ),
-          appContext.mongoStores.slackSentMessages.partialUpdateMany(criteria, {
-            $set: { 'message.secondaryBlocks': secondaryBlocks },
-          }),
-        ]);
-      }
+      await updateSlackSentMessages(appContext, repoContext, {
+        type,
+        typeId,
+        partialMessage: {
+          secondaryBlocks,
+        },
+      });
     },
   );
 }

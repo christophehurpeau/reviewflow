@@ -1,10 +1,10 @@
 import type { RepoContext } from '../../../../../context/repoContext';
-import type { CIState } from '../../../utils/getFailedOrWaitingChecksAndStatuses';
+import type { ChecksAndStatusesState } from '../../../utils/getFailedOrWaitingChecksAndStatuses';
 import type { LabelToSync } from '../syncLabel';
 
 export const getStateChecksLabelsToSync = <TeamNames extends string>(
   repoContext: RepoContext<TeamNames>,
-  state: CIState,
+  state: ChecksAndStatusesState,
 ): LabelToSync[] => {
   return [
     {

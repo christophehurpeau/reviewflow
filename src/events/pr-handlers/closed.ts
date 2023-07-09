@@ -1,7 +1,7 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
-import type { AccountInfo } from '../../context/getOrCreateAccount';
 import * as slackUtils from '../../slack/utils';
+import type { CreateOwnerPartOptions } from '../../slack/utils';
 import { updateCommentBodyProgressFromStepsState } from './actions/updateCommentBodyProgressFromStepsState';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
@@ -116,20 +116,21 @@ export default function closed(app: Probot, appContext: AppContext): void {
 
       /* send notifications to assignees and followers */
       const { reviewers } = await getReviewersAndReviewStates(context);
-      const { owner, assignees, followers } =
+      const { owner, assigneesNotOwner, followers } =
         getRolesFromPullRequestAndReviewers(pullRequest, reviewers);
 
       const senderMention = repoContext.slack.mention(
         context.payload.sender.login,
       );
-      const ownerMention = repoContext.slack.mention(owner.login);
       const prLink = slackUtils.createPrLink(pullRequest, repoContext);
 
-      const createMessage = (to: AccountInfo): string => {
+      const createMessage = (
+        createOwnerPartOptions: CreateOwnerPartOptions,
+      ): string => {
         const ownerPart = slackUtils.createOwnerPart(
-          ownerMention,
+          repoContext,
           pullRequest,
-          to,
+          createOwnerPartOptions,
         );
 
         return `${
@@ -138,18 +139,23 @@ export default function closed(app: Probot, appContext: AppContext): void {
             : `:wastebasket: ${senderMention} closed`
         } ${ownerPart} ${prLink}\n> ${pullRequest.title}`;
       };
+      if (context.payload.sender.id !== owner.id) {
+        repoContext.slack.postMessage('pr-lifecycle', owner, {
+          text: createMessage({ isOwner: true }),
+        });
+      }
 
-      assignees.map((assignee) => {
+      assigneesNotOwner.map((assignee) => {
         if (context.payload.sender.id === assignee.id) return;
         return repoContext.slack.postMessage('pr-lifecycle', assignee, {
-          text: createMessage(assignee),
+          text: createMessage({ isAssigned: true }),
         });
       });
 
       followers.map((follower) => {
         if (context.payload.sender.id === follower.id) return;
         return repoContext.slack.postMessage('pr-lifecycle-follow', follower, {
-          text: createMessage(follower),
+          text: createMessage({}),
         });
       });
     },

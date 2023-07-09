@@ -118,6 +118,7 @@ export interface SlackTeamInstallation extends SlackTeam {
 export type SlackMessageType =
   | 'commit-comment'
   | 'issue-comment'
+  | 'pr-checksAndStatuses'
   | 'review-comment'
   | 'review-requested'
   | 'review-submitted';
@@ -125,8 +126,12 @@ export type SlackMessageType =
 export interface SlackSentMessage extends MongoBaseModel {
   type: SlackMessageType;
   typeId: number | string;
+  /** optional message id to create unique message with type + typeId + messageId */
+  messageId?: number | string;
   account: AccountEmbed;
   message: SlackMessage;
+  reactions?: string[];
+  isMarkedAsDone?: boolean;
   sentTo: {
     user: AccountInfo;
     channel: string;
@@ -259,11 +264,19 @@ export default function init(): MongoStores {
     'slackSentMessages',
   );
   slackSentMessages.collection.then((coll) => {
+    coll
+      .indexExists('account.id_1_account.type_1_type_1_typeId_1')
+      .then((exists) => {
+        if (exists) {
+          coll.dropIndex('account.id_1_account.type_1_type_1_typeId_1');
+        }
+      });
     coll.createIndex({
       'account.id': 1,
       'account.type': 1,
       type: 1,
       typeId: 1,
+      messageId: 1,
     });
     // remove older than 14 days
     coll.deleteMany({
