@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.0](https://github.com/christophehurpeau/reviewflow/compare/v2.1.0...v2.2.0) (2023-07-14)
+
+
+### Features
+
+* add onlyEnforceProgressWhenAutomergeEnabled and enable for ornikar ([7e528d8](https://github.com/christophehurpeau/reviewflow/commit/7e528d8679252d6733af05b56b81eb075626c64f))
+* clean dash before no issue ([a2560f9](https://github.com/christophehurpeau/reviewflow/commit/a2560f952a75f763226b109d51ff23ef544533d8))
+* **deps:** update commitlint monorepo to v17.6.5 ([#697](https://github.com/christophehurpeau/reviewflow/issues/697)) ([9d4c0fa](https://github.com/christophehurpeau/reviewflow/commit/9d4c0fa9df84ab8b7139e21344225ee4a44aba65))
+* **deps:** update dependency delay to v6 ([#714](https://github.com/christophehurpeau/reviewflow/issues/714)) ([61604ec](https://github.com/christophehurpeau/reviewflow/commit/61604ecc2b4a2edf0b6f0b064a7840196f76a1d4))
+* experimental better slackify ([43164a5](https://github.com/christophehurpeau/reviewflow/commit/43164a5be726d598ee08fbf85eadae7a2c2ef959))
+* indicate when team is requested and team member is requested by name. Skip team notification when name is requested. ([62c8884](https://github.com/christophehurpeau/reviewflow/commit/62c88845ced1390d1b86a6dbf68702f211d8f678))
+* support no issue with revert in cleanTitle ([5557d9f](https://github.com/christophehurpeau/reviewflow/commit/5557d9f1c83de7bf526b2153cfac135c17cfc895))
+
+
+### Bug Fixes
+
+* **deps:** update dependency probot to v12.3.1 ([#710](https://github.com/christophehurpeau/reviewflow/issues/710)) ([c1d81b9](https://github.com/christophehurpeau/reviewflow/commit/c1d81b991bea8d7e539f9b1c6f15d0c3b5e07f3e))
+
 ## [2.1.0](https://github.com/christophehurpeau/reviewflow/compare/v2.0.0...v2.1.0) (2023-05-29)
 
 
