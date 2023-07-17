@@ -177,6 +177,7 @@ export const sendOrUpdateSlackMessage = async (
   appContext: AppContext,
   repoContext: RepoContext,
   options: Omit<SendSlackMessageOptions, 'saveInDb'>,
+  allowSend = true,
 ): Promise<void> => {
   const slackSentMessages = await findSlackSentMessages(
     appContext,
@@ -190,6 +191,7 @@ export const sendOrUpdateSlackMessage = async (
   );
 
   if (slackSentMessages.length === 0) {
+    if (!allowSend) return;
     return sendSlackMessage(appContext, repoContext, {
       ...options,
       saveInDb: true,

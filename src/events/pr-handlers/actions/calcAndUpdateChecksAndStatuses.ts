@@ -80,29 +80,41 @@ async function checksAndStatusesSlackMessageAddOrUpdate<
         return `:x: ${failedChecksAndStatusesString} failed on ${prOwnership} ${prLink}`;
       };
 
+      const isPrClosed = !!pullRequest.closed_at;
+
       const { owner, assigneesNotOwner } =
         getOwnersFromPullRequest(pullRequest);
       await Promise.all([
-        sendOrUpdateSlackMessage(appContext, repoContext, {
-          type,
-          typeId,
-          messageId: 'owner',
-          messageCategory: 'pr-checksAndStatuses',
-          message: {
-            text: createText({ isOwner: true }),
+        sendOrUpdateSlackMessage(
+          appContext,
+          repoContext,
+          {
+            type,
+            typeId,
+            messageId: 'owner',
+            messageCategory: 'pr-checksAndStatuses',
+            message: {
+              text: createText({ isOwner: true }),
+            },
+            sendTo: [owner],
           },
-          sendTo: [owner],
-        }),
-        sendOrUpdateSlackMessage(appContext, repoContext, {
-          type,
-          typeId,
-          messageId: 'assignees',
-          messageCategory: 'pr-checksAndStatuses',
-          message: {
-            text: createText({ isAssigned: true }),
+          !isPrClosed,
+        ),
+        sendOrUpdateSlackMessage(
+          appContext,
+          repoContext,
+          {
+            type,
+            typeId,
+            messageId: 'assignees',
+            messageCategory: 'pr-checksAndStatuses',
+            message: {
+              text: createText({ isAssigned: true }),
+            },
+            sendTo: assigneesNotOwner,
           },
-          sendTo: assigneesNotOwner,
-        }),
+          !isPrClosed,
+        ),
       ]);
       break;
     }
