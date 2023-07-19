@@ -35,7 +35,7 @@ interface AuthInfo {
 const readAuthCookie = (
   req: Request,
   strategy: string,
-): undefined | Promise<undefined | AuthInfo> => {
+): Promise<AuthInfo | undefined> | undefined => {
   const cookie = req.cookies[`auth_${strategy}`];
   if (!cookie) return;
 
@@ -48,7 +48,7 @@ const readAuthCookie = (
 const getAuthInfoFromCookie = async (
   req: Request,
   res: Response,
-): Promise<undefined | AuthInfo> => {
+): Promise<AuthInfo | undefined> => {
   const strategy = 'gh'; // req.params.strategy
   try {
     const authInfo = await readAuthCookie(req, strategy);

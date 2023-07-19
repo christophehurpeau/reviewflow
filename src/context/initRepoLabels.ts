@@ -28,13 +28,28 @@ export const getLabelsForRepo = async <T extends EmitterWebhookEventName>(
 
 export const initRepoLabels = async <
   T extends EmitterWebhookEventName,
-  GroupNames extends string,
+  TeamNames extends string,
 >(
   context: ProbotEvent<T>,
-  config: Config<GroupNames>,
+  config: Config<TeamNames>,
 ): Promise<LabelsRecord> => {
   const labels = await getLabelsForRepo<T>(context);
   const finalLabels: Record<string, LabelResponse> = {};
+
+  if (config.labels.legacyToRemove) {
+    for (const labelConfig of Object.values(config.labels.legacyToRemove)) {
+      const existingLabel = labels.find(
+        (label) => label.name === labelConfig.name,
+      );
+      if (existingLabel) {
+        await context.octokit.issues.deleteLabel(
+          context.repo({
+            name: labelConfig.name,
+          }),
+        );
+      }
+    }
+  }
 
   for (const [labelKey, labelConfig] of Object.entries(config.labels.list)) {
     const labelColor = labelConfig.color.slice(1);

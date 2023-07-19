@@ -1,4 +1,4 @@
-import type { LabelList } from 'accountConfigs/types';
+import type { LabelList } from '../../../../../accountConfigs/types';
 import initialSimpleV1 from './mocks/commentBody-v1-initial-simple';
 import initialAfterEditSimpleV1 from './mocks/commentBody-v1-initialAfterEdit-simple';
 import initialAfterEditSimpleWithInfosV1 from './mocks/commentBody-v1-initialAfterEdit-simpleWithInfos';

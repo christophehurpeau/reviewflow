@@ -1,8 +1,8 @@
 import type { Probot } from 'probot';
-import type { ProbotEvent } from 'events/probot-types';
 import type { AppContext } from '../../context/AppContext';
 import type { LockedMergePr } from '../../context/repoContext';
-import { calcAndUpdateLabels } from './actions/calcAndUpdateLabels';
+import type { ProbotEvent } from '../probot-types';
+import { calcAndUpdateChecksAndStatuses } from './actions/calcAndUpdateChecksAndStatuses';
 import type { PullRequestDataMinimumData } from './utils/PullRequestData';
 import { createPullRequestsHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
@@ -70,7 +70,7 @@ export default function status(app: Probot, appContext: AppContext): void {
         // TODO calc and update ci step state
         await Promise.all([
           fetchPr(context, pullRequest.number).then((pr) =>
-            calcAndUpdateLabels(
+            calcAndUpdateChecksAndStatuses(
               context,
               appContext,
               repoContext,
@@ -86,7 +86,7 @@ export default function status(app: Probot, appContext: AppContext): void {
                   context: context.payload.context,
                   state: context.payload.state,
                 },
-              },
+              } as any,
             },
           ),
         ]);

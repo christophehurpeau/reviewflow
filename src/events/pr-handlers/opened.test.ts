@@ -1,7 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { jest } from '@jest/globals';
 import type { Probot } from 'probot';
-import type { ProbotEvent } from 'events/probot-types';
 import pullRequestOpened from '../../__fixtures__/pull_request_30.opened.json';
 import pullRequestCommits from '../../__fixtures__/pull_request_30_commits.json';
 import { voidTeamSlack } from '../../context/slack/voidTeamSlack';
@@ -11,6 +10,7 @@ import {
   mockLabels,
   nock,
 } from '../../tests/setup';
+import type { ProbotEvent } from '../probot-types';
 import commentBodyV2InitialAfterEditSimple from './actions/utils/body/mocks/commentBody-v2-initialAfterEdit-simpleWithProgress';
 
 jest.unstable_mockModule('../../context/slack/initTeamSlack', () => ({
@@ -91,6 +91,9 @@ describe('opened', (): void => {
       .times(2)
       .reply(200, { check_runs: [] })
 
+      .get('/repos/reviewflow/reviewflow-test/pulls/30/reviews')
+      .reply(200, [])
+
       .get(
         '/repos/reviewflow/reviewflow-test/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da/status?per_page=100',
       )
@@ -104,7 +107,7 @@ describe('opened', (): void => {
 
       .post(
         '/repos/reviewflow/reviewflow-test/statuses/2ab411d5c55f25f3dc2de6a3244f290a804e33da',
-        '{"context":"reviewflow-dev","state":"failure","description":"Awaiting review from: dev. Perhaps request someone ?"}',
+        '{"context":"reviewflow-dev","state":"failure","description":"Awaiting review... Perhaps request someone ?"}',
       )
       .reply(200, {});
 

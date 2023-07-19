@@ -1,12 +1,11 @@
 import { WebClient } from '@slack/web-api';
-import type { ProbotEvent } from 'events/probot-types';
 import type { Config } from '../../accountConfigs';
 import type { MessageCategory } from '../../dm/MessageCategory';
 import { getUserDmSettings } from '../../dm/getUserDmSettings';
+import type { ProbotEvent } from '../../events/probot-types';
 import type { Org, User, MongoStores } from '../../mongo';
 import type { AppContext } from '../AppContext';
 import type { AccountInfo } from '../getOrCreateAccount';
-import { getKeys } from '../utils';
 import type { SlackMessage } from './SlackMessage';
 import type { TeamSlack, PostSlackMessageResult } from './TeamSlack';
 import { voidTeamSlack } from './voidTeamSlack';
@@ -31,16 +30,17 @@ async function getSlackAccountFromAccount(
 interface MemberObject {
   member: {
     id: string;
+    userGithubId: number;
     teamId?: string;
   };
   slackClient?: WebClient;
   im: any;
 }
 
-export const initTeamSlack = async <GroupNames extends string>(
+export const initTeamSlack = async <TeamNames extends string>(
   { mongoStores, slackHome }: AppContext,
   context: ProbotEvent<any>,
-  config: Config<GroupNames>,
+  config: Config<TeamNames>,
   account: Org | User,
 ): Promise<TeamSlack> => {
   const slackToken = await getSlackAccountFromAccount(mongoStores, account);
@@ -49,77 +49,21 @@ export const initTeamSlack = async <GroupNames extends string>(
     return voidTeamSlack();
   }
 
-  // eslint-disable-next-line unicorn/no-array-reduce -- this will be removed soon
-  const githubLoginToSlackEmail = getKeys(config.groups).reduce<
-    Record<string, string>
-  >((acc, groupName) => {
-    Object.assign(acc, config.groups[groupName]);
-    return acc;
-  }, {});
-
-  const slackEmails = Object.values(githubLoginToSlackEmail);
   const orgSlackClient = new WebClient(slackToken);
 
+  const membersMap = new Map<string, MemberObject>();
   const membersInDb = await mongoStores.orgMembers.findAll({
     'org.id': account._id,
   });
 
-  const members: [string, MemberObject][] = [];
-  const foundEmailMembers: string[] = [];
-
-  Object.entries(githubLoginToSlackEmail).forEach(([login, email]) => {
-    const member = membersInDb.find((m) => m.user.login === login);
-    if (member?.slack?.id) {
-      foundEmailMembers.push(email);
-      members.push([login, { member: { id: member.slack.id }, im: undefined }]);
-    }
-  });
-
-  if (foundEmailMembers.length !== slackEmails.length) {
-    const missingEmails = slackEmails.filter(
-      (email) => !foundEmailMembers.includes(email),
-    );
-
-    const memberEmailToGithubLogin = new Map<string, string>(
-      Object.entries(githubLoginToSlackEmail).map(([login, email]) => [
-        email,
-        login,
-      ]),
-    );
-    const memberEmailToMemberId = new Map<string, string>(
-      Object.entries(githubLoginToSlackEmail).map(([login, email]) => [
-        email,
-        membersInDb.find((m) => m.user.login === login)?._id as any,
-      ]),
-    );
-
-    await orgSlackClient.paginate('users.list', {}, (page: any) => {
-      page.members.forEach((member: any) => {
-        const email = member.profile?.email;
-        if (email && missingEmails.includes(email)) {
-          const login = memberEmailToGithubLogin.get(email);
-          if (!login) return;
-          members.push([login, { member, im: undefined }]);
-          const memberId = memberEmailToMemberId.get(email);
-          if (memberId) {
-            mongoStores.orgMembers.partialUpdateByKey(memberId, {
-              $set: { slack: { id: member.id, email } },
-            });
-          }
-        }
-      });
-      return false;
-    });
-  }
-
-  const membersMap = new Map(members);
-
-  // User added its email but not linked to a slack account yet
-  // Temporary transition before login with slack in the settings
   membersInDb.forEach((member) => {
     if (member?.slack?.id && !membersMap.has(member.user.login)) {
       membersMap.set(member.user.login, {
-        member: { id: member.slack.id, teamId: member.slack.teamId },
+        member: {
+          id: member.slack.id,
+          userGithubId: member.user.id,
+          teamId: member.slack.teamId,
+        },
         im: undefined,
       });
     }
@@ -246,21 +190,26 @@ export const initTeamSlack = async <GroupNames extends string>(
       const user = membersMap.get(toUser.login);
       if (!user || !user.slackClient || !user.im) return null;
 
-      const result = await user.slackClient.chat.update({
-        ts,
-        channel,
-        text: message.text,
-        blocks: message.blocks,
-        attachments: message.secondaryBlocks
-          ? [{ blocks: message.secondaryBlocks }]
-          : undefined,
-      });
-      if (!result.ok) return null;
-      return {
-        ts: result.ts!,
-        channel: result.channel!,
-        user: toUser,
-      };
+      try {
+        const result = await user.slackClient.chat.update({
+          ts,
+          channel,
+          text: message.text,
+          blocks: message.blocks,
+          attachments: message.secondaryBlocks
+            ? [{ blocks: message.secondaryBlocks }]
+            : undefined,
+        });
+        if (!result.ok) return null;
+        return {
+          ts: result.ts!,
+          channel: result.channel!,
+          user: toUser,
+        };
+      } catch (err) {
+        context.log.error({ error: err }, 'could not update message');
+        return null;
+      }
     },
     deleteMessage: async (
       toUser: AccountInfo,
@@ -301,7 +250,7 @@ export const initTeamSlack = async <GroupNames extends string>(
       if (!user || !user.slackClient || !user.member) return;
 
       slackHome.scheduleUpdateMember(context.octokit, user.slackClient, {
-        user: { id: null, login: githubLogin },
+        user: { id: user.member.userGithubId, login: githubLogin },
         org: { id: account._id, login: account.login },
         slack: { id: user.member.id },
       } as any);
@@ -322,7 +271,7 @@ export const initTeamSlack = async <GroupNames extends string>(
       if (slackClient) {
         const im = await openConversation(slackClient, member.slack.id);
         membersMap.set(userLogin, {
-          member: { id: member.slack.id },
+          member: { id: member.slack.id, userGithubId: member.user.id },
           slackClient,
           im,
         });

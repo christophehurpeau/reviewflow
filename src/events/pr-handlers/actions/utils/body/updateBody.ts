@@ -1,4 +1,7 @@
-import type { LabelList, StatusInfo } from 'accountConfigs/types';
+import type {
+  LabelList,
+  StatusInfo,
+} from '../../../../../accountConfigs/types';
 import type { StepState } from '../steps/BaseStepState';
 import { steps } from '../steps/calcStepsState';
 import type { StepsState } from '../steps/calcStepsState';
@@ -103,9 +106,7 @@ const getEmojiFromStepsState = (stepState: StepState): string => {
   return '';
 };
 
-const getProgressReplacement = <GroupNames extends string>(
-  stepsState: StepsState<GroupNames>,
-): string => {
+const getProgressReplacement = (stepsState: StepsState): string => {
   return `### Progress\n\n${steps
     .map(
       ({ name, key }) =>
@@ -154,12 +155,12 @@ const internalUpdateBodyOptionsAndInfos = (
   )}\n### Actions:\n${toMarkdownActions(repoLink, labelsConfig)}`;
 };
 
-export const createCommentBody = <GroupNames extends string>(
+export const createCommentBody = (
   repositorySettings: RepositorySettings,
   repoLink: string,
   labelsConfig: LabelList,
   defaultOptions: Options,
-  stepsState?: StepsState<GroupNames>,
+  stepsState?: StepsState,
   infos?: StatusInfo[],
 ): string => {
   return internalUpdateBodyOptionsAndInfos(
@@ -211,9 +212,9 @@ export const updateCommentBodyInfos = (
   );
 };
 
-export const updateCommentBodyProgress = <GroupNames extends string>(
+export const updateCommentBodyProgress = (
   commentBody: string,
-  stepsState: StepsState<GroupNames>,
+  stepsState: StepsState,
 ): string => {
   return commentBody.replace(
     // *  - zero or more

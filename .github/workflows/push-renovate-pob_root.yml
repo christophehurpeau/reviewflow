@@ -3,7 +3,7 @@ name: Commit changes on @pob/root update
 on:
   push:
     branches:
-      - 'renovate/pob-root-**'
+      - "renovate/pob-root-**"
 
 jobs:
   run-install-and-commit-modified-files:
@@ -12,17 +12,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           token: ${{ secrets.GH_TOKEN }}
-
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            .yarn/unplugged
-            .yarn/install-state.gz
-          key: v2-dependencies--${{ matrix.node-version }}-${{ runner.OS }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            v2-dependencies--${{ matrix.node-version }}-${{ runner.OS }}-
-            v2-dependencies--${{ matrix.node-version }}-
 
       - name: Install Dependencies
         # no immutable here

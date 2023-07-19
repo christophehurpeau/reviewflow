@@ -2,7 +2,7 @@ import type { MessageCategory } from '../dm/MessageCategory';
 import type { Options } from '../events/pr-handlers/actions/utils/body/prOptions';
 
 export interface StatusInfo {
-  type: 'success' | 'failure';
+  type: 'failure' | 'success';
   inBody?: true;
   url?: string;
   title: string;
@@ -14,7 +14,6 @@ export type Group = Record<string, string | null>;
 
 export interface Team {
   githubTeamName?: string;
-  logins: string[];
   labels?: string[];
 }
 
@@ -46,30 +45,26 @@ export interface LabelDescriptor {
   color: string;
 }
 
-export type GroupLabels =
-  | 'needsReview'
-  | 'requested'
+export type ReviewLabels =
+  | 'approved'
   | 'changesRequested'
-  | 'approved';
+  | 'needsReview'
+  | 'requested';
 
-export type CiLabels = 'inProgress' | 'succeeded' | 'failed';
-
-export type ReviewConfig<GroupNames extends string> = Record<
-  GroupNames,
-  Record<GroupLabels, string>
-> &
-  Record<'checks', Record<CiLabels, string>>;
+export type ReviewConfig = Record<ReviewLabels, string>;
 
 export type LabelList = Record<string, LabelDescriptor>;
 
-export interface LabelsConfig<GroupNames extends string> {
+export interface LabelsConfig {
+  legacyToRemove?: LabelList;
   list: LabelList;
-  review: ReviewConfig<GroupNames>;
+  review?: ReviewConfig;
 }
 
 interface ExperimentalFeatures {
   lintPullRequestTitleWithConventionalCommit?: true;
-  githubAutoMerge?: true;
+  conventionalCommitBangBreakingChange?: true;
+  betterSlackify?: true;
 }
 
 interface WarnOnForcePushAfterReviewStarted {
@@ -77,7 +72,7 @@ interface WarnOnForcePushAfterReviewStarted {
   message: string;
 }
 
-export interface Config<GroupNames extends string, TeamNames extends string> {
+export interface Config<TeamNames extends string> {
   autoAssignToCreator?: boolean;
   trimTitle?: boolean;
   ignoreRepoPattern?: string;
@@ -87,16 +82,14 @@ export interface Config<GroupNames extends string, TeamNames extends string> {
   disableBypassMergeFor?: RegExp;
   warnOnForcePushAfterReviewStarted?: WarnOnForcePushAfterReviewStarted;
   checksAllowedToFail?: string[];
+  onlyEnforceProgressWhenAutomergeEnabled?: boolean;
   experimentalFeatures?: ExperimentalFeatures;
   parsePR?: ParsePR;
   prDefaultOptions: Options;
 
   botUsers?: string[];
-  groups: Record<GroupNames, Group>;
-  groupsGithubTeams?: Record<GroupNames, string[]>;
   teams: Record<TeamNames, Team>;
-  waitForGroups?: Record<GroupNames, GroupNames[]>;
 
-  labels: LabelsConfig<GroupNames>;
+  labels: LabelsConfig;
   defaultDmSettings?: Partial<Record<MessageCategory, boolean>>;
 }

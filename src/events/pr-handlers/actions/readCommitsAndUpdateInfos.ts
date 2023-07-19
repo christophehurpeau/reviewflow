@@ -1,7 +1,10 @@
 import type { CommitNote } from '@commitlint/types';
 import type { RestEndpointMethodTypes } from '@octokit/rest';
-import type { EventsWithRepository, RepoContext } from 'context/repoContext';
-import type { ProbotEvent } from 'events/probot-types';
+import type {
+  EventsWithRepository,
+  RepoContext,
+} from '../../../context/repoContext';
+import type { ProbotEvent } from '../../probot-types';
 import type { PullRequestWithDecentData } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { updatePrIfNeeded } from './updatePr';
@@ -27,9 +30,6 @@ export const readCommitsAndUpdateInfos = async <
   prBody: string,
   commentBody = reviewflowPrContext.commentBody,
 ): Promise<void> => {
-  // tmp.data[0].sha
-  // tmp.data[0].commit.message
-
   const commits = await readPullRequestCommits(context, pullRequest);
 
   const conventionalCommits = await Promise.all(
@@ -65,7 +65,29 @@ export const readCommitsAndUpdateInfos = async <
 
   const hasBreakingChanges = breakingChangesCommits.length > 0;
 
-  // TODO auto update ! in front of : to signal a breaking change when https://github.com/conventional-changelog/commitlint/issues/658 is closed
+  // auto update ! in front of : to signal a breaking change
+  // prevents squash and merge with missing breaking change in body
+  if (
+    hasBreakingChanges &&
+    repoContext.config.experimentalFeatures
+      ?.conventionalCommitBangBreakingChange
+  ) {
+    try {
+      const parsePrTitleAsConventionalCommit = await parseCommitMessage(
+        prTitle,
+      );
+      if (parsePrTitleAsConventionalCommit.type) {
+        const typeAndScope = `${parsePrTitleAsConventionalCommit.type}${
+          parsePrTitleAsConventionalCommit.scope
+            ? `(${parsePrTitleAsConventionalCommit.scope})`
+            : ''
+        }`;
+        if (prTitle.startsWith(`${typeAndScope}:`)) {
+          prTitle = `${typeAndScope}!${prTitle.slice(typeAndScope.length)}`;
+        }
+      }
+    } catch {}
+  }
 
   await Promise.all([
     updatePrIfNeeded(pullRequest, context, { title: prTitle, body: prBody }),

@@ -1,18 +1,21 @@
-import type { EventsWithRepository, RepoContext } from 'context/repoContext';
-import type { ProbotEvent } from 'events/probot-types';
 import type { AppContext } from '../../../context/AppContext';
+import type {
+  EventsWithRepository,
+  RepoContext,
+} from '../../../context/repoContext';
 import { getChecksAndStatusesForPullRequest } from '../../../utils/github/pullRequest/checksAndStatuses';
+import { getReviewersWithState } from '../../../utils/github/pullRequest/reviews';
+import type { ProbotEvent } from '../../probot-types';
 import type { PullRequestFromRestEndpoint } from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { getFailedOrWaitingChecksAndStatuses } from '../utils/getFailedOrWaitingChecksAndStatuses';
-import { autoMergeIfPossible } from './autoMergeIfPossible';
+import { groupReviewsWithState } from '../utils/groupReviewsWithState';
 import { editOpenedPR } from './editOpenedPR';
-import {
-  disableGithubAutoMerge,
-  mergeOrEnableGithubAutoMerge,
-} from './enableGithubAutoMerge';
+import { disableGithubAutoMerge } from './enableGithubAutoMerge';
+import { tryToAutomerge } from './tryToAutomerge';
 import { updateBranch } from './updateBranch';
 import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
+import { updateReviewStatus } from './updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './updateStatusCheckFromStepsState';
 import { calcDefaultOptions } from './utils/body/prOptions';
 import { updateCommentOptions } from './utils/body/updateBody';
@@ -45,13 +48,16 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
   if (options) {
     const shouldUpdateChecks = actions.includes('updateChecks');
 
-    const checksAndStatuses = shouldUpdateChecks
-      ? await getChecksAndStatusesForPullRequest(context, pullRequest)
-      : undefined;
+    const [checksAndStatuses, reviewersWithState] = await Promise.all([
+      shouldUpdateChecks &&
+        getChecksAndStatusesForPullRequest(context, pullRequest),
+      shouldUpdateChecks && getReviewersWithState(context, pullRequest),
+    ]);
 
     const calcStateLabels = async (): Promise<LabelToSync[]> => {
+      if (!checksAndStatuses) return [];
       const { state } = getFailedOrWaitingChecksAndStatuses(
-        checksAndStatuses!,
+        checksAndStatuses,
         repoContext,
       );
       return getStateChecksLabelsToSync(repoContext, state);
@@ -78,34 +84,45 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
         shouldHaveLabel: options.autoMerge,
         label: automergeLabel,
         onAdd: async (prLabels) => {
-          if (
-            repoContext.settings.allowAutoMerge &&
-            repoContext.config.experimentalFeatures?.githubAutoMerge
-          ) {
-            return (
-              (await mergeOrEnableGithubAutoMerge(
-                pullRequest,
-                context,
-                repoContext,
-                reviewflowPrContext,
-              )) !== null
-            );
-          } else {
-            await autoMergeIfPossible(
-              pullRequest,
-              context,
-              repoContext,
-              reviewflowPrContext,
-              prLabels,
-            );
-            return true;
-          }
+          const stepsState = calcStepsState({
+            repoContext,
+            pullRequest,
+            reviewflowPrContext,
+          });
+          await updateStatusCheckFromStepsState(
+            stepsState,
+            pullRequest,
+            context,
+            repoContext,
+            appContext,
+            reviewflowPrContext,
+            prLabels,
+          );
+          await tryToAutomerge({
+            pullRequest,
+            pullRequestLabels: prLabels,
+            context,
+            repoContext,
+            reviewflowPrContext,
+            stepsState,
+          });
         },
-        onRemove: async () => {
-          if (
-            repoContext.settings.allowAutoMerge &&
-            repoContext.config.experimentalFeatures?.githubAutoMerge
-          ) {
+        onRemove: async (prLabels) => {
+          const stepsState = calcStepsState({
+            repoContext,
+            pullRequest,
+            reviewflowPrContext,
+          });
+          await updateStatusCheckFromStepsState(
+            stepsState,
+            pullRequest,
+            context,
+            repoContext,
+            appContext,
+            reviewflowPrContext,
+            prLabels,
+          );
+          if (repoContext.settings.allowAutoMerge) {
             return disableGithubAutoMerge(
               pullRequest,
               context,
@@ -126,24 +143,26 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
       ...(shouldUpdateChecks ? await calcStateLabels() : []),
     ]);
 
-    // update checks, after labels update.
-    if (shouldUpdateChecks) {
+    // update checks and reviews after labels update.
+    if (shouldUpdateChecks && checksAndStatuses && reviewersWithState) {
+      reviewflowPrContext.reviewflowPr.reviews =
+        groupReviewsWithState(reviewersWithState);
+      reviewflowPrContext.reviewflowPr.checksConclusion =
+        checksAndStatuses.checksConclusionRecord;
+      reviewflowPrContext.reviewflowPr.statusesConclusion =
+        checksAndStatuses.statusesConclusionRecord;
+
       const stepsState = calcStepsState({
         repoContext,
         pullRequest,
-        labels: updatedLabels,
+        reviewflowPrContext,
       });
 
-      if (checksAndStatuses) {
-        reviewflowPrContext.reviewflowPr.checksConclusion =
-          checksAndStatuses.checksConclusionRecord;
-        reviewflowPrContext.reviewflowPr.statusesConclusion =
-          checksAndStatuses.statusesConclusionRecord;
-      }
-
       await Promise.all([
+        updateReviewStatus(pullRequest, context, repoContext, stepsState),
         editOpenedPR({
           pullRequest,
+          pullRequestLabels: updatedLabels,
           context,
           appContext,
           repoContext,
@@ -152,6 +171,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
           shouldUpdateCommentBodyProgress: true,
           shouldUpdateCommentBodyInfos: true,
           checksAndStatuses,
+          reviews: reviewflowPrContext.reviewflowPr.reviews,
         }),
         updateStatusCheckFromStepsState(
           stepsState,
@@ -160,6 +180,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
           repoContext,
           appContext,
           reviewflowPrContext,
+          updatedLabels,
         ),
       ]);
     }

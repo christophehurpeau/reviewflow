@@ -1,15 +1,30 @@
-import type { EventsWithRepository, RepoContext } from 'context/repoContext';
+import type {
+  EventsWithRepository,
+  RepoContext,
+} from '../../../context/repoContext';
+import { checkIfUserIsBot } from '../../../utils/github/isBotUser';
 import type { AutoMergeRequest } from '../../../utils/github/pullRequest/autoMerge';
 import {
   enableGithubAutoMergeMutation,
   disableGithubAutoMergeMutation,
 } from '../../../utils/github/pullRequest/autoMerge';
 import type { ProbotEvent } from '../../probot-types';
-import type { PullRequestWithDecentData } from '../utils/PullRequestData';
+import type {
+  BasicUser,
+  PullRequestWithDecentData,
+} from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { createMergeLockPrFromPr } from '../utils/mergeLock';
 import { createCommitMessage } from './autoMergeIfPossible';
 import { parseBody } from './utils/body/parseBody';
+
+export interface MergeOrEnableGithubAutoMergeResult {
+  wasMerged: boolean;
+  wasAlreadyMerged?: boolean;
+  isRescheduled?: boolean;
+  didFailedToEnableAutoMerge?: boolean;
+  mergedRequest?: AutoMergeRequest;
+}
 
 export const mergeOrEnableGithubAutoMerge = async <
   EventName extends EventsWithRepository,
@@ -18,26 +33,24 @@ export const mergeOrEnableGithubAutoMerge = async <
   context: ProbotEvent<EventName>,
   repoContext: RepoContext,
   reviewflowPrContext: ReviewflowPrContext,
-  login?: string,
+  user?: BasicUser,
   skipCheckMergeableState?: boolean,
-): Promise<AutoMergeRequest | null> => {
-  if (pullRequest.merged_at || pullRequest.draft) return null;
-  if (pullRequest.auto_merge) {
-    return { enabledBy: pullRequest.auto_merge.enabled_by };
+): Promise<MergeOrEnableGithubAutoMergeResult> => {
+  if (pullRequest.merged_at || pullRequest.draft) {
+    return {
+      wasMerged: false,
+      wasAlreadyMerged: true,
+    };
   }
 
-  if (
-    !('mergeable_state' in pullRequest) ||
-    pullRequest.mergeable_state === 'unknown'
-  ) {
-    // GitHub is determining whether the pull request is mergeable
-    await repoContext.reschedule(
-      context,
-      createMergeLockPrFromPr(pullRequest),
-      'short',
-      login,
-    );
-    return null;
+  // don't enable auto merge merge for forks unless there is a login
+  if (!user || checkIfUserIsBot(repoContext, user)) {
+    if (pullRequest.head.repo?.full_name !== pullRequest.base.repo.full_name) {
+      return {
+        wasMerged: false,
+        didFailedToEnableAutoMerge: true,
+      };
+    }
   }
 
   const parsedBody = parseBody(
@@ -51,6 +64,44 @@ export const mergeOrEnableGithubAutoMerge = async <
     parsedBody,
     options,
   });
+
+  if (pullRequest.auto_merge) {
+    if (
+      pullRequest.auto_merge.commit_title !== commitHeadline ||
+      pullRequest.auto_merge.commit_message !== commitBody
+    ) {
+      await disableGithubAutoMergeMutation(context, {
+        pullRequestId: pullRequest.node_id,
+      });
+      await enableGithubAutoMergeMutation(context, {
+        pullRequestId: pullRequest.node_id,
+        mergeMethod: 'SQUASH',
+        commitHeadline,
+        commitBody,
+      });
+    }
+    return {
+      wasMerged: false,
+      mergedRequest: { enabledBy: pullRequest.auto_merge.enabled_by },
+    };
+  }
+
+  if (
+    !('mergeable_state' in pullRequest) ||
+    pullRequest.mergeable_state === 'unknown'
+  ) {
+    // GitHub is determining whether the pull request is mergeable
+    await repoContext.reschedule(
+      context,
+      createMergeLockPrFromPr(pullRequest),
+      'short',
+      user,
+    );
+    return {
+      wasMerged: false,
+      isRescheduled: true,
+    };
+  }
 
   let triedToMerge = false;
 
@@ -69,15 +120,20 @@ export const mergeOrEnableGithubAutoMerge = async <
         commit_title: commitHeadline,
         commit_message: commitBody,
       });
-      return null;
+      return {
+        wasMerged: true,
+      };
     } catch (err) {
       triedToMerge = true;
-      context.log.error('Could not automerge', {
-        ...context.repo({
-          issue_number: pullRequest.number,
-        }),
-        err,
-      });
+      context.log.error(
+        {
+          ...context.repo({
+            issue_number: pullRequest.number,
+          }),
+          err,
+        },
+        'Could not automerge',
+      );
     }
   }
 
@@ -93,7 +149,11 @@ The pull request must be in a state where requirements have not yet been satisfi
       commitHeadline,
       commitBody,
     });
-    return response.enablePullRequestAutoMerge.pullRequest.autoMergeRequest;
+    return {
+      wasMerged: false,
+      mergedRequest:
+        response.enablePullRequestAutoMerge.pullRequest.autoMergeRequest,
+    };
   } catch (err) {
     context.log.error(
       'Could not enable automerge',
@@ -107,7 +167,7 @@ The pull request must be in a state where requirements have not yet been satisfi
         context.repo({
           issue_number: pullRequest.number,
           body: `${
-            login ? `@${login} ` : ''
+            user?.login ? `@${user.login} ` : ''
           }Could not automerge nor enable automerge`,
         }),
       );
@@ -115,12 +175,17 @@ The pull request must be in a state where requirements have not yet been satisfi
       context.octokit.issues.createComment(
         context.repo({
           issue_number: pullRequest.number,
-          body: `${login ? `@${login} ` : ''}Could not enable automerge`,
+          body: `${
+            user?.login ? `@${user.login} ` : ''
+          }Could not enable automerge`,
         }),
       );
     }
   }
-  return null;
+  return {
+    wasMerged: false,
+    didFailedToEnableAutoMerge: triedToMerge,
+  };
 };
 
 export const disableGithubAutoMerge = async <

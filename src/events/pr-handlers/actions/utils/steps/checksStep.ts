@@ -1,3 +1,4 @@
+import { getFailedOrWaitingChecksAndStatuses } from '../../../utils/getFailedOrWaitingChecksAndStatuses';
 import type { BaseStepState, CalcStepOptions } from './BaseStepState';
 
 export interface ChecksStepState extends BaseStepState {
@@ -5,28 +6,23 @@ export interface ChecksStepState extends BaseStepState {
   isFailed: boolean;
 }
 
-export function calcChecksStep<GroupNames extends string>({
+export function calcChecksStep<TeamNames extends string>({
   repoContext,
-  pullRequest,
-  labels,
-}: CalcStepOptions<GroupNames>): ChecksStepState {
-  const labelChecksInProgress = repoContext.labels['checks/in-progress'];
-  const labelChecksFailed = repoContext.labels['checks/failed'];
-  const isInProgress = Boolean(
-    labelChecksInProgress &&
-      labels.some((l) => l.id === labelChecksInProgress.id),
-  );
-  const isFailed = Boolean(
-    labelChecksInProgress && labels.some((l) => l.id === labelChecksFailed.id),
+  reviewflowPrContext,
+}: CalcStepOptions<TeamNames>): ChecksStepState {
+  const { state } = getFailedOrWaitingChecksAndStatuses(
+    {
+      checksConclusionRecord:
+        reviewflowPrContext.reviewflowPr.checksConclusion || {},
+      statusesConclusionRecord:
+        reviewflowPrContext.reviewflowPr.statusesConclusion || {},
+    },
+    repoContext,
   );
 
   return {
-    state: (() => {
-      if (isFailed) return 'failed';
-      if (isInProgress) return 'in-progress';
-      return 'passed';
-    })(),
-    isInProgress,
-    isFailed,
+    state: state === 'pending' ? 'in-progress' : state,
+    isInProgress: state === 'pending',
+    isFailed: state === 'failed',
   };
 }

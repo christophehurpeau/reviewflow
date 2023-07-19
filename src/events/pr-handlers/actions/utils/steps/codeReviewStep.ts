@@ -1,19 +1,22 @@
 import type { BaseStepState, CalcStepOptions } from './BaseStepState';
 
-export interface CodeReviewStepState<GroupNames extends string>
-  extends BaseStepState {
+// TODO if was pr draft, requires a new review
+
+export interface CodeReviewStepState extends BaseStepState {
   hasRequestedReviewers: boolean;
   hasRequestedTeams: boolean;
   hasChangesRequested: boolean;
-  needsReviewGroupNames: GroupNames[];
+  hasApprovals: boolean;
+  isMissingReview: boolean;
   isMissingApprobation: boolean;
+  isApproved: boolean;
 }
 
-export function calcCodeReviewStep<GroupNames extends string>({
+export function calcCodeReviewStep<TeamNames extends string>({
   repoContext,
   pullRequest,
-  labels,
-}: CalcStepOptions<GroupNames>): CodeReviewStepState<GroupNames> {
+  reviewflowPrContext,
+}: CalcStepOptions<TeamNames>): CodeReviewStepState {
   const hasRequestedReviewers = Boolean(
     pullRequest.requested_reviewers &&
       pullRequest.requested_reviewers.length > 0,
@@ -21,30 +24,51 @@ export function calcCodeReviewStep<GroupNames extends string>({
   const hasRequestedTeams = Boolean(
     pullRequest.requested_teams && pullRequest.requested_teams.length > 0,
   );
-  const hasChangesRequested = repoContext.hasChangesRequestedReview(labels);
-  const hasApproves = repoContext.hasApprovesReview(labels);
-  const needsReviewGroupNames = repoContext.getNeedsReviewGroupNames(labels);
+
+  const hasChangesRequested =
+    reviewflowPrContext.reviewflowPr.reviews?.changesRequested.length > 0;
+
+  const hasApprovals =
+    reviewflowPrContext.reviewflowPr.reviews?.approved.length > 0;
+
   const isMissingApprobation =
     repoContext.config.requiresReviewRequest ||
     pullRequest.user?.type === 'Bot' ||
     pullRequest.user?.id !== repoContext.accountEmbed.id
-      ? !repoContext.hasApprovesReview(labels)
+      ? !hasApprovals
       : false;
+
+  const isMissingReview =
+    !pullRequest.draft &&
+    !pullRequest.closed_at &&
+    (hasRequestedReviewers ||
+      hasRequestedReviewers ||
+      !!(isMissingApprobation && repoContext.config.requiresReviewRequest));
+
+  const isApproved =
+    hasApprovals &&
+    !isMissingApprobation &&
+    !hasRequestedReviewers &&
+    !hasRequestedTeams;
 
   return {
     state: (() => {
       if (hasChangesRequested) return 'failed';
-      if (hasRequestedReviewers || hasRequestedTeams) return 'in-progress';
-      if (needsReviewGroupNames.length === 0 && !isMissingApprobation) {
+      if (hasRequestedReviewers || hasRequestedTeams || hasChangesRequested) {
+        return 'in-progress';
+      }
+      if (!isMissingApprobation) {
         return 'passed';
       }
-      if (hasApproves) return 'in-progress';
+      if (hasApprovals) return 'in-progress';
       return 'not-started';
     })(),
+    isMissingReview,
     hasRequestedReviewers,
     hasRequestedTeams,
     hasChangesRequested,
-    needsReviewGroupNames,
+    hasApprovals,
     isMissingApprobation,
+    isApproved,
   };
 }

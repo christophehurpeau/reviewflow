@@ -1,8 +1,11 @@
-import type { EventsWithRepository, RepoContext } from 'context/repoContext';
-import type { ProbotEvent } from 'events/probot-types';
-import type { AutomergeLog } from 'mongo';
+import type {
+  EventsWithRepository,
+  RepoContext,
+} from '../../../context/repoContext';
+import type { AutomergeLog } from '../../../mongo';
 import { areCommitsAllMadeByBots } from '../../../utils/github/isBotUser';
 import { getChecksAndStatusesForPullRequest } from '../../../utils/github/pullRequest/checksAndStatuses';
+import type { ProbotEvent } from '../../probot-types';
 import type {
   PullRequestFromRestEndpoint,
   PullRequestLabels,
@@ -42,7 +45,7 @@ export const createCommitMessage = ({
   ];
 };
 
-export const autoMergeIfPossible = async <
+export const autoMergeIfPossibleLegacy = async <
   EventName extends EventsWithRepository,
 >(
   pullRequest: PullRequestFromRestEndpoint,
@@ -54,12 +57,13 @@ export const autoMergeIfPossible = async <
   if (reviewflowPrContext === null) return false;
   const repo = pullRequest.head.repo;
   if (!repo) return false;
+  // don't merge from forks
+  if (pullRequest.head.repo?.full_name !== pullRequest.base.repo.full_name) {
+    return false;
+  }
 
   if (repoContext.config.disableAutoMerge) return false;
-  if (
-    repoContext.settings.allowAutoMerge &&
-    repoContext.config.experimentalFeatures?.githubAutoMerge
-  ) {
+  if (repoContext.settings.allowAutoMerge) {
     return false;
   }
 
@@ -104,7 +108,7 @@ export const autoMergeIfPossible = async <
   ): void => {
     const repoFullName = repo.full_name;
     context.log.info(`automerge: ${repoFullName}#${pullRequest.id} ${type}`);
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+
     repoContext.appContext.mongoStores.automergeLogs.insertOne({
       account: repoContext.accountEmbed,
       repoFullName,
@@ -118,22 +122,6 @@ export const autoMergeIfPossible = async <
       action,
     });
   };
-
-  if (
-    repoContext.hasNeedsReview(prLabels) ||
-    repoContext.hasRequestedReview(prLabels)
-  ) {
-    addLog('review incomplete', 'remove');
-    await Promise.all([
-      createAutomergeStatus('review incomplete'),
-      repoContext.removePrFromAutomergeQueue(
-        context,
-        pullRequest,
-        'blocking labels',
-      ),
-    ]);
-    return false;
-  }
 
   if (
     pullRequest.requested_reviewers &&

@@ -1,10 +1,9 @@
 import { githubPalette } from './color-palettes/githubPalette';
+import defaultConfig from './defaultConfig';
 import type { Config } from './types';
 
-const config: Config<'dev', never> = {
-  autoAssignToCreator: true,
-  trimTitle: true,
-  requiresReviewRequest: false,
+const config: Config<never> = {
+  ...defaultConfig,
   prDefaultOptions: {
     autoMerge: false,
     autoMergeWithSkipCi: false,
@@ -12,25 +11,25 @@ const config: Config<'dev', never> = {
   },
   experimentalFeatures: {
     lintPullRequestTitleWithConventionalCommit: true,
-    githubAutoMerge: true,
-  },
-  groups: {
-    dev: {
-      christophehurpeau: 'christophe@hurpeau.com',
-      tilap: 'jlavinh@gmail.com',
-    },
-  },
-  waitForGroups: {
-    dev: [],
+    conventionalCommitBangBreakingChange: true,
+    betterSlackify: true,
   },
   teams: {},
   labels: {
-    list: {
-      /* checks */
+    legacyToRemove: {
       'checks/in-progress': {
         name: ':green_heart: checks/in-progress',
         color: githubPalette.scaleGray6,
       },
+    },
+    list: {
+      /* auto approve */
+      'review/auto-approve': {
+        name: ':white_check_mark: bot approval',
+        color: githubPalette.successEmphasis,
+      },
+
+      /* checks */
       'checks/failed': {
         name: ':green_heart: checks/fail',
         color: githubPalette.dangerEmphasis,
@@ -86,17 +85,10 @@ const config: Config<'dev', never> = {
     },
 
     review: {
-      checks: {
-        inProgress: 'checks/in-progress',
-        succeeded: 'checks/passed',
-        failed: 'checks/failed',
-      },
-      dev: {
-        needsReview: 'code/needs-review',
-        requested: 'code/review-requested',
-        changesRequested: 'code/changes-requested',
-        approved: 'code/approved',
-      },
+      needsReview: 'code/needs-review',
+      requested: 'code/review-requested',
+      changesRequested: 'code/changes-requested',
+      approved: 'code/approved',
     },
   },
 };

@@ -28,49 +28,44 @@ export default function convertedToDraft(
     ): Promise<void> => {
       /* if repo is not ignored */
       if (reviewflowPrContext) {
-        await Promise.all([
-          updateReviewStatus(pullRequest, context, repoContext, [
-            {
-              reviewGroup: 'dev',
-              remove: ['needsReview'],
-            },
-          ]).then(async (newLabels) => {
-            const stepsState = calcStepsState({
-              repoContext,
-              pullRequest,
-              labels: newLabels,
-            });
+        const stepsState = calcStepsState({
+          repoContext,
+          pullRequest,
+          reviewflowPrContext,
+        });
 
-            await Promise.all([
-              updateStatusCheckFromStepsState(
-                stepsState,
-                pullRequest,
-                context,
-                repoContext,
-                appContext,
-                reviewflowPrContext,
-              ),
-              editOpenedPR({
-                pullRequest,
-                context,
-                appContext,
-                repoContext,
-                reviewflowPrContext,
-                stepsState,
-                shouldUpdateCommentBodyInfos: true,
-                shouldUpdateCommentBodyProgress: true,
-              }),
-            ]);
+        await Promise.all([
+          appContext.mongoStores.prs.partialUpdateOne(
+            reviewflowPrContext.reviewflowPr,
+            {
+              $set: { isDraft: true },
+            },
+          ),
+          updateReviewStatus(pullRequest, context, repoContext, stepsState),
+          updateStatusCheckFromStepsState(
+            stepsState,
+            pullRequest,
+            context,
+            repoContext,
+            appContext,
+            reviewflowPrContext,
+          ),
+          editOpenedPR({
+            pullRequest,
+            context,
+            appContext,
+            repoContext,
+            reviewflowPrContext,
+            stepsState,
+            shouldUpdateCommentBodyInfos: true,
+            shouldUpdateCommentBodyProgress: true,
           }),
         ]);
       }
 
       const sender = context.payload.sender;
 
-      const { reviewers } = await getReviewersAndReviewStates(
-        context,
-        repoContext,
-      );
+      const { reviewers } = await getReviewersAndReviewStates(context);
       const { owner, assignees, followers } =
         getRolesFromPullRequestAndReviewers(pullRequest, reviewers, {
           excludeIds: [sender.id],

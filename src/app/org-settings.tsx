@@ -2,8 +2,8 @@ import bodyParser from 'body-parser';
 import type { Router } from 'express';
 import type { ProbotOctokit } from 'probot';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { accountConfigs } from '../accountConfigs';
-import { getTeamsAndGroups } from '../context/accountContext';
+import { accountConfigs, defaultConfig } from '../accountConfigs';
+import { getTeams } from '../context/accountContext';
 import type { MessageCategory } from '../dm/MessageCategory';
 import { getUserDmSettings, updateCache } from '../dm/getUserDmSettings';
 import { syncOrg } from '../events/account-handlers/actions/syncOrg';
@@ -13,6 +13,7 @@ import Layout from '../views/Layout';
 import { getUser } from './auth';
 
 const dmMessages: Record<MessageCategory, string> = {
+  'pr-checksAndStatuses': 'Your PR has failed checks or statuses',
   'pr-lifecycle': 'Your PR is closed, merged, reopened',
   'pr-lifecycle-follow':
     "Someone closed, merged, reopened a PR you're reviewing",
@@ -137,6 +138,7 @@ export default function orgSettings(
         }
 
         const accountConfig = accountConfigs[org.login];
+        const accountOrDefaultConfig = accountConfig || defaultConfig;
         const [orgMember, userDmSettings] = await Promise.all([
           mongoStores.orgMembers.findOne({
             'org.id': org.id,
@@ -144,9 +146,9 @@ export default function orgSettings(
           }),
           getUserDmSettings(mongoStores, org.login, org.id, user.authInfo.id),
         ]);
-        const teamsAndGroups = orgMember
-          ? getTeamsAndGroups(accountConfig, orgMember)
-          : { groupName: undefined, teamNames: [] };
+        const teams = orgMember
+          ? getTeams(accountOrDefaultConfig, orgMember)
+          : [];
 
         res.send(
           renderToStaticMarkup(
@@ -218,13 +220,7 @@ export default function orgSettings(
                       <>User not found in database</>
                     ) : (
                       <>
-                        <div>
-                          Group Name: {teamsAndGroups.groupName || 'No groups'}
-                        </div>
-                        <div>
-                          Team Names:{' '}
-                          {teamsAndGroups.teamNames.join(', ') || 'No teams'}
-                        </div>
+                        <div>Team Names: {teams.join(', ') || 'No teams'}</div>
                         <div>
                           Github Teams:{' '}
                           {orgMember.teams
@@ -315,69 +311,74 @@ export default function orgSettings(
     },
   );
 
-  router.patch('/org/:org', bodyParser.json(), async (req, res, next) => {
-    try {
-      if (!req.body) {
-        res.status(400).send('not ok');
-        return;
-      }
-      if (!req.body.key && !req.body.silentTeam) {
-        res.status(400).send('not ok');
-        return;
-      }
+  router.patch(
+    '/org/:org',
+    bodyParser.json(),
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    async (req, res, next) => {
+      try {
+        if (!req.body) {
+          res.status(400).send('not ok');
+          return;
+        }
+        if (!req.body.key && !req.body.silentTeam) {
+          res.status(400).send('not ok');
+          return;
+        }
 
-      const user = await getUser(req, res);
-      if (!user) return;
+        const user = await getUser(req, res);
+        if (!user) return;
 
-      const orgs = await user.api.orgs.listForAuthenticatedUser();
-      const org = orgs.data.find((o) => o.login === req.params.org);
-      if (!org) {
-        res.redirect('/app');
-        return;
-      }
-      const $setOnInsert = {
-        orgId: org.id,
-        userId: user.authInfo.id,
-        created: new Date(),
-      };
+        const orgs = await user.api.orgs.listForAuthenticatedUser();
+        const org = orgs.data.find((o) => o.login === req.params.org);
+        if (!org) {
+          res.redirect('/app');
+          return;
+        }
+        const $setOnInsert = {
+          orgId: org.id,
+          userId: user.authInfo.id,
+          created: new Date(),
+        };
 
-      const userDmSettingsCollection = await mongoStores.userDmSettings
-        .collection;
-      await userDmSettingsCollection.updateOne(
-        {
-          _id: `${org.id}_${user.authInfo.id}`,
-        },
-        req.body.key
-          ? {
-              $set: {
-                [`settings.${req.body.key}`]: req.body.value,
-                updated: new Date(),
+        const userDmSettingsCollection = await mongoStores.userDmSettings
+          .collection;
+        await userDmSettingsCollection.updateOne(
+          {
+            _id: `${org.id}_${user.authInfo.id}`,
+          },
+          req.body.key
+            ? {
+                $set: {
+                  [`settings.${req.body.key}`]: req.body.value,
+                  updated: new Date(),
+                },
+                $setOnInsert,
+              }
+            : {
+                [req.body.value ? '$push' : '$pull']: {
+                  silentTeams: req.body.value
+                    ? req.body.silentTeam
+                    : { id: req.body.silentTeam.id },
+                },
+                $setOnInsert,
               },
-              $setOnInsert,
-            }
-          : {
-              [req.body.value ? '$push' : '$pull']: {
-                silentTeams: req.body.value
-                  ? req.body.silentTeam
-                  : { id: req.body.silentTeam.id },
-              },
-              $setOnInsert,
-            },
-        { upsert: true },
-      );
+          { upsert: true },
+        );
 
-      const userDmSettingsConfig = await mongoStores.userDmSettings.findOne({
-        orgId: org.id,
-        userId: user.authInfo.id,
-      });
+        const userDmSettingsConfig = await mongoStores.userDmSettings.findOne({
+          orgId: org.id,
+          userId: user.authInfo.id,
+        });
 
-      if (userDmSettingsConfig) {
-        updateCache(org.login, user.authInfo.id, userDmSettingsConfig);
+        if (userDmSettingsConfig) {
+          updateCache(org.login, user.authInfo.id, userDmSettingsConfig);
+        }
+
+        res.send('ok');
+      } catch (err) {
+        next(err);
       }
-
-      res.send('ok');
-    } catch (err) {
-      next(err);
-    }
-  });
+    },
+  );
 }

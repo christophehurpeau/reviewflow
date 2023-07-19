@@ -1,4 +1,3 @@
-import type { AccountInfo } from '../context/getOrCreateAccount';
 import type { RepoContext } from '../context/repoContext';
 import type { CommitFromRestEndpoint } from '../events/commit-handlers/utils/fetchCommit';
 import type { PullRequestWithDecentData } from '../events/pr-handlers/utils/PullRequestData';
@@ -39,18 +38,22 @@ export const createCommitLink = (
   );
 };
 
+export interface CreateOwnerPartOptions {
+  isOwner?: boolean;
+  isAssigned?: boolean;
+}
+
 export const createOwnerPart = (
-  ownerMention: string,
+  repoContext: RepoContext,
   pullRequest: PullRequestWithDecentData,
-  sendTo: AccountInfo,
+  { isOwner, isAssigned }: CreateOwnerPartOptions,
 ): string => {
+  if (isOwner) return 'your PR';
+
   const owner = pullRequest.user;
+  const ownerMention = !owner
+    ? 'unknown'
+    : repoContext.slack.mention(owner.login);
 
-  if (owner && owner.id === sendTo.id) return 'your PR';
-
-  const isAssignedTo: boolean =
-    !!pullRequest.assignees &&
-    pullRequest.assignees.some((a: any) => a && a.id === sendTo.id);
-
-  return `${ownerMention}'s PR${isAssignedTo ? " you're assigned to" : ''}`;
+  return `${ownerMention}'s PR${isAssigned ? " you're assigned to" : ''}`;
 };

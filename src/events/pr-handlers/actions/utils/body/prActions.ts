@@ -1,4 +1,4 @@
-export type ActionKeys = 'updateChecks' | 'updateBranch';
+export type ActionKeys = 'updateBranch' | 'updateChecks';
 
 export const actions: ActionKeys[] = ['updateChecks', 'updateBranch'];
 export const actionRegexps: {

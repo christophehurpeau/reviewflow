@@ -1,12 +1,12 @@
 import type { Probot } from 'probot';
-import type { AccountInfo } from 'context/getOrCreateAccount';
-import type { MessageCategory } from 'dm/MessageCategory';
 import type { AppContext } from '../../context/AppContext';
+import type { AccountInfo } from '../../context/getOrCreateAccount';
 import type { SlackMessage } from '../../context/slack/SlackMessage';
 import type {
   PostSlackMessageResult,
   SlackMessageResult,
 } from '../../context/slack/TeamSlack';
+import type { MessageCategory } from '../../dm/MessageCategory';
 import type { AccountEmbed } from '../../mongo';
 import * as slackUtils from '../../slack/utils';
 import { ExcludesNullish } from '../../utils/Excludes';
@@ -57,7 +57,7 @@ export default function commitCommentCreated(
         : []);
       const comments = await fetchCommitComments(context, commit.sha);
 
-      const otherCommenters: NonNullable<typeof comments[number]['user']>[] =
+      const otherCommenters: NonNullable<(typeof comments)[number]['user']>[] =
         [];
       comments.forEach((otherComment) => {
         if (comment.id === otherComment.id) return;
@@ -90,18 +90,19 @@ export default function commitCommentCreated(
         return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${commitUrl}`;
       };
 
-      const slackifiedBody = slackifyCommentBody(
+      const slackifiedBodyBlocks = await slackifyCommentBody(
+        repoContext,
         comment.body,
         (comment as any).start_line !== null,
       );
 
       const authorSlackMessage = createSlackMessageWithSecondaryBlock(
         createMessage(true),
-        slackifiedBody,
+        slackifiedBodyBlocks,
       );
       const notAuthorSlackMessage = createSlackMessageWithSecondaryBlock(
         createMessage(false),
-        slackifiedBody,
+        slackifiedBodyBlocks,
       );
 
       const isBotUser = checkIfUserIsBot(repoContext, comment.user);

@@ -1,7 +1,6 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
-import { ExcludesFalsy } from '../../utils/Excludes';
 import { editOpenedPR } from './actions/editOpenedPR';
 import { mergeOrEnableGithubAutoMerge } from './actions/enableGithubAutoMerge';
 import { updateReviewStatus } from './actions/updateReviewStatus';
@@ -36,52 +35,20 @@ export default function readyForReview(
         })),
       );
 
-      const requestedReviewerGroups = [
-        ...new Set([
-          ...pullRequest.requested_reviewers.map((requestedReviewer) =>
-            repoContext.getReviewerGroup((requestedReviewer as any).login),
-          ),
-          ...pullRequest.requested_teams.map((requestedTeam) =>
-            repoContext.getTeamGroup(requestedTeam.name),
-          ),
-        ]),
-      ].filter(ExcludesFalsy);
-
       /* if repo is not ignored */
       if (reviewflowPrContext) {
-        const newLabels = await updateReviewStatus(
-          pullRequest,
-          context,
-          repoContext,
-          [
-            ...requestedReviewerGroups.map((reviewGroup) => ({
-              reviewGroup,
-              add: ['needsReview', 'requested'],
-            })),
-            ...(!requestedReviewerGroups.includes('dev') &&
-            repoContext.config.requiresReviewRequest
-              ? [
-                  {
-                    reviewGroup: 'dev',
-                    add: ['needsReview'],
-                  },
-                ]
-              : ([] as any)),
-          ],
-        );
-
         const autoMergeLabel = repoContext.labels['merge/automerge'];
         const stepsState = calcStepsState({
           repoContext,
           pullRequest,
-          labels: newLabels,
+          reviewflowPrContext,
         });
 
         await Promise.all([
+          updateReviewStatus(pullRequest, context, repoContext, stepsState),
           editOpenedPR({
             stepsState,
             pullRequest,
-            pullRequestLabels: newLabels,
             context,
             appContext,
             repoContext,
@@ -99,8 +66,7 @@ export default function readyForReview(
           ).then(async (statusCheckResult) => {
             if (
               repoContext.settings.allowAutoMerge &&
-              repoContext.config.experimentalFeatures?.githubAutoMerge &&
-              hasLabelInPR(newLabels, autoMergeLabel)
+              hasLabelInPR(pullRequest.labels, autoMergeLabel)
             ) {
               await mergeOrEnableGithubAutoMerge(
                 pullRequest,
@@ -149,7 +115,7 @@ export default function readyForReview(
         const createText = ({
           requestedTeam,
         }: {
-          requestedTeam?: typeof pullRequest.requested_teams[number];
+          requestedTeam?: (typeof pullRequest.requested_teams)[number];
         }): string =>
           `:eyes: ${repoContext.slack.mention(
             sender.login,

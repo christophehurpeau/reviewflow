@@ -1,5 +1,4 @@
 import type { Probot } from 'probot';
-import type { ProbotEvent } from 'events/probot-types';
 import { catchExceptedErrors } from '../../../ExpectedError';
 import type { AppContext } from '../../../context/AppContext';
 import type {
@@ -8,6 +7,7 @@ import type {
   EventsWithRepository,
 } from '../../../context/repoContext';
 import { obtainRepoContext } from '../../../context/repoContext';
+import type { ProbotEvent } from '../../probot-types';
 import type { PullRequestDataMinimumData } from './PullRequestData';
 import type {
   CreatePrContextOptions,
@@ -18,6 +18,13 @@ import type { PullRequestFromProbotEvent } from './getPullRequestFromPayload';
 
 export type EventsWithPullRequest = CustomExtract<
   EventsWithRepository,
+  | 'pull_request_review_comment.created'
+  | 'pull_request_review_comment.deleted'
+  | 'pull_request_review_comment.edited'
+  | 'pull_request_review_comment'
+  | 'pull_request_review.dismissed'
+  | 'pull_request_review.edited'
+  | 'pull_request_review.submitted'
   | 'pull_request.assigned'
   | 'pull_request.auto_merge_disabled'
   | 'pull_request.auto_merge_enabled'
@@ -35,25 +42,18 @@ export type EventsWithPullRequest = CustomExtract<
   | 'pull_request.unassigned'
   | 'pull_request.unlabeled'
   | 'pull_request.unlocked'
-  | 'pull_request_review.dismissed'
-  | 'pull_request_review.edited'
-  | 'pull_request_review.submitted'
-  | 'pull_request_review_comment'
-  | 'pull_request_review_comment.created'
-  | 'pull_request_review_comment.deleted'
-  | 'pull_request_review_comment.edited'
 >;
 
 export type EventsWithPullRequests = CustomExtract<
   EventsWithRepository,
-  | 'check_run.created'
   | 'check_run.completed'
+  | 'check_run.created'
   | 'check_suite.completed'
-  | 'workflow_run.requested'
-  // | 'workflow_run.in_progress'
-  | 'workflow_run.completed'
   | 'push'
   | 'status'
+  | 'workflow_run.completed'
+  | 'workflow_run.requested'
+  // | 'workflow_run.in_progress'
 >;
 
 export type EventsWithIssue = CustomExtract<
@@ -62,8 +62,8 @@ export type EventsWithIssue = CustomExtract<
 >;
 
 export const createPullRequestHandler = <
-  EventName extends EventsWithPullRequest | EventsWithIssue,
-  GroupNames extends string = string,
+  TeamNames extends string,
+  EventName extends EventsWithIssue | EventsWithPullRequest,
 >(
   app: Probot,
   appContext: AppContext,
@@ -71,18 +71,18 @@ export const createPullRequestHandler = <
   getPullRequestInPayload: (
     payload: ProbotEvent<EventName>['payload'],
     context: ProbotEvent<EventName>,
-    repoContext: RepoContext<GroupNames>,
+    repoContext: RepoContext<TeamNames>,
   ) => PullRequestFromProbotEvent<EventName> | null,
   callbackPr: (
     pullRequest: PullRequestFromProbotEvent<EventName>,
     context: ProbotEvent<EventName>,
-    repoContext: RepoContext<GroupNames>,
+    repoContext: RepoContext<TeamNames>,
     reviewflowPrContext: ReviewflowPrContext | null,
-  ) => void | Promise<void>,
+  ) => Promise<void> | void,
   callbackBeforeLock?: (
     pullRequest: PullRequestFromProbotEvent<EventName>,
     context: ProbotEvent<EventName>,
-    repoContext: RepoContext<GroupNames>,
+    repoContext: RepoContext<TeamNames>,
   ) => CreatePrContextOptions | Promise<CreatePrContextOptions>,
 ): void => {
   app.on(eventName, async (context: ProbotEvent<EventName>) => {
@@ -134,22 +134,22 @@ export const createPullRequestHandler = <
 export const createPullRequestsHandler = <
   EventName extends EventsWithPullRequests,
   U extends PullRequestDataMinimumData,
-  GroupNames extends string,
+  TeamNames extends string,
 >(
   app: Probot,
   appContext: AppContext,
   eventName: EventName | EventName[],
   getPrs: (
     payload: ProbotEvent<EventName>['payload'],
-    repoContext: RepoContext<GroupNames>,
+    repoContext: RepoContext<TeamNames>,
     context: ProbotEvent<EventName>,
-  ) => U[] | Promise<U[]>,
+  ) => Promise<U[]> | U[],
   callbackPr: (
     pullRequest: U,
     context: ProbotEvent<EventName>,
-    repoContext: RepoContext<GroupNames>,
+    repoContext: RepoContext<TeamNames>,
     reviewflowPrContext: ReviewflowPrContext | null,
-  ) => void | Promise<void>,
+  ) => Promise<void> | void,
 ): void => {
   app.on(eventName, (context) => {
     return catchExceptedErrors(async () => {

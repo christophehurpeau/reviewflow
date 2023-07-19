@@ -1,14 +1,14 @@
 import type { RestEndpointMethodTypes } from '@octokit/rest';
 import delay from 'delay';
 import type { Probot, Context } from 'probot';
-import type { AccountInfo } from 'context/getOrCreateAccount';
-import type { MessageCategory } from 'dm/MessageCategory';
 import type { AppContext } from '../../context/AppContext';
+import type { AccountInfo } from '../../context/getOrCreateAccount';
 import type { SlackMessage } from '../../context/slack/SlackMessage';
 import type {
   PostSlackMessageResult,
   SlackMessageResult,
 } from '../../context/slack/TeamSlack';
+import type { MessageCategory } from '../../dm/MessageCategory';
 import type { AccountEmbed } from '../../mongo';
 import * as slackUtils from '../../slack/utils';
 import { ExcludesNullish } from '../../utils/Excludes';
@@ -27,15 +27,15 @@ import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates
 import { getRolesFromPullRequestAndReviewers } from './utils/getRolesFromPullRequestAndReviewers';
 
 type Comment = ProbotEvent<
-  'pull_request_review_comment.created' | 'issue_comment.created'
+  'issue_comment.created' | 'pull_request_review_comment.created'
 >['payload']['comment'];
 
 const getDiscussion = async (
   context: Context,
   comment: Comment,
 ): Promise<
-  | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data']
   | Comment[]
+  | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data']
 > => {
   if (!('in_reply_to_id' in comment) || !comment.in_reply_to_id) {
     return [comment];
@@ -57,8 +57,8 @@ const getDiscussion = async (
 
 const getMentions = (
   discussion:
-    | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data']
-    | Comment[],
+    | Comment[]
+    | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data'],
 ): string[] => {
   const mentions = new Set<string>();
 
@@ -71,8 +71,8 @@ const getMentions = (
 
 const getUsersInThread = (
   discussion:
-    | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data']
-    | Comment[],
+    | Comment[]
+    | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data'],
 ): AccountInfo[] => {
   const userIds = new Set<number>();
   const users: AccountInfo[] = [];
@@ -91,7 +91,7 @@ export default function prCommentCreated(
   appContext: AppContext,
 ): void {
   const saveInDb = async (
-    type: 'review-comment' | 'issue-comment',
+    type: 'issue-comment' | 'review-comment',
     commentId: number,
     accountEmbed: AccountEmbed,
     results: PostSlackMessageResult[],
@@ -146,7 +146,7 @@ export default function prCommentCreated(
       const [discussion, { reviewers }, reviewSlackMessages] =
         await Promise.all([
           getDiscussion(context, comment),
-          getReviewersAndReviewStates(context, repoContext),
+          getReviewersAndReviewStates(context),
           (comment as any).pull_request_review_id
             ? appContext.mongoStores.slackSentMessages.findAll({
                 'account.id': repoContext.accountEmbed.id,
@@ -204,27 +204,28 @@ export default function prCommentCreated(
         return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
       };
 
-      const slackifiedBody = slackifyCommentBody(
+      const slackifiedBodyBlocks = await slackifyCommentBody(
+        repoContext,
         comment.body,
         (comment as any).start_line !== null,
       );
 
       const ownerSlackMessage = createSlackMessageWithSecondaryBlock(
         createMessage(true, false),
-        isReviewComment ? undefined : slackifiedBody,
+        isReviewComment ? undefined : slackifiedBodyBlocks,
       );
       const assignedToSlackMessage = createSlackMessageWithSecondaryBlock(
         createMessage(true, true),
-        isReviewComment ? undefined : slackifiedBody,
+        isReviewComment ? undefined : slackifiedBodyBlocks,
       );
       const notOwnerSlackMessage = createSlackMessageWithSecondaryBlock(
         createMessage(false),
-        isReviewComment ? undefined : slackifiedBody,
+        isReviewComment ? undefined : slackifiedBodyBlocks,
       );
 
       const threadMessage = createSlackMessageWithSecondaryBlock(
         commentLinkPathText,
-        slackifiedBody,
+        slackifiedBodyBlocks,
       );
 
       const isBotUser = checkIfUserIsBot(repoContext, comment.user);

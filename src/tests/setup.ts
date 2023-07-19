@@ -3,6 +3,7 @@ import { jest } from '@jest/globals';
 import nock from 'nock';
 import { Probot } from 'probot';
 import repoLabels from '../__fixtures__/labels.json';
+import { createEmptyReviews } from '../events/pr-handlers/utils/groupReviewsWithState';
 import initApp from '../initApp';
 
 export { default as nock } from 'nock';
@@ -51,7 +52,12 @@ export const initializeProbotApp = async ({
       ...users,
     },
     prs: {
-      findOne: () => Promise.resolve({ commentId: 1 }),
+      findOne: () =>
+        Promise.resolve({
+          commentId: 1,
+          reviews: createEmptyReviews(),
+          assignees: [],
+        }),
       ...prs,
     },
 

@@ -1,4 +1,4 @@
-import type { EventsWithRepository } from 'context/repoContext';
+import type { EventsWithRepository } from '../../../context/repoContext';
 import type { ProbotEvent } from '../../probot-types';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
@@ -10,9 +10,8 @@ import type { StepsState } from './utils/steps/calcStepsState';
 
 export async function updateCommentBodyProgressFromStepsState<
   Name extends EventsWithRepository,
-  GroupNames extends string,
 >(
-  stepsState: StepsState<GroupNames>,
+  stepsState: StepsState,
   context: ProbotEvent<Name>,
   reviewflowPrContext: ReviewflowPrContext,
 ): Promise<void> {

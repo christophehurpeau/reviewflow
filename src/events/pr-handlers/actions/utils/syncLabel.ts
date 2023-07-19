@@ -1,14 +1,14 @@
 import type { EmitterWebhookEventName } from '@octokit/webhooks';
 import type { SetRequired } from 'type-fest';
-import type { PullRequestWithDecentData } from 'events/pr-handlers/utils/PullRequestData';
-import type { ProbotEvent } from 'events/probot-types';
 import type { LabelResponse } from '../../../../context/initRepoLabels';
+import type { ProbotEvent } from '../../../probot-types';
+import type { PullRequestWithDecentData } from '../../utils/PullRequestData';
 import hasLabelInPR from './labels/hasLabelInPR';
 
 type SyncLabelCallback = (
   prLabels: LabelResponse[],
   // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-) => void | undefined | boolean | Promise<void | undefined | boolean>;
+) => Promise<boolean | undefined | void> | boolean | undefined | void;
 
 interface SyncLabelOptions {
   onRemove?: SyncLabelCallback;

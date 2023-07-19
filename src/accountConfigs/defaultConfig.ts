@@ -1,7 +1,7 @@
 import { githubPalette } from './color-palettes/githubPalette';
 import type { Config } from './types';
 
-const config: Config<never, never> = {
+const config: Config<never> = {
   autoAssignToCreator: true,
   trimTitle: true,
   requiresReviewRequest: false,
@@ -13,16 +13,16 @@ const config: Config<never, never> = {
   parsePR: {
     title: [],
   },
-  groups: {},
-  waitForGroups: {},
   teams: {},
   labels: {
-    list: {
-      /* checks */
+    legacyToRemove: {
       'checks/in-progress': {
         name: ':green_heart: checks/in-progress',
         color: githubPalette.scaleGray6,
       },
+    },
+    list: {
+      /* checks */
       'checks/failed': {
         name: ':green_heart: checks/fail',
         color: githubPalette.dangerEmphasis,
@@ -36,14 +36,6 @@ const config: Config<never, never> = {
       'breaking-changes': {
         name: ':warning: Breaking Changes',
         color: githubPalette.attentionEmphasis,
-      },
-    },
-
-    review: {
-      checks: {
-        inProgress: 'checks/in-progress',
-        succeeded: 'checks/success',
-        failed: 'checks/fail',
       },
     },
   },

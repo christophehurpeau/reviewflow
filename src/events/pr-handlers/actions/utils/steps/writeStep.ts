@@ -5,9 +5,9 @@ export interface WriteStepState extends BaseStepState {
   isClosed: boolean;
 }
 
-export function calcWriteStep<GroupNames extends string>({
+export function calcWriteStep<TeamNames extends string>({
   pullRequest,
-}: CalcStepOptions<GroupNames>): WriteStepState {
+}: CalcStepOptions<TeamNames>): WriteStepState {
   const isDraft = !!pullRequest.draft;
   const isClosed = !!pullRequest.closed_at;
 

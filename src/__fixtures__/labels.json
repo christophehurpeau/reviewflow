@@ -18,15 +18,6 @@
     "description": "Synced by reviewflow for checks/failed"
   },
   {
-    "id": 4930607687,
-    "node_id": "LA_kwDOCgFbpc8AAAABJeMaRw",
-    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:green_heart:%20checks/in-progress",
-    "name": ":green_heart: checks/in-progress",
-    "color": "57606a",
-    "default": false,
-    "description": "Synced by reviewflow for checks/in-progress"
-  },
-  {
     "id": 4930607742,
     "node_id": "LA_kwDOCgFbpc8AAAABJeMafg",
     "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:green_heart:%20checks/passed",
@@ -43,6 +34,15 @@
     "color": "238636",
     "default": false,
     "description": "Synced by reviewflow for code/approved"
+  },
+  {
+    "id": 1210432964,
+    "node_id": "MDU6TGFiZWwxMjEwNDMyOTYz",
+    "url": "https://api.github.com/repos/reviewflow/reviewflow-test/labels/:white_check_mark:%20bot%20approval",
+    "name": ":white_check_mark: bot approval",
+    "color": "238636",
+    "default": false,
+    "description": "Synced by reviewflow for review/auto-approve"
   },
   {
     "id": 1210432962,

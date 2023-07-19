@@ -32,12 +32,13 @@ const lateOceanColorPalette = {
   moonPurpleLight1: '#EDEBFC',
 };
 
-const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
+const config: Config<'backends' | 'frontends' | 'ops'> = {
   autoAssignToCreator: true,
   trimTitle: true,
   ignoreRepoPattern: '(infra-.*|devenv|bigquery-dbt)',
   requiresReviewRequest: true,
   autoMergeRenovateWithSkipCi: false,
+  onlyEnforceProgressWhenAutomergeEnabled: true,
   warnOnForcePushAfterReviewStarted: {
     repositoryNames: [
       'shared-configs',
@@ -198,7 +199,7 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
     ],
     base: [
       {
-        regExp: /^(master|main|develop)$/,
+        regExp: /^(master|main|develop)(-|$)/,
         createStatusInfo: (match) => {
           if (match) {
             return null;
@@ -217,75 +218,22 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
 
   botUsers: ['michael-robot'],
 
-  groups: {
-    dev: {},
-    design: {},
-  },
-
-  groupsGithubTeams: {
-    dev: [
-      'ops',
-      'dev',
-      'backend',
-      'frontend',
-      'frontend-architects',
-      'external-bam',
-      'external-padok',
-      'data-engineering',
-    ],
-    design: ['design'],
-  },
-
   teams: {
     ops: {
       githubTeamName: 'ops',
-      logins: ['JulienBreux', 'TheR3aLp3nGuinJM', 'AymenBac'],
-      labels: ['teams/ops'],
     },
 
     backends: {
       githubTeamName: 'backend',
-      logins: [
-        'abarreir',
-        'arthurflachs',
-        'damienorny',
-        'Thierry-girod',
-        'darame07',
-        'Pixy',
-        'machartier',
-        'camillebaronnet',
-        'olivier-martinez',
-        'tnesztler',
-      ],
-      labels: ['teams/backend'],
     },
 
     frontends: {
       githubTeamName: 'frontend',
-      logins: [
-        'christophehurpeau',
-        'HugoGarrido',
-        'LentnerStefan',
-        'CorentinAndre',
-        'Mxime',
-        'vlbr',
-        'budet-b',
-        'mdcarter',
-        'ChibiBlasphem',
-        'PSniezak',
-        'aenario',
-        'Goldiggy',
-      ],
-      labels: ['teams/frontend'],
     },
   },
 
-  waitForGroups: {
-    dev: [],
-    design: ['dev'],
-  },
   labels: {
-    list: {
+    legacyToRemove: {
       /* checks */
       'checks/in-progress': {
         name: ':green_heart: checks/in-progress',
@@ -299,11 +247,6 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         name: ':green_heart: checks/passed',
         color: githubPalette.successEmphasis,
       },
-
-      // /* ci */
-      // 'ci/in-progress': { name: ':green_heart: ci/in-progress', color: '#0052cc' },
-      // 'ci/fail': { name: ':green_heart: ci/fail', color: lateOceanColorPalette.englishVermillon },
-      // 'ci/passed': { name: ':green_heart: ci/passed', color: '#86f9b4' },
 
       /* code */
       'code/needs-review': {
@@ -353,6 +296,15 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
       'teams/frontend': {
         name: 'frontend',
         color: lateOceanColorPalette.lateOcean,
+      },
+    },
+    list: {
+      /* auto approve */
+      'review/auto-approve': {
+        name: ':white_check_mark: bot approval',
+        description:
+          'Adding this label will trigger reviewflow approval for PRs opened by bots',
+        color: githubPalette.successEmphasis,
       },
 
       /* auto merge */
@@ -424,26 +376,6 @@ const config: Config<'dev' | 'design', 'ops' | 'frontends' | 'backends'> = {
         name: 'wontfix',
         description: 'This will not be worked on',
         color: lateOceanColorPalette.moonPurple,
-      },
-    },
-
-    review: {
-      checks: {
-        inProgress: 'checks/in-progress',
-        succeeded: 'checks/success',
-        failed: 'checks/fail',
-      },
-      dev: {
-        needsReview: 'code/needs-review',
-        requested: 'code/review-requested',
-        changesRequested: 'code/changes-requested',
-        approved: 'code/approved',
-      },
-      design: {
-        needsReview: 'design/needs-review',
-        requested: 'design/review-requested',
-        changesRequested: 'design/changes-requested',
-        approved: 'design/approved',
       },
     },
   },

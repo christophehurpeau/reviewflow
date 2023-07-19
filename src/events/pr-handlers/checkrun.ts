@@ -1,6 +1,6 @@
 import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
-import { calcAndUpdateLabels } from './actions/calcAndUpdateLabels';
+import { calcAndUpdateChecksAndStatuses } from './actions/calcAndUpdateChecksAndStatuses';
 import { createPullRequestsHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
 
@@ -41,10 +41,9 @@ export default function checkrun(app: Probot, appContext: AppContext): void {
         reviewflowPrContext.reviewflowPr.checksConclusion[checkConclusionKey] =
           { name: checkRun.name, conclusion: checkRun.conclusion as any };
 
-        // TODO calc and update ci step state
         await Promise.all([
           fetchPr(context, pullRequest.number).then((pr) =>
-            calcAndUpdateLabels(
+            calcAndUpdateChecksAndStatuses(
               context,
               appContext,
               repoContext,
@@ -60,7 +59,7 @@ export default function checkrun(app: Probot, appContext: AppContext): void {
                   reviewflowPrContext.reviewflowPr.checksConclusion[
                     checkConclusionKey
                   ],
-              },
+              } as any,
             },
           ),
         ]);

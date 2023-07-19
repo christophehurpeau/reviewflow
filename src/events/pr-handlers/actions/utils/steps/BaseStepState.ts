@@ -1,17 +1,15 @@
-import type { RepoContext } from 'context/repoContext';
-import type {
-  PullRequestLabels,
-  PullRequestWithDecentData,
-} from '../../../utils/PullRequestData';
+import type { RepoContext } from '../../../../../context/repoContext';
+import type { PullRequestWithDecentData } from '../../../utils/PullRequestData';
+import type { ReviewflowPrContext } from '../../../utils/createPullRequestContext';
 
-export type StepState = 'not-started' | 'in-progress' | 'failed' | 'passed';
+export type StepState = 'failed' | 'in-progress' | 'not-started' | 'passed';
 
 export interface BaseStepState {
   state: StepState;
 }
 
-export interface CalcStepOptions<GroupNames extends string> {
-  repoContext: RepoContext<GroupNames>;
+export interface CalcStepOptions<TeamNames extends string> {
+  repoContext: RepoContext<TeamNames>;
   pullRequest: PullRequestWithDecentData;
-  labels: PullRequestLabels;
+  reviewflowPrContext: ReviewflowPrContext;
 }

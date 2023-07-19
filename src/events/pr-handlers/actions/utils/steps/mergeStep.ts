@@ -6,11 +6,10 @@ export interface MergeStepState extends BaseStepState {
   isAutoMergeEnabled: boolean;
 }
 
-export function calcMergeStep<GroupNames extends string>({
+export function calcMergeStep<TeamNames extends string>({
   repoContext,
   pullRequest,
-  labels,
-}: CalcStepOptions<GroupNames>): MergeStepState {
+}: CalcStepOptions<TeamNames>): MergeStepState {
   const isMerged = !!pullRequest.merged_at;
   const isClosed = !!pullRequest.closed_at;
   const isAutoMergeEnabled = !!pullRequest.auto_merge;

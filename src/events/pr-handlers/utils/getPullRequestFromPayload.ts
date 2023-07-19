@@ -1,18 +1,17 @@
-import type { ProbotEvent } from 'events/probot-types';
 import { ExpectedError } from '../../../ExpectedError';
+import type { ProbotEvent } from '../../probot-types';
 import type {
   EventsWithIssue,
   EventsWithPullRequest,
 } from './createPullRequestHandler';
 
-export type PullRequestFromEventWithIssue =
-  ProbotEvent<EventsWithIssue>['payload']['issue'] &
-    NonNullable<
-      ProbotEvent<EventsWithIssue>['payload']['issue']['pull_request']
-    >;
+export type PullRequestFromEventWithIssue = NonNullable<
+  ProbotEvent<EventsWithIssue>['payload']['issue']['pull_request']
+> &
+  ProbotEvent<EventsWithIssue>['payload']['issue'];
 
 export type PullRequestFromProbotEvent<
-  EventName extends EventsWithPullRequest | EventsWithIssue,
+  EventName extends EventsWithIssue | EventsWithPullRequest,
 > = ProbotEvent<EventName>['payload'] extends {
   pull_request: ProbotEvent<EventsWithPullRequest>['payload']['pull_request'];
 }
@@ -27,7 +26,7 @@ export type PullRequestFromProbotEvent<
 
 /** deprecated */
 export const getPullRequestFromPayload = <
-  EventName extends EventsWithPullRequest | EventsWithIssue,
+  EventName extends EventsWithIssue | EventsWithPullRequest,
 >(
   payload: ProbotEvent<EventName>['payload'],
 ): PullRequestFromProbotEvent<EventName> => {

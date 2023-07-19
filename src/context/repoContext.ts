@@ -2,8 +2,7 @@ import type { EmitterWebhookEventName } from '@octokit/webhooks';
 import { Lock } from 'lock';
 import type { Config } from '../accountConfigs';
 import { accountConfigs, defaultConfig } from '../accountConfigs';
-import type { GroupLabels } from '../accountConfigs/types';
-import { autoMergeIfPossible } from '../events/pr-handlers/actions/autoMergeIfPossible';
+import { autoMergeIfPossibleLegacy } from '../events/pr-handlers/actions/autoMergeIfPossible';
 import { mergeOrEnableGithubAutoMerge } from '../events/pr-handlers/actions/enableGithubAutoMerge';
 import type { RepositorySettings } from '../events/pr-handlers/actions/utils/body/repositorySettings';
 import {
@@ -11,21 +10,20 @@ import {
   createRepositorySettings,
 } from '../events/pr-handlers/actions/utils/body/repositorySettings';
 import type {
+  BasicUser,
   PullRequestDataMinimumData,
-  PullRequestLabels,
 } from '../events/pr-handlers/utils/PullRequestData';
 import { getReviewflowPrContext } from '../events/pr-handlers/utils/createPullRequestContext';
 import { fetchPr } from '../events/pr-handlers/utils/fetchPr';
 import type { ProbotEvent } from '../events/probot-types';
 import type { RepositoryMergeQueue, Repository } from '../mongo';
-import { ExcludesFalsy } from '../utils/Excludes';
 import { getRepositorySettings } from '../utils/github/repo/getRepositorySettings';
 import type { AppContext } from './AppContext';
 import type { AccountContext } from './accountContext';
 import { obtainAccountContext } from './accountContext';
 import type { LabelResponse, LabelsRecord } from './initRepoLabels';
 import { initRepoLabels } from './initRepoLabels';
-import { getKeys, getEmojiFromRepoDescription } from './utils';
+import { getEmojiFromRepoDescription } from './utils';
 
 export interface LockedMergePr {
   id: number;
@@ -37,6 +35,21 @@ export type CustomExtract<T, U extends T> = U;
 
 export type EventsWithRepository = CustomExtract<
   EmitterWebhookEventName,
+  | 'check_run.completed'
+  | 'check_run.created'
+  | 'check_run.rerequested'
+  | 'check_suite.completed'
+  | 'commit_comment.created'
+  | 'issue_comment.created'
+  | 'issue_comment.deleted'
+  | 'issue_comment.edited'
+  | 'pull_request_review_comment.created'
+  | 'pull_request_review_comment.deleted'
+  | 'pull_request_review_comment.edited'
+  | 'pull_request_review_comment'
+  | 'pull_request_review.dismissed'
+  | 'pull_request_review.edited'
+  | 'pull_request_review.submitted'
   | 'pull_request.assigned'
   | 'pull_request.auto_merge_disabled'
   | 'pull_request.auto_merge_enabled'
@@ -54,13 +67,6 @@ export type EventsWithRepository = CustomExtract<
   | 'pull_request.unassigned'
   | 'pull_request.unlabeled'
   | 'pull_request.unlocked'
-  | 'pull_request_review.dismissed'
-  | 'pull_request_review.edited'
-  | 'pull_request_review.submitted'
-  | 'pull_request_review_comment'
-  | 'pull_request_review_comment.created'
-  | 'pull_request_review_comment.deleted'
-  | 'pull_request_review_comment.edited'
   | 'push'
   | 'repository.archived'
   | 'repository.created'
@@ -72,25 +78,16 @@ export type EventsWithRepository = CustomExtract<
   | 'repository.transferred'
   | 'repository.unarchived'
   | 'status'
-  | 'issue_comment.created'
-  | 'issue_comment.deleted'
-  | 'issue_comment.edited'
-  | 'commit_comment.created'
+  | 'workflow_run.completed'
+  | 'workflow_run.requested'
   // | 'commit_comment.deleted'
   // | 'commit_comment.edited'
-  | 'check_run.created'
-  | 'check_run.rerequested'
-  | 'check_run.completed'
-  | 'check_suite.completed'
-  | 'workflow_run.requested'
   // | 'workflow_run.in_progress'
-  | 'workflow_run.completed'
-  | 'status'
 >;
 
-type RescheduleTime = 'short' | 'long+timeout';
+type RescheduleTime = 'long+timeout' | 'short';
 
-interface RepoContextWithoutTeamContext<GroupNames extends string> {
+interface RepoContextWithoutTeamContext {
   appContext: AppContext;
   repoFullName: string;
   repoEmbed: { id: number; name: string };
@@ -100,11 +97,6 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   protectedLabelIds: readonly LabelResponse['id'][];
   shouldIgnore: boolean;
 
-  hasNeedsReview: (labels: PullRequestLabels) => boolean;
-  hasRequestedReview: (labels: PullRequestLabels) => boolean;
-  hasChangesRequestedReview: (labels: PullRequestLabels) => boolean;
-  hasApprovesReview: (labels: PullRequestLabels) => boolean;
-  getNeedsReviewGroupNames: (labels: PullRequestLabels) => GroupNames[];
   lockPullRequest: (
     eventName: string,
     pullRequest: PullRequestDataMinimumData,
@@ -130,7 +122,7 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
     context: ProbotEvent<EventName>,
     pr: PullRequestDataMinimumData,
     time: RescheduleTime,
-    login?: string,
+    user?: BasicUser,
   ) => Promise<void>;
   rescheduleOnChecksUpdated: <EventName extends EmitterWebhookEventName>(
     context: ProbotEvent<EventName>,
@@ -140,12 +132,12 @@ interface RepoContextWithoutTeamContext<GroupNames extends string> {
   pushAutomergeQueue: (pr: LockedMergePr) => Promise<void>;
 }
 
-export type RepoContext<GroupNames extends string = any> =
-  AccountContext<GroupNames> & RepoContextWithoutTeamContext<GroupNames>;
+export type RepoContext<TeamNames extends string = any> =
+  AccountContext<TeamNames> & RepoContextWithoutTeamContext;
 
 export const shouldIgnoreRepo = (
   repoName: string,
-  accountConfig: Config<any, any>,
+  accountConfig: Config<any>,
 ): boolean => {
   const ignoreRepoRegexp =
     accountConfig.ignoreRepoPattern &&
@@ -162,30 +154,16 @@ export const shouldIgnoreRepo = (
   return false;
 };
 
-const createGetReviewLabelIds = <GroupNames extends string>(
-  shouldIgnore: boolean,
-  config: Config<GroupNames>,
-  reviewGroupNames: GroupNames[],
-  labels: LabelsRecord,
-): ((labelKey: GroupLabels) => number[]) => {
-  if (shouldIgnore) return (labelKey: GroupLabels): number[] => [];
-  return (labelKey: GroupLabels): number[] =>
-    reviewGroupNames
-      .map((key) => config.labels.review[key][labelKey])
-      .filter(Boolean)
-      .map((name) => labels[name].id);
-};
-
 export const allRepoContexts = new Map<string, RepoContext<any>>();
 
 async function initRepoContext<
   T extends EventsWithRepository,
-  GroupNames extends string,
+  TeamNames extends string,
 >(
   appContext: AppContext,
   context: ProbotEvent<T>,
-  config: Config<GroupNames>,
-): Promise<RepoContext<GroupNames>> {
+  config: Config<TeamNames>,
+): Promise<RepoContext<TeamNames>> {
   const {
     id,
     name,
@@ -200,7 +178,7 @@ async function initRepoContext<
     config,
     org,
   );
-  const repoContext = Object.create(accountContext) as RepoContext<GroupNames>;
+  const repoContext = Object.create(accountContext);
 
   const shouldIgnore = shouldIgnoreRepo(name, config);
 
@@ -267,65 +245,29 @@ async function initRepoContext<
     };
 
   const [repoLabels, repository, repositoryMergeQueue] = await Promise.all([
-    shouldIgnore ? {} : initRepoLabels(context, config),
+    shouldIgnore ? ({} as LabelsRecord) : initRepoLabels(context, config),
     findOrCreateRepository(),
     findOrCreateRepositoryMergeQueue(),
   ]);
 
-  const reviewGroupNames = getKeys(config.groups);
-  const getReviewLabelIds = createGetReviewLabelIds(
-    shouldIgnore,
-    config,
-    reviewGroupNames,
-    repoLabels,
-  );
+  const getReviewLabel = (name?: string) =>
+    name ? repoLabels[name] : undefined;
 
-  const needsReviewLabelIds = getReviewLabelIds('needsReview');
-  const requestedReviewLabelIds = getReviewLabelIds('requested');
-  const changesRequestedLabelIds = getReviewLabelIds('changesRequested');
-  const approvedReviewLabelIds = getReviewLabelIds('approved');
+  const needsReviewLabel = getReviewLabel(config.labels.review?.needsReview);
+  const requestedReviewLabel = getReviewLabel(config.labels.review?.requested);
+  const changesRequestedLabel = getReviewLabel(
+    config.labels.review?.changesRequested,
+  );
+  const approvedReviewLabel = getReviewLabel(config.labels.review?.approved);
 
   const protectedLabelIds = [
-    ...requestedReviewLabelIds,
-    ...changesRequestedLabelIds,
-    ...approvedReviewLabelIds,
-  ];
-
-  const labelIdToGroupName = new Map<LabelResponse['id'], GroupNames>();
-  if (!shouldIgnore) {
-    reviewGroupNames.forEach((key) => {
-      const reviewGroupLabels = config.labels.review[key];
-      getKeys(reviewGroupLabels).forEach((labelKey) => {
-        labelIdToGroupName.set(
-          (repoLabels as any)[reviewGroupLabels[labelKey]].id,
-          key,
-        );
-      });
-    });
-  }
+    needsReviewLabel?.id,
+    requestedReviewLabel?.id,
+    changesRequestedLabel?.id,
+    approvedReviewLabel?.id,
+  ].filter(Boolean);
 
   // const updateStatusCheck = (context, reviewGroup, statusInfo) => {};
-
-  const hasNeedsReview = (labels: PullRequestLabels): boolean =>
-    labels.some((label) => label.id && needsReviewLabelIds.includes(label.id));
-  const hasRequestedReview = (labels: PullRequestLabels): boolean =>
-    labels.some(
-      (label) => label.id && requestedReviewLabelIds.includes(label.id),
-    );
-  const hasChangesRequestedReview = (labels: PullRequestLabels): boolean =>
-    labels.some(
-      (label) => label.id && changesRequestedLabelIds.includes(label.id),
-    );
-  const hasApprovesReview = (labels: PullRequestLabels): boolean =>
-    labels.some(
-      (label) => label.id && approvedReviewLabelIds.includes(label.id),
-    );
-
-  const getNeedsReviewGroupNames = (labels: PullRequestLabels): GroupNames[] =>
-    labels
-      .filter((label) => label.id && needsReviewLabelIds.includes(label.id))
-      .map((label) => labelIdToGroupName.get(label.id))
-      .filter(ExcludesFalsy);
 
   const lock = Lock();
   const waitingToReschedule = new Map<string, ReturnType<typeof setTimeout>>();
@@ -450,7 +392,7 @@ async function initRepoContext<
     rescheduleContext: ProbotEvent<any>,
     pr: PullRequestDataMinimumData,
     time: RescheduleTime,
-    login?: string,
+    user?: BasicUser,
   ): Promise<void> => {
     if (!pr) throw new Error('Cannot reschedule undefined');
     if (repoContext.config.disableAutoMerge) return;
@@ -468,19 +410,16 @@ async function initRepoContext<
                 getReviewflowPrContext(pr, rescheduleContext, repoContext),
               ]);
 
-              if (
-                repoContext.settings.allowAutoMerge &&
-                repoContext.config.experimentalFeatures?.githubAutoMerge
-              ) {
+              if (repoContext.settings.allowAutoMerge) {
                 await mergeOrEnableGithubAutoMerge(
                   pullRequest,
                   context,
                   repoContext,
                   reviewflowPrContext,
-                  login,
+                  user,
                 );
               } else {
-                const didMerge = await autoMergeIfPossible(
+                const didMerge = await autoMergeIfPossibleLegacy(
                   pullRequest,
                   rescheduleContext,
                   repoContext,
@@ -516,8 +455,7 @@ async function initRepoContext<
     isSuccessful: boolean,
   ): Promise<void> => {
     if (
-      (repoContext.settings.allowAutoMerge &&
-        accountContext.config.experimentalFeatures?.githubAutoMerge) ||
+      repoContext.settings.allowAutoMerge ||
       accountContext.config.disableAutoMerge
     ) {
       return;
@@ -568,11 +506,6 @@ async function initRepoContext<
     settings: repository.settings,
     protectedLabelIds,
     shouldIgnore,
-    hasNeedsReview,
-    hasRequestedReview,
-    hasChangesRequestedReview,
-    hasApprovesReview,
-    getNeedsReviewGroupNames,
 
     getMergeLockedPr: () => automergeQueue[0],
     addMergeLockPr: async (pr: LockedMergePr): Promise<void> => {
@@ -608,7 +541,7 @@ async function initRepoContext<
 
     lockPR,
     lockPullRequest,
-  } as RepoContextWithoutTeamContext<GroupNames>);
+  } as RepoContextWithoutTeamContext);
 }
 
 const repoContextsPromise = new Map<number, Promise<RepoContext>>();
@@ -632,7 +565,7 @@ export const obtainRepoContext = <T extends EventsWithRepository>(
 
   if (!accountConfig) {
     context.log(`using default config for ${owner.login}`);
-    accountConfig = defaultConfig as Config<any, any>;
+    accountConfig = defaultConfig;
   }
 
   const promise = initRepoContext(appContext, context, accountConfig).then(

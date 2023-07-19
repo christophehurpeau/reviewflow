@@ -1,8 +1,6 @@
-import type { RepoContext } from 'context/repoContext';
-import type {
-  PullRequestWithDecentData,
-  PullRequestLabels,
-} from 'events/pr-handlers/utils/PullRequestData';
+import type { RepoContext } from '../../../../../context/repoContext';
+import type { PullRequestWithDecentData } from '../../../utils/PullRequestData';
+import type { ReviewflowPrContext } from '../../../utils/createPullRequestContext';
 import type { ChecksStepState } from './checksStep';
 import { calcChecksStep } from './checksStep';
 import type { CodeReviewStepState } from './codeReviewStep';
@@ -12,16 +10,16 @@ import { calcMergeStep } from './mergeStep';
 import type { WriteStepState } from './writeStep';
 import { calcWriteStep } from './writeStep';
 
-export interface CalcStepsStateOptions<GroupNames extends string> {
-  repoContext: RepoContext<GroupNames>;
+export interface CalcStepsStateOptions<TeamNames extends string> {
+  repoContext: RepoContext<TeamNames>;
+  reviewflowPrContext: ReviewflowPrContext;
   pullRequest: PullRequestWithDecentData;
-  labels?: PullRequestLabels;
 }
 
-export interface StepsState<GroupNames extends string> {
+export interface StepsState {
   write: WriteStepState;
   checks: ChecksStepState;
-  codeReview: CodeReviewStepState<GroupNames>;
+  codeReview: CodeReviewStepState;
   merge: MergeStepState;
 }
 
@@ -50,40 +48,26 @@ export const steps = [
   },
 ] as const;
 
-export function calcStepsState<GroupNames extends string>({
+export function calcStepsState<TeamNames extends string>({
   repoContext,
+  reviewflowPrContext,
   pullRequest,
-  labels = pullRequest.labels,
-}: CalcStepsStateOptions<GroupNames>): StepsState<GroupNames> {
-  const stepsState: Partial<StepsState<GroupNames>> = {};
+}: CalcStepsStateOptions<TeamNames>): StepsState {
+  const stepsState: Partial<StepsState> = {};
 
   for (const step of steps) {
-    stepsState[step.key] = step.fn({ repoContext, pullRequest, labels }) as any;
+    stepsState[step.key] = step.fn({
+      repoContext,
+      pullRequest,
+      reviewflowPrContext,
+    }) as any;
   }
 
-  return stepsState as StepsState<GroupNames>;
+  return stepsState as StepsState;
 }
 
-export function updateStepsState<GroupNames extends string>(
-  stepsState: StepsState<GroupNames>,
-  stepKeys: (keyof StepsState<GroupNames>)[],
-  {
-    repoContext,
-    pullRequest,
-    labels = pullRequest.labels,
-  }: CalcStepsStateOptions<GroupNames>,
-): StepsState<GroupNames> {
-  const updatedStepsState = { ...stepsState };
-
-  for (const step of steps) {
-    if (stepKeys.includes(step.key)) {
-      stepsState[step.key] = step.fn({
-        repoContext,
-        pullRequest,
-        labels,
-      }) as any;
-    }
-  }
-
-  return updatedStepsState;
+export function isAllStepsExceptMergePassed(stepsState: StepsState): boolean {
+  return steps.every(
+    ({ key }) => key === 'merge' || stepsState[key].state === 'passed',
+  );
 }

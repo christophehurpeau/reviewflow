@@ -76,7 +76,7 @@ describe('edited', (): void => {
 
       .post(
         '/repos/reviewflow/reviewflow-test/statuses/f354ffb37cf238108fbb4c915f155d925d82a61b',
-        '{"context":"reviewflow-dev","state":"failure","description":"Awaiting review from: dev. Perhaps request someone ?"}',
+        '{"context":"reviewflow-dev","state":"failure","description":"Awaiting review... Perhaps request someone ?"}',
       )
       .times(1)
       .reply(200);
@@ -87,7 +87,6 @@ describe('edited', (): void => {
       payload: pullRequestReadyForReview.payload as any,
     });
 
-    expect(partialUpdateOnePr).toHaveBeenCalledTimes(2);
     expect(partialUpdateOnePr).toHaveBeenCalledWith(expect.any(Object), {
       $set: {
         lastLintStatusesCommit: 'f354ffb37cf238108fbb4c915f155d925d82a61b',
@@ -108,12 +107,20 @@ describe('edited', (): void => {
       $set: {
         flowStatus: {
           summary: '',
-          title: 'Awaiting review from: dev. Perhaps request someone ?',
+          title: 'Awaiting review... Perhaps request someone ?',
           type: 'failure',
         },
         lastFlowStatusCommit: 'f354ffb37cf238108fbb4c915f155d925d82a61b',
       },
     });
+    expect(partialUpdateOnePr).toHaveBeenCalledWith(expect.any(Object), {
+      $set: {
+        isDraft: false,
+        title: 'feat: test draft',
+      },
+    });
+
+    expect(partialUpdateOnePr).toHaveBeenCalledTimes(3);
     expect(scope.pendingMocks()).toEqual([]);
     expect(scope.activeMocks()).toEqual([]);
   });

@@ -1,9 +1,15 @@
-import type { AppContext } from 'context/AppContext';
-import type { EventsWithRepository, RepoContext } from 'context/repoContext';
-import type { ProbotEvent } from 'events/probot-types';
 import type { StatusInfo } from '../../../accountConfigs/types';
+import type { AppContext } from '../../../context/AppContext';
+import type {
+  EventsWithRepository,
+  RepoContext,
+} from '../../../context/repoContext';
 import { ExcludesFalsy } from '../../../utils/Excludes';
-import type { PullRequestWithDecentData } from '../utils/PullRequestData';
+import type { ProbotEvent } from '../../probot-types';
+import type {
+  PullRequestLabels,
+  PullRequestWithDecentData,
+} from '../utils/PullRequestData';
 import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
 import { getFailedOrWaitingChecksAndStatuses } from '../utils/getFailedOrWaitingChecksAndStatuses';
 import createStatus, { isSameStatus } from './utils/createStatus';
@@ -104,14 +110,15 @@ const addStatusCheck = async function <EventName extends EventsWithRepository>(
 
 export const updateStatusCheckFromStepsState = <
   EventName extends EventsWithRepository,
-  GroupNames extends string,
+  TeamNames extends string,
 >(
-  stepsState: StepsState<GroupNames>,
+  stepsState: StepsState,
   pullRequest: PullRequestWithDecentData,
   context: ProbotEvent<EventName>,
-  repoContext: RepoContext<GroupNames>,
+  repoContext: RepoContext<TeamNames>,
   appContext: AppContext,
   reviewflowPrContext: ReviewflowPrContext,
+  prLabels: PullRequestLabels = pullRequest.labels,
   previousSha?: string,
 ): Promise<ReviewflowStatusCheckState> => {
   const createFailedStatusCheck = (
@@ -157,10 +164,7 @@ export const updateStatusCheckFromStepsState = <
 
   // bypass
   const bypassProgressLabel = repoContext.labels['merge/bypass-progress'];
-  if (
-    bypassProgressLabel &&
-    hasLabelInPR(pullRequest.labels, bypassProgressLabel)
-  ) {
+  if (bypassProgressLabel && hasLabelInPR(prLabels, bypassProgressLabel)) {
     return addStatusCheck(
       pullRequest,
       context,
@@ -175,7 +179,14 @@ export const updateStatusCheckFromStepsState = <
   }
 
   // STEP 2: CHECKS
-  if (stepsState.checks.state !== 'passed') {
+  const automergeLabel = repoContext.labels['merge/automerge'];
+
+  const shouldEnforceProgress = repoContext.config
+    .onlyEnforceProgressWhenAutomergeEnabled
+    ? automergeLabel && hasLabelInPR(prLabels, automergeLabel)
+    : true;
+
+  if (shouldEnforceProgress && stepsState.checks.state !== 'passed') {
     if (stepsState.checks.isFailed) {
       let failedChecksAndStatuses: string[] = [];
 
@@ -211,7 +222,7 @@ export const updateStatusCheckFromStepsState = <
   }
 
   // STEP 3: Code Review
-  if (stepsState.codeReview.state !== 'passed') {
+  if (shouldEnforceProgress && stepsState.codeReview.state !== 'passed') {
     if (
       stepsState.codeReview.hasRequestedReviewers ||
       stepsState.codeReview.hasRequestedTeams
@@ -232,18 +243,9 @@ export const updateStatusCheckFromStepsState = <
         'Changes requested ! Push commits or discuss changes then re-request a review.',
       );
     }
-
-    const needsReviewGroupNames = stepsState.codeReview.needsReviewGroupNames;
-    if (needsReviewGroupNames.length > 0) {
-      return createFailedStatusCheck(
-        `Awaiting review from: ${needsReviewGroupNames.join(
-          ', ',
-        )}. Perhaps request someone ?`,
-      );
-    }
   }
 
-  if (stepsState.codeReview.isMissingApprobation) {
+  if (shouldEnforceProgress && stepsState.codeReview.isMissingApprobation) {
     return createFailedStatusCheck(
       'Awaiting review... Perhaps request someone ?',
     );
@@ -269,7 +271,9 @@ export const updateStatusCheckFromStepsState = <
     reviewflowPrContext,
     {
       state: 'success',
-      description: '✓ PR ready to merge !',
+      description: shouldEnforceProgress
+        ? '✓ PR ready to merge !'
+        : '✓ Automerge can be enabled',
     },
     previousSha,
   ).then(() => 'success');

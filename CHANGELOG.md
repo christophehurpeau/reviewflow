@@ -2,6 +2,119 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.3.1](https://github.com/christophehurpeau/reviewflow/compare/v2.3.0...v2.3.1) (2023-07-19)
+
+
+### Bug Fixes
+
+* fix accountConfig on server when default config is used ([800f718](https://github.com/christophehurpeau/reviewflow/commit/800f7183bd7b4e7e055b44ead66d7f8dcc50aa60))
+* stop sending slack message about failed checks when pr is closed or merged ([4b24d2c](https://github.com/christophehurpeau/reviewflow/commit/4b24d2c20321c679d6b19b384556e388be4146e0))
+
+## [2.3.0](https://github.com/christophehurpeau/reviewflow/compare/v2.2.0...v2.3.0) (2023-07-14)
+
+
+### Features
+
+* failed checks or status slack message ([ccc99e0](https://github.com/christophehurpeau/reviewflow/commit/ccc99e089af792f441ac583863e24595bf022abe))
+
+## [2.2.0](https://github.com/christophehurpeau/reviewflow/compare/v2.1.0...v2.2.0) (2023-07-14)
+
+
+### Features
+
+* add onlyEnforceProgressWhenAutomergeEnabled and enable for ornikar ([7e528d8](https://github.com/christophehurpeau/reviewflow/commit/7e528d8679252d6733af05b56b81eb075626c64f))
+* clean dash before no issue ([a2560f9](https://github.com/christophehurpeau/reviewflow/commit/a2560f952a75f763226b109d51ff23ef544533d8))
+* **deps:** update commitlint monorepo to v17.6.5 ([#697](https://github.com/christophehurpeau/reviewflow/issues/697)) ([9d4c0fa](https://github.com/christophehurpeau/reviewflow/commit/9d4c0fa9df84ab8b7139e21344225ee4a44aba65))
+* **deps:** update dependency delay to v6 ([#714](https://github.com/christophehurpeau/reviewflow/issues/714)) ([61604ec](https://github.com/christophehurpeau/reviewflow/commit/61604ecc2b4a2edf0b6f0b064a7840196f76a1d4))
+* experimental better slackify ([43164a5](https://github.com/christophehurpeau/reviewflow/commit/43164a5be726d598ee08fbf85eadae7a2c2ef959))
+* indicate when team is requested and team member is requested by name. Skip team notification when name is requested. ([62c8884](https://github.com/christophehurpeau/reviewflow/commit/62c88845ced1390d1b86a6dbf68702f211d8f678))
+* support no issue with revert in cleanTitle ([5557d9f](https://github.com/christophehurpeau/reviewflow/commit/5557d9f1c83de7bf526b2153cfac135c17cfc895))
+
+
+### Bug Fixes
+
+* **deps:** update dependency probot to v12.3.1 ([#710](https://github.com/christophehurpeau/reviewflow/issues/710)) ([c1d81b9](https://github.com/christophehurpeau/reviewflow/commit/c1d81b991bea8d7e539f9b1c6f15d0c3b5e07f3e))
+
+## [2.1.0](https://github.com/christophehurpeau/reviewflow/compare/v2.0.0...v2.1.0) (2023-05-29)
+
+
+### Features
+
+* allow main-* or master-* or develop-* in ornikar config as base branches ([35621e2](https://github.com/christophehurpeau/reviewflow/commit/35621e294b747adefde0048ba3fb7028728d5819))
+
+## [2.0.0](https://github.com/christophehurpeau/reviewflow/compare/v1.123.1...v2.0.0) (2023-04-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop node 14
+
+### Features
+
+* drop node 14 ([eaec32a](https://github.com/christophehurpeau/reviewflow/commit/eaec32abf524945a40f5685a3950fdbf168238c4))
+
+
+### Bug Fixes
+
+* better log errors to debug ([a95ef54](https://github.com/christophehurpeau/reviewflow/commit/a95ef543e4914750a0da21c581c43071c2a9f217))
+* fix qs security alert ([4c91e15](https://github.com/christophehurpeau/reviewflow/commit/4c91e15baf837bb8953b0890be80f564118e59f6))
+* skipCheckMergeableState in autoMergeChanged ([41b9b8e](https://github.com/christophehurpeau/reviewflow/commit/41b9b8e15914437947f81a56b6cfed3050ea9fe6))
+* when user change pr title or enable automerge, update body and title if necessary ([d03820c](https://github.com/christophehurpeau/reviewflow/commit/d03820ce6181242584b5588140f86804d95b8730))
+
+## [1.123.1](https://github.com/christophehurpeau/reviewflow/compare/v1.123.0...v1.123.1) (2023-03-15)
+
+
+### Bug Fixes
+
+* fix displayed number instead of id in slack home ([94a732e](https://github.com/christophehurpeau/reviewflow/commit/94a732e90a688cec1d5bbb0d002db16ab65f0973))
+
+## [1.123.0](https://github.com/christophehurpeau/reviewflow/compare/v1.122.0...v1.123.0) (2023-03-13)
+
+
+### Features
+
+* add experimental conventionalCommitBangBreakingChange ([6ad5b1b](https://github.com/christophehurpeau/reviewflow/commit/6ad5b1badaa729187a5730d8b0c1152c514fbf32))
+
+## [1.122.0](https://github.com/christophehurpeau/reviewflow/compare/v1.121.0...v1.122.0) (2023-03-09)
+
+
+### Features
+
+* add description for review/auto-approve ([7f4b235](https://github.com/christophehurpeau/reviewflow/commit/7f4b2354d41fe8f8e9fee93335ff5dd06bbac9ce))
+
+
+### Bug Fixes
+
+* fix merged pr still marked as prs to merge ([087a0e7](https://github.com/christophehurpeau/reviewflow/commit/087a0e7ac2c428bfe99372e76d4e467058343dbb))
+
+## [1.121.0](https://github.com/christophehurpeau/reviewflow/compare/v1.120.0...v1.121.0) (2023-03-04)
+
+
+### Features
+
+* make labels optional, remove groups ([94e7201](https://github.com/christophehurpeau/reviewflow/commit/94e7201162befe7546cffb98baed58849e43601c))
+* pass automerge from github to stable ([10c2611](https://github.com/christophehurpeau/reviewflow/commit/10c26112b23eaca1e6ba6ef7d0da160444c01aee))
+
+
+### Bug Fixes
+
+* **deps:** update commitlint monorepo to v17.4.4 ([#663](https://github.com/christophehurpeau/reviewflow/issues/663)) ([7ee607a](https://github.com/christophehurpeau/reviewflow/commit/7ee607ac2ba4699cc3d197a506b553980ea540c0))
+* **deps:** update dependency @slack/web-api to v6.8.1 ([#664](https://github.com/christophehurpeau/reviewflow/issues/664)) ([d62e8aa](https://github.com/christophehurpeau/reviewflow/commit/d62e8aa23f6cdebd80f8708cdf0d1915c860a81f))
+
+## [1.120.0](https://github.com/christophehurpeau/reviewflow/compare/v1.119.1...v1.120.0) (2023-02-24)
+
+
+### Features
+
+* checks labels are now optional and removed from ornikar config ([09cd9a4](https://github.com/christophehurpeau/reviewflow/commit/09cd9a43e57c1b206395487d05d6c79a04a3864c))
+
+## [1.119.1](https://github.com/christophehurpeau/reviewflow/compare/v1.119.0...v1.119.1) (2023-02-04)
+
+
+### Bug Fixes
+
+* enable automerge on automergeable pr on opened ([fbdf8d1](https://github.com/christophehurpeau/reviewflow/commit/fbdf8d1db1129d3b605d2e9d24d9ebf6fe8efb5e))
+
 ## [1.119.0](https://github.com/christophehurpeau/reviewflow/compare/v1.118.3...v1.119.0) (2023-02-04)
 
 

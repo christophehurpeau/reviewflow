@@ -7,6 +7,8 @@ import type { SlackMessage } from './context/slack/SlackMessage';
 import type { MessageCategory } from './dm/MessageCategory';
 import type { ReviewflowStatus } from './events/pr-handlers/actions/editOpenedPR';
 import type { RepositorySettings } from './events/pr-handlers/actions/utils/body/repositorySettings';
+import type { BasicUser } from './events/pr-handlers/utils/PullRequestData';
+import type { ReviewersGroupedByState } from './events/pr-handlers/utils/groupReviewsWithState';
 import type { ChecksAndStatuses } from './utils/github/pullRequest/checksAndStatuses';
 
 // export interface PrEventsModel extends MongoModel {
@@ -114,17 +116,22 @@ export interface SlackTeamInstallation extends SlackTeam {
 }
 
 export type SlackMessageType =
+  | 'commit-comment'
   | 'issue-comment'
+  | 'pr-checksAndStatuses'
   | 'review-comment'
   | 'review-requested'
-  | 'review-submitted'
-  | 'commit-comment';
+  | 'review-submitted';
 
 export interface SlackSentMessage extends MongoBaseModel {
   type: SlackMessageType;
   typeId: number | string;
+  /** optional message id to create unique message with type + typeId + messageId */
+  messageId?: number | string;
   account: AccountEmbed;
   message: SlackMessage;
+  reactions?: string[];
+  isMarkedAsDone?: boolean;
   sentTo: {
     user: AccountInfo;
     channel: string;
@@ -146,11 +153,11 @@ export interface AutomergeLog extends MongoBaseModel {
     | 'behind mergeable_state'
     | 'blocked mergeable_state'
     | 'failed status or checks'
-    | 'pending status or checks'
     | 'not mergeable'
+    | 'pending status or checks'
     | 'rebase-renovate'
-    | 'unknown mergeable_state'
-    | 'review incomplete';
+    | 'review incomplete'
+    | 'unknown mergeable_state';
   action: 'remove' | 'reschedule' | 'update branch' | 'wait';
 }
 
@@ -160,6 +167,9 @@ export interface ReviewflowPr extends MongoBaseModel {
   pr: PrEmbed;
   commentId: number;
   headSha?: string;
+  title: string;
+  isDraft: boolean;
+  isClosed: boolean;
   lastLintStatusesCommit?: string;
   lintStatuses?: ReviewflowStatus[];
   lastFlowStatusCommit?: string;
@@ -167,6 +177,9 @@ export interface ReviewflowPr extends MongoBaseModel {
   automergeStatus?: ReviewflowStatus['status'];
   checksConclusion?: ChecksAndStatuses['checksConclusionRecord'];
   statusesConclusion?: ChecksAndStatuses['statusesConclusionRecord'];
+  reviews: ReviewersGroupedByState;
+  creator?: BasicUser;
+  assignees: BasicUser[];
 }
 
 export interface RepositoryMergeQueue extends MongoBaseModel {
@@ -251,11 +264,19 @@ export default function init(): MongoStores {
     'slackSentMessages',
   );
   slackSentMessages.collection.then((coll) => {
+    coll
+      .indexExists('account.id_1_account.type_1_type_1_typeId_1')
+      .then((exists) => {
+        if (exists) {
+          coll.dropIndex('account.id_1_account.type_1_type_1_typeId_1');
+        }
+      });
     coll.createIndex({
       'account.id': 1,
       'account.type': 1,
       type: 1,
       typeId: 1,
+      messageId: 1,
     });
     // remove older than 14 days
     coll.deleteMany({
@@ -297,9 +318,13 @@ export default function init(): MongoStores {
       'repo.id': 1,
       headSha: 1,
     });
-    // remove older than 12 * 30 days
+    coll.createIndex({
+      'account.id': 1,
+      'assignees.id': 1,
+    });
+    // remove with no activity for 12 * 30 days
     coll.deleteMany({
-      created: { $lt: new Date(Date.now() - 12 * 30 * 24 * 60 * 60 * 1000) },
+      updated: { $lt: new Date(Date.now() - 12 * 30 * 24 * 60 * 60 * 1000) },
     });
   });
 

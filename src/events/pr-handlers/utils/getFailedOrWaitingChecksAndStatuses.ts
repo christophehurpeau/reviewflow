@@ -1,14 +1,14 @@
 import type { RepoContext } from '../../../context/repoContext';
 import type { ChecksAndStatuses } from '../../../utils/github/pullRequest/checksAndStatuses';
 
-export type CIState = 'pending' | 'passed' | 'failed';
+export type ChecksAndStatusesState = 'failed' | 'passed' | 'pending';
 
 export interface FailedOrWaitingChecksAndStatuses {
   failedChecks: string[];
   pendingChecks: string[];
   failedStatuses: string[];
   pendingStatuses: string[];
-  state: CIState;
+  state: ChecksAndStatusesState;
 }
 
 export const isCheckNotAllowedToFail = (
@@ -25,9 +25,9 @@ export const isPendingCheckShouldBeIgnored = (checkName: string): boolean =>
   // see https://github.com/christophehurpeau/nightingale/pull/643, when label change codecov check goes to in-progress again
   checkName?.includes('codecov') || checkName?.includes('/hold-');
 
-export const getFailedOrWaitingChecksAndStatuses = <GroupNames extends string>(
+export const getFailedOrWaitingChecksAndStatuses = <TeamNames extends string>(
   { checksConclusionRecord, statusesConclusionRecord }: ChecksAndStatuses,
-  repoContext: RepoContext<GroupNames>,
+  repoContext: RepoContext<TeamNames>,
 ): FailedOrWaitingChecksAndStatuses => {
   const checksEntries = Object.entries(checksConclusionRecord);
   const statusesEntries = Object.entries(statusesConclusionRecord);
@@ -65,7 +65,7 @@ export const getFailedOrWaitingChecksAndStatuses = <GroupNames extends string>(
     )
     .map(([, { context: statusContext }]) => statusContext);
 
-  const calcState = (): CIState => {
+  const calcState = (): ChecksAndStatusesState => {
     if (failedChecks.length > 0 || failedStatuses.length > 0) return 'failed';
     if (pendingChecks.length > 0 || pendingStatuses.length > 0) {
       return 'pending';

@@ -1,7 +1,7 @@
 import type { RestEndpointMethodTypes } from '@octokit/rest';
-import type { EventsWithRepository } from 'context/repoContext';
-import type { PullRequestData } from 'events/pr-handlers/utils/PullRequestData';
-import type { ProbotEvent } from 'events/probot-types';
+import type { EventsWithRepository } from '../../../../context/repoContext';
+import type { ProbotEvent } from '../../../probot-types';
+import type { PullRequestData } from '../../utils/PullRequestData';
 
 export function readPullRequestCommits<EventName extends EventsWithRepository>(
   context: ProbotEvent<EventName>,

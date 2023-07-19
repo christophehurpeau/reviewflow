@@ -1,8 +1,6 @@
 import type { EmitterWebhookEventName } from '@octokit/webhooks';
-import type { AccountInfo } from 'context/getOrCreateAccount';
-import type { ProbotEvent } from 'events/probot-types';
-import type { RepoContext } from '../../../context/repoContext';
-import { getKeys } from '../../../context/utils';
+import type { AccountInfo } from '../../../context/getOrCreateAccount';
+import type { ProbotEvent } from '../../probot-types';
 
 type ReviewState = 'APPROVED' | 'CHANGES_REQUESTED' | 'DISMISSED';
 
@@ -14,15 +12,14 @@ interface ReviewStates {
 
 export type Reviewer = AccountInfo;
 
+/** @deprecated use getReviewersWithState instead */
 export const getReviewersAndReviewStates = async <
   EventName extends EmitterWebhookEventName,
-  GroupNames extends string,
 >(
   context: ProbotEvent<EventName>,
-  repoContext: RepoContext<GroupNames>,
 ): Promise<{
   reviewers: Reviewer[];
-  reviewStates: Record<GroupNames, ReviewStates>;
+  reviewStates: ReviewStates;
 }> => {
   const userIds = new Set<number>();
   const reviewers: Reviewer[] = [];
@@ -52,36 +49,26 @@ export const getReviewersAndReviewStates = async <
     },
   );
 
-  const reviewStates: Record<GroupNames, ReviewStates> = {} as Record<
-    GroupNames,
-    ReviewStates
-  >;
-
-  getKeys(repoContext.config.groups).forEach((groupName) => {
-    reviewStates[groupName] = {
-      approved: 0,
-      changesRequested: 0,
-      dismissed: 0,
-    };
-  });
+  const reviewStates: ReviewStates = {
+    approved: 0,
+    changesRequested: 0,
+    dismissed: 0,
+  };
 
   reviewers.forEach((reviewer) => {
-    const group = repoContext.getReviewerGroup(reviewer.login);
-    if (group) {
-      const state = reviewStatesByUser.get(reviewer.id);
-      switch (state) {
-        case 'APPROVED':
-          reviewStates[group].approved++;
-          break;
-        case 'CHANGES_REQUESTED':
-          reviewStates[group].changesRequested++;
-          break;
-        case 'DISMISSED':
-          reviewStates[group].dismissed++;
-          break;
-        case undefined:
-          break;
-      }
+    const state = reviewStatesByUser.get(reviewer.id);
+    switch (state) {
+      case 'APPROVED':
+        reviewStates.approved++;
+        break;
+      case 'CHANGES_REQUESTED':
+        reviewStates.changesRequested++;
+        break;
+      case 'DISMISSED':
+        reviewStates.dismissed++;
+        break;
+      case undefined:
+        break;
     }
   });
 

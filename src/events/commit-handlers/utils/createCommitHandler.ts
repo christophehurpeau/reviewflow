@@ -1,5 +1,4 @@
 import type { Probot } from 'probot';
-import type { ProbotEvent } from 'events/probot-types';
 import { catchExceptedErrors } from '../../../ExpectedError';
 import type { AppContext } from '../../../context/AppContext';
 import type {
@@ -8,6 +7,7 @@ import type {
   EventsWithRepository,
 } from '../../../context/repoContext';
 import { obtainRepoContext } from '../../../context/repoContext';
+import type { ProbotEvent } from '../../probot-types';
 import { fetchCommit } from './fetchCommit';
 import type { CommitFromRestEndpoint } from './fetchCommit';
 
@@ -18,7 +18,7 @@ export type EventsWithCommit = CustomExtract<
 
 export const createCommitHandler = <
   EventName extends EventsWithCommit,
-  GroupNames extends string = string,
+  TeamNames extends string = string,
 >(
   app: Probot,
   appContext: AppContext,
@@ -26,8 +26,8 @@ export const createCommitHandler = <
   callback: (
     commit: CommitFromRestEndpoint,
     context: ProbotEvent<EventName>,
-    repoContext: RepoContext<GroupNames>,
-  ) => void | Promise<void>,
+    repoContext: RepoContext<TeamNames>,
+  ) => Promise<void> | void,
 ): void => {
   app.on(eventName, async (context: ProbotEvent<EventName>) => {
     return catchExceptedErrors(async () => {
