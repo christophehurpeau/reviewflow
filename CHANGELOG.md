@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.4.0](https://github.com/christophehurpeau/reviewflow/compare/v2.3.1...v2.4.0) (2023-07-19)
+
+
+### Features
+
+* **deps:** update dependency liwi-mongo to v10.3.2 ([#657](https://github.com/christophehurpeau/reviewflow/issues/657)) ([0ac6e82](https://github.com/christophehurpeau/reviewflow/commit/0ac6e824f8cff5b34d059f0b66f327b4c6e4add8))
+
+
+### Bug Fixes
+
+* fix account config link when default config is used ([1e232fc](https://github.com/christophehurpeau/reviewflow/commit/1e232fc9cb3cfe193d7f6806ce8df77957413a8b))
+
 ## [2.3.1](https://github.com/christophehurpeau/reviewflow/compare/v2.3.0...v2.3.1) (2023-07-19)
 
 
