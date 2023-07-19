@@ -2,7 +2,7 @@ import bodyParser from 'body-parser';
 import type { Router } from 'express';
 import type { ProbotOctokit } from 'probot';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { accountConfigs } from '../accountConfigs';
+import { accountConfigs, defaultConfig } from '../accountConfigs';
 import { getTeams } from '../context/accountContext';
 import type { MessageCategory } from '../dm/MessageCategory';
 import { getUserDmSettings, updateCache } from '../dm/getUserDmSettings';
@@ -137,7 +137,7 @@ export default function orgSettings(
           return;
         }
 
-        const accountConfig = accountConfigs[org.login];
+        const accountConfig = accountConfigs[org.login] || defaultConfig;
         const [orgMember, userDmSettings] = await Promise.all([
           mongoStores.orgMembers.findOne({
             'org.id': org.id,
