@@ -137,7 +137,8 @@ export default function orgSettings(
           return;
         }
 
-        const accountConfig = accountConfigs[org.login] || defaultConfig;
+        const accountConfig = accountConfigs[org.login];
+        const accountOrDefaultConfig = accountConfig || defaultConfig;
         const [orgMember, userDmSettings] = await Promise.all([
           mongoStores.orgMembers.findOne({
             'org.id': org.id,
@@ -145,7 +146,9 @@ export default function orgSettings(
           }),
           getUserDmSettings(mongoStores, org.login, org.id, user.authInfo.id),
         ]);
-        const teams = orgMember ? getTeams(accountConfig, orgMember) : [];
+        const teams = orgMember
+          ? getTeams(accountOrDefaultConfig, orgMember)
+          : [];
 
         res.send(
           renderToStaticMarkup(
