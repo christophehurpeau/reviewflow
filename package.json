@@ -125,7 +125,7 @@
     "check-package-dependencies": "6.4.1",
     "eslint": "8.43.0",
     "jest": "29.5.0",
-    "nock": "13.3.1",
+    "nock": "13.3.2",
     "pob-babel": "35.6.2",
     "smee-client": "1.2.3",
     "type-fest": "3.12.0",
