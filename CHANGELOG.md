@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.5.0](https://github.com/christophehurpeau/reviewflow/compare/v2.4.0...v2.5.0) (2023-07-22)
+
+
+### Features
+
+* enable pr checksAndStatuses by default ([f5c795e](https://github.com/christophehurpeau/reviewflow/commit/f5c795e4fd6128ca2875ba623ffe093a71d889c4))
+
+
+### Bug Fixes
+
+* **deps:** update commitlint monorepo to v17.6.6 ([#730](https://github.com/christophehurpeau/reviewflow/issues/730)) ([d602c2e](https://github.com/christophehurpeau/reviewflow/commit/d602c2ed2c2ae2e3e32cca2b5eef8e585aff7ec7))
+
 ## [2.4.0](https://github.com/christophehurpeau/reviewflow/compare/v2.3.1...v2.4.0) (2023-07-19)
 
 
