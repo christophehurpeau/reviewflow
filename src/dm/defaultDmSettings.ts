@@ -1,7 +1,7 @@
 import type { MessageCategory } from './MessageCategory';
 
 export const defaultDmSettings: Record<MessageCategory, boolean> = {
-  'pr-checksAndStatuses': false, // false during beta testing
+  'pr-checksAndStatuses': true,
   'pr-lifecycle': true,
   'pr-lifecycle-follow': true,
   'pr-review': true,
