@@ -1,4 +1,6 @@
 import { WebClient } from '@slack/web-api';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- invalid used detection
+import type { CodedError } from '@slack/web-api';
 import type { Config } from '../../accountConfigs';
 import type { MessageCategory } from '../../dm/MessageCategory';
 import { getUserDmSettings } from '../../dm/getUserDmSettings';
@@ -237,11 +239,18 @@ export const initTeamSlack = async <TeamNames extends string>(
       const user = membersMap.get(toUser.login);
       if (!user || !user.slackClient || !user.im) return;
 
-      await user.slackClient.reactions.add({
-        timestamp: ts,
-        channel,
-        name,
-      });
+      try {
+        await user.slackClient.reactions.add({
+          timestamp: ts,
+          channel,
+          name,
+        });
+      } catch (err: CodedError | any) {
+        if (err && err.code === 'message_not_found') {
+          return;
+        }
+        throw err;
+      }
     },
     updateHome: (githubLogin: string): void => {
       context.log.debug({ githubLogin }, 'update slack home');
