@@ -107,10 +107,10 @@ const initAccountContext = async <
           context.log.info(logInfos, 'lock: lock account acquired');
           try {
             await callback();
-          } catch (err) {
+          } catch (error) {
             context.log.info(logInfos, 'lock: release account (with error)');
             release();
-            reject(err);
+            reject(error);
             return;
           }
           context.log.info(logInfos, 'lock: release account');

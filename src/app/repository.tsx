@@ -43,8 +43,8 @@ export default function repository(
             </Layout>,
           ),
         );
-      } catch (err) {
-        next(err);
+      } catch (error) {
+        next(error);
       }
     },
   );
@@ -91,8 +91,8 @@ export default function repository(
             owner: req.params.owner,
             repo: req.params.repository,
           })
-          .catch((err) => {
-            return { status: err.status, data: undefined };
+          .catch((error) => {
+            return { status: error.status, data: undefined };
           });
 
         if (!data2) {
@@ -124,8 +124,8 @@ export default function repository(
             </Layout>,
           ),
         );
-      } catch (err) {
-        next(err);
+      } catch (error) {
+        next(error);
       }
     },
   );

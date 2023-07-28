@@ -381,8 +381,8 @@ export const autoMergeIfPossibleLegacy = async <
       'merged',
     );
     return Boolean('merged' in mergeResult.data && mergeResult.data.merged);
-  } catch (err: any) {
-    context.log.info({ errorMessage: err?.message }, 'could not merge:');
+  } catch (error: any) {
+    context.log.info({ errorMessage: error?.message }, 'could not merge:');
     await repoContext.reschedule(
       context,
       createMergeLockPrFromPr(pullRequest),

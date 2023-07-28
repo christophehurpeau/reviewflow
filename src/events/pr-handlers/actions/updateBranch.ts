@@ -22,7 +22,7 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
       head: pullRequest.base.ref,
       base: pullRequest.head.ref,
     })
-    .catch((err) => ({ error: err } as any));
+    .catch((error) => ({ error } as any));
 
   context.log.info(
     {

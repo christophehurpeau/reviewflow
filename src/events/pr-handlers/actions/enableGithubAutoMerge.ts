@@ -123,14 +123,14 @@ export const mergeOrEnableGithubAutoMerge = async <
       return {
         wasMerged: true,
       };
-    } catch (err) {
+    } catch (error) {
       triedToMerge = true;
       context.log.error(
         {
           ...context.repo({
             issue_number: pullRequest.number,
           }),
-          err,
+          err: error,
         },
         'Could not automerge',
       );
@@ -154,13 +154,13 @@ The pull request must be in a state where requirements have not yet been satisfi
       mergedRequest:
         response.enablePullRequestAutoMerge.pullRequest.autoMergeRequest,
     };
-  } catch (err) {
+  } catch (error) {
     context.log.error(
       'Could not enable automerge',
       context.repo({
         issue_number: pullRequest.number,
       }),
-      err,
+      error,
     );
     if (triedToMerge) {
       context.octokit.issues.createComment(
@@ -209,13 +209,13 @@ The pull request must be in a state where requirements have not yet been satisfi
     return (
       response.disablePullRequestAutoMerge.pullRequest.autoMergeRequest === null
     );
-  } catch (err) {
+  } catch (error) {
     context.log.error(
       'Could not disable automerge',
       context.repo({
         issue_number: pullRequest.number,
       }),
-      err,
+      error,
     );
     context.octokit.issues.createComment(
       context.repo({

@@ -41,8 +41,8 @@ export default function home(
             </Layout>,
           ),
         );
-      } catch (err) {
-        next(err);
+      } catch (error) {
+        next(error);
       }
     },
   );

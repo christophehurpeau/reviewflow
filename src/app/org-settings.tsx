@@ -66,8 +66,8 @@ export default function orgSettings(
         await syncTeamsAndTeamMembers(mongoStores, user.api, org);
 
         res.redirect(`/app/org/${req.params.org}`);
-      } catch (err) {
-        next(err);
+      } catch (error) {
+        next(error);
       }
     },
   );
@@ -93,8 +93,8 @@ export default function orgSettings(
         const [installation, orgInDb] = await Promise.all([
           octokitApp.apps
             .getOrgInstallation({ org: org.login })
-            .catch((err) => {
-              return { status: err.status, data: undefined };
+            .catch((error) => {
+              return { status: error.status, data: undefined };
             }),
           mongoStores.orgs.findByKey(org.id),
         ]);
@@ -305,8 +305,8 @@ export default function orgSettings(
             </Layout>,
           ),
         );
-      } catch (err) {
-        next(err);
+      } catch (error) {
+        next(error);
       }
     },
   );
@@ -376,8 +376,8 @@ export default function orgSettings(
         }
 
         res.send('ok');
-      } catch (err) {
-        next(err);
+      } catch (error) {
+        next(error);
       }
     },
   );

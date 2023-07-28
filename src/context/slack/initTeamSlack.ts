@@ -98,8 +98,8 @@ export const initTeamSlack = async <TeamNames extends string>(
         users: userId,
       });
       return im.channel;
-    } catch (err) {
-      context.log('could create im', { err });
+    } catch (error) {
+      context.log('could create im', { err: error });
     }
   };
 
@@ -208,8 +208,8 @@ export const initTeamSlack = async <TeamNames extends string>(
           channel: result.channel!,
           user: toUser,
         };
-      } catch (err) {
-        context.log.error({ error: err }, 'could not update message');
+      } catch (error) {
+        context.log.error({ error }, 'could not update message');
         return null;
       }
     },
@@ -245,11 +245,11 @@ export const initTeamSlack = async <TeamNames extends string>(
           channel,
           name,
         });
-      } catch (err: CodedError | any) {
-        if (err && err.code === 'message_not_found') {
+      } catch (error: CodedError | any) {
+        if (error && error.code === 'message_not_found') {
           return;
         }
-        throw err;
+        throw error;
       }
     },
     updateHome: (githubLogin: string): void => {

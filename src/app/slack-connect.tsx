@@ -68,8 +68,8 @@ export default function slackConnect(
         } as any);
 
         res.redirect(redirectUri);
-      } catch (err) {
-        next(err);
+      } catch (error) {
+        next(error);
       }
     },
   );
@@ -100,8 +100,8 @@ export default function slackConnect(
         });
 
         res.redirect(redirectUri);
-      } catch (err) {
-        next(err);
+      } catch (error) {
+        next(error);
       }
     },
   );
@@ -297,8 +297,8 @@ export default function slackConnect(
         }
 
         res.redirect(`/app/org/${orgLogin || ''}`);
-      } catch (err) {
-        next(err);
+      } catch (error) {
+        next(error);
       }
     },
   );

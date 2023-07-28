@@ -38,8 +38,8 @@ export default function userSettings(
         await syncUser(mongoStores, user.api, u.installationId, user.authInfo);
 
         res.redirect('/app/user');
-      } catch (err) {
-        next(err);
+      } catch (error) {
+        next(error);
       }
     },
   );
@@ -56,8 +56,8 @@ export default function userSettings(
           .getUserInstallation({
             username: user.authInfo.login,
           })
-          .catch((err) => {
-            return { status: err.status, data: undefined };
+          .catch((error) => {
+            return { status: error.status, data: undefined };
           });
 
         if (!installation) {
@@ -88,8 +88,8 @@ export default function userSettings(
             </Layout>,
           ),
         );
-      } catch (err) {
-        next(err);
+      } catch (error) {
+        next(error);
         return null;
       }
     },

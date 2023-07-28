@@ -325,10 +325,10 @@ async function initRepoContext<
         context.log.info(logInfos, 'lock: lock pr acquired');
         try {
           await callback();
-        } catch (err) {
+        } catch (error) {
           context.log.info(logInfos, 'lock: release pr (with error)');
           release();
-          reject(err);
+          reject(error);
           return;
         }
         context.log.info(logInfos, 'lock: release pr');
@@ -433,13 +433,13 @@ async function initRepoContext<
                   );
                 }
               }
-            } catch (err) {
+            } catch (error) {
               await removePrFromAutomergeQueue(
                 rescheduleContext,
                 pr,
                 'reschedule: error caught, removing from queue',
               );
-              throw err;
+              throw error;
             }
           });
         });

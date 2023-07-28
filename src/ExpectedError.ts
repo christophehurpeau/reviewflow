@@ -10,10 +10,10 @@ export async function catchExceptedErrors(
 ): Promise<void> {
   try {
     await callback();
-  } catch (err) {
-    if (err instanceof ExpectedError) {
+  } catch (error) {
+    if (error instanceof ExpectedError) {
       return;
     }
-    throw err;
+    throw error;
   }
 }

@@ -1,4 +1,4 @@
-import { promisify } from 'util';
+import { promisify } from 'node:util';
 import { Octokit } from '@octokit/rest';
 import type { Router, Request, Response } from 'express';
 import jsonwebtoken from 'jsonwebtoken';
@@ -118,8 +118,8 @@ export default function auth(router: Router): void {
         // console.log(redirectUri);
 
         res.redirect(redirectUri);
-      } catch (err) {
-        next(err);
+      } catch (error) {
+        next(error);
       }
     },
   );
@@ -140,8 +140,8 @@ export default function auth(router: Router): void {
           </Layout>,
         ),
       );
-    } catch (err) {
-      next(err);
+    } catch (error) {
+      next(error);
     }
   });
 
@@ -210,8 +210,8 @@ export default function auth(router: Router): void {
         });
 
         res.redirect('/app');
-      } catch (err) {
-        next(err);
+      } catch (error) {
+        next(error);
       }
     },
   );
