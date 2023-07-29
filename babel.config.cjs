@@ -8,7 +8,7 @@ module.exports = function babelConfig(api) {
   return {
     only: ['src'],
     presets: [
-      ['pob-babel/preset.js'],
+      ['pob-babel/preset.js', { modules: false }],
       [
         '@babel/preset-react',
         {
