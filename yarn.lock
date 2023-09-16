@@ -2565,14 +2565,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:18.2.17":
-  version: 18.2.17
-  resolution: "@types/react@npm:18.2.17"
+"@types/react@npm:*, @types/react@npm:18.2.21":
+  version: 18.2.21
+  resolution: "@types/react@npm:18.2.21"
   dependencies:
     "@types/prop-types": "*"
     "@types/scheduler": "*"
     csstype: ^3.0.2
-  checksum: 150516b31bd98b635e4a56bcf2af007330b35cccb6e35e902f46a47f0e81e30c46cdacc095e91051bdf2f33e4846e7e62fd51b67e064dc7d15c00e15dfa449d5
+  checksum: ffed203bfe7aad772b8286f7953305c9181ac3a8f27d3f5400fbbc2a8e27ca8e5bbff818ee014f39ca0d19d2b3bb154e5bdbec7e232c6f80b59069375aa78349
   languageName: node
   linkType: hard
 
@@ -9280,7 +9280,7 @@ resolve@^2.0.0-next.3:
     "@types/jest": 29.5.3
     "@types/jsonwebtoken": 9.0.2
     "@types/node": 18.17.17
-    "@types/react": 18.2.17
+    "@types/react": 18.2.21
     "@types/react-dom": 18.2.7
     "@types/simple-oauth2": 5.0.4
     body-parser: 1.20.1
