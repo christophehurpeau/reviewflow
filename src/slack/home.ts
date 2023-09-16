@@ -28,11 +28,13 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
       prsWithRequestedChanges,
       prsInDraft,
     ] = await Promise.all([
-      octokit.search.issuesAndPullRequests({
-        q: `is:pr user:${member.org.login} is:open review-requested:${member.user.login} draft:false`,
-        sort: 'created',
-        order: 'desc',
-      }),
+      octokit.search
+        .issuesAndPullRequests({
+          q: `is:pr user:${member.org.login} is:open review-requested:${member.user.login} draft:false`,
+          sort: 'created',
+          order: 'desc',
+        })
+        .catch((error: unknown) => ({ error })),
       mongoStores.prs.findAll(
         {
           'account.id': member.org.id,
@@ -52,12 +54,14 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
         },
         { created: -1 },
       ),
-      octokit.search.issuesAndPullRequests({
-        q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} draft:true`,
-        sort: 'created',
-        order: 'desc',
-        per_page: 5,
-      }),
+      octokit.search
+        .issuesAndPullRequests({
+          q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} draft:true`,
+          sort: 'created',
+          order: 'desc',
+          per_page: 5,
+        })
+        .catch((error: unknown) => ({ error })),
     ]);
 
     const blocks: any[] = [
@@ -90,6 +94,13 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
       },
     });
     const createDividerBlock = (): KnownBlock => ({ type: 'divider' });
+    const createErrorBlock = (errorMessage: string): KnownBlock => ({
+      type: 'section',
+      text: {
+        type: 'plain_text',
+        text: errorMessage,
+      },
+    });
     const createPlaceholderImageBlock = (): KnownBlock => ({
       type: 'context',
       elements: [
@@ -104,8 +115,28 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
 
     const buildBlocksForDataFromGithub = (
       title: string,
-      results: typeof prsWithRequestedReviews.data,
+      response: typeof prsWithRequestedReviews,
     ) => {
+      if (!response) {
+        blocks.push(
+          createTitleBlock(title),
+          createDividerBlock(),
+          createErrorBlock('No response from GitHub'),
+        );
+        return;
+      }
+
+      if ('error' in response) {
+        blocks.push(
+          createTitleBlock(title),
+          createDividerBlock(),
+          createErrorBlock('Error from GitHub'),
+        );
+        return;
+      }
+
+      const results = response.data;
+
       if (!results.total_count) return;
 
       blocks.push(
@@ -217,7 +248,7 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
 
     buildBlocksForDataFromGithub(
       ':eyes: Requested reviews',
-      prsWithRequestedReviews.data,
+      prsWithRequestedReviews,
     );
     buildBlocksForDataFromMongo(
       ':white_check_mark: Ready to merge',
@@ -227,7 +258,7 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
       ':x: Changes requested',
       prsWithRequestedChanges,
     );
-    buildBlocksForDataFromGithub(':construction: Drafts', prsInDraft.data);
+    buildBlocksForDataFromGithub(':construction: Drafts', prsInDraft);
 
     if (blocks.length === 2) {
       blocks.push({
