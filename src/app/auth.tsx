@@ -187,7 +187,7 @@ export default function auth(router: Router): void {
           return;
         }
 
-        const api = createApi(accessToken.token.access_token);
+        const api = createApi(accessToken.token.access_token as string);
         const user = await api.users.getAuthenticated({});
         const id = user.data.id;
         const login = user.data.login;
@@ -195,7 +195,7 @@ export default function auth(router: Router): void {
         const authInfo: AuthInfo = {
           id,
           login,
-          accessToken: accessToken.token.access_token,
+          accessToken: accessToken.token.access_token as string,
           time: Date.now(),
         };
         const token = await signPromisified(authInfo, AUTH_SECRET_KEY, {

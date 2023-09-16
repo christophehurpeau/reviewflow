@@ -145,7 +145,7 @@ export default function slackConnect(
             renderToStaticMarkup(
               <Layout>
                 Could not get access token (Error:{' '}
-                {accessToken?.token?.error || 'Unknown'}).
+                {(accessToken?.token as any)?.error || 'Unknown'}).
                 <div>
                   <a href={`/app/org/${orgLogin || ''}`}>Back</a>
                 </div>
@@ -173,7 +173,7 @@ export default function slackConnect(
 
         // install slack, not login
         if (isInstall) {
-          if (!accessToken.token?.team?.id) {
+          if (!(accessToken.token?.team as any)?.id) {
             res.send(
               renderToStaticMarkup(
                 <Layout>
@@ -188,14 +188,15 @@ export default function slackConnect(
           }
 
           const slackTeam: SetRequired<MongoInsertType<SlackTeam>, '_id'> = {
-            _id: accessToken.token.team.id,
-            teamName: accessToken.token.team.name,
-            appId: accessToken.token.app_id,
-            installerUserId: accessToken.token.authed_user.id,
-            botUserId: accessToken.token.bot_user_id,
-            botAccessToken: accessToken.token.access_token,
+            _id: (accessToken.token.team as any).id as string,
+            teamName: (accessToken.token.team as any).name as string,
+            appId: accessToken.token.app_id as string,
+            installerUserId: (accessToken.token.authed_user as any)
+              .id as string,
+            botUserId: accessToken.token.bot_user_id as string,
+            botAccessToken: accessToken.token.access_token as string,
             scope: accessToken.token.scope
-              ? accessToken.token.scope.split(',')
+              ? (accessToken.token.scope as string).split(',')
               : [],
           };
 
@@ -227,7 +228,9 @@ export default function slackConnect(
           return;
         }
 
-        const slackClient = new WebClient(accessToken.token.access_token);
+        const slackClient = new WebClient(
+          accessToken.token.access_token as string,
+        );
         const identity = await slackClient.users.identity();
 
         if (!org.slackTeamId && !org.slackToken) {
@@ -270,12 +273,12 @@ export default function slackConnect(
           {
             $set: {
               slack: {
-                id: accessToken.token.user_id,
-                accessToken: accessToken.token.access_token,
+                id: accessToken.token.user_id as string,
+                accessToken: accessToken.token.access_token as string,
                 scope: accessToken.token.scope
-                  ? accessToken.token.scope.split(',')
+                  ? (accessToken.token.scope as string).split(',')
                   : [],
-                teamId: accessToken.token.team_id,
+                teamId: accessToken.token.team_id as string,
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 email: (identity as any).user.email,
               },
