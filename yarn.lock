@@ -3765,19 +3765,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"check-package-dependencies@npm:6.4.1":
-  version: 6.4.1
-  resolution: "check-package-dependencies@npm:6.4.1"
+"check-package-dependencies@npm:6.8.0":
+  version: 6.8.0
+  resolution: "check-package-dependencies@npm:6.8.0"
   dependencies:
     chalk: ^5.2.0
     glob: ^10.0.0
     import-meta-resolve: ^3.0.0
-    semver: ^7.5.0
+    semver: ^7.5.4
     semver-utils: ^1.1.4
-    type-fest: ^3.0.0
+    type-fest: ^4.0.0
   bin:
     check-package-dependencies: bin/check-package-dependencies.mjs
-  checksum: 6fbf89a6f7df011a594d4f80acfaba5b3bb4d3d72ffd244a7f5970426a951d0e448633386f611c3c04f36da057fca9dcdf64f9221e5608f3f248ad34000e9408
+  checksum: 605438a75ac9740966501578f494802391d265922177e7ae9045253df06f79e8b0fada6da94ab5bf83c2958e585a8a3cdde728b00b19502203b67187fbe9d75c
   languageName: node
   linkType: hard
 
@@ -9360,7 +9360,7 @@ resolve@^2.0.0-next.3:
     "@types/react-dom": 18.2.7
     "@types/simple-oauth2": 5.0.4
     body-parser: 1.20.1
-    check-package-dependencies: 6.4.1
+    check-package-dependencies: 6.8.0
     conventional-changelog-conventionalcommits: 6.1.0
     cookie-parser: 1.4.6
     delay: 6.0.0
@@ -9497,7 +9497,7 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"semver@npm:7.5.4, semver@npm:^7.3.2, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.0, semver@npm:^7.5.3, semver@npm:^7.5.4":
+"semver@npm:7.5.4, semver@npm:^7.3.2, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.3, semver@npm:^7.5.4":
   version: 7.5.4
   resolution: "semver@npm:7.5.4"
   dependencies:
@@ -10255,7 +10255,7 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"type-fest@npm:3.13.1, type-fest@npm:^3.0.0":
+"type-fest@npm:3.13.1":
   version: 3.13.1
   resolution: "type-fest@npm:3.13.1"
   checksum: c06b0901d54391dc46de3802375f5579868949d71f93b425ce564e19a428a0d411ae8d8cb0e300d330071d86152c3ea86e744c3f2860a42a79585b6ec2fdae8e
@@ -10308,6 +10308,13 @@ resolve@^2.0.0-next.3:
   version: 1.4.0
   resolution: "type-fest@npm:1.4.0"
   checksum: b011c3388665b097ae6a109a437a04d6f61d81b7357f74cbcb02246f2f5bd72b888ae33631b99871388122ba0a87f4ff1c94078e7119ff22c70e52c0ff828201
+  languageName: node
+  linkType: hard
+
+"type-fest@npm:^4.0.0":
+  version: 4.3.1
+  resolution: "type-fest@npm:4.3.1"
+  checksum: 04e0f073dcc31c113c1b8856c089b388e7e9f4383a9ed72cc1466a89ec50d9d67678844eeec342b5a1ce71b21e817764d4f067aa148f6bcb5df9005ff3803382
   languageName: node
   linkType: hard
 
