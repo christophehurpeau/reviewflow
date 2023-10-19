@@ -2193,29 +2193,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@slack/types@npm:^2.0.0, @slack/types@npm:^2.1.0":
+"@slack/types@npm:^2.1.0, @slack/types@npm:^2.8.0":
   version: 2.8.0
   resolution: "@slack/types@npm:2.8.0"
   checksum: 3142433fb0a8f986d850615bb09732c24130b6017d9c24722adcb67a14aad993317295817e56a310e27ce038ee606de6ffa37ace4c3e19761d08e289cd747f79
   languageName: node
   linkType: hard
 
-"@slack/web-api@npm:6.8.1":
-  version: 6.8.1
-  resolution: "@slack/web-api@npm:6.8.1"
+"@slack/web-api@npm:6.9.0":
+  version: 6.9.0
+  resolution: "@slack/web-api@npm:6.9.0"
   dependencies:
     "@slack/logger": ^3.0.0
-    "@slack/types": ^2.0.0
+    "@slack/types": ^2.8.0
     "@types/is-stream": ^1.1.0
     "@types/node": ">=12.0.0"
     axios: ^0.27.2
     eventemitter3: ^3.1.0
     form-data: ^2.5.0
-    is-electron: 2.2.0
+    is-electron: 2.2.2
     is-stream: ^1.1.0
     p-queue: ^6.6.1
     p-retry: ^4.0.0
-  checksum: a622f44b0d9bef010799b78feb20cf93a8181a6c858aaccac60cd1041561681e1d444b39865efe3e4febfe3e85ea38e001315bbe6896bb8e0fc065eb9fd6634d
+  checksum: 534518ac573f55bcaead562620dc173e6569bdcf4974f953df22feab06012eceff8a63a5f858da1185b1c237a764b07c44254adc55e450d059a05b6aaee17b0b
   languageName: node
   linkType: hard
 
@@ -6135,10 +6135,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-electron@npm:2.2.0":
-  version: 2.2.0
-  resolution: "is-electron@npm:2.2.0"
-  checksum: 79e497bd5077018ed2e243c1524a2af21d9cac56962a1aa09284450f315626ca41b184f5599c9ab6526245d0cd8fe4abe962817fde48100f632c104ad5d03560
+"is-electron@npm:2.2.2":
+  version: 2.2.2
+  resolution: "is-electron@npm:2.2.2"
+  checksum: de5aa8bd8d72c96675b8d0f93fab4cc21f62be5440f65bc05c61338ca27bd851a64200f31f1bf9facbaa01b3dbfed7997b2186741d84b93b63e0aff1db6a9494
   languageName: node
   linkType: hard
 
@@ -9347,7 +9347,7 @@ resolve@^2.0.0-next.3:
     "@pob/eslint-config-typescript": 51.0.0
     "@pob/eslint-config-typescript-react": 51.0.0
     "@pob/root": 8.2.0
-    "@slack/web-api": 6.8.1
+    "@slack/web-api": 6.9.0
     "@tryfabric/mack": 1.2.1
     "@types/body-parser": 1.19.2
     "@types/cookie-parser": 1.4.4
