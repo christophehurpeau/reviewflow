@@ -69,7 +69,6 @@ const config: Config<'backends' | 'frontends' | 'ops'> = {
     title: [
       {
         regExp:
-          // eslint-disable-next-line unicorn/no-unsafe-regex
           /^(?<revert>revert: )?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\([/A-Za-z-]+\)?((?=:\s)|(?=!:\s)))?(?<breaking>!)?(?<subject>:\s.*)$/,
         createStatusInfo: (match) => {
           if (match) {
@@ -132,7 +131,7 @@ const config: Config<'backends' | 'frontends' | 'ops'> = {
         regExp: /^(.*)$/s,
         createStatusInfo: (match) => {
           const description = match?.[1];
-          if (!description || !description.trim()) {
+          if (!description?.trim()) {
             return {
               type: 'failure',
               title: 'Body is empty',
@@ -145,10 +144,7 @@ const config: Config<'backends' | 'frontends' | 'ops'> = {
               .replace(/^\s*#+\s+.*/gm, '')
               .replace(/(<!--.*?-->)|(<!--[\S\s]+?-->)|(<!--[\S\s]*?$)/gs, '');
 
-          if (
-            !descriptionStripTitlesAndComments ||
-            !descriptionStripTitlesAndComments.trim()
-          ) {
+          if (!descriptionStripTitlesAndComments?.trim()) {
             return {
               type: 'failure',
               title: 'Body has no meaningful content',
@@ -164,7 +160,6 @@ const config: Config<'backends' | 'frontends' | 'ops'> = {
       {
         bot: false,
         regExp:
-          // eslint-disable-next-line unicorn/no-unsafe-regex
           /^(?<revert>revert-\d+-)?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\/[a-z-]+)?\/(?<breaking>!)?(?<subject>.*)(?:-(?<jiraIssue>[A-Z][\dA-Z]+-(\d+)))?$/,
         status: 'branch-name',
         createStatusInfo: (match, { title }) => {
