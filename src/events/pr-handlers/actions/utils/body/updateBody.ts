@@ -141,7 +141,6 @@ const internalUpdateBodyOptionsAndInfos = (
   infos?: StatusInfo[],
 ): string => {
   const infosAndCommitNotesParagraph = body.replace(
-    // eslint-disable-next-line unicorn/no-unsafe-regex
     /^\s*(?:(####? Progress:?.*)?(####? Infos:?.*)?(####? Commits Notes:?.*)?####? Options:?)?.*$/s,
     `$1${getInfosReplacement('$2', infos)}$3`,
   );
@@ -206,7 +205,7 @@ export const updateCommentBodyInfos = (
   return commentBody.replace(
     // *  - zero or more
     // *? - zero or more (non-greedy)
-    // eslint-disable-next-line unicorn/no-unsafe-regex
+
     /^\s*(####? Progress:?.*?)?(?:(####? Infos:?.*?)?(####? Commits Notes:?.*?)?(####? Options:?.*?)?)?$/s,
     `$1${getInfosReplacement('$2', infos)}$3$4`,
   );
@@ -219,7 +218,7 @@ export const updateCommentBodyProgress = (
   return commentBody.replace(
     // *  - zero or more
     // *? - zero or more (non-greedy)
-    // eslint-disable-next-line unicorn/no-unsafe-regex
+
     /^\s*(####? Progress:?.*?)?(?:(####? Infos:?.*?)?(####? Commits Notes:?.*?)?(####? Options:?.*?)?)?$/s,
     `${getProgressReplacement(stepsState)}$2$3$4`,
   );
@@ -230,7 +229,6 @@ export const updateCommentBodyCommitsNotes = (
   commitNotes?: string,
 ): string => {
   return commentBody.replace(
-    // eslint-disable-next-line unicorn/no-unsafe-regex
     /(?:####? Commits Notes:.*?)?(####? Options:)/s,
     !commitNotes ? '$1' : `### Commits Notes:\n\n${commitNotes}\n\n$1`,
   );

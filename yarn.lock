@@ -1774,11 +1774,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pob/eslint-config-typescript-react@npm:51.1.1":
-  version: 51.1.1
-  resolution: "@pob/eslint-config-typescript-react@npm:51.1.1"
+"@pob/eslint-config-typescript-react@npm:51.1.2":
+  version: 51.1.2
+  resolution: "@pob/eslint-config-typescript-react@npm:51.1.2"
   dependencies:
-    "@pob/eslint-config": 51.1.1
+    "@pob/eslint-config": 51.1.2
     eslint-config-airbnb: ^19.0.4
     eslint-plugin-import: ^2.28.1
     eslint-plugin-jsx-a11y: ^6.5.1
@@ -1799,15 +1799,15 @@ __metadata:
       optional: true
     eslint-plugin-react-hooks:
       optional: true
-  checksum: b2a3564bd4ad60d7eaf5a9389624e0a955771be983a0fc689fd937ca33b0a6f6d319c4e05fc8dbdd2a5d8ab344073767b5035913a44ca723e75af0bf4e751e18
+  checksum: bf62fb8a6e8f41bb5ff4431d7198ebb26476743d41e15e3438ba434dcbd306b001d98af988707632e99b5e7abcfa708f7e7a44431fd387d69fa0ee5725004ccb
   languageName: node
   linkType: hard
 
-"@pob/eslint-config-typescript@npm:51.1.1":
-  version: 51.1.1
-  resolution: "@pob/eslint-config-typescript@npm:51.1.1"
+"@pob/eslint-config-typescript@npm:51.1.2":
+  version: 51.1.2
+  resolution: "@pob/eslint-config-typescript@npm:51.1.2"
   dependencies:
-    "@pob/eslint-config": 51.1.1
+    "@pob/eslint-config": 51.1.2
     "@typescript-eslint/eslint-plugin": ^6.7.4
     "@typescript-eslint/parser": ^6.7.4
     eslint-config-airbnb-base: ^15.0.0
@@ -1828,13 +1828,13 @@ __metadata:
       optional: true
     eslint-plugin-node:
       optional: true
-  checksum: 6b6598791eefb999a1e8238537f4b9c7ceb36f6a34281740433ac939f1895a789e2e7e2423d01aa9a997a70f0b1d2d79a9946786e427676c0493c1b9d466ccb8
+  checksum: 80a6bbb784202754a16c07dfe1fdc4dcaba40d58264b52fb2d2d621716fef33cf513d73169bb07e73bbee48b52d893ced09407d66932898825c123559af1f078
   languageName: node
   linkType: hard
 
-"@pob/eslint-config@npm:51.1.1":
-  version: 51.1.1
-  resolution: "@pob/eslint-config@npm:51.1.1"
+"@pob/eslint-config@npm:51.1.2":
+  version: 51.1.2
+  resolution: "@pob/eslint-config@npm:51.1.2"
   dependencies:
     eslint-config-airbnb-base: ^15.0.0
     eslint-config-prettier: ^9.0.0
@@ -1853,7 +1853,7 @@ __metadata:
       optional: true
     eslint-plugin-unicorn:
       optional: true
-  checksum: 5bb4bc6cf90eaabbd547ebd58cd0e503aebab2ac471032bcc37e440f611d4655cd6da02fde51b2ac56612b505ab23b2bc9754ab962d8d4f4f0041306a00a4ef6
+  checksum: 96e788e9756b8396e70d8a2c21f0c854d33cc86b78477b7b382cb793a1174369c9e7a7a34ac78385fd1b7225a56defb9c80cd3c2ec53cfb429c0b23063e9a703
   languageName: node
   linkType: hard
 
@@ -9382,9 +9382,9 @@ resolve@^2.0.0-next.3:
     "@octokit/rest": 18.12.0
     "@octokit/webhooks": 9.26.0
     "@pob/commitlint-config": 6.0.2
-    "@pob/eslint-config": 51.1.1
-    "@pob/eslint-config-typescript": 51.1.1
-    "@pob/eslint-config-typescript-react": 51.1.1
+    "@pob/eslint-config": 51.1.2
+    "@pob/eslint-config-typescript": 51.1.2
+    "@pob/eslint-config-typescript-react": 51.1.2
     "@pob/root": 8.2.0
     "@slack/web-api": 6.9.0
     "@tryfabric/mack": 1.2.1

@@ -18,7 +18,7 @@ import type { StepsState } from './utils/steps/calcStepsState';
 
 type ReviewflowStatusCheckState = 'failure' | 'success';
 
-const addStatusCheck = async function <EventName extends EventsWithRepository>(
+const addStatusCheck = async <EventName extends EventsWithRepository>(
   pullRequest: PullRequestWithDecentData,
   context: ProbotEvent<EventName>,
   appContext: AppContext,
@@ -28,7 +28,7 @@ const addStatusCheck = async function <EventName extends EventsWithRepository>(
     description,
   }: { state: ReviewflowStatusCheckState; description: string },
   previousSha?: string,
-): Promise<void> {
+): Promise<void> => {
   const previousStatus = reviewflowPrContext.reviewflowPr.flowStatus;
 
   let prCheck;

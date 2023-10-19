@@ -33,7 +33,7 @@ const serverPromise = run((app, { getRouter }) => {
   slackHome.scheduleUpdateAllOrgs((id: number) => app.auth(id));
 });
 
-const gracefulExit = function () {
+const gracefulExit = function gracefulExit(): void {
   Promise.all([
     serverPromise.then((server) => server.stop()),
     mongoConnection && mongoConnection.close(),
