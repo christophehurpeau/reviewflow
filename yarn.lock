@@ -2405,10 +2405,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/issue-parser@npm:3.0.1":
-  version: 3.0.1
-  resolution: "@types/issue-parser@npm:3.0.1"
-  checksum: 94a773a647e3384b81c1459c095ad152a1b2b9d5b7fe360933bd2a54faf582a9a1551dcfa956bbf8f629c4e35b9ce4e11362310a17e8e0ff17911c4f4f20ae98
+"@types/issue-parser@npm:3.0.3":
+  version: 3.0.3
+  resolution: "@types/issue-parser@npm:3.0.3"
+  checksum: 8c444a1cada2b6e00315fbcc72d890aa121b94e3460154a2eedcbfdaf10c4a267ab9bb4b0976f5bc908f41d02b137cdfdc0127216ba1177948c24d70ea4e286c
   languageName: node
   linkType: hard
 
@@ -9391,7 +9391,7 @@ resolve@^2.0.0-next.3:
     "@types/body-parser": 1.19.2
     "@types/cookie-parser": 1.4.5
     "@types/express": 4.17.20
-    "@types/issue-parser": 3.0.1
+    "@types/issue-parser": 3.0.3
     "@types/jest": 29.5.5
     "@types/jsonwebtoken": 9.0.2
     "@types/node": 18.17.19
