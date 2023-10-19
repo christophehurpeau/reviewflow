@@ -2,7 +2,7 @@ import type { MessageCategory } from '../dm/MessageCategory';
 import type { Options } from '../events/pr-handlers/actions/utils/body/prOptions';
 
 export interface StatusInfo {
-  type: 'failure' | 'success';
+  type: 'failure' | 'pending' | 'success';
   inBody?: true;
   url?: string;
   title: string;

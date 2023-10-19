@@ -16,7 +16,7 @@ import createStatus, { isSameStatus } from './utils/createStatus';
 import hasLabelInPR from './utils/labels/hasLabelInPR';
 import type { StepsState } from './utils/steps/calcStepsState';
 
-type ReviewflowStatusCheckState = 'failure' | 'success';
+type ReviewflowStatusCheckState = 'failure' | 'pending' | 'success';
 
 const addStatusCheck = async <EventName extends EventsWithRepository>(
   pullRequest: PullRequestWithDecentData,
@@ -55,14 +55,18 @@ const addStatusCheck = async <EventName extends EventsWithRepository>(
   };
 
   if (prCheck) {
-    if (prCheck.conclusion !== state || prCheck.output.title !== description) {
+    const conclusion = state === 'pending' ? 'failure' : state;
+    if (
+      prCheck.conclusion !== conclusion ||
+      prCheck.output.title !== description
+    ) {
       await context.octokit.checks.create(
         context.repo({
           name: process.env.REVIEWFLOW_NAME!,
           head_sha: pullRequest.head.sha,
           started_at: pullRequest.created_at,
           status: 'completed',
-          conclusion: state,
+          conclusion,
           completed_at: new Date().toISOString(),
           output: {
             title: description,
@@ -82,7 +86,7 @@ const addStatusCheck = async <EventName extends EventsWithRepository>(
     await Promise.all([
       previousSha &&
         (previousStatus
-          ? previousStatus.type === 'failure'
+          ? previousStatus.type !== 'success'
           : state === 'failure') &&
         createStatus(context, '', previousSha, {
           type: 'success',
@@ -135,6 +139,21 @@ export const updateStatusCheckFromStepsState = <
       },
       previousSha,
     ).then(() => 'failure');
+
+  const createPendingStatusCheck = (
+    description: string,
+  ): Promise<ReviewflowStatusCheckState> =>
+    addStatusCheck(
+      pullRequest,
+      context,
+      appContext,
+      reviewflowPrContext,
+      {
+        state: 'pending',
+        description,
+      },
+      previousSha,
+    ).then(() => 'pending');
 
   // PR Merged
   if (pullRequest.merged_at) {
@@ -217,7 +236,7 @@ export const updateStatusCheckFromStepsState = <
     }
 
     if (stepsState.checks.isInProgress) {
-      return createFailedStatusCheck('Checks in progress');
+      return createPendingStatusCheck('Checks in progress');
     }
   }
 
@@ -227,7 +246,7 @@ export const updateStatusCheckFromStepsState = <
       stepsState.codeReview.hasRequestedReviewers ||
       stepsState.codeReview.hasRequestedTeams
     ) {
-      return createFailedStatusCheck(
+      return createPendingStatusCheck(
         `Awaiting review from: ${[
           ...(pullRequest.requested_reviewers || []),
           ...(pullRequest.requested_teams || []),
