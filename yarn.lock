@@ -2521,10 +2521,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:18.17.19":
-  version: 18.17.19
-  resolution: "@types/node@npm:18.17.19"
-  checksum: 6ab47127cd7534511aa199550659d56b44e5a6dbec9df054d0cde279926b4d43f0e6438f92c8392b039ab4e2a85aa0f698b95926430aff860e23bfc36c96576c
+"@types/node@npm:18.18.6":
+  version: 18.18.6
+  resolution: "@types/node@npm:18.18.6"
+  checksum: a847639b8455fd3dfa6dbc2917274c82c9db789f1d41aaf69f94ac6c9e54c3c1dd29be6e1e1ccd7c17e54db3d78d7011bc4e70544c6447ceca253dccc0a187e1
   languageName: node
   linkType: hard
 
@@ -9394,7 +9394,7 @@ resolve@^2.0.0-next.3:
     "@types/issue-parser": 3.0.3
     "@types/jest": 29.5.6
     "@types/jsonwebtoken": 9.0.2
-    "@types/node": 18.17.19
+    "@types/node": 18.18.6
     "@types/react": 18.2.30
     "@types/react-dom": 18.2.14
     "@types/simple-oauth2": 5.0.6
