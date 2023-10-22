@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/christophehurpeau/reviewflow/compare/v2.5.0...v3.0.0) (2023-10-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop node 16
+
+### Features
+
+* **deps:** update dependency @slack/web-api to v6.9.0 ([#761](https://github.com/christophehurpeau/reviewflow/issues/761)) ([2d99740](https://github.com/christophehurpeau/reviewflow/commit/2d9974075e1a128959afbd2f9618c76046bc42f0))
+* **deps:** update dependency emoji-regex to v10.3.0 ([#779](https://github.com/christophehurpeau/reviewflow/issues/779)) ([99c8863](https://github.com/christophehurpeau/reviewflow/commit/99c8863bab7d0d5afcc376e1b476e9230381bea4))
+* use pending states for reviewflow check ([6486198](https://github.com/christophehurpeau/reviewflow/commit/64861980bd53425ca6907fbd0f4c4f349cfe7002))
+
+
+### Bug Fixes
+
+* catch error calling github api for slack home ([caa2d8d](https://github.com/christophehurpeau/reviewflow/commit/caa2d8d207b134c007ec2b500958c1386bd1ee69))
+* ignore adding reactions to unexisting messages ([ab04254](https://github.com/christophehurpeau/reviewflow/commit/ab0425474b196c4e505653f07901678889072815))
+
+
+### Code Refactoring
+
+* update to node 18 ([b61655f](https://github.com/christophehurpeau/reviewflow/commit/b61655f4ccac2fff9b7c671f882c893f2818a913))
+
 ## [2.5.0](https://github.com/christophehurpeau/reviewflow/compare/v2.4.0...v2.5.0) (2023-07-22)
 
 
