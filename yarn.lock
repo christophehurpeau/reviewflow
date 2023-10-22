@@ -4530,10 +4530,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"emoji-regex@npm:10.2.1":
-  version: 10.2.1
-  resolution: "emoji-regex@npm:10.2.1"
-  checksum: 1aa2d16881c56531fdfc03d0b36f5c2b6221cc4097499a5665b88b711dc3fb4d5b8804f0ca6f00c56e5dcf89bac75f0487eee85da1da77df3a33accc6ecbe426
+"emoji-regex@npm:10.3.0":
+  version: 10.3.0
+  resolution: "emoji-regex@npm:10.3.0"
+  checksum: 5da48edfeb9462fb1ae5495cff2d79129974c696853fb0ce952cbf560f29a2756825433bf51cfd5157ec7b9f93f46f31d712e896d63e3d8ac9c3832bdb45ab73
   languageName: node
   linkType: hard
 
@@ -9412,7 +9412,7 @@ resolve@^2.0.0-next.3:
     cookie-parser: 1.4.6
     delay: 6.0.0
     dotenv: 8.6.0
-    emoji-regex: 10.2.1
+    emoji-regex: 10.3.0
     eslint: 8.52.0
     issue-parser: 6.0.0
     jest: 29.7.0

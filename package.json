@@ -71,7 +71,7 @@
     "cookie-parser": "1.4.6",
     "delay": "6.0.0",
     "dotenv": "8.6.0",
-    "emoji-regex": "10.2.1",
+    "emoji-regex": "10.3.0",
     "issue-parser": "6.0.0",
     "jsonwebtoken": "9.0.0",
     "liwi-mongo": "11.0.0",
