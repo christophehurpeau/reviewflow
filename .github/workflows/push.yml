@@ -11,13 +11,16 @@ jobs:
         node-version: [18.x]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: "https://registry.npmjs.org"
+
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Install Dependencies
         run: yarn install --immutable --immutable-cache
@@ -49,10 +52,3 @@ jobs:
       - name: Check nothing was forgotten before commit
         if: startsWith(matrix.node-version, '18.')
         run: yarn run repository-check-dirty
-
-      - uses: GoogleCloudPlatform/release-please-action@v3
-        if: ${{ startsWith(matrix.node-version, '18.') && github.ref == 'refs/heads/main' }}
-        id: release
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          release-type: node

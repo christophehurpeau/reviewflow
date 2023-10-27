@@ -11,7 +11,7 @@
   "engines": {
     "node": ">=18.12.0"
   },
-  "packageManager": "yarn@3.6.4",
+  "packageManager": "yarn@4.0.0",
   "main": "./build/index-node18.mjs",
   "exports": {
     "./package.json": "./package.json",
@@ -36,8 +36,7 @@
     "start": "yarn clean:build && rollup --config rollup.config.mjs --watch",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest  --coverage --coverageReporters=json --coverageReporters=text",
-    "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
-    "version": "pob-version"
+    "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch"
   },
   "prettier": "@pob/root/prettier-config",
   "commitlint": {
@@ -89,7 +88,7 @@
     "@pob/eslint-config": "51.1.2",
     "@pob/eslint-config-typescript": "51.1.2",
     "@pob/eslint-config-typescript-react": "51.1.2",
-    "@pob/root": "8.2.0",
+    "@pob/root": "8.4.2",
     "@types/body-parser": "1.19.2",
     "@types/cookie-parser": "1.4.5",
     "@types/express": "4.17.20",
@@ -104,7 +103,7 @@
     "eslint": "8.52.0",
     "jest": "29.7.0",
     "nock": "13.3.3",
-    "pob-babel": "36.2.0",
+    "pob-babel": "36.4.4",
     "smee-client": "1.2.3",
     "type-fest": "4.5.0",
     "typescript": "5.2.2"
