@@ -1,6 +1,15 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## [3.0.1](https://github.com/christophehurpeau/reviewflow/compare/v3.0.0...v3.0.1) (2023-11-01)
+
+
+### Bug Fixes
+
+* tweak clean pr title ([a1c6802](https://github.com/christophehurpeau/reviewflow/commit/a1c68026cbb69324d63517c5e78a0e4ebbee0324))
+
 
 ## [3.0.0](https://github.com/christophehurpeau/reviewflow/compare/v2.5.0...v3.0.0) (2023-10-22)
 
