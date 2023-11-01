@@ -681,12 +681,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/config-conventional@npm:17.6.7, @commitlint/config-conventional@npm:^17.2.0":
-  version: 17.6.7
-  resolution: "@commitlint/config-conventional@npm:17.6.7"
+"@commitlint/config-conventional@npm:17.8.1, @commitlint/config-conventional@npm:^17.2.0":
+  version: 17.8.1
+  resolution: "@commitlint/config-conventional@npm:17.8.1"
   dependencies:
-    conventional-changelog-conventionalcommits: "npm:^5.0.0"
-  checksum: dc81c288e9996a14df424328a5d4e0d04de3e55032c4cc8ec768d61c276339932b18c10c3ad0062bb27ca7673b4d709d715f0a58a59523bc063f24b1ca3dbd68
+    conventional-changelog-conventionalcommits: "npm:^6.1.0"
+  checksum: 70abdc9f1361386060b30620decc376bc33ff0c27c6f2f89511df1d53127d238af7c3409db22651282caa614d54b91b1f5e35905d12b1f5db70603c351f6e482
   languageName: node
   linkType: hard
 
@@ -731,7 +731,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/is-ignored@npm:^17.6.7, @commitlint/is-ignored@npm:^17.8.1":
+"@commitlint/is-ignored@npm:^17.8.1":
   version: 17.8.1
   resolution: "@commitlint/is-ignored@npm:17.8.1"
   dependencies:
@@ -741,19 +741,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/lint@npm:17.6.7":
-  version: 17.6.7
-  resolution: "@commitlint/lint@npm:17.6.7"
-  dependencies:
-    "@commitlint/is-ignored": "npm:^17.6.7"
-    "@commitlint/parse": "npm:^17.6.7"
-    "@commitlint/rules": "npm:^17.6.7"
-    "@commitlint/types": "npm:^17.4.4"
-  checksum: cf0e7507db0249f57501d2e6ca681963a9bc2b1e80e51f83f300d2cb6a8656ff5e995364d3c11d40bedd4e8fcc21e8c658970ec961612fb7950bdf29421555d7
-  languageName: node
-  linkType: hard
-
-"@commitlint/lint@npm:^17.8.0":
+"@commitlint/lint@npm:17.8.1, @commitlint/lint@npm:^17.8.0":
   version: 17.8.1
   resolution: "@commitlint/lint@npm:17.8.1"
   dependencies:
@@ -794,18 +782,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/parse@npm:17.6.7":
-  version: 17.6.7
-  resolution: "@commitlint/parse@npm:17.6.7"
-  dependencies:
-    "@commitlint/types": "npm:^17.4.4"
-    conventional-changelog-angular: "npm:^5.0.11"
-    conventional-commits-parser: "npm:^3.2.2"
-  checksum: 9cea58dc6eb1d08aeefb4ff8ff535c90a2aef402926fb71414bd6568485a3fc6af2087d177ebda64b5dcf077e2837289e74d0971112b1f9670212b1130503156
-  languageName: node
-  linkType: hard
-
-"@commitlint/parse@npm:^17.6.7, @commitlint/parse@npm:^17.8.1":
+"@commitlint/parse@npm:17.8.1, @commitlint/parse@npm:^17.8.1":
   version: 17.8.1
   resolution: "@commitlint/parse@npm:17.8.1"
   dependencies:
@@ -843,7 +820,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/rules@npm:^17.6.7, @commitlint/rules@npm:^17.8.1":
+"@commitlint/rules@npm:^17.8.1":
   version: 17.8.1
   resolution: "@commitlint/rules@npm:17.8.1"
   dependencies:
@@ -2835,7 +2812,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"JSONStream@npm:^1.0.4, JSONStream@npm:^1.3.5":
+"JSONStream@npm:^1.3.5":
   version: 1.3.5
   resolution: "JSONStream@npm:1.3.5"
   dependencies:
@@ -4035,16 +4012,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"conventional-changelog-angular@npm:^5.0.11":
-  version: 5.0.12
-  resolution: "conventional-changelog-angular@npm:5.0.12"
-  dependencies:
-    compare-func: "npm:^2.0.0"
-    q: "npm:^1.5.1"
-  checksum: fc0d5ba4478cd0058778000f0939a5c8f7da1c469f4d4d8ee36519cac8f41a85299ef6ea8733cc232f4ad0904a0f7c392073ade3a9b700c18ef6237c9ba69c03
-  languageName: node
-  linkType: hard
-
 "conventional-changelog-angular@npm:^6.0.0":
   version: 6.0.0
   resolution: "conventional-changelog-angular@npm:6.0.0"
@@ -4054,39 +4021,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"conventional-changelog-conventionalcommits@npm:6.1.0, conventional-changelog-conventionalcommits@npm:^6.0.0":
+"conventional-changelog-conventionalcommits@npm:6.1.0, conventional-changelog-conventionalcommits@npm:^6.0.0, conventional-changelog-conventionalcommits@npm:^6.1.0":
   version: 6.1.0
   resolution: "conventional-changelog-conventionalcommits@npm:6.1.0"
   dependencies:
     compare-func: "npm:^2.0.0"
   checksum: b313f5c0160d109f58d976566e1331ede3a25ab19fbf43f86763b280659195de00a68551f7f3930bf1cbf39a5e707d94f2a25b79996e59043fa9ee0bed68a79f
-  languageName: node
-  linkType: hard
-
-"conventional-changelog-conventionalcommits@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "conventional-changelog-conventionalcommits@npm:5.0.0"
-  dependencies:
-    compare-func: "npm:^2.0.0"
-    lodash: "npm:^4.17.15"
-    q: "npm:^1.5.1"
-  checksum: 02cc9313b44953332e9d45833615675cbc4d0f4129b27ea7218f8f4fc2f35124748725969c0cb3dc645713d19684540b87c5af25bd17ce3dccd7ef4e05e42442
-  languageName: node
-  linkType: hard
-
-"conventional-commits-parser@npm:^3.2.2":
-  version: 3.2.3
-  resolution: "conventional-commits-parser@npm:3.2.3"
-  dependencies:
-    JSONStream: "npm:^1.0.4"
-    is-text-path: "npm:^1.0.1"
-    lodash: "npm:^4.17.15"
-    meow: "npm:^8.0.0"
-    split2: "npm:^3.0.0"
-    through2: "npm:^4.0.0"
-  bin:
-    conventional-commits-parser: cli.js
-  checksum: 647a05d9b5ebed9a3fd7b42f07a374ae207e25b003d352c044ffdf0bd6cd4164c398d54f0706e1f99ce2599ea3a30d0b2d64327be3f4b997cce7e3975453702d
   languageName: node
   linkType: hard
 
@@ -9000,13 +8940,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"q@npm:^1.5.1":
-  version: 1.5.1
-  resolution: "q@npm:1.5.1"
-  checksum: 7855fbdba126cb7e92ef3a16b47ba998c0786ec7fface236e3eb0135b65df36429d91a86b1fff3ab0927b4ac4ee88a2c44527c7c3b8e2a37efbec9fe34803df4
-  languageName: node
-  linkType: hard
-
 "qs@npm:6.11.0, qs@npm:^6.10.3, qs@npm:^6.11.0":
   version: 6.11.0
   resolution: "qs@npm:6.11.0"
@@ -9384,9 +9317,9 @@ __metadata:
   dependencies:
     "@babel/core": "npm:7.23.2"
     "@babel/preset-react": "npm:7.22.15"
-    "@commitlint/config-conventional": "npm:17.6.7"
-    "@commitlint/lint": "npm:17.6.7"
-    "@commitlint/parse": "npm:17.6.7"
+    "@commitlint/config-conventional": "npm:17.8.1"
+    "@commitlint/lint": "npm:17.8.1"
+    "@commitlint/parse": "npm:17.8.1"
     "@octokit/core": "npm:3.6.0"
     "@octokit/rest": "npm:18.12.0"
     "@octokit/webhooks": "npm:9.26.0"
