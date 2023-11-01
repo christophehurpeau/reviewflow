@@ -4021,7 +4021,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"conventional-changelog-conventionalcommits@npm:6.1.0, conventional-changelog-conventionalcommits@npm:^6.0.0, conventional-changelog-conventionalcommits@npm:^6.1.0":
+"conventional-changelog-conventionalcommits@npm:7.0.2":
+  version: 7.0.2
+  resolution: "conventional-changelog-conventionalcommits@npm:7.0.2"
+  dependencies:
+    compare-func: "npm:^2.0.0"
+  checksum: 3cb1eab35e37fc973cfb3aed0e159f54414e49b222988da1c2aa86cc8a87fe7531491bbb7657fe5fc4dc0e25f5b50e2065ba8ac71cc4c08eed9189102a2b81bd
+  languageName: node
+  linkType: hard
+
+"conventional-changelog-conventionalcommits@npm:^6.0.0, conventional-changelog-conventionalcommits@npm:^6.1.0":
   version: 6.1.0
   resolution: "conventional-changelog-conventionalcommits@npm:6.1.0"
   dependencies:
@@ -9342,7 +9351,7 @@ __metadata:
     "@types/simple-oauth2": "npm:5.0.6"
     body-parser: "npm:1.20.1"
     check-package-dependencies: "npm:6.8.0"
-    conventional-changelog-conventionalcommits: "npm:6.1.0"
+    conventional-changelog-conventionalcommits: "npm:7.0.2"
     cookie-parser: "npm:1.4.6"
     delay: "npm:6.0.0"
     dotenv: "npm:8.6.0"
