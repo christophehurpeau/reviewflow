@@ -32,16 +32,10 @@ describe('cleanTitle', () => {
     expect(cleanTitle('feat: add something onk-1234')).toBe(
       'feat: add something ONK-1234',
     );
-    expect(cleanTitle('feat: add something onk 1234')).toBe(
-      'feat: add something ONK-1234',
-    );
   });
 
   it('should support ticket with number', () => {
     expect(cleanTitle('feat: add something c0re-1234')).toBe(
-      'feat: add something C0RE-1234',
-    );
-    expect(cleanTitle('feat: add something c0re 1234')).toBe(
       'feat: add something C0RE-1234',
     );
   });
@@ -62,6 +56,12 @@ describe('cleanTitle', () => {
         'Revert "chore(deps): update node.js to v8.14 (#296)" [no issue]',
       ),
     ).toBe('revert: chore(deps): update node.js to v8.14 [no issue]');
+  });
+
+  it('should keep library name with number', () => {
+    expect(cleanTitle('chore(deps): update react 18')).toBe(
+      'chore(deps): update react 18',
+    );
   });
 
   it('should clean no issue', () => {
