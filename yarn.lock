@@ -9429,7 +9429,7 @@ __metadata:
     simple-oauth2: "npm:5.0.0"
     slackify-markdown: "npm:4.3.1"
     smee-client: "npm:1.2.3"
-    type-fest: "npm:4.5.0"
+    type-fest: "npm:4.6.0"
     typescript: "npm:5.2.2"
   languageName: unknown
   linkType: soft
@@ -10316,10 +10316,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-fest@npm:4.5.0, type-fest@npm:^4.0.0":
-  version: 4.5.0
-  resolution: "type-fest@npm:4.5.0"
-  checksum: 8f45700dcfbdd03f2882a9e47e5ef21b8f879c4731633ed5ed43f4887b866d936ff27af0999afaa486a5683c03a45bd25bcf4d021ad9ac2486899867bfec91e3
+"type-fest@npm:4.6.0, type-fest@npm:^4.0.0":
+  version: 4.6.0
+  resolution: "type-fest@npm:4.6.0"
+  checksum: 6f34c3cdb95948821fdfc5a70481791de99b2ba840fad87ac3fbdf77941e556eaeaa03c2ed136b366436560702004af7687d59b03d4f181c28289db1af903179
   languageName: node
   linkType: hard
 
