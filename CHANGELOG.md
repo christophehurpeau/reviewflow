@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.1.0](https://github.com/christophehurpeau/reviewflow/compare/v3.0.1...v3.1.0) (2023-11-05)
+
+
+### Features
+
+* **deps:** update commitlint monorepo to v17.8.1 ([#755](https://github.com/christophehurpeau/reviewflow/issues/755)) ([9c8a3a4](https://github.com/christophehurpeau/reviewflow/commit/9c8a3a41a82bc4d37db753b34c93e9cfa6cbb349))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @slack/web-api to v6.9.1 ([#790](https://github.com/christophehurpeau/reviewflow/issues/790)) ([8845fe6](https://github.com/christophehurpeau/reviewflow/commit/8845fe6862de3c97986343afbbcec7105bb86b82))
+* **deps:** update dependency jsonwebtoken to v9.0.2 ([#731](https://github.com/christophehurpeau/reviewflow/issues/731)) ([2bb553b](https://github.com/christophehurpeau/reviewflow/commit/2bb553b1316860b4f38917cf7749bb2a7734c869))
+
+
 ## [3.0.1](https://github.com/christophehurpeau/reviewflow/compare/v3.0.0...v3.0.1) (2023-11-01)
 
 
