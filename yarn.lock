@@ -2156,22 +2156,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@slack/web-api@npm:6.9.0":
-  version: 6.9.0
-  resolution: "@slack/web-api@npm:6.9.0"
+"@slack/web-api@npm:6.9.1":
+  version: 6.9.1
+  resolution: "@slack/web-api@npm:6.9.1"
   dependencies:
     "@slack/logger": "npm:^3.0.0"
     "@slack/types": "npm:^2.8.0"
     "@types/is-stream": "npm:^1.1.0"
     "@types/node": "npm:>=12.0.0"
-    axios: "npm:^0.27.2"
+    axios: "npm:^1.6.0"
     eventemitter3: "npm:^3.1.0"
     form-data: "npm:^2.5.0"
     is-electron: "npm:2.2.2"
     is-stream: "npm:^1.1.0"
     p-queue: "npm:^6.6.1"
     p-retry: "npm:^4.0.0"
-  checksum: 3ce1858a371e65160b955be08b1138d18599b07ed0f12f65e9d8a8a0ea7e2bf734fd2911073fc6d8b4ce8c8435c8d97c285eb6eefec1d52af3f747105bacba55
+  checksum: daf2e9a497a024e5bb1cc48857008553985b25f9b166ce49f61cad63d85eb1440a0f8498a039559e571d567b4ad72ce1b38e4be2be651253419d71f8ee0145f2
   languageName: node
   linkType: hard
 
@@ -3149,13 +3149,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^0.27.2":
-  version: 0.27.2
-  resolution: "axios@npm:0.27.2"
+"axios@npm:^1.6.0":
+  version: 1.6.0
+  resolution: "axios@npm:1.6.0"
   dependencies:
-    follow-redirects: "npm:^1.14.9"
+    follow-redirects: "npm:^1.15.0"
     form-data: "npm:^4.0.0"
-  checksum: 76d673d2a90629944b44d6f345f01e58e9174690f635115d5ffd4aca495d99bcd8f95c590d5ccb473513f5ebc1d1a6e8934580d0c57cdd0498c3a101313ef771
+    proxy-from-env: "npm:^1.1.0"
+  checksum: 2879e17b96cbca7e2096d231a44e2d0f03e657d79f8928ea38ec5fbaf5a5b7bf952d580cdb58a66ba328c26eb3528b89d5a32da57cc5cf89813786c044f7e9d6
   languageName: node
   linkType: hard
 
@@ -5247,13 +5248,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.14.9":
-  version: 1.15.1
-  resolution: "follow-redirects@npm:1.15.1"
+"follow-redirects@npm:^1.15.0":
+  version: 1.15.3
+  resolution: "follow-redirects@npm:1.15.3"
   peerDependenciesMeta:
     debug:
       optional: true
-  checksum: ea21337fe38eac8d75f5af12c425cc40e0bb44dcc3091fd0bde1c828596251a7a9638b5720fee5a0a5c62524450cbe16c52aae1dce88c6aee68577e441842e7f
+  checksum: 915a2cf22e667bdf47b1a43cc6b7dce14d95039e9bbf9a24d0e739abfbdfa00077dd43c86d4a7a19efefcc7a99af144920a175eedc3888d268af5df67c272ee5
   languageName: node
   linkType: hard
 
@@ -8887,6 +8888,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"proxy-from-env@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "proxy-from-env@npm:1.1.0"
+  checksum: fe7dd8b1bdbbbea18d1459107729c3e4a2243ca870d26d34c2c1bcd3e4425b7bcc5112362df2d93cc7fb9746f6142b5e272fd1cc5c86ddf8580175186f6ad42b
+  languageName: node
+  linkType: hard
+
 "pump@npm:^3.0.0":
   version: 3.0.0
   resolution: "pump@npm:3.0.0"
@@ -9306,7 +9314,7 @@ __metadata:
     "@pob/eslint-config-typescript": "npm:51.1.2"
     "@pob/eslint-config-typescript-react": "npm:51.1.2"
     "@pob/root": "npm:8.6.0"
-    "@slack/web-api": "npm:6.9.0"
+    "@slack/web-api": "npm:6.9.1"
     "@tryfabric/mack": "npm:1.2.1"
     "@types/body-parser": "npm:1.19.2"
     "@types/cookie-parser": "npm:1.4.5"
