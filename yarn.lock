@@ -2579,10 +2579,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/simple-oauth2@npm:5.0.6":
-  version: 5.0.6
-  resolution: "@types/simple-oauth2@npm:5.0.6"
-  checksum: c934d44d8063d420b3ac90286bcc644a7af2602e18773a2ab5383890462700338b346b168487fc47272d45f96061545b88ca2e330f31ba2680d225d7159f6587
+"@types/simple-oauth2@npm:5.0.7":
+  version: 5.0.7
+  resolution: "@types/simple-oauth2@npm:5.0.7"
+  checksum: 1cfb87b1ee4b58b30e4f9753271ea73282e707553b9b3360755064e4c7b1e96a01cabc5e83d13841369595ea7e451d3d576bea02340b4f17f9e930f54c08a15e
   languageName: node
   linkType: hard
 
@@ -9320,7 +9320,7 @@ __metadata:
     "@types/node": "npm:20.8.10"
     "@types/react": "npm:18.2.36"
     "@types/react-dom": "npm:18.2.14"
-    "@types/simple-oauth2": "npm:5.0.6"
+    "@types/simple-oauth2": "npm:5.0.7"
     body-parser: "npm:1.20.1"
     check-package-dependencies: "npm:6.8.0"
     conventional-changelog-conventionalcommits: "npm:7.0.2"
