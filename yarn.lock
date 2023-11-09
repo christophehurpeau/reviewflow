@@ -489,14 +489,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-react-display-name@npm:^7.22.5":
-  version: 7.22.5
-  resolution: "@babel/plugin-transform-react-display-name@npm:7.22.5"
+"@babel/plugin-transform-react-display-name@npm:^7.23.3":
+  version: 7.23.3
+  resolution: "@babel/plugin-transform-react-display-name@npm:7.23.3"
   dependencies:
     "@babel/helper-plugin-utils": "npm:^7.22.5"
   peerDependencies:
     "@babel/core": ^7.0.0-0
-  checksum: 41e0167ecd8e5281e427556146b1d3bee8652bcd0664be013f16ffeeb4d61b7ab0b1e59bcc2c923774f0d265f78012628d5277880f758f3675893226f9be012e
+  checksum: 3aed142af7bd1aed1df2bdad91ed33ba1cdd5c3c67ce6eafba821ff72f129162a197ffb55f1eb1775af276abd5545934489a8257fef6c6665ddf253a4f39a939
   languageName: node
   linkType: hard
 
@@ -526,15 +526,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-react-pure-annotations@npm:^7.22.5":
-  version: 7.22.5
-  resolution: "@babel/plugin-transform-react-pure-annotations@npm:7.22.5"
+"@babel/plugin-transform-react-pure-annotations@npm:^7.23.3":
+  version: 7.23.3
+  resolution: "@babel/plugin-transform-react-pure-annotations@npm:7.23.3"
   dependencies:
     "@babel/helper-annotate-as-pure": "npm:^7.22.5"
     "@babel/helper-plugin-utils": "npm:^7.22.5"
   peerDependencies:
     "@babel/core": ^7.0.0-0
-  checksum: 18db2e2346d79ebe4a3f85f51fa7757a63a09bc6da7f339e6ce9e7534de68b5165fe7d49ac363dee6ba3f81eb904d44bf9c13653331805f9b236a1d9fec7e018
+  checksum: 76287adeab656fb7f39243e5ab6a8c60069cf69fffeebd1566457d56cb2f966366a23bd755d3e369f4d0437459e3b76243df370caa7d7d2287a8560b66c53ca2
   languageName: node
   linkType: hard
 
@@ -568,19 +568,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/preset-react@npm:7.22.15":
-  version: 7.22.15
-  resolution: "@babel/preset-react@npm:7.22.15"
+"@babel/preset-react@npm:7.23.3":
+  version: 7.23.3
+  resolution: "@babel/preset-react@npm:7.23.3"
   dependencies:
     "@babel/helper-plugin-utils": "npm:^7.22.5"
     "@babel/helper-validator-option": "npm:^7.22.15"
-    "@babel/plugin-transform-react-display-name": "npm:^7.22.5"
+    "@babel/plugin-transform-react-display-name": "npm:^7.23.3"
     "@babel/plugin-transform-react-jsx": "npm:^7.22.15"
     "@babel/plugin-transform-react-jsx-development": "npm:^7.22.5"
-    "@babel/plugin-transform-react-pure-annotations": "npm:^7.22.5"
+    "@babel/plugin-transform-react-pure-annotations": "npm:^7.23.3"
   peerDependencies:
     "@babel/core": ^7.0.0-0
-  checksum: 80940aa494292b7f689d902b76828cb3ab4eaf4e6421107f23388b6ea7316ab25ccd817b766fde5c40787fd92f1cba1f660190bfd71965c902e49b42c9e290c2
+  checksum: cecb2493e09fd4ffa5effcef1d06e968386b1bfe077a99834f7e8ef249208274fca62fe5a6b3986ef1c1c3900b2eb409adb528ae1b73dba31397b16f9262e83c
   languageName: node
   linkType: hard
 
@@ -9297,7 +9297,7 @@ __metadata:
   resolution: "reviewflow@workspace:."
   dependencies:
     "@babel/core": "npm:7.23.2"
-    "@babel/preset-react": "npm:7.22.15"
+    "@babel/preset-react": "npm:7.23.3"
     "@commitlint/config-conventional": "npm:18.1.0"
     "@commitlint/lint": "npm:18.1.0"
     "@commitlint/parse": "npm:18.1.0"
