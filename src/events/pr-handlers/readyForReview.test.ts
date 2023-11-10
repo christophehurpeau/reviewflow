@@ -42,6 +42,10 @@ describe('edited', (): void => {
         body: '### Progress\n\n☑️ Step 1: ✏️ Write code\n☑️ Step 2: 💚 Checks\n⬜ Step 3: 👌 Code Review\n⬜ Step 4: 🚦 Merge Pull Request\n\n### Options:\n- [ ] <!-- reviewflow-autoMergeWithSkipCi -->Add `[skip ci]` on merge commit\n- [ ] <!-- reviewflow-autoMerge -->Auto merge when this PR is ready and has no failed statuses. (Also has a queue per repo to prevent multiple useless "Update branch" triggers)\n- [x] <!-- reviewflow-deleteAfterMerge -->Automatic branch delete after this PR is merged',
       })
 
+      .get('/repos/reviewflow/reviewflow-test/pulls/54')
+      .times(1)
+      .reply(200, pullRequestReadyForReview.payload.pull_request)
+
       .get(
         '/repos/reviewflow/reviewflow-test/commits/f354ffb37cf238108fbb4c915f155d925d82a61b/check-runs?per_page=100',
       )

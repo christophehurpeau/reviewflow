@@ -8,6 +8,7 @@ import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFrom
 import hasLabelInPR from './actions/utils/labels/hasLabelInPR';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
+import { fetchPr, type PullRequestFromRestEndpoint } from './utils/fetchPr';
 
 export default function readyForReview(
   app: Probot,
@@ -35,6 +36,8 @@ export default function readyForReview(
         })),
       );
 
+      let updatedPullRequest: PullRequestFromRestEndpoint | undefined;
+
       /* if repo is not ignored */
       if (reviewflowPrContext) {
         const autoMergeLabel = repoContext.labels['merge/automerge'];
@@ -44,7 +47,8 @@ export default function readyForReview(
           reviewflowPrContext,
         });
 
-        await Promise.all([
+        const [updatedPr] = await Promise.all([
+          fetchPr(context, pullRequest.number),
           updateReviewStatus(pullRequest, context, repoContext, stepsState),
           editOpenedPR({
             stepsState,
@@ -79,6 +83,7 @@ export default function readyForReview(
             }
           }),
         ]);
+        updatedPullRequest = updatedPr;
       }
 
       /* update slack home */
@@ -112,6 +117,12 @@ export default function readyForReview(
 
       /* send slack notification */
       if (repoContext.slack) {
+        const prChangesInformation =
+          updatedPullRequest &&
+          slackUtils.createPrChangesInformation(
+            updatedPullRequest,
+            repoContext,
+          );
         const createText = ({
           requestedTeam,
         }: {
@@ -121,10 +132,9 @@ export default function readyForReview(
             sender.login,
           )} marked as ready to review and requests ${
             !requestedTeam ? 'your' : `your team _${requestedTeam.name}_`
-          } review on ${slackUtils.createPrLink(
-            pullRequest,
-            repoContext,
-          )} !\n> ${pullRequest.title}`;
+          } review on ${slackUtils.createPrLink(pullRequest, repoContext)}${
+            prChangesInformation ? ` · ${prChangesInformation}` : ''
+          }\n> ${pullRequest.title}`;
 
         const messageRequestedReviewers = {
           text: createText({}),

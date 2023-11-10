@@ -1,6 +1,9 @@
 import type { RepoContext } from '../context/repoContext';
 import type { CommitFromRestEndpoint } from '../events/commit-handlers/utils/fetchCommit';
-import type { PullRequestWithDecentData } from '../events/pr-handlers/utils/PullRequestData';
+import type {
+  PullRequestFromRestEndpoint,
+  PullRequestWithDecentData,
+} from '../events/pr-handlers/utils/PullRequestData';
 
 // https://api.slack.com/reference/surfaces/formatting#escaping
 export const escapeText = (text: string): string => {
@@ -24,6 +27,15 @@ export const createPrLink = (
       repoContext.repoFullName
     }#${pr.number}`,
   );
+};
+
+export const createPrChangesInformation = (
+  pr: PullRequestFromRestEndpoint,
+  repoContext: RepoContext,
+): string => {
+  return `${pr.changed_files} file${
+    pr.changed_files > 1 ? 's' : ''
+  } changed (+${pr.additions} -${pr.deletions})`;
 };
 
 export const createCommitLink = (

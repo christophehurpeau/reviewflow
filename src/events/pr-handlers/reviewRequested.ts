@@ -4,6 +4,7 @@ import * as slackUtils from '../../slack/utils';
 import { getReviewersWithState } from '../../utils/github/pullRequest/reviews';
 import { updateAfterReviewChange } from './actions/updateAfterReviewChange';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
+import type { PullRequestFromRestEndpoint } from './utils/fetchPr';
 import { fetchPr } from './utils/fetchPr';
 
 export default function reviewRequested(
@@ -29,6 +30,8 @@ export default function reviewRequested(
         ? [requestedReviewer]
         : await repoContext.getMembersForTeams([requestedTeam.id]);
 
+      let updatedPullRequest: PullRequestFromRestEndpoint | undefined;
+
       if (
         /* repo is not ignored */
         reviewflowPrContext
@@ -37,6 +40,7 @@ export default function reviewRequested(
           fetchPr(context, pullRequest.number),
           getReviewersWithState(context, pullRequest),
         ]);
+        updatedPullRequest = updatedPr;
 
         await updateAfterReviewChange(
           updatedPr,
@@ -80,11 +84,18 @@ export default function reviewRequested(
           sender.login,
         )} requests ${
           requestedReviewer ? 'your' : `your team _${requestedTeam.name}_`
-        } review on ${slackUtils.createPrLink(pullRequest, repoContext)} !${
+        } review on ${slackUtils.createPrLink(pullRequest, repoContext)}${
           requestedByNameInTeam.length > 0
             ? ` (team members requested by name: ${requestedByNameInTeam.join(
                 ', ',
               )})`
+            : ''
+        }${
+          updatedPullRequest
+            ? ` · ${slackUtils.createPrChangesInformation(
+                updatedPullRequest,
+                repoContext,
+              )}`
             : ''
         }\n> ${pullRequest.title}`;
 
