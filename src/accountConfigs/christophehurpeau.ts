@@ -9,8 +9,8 @@ const config: Config<never> = {
     autoMergeWithSkipCi: false,
     deleteAfterMerge: true,
   },
+  lintPullRequestTitleWithConventionalCommit: true,
   experimentalFeatures: {
-    lintPullRequestTitleWithConventionalCommit: true,
     conventionalCommitBangBreakingChange: true,
     betterSlackify: true,
   },

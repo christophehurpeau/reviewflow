@@ -62,7 +62,6 @@ export interface LabelsConfig {
 }
 
 interface ExperimentalFeatures {
-  lintPullRequestTitleWithConventionalCommit?: true;
   conventionalCommitBangBreakingChange?: true;
   betterSlackify?: true;
 }
@@ -75,6 +74,7 @@ interface WarnOnForcePushAfterReviewStarted {
 export interface Config<TeamNames extends string> {
   autoAssignToCreator?: boolean;
   trimTitle?: boolean;
+  lintPullRequestTitleWithConventionalCommit?: boolean;
   ignoreRepoPattern?: string;
   requiresReviewRequest?: boolean;
   autoMergeRenovateWithSkipCi?: boolean;
