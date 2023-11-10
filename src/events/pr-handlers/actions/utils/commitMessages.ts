@@ -1,11 +1,16 @@
 // @ts-expect-error missing typings
-import commitlintConventialConfig from '@commitlint/config-conventional';
+import commitlintConventionalConfig from '@commitlint/config-conventional';
 import * as commitlintLintModule from '@commitlint/lint';
 import * as commitlintParseModule from '@commitlint/parse';
 // @ts-expect-error missing typings
 import createConventionalCommitsConfig from 'conventional-changelog-conventionalcommits';
 
 const conventionalCommitsConfig = await createConventionalCommitsConfig({});
+
+const commitlintConventionalConfigTweakedRules = {
+  ...commitlintConventionalConfig.rules,
+  'header-max-length': [0],
+};
 
 export const commitlintParse = ((commitlintParseModule.default as any)
   .default ||
@@ -27,7 +32,7 @@ export const parseCommitMessage = (
 export const lintCommitMessage = (
   message: string,
 ): ReturnType<typeof commitlintLint> => {
-  return commitlintLint(message, commitlintConventialConfig.rules, {
+  return commitlintLint(message, commitlintConventionalConfigTweakedRules, {
     parserOpts: conventionalCommitsConfig.parserOpts,
   });
 };
