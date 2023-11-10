@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.2.0](https://github.com/christophehurpeau/reviewflow/compare/v3.1.0...v3.2.0) (2023-11-10)
+
+
+### Features
+
+* add information on changed files/lines on request review message ([f3427ae](https://github.com/christophehurpeau/reviewflow/commit/f3427ae35bac4c8b8c4f594de49b741f9203e42f))
+* improve check failed message ([96372cb](https://github.com/christophehurpeau/reviewflow/commit/96372cbebb1047fa21f1c5a350a33fd6a3796aea))
+
+
+### Bug Fixes
+
+* correctly place team members requested by name ([8fd7119](https://github.com/christophehurpeau/reviewflow/commit/8fd71193c3805ef567adaa5c3834e12af227d91d))
+
+
 ## [3.1.0](https://github.com/christophehurpeau/reviewflow/compare/v3.0.1...v3.1.0) (2023-11-05)
 
 
