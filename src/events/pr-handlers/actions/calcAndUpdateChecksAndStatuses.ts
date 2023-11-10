@@ -77,7 +77,9 @@ async function checksAndStatusesSlackMessageAddOrUpdate<
           .map((failedCheckOrStatusName) => `\`${failedCheckOrStatusName}\``)
           .join(', ');
 
-        return `:x: ${failedChecksAndStatusesString} failed on ${prOwnership} ${prLink}`;
+        return `:x: Check${
+          failedChecksAndStatusesString.length > 1 ? 's' : ''
+        } ${failedChecksAndStatusesString} failed on ${prOwnership} ${prLink}`;
       };
 
       const isPrClosed = !!pullRequest.closed_at;
