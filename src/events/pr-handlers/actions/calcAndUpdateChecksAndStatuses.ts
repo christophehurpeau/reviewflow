@@ -70,15 +70,16 @@ async function checksAndStatusesSlackMessageAddOrUpdate<
           createOwnerPartOptions,
         );
 
-        const failedChecksAndStatusesString = [
+        const failedChecksAndStatuses = [
           ...failedOrWaitingChecksAndStatuses.failedChecks,
           ...failedOrWaitingChecksAndStatuses.failedStatuses,
-        ]
+        ];
+        const failedChecksAndStatusesString = failedChecksAndStatuses
           .map((failedCheckOrStatusName) => `\`${failedCheckOrStatusName}\``)
           .join(', ');
 
         return `:x: Check${
-          failedChecksAndStatusesString.length > 1 ? 's' : ''
+          failedChecksAndStatuses.length > 1 ? 's' : ''
         } ${failedChecksAndStatusesString} failed on ${prOwnership} ${prLink}`;
       };
 
