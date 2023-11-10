@@ -80,15 +80,13 @@ export default function reviewRequested(
           sender.login,
         )} requests ${
           requestedReviewer ? 'your' : `your team _${requestedTeam.name}_`
-        } review on ${slackUtils.createPrLink(pullRequest, repoContext)} !\n> ${
-          pullRequest.title
-        }${
+        } review on ${slackUtils.createPrLink(pullRequest, repoContext)} !${
           requestedByNameInTeam.length > 0
             ? ` (team members requested by name: ${requestedByNameInTeam.join(
                 ', ',
               )})`
             : ''
-        }`;
+        }\n> ${pullRequest.title}`;
 
         const message = { text };
 
