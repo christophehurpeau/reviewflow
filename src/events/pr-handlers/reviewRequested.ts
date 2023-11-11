@@ -92,9 +92,8 @@ export default function reviewRequested(
             : ''
         }${
           updatedPullRequest
-            ? ` · ${slackUtils.createPrChangesInformation(
+            ? ` · ${slackUtils.createPrChangesInformationFromPullRequestRest(
                 updatedPullRequest,
-                repoContext,
               )}`
             : ''
         }\n> ${pullRequest.title}`;

@@ -1,3 +1,4 @@
+import type { ReviewflowPr } from 'src/mongo';
 import type { RepoContext } from '../context/repoContext';
 import type { CommitFromRestEndpoint } from '../events/commit-handlers/utils/fetchCommit';
 import type {
@@ -29,13 +30,24 @@ export const createPrLink = (
   );
 };
 
-export const createPrChangesInformation = (
+export const createPrChangesInformationFromPullRequestRest = (
   pr: PullRequestFromRestEndpoint,
-  repoContext: RepoContext,
-): string => {
+): string | null => {
+  if (!('changed_files' in pr)) return null;
   return `${pr.changed_files} file${
     pr.changed_files > 1 ? 's' : ''
   } changed (+${pr.additions} -${pr.deletions})`;
+};
+
+export const createPrChangesInformationFromReviewflowPr = (
+  pr: ReviewflowPr,
+): string | null => {
+  if (!pr.changesInformation) return null;
+  return `${pr.changesInformation.changedFiles} file${
+    pr.changesInformation.changedFiles > 1 ? 's' : ''
+  } changed (+${pr.changesInformation.additions} -${
+    pr.changesInformation.deletions
+  })`;
 };
 
 export const createCommitLink = (

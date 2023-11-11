@@ -119,9 +119,8 @@ export default function readyForReview(
       if (repoContext.slack) {
         const prChangesInformation =
           updatedPullRequest &&
-          slackUtils.createPrChangesInformation(
+          slackUtils.createPrChangesInformationFromPullRequestRest(
             updatedPullRequest,
-            repoContext,
           );
         const createText = ({
           requestedTeam,

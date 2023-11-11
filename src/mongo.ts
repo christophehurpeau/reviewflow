@@ -161,6 +161,12 @@ export interface AutomergeLog extends MongoBaseModel {
   action: 'remove' | 'reschedule' | 'update branch' | 'wait';
 }
 
+interface ReviewflowPrChangesInformation {
+  changedFiles: number;
+  additions: number;
+  deletions: number;
+}
+
 export interface ReviewflowPr extends MongoBaseModel {
   account: AccountEmbed;
   repo: RepoEmbed;
@@ -170,6 +176,7 @@ export interface ReviewflowPr extends MongoBaseModel {
   title: string;
   isDraft: boolean;
   isClosed: boolean;
+  changesInformation?: ReviewflowPrChangesInformation;
   lastLintStatusesCommit?: string;
   lintStatuses?: ReviewflowStatus[];
   lastFlowStatusCommit?: string;

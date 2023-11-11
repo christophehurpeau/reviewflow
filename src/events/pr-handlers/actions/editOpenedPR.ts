@@ -1,3 +1,4 @@
+import type { Update } from 'liwi-mongo';
 import type { StatusInfo } from '../../../accountConfigs/types';
 import type { AppContext } from '../../../context/AppContext';
 import type {
@@ -234,6 +235,20 @@ export const editOpenedPR = async <
 
   const body = removeDeprecatedReviewflowInPrBody(pullRequest.body);
 
+  const partialUpdateReviewflowPr: Update<ReviewflowPr>['$set'] = {
+    title,
+    isDraft: pullRequest.draft === true,
+    isClosed: !!pullRequest.closed_at,
+  };
+
+  if ('changed_files' in pullRequest) {
+    partialUpdateReviewflowPr.changesInformation = {
+      changedFiles: pullRequest.changed_files,
+      additions: pullRequest.additions,
+      deletions: pullRequest.deletions,
+    };
+  }
+
   const promises: (Promise<unknown> | undefined)[] = [
     Promise.all(updateStatusesPromises).then(() => {
       // only update reviewflowPr if all create successful
@@ -253,9 +268,7 @@ export const editOpenedPR = async <
           {
             $set: {
               headSha: pullRequest.head.sha,
-              title,
-              isDraft: pullRequest.draft === true,
-              isClosed: !!pullRequest.closed_at,
+              ...partialUpdateReviewflowPr,
               checksConclusion: checksAndStatuses.checksConclusionRecord,
               statusesConclusion: checksAndStatuses.statusesConclusionRecord,
               ...(reviews ? { reviews } : {}),
@@ -271,8 +284,7 @@ export const editOpenedPR = async <
           reviewflowPrContext.reviewflowPr,
           {
             $set: {
-              title,
-              isDraft: pullRequest.draft === true,
+              ...partialUpdateReviewflowPr,
               // update old data
               ...(!reviewflowPrContext.reviewflowPr.assignees &&
               pullRequest.assignees

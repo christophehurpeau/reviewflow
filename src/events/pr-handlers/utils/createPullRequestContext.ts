@@ -93,6 +93,14 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
     title: 'title' in pullRequest ? pullRequest.title : 'Unknown Title',
     isClosed: 'closed_at' in pullRequest ? !!pullRequest.closed_at : false,
     isDraft: 'draft' in pullRequest && pullRequest.draft === true,
+    changesInformation:
+      'changed_files' in pullRequest
+        ? {
+            changedFiles: pullRequest.changed_files,
+            additions: pullRequest.additions,
+            deletions: pullRequest.deletions,
+          }
+        : undefined,
     commentId,
     reviews: groupReviewsWithState(reviewersWithState!),
     assignees:

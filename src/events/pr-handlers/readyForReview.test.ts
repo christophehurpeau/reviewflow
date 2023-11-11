@@ -119,7 +119,13 @@ describe('edited', (): void => {
     });
     expect(partialUpdateOnePr).toHaveBeenCalledWith(expect.any(Object), {
       $set: {
+        isClosed: false,
         isDraft: false,
+        changesInformation: {
+          additions: 2,
+          changedFiles: 1,
+          deletions: 0,
+        },
         title: 'feat: test draft',
       },
     });

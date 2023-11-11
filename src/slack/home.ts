@@ -2,7 +2,10 @@ import type { KnownBlock } from '@slack/web-api';
 import { WebClient } from '@slack/web-api';
 import type { MongoStores, Org, OrgMember, ReviewflowPr } from '../mongo';
 import type { Octokit } from '../octokit';
-import { createLink } from './utils';
+import {
+  createLink,
+  createPrChangesInformationFromReviewflowPr,
+} from './utils';
 
 interface QueueItem {
   github: Octokit;
@@ -147,6 +150,8 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
             'https://api.github.com/repos/'.length,
           );
           const prFullName = `${repoName}#${pr.number}`;
+          // const changesInformation =
+          //   createPrChangesInformationFromPullRequestRest(pr);
 
           return [
             {
@@ -175,6 +180,9 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
                   type: 'mrkdwn',
                   text: `${pr.user.login}`,
                 },
+                // ...(changesInformation
+                //   ? [{ type: 'mrkdwn', text: changesInformation }]
+                //   : []),
               ].filter(Boolean),
             },
           ];
@@ -196,6 +204,8 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
           const repoName = pr.repo.name;
           const prFullName = `${repoName}#${pr.pr.number}`;
           const prUrl = buildPullRequestUrl(pr);
+          const changesInformation =
+            createPrChangesInformationFromReviewflowPr(pr);
 
           return [
             {
@@ -238,6 +248,10 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
                         text: `${pr.creator.login}`,
                       },
                     ].filter(Boolean)),
+
+                ...(changesInformation
+                  ? [{ type: 'mrkdwn', text: changesInformation }]
+                  : []),
               ],
             },
           ];
@@ -341,7 +355,7 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
         : mongoStores.slackTeams
             .findByKey(org.slackTeamId)
             .then((slackTeam) => {
-              if (!slackTeam || !slackTeam.botAccessToken) return undefined;
+              if (!slackTeam?.botAccessToken) return undefined;
               return new WebClient(slackTeam.botAccessToken);
             }),
       mongoStores.orgMembers.cursor(),
