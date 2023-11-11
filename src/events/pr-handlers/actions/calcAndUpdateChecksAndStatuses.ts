@@ -78,7 +78,7 @@ async function checksAndStatusesSlackMessageAddOrUpdate<
           .map((failedCheckOrStatusName) => `\`${failedCheckOrStatusName}\``)
           .join(', ');
 
-        return `:x: Check${
+        return `:red_circle: Check${
           failedChecksAndStatuses.length > 1 ? 's' : ''
         } ${failedChecksAndStatusesString} failed on ${prOwnership} ${prLink}`;
       };
