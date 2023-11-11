@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.3.0](https://github.com/christophehurpeau/reviewflow/compare/v3.2.0...v3.3.0) (2023-11-11)
+
+
+### Features
+
+* change check emoji ([a8d0c7d](https://github.com/christophehurpeau/reviewflow/commit/a8d0c7d64d459d9632d66853eeaabddad84b4fea))
+* move option lintPullRequestTitleWithConventionalCommit out of experimental ([28db2b2](https://github.com/christophehurpeau/reviewflow/commit/28db2b287d261adeeb2dc2492a9484e04cf01911))
+
+
+### Bug Fixes
+
+* fix checks pluralized event if only one fails ([54d6e95](https://github.com/christophehurpeau/reviewflow/commit/54d6e95941d0c887ca2ec416e3db12f7993ba3f4))
+* tweak conventional config ([3d0fb3e](https://github.com/christophehurpeau/reviewflow/commit/3d0fb3e2a992b4339f6227f37336866f3019f430))
+
+
 ## [3.2.0](https://github.com/christophehurpeau/reviewflow/compare/v3.1.0...v3.2.0) (2023-11-10)
 
 
