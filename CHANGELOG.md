@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.4.0](https://github.com/christophehurpeau/reviewflow/compare/v3.3.0...v3.4.0) (2023-12-01)
+
+
+### Features
+
+* add changesInformation when possible in home slack ([ddb3892](https://github.com/christophehurpeau/reviewflow/commit/ddb3892bd3574a0fda0b5b987424105149e38391))
+* **deps:** update commitlint monorepo ([#807](https://github.com/christophehurpeau/reviewflow/issues/807)) ([a28d1b3](https://github.com/christophehurpeau/reviewflow/commit/a28d1b3bfff4d6256214e9549388dafc1c63854c))
+* remove checks/passed on default config ([cf341c5](https://github.com/christophehurpeau/reviewflow/commit/cf341c5010f473608ec7dc6635359afdf6040276))
+
+
+### Bug Fixes
+
+* **deps:** update dependency probot to v12.3.3 ([#811](https://github.com/christophehurpeau/reviewflow/issues/811)) ([44edb97](https://github.com/christophehurpeau/reviewflow/commit/44edb977c6ba9640fadc56addf589968e7864aad))
+
+
 ## [3.3.0](https://github.com/christophehurpeau/reviewflow/compare/v3.2.0...v3.3.0) (2023-11-11)
 
 
