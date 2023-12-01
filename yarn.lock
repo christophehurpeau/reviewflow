@@ -3882,17 +3882,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"commander@npm:^2.19.0":
-  version: 2.20.3
-  resolution: "commander@npm:2.20.3"
-  checksum: 74c781a5248c2402a0a3e966a0a2bba3c054aad144f5c023364be83265e796b20565aa9feff624132ff629aa64e16999fa40a743c10c12f7c61e96a794b99288
-  languageName: node
-  linkType: hard
-
 "commander@npm:^6.2.0":
   version: 6.2.1
   resolution: "commander@npm:6.2.1"
   checksum: 85748abd9d18c8bc88febed58b98f66b7c591d9b5017cad459565761d7b29ca13b7783ea2ee5ce84bf235897333706c4ce29adf1ce15c8252780e7000e2ce9ea
+  languageName: node
+  linkType: hard
+
+"commander@npm:^9.0.0":
+  version: 9.5.0
+  resolution: "commander@npm:9.5.0"
+  checksum: 5f7784fbda2aaec39e89eb46f06a999e00224b3763dc65976e05929ec486e174fe9aac2655f03ba6a5e83875bd173be5283dc19309b7c65954701c02025b3c1d
   languageName: node
   linkType: hard
 
@@ -4029,7 +4029,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cookiejar@npm:^2.1.3":
+"cookiejar@npm:^2.1.4":
   version: 2.1.4
   resolution: "cookiejar@npm:2.1.4"
   checksum: 2dae55611c6e1678f34d93984cbd4bda58f4fe3e5247cc4993f4a305cd19c913bbaf325086ed952e892108115073a747596453d3dc1c34947f47f731818b8ad1
@@ -4952,14 +4952,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eventsource@npm:^1.1.0":
-  version: 1.1.2
-  resolution: "eventsource@npm:1.1.2"
-  checksum: 34170eec0962a98b607d2c33d2deaf57d0f1d51324cd4bad7807c6cf3c0545536ee4b2ecf8645236a85fddc59034dec31f0be20b18b75954b3d5b90621c116be
-  languageName: node
-  linkType: hard
-
-"eventsource@npm:^2.0.2":
+"eventsource@npm:^2.0.0, eventsource@npm:^2.0.2":
   version: 2.0.2
   resolution: "eventsource@npm:2.0.2"
   checksum: 0b8c70b35e45dd20f22ff64b001be9d530e33b92ca8bdbac9e004d0be00d957ab02ef33c917315f59bf2f20b178c56af85c52029bc8e6cc2d61c31d87d943573
@@ -5300,7 +5293,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"formidable@npm:^2.0.1":
+"formidable@npm:^2.1.2":
   version: 2.1.2
   resolution: "formidable@npm:2.1.2"
   dependencies:
@@ -7779,7 +7772,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mime@npm:^2.5.0":
+"mime@npm:2.6.0":
   version: 2.6.0
   resolution: "mime@npm:2.6.0"
   bin:
@@ -8927,7 +8920,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:6.11.0, qs@npm:^6.10.3, qs@npm:^6.11.0":
+"qs@npm:6.11.0, qs@npm:^6.11.0":
   version: 6.11.0
   resolution: "qs@npm:6.11.0"
   dependencies:
@@ -9347,7 +9340,7 @@ __metadata:
     react-dom: "npm:18.2.0"
     simple-oauth2: "npm:5.0.0"
     slackify-markdown: "npm:4.3.1"
-    smee-client: "npm:1.2.3"
+    smee-client: "npm:1.2.5"
     type-fest: "npm:4.8.2"
     typescript: "npm:5.3.2"
   languageName: unknown
@@ -9468,7 +9461,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:7.5.4, semver@npm:^7.3.2, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.5.3, semver@npm:^7.5.4":
+"semver@npm:7.5.4, semver@npm:^7.3.2, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.3, semver@npm:^7.5.4":
   version: 7.5.4
   resolution: "semver@npm:7.5.4"
   dependencies:
@@ -9645,18 +9638,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"smee-client@npm:1.2.3":
-  version: 1.2.3
-  resolution: "smee-client@npm:1.2.3"
+"smee-client@npm:1.2.5":
+  version: 1.2.5
+  resolution: "smee-client@npm:1.2.5"
   dependencies:
-    commander: "npm:^2.19.0"
-    eventsource: "npm:^1.1.0"
+    commander: "npm:^9.0.0"
+    eventsource: "npm:^2.0.0"
     morgan: "npm:^1.9.1"
-    superagent: "npm:^7.1.3"
+    superagent: "npm:^8.0.0"
     validator: "npm:^13.7.0"
   bin:
     smee: bin/smee.js
-  checksum: 5a0423474676333e6f41ce31ca4da085e397e96324d101d2c352629035a565bd6670ad9fbf966a8042c0ecd364d8afa396db122ac1cd32f86b03fb7ff0a5ea89
+  checksum: 746cad9ca1b996da5a86e8878970de88373c86c861b47af307acc913a93878ae35a4106a3e3ac1aad13c262024ee0a099795739b336b16bc1cc380a3de7361ee
   languageName: node
   linkType: hard
 
@@ -9992,22 +9985,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"superagent@npm:^7.1.3":
-  version: 7.1.5
-  resolution: "superagent@npm:7.1.5"
+"superagent@npm:^8.0.0":
+  version: 8.1.2
+  resolution: "superagent@npm:8.1.2"
   dependencies:
     component-emitter: "npm:^1.3.0"
-    cookiejar: "npm:^2.1.3"
+    cookiejar: "npm:^2.1.4"
     debug: "npm:^4.3.4"
     fast-safe-stringify: "npm:^2.1.1"
     form-data: "npm:^4.0.0"
-    formidable: "npm:^2.0.1"
+    formidable: "npm:^2.1.2"
     methods: "npm:^1.1.2"
-    mime: "npm:^2.5.0"
-    qs: "npm:^6.10.3"
-    readable-stream: "npm:^3.6.0"
-    semver: "npm:^7.3.7"
-  checksum: 5048c74cb3361cb4035e2db0f200b8540a769f0a2f06b7fd9d08ab1f18f13ea84fd9c4a3b70dcdd92e671bfd0fa74d4c1cda3ca7059a3d15daaf44ec1f787338
+    mime: "npm:2.6.0"
+    qs: "npm:^6.11.0"
+    semver: "npm:^7.3.8"
+  checksum: 016416fc9c3d3a04fb648bc0efb3d3d5c9d96da00de47e4a625d9976d28c6c37ab0a7f185f2c3ec6d653ee8bb522f70fba0c1072aea7774341a6c0269a9fa77f
   languageName: node
   linkType: hard
 
