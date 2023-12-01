@@ -21,16 +21,16 @@ const config: Config<never> = {
         name: ':green_heart: checks/in-progress',
         color: githubPalette.scaleGray6,
       },
+      'checks/passed': {
+        name: ':green_heart: checks/passed',
+        color: githubPalette.successEmphasis,
+      },
     },
     list: {
       /* checks */
       'checks/failed': {
         name: ':green_heart: checks/fail',
         color: githubPalette.dangerEmphasis,
-      },
-      'checks/passed': {
-        name: ':green_heart: checks/passed',
-        color: githubPalette.successEmphasis,
       },
 
       /* infos */
