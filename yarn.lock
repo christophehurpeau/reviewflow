@@ -2161,9 +2161,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@slack/web-api@npm:6.9.1":
-  version: 6.9.1
-  resolution: "@slack/web-api@npm:6.9.1"
+"@slack/web-api@npm:6.10.0":
+  version: 6.10.0
+  resolution: "@slack/web-api@npm:6.10.0"
   dependencies:
     "@slack/logger": "npm:^3.0.0"
     "@slack/types": "npm:^2.8.0"
@@ -2176,7 +2176,7 @@ __metadata:
     is-stream: "npm:^1.1.0"
     p-queue: "npm:^6.6.1"
     p-retry: "npm:^4.0.0"
-  checksum: daf2e9a497a024e5bb1cc48857008553985b25f9b166ce49f61cad63d85eb1440a0f8498a039559e571d567b4ad72ce1b38e4be2be651253419d71f8ee0145f2
+  checksum: ce3ef74e3085b914104cc2eacb3c39fb90dfff74725d3bbad6b18d3be8a34c1fbe5508cc608ab6b96937ddbc13af85d7d2549fcabd0ff8756eb8de296775c5b4
   languageName: node
   linkType: hard
 
@@ -9204,7 +9204,7 @@ __metadata:
     "@pob/eslint-config-typescript": "npm:51.1.2"
     "@pob/eslint-config-typescript-react": "npm:51.1.2"
     "@pob/root": "npm:8.7.0"
-    "@slack/web-api": "npm:6.9.1"
+    "@slack/web-api": "npm:6.10.0"
     "@tryfabric/mack": "npm:1.2.1"
     "@types/body-parser": "npm:1.19.2"
     "@types/cookie-parser": "npm:1.4.6"
