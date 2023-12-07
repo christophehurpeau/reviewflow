@@ -1,6 +1,7 @@
 import type {
   EventsWithRepository,
   RepoContext,
+  RescheduleTime,
 } from '../../../context/repoContext';
 import { checkIfUserIsBot } from '../../../utils/github/isBotUser';
 import type { AutoMergeRequest } from '../../../utils/github/pullRequest/autoMerge';
@@ -35,6 +36,7 @@ export const mergeOrEnableGithubAutoMerge = async <
   reviewflowPrContext: ReviewflowPrContext,
   user?: BasicUser,
   skipCheckMergeableState?: boolean,
+  fromRescheduleTime?: RescheduleTime,
 ): Promise<MergeOrEnableGithubAutoMergeResult> => {
   if (pullRequest.merged_at || pullRequest.draft) {
     return {
@@ -90,17 +92,40 @@ export const mergeOrEnableGithubAutoMerge = async <
     !('mergeable_state' in pullRequest) ||
     pullRequest.mergeable_state === 'unknown'
   ) {
-    // GitHub is determining whether the pull request is mergeable
-    await repoContext.reschedule(
-      context,
-      createMergeLockPrFromPr(pullRequest),
-      'short',
-      user,
-    );
-    return {
-      wasMerged: false,
-      isRescheduled: true,
-    };
+    if (!fromRescheduleTime || fromRescheduleTime === 'short') {
+      const rescheduleTime =
+        fromRescheduleTime === 'short' ? 'long+timeout' : 'short';
+      context.log.info(
+        `mergeOrEnableGithubAutomerge mergeable_state is ${
+          'mergeable_state' in pullRequest
+            ? pullRequest.mergeable_state
+            : '[missing]'
+        }, rescheduling with ${rescheduleTime}`,
+      );
+      // GitHub is determining whether the pull request is mergeable
+      await repoContext.reschedule(
+        context,
+        createMergeLockPrFromPr(pullRequest),
+        rescheduleTime,
+        user,
+      );
+      return {
+        wasMerged: false,
+        isRescheduled: true,
+      };
+    } else {
+      context.log.info(
+        `mergeOrEnableGithubAutomerge mergeable_state is ${
+          'mergeable_state' in pullRequest
+            ? pullRequest.mergeable_state
+            : '[missing]'
+        }, give up on rescheduling`,
+      );
+      return {
+        wasMerged: false,
+        isRescheduled: false,
+      };
+    }
   }
 
   let triedToMerge = false;

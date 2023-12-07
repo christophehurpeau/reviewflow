@@ -85,7 +85,7 @@ export type EventsWithRepository = CustomExtract<
   // | 'workflow_run.in_progress'
 >;
 
-type RescheduleTime = 'long+timeout' | 'short';
+export type RescheduleTime = 'long+timeout' | 'short';
 
 interface RepoContextWithoutTeamContext {
   appContext: AppContext;
@@ -189,8 +189,7 @@ async function initRepoContext<
 
     if (res) {
       if (
-        !res.settings ||
-        !res.settings.lastUpdated ||
+        !res.settings?.lastUpdated ||
         isSettingsLastUpdatedExpired(res.settings)
       ) {
         const repoSettingsResult = await getRepositorySettings(context);
@@ -417,6 +416,8 @@ async function initRepoContext<
                   repoContext,
                   reviewflowPrContext,
                   user,
+                  undefined,
+                  time,
                 );
               } else {
                 const didMerge = await autoMergeIfPossibleLegacy(
