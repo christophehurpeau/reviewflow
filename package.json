@@ -104,7 +104,7 @@
     "eslint": "8.55.0",
     "jest": "29.7.0",
     "nock": "13.4.0",
-    "pob-babel": "36.7.0",
+    "pob-babel": "36.8.0",
     "smee-client": "2.0.0",
     "type-fest": "4.8.3",
     "typescript": "5.3.3"
