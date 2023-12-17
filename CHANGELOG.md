@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.6.1](https://github.com/christophehurpeau/reviewflow/compare/v3.6.0...v3.6.1) (2023-12-17)
+
+
+### Bug Fixes
+
+* fix assignees update to generate pull request lists ([8dcc768](https://github.com/christophehurpeau/reviewflow/commit/8dcc76836fc3329d1ebd02cc7339f1bc7003e86e))
+
+
 ## [3.6.0](https://github.com/christophehurpeau/reviewflow/compare/v3.5.1...v3.6.0) (2023-12-17)
 
 
