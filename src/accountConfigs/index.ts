@@ -1,3 +1,4 @@
+import ElaxEnergie from './Elax-Energie';
 import christophehurpeau from './christophehurpeau';
 import liwijs from './liwijs';
 import ornikar from './ornikar';
@@ -11,6 +12,7 @@ export const accountConfigs: Record<string, Config> = {
   ornikar,
   christophehurpeau,
   reviewflow,
+  'Elax-Energie': ElaxEnergie,
 };
 
 export { default as defaultConfig } from './defaultConfig';
