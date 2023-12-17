@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.5.1](https://github.com/christophehurpeau/reviewflow/compare/v3.5.0...v3.5.1) (2023-12-17)
+
+
+### Bug Fixes
+
+* hide disabled options ([5960e7b](https://github.com/christophehurpeau/reviewflow/commit/5960e7bbf138667135f2f4bbc1d69e38d7e36800))
+
+
 ## [3.5.0](https://github.com/christophehurpeau/reviewflow/compare/v3.4.0...v3.5.0) (2023-12-07)
 
 
