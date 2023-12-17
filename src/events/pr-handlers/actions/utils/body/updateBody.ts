@@ -66,6 +66,12 @@ const toMarkdownActions = (
       const checkboxWithId = `[ ] <!-- reviewflow-${key} -->`;
 
       const labelDescription = labelKey && labelsConfig[labelKey];
+
+      if (labelKey && !labelDescription) {
+        // this action is not enabled
+        return null;
+      }
+
       const labelLink = labelDescription
         ? `[${labelDescription.name}](${repoLink}/labels/${encodeURIComponent(
             labelDescription.name,
@@ -75,6 +81,7 @@ const toMarkdownActions = (
 
       return `- ${checkboxWithId}${icon}${labelLink}${description}`;
     })
+    .filter(Boolean)
     .join('\n');
 };
 
