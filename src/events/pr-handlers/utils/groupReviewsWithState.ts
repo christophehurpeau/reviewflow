@@ -22,9 +22,9 @@ const getKeyFromState = (
       return 'changesRequested';
     case 'DISMISSED':
       return 'dismissed';
+    default:
+      throw new Error(`Unexpected state: ${state as string}`);
   }
-
-  throw new Error(`Unexpected state: ${state as string}`);
 };
 export function createEmptyReviews(): ReviewersGroupedByState {
   return {

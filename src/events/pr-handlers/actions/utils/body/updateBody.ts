@@ -101,9 +101,10 @@ const getEmojiFromStepsState = (stepState: StepState): string => {
       return '🔴';
     case 'passed':
       return '☑️';
+    default:
+      // fallback
+      return '';
   }
-  // fallback
-  return '';
 };
 
 const getProgressReplacement = (stepsState: StepsState): string => {

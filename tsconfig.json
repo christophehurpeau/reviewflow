@@ -5,6 +5,7 @@
   ],
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "compilerOptions": {
+    "jsx": "preserve",
     "rootDir": "src",
     "baseUrl": "" /* Base directory to resolve non-absolute module names. */,
     "noEmit": true
