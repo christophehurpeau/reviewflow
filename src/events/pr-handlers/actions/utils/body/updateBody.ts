@@ -30,12 +30,17 @@ const toMarkdownOptions = (
       ) {
         return null;
       }
+      const labelDescription = labelKey && labelsConfig[labelKey];
+
+      if (labelKey && !labelDescription) {
+        // this option is not enabled
+        return null;
+      }
 
       const checkboxWithId = `[${
         options[key] ? 'x' : ' '
       }] <!-- reviewflow-${key} -->`;
 
-      const labelDescription = labelKey && labelsConfig[labelKey];
       const labelLink = labelDescription
         ? `[${labelDescription.name}](${repoLink}/labels/${encodeURIComponent(
             labelDescription.name,
