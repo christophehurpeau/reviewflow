@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.6.0](https://github.com/christophehurpeau/reviewflow/compare/v3.5.1...v3.6.0) (2023-12-17)
+
+
+### Features
+
+* create Elax Energie custom config ([69ffb52](https://github.com/christophehurpeau/reviewflow/commit/69ffb526e114b00dfd8bec8ebe778965cc0fe81c))
+
+
+### Bug Fixes
+
+* filter disabled actions ([9e4510a](https://github.com/christophehurpeau/reviewflow/commit/9e4510ae4e269681f79303ad0c9b2e4c5cf155ae))
+* fix assignees on pr opened ([eebaef8](https://github.com/christophehurpeau/reviewflow/commit/eebaef885935d5eb1c945ce7b438006cbf94dd78))
+
+
 ## [3.5.1](https://github.com/christophehurpeau/reviewflow/compare/v3.5.0...v3.5.1) (2023-12-17)
 
 
