@@ -78,6 +78,7 @@ export default function opened(app: Probot, appContext: AppContext): void {
                 pullRequestLabels,
               ),
               editOpenedPR({
+                fromOpenedEvent: true,
                 pullRequest,
                 pullRequestLabels,
                 context,

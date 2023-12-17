@@ -42,6 +42,7 @@ export interface EditOpenedPullRequestOptions<
   EventName extends EventsWithRepository,
   TeamNames extends string,
 > {
+  fromOpenedEvent?: boolean;
   pullRequest: PullRequestWithDecentData;
   pullRequestLabels?: PullRequestLabels;
   context: ProbotEvent<EventName>;
@@ -60,6 +61,7 @@ export const editOpenedPR = async <
   EventName extends EventsWithRepository,
   TeamNames extends string,
 >({
+  fromOpenedEvent,
   pullRequest,
   pullRequestLabels = pullRequest.labels,
   context,
@@ -275,7 +277,15 @@ export const editOpenedPR = async <
               // update old data
               ...(!reviewflowPrContext.reviewflowPr.assignees &&
               pullRequest.assignees
-                ? { assignees: pullRequest.assignees.map(toBasicUser) }
+                ? {
+                    assignees:
+                      fromOpenedEvent &&
+                      repoContext.config.autoAssignToCreator &&
+                      pullRequest.assignees.length === 0 &&
+                      pullRequest.user
+                        ? [toBasicUser(pullRequest.user)]
+                        : pullRequest.assignees.map(toBasicUser),
+                  }
                 : {}),
             },
           },
