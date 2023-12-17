@@ -127,6 +127,14 @@ describe('edited', (): void => {
           deletions: 0,
         },
         title: 'feat: test draft',
+        assignees: [
+          {
+            avatar_url: 'https://avatars.githubusercontent.com/u/302891?v=4',
+            id: 302_891,
+            login: 'christophehurpeau',
+            type: 'User',
+          },
+        ],
       },
     });
 

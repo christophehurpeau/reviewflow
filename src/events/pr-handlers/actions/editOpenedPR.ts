@@ -251,6 +251,18 @@ export const editOpenedPR = async <
     };
   }
 
+  if (
+    fromOpenedEvent &&
+    repoContext.config.autoAssignToCreator &&
+    pullRequest.assignees?.length === 0 &&
+    pullRequest.user
+  ) {
+    partialUpdateReviewflowPr.assignees = [toBasicUser(pullRequest.user)];
+  } else if ('assignees' in pullRequest && pullRequest.assignees) {
+    partialUpdateReviewflowPr.assignees =
+      pullRequest.assignees?.map(toBasicUser);
+  }
+
   const promises: (Promise<unknown> | undefined)[] = [
     Promise.all(updateStatusesPromises).then(() => {
       // only update reviewflowPr if all create successful
@@ -274,19 +286,6 @@ export const editOpenedPR = async <
               checksConclusion: checksAndStatuses.checksConclusionRecord,
               statusesConclusion: checksAndStatuses.statusesConclusionRecord,
               ...(reviews ? { reviews } : {}),
-              // update old data
-              ...(!reviewflowPrContext.reviewflowPr.assignees &&
-              pullRequest.assignees
-                ? {
-                    assignees:
-                      fromOpenedEvent &&
-                      repoContext.config.autoAssignToCreator &&
-                      pullRequest.assignees.length === 0 &&
-                      pullRequest.user
-                        ? [toBasicUser(pullRequest.user)]
-                        : pullRequest.assignees.map(toBasicUser),
-                  }
-                : {}),
             },
           },
         )
