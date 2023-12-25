@@ -2166,19 +2166,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@slack/types@npm:^2.1.0, @slack/types@npm:^2.8.0":
-  version: 2.8.0
-  resolution: "@slack/types@npm:2.8.0"
-  checksum: c72ed17552eed8cde5a8f83d356b7654c30c1d81e45e3bff3f009c4108f1258b443a1f6853469ba2a7bc6255d4c2b9553f7e33c4e92186209d912a986d8bc783
+"@slack/types@npm:^2.1.0, @slack/types@npm:^2.11.0":
+  version: 2.11.0
+  resolution: "@slack/types@npm:2.11.0"
+  checksum: b93b36b17b40d737f0c1c7da504dd5bab8ef84ff1b59378a72bcfc0d58ccf1f0f82ea22a3c3850cbbe1d8572e0724aa96282a390b794834d7a65d763ae13e5e1
   languageName: node
   linkType: hard
 
-"@slack/web-api@npm:6.10.0":
-  version: 6.10.0
-  resolution: "@slack/web-api@npm:6.10.0"
+"@slack/web-api@npm:6.11.0":
+  version: 6.11.0
+  resolution: "@slack/web-api@npm:6.11.0"
   dependencies:
     "@slack/logger": "npm:^3.0.0"
-    "@slack/types": "npm:^2.8.0"
+    "@slack/types": "npm:^2.11.0"
     "@types/is-stream": "npm:^1.1.0"
     "@types/node": "npm:>=12.0.0"
     axios: "npm:^1.6.0"
@@ -2188,7 +2188,7 @@ __metadata:
     is-stream: "npm:^1.1.0"
     p-queue: "npm:^6.6.1"
     p-retry: "npm:^4.0.0"
-  checksum: ce3ef74e3085b914104cc2eacb3c39fb90dfff74725d3bbad6b18d3be8a34c1fbe5508cc608ab6b96937ddbc13af85d7d2549fcabd0ff8756eb8de296775c5b4
+  checksum: 43f5d97c7cc36e323941b4cf9058b293c0f0bfc954af3b26dfa6d1fc38b0a6007b110e9d5290a63b488c76965a2cd79b5f5a581663e90dc0c6028191c91ccf2c
   languageName: node
   linkType: hard
 
@@ -9241,7 +9241,7 @@ __metadata:
     "@pob/eslint-config-typescript": "npm:51.2.2"
     "@pob/eslint-config-typescript-react": "npm:51.2.2"
     "@pob/root": "npm:8.9.1"
-    "@slack/web-api": "npm:6.10.0"
+    "@slack/web-api": "npm:6.11.0"
     "@tryfabric/mack": "npm:1.2.1"
     "@types/body-parser": "npm:1.19.2"
     "@types/cookie-parser": "npm:1.4.6"
