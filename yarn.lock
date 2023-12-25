@@ -538,9 +538,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-runtime@npm:7.23.4":
-  version: 7.23.4
-  resolution: "@babel/plugin-transform-runtime@npm:7.23.4"
+"@babel/plugin-transform-runtime@npm:7.23.6":
+  version: 7.23.6
+  resolution: "@babel/plugin-transform-runtime@npm:7.23.6"
   dependencies:
     "@babel/helper-module-imports": "npm:^7.22.15"
     "@babel/helper-plugin-utils": "npm:^7.22.5"
@@ -550,7 +550,7 @@ __metadata:
     semver: "npm:^6.3.1"
   peerDependencies:
     "@babel/core": ^7.0.0-0
-  checksum: 6ac29012550cdd10b65ec43fef0c7f43904ec458c43d597f627d8f52807413e57ea94e3986dbace576d734e67c2d09be5e43e77c72567d18f8c4ac5e19844625
+  checksum: 94a7ee92f073df53fd8bebf9ed391a95553716077da1c6c3a57f10f042358c938495d55e6b09b4b50544c01f03560c4770c17698e1c24817a15d3668e8231249
   languageName: node
   linkType: hard
 
@@ -3416,9 +3416,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"babel-preset-pob-env@npm:10.3.0":
-  version: 10.3.0
-  resolution: "babel-preset-pob-env@npm:10.3.0"
+"babel-preset-pob-env@npm:11.0.0":
+  version: 11.0.0
+  resolution: "babel-preset-pob-env@npm:11.0.0"
   dependencies:
     "@babel/plugin-proposal-nullish-coalescing-operator": "npm:^7.18.6"
     "@babel/plugin-proposal-optional-chaining": "npm:^7.21.0"
@@ -3429,7 +3429,7 @@ __metadata:
     babel-preset-optimizations: "npm:^2.0.0"
   peerDependencies:
     "@babel/core": ^7.23.2
-  checksum: 6f22704d0fec8c159f3d8eb7204d6b17fcb49e9e55a1e12db9fc5cd0b60f1d6ff14f41a881f28f42f58428cb609e3e7095ecca46be598853c7252f80dfcb29b3
+  checksum: f283b9369303d74a862e9b031ef37bcb5bfca44e888789102c16d47ca2927d135dc4af3db7c528c10552e0c01ee73fa33fdd7589c5820b198046063a3b80c5b5
   languageName: node
   linkType: hard
 
@@ -8647,20 +8647,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pob-babel@npm:36.8.0":
-  version: 36.8.0
-  resolution: "pob-babel@npm:36.8.0"
+"pob-babel@npm:37.1.0":
+  version: 37.1.0
+  resolution: "pob-babel@npm:37.1.0"
   dependencies:
     "@babel/core": "npm:^7.23.2"
-    "@babel/plugin-transform-runtime": "npm:7.23.4"
+    "@babel/plugin-transform-runtime": "npm:7.23.6"
     "@pob/rollup": "npm:1.0.0"
     "@rollup/plugin-babel": "npm:6.0.4"
     "@rollup/plugin-json": "npm:6.1.0"
     "@rollup/plugin-node-resolve": "npm:15.2.3"
     "@rollup/plugin-run": "npm:3.0.2"
-    babel-preset-pob-env: "npm:10.3.0"
+    babel-preset-pob-env: "npm:11.0.0"
     rollup: "npm:3.29.4"
-    rollup-config-external-dependencies: "npm:^2.0.0"
+    rollup-config-external-dependencies: "npm:^3.0.0"
     semver: "npm:^7.3.7"
   peerDependencies:
     "@babel/core": ^7.23.2
@@ -8672,7 +8672,7 @@ __metadata:
   bin:
     pob-babel-clean-out: ./bin/pob-babel-clean-out.js
     rollup: ./bin/rollup.cjs
-  checksum: b0cf5fc73c81b6f4489ebfbaac77314c18c85c57b89c36b82fff1cfd9c2b9f7bea05dd5024af22a8ed2c7372d48592522a3f458c7295c80f6c3a325849e2ce2c
+  checksum: 8b3444d25ee767b07a892d6a79265a6c6a0dab04f4dd56d0fa87d2ef5d8956b59f9604c5e51fe3f4e3f3a67f00de6508da9aa69fd3ed4edac059614b4c1327cd
   languageName: node
   linkType: hard
 
@@ -9267,7 +9267,7 @@ __metadata:
     liwi-mongo: "npm:11.0.0"
     lock: "npm:1.1.0"
     nock: "npm:13.4.0"
-    pob-babel: "npm:36.8.0"
+    pob-babel: "npm:37.1.0"
     probot: "npm:12.3.3"
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
@@ -9297,10 +9297,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup-config-external-dependencies@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "rollup-config-external-dependencies@npm:2.0.0"
-  checksum: b20aaa3a5bc8704e786a18ba4034c27c33140e10bcfb2e0bb8226c2e7219d0b66fb507123f3c37509871fd1c8f5fedc34c58fd14eab7c0977fd549f3bc941cfc
+"rollup-config-external-dependencies@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "rollup-config-external-dependencies@npm:3.0.0"
+  checksum: 9f1ab3d4d27f2fe54dffab58fdaaf07defca613c5874534062f1b649e8d44f75339221412cdadd160934d847ab590bde5840887c950c8a87b2681eabbc9d591f
   languageName: node
   linkType: hard
 

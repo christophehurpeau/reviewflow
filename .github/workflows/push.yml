@@ -50,5 +50,5 @@ jobs:
           CI: true
 
       - name: Check nothing was forgotten before commit
-        if: startsWith(matrix.node-version, '18.')
+        if: startsWith(matrix.node-version, '20.')
         run: yarn run repository-check-dirty
