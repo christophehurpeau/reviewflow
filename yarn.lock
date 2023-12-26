@@ -8647,9 +8647,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pob-babel@npm:37.1.0":
-  version: 37.1.0
-  resolution: "pob-babel@npm:37.1.0"
+"pob-babel@npm:38.0.0":
+  version: 38.0.0
+  resolution: "pob-babel@npm:38.0.0"
   dependencies:
     "@babel/core": "npm:^7.23.2"
     "@babel/plugin-transform-runtime": "npm:7.23.6"
@@ -8672,7 +8672,7 @@ __metadata:
   bin:
     pob-babel-clean-out: ./bin/pob-babel-clean-out.js
     rollup: ./bin/rollup.cjs
-  checksum: 8b3444d25ee767b07a892d6a79265a6c6a0dab04f4dd56d0fa87d2ef5d8956b59f9604c5e51fe3f4e3f3a67f00de6508da9aa69fd3ed4edac059614b4c1327cd
+  checksum: 7221b014486691d00d633aa0c1dda75c9e852b8000910e957f80884c2fe2e4adc2466044d8b831bc727223975788a1b54403af9a32dbcfb978d3845b2437da83
   languageName: node
   linkType: hard
 
@@ -9267,7 +9267,7 @@ __metadata:
     liwi-mongo: "npm:11.0.0"
     lock: "npm:1.1.0"
     nock: "npm:13.4.0"
-    pob-babel: "npm:37.1.0"
+    pob-babel: "npm:38.0.0"
     probot: "npm:12.3.3"
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
