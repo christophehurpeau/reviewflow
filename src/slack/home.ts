@@ -178,6 +178,7 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
                 },
                 pr.user && {
                   type: 'mrkdwn',
+                  // eslint-disable-next-line @typescript-eslint/no-useless-template-literals -- making sure it's a string at runtime
                   text: `${pr.user.login}`,
                 },
                 // ...(changesInformation
@@ -234,6 +235,7 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
                       },
                       {
                         type: 'mrkdwn',
+                        // eslint-disable-next-line @typescript-eslint/no-useless-template-literals -- making sure it's a string at runtime
                         text: `${assignee.login}`,
                       },
                     ])
@@ -245,6 +247,7 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
                       },
                       pr.creator && {
                         type: 'mrkdwn',
+                        // eslint-disable-next-line @typescript-eslint/no-useless-template-literals -- making sure it's a string at runtime
                         text: `${pr.creator.login}`,
                       },
                     ].filter(Boolean)),
