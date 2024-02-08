@@ -4,7 +4,7 @@ import type { Config } from './types';
 const config: Config<never> = {
   autoAssignToCreator: true,
   trimTitle: true,
-  lintPullRequestTitleWithConventionalCommit: false,
+  lintPullRequestTitleWithConventionalCommit: true,
   requiresReviewRequest: true,
   prDefaultOptions: {
     autoMerge: false,
