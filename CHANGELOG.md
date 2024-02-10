@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.7.0](https://github.com/christophehurpeau/reviewflow/compare/v3.6.1...v3.7.0) (2024-02-10)
+
+
+### Features
+
+* **deps:** update dependency @slack/web-api to v6.11.0 ([#850](https://github.com/christophehurpeau/reviewflow/issues/850)) ([80c7c15](https://github.com/christophehurpeau/reviewflow/commit/80c7c15f9997de3d28808643d577639b3c6ad860))
+* **deps:** update dependency @slack/web-api to v6.12.0 ([#865](https://github.com/christophehurpeau/reviewflow/issues/865)) ([4f18d1b](https://github.com/christophehurpeau/reviewflow/commit/4f18d1bafd0c598a678451fc2bd9198dc6b7345e))
+* lintPullRequestTitleWithConventionalCommit for Elax ([f02b51c](https://github.com/christophehurpeau/reviewflow/commit/f02b51c4da90c19cbc4bb38824a1ee9107a2714b))
+
+
+### Bug Fixes
+
+* **deps:** update dependency body-parser to v1.20.2 ([#887](https://github.com/christophehurpeau/reviewflow/issues/887)) ([af71e3a](https://github.com/christophehurpeau/reviewflow/commit/af71e3a687b8bde80dcae1925c97ce534f66967c))
+
+
 ## [3.6.1](https://github.com/christophehurpeau/reviewflow/compare/v3.6.0...v3.6.1) (2023-12-17)
 
 
