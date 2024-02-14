@@ -75,8 +75,11 @@ export const editOpenedPR = async <
   checksAndStatuses,
   reviews,
 }: EditOpenedPullRequestOptions<EventName, TeamNames>): Promise<void> => {
-  const title = repoContext.config.trimTitle
-    ? cleanTitle(pullRequest.title)
+  const title = repoContext.config.cleanTitle
+    ? cleanTitle(
+        pullRequest.title,
+        repoContext.config.cleanTitle === 'conventionalCommit',
+      )
     : pullRequest.title;
 
   const parsePRValue = {
