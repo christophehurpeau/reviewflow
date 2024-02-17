@@ -356,16 +356,16 @@ async function initRepoContext<
   ): Promise<void> => {
     let lockMergePr = automergeQueue[0];
     if (lockMergePr && String(lockMergePr.number) === String(pr.number)) {
-      removePrContext.log(
+      removePrContext.log.info(
         `merge lock: remove ${fullName}#${pr.number}: ${reason}`,
       );
       automergeQueue.shift();
       lockMergePr = automergeQueue[0];
       if (!lockMergePr) {
-        removePrContext.log(`merge lock: nothing next ${fullName}`);
+        removePrContext.log.info(`merge lock: nothing next ${fullName}`);
         await updateAutomergeQueueInDb(automergeQueue);
       } else {
-        removePrContext.log(lockMergePr, `merge lock: next ${fullName}`);
+        removePrContext.log.info(lockMergePr, `merge lock: next ${fullName}`);
         await Promise.all([
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
           reschedule(removePrContext, lockMergePr, 'short'),
@@ -378,7 +378,7 @@ async function initRepoContext<
         (value) => String(value.number) !== String(pr.number),
       );
       if (automergeQueue.length !== previousLength) {
-        removePrContext.log(
+        removePrContext.log.info(
           `merge lock: remove ${fullName}#${pr.number}: ${reason}`,
         );
         await updateAutomergeQueueInDb(automergeQueue);
@@ -524,7 +524,7 @@ async function initRepoContext<
     },
     removePrFromAutomergeQueue,
     pushAutomergeQueue: async (pr: LockedMergePr): Promise<void> => {
-      context.log(
+      context.log.info(
         {
           repo: fullName,
           pr,
@@ -565,7 +565,7 @@ export const obtainRepoContext = <T extends EventsWithRepository>(
   let accountConfig = accountConfigs[owner.login];
 
   if (!accountConfig) {
-    context.log(`using default config for ${owner.login}`);
+    context.log.info(`using default config for ${owner.login}`);
     accountConfig = defaultConfig;
   }
 

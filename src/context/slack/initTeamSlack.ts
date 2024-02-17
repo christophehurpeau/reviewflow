@@ -99,7 +99,7 @@ export const initTeamSlack = async <TeamNames extends string>(
       });
       return im.channel;
     } catch (error) {
-      context.log('could create im', { err: error });
+      context.log.error('could create im', { err: error });
     }
   };
 
@@ -157,7 +157,7 @@ export const initTeamSlack = async <TeamNames extends string>(
       }
 
       const user = membersMap.get(toUser.login);
-      if (!user || !user.slackClient || !user.im) return null;
+      if (!user?.slackClient || !user.im) return null;
 
       const result = await user.slackClient.chat.postMessage({
         username: process.env.REVIEWFLOW_NAME,
@@ -190,7 +190,7 @@ export const initTeamSlack = async <TeamNames extends string>(
       if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
 
       const user = membersMap.get(toUser.login);
-      if (!user || !user.slackClient || !user.im) return null;
+      if (!user?.slackClient || !user.im) return null;
 
       try {
         const result = await user.slackClient.chat.update({
@@ -221,7 +221,7 @@ export const initTeamSlack = async <TeamNames extends string>(
       context.log.debug({ ts, channel }, 'slack: delete message');
 
       const user = membersMap.get(toUser.login);
-      if (!user || !user.slackClient || !user.im) return;
+      if (!user?.slackClient || !user.im) return;
 
       await user.slackClient.chat.delete({
         ts,
@@ -237,7 +237,7 @@ export const initTeamSlack = async <TeamNames extends string>(
       context.log.debug({ ts, channel, name }, 'slack: add reaction');
 
       const user = membersMap.get(toUser.login);
-      if (!user || !user.slackClient || !user.im) return;
+      if (!user?.slackClient || !user.im) return;
 
       try {
         await user.slackClient.reactions.add({
@@ -256,7 +256,7 @@ export const initTeamSlack = async <TeamNames extends string>(
       context.log.debug({ githubLogin }, 'update slack home');
 
       const user = membersMap.get(githubLogin);
-      if (!user || !user.slackClient || !user.member) return;
+      if (!user?.slackClient || !user.member) return;
 
       slackHome.scheduleUpdateMember(context.octokit, user.slackClient, {
         user: { id: user.member.userGithubId, login: githubLogin },
@@ -274,7 +274,7 @@ export const initTeamSlack = async <TeamNames extends string>(
         'user.id': userId,
       });
 
-      if (!member || !member.slack) return;
+      if (!member?.slack) return;
 
       const slackClient = getSlackClient(member.slack.teamId);
       if (slackClient) {
