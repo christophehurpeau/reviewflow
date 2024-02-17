@@ -10,6 +10,7 @@ import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFrom
 // import { defaultCommentBody } from './actions/utils/body/updateBody';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
 import { syncLabels } from './actions/utils/syncLabel';
+import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
 import type { PullRequestLabels } from './utils/PullRequestData';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 // import { createReviewflowComment } from './utils/reviewflowComment';
@@ -93,6 +94,11 @@ export default function opened(app: Probot, appContext: AppContext): void {
             ]);
           }),
       ]);
+
+      updateSlackHomeForPr(repoContext, pullRequest, {
+        user: true,
+        assignees: true,
+      });
     },
     // https://sentry.io/organizations/chrp/issues/3888881569/?project=1243466&query=is%3Aunresolved&referrer=issue-stream
     // https://github.com/christophehurpeau/reviewflow/pull/617

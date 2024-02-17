@@ -6,6 +6,7 @@ import { editOpenedPR } from './actions/editOpenedPR';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
+import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 import { getRolesFromPullRequestAndReviewers } from './utils/getRolesFromPullRequestAndReviewers';
@@ -36,7 +37,25 @@ export default function reopened(app: Probot, appContext: AppContext): void {
           appContext.mongoStores.prs.partialUpdateOne(
             reviewflowPrContext.reviewflowPr,
             {
-              $set: { isDraft: pullRequest.draft === true },
+              $set: {
+                isDraft: pullRequest.draft === true,
+                ...(reviewflowPrContext.reviewflowPr.flowDates
+                  ? {
+                      'flowDates.readyAt': new Date(),
+                    }
+                  : {
+                      flowDates: {
+                        createdAt: new Date(pullRequest.created_at),
+                        openedAt: new Date(),
+                        readyAt: pullRequest.draft ? undefined : new Date(),
+                      },
+                    }),
+              },
+              $unset: reviewflowPrContext.reviewflowPr.flowDates?.closedAt
+                ? {
+                    'flowDates.closedAt': true,
+                  }
+                : {},
             },
           ),
           updateReviewStatus(pullRequest, context, repoContext, stepsState),
@@ -62,27 +81,15 @@ export default function reopened(app: Probot, appContext: AppContext): void {
       }
 
       /* update slack home */
-      if (pullRequest.requested_reviewers) {
-        pullRequest.requested_reviewers.forEach((requestedReviewer) => {
-          if (!('login' in requestedReviewer)) return;
-          repoContext.slack.updateHome(requestedReviewer.login);
-        });
-      }
-
-      if (pullRequest.requested_teams) {
-        const members = await repoContext.getMembersForTeams(
-          pullRequest.requested_teams.map((team) => team.id),
-        );
-        members.forEach((member) => {
-          repoContext.slack.updateHome(member.login);
-        });
-      }
-
-      if (pullRequest.assignees) {
-        pullRequest.assignees.forEach((assignee) => {
-          repoContext.slack.updateHome(assignee.login);
-        });
-      }
+      const teamMembers = await repoContext.getMembersForTeams(
+        pullRequest.requested_teams.map((team) => team.id),
+      );
+      updateSlackHomeForPr(repoContext, pullRequest, {
+        assignees: true,
+        requestedReviewers: true,
+        requestedTeams: true,
+        teamMembers,
+      });
 
       /* send notifications to assignees and followers */
       const { reviewers } = await getReviewersAndReviewStates(context);

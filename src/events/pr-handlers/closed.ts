@@ -7,6 +7,7 @@ import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
 import { parseOptions } from './actions/utils/body/parseBody';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
+import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 import { getRolesFromPullRequestAndReviewers } from './utils/getRolesFromPullRequestAndReviewers';
@@ -34,6 +35,15 @@ export default function closed(app: Probot, appContext: AppContext): void {
           {
             $set: {
               isClosed: true,
+              ...(reviewflowPrContext.reviewflowPr.flowDates
+                ? { 'flowDates.closedAt': new Date(pullRequest.closed_at!) }
+                : {
+                    flowDates: {
+                      createdAt: new Date(pullRequest.created_at),
+                      openedAt: new Date(pullRequest.created_at),
+                      closedAt: new Date(pullRequest.closed_at!),
+                    },
+                  }),
             },
           },
         );
@@ -92,27 +102,16 @@ export default function closed(app: Probot, appContext: AppContext): void {
       }
 
       /* update slack home */
-      if (pullRequest.requested_reviewers) {
-        pullRequest.requested_reviewers.forEach((requestedReviewer) => {
-          if (!('login' in requestedReviewer)) return;
-          repoContext.slack.updateHome(requestedReviewer.login);
-        });
-      }
-
-      if (pullRequest.requested_teams) {
-        const members = await repoContext.getMembersForTeams(
-          pullRequest.requested_teams.map((team) => team.id),
-        );
-        members.forEach((member) => {
-          repoContext.slack.updateHome(member.login);
-        });
-      }
-
-      if (pullRequest.assignees) {
-        pullRequest.assignees.forEach((assignee) => {
-          repoContext.slack.updateHome(assignee.login);
-        });
-      }
+      const teamMembers = await repoContext.getMembersForTeams(
+        pullRequest.requested_teams.map((team) => team.id),
+      );
+      updateSlackHomeForPr(repoContext, pullRequest, {
+        user: true,
+        assignees: true,
+        requestedReviewers: true,
+        requestedTeams: true,
+        teamMembers,
+      });
 
       /* send notifications to assignees and followers */
       const { reviewers } = await getReviewersAndReviewStates(context);

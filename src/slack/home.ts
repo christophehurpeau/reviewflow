@@ -2,6 +2,7 @@ import type { KnownBlock } from '@slack/web-api';
 import { WebClient } from '@slack/web-api';
 import type { MongoStores, Org, OrgMember, ReviewflowPr } from '../mongo';
 import type { Octokit } from '../octokit';
+import { ExcludesFalsy } from '../utils/Excludes';
 import {
   createLink,
   createPrChangesInformationFromReviewflowPr,
@@ -26,10 +27,12 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
 
     /* search limit: 30 requests per minute = 7 update/min max */
     const [
-      prsWithRequestedReviews,
+      prsWithRequestedReviewsFromGithub,
+      prsWithRequestedReviewsFromMongo,
       prsToMerge,
       prsWithRequestedChanges,
       prsInDraft,
+      openedPrsWaitingForReview,
     ] = await Promise.all([
       octokit.search
         .issuesAndPullRequests({
@@ -38,6 +41,16 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
           order: 'desc',
         })
         .catch((error: unknown) => ({ error })),
+      mongoStores.prs.findAll(
+        {
+          'account.id': member.org.id,
+          isClosed: false,
+          isDraft: false,
+          'reviews.reviewRequested.id': member.user.id,
+        },
+        // TODO sort by time since asked for review ASC
+        { 'flowDates.opened': -1, created: -1 },
+      ),
       mongoStores.prs.findAll(
         {
           'account.id': member.org.id,
@@ -57,14 +70,27 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
         },
         { created: -1 },
       ),
-      octokit.search
-        .issuesAndPullRequests({
-          q: `is:pr user:${member.org.login} is:open assignee:${member.user.login} draft:true`,
-          sort: 'created',
-          order: 'desc',
-          per_page: 5,
-        })
-        .catch((error: unknown) => ({ error })),
+      mongoStores.prs.findAll(
+        {
+          'account.id': member.org.id,
+          'assignees.id': member.user.id,
+          isClosed: false,
+          isDraft: true,
+        },
+        { created: -1 },
+      ),
+      mongoStores.prs.findAll(
+        {
+          'account.id': member.org.id,
+          'assignees.id': member.user.id,
+          isClosed: false,
+          isDraft: false,
+          'reviews.reviewRequested': { $not: { $exists: true, $ne: [] } },
+          'reviews.changesRequested': { $not: { $exists: true, $ne: [] } },
+          'reviews.approved': { $not: { $exists: true, $ne: [] } },
+        },
+        { created: -1 },
+      ),
     ]);
 
     const blocks: any[] = [
@@ -116,9 +142,92 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
       ],
     });
 
-    const buildBlocksForDataFromGithub = (
+    const createBlocksForDataFromMongoPr = (
+      pr: (typeof prsToMerge)[number],
+    ): KnownBlock[] => {
+      const repoName = pr.repo.name;
+      const prFullName = `${repoName}#${pr.pr.number}`;
+      const prUrl = buildPullRequestUrl(pr);
+      const changesInformation = createPrChangesInformationFromReviewflowPr(pr);
+
+      return [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `${createLink(prUrl, prFullName)}${
+              pr.isDraft ? ' · _Draft_' : ''
+            } · *${createLink(prUrl, pr.title)}*`,
+          },
+        },
+        {
+          type: 'context',
+          elements: [
+            ...(pr.assignees && pr.assignees.length > 0
+              ? pr.assignees.flatMap(
+                  (assignee) =>
+                    [
+                      {
+                        type: 'image',
+                        image_url: assignee.avatar_url,
+                        alt_text: assignee.login,
+                      },
+                      {
+                        type: 'mrkdwn',
+                        text: assignee.login,
+                      },
+                    ] as const,
+                )
+              : pr.creator
+              ? ([
+                  {
+                    type: 'image',
+                    image_url: pr.creator.avatar_url,
+                    alt_text: pr.creator.login,
+                  },
+                  {
+                    type: 'mrkdwn',
+                    text: pr.creator.login,
+                  },
+                ] as const)
+              : []),
+
+            ...(changesInformation
+              ? ([
+                  {
+                    type: 'mrkdwn',
+                    text: createLink(`${prUrl}/files`, changesInformation),
+                  },
+                ] as const)
+              : []),
+
+            ...(pr.flowDates?.approvedAt || pr.flowDates?.openedAt
+              ? ([
+                  {
+                    type: 'mrkdwn',
+                    text: `${
+                      pr.flowDates.approvedAt ? 'Approved' : 'Opened'
+                    } ${(
+                      pr.flowDates.approvedAt || pr.flowDates.openedAt
+                    ).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: 'numeric',
+                    })}`,
+                  },
+                ] as const)
+              : []),
+          ],
+        },
+      ] as const;
+    };
+
+    const buildBlocksForDataFromGithubAndMongo = (
       title: string,
-      response: typeof prsWithRequestedReviews,
+      response: typeof prsWithRequestedReviewsFromGithub,
+      mongoResponse: typeof prsWithRequestedReviewsFromMongo,
     ) => {
       if (!response) {
         blocks.push(
@@ -145,46 +254,48 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
       blocks.push(
         createTitleBlock(title),
         createDividerBlock(),
-        ...results.items.flatMap((pr) => {
-          const repoName = pr.repository_url.slice(
+        ...results.items.flatMap((prFromGithub): KnownBlock[] => {
+          const prFromMongo = mongoResponse.find(
+            (prfm) =>
+              // does not work as pr from github id is not the pr id, curiously prFromGithub.id === prfm.pr.id,
+              prFromGithub.number === prfm.pr.number &&
+              prFromGithub.repository_url ===
+                `https://api.github.com/repos/${prfm.account.login}/${prfm.repo.name}`,
+          );
+
+          if (prFromMongo) {
+            return createBlocksForDataFromMongoPr(prFromMongo);
+          }
+          const repoName = prFromGithub.repository_url.slice(
             'https://api.github.com/repos/'.length,
           );
-          const prFullName = `${repoName}#${pr.number}`;
-          // const changesInformation =
-          //   createPrChangesInformationFromPullRequestRest(pr);
+          const prFullName = `${repoName}#${prFromGithub.number}`;
 
           return [
             {
               type: 'section',
               text: {
                 type: 'mrkdwn',
-                text: `*${createLink(pr.html_url, pr.title)}*`,
-                //  ${pr.labels.map((l) => `{${l.name}}`).join(' · ')}
+                text: `${createLink(prFromGithub.html_url, prFullName)} ${
+                  prFromGithub.draft ? '· _Draft_' : ''
+                } · *${createLink(prFromGithub.html_url, prFromGithub.title)}*`,
               },
             },
             {
               type: 'context',
               elements: [
-                {
-                  type: 'mrkdwn',
-                  text: `${createLink(pr.html_url, prFullName)} ${
-                    pr.draft ? '· _Draft_' : ''
-                  }`,
-                },
-                pr.user && {
-                  type: 'image',
-                  image_url: pr.user.avatar_url,
-                  alt_text: pr.user.login,
-                },
-                pr.user && {
-                  type: 'mrkdwn',
-                  // eslint-disable-next-line @typescript-eslint/no-useless-template-literals -- making sure it's a string at runtime
-                  text: `${pr.user.login}`,
-                },
-                // ...(changesInformation
-                //   ? [{ type: 'mrkdwn', text: changesInformation }]
-                //   : []),
-              ].filter(Boolean),
+                prFromGithub.user &&
+                  ({
+                    type: 'image',
+                    image_url: prFromGithub.user.avatar_url,
+                    alt_text: prFromGithub.user.login,
+                  } as const),
+                prFromGithub.user &&
+                  ({
+                    type: 'mrkdwn',
+                    text: prFromGithub.user.login,
+                  } as const),
+              ].filter(ExcludesFalsy),
             },
           ];
         }),
@@ -201,71 +312,15 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
       blocks.push(
         createTitleBlock(title),
         createDividerBlock(),
-        ...results.flatMap((pr) => {
-          const repoName = pr.repo.name;
-          const prFullName = `${repoName}#${pr.pr.number}`;
-          const prUrl = buildPullRequestUrl(pr);
-          const changesInformation =
-            createPrChangesInformationFromReviewflowPr(pr);
-
-          return [
-            {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: `*${createLink(prUrl, pr.title)}*`,
-                //  ${pr.labels.map((l) => `{${l.name}}`).join(' · ')}
-              },
-            },
-            {
-              type: 'context',
-              elements: [
-                {
-                  type: 'mrkdwn',
-                  text: `${createLink(prUrl, prFullName)} ${
-                    pr.isDraft ? '· _Draft_' : ''
-                  }`,
-                },
-                ...(pr.assignees && pr.assignees.length > 0
-                  ? pr.assignees.flatMap((assignee) => [
-                      {
-                        type: 'image',
-                        image_url: assignee.avatar_url,
-                        alt_text: assignee.login,
-                      },
-                      {
-                        type: 'mrkdwn',
-                        // eslint-disable-next-line @typescript-eslint/no-useless-template-literals -- making sure it's a string at runtime
-                        text: `${assignee.login}`,
-                      },
-                    ])
-                  : [
-                      pr.creator && {
-                        type: 'image',
-                        image_url: pr.creator.avatar_url,
-                        alt_text: pr.creator.login,
-                      },
-                      pr.creator && {
-                        type: 'mrkdwn',
-                        // eslint-disable-next-line @typescript-eslint/no-useless-template-literals -- making sure it's a string at runtime
-                        text: `${pr.creator.login}`,
-                      },
-                    ].filter(Boolean)),
-
-                ...(changesInformation
-                  ? [{ type: 'mrkdwn', text: changesInformation }]
-                  : []),
-              ],
-            },
-          ];
-        }),
+        ...results.flatMap((pr) => createBlocksForDataFromMongoPr(pr)),
         createPlaceholderImageBlock(),
       );
     };
 
-    buildBlocksForDataFromGithub(
+    buildBlocksForDataFromGithubAndMongo(
       ':eyes: Requested reviews',
-      prsWithRequestedReviews,
+      prsWithRequestedReviewsFromGithub,
+      prsWithRequestedReviewsFromMongo,
     );
     buildBlocksForDataFromMongo(
       ':white_check_mark: Ready to merge',
@@ -275,7 +330,28 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
       ':x: Changes requested',
       prsWithRequestedChanges,
     );
-    buildBlocksForDataFromGithub(':construction: Drafts', prsInDraft);
+
+    if (prsInDraft.length > 0) {
+      blocks.push({
+        type: 'header',
+        text: {
+          type: 'plain_text',
+          text: 'Your PRs in progress',
+        },
+      });
+      buildBlocksForDataFromMongo(':construction: Drafts', prsInDraft);
+    }
+
+    if (openedPrsWaitingForReview.length > 0) {
+      // buildBlocksForDataFromMongo(
+      //   ':construction: Opened PRs missing a request for review',
+      //   TODO,
+      // );
+      buildBlocksForDataFromMongo(
+        ':clock1: Your opened PRs waiting for a review',
+        openedPrsWaitingForReview,
+      );
+    }
 
     if (blocks.length === 2) {
       blocks.push({

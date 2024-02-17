@@ -2,6 +2,7 @@ import type { Probot } from 'probot';
 import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
 import { checkIfIsThisBot } from '../../utils/github/isBotUser';
+import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
 import { toBasicUser } from './utils/PullRequestData';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 
@@ -46,8 +47,9 @@ export default function assignedOrUnassignedHandler(
       }
 
       if (repoContext.slack) {
-        // update new assignee slack home
-        repoContext.slack.updateHome(newlyAssigned.login);
+        updateSlackHomeForPr(repoContext, pullRequest, {
+          otherLogins: [newlyAssigned.login],
+        });
 
         await Promise.all(
           [

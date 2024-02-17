@@ -3,6 +3,7 @@ import type { AppContext } from '../../context/AppContext';
 import * as slackUtils from '../../slack/utils';
 import { getReviewersWithState } from '../../utils/github/pullRequest/reviews';
 import { updateAfterReviewChange } from './actions/updateAfterReviewChange';
+import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
 
@@ -49,14 +50,10 @@ export default function reviewRequestRemoved(
       if (pullRequest.draft) return;
 
       if (repoContext.slack) {
-        if (pullRequest.assignees) {
-          pullRequest.assignees.forEach((assignee) => {
-            repoContext.slack.updateHome(assignee.login);
-          });
-        }
-
-        requestedReviewers.forEach((potentialReviewer) => {
-          repoContext.slack.updateHome(potentialReviewer.login);
+        updateSlackHomeForPr(repoContext, pullRequest, {
+          user: true,
+          assignees: true,
+          requestedReviewers: true,
         });
 
         if (requestedReviewers.some((rr) => rr.login === sender.login)) {

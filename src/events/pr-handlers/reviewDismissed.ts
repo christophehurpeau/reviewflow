@@ -5,6 +5,7 @@ import { checkIfIsThisBot } from '../../utils/github/isBotUser';
 import { getReviewersWithState } from '../../utils/github/pullRequest/reviews';
 import { autoApproveAndAutoMerge } from './actions/autoApproveAndAutoMerge';
 import { updateAfterReviewChange } from './actions/updateAfterReviewChange';
+import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
 
@@ -59,12 +60,10 @@ export default function reviewDismissed(
       }
 
       if (repoContext.slack) {
-        if (pullRequest.assignees) {
-          pullRequest.assignees.forEach((assignee) => {
-            repoContext.slack.updateHome(assignee.login);
-          });
-        }
-        repoContext.slack.updateHome(reviewer.login);
+        updateSlackHomeForPr(repoContext, pullRequest, {
+          assignees: true,
+          otherLogins: [reviewer.login],
+        });
 
         if (sender.login === reviewer.login) {
           pullRequest.assignees.forEach((assignee) => {

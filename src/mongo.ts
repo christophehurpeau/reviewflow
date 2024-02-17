@@ -187,6 +187,15 @@ export interface ReviewflowPr extends MongoBaseModel {
   reviews: ReviewersGroupedByState;
   creator?: BasicUser;
   assignees: BasicUser[];
+  flowDates?: {
+    createdAt: Date;
+    openedAt: Date;
+    readyAt?: Date;
+    reviewStartedAt?: Date;
+    approvedAt?: Date;
+    closedAt?: Date;
+  };
+  // flowHistory: FlowHistory[];
 }
 
 export interface RepositoryMergeQueue extends MongoBaseModel {

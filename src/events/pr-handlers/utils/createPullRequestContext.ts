@@ -39,7 +39,10 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
   reviewflowCommentPromise?: ReturnType<typeof createReviewflowComment>,
 ): Promise<ReviewflowPrContext> => {
   const appContext = repoContext.appContext;
-  const prEmbed = { id: pullRequest.id, number: pullRequest.number };
+  const prEmbed = {
+    id: pullRequest.id,
+    number: pullRequest.number,
+  };
 
   if (reviewflowCommentPromise) {
     const comment = await reviewflowCommentPromise;
@@ -56,6 +59,19 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
         'assignees' in pullRequest && pullRequest.assignees
           ? pullRequest.assignees.map(toBasicUser)
           : [],
+      flowDates:
+        'created_at' in pullRequest
+          ? {
+              createdAt: new Date(pullRequest.created_at),
+              openedAt: new Date(pullRequest.created_at),
+              readyAt: pullRequest.draft
+                ? undefined
+                : new Date(pullRequest.created_at),
+              closedAt: pullRequest.closed_at
+                ? new Date(pullRequest.closed_at)
+                : undefined,
+            }
+          : undefined,
     });
     return { reviewflowPr, commentBody: comment.body! };
   }

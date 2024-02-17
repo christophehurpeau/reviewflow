@@ -5,6 +5,7 @@ import { editOpenedPR } from './actions/editOpenedPR';
 import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
+import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
 import { getRolesFromPullRequestAndReviewers } from './utils/getRolesFromPullRequestAndReviewers';
@@ -38,7 +39,14 @@ export default function convertedToDraft(
           appContext.mongoStores.prs.partialUpdateOne(
             reviewflowPrContext.reviewflowPr,
             {
-              $set: { isDraft: true },
+              $set: {
+                isDraft: true,
+              },
+              $unset: reviewflowPrContext.reviewflowPr.flowDates?.readyAt
+                ? {
+                    'flowDates.readyAt': true,
+                  }
+                : undefined,
             },
           ),
           updateReviewStatus(pullRequest, context, repoContext, stepsState),
@@ -70,6 +78,18 @@ export default function convertedToDraft(
         getRolesFromPullRequestAndReviewers(pullRequest, reviewers, {
           excludeIds: [sender.id],
         });
+
+      const teamMembers = await repoContext.getMembersForTeams(
+        pullRequest.requested_teams
+          ? pullRequest.requested_teams.map((team) => team.id)
+          : [],
+      );
+      updateSlackHomeForPr(repoContext, pullRequest, {
+        assignees: true,
+        requestedReviewers: true,
+        requestedTeams: true,
+        teamMembers,
+      });
 
       const mention = repoContext.slack.mention(sender.login);
       const prUrl = slackUtils.createPrLink(pullRequest, repoContext);

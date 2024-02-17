@@ -7,6 +7,7 @@ import { updateReviewStatus } from './actions/updateReviewStatus';
 import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
 import hasLabelInPR from './actions/utils/labels/hasLabelInPR';
 import { calcStepsState } from './actions/utils/steps/calcStepsState';
+import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr, type PullRequestFromRestEndpoint } from './utils/fetchPr';
 
@@ -87,32 +88,11 @@ export default function readyForReview(
       }
 
       /* update slack home */
-      const loginsAskedToUpdateSlackHome: string[] = [];
-      if (pullRequest.assignees) {
-        pullRequest.assignees.forEach((assignee) => {
-          loginsAskedToUpdateSlackHome.push(assignee.login);
-          repoContext.slack.updateHome(assignee.login);
-        });
-      }
-
-      pullRequest.requested_reviewers.forEach((requestedReviewer: any) => {
-        if (loginsAskedToUpdateSlackHome.includes(requestedReviewer.login)) {
-          return;
-        }
-
-        loginsAskedToUpdateSlackHome.push(requestedReviewer.login);
-        repoContext.slack.updateHome(requestedReviewer.login);
-      });
-
-      membersForTeams.forEach(({ members }) => {
-        members.forEach((teamMember) => {
-          if (loginsAskedToUpdateSlackHome.includes(teamMember.login)) {
-            return;
-          }
-
-          loginsAskedToUpdateSlackHome.push(teamMember.login);
-          repoContext.slack.updateHome(teamMember.login);
-        });
+      updateSlackHomeForPr(repoContext, pullRequest, {
+        assignees: true,
+        requestedReviewers: true,
+        requestedTeams: true,
+        teamMembers: membersForTeams.flatMap(({ members }) => members),
       });
 
       /* send slack notification */

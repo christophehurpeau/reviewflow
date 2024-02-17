@@ -33,7 +33,7 @@ export const createPrLink = (
 export const createPrChangesInformationFromPullRequestRest = (
   pr: PullRequestFromRestEndpoint,
 ): string | null => {
-  if (!('changed_files' in pr)) return null;
+  if (!('changed_files' in pr) || pr.changed_files == null) return null;
   return `${pr.changed_files} file${
     pr.changed_files > 1 ? 's' : ''
   } changed (+${pr.additions} -${pr.deletions})`;
@@ -42,7 +42,7 @@ export const createPrChangesInformationFromPullRequestRest = (
 export const createPrChangesInformationFromReviewflowPr = (
   pr: ReviewflowPr,
 ): string | null => {
-  if (!pr.changesInformation) return null;
+  if (pr.changesInformation?.changedFiles == null) return null;
   return `${pr.changesInformation.changedFiles} file${
     pr.changesInformation.changedFiles > 1 ? 's' : ''
   } changed (+${pr.changesInformation.additions} -${

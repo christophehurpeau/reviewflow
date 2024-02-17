@@ -124,7 +124,7 @@ const initAccountContext = async <
       githubLoginToTeams.get(githubLogin) || [],
 
     getMembersForTeams: async (teamIds): Promise<AccountEmbedWithoutType[]> => {
-      if (teamIds.length === 0) return [];
+      if (!teamIds || teamIds.length === 0) return [];
       if (accountInfo.type !== 'Organization') {
         throw new Error(
           `Invalid account type "${accountInfo.type}" for getMembersForTeam`,

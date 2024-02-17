@@ -32,6 +32,7 @@ import { lintCommitMessage } from './utils/commitMessages';
 import createStatus, { isSameStatus } from './utils/createStatus';
 import { cleanTitle } from './utils/prTitle';
 import type { StepsState } from './utils/steps/calcStepsState';
+import { updateSlackHomeForPr } from './utils/updateSlackHome';
 
 export interface ReviewflowStatus {
   name: string;
@@ -51,6 +52,7 @@ export interface EditOpenedPullRequestOptions<
   reviewflowPrContext: ReviewflowPrContext;
   shouldUpdateCommentBodyInfos: boolean;
   shouldUpdateCommentBodyProgress: boolean;
+  shouldUpdateSlackHomeOnTitleChange?: boolean;
   stepsState: StepsState;
   previousSha?: string;
   checksAndStatuses?: ChecksAndStatuses;
@@ -70,6 +72,7 @@ export const editOpenedPR = async <
   reviewflowPrContext,
   shouldUpdateCommentBodyInfos,
   shouldUpdateCommentBodyProgress,
+  shouldUpdateSlackHomeOnTitleChange,
   stepsState,
   previousSha,
   checksAndStatuses,
@@ -347,6 +350,8 @@ export const editOpenedPR = async <
     newCommentBody = updateCommentBodyProgress(newCommentBody, stepsState);
   }
 
+  const hasDiffInTitle = title && pullRequest.title !== title;
+
   if (shouldCreateCommentBody || shouldUpdateCommentBodyInfos) {
     promises.push(
       readCommitsAndUpdateInfos(
@@ -367,4 +372,18 @@ export const editOpenedPR = async <
   }
 
   await Promise.all(promises);
+
+  if (shouldUpdateSlackHomeOnTitleChange && hasDiffInTitle) {
+    const teamMembers = await repoContext.getMembersForTeams(
+      pullRequest.requested_teams
+        ? pullRequest.requested_teams.map((team) => team.id)
+        : [],
+    );
+    updateSlackHomeForPr(repoContext, pullRequest, {
+      assignees: true,
+      requestedReviewers: true,
+      requestedTeams: true,
+      teamMembers,
+    });
+  }
 };

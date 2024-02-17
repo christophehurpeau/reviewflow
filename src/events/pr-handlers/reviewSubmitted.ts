@@ -9,6 +9,7 @@ import { ExcludesNullish } from '../../utils/Excludes';
 import { getReviewersWithState } from '../../utils/github/pullRequest/reviews';
 import { createSlackMessageWithSecondaryBlock } from '../../utils/slack/createSlackMessageWithSecondaryBlock';
 import { updateAfterReviewChange } from './actions/updateAfterReviewChange';
+import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
 import { createPullRequestHandler } from './utils/createPullRequestHandler';
 import { fetchPr } from './utils/fetchPr';
 import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
@@ -134,20 +135,15 @@ export default function reviewSubmitted(
             : [],
         ]);
 
-        repoContext.slack.updateHome(reviewer.login);
-        if (assignees) {
-          assignees.forEach((assignee) => {
-            repoContext.slack.updateHome(assignee.login);
-          });
-        }
-
-        for (const sentMessageRequestedReviewForReviewerTeam of sentMessageRequestedReviewForReviewerTeams) {
-          for (const {
-            user,
-          } of sentMessageRequestedReviewForReviewerTeam.sentTo) {
-            repoContext.slack.updateHome(user.login);
-          }
-        }
+        updateSlackHomeForPr(repoContext, pullRequest, {
+          assignees: true,
+          otherLogins: [
+            reviewer.login,
+            ...sentMessageRequestedReviewForReviewerTeams.flatMap(
+              ({ sentTo }) => sentTo.map(({ user }) => user.login),
+            ),
+          ],
+        });
 
         const emoji = getEmojiFromState(state);
 
