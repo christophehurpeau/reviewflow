@@ -57,7 +57,7 @@ describe('edited', (): void => {
 
       .post(
         '/repos/reviewflow/reviewflow-test/issues/54/labels',
-        '[":ok_hand: code/needs-review"]',
+        '{"labels":[":ok_hand: code/needs-review"]}',
       )
       .reply(200, [
         {

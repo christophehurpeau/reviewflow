@@ -49,7 +49,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
         );
 
         if ((pullRequest as any).merged) {
-          const isNotFork = pullRequest.head.repo.id === repo.id;
+          const isNotFork = pullRequest.head.repo?.id === repo.id;
           const options = parseOptions(
             reviewflowPrContext.commentBody,
             repoContext.config.prDefaultOptions,
