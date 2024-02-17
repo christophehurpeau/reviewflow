@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { jest } from '@jest/globals';
 import nock from 'nock';
-import { Probot } from 'probot';
+import { Probot, ProbotOctokit } from 'probot';
 import repoLabels from '../__fixtures__/labels.json';
 import { createEmptyReviews } from '../events/pr-handlers/utils/groupReviewsWithState';
 import initApp from '../initApp';
@@ -12,6 +12,7 @@ jest.setTimeout(30_000);
 
 process.env.REVIEWFLOW_NAME = 'reviewflow-dev';
 const APP_ID = 1;
+
 nock.disableNetConnect();
 
 export const initializeProbotApp = async ({
@@ -26,6 +27,11 @@ export const initializeProbotApp = async ({
     appId: APP_ID,
     privateKey: 'test',
     githubToken: 'test',
+    // Disable throttling & retrying requests for easier testing
+    Octokit: ProbotOctokit.defaults({
+      retry: { enabled: false },
+      throttle: { enabled: false },
+    }),
   });
   const mockStores = {
     orgs: {
