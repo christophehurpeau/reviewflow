@@ -3772,7 +3772,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"commander@npm:11.1.0, commander@npm:^11.1.0":
+"commander@npm:11.1.0":
   version: 11.1.0
   resolution: "commander@npm:11.1.0"
   checksum: 10c0/13cc6ac875e48780250f723fb81c1c1178d35c5decb1abb1b628b3177af08a8554e76b2c0f29de72d69eef7c864d12613272a71fabef8047922bc622ab75a179
@@ -9146,7 +9146,7 @@ __metadata:
     react-dom: "npm:18.2.0"
     simple-oauth2: "npm:5.0.0"
     slackify-markdown: "npm:4.3.1"
-    smee-client: "npm:2.0.0"
+    smee-client: "npm:2.0.1"
     type-fest: "npm:4.10.2"
     typescript: "npm:5.3.3"
   languageName: unknown
@@ -9461,16 +9461,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"smee-client@npm:2.0.0":
-  version: 2.0.0
-  resolution: "smee-client@npm:2.0.0"
+"smee-client@npm:2.0.1":
+  version: 2.0.1
+  resolution: "smee-client@npm:2.0.1"
   dependencies:
-    commander: "npm:^11.1.0"
+    commander: "npm:^12.0.0"
     eventsource: "npm:^2.0.2"
     validator: "npm:^13.11.0"
   bin:
     smee: bin/smee.js
-  checksum: 10c0/2e9ff2f038ba94a8a5cb3745bc985ee13392855e28d0129e6adac120937295ea8811aa13aa58647da1992e592d3ad5eb6a3502b9aa5bb09c90182b996e3bfc70
+  checksum: 10c0/0ad09b7b84cd7adcce14855b37e1a27588fb02b220cac5b770f74f06907b71299e4abb1d69f3ff85a201258e559aaeeca77a0fcfc877e2af9d6ef69c1da776d0
   languageName: node
   linkType: hard
 
