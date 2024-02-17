@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.8.0](https://github.com/christophehurpeau/reviewflow/compare/v3.7.0...v3.8.0) (2024-02-17)
+
+
+### Features
+
+* clean title conventional commit support typo ; ([791e30c](https://github.com/christophehurpeau/reviewflow/commit/791e30cffcdc07db89fad223486680541de32631))
+* improve slack home, add additional sections for prs waiting for review ([f296ffa](https://github.com/christophehurpeau/reviewflow/commit/f296ffaf5d314a1f7cd698d279465e2c45f4e6fc))
+
+
 ## [3.7.0](https://github.com/christophehurpeau/reviewflow/compare/v3.6.1...v3.7.0) (2024-02-10)
 
 
