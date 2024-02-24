@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.9.0](https://github.com/christophehurpeau/reviewflow/compare/v3.8.0...v3.9.0) (2024-02-24)
+
+
+### Features
+
+* **deps:** update dependency probot to v13 ([#889](https://github.com/christophehurpeau/reviewflow/issues/889)) ([2e570c5](https://github.com/christophehurpeau/reviewflow/commit/2e570c550d82b5e073b8575f17b3c2539dd637d2))
+* enable checks/passed for elax ([#899](https://github.com/christophehurpeau/reviewflow/issues/899)) ([be7009d](https://github.com/christophehurpeau/reviewflow/commit/be7009dc347482cd4d3f9ae29d30d89fe7dd835b))
+
+
 ## [3.8.0](https://github.com/christophehurpeau/reviewflow/compare/v3.7.0...v3.8.0) (2024-02-17)
 
 
