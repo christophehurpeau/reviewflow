@@ -327,6 +327,7 @@ async function initRepoContext<
         } catch (error) {
           context.log.info(logInfos, 'lock: release pr (with error)');
           release();
+          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
           reject(error);
           return;
         }

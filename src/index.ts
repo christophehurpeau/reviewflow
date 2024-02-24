@@ -38,7 +38,7 @@ const gracefulExit = function gracefulExit(): void {
     serverPromise.then((server) => server.stop()),
     mongoConnection && mongoConnection.close(),
   ]).then(() => {
-    // eslint-disable-next-line unicorn/no-process-exit
+    // eslint-disable-next-line unicorn/no-process-exit, n/no-process-exit
     process.exit(0);
   });
 };

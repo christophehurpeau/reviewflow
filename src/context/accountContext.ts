@@ -110,6 +110,7 @@ const initAccountContext = async <
           } catch (error) {
             context.log.info(logInfos, 'lock: release account (with error)');
             release();
+            // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
             reject(error);
             return;
           }
