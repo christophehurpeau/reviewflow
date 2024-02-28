@@ -13,6 +13,35 @@ const config: Config<never> = {
   },
   parsePR: {
     title: [],
+    body: [
+      {
+        bot: false,
+        regExp: /^(.*)$/s,
+        createStatusInfo: (match) => {
+          const description = match?.[1];
+          if (!description?.trim()) {
+            return {
+              type: 'failure',
+              title: 'Body is empty',
+              summary: 'The PR body should not be empty',
+            };
+          }
+          const descriptionStripTitlesAndComments = description
+            .replace(/^\s*#+\s+.*/gm, '')
+            .replace(/(<!--.*?-->)|(<!--[\S\s]+?-->)|(<!--[\S\s]*?$)/gs, '');
+
+          if (!descriptionStripTitlesAndComments?.trim()) {
+            return {
+              type: 'failure',
+              title: 'Body has no meaningful content',
+              summary:
+                'The PR body should not contains only titles and comments',
+            };
+          }
+          return null;
+        },
+      },
+    ],
   },
   teams: {},
   labels: {
