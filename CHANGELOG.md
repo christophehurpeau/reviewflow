@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.10.0](https://github.com/christophehurpeau/reviewflow/compare/v3.9.0...v3.10.0) (2024-03-01)
+
+
+### Features
+
+* add pr body check for elax ([#909](https://github.com/christophehurpeau/reviewflow/issues/909)) ([9e61ff1](https://github.com/christophehurpeau/reviewflow/commit/9e61ff1684e6d8856c7466cd7016ab942861852f))
+
+
 ## [3.9.0](https://github.com/christophehurpeau/reviewflow/compare/v3.8.0...v3.9.0) (2024-02-24)
 
 
