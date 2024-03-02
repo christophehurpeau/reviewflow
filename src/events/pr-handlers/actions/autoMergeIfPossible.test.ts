@@ -1,3 +1,5 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 import { createCommitMessage } from './autoMergeIfPossible';
 import type { ParsedBody } from './utils/body/parseBody';
 
@@ -23,8 +25,8 @@ describe(createCommitMessage.name, () => {
       options: mockParsedBody.options,
     });
 
-    expect(title).toBe('feat: pr title (#1)');
-    expect(body).toBe('');
+    assert.equal(title, 'feat: pr title (#1)');
+    assert.equal(body, '');
   });
 
   it('should add [skip-ci] when option is passed', () => {
@@ -48,8 +50,8 @@ describe(createCommitMessage.name, () => {
       options: mockParsedBody.options,
     });
 
-    expect(title).toBe('feat: pr title [skip ci] (#1)');
-    expect(body).toBe('');
+    assert.equal(title, 'feat: pr title [skip ci] (#1)');
+    assert.equal(body, '');
   });
 
   it('should add breaking changes in body', () => {
@@ -73,7 +75,7 @@ describe(createCommitMessage.name, () => {
       options: mockParsedBody.options,
     });
 
-    expect(title).toBe('feat: pr title (#1)');
-    expect(body).toBe('');
+    assert.equal(title, 'feat: pr title (#1)');
+    assert.equal(body, '');
   });
 });

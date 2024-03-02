@@ -1,3 +1,5 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 import initialSimple from './mocks/prBody-initial-simple';
 import initialTable from './mocks/prBody-initial-table';
 import simple from './mocks/prBody-simple';
@@ -14,12 +16,12 @@ describe('simple', () => {
     const parsed = parsePrBodyWithOptions(initialSimple, defaultOptions);
 
     expect(parsed).not.toBeFalsy();
-    expect(parsed?.options).toEqual({
+    assert.equal(parsed?.options, {
       autoMerge: false,
       autoMergeWithSkipCi: false,
       deleteAfterMerge: true,
     });
-    expect(parsed?.commitNotes).toBe('');
+    assert.equal(parsed?.commitNotes, '');
   });
 
   it('should parse breaking changes', () => {
@@ -38,12 +40,12 @@ describe('simple', () => {
     );
 
     expect(parsed).not.toBeFalsy();
-    expect(parsed?.options).toEqual({
+    assert.equal(parsed?.options, {
       autoMerge: false,
       autoMergeWithSkipCi: false,
       deleteAfterMerge: true,
     });
-    expect(parsed?.commitNotes).toBe('Some commits Notes');
+    assert.equal(parsed?.commitNotes, 'Some commits Notes');
   });
 });
 
@@ -58,12 +60,12 @@ describe('table', () => {
     const parsed = parsePrBodyWithOptions(initialTable, defaultOptions);
 
     expect(parsed).not.toBeFalsy();
-    expect(parsed?.options).toEqual({
+    assert.equal(parsed?.options, {
       autoMerge: false,
       autoMergeWithSkipCi: false,
       deleteAfterMerge: true,
     });
-    expect(parsed?.commitNotes).toBe('');
+    assert.equal(parsed?.commitNotes, '');
   });
 });
 
@@ -78,11 +80,11 @@ describe('table', () => {
     const parsed = parsePrBodyWithOptions(simple, defaultOptions);
 
     expect(parsed).not.toBeFalsy();
-    expect(parsed?.options).toEqual({
+    assert.equal(parsed?.options, {
       autoMerge: false,
       autoMergeWithSkipCi: false,
       deleteAfterMerge: true,
     });
-    expect(parsed?.commitNotes).toBe('');
+    assert.equal(parsed?.commitNotes, '');
   });
 });

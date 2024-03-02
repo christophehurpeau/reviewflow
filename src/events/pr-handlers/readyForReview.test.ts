@@ -1,5 +1,5 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { jest } from '@jest/globals';
+import assert from 'node:assert/strict';
+import { describe, beforeEach, test } from 'node:test';
 import type { Probot } from 'probot';
 import pullRequestCommits from '../../__fixtures__/pull_request_30_commits.json';
 import pullRequestReadyForReview from '../../__fixtures__/pull_request_54.ready_for_review.json';
@@ -139,7 +139,7 @@ describe('edited', (): void => {
     });
 
     expect(partialUpdateOnePr).toHaveBeenCalledTimes(3);
-    expect(scope.pendingMocks()).toEqual([]);
-    expect(scope.activeMocks()).toEqual([]);
+    assert.equal(scope.pendingMocks(), []);
+    assert.equal(scope.activeMocks(), []);
   });
 });

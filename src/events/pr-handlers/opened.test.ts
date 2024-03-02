@@ -1,5 +1,5 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { jest } from '@jest/globals';
+import assert from 'node:assert/strict';
+import { describe, beforeEach, test } from 'node:test';
 import type { Probot } from 'probot';
 import pullRequestOpened from '../../__fixtures__/pull_request_30.opened.json';
 import pullRequestCommits from '../../__fixtures__/pull_request_30_commits.json';
@@ -50,7 +50,7 @@ describe('opened', (): void => {
       .reply(200, (uri, body) => body)
 
       .patch('/repos/reviewflow/reviewflow-test/issues/comments/1', (body) => {
-        expect(body).toEqual({
+        assert.equal(body, {
           body: commentBodyV2InitialAfterEditSimple.replace(
             /christophehurpeau\/reviewflow/g,
             'reviewflow/reviewflow-test',
@@ -121,7 +121,7 @@ describe('opened', (): void => {
 
     expect(insertOnePr).toHaveBeenCalled();
     expect(partialUpdateOnePr).toHaveBeenCalled();
-    expect(scope.pendingMocks()).toEqual([]);
-    expect(scope.activeMocks()).toEqual([]);
+    assert.equal(scope.pendingMocks(), []);
+    assert.equal(scope.activeMocks(), []);
   });
 });

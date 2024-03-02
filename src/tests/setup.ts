@@ -1,5 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { jest } from '@jest/globals';
 import nock from 'nock';
 import { Probot, ProbotOctokit } from 'probot';
 import repoLabels from '../__fixtures__/labels.json';
@@ -7,8 +5,6 @@ import { createEmptyReviews } from '../events/pr-handlers/utils/groupReviewsWith
 import initApp from '../initApp';
 
 export { default as nock } from 'nock';
-
-jest.setTimeout(30_000);
 
 process.env.REVIEWFLOW_NAME = 'reviewflow-dev';
 const APP_ID = 1;

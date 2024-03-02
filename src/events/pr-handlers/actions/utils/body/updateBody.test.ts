@@ -1,3 +1,5 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 import type { LabelList } from '../../../../../accountConfigs/types';
 import initialSimpleV1 from './mocks/commentBody-v1-initial-simple';
 import initialAfterEditSimpleV1 from './mocks/commentBody-v1-initialAfterEdit-simple';
@@ -69,129 +71,105 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
   }) => {
     describe(`v${versionNumber}`, () => {
       it('should update initial description', () => {
-        expect(
-          updateCommentOptions(
-            repositorySettings,
-            repoLinkMock,
-            labels,
-            initialSimple,
-            defaultConfig,
-          ).commentBody,
-        ).toEqual(initialAfterEditSimpleLatest);
+        assert.equal(updateCommentOptions(
+          repositorySettings,
+          repoLinkMock,
+          labels,
+          initialSimple,
+          defaultConfig,
+        ).commentBody, initialAfterEditSimpleLatest);
       });
 
       it('should keep infos on update', () => {
-        expect(
-          updateCommentOptions(
-            repositorySettings,
-            repoLinkMock,
-            labels,
-            initialAfterEditSimpleWithInfos,
-            defaultConfig,
-          ).commentBody,
-        ).toEqual(initialAfterEditSimpleWithInfosLatest);
+        assert.equal(updateCommentOptions(
+          repositorySettings,
+          repoLinkMock,
+          labels,
+          initialAfterEditSimpleWithInfos,
+          defaultConfig,
+        ).commentBody, initialAfterEditSimpleWithInfosLatest);
       });
 
       it('should update options', () => {
-        expect(
-          updateCommentOptions(
-            repositorySettings,
-            repoLinkMock,
-            labels,
-            initialAfterEditSimpleWithInfos,
-            defaultConfig,
-            {
-              autoMerge: true,
-            },
-          ).commentBody,
-        ).toEqual(
-          initialAfterEditSimpleWithInfosLatest.replace(
-            '- [ ] <!-- reviewflow-autoMerge -->',
-            '- [x] <!-- reviewflow-autoMerge -->',
-          ),
-        );
+        assert.equal(updateCommentOptions(
+          repositorySettings,
+          repoLinkMock,
+          labels,
+          initialAfterEditSimpleWithInfos,
+          defaultConfig,
+          {
+            autoMerge: true,
+          },
+        ).commentBody, initialAfterEditSimpleWithInfosLatest.replace(
+          '- [ ] <!-- reviewflow-autoMerge -->',
+          '- [x] <!-- reviewflow-autoMerge -->',
+        ));
       });
 
       it('should update commit notes', () => {
-        expect(
-          updateCommentBodyCommitsNotes(
-            initialAfterEditSimpleWithInfos,
-            'Some commits Notes',
-          ),
-        ).toEqual(
+        assert.equal(updateCommentBodyCommitsNotes(
+          initialAfterEditSimpleWithInfos,
+          'Some commits Notes',
+        ), initialAfterEditSimpleWithInfos.replace(
+          '### Options:',
+          '### Commits Notes:\n\nSome commits Notes\n\n### Options:',
+        ));
+      });
+
+      it('should remove commit notes', () => {
+        assert.equal(updateCommentBodyCommitsNotes(
           initialAfterEditSimpleWithInfos.replace(
             '### Options:',
             '### Commits Notes:\n\nSome commits Notes\n\n### Options:',
           ),
-        );
-      });
-
-      it('should remove commit notes', () => {
-        expect(
-          updateCommentBodyCommitsNotes(
-            initialAfterEditSimpleWithInfos.replace(
-              '### Options:',
-              '### Commits Notes:\n\nSome commits Notes\n\n### Options:',
-            ),
-            '',
-          ),
-        ).toEqual(initialAfterEditSimpleWithInfos);
+          '',
+        ), initialAfterEditSimpleWithInfos);
       });
 
       it('should add infos when there is none', () => {
-        expect(
-          updateCommentBodyInfos(initialAfterEditSimple, [
-            {
-              type: 'success',
-              inBody: true,
-              title: 'Test',
-              url: 'http://test.com',
-              summary: 'Test summary',
-            },
-          ]),
-        ).toEqual(
+        assert.equal(updateCommentBodyInfos(initialAfterEditSimple, [
+          {
+            type: 'success',
+            inBody: true,
+            title: 'Test',
+            url: 'http://test.com',
+            summary: 'Test summary',
+          },
+        ]), initialAfterEditSimple.replace(
+          '### Options:',
+          '### Infos:\n\n[Test](http://test.com)\n\n### Options:',
+        ));
+      });
+
+      it('should update infos', () => {
+        assert.equal(updateCommentBodyInfos(
           initialAfterEditSimple.replace(
             '### Options:',
             '### Infos:\n\n[Test](http://test.com)\n\n### Options:',
           ),
-        );
-      });
-
-      it('should update infos', () => {
-        expect(
-          updateCommentBodyInfos(
-            initialAfterEditSimple.replace(
-              '### Options:',
-              '### Infos:\n\n[Test](http://test.com)\n\n### Options:',
-            ),
-            [
-              {
-                type: 'success',
-                inBody: true,
-                title: 'Test Updated',
-                url: 'http://test.com',
-                summary: 'Test summary',
-              },
-            ],
-          ),
-        ).toEqual(
-          initialAfterEditSimple.replace(
-            '### Options:',
-            '### Infos:\n\n[Test Updated](http://test.com)\n\n### Options:',
-          ),
-        );
+          [
+            {
+              type: 'success',
+              inBody: true,
+              title: 'Test Updated',
+              url: 'http://test.com',
+              summary: 'Test summary',
+            },
+          ],
+        ), initialAfterEditSimple.replace(
+          '### Options:',
+          '### Infos:\n\n[Test Updated](http://test.com)\n\n### Options:',
+        ));
       });
 
       it('should remove infos', () => {
-        expect(
-          updateCommentBodyInfos(
-            initialAfterEditSimple.replace(
-              '### Options:',
-              '### Infos:\n\n[Test](http://test.com)\n\n### Options:',
-            ),
-            [],
+        assert.equal(updateCommentBodyInfos(
+          initialAfterEditSimple.replace(
+            '### Options:',
+            '### Infos:\n\n[Test](http://test.com)\n\n### Options:',
           ),
-        ).toEqual(initialAfterEditSimple);
+          [],
+        ), initialAfterEditSimple);
       });
     });
   },
@@ -199,19 +177,15 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
 
 describe('Repository Options', () => {
   it('should show automerge if in default options', () => {
-    expect(
-      updateCommentOptions(
-        { ...repositorySettings, deleteBranchOnMerge: false },
-        repoLinkMock,
-        labels,
-        initialSimpleV1,
-        { ...defaultConfig, deleteAfterMerge: true },
-      ).commentBody,
-    ).toEqual(
-      initialAfterEditSimpleLatest.replace(
-        '### Actions',
-        '- [x] <!-- reviewflow-deleteAfterMerge -->:recycle: Automatically delete the branch after this PR is merged. (:warning: Legacy Option: [Delete branch with Github Setting](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-the-automatic-deletion-of-branches))\n### Actions',
-      ),
-    );
+    assert.equal(updateCommentOptions(
+      { ...repositorySettings, deleteBranchOnMerge: false },
+      repoLinkMock,
+      labels,
+      initialSimpleV1,
+      { ...defaultConfig, deleteAfterMerge: true },
+    ).commentBody, initialAfterEditSimpleLatest.replace(
+      '### Actions',
+      '- [x] <!-- reviewflow-deleteAfterMerge -->:recycle: Automatically delete the branch after this PR is merged. (:warning: Legacy Option: [Delete branch with Github Setting](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-the-automatic-deletion-of-branches))\n### Actions',
+    ));
   });
 });
