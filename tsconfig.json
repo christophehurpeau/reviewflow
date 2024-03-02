@@ -9,6 +9,7 @@
     "baseUrl": "" /* Base directory to resolve non-absolute module names. */,
     "noEmit": true,
 
-    "jsx": "react-jsx" /* 'react-jsx' is used with react/jsx-runtime (react >=17 || >= 16.14.0 | >= 15.7.0) */
+    "jsx": "react-jsx" /* 'react-jsx' is used with react/jsx-runtime (react >=17 || >= 16.14.0 | >= 15.7.0) */,
+    "resolveJsonModule": true
   }
 }

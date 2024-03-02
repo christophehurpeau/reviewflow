@@ -8,17 +8,17 @@
   "repository": "https://github.com/christophehurpeau/reviewflow.git",
   "homepage": "https://github.com/christophehurpeau/reviewflow",
   "type": "module",
+  "packageManager": "yarn@4.1.0",
   "engines": {
     "node": ">=20.9.0"
   },
-  "packageManager": "yarn@4.1.0",
-  "main": "./build/index-node20.mjs",
+  "main": "./build/index-node.mjs",
   "exports": {
     "./package.json": "./package.json",
     ".": {
       "types": "./src/index.ts",
       "node": {
-        "import": "./build/index-node20.mjs"
+        "import": "./build/index-node.mjs"
       }
     }
   },
@@ -36,9 +36,10 @@
     "start": "yarn clean:build && rollup --config rollup.config.mjs --watch",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage --coverageReporters=json --coverageReporters=text",
+    "test:coverage:json": "NODE_OPTIONS=--experimental-vm-modules jest --coverage --coverageReporters=json",
+    "test:coverage:lcov": "NODE_OPTIONS=--experimental-vm-modules jest --coverage --coverageReporters=lcov",
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch"
   },
-  "prettier": "@pob/root/prettier-config",
   "commitlint": {
     "extends": [
       "@pob/commitlint-config"
@@ -57,6 +58,7 @@
       "index"
     ]
   },
+  "prettier": "@pob/root/prettier-config",
   "dependencies": {
     "@commitlint/config-conventional": "18.4.3",
     "@commitlint/lint": "18.4.3",
@@ -89,7 +91,7 @@
     "@pob/eslint-config": "54.0.1",
     "@pob/eslint-config-typescript": "54.0.1",
     "@pob/eslint-config-typescript-react": "54.0.1",
-    "@pob/root": "8.12.0",
+    "@pob/root": "9.2.0",
     "@types/body-parser": "1.19.5",
     "@types/cookie-parser": "1.4.7",
     "@types/express": "4.17.21",
