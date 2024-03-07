@@ -2403,12 +2403,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:18.2.20":
-  version: 18.2.20
-  resolution: "@types/react-dom@npm:18.2.20"
+"@types/react-dom@npm:18.2.21":
+  version: 18.2.21
+  resolution: "@types/react-dom@npm:18.2.21"
   dependencies:
     "@types/react": "npm:*"
-  checksum: 10/841afdd03a9ec1717f1dbcc934552e3e14e75b17b9fff549fc9f6cf0ae7520304c163a549478a00c2341e607bd2550bddb16b963986b746ae5b9af41f8035591
+  checksum: 10/5c714bc69c3cf979dbf3fb8c66fc42b5b740af54d98c1037c593ac9ad54e5107cfc39fcba8c550f8df924670f55b411898d53c6166a2b15b4ed44a248a358590
   languageName: node
   linkType: hard
 
@@ -9138,7 +9138,7 @@ __metadata:
     "@types/jsonwebtoken": "npm:9.0.6"
     "@types/node": "npm:20.11.25"
     "@types/react": "npm:18.2.64"
-    "@types/react-dom": "npm:18.2.20"
+    "@types/react-dom": "npm:18.2.21"
     "@types/simple-oauth2": "npm:5.0.7"
     body-parser: "npm:1.20.2"
     check-package-dependencies: "npm:7.0.0"
