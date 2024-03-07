@@ -3628,9 +3628,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"check-package-dependencies@npm:7.0.0":
-  version: 7.0.0
-  resolution: "check-package-dependencies@npm:7.0.0"
+"check-package-dependencies@npm:7.1.1":
+  version: 7.1.1
+  resolution: "check-package-dependencies@npm:7.1.1"
   dependencies:
     chalk: "npm:^5.2.0"
     glob: "npm:^10.0.0"
@@ -3640,7 +3640,7 @@ __metadata:
     type-fest: "npm:^4.0.0"
   bin:
     check-package-dependencies: ./bin/check-package-dependencies.mjs
-  checksum: 10/5b1fef8e68378a5de8ee2a6ff13badb398f88e4e50167468c280992b777b3a1f9537dcd8d02ab01f731470a4e3d762eb17b8d66c16b114a73021cf0879121ac8
+  checksum: 10/d71df0c2f218a4c35adf000c21b743836254f11f717516db71485859b89a3261a23a0cfdd2d792da9efc5ddc61129bebd64d4b796086ea8b7a7829c7aa642858
   languageName: node
   linkType: hard
 
@@ -9141,7 +9141,7 @@ __metadata:
     "@types/react-dom": "npm:18.2.21"
     "@types/simple-oauth2": "npm:5.0.7"
     body-parser: "npm:1.20.2"
-    check-package-dependencies: "npm:7.0.0"
+    check-package-dependencies: "npm:7.1.1"
     conventional-changelog-conventionalcommits: "npm:7.0.2"
     cookie-parser: "npm:1.4.6"
     delay: "npm:6.0.0"
