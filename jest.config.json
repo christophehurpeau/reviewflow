@@ -6,5 +6,8 @@
   ],
   "collectCoverageFrom": ["src/**/*.ts?(x)"],
   "moduleFileExtensions": ["ts", "tsx", "js", "json"],
-  "extensionsToTreatAsEsm": [".ts", ".tsx"]
+  "extensionsToTreatAsEsm": [".ts", ".tsx"],
+  "transform": {
+    "^.+\\.tsx?$": ["@swc/jest"]
+  }
 }
