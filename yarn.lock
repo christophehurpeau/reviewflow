@@ -8292,9 +8292,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"probot@npm:13.0.2":
-  version: 13.0.2
-  resolution: "probot@npm:13.0.2"
+"probot@npm:13.1.0":
+  version: 13.1.0
+  resolution: "probot@npm:13.1.0"
   dependencies:
     "@octokit/core": "npm:^5.0.2"
     "@octokit/plugin-enterprise-compatibility": "npm:^4.0.1"
@@ -8325,7 +8325,7 @@ __metadata:
     update-dotenv: "npm:^1.1.1"
   bin:
     probot: bin/probot.js
-  checksum: 10/49d24162b483d520d8c64bc2395a6c0f8c6bc1e6d2f6fc4ff376525ca1a6c640e40d7e802bd53fa706f2fb9e7f09f97e091645713493983417a15057cf1637cf
+  checksum: 10/719c53a7e2e3e042718897e87699d74daca2a0f9f7ffa5c49dd2206482a0a7d2d6def247c7e300a9c6c9f666fa04ef4e2cb45e0db309f3dafdf72bafb703dd8b
   languageName: node
   linkType: hard
 
@@ -8876,7 +8876,7 @@ __metadata:
     liwi-mongo: "npm:11.0.0"
     lock: "npm:1.1.0"
     nock: "npm:14.0.0-beta.5"
-    probot: "npm:13.0.2"
+    probot: "npm:13.1.0"
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
     simple-oauth2: "npm:5.0.0"
