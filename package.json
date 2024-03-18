@@ -93,7 +93,7 @@
     "@pob/eslint-config-typescript-react": "54.0.1",
     "@pob/rollup-typescript": "2.2.2",
     "@pob/root": "9.2.0",
-    "@swc/core": "1.4.2",
+    "@swc/core": "1.4.8",
     "@swc/jest": "0.2.36",
     "@types/body-parser": "1.19.5",
     "@types/cookie-parser": "1.4.7",
