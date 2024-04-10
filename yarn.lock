@@ -8844,7 +8844,7 @@ __metadata:
     slackify-markdown: "npm:4.3.1"
     smee-client: "npm:2.0.1"
     tslib: "npm:2.6.2"
-    type-fest: "npm:4.11.1"
+    type-fest: "npm:4.15.0"
     typescript: "npm:5.4.3"
   languageName: unknown
   linkType: soft
@@ -9724,10 +9724,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-fest@npm:4.11.1, type-fest@npm:^4.0.0":
-  version: 4.11.1
-  resolution: "type-fest@npm:4.11.1"
-  checksum: 10/1c16e8199f3124ff7bc23de64babda24c9970ae98723d9d2eb7d2646b9dd9107fece2f50261d5a1b28f3af2fa7be8e56c0369ec6d5ae0f25f84de72e241278a9
+"type-fest@npm:4.15.0, type-fest@npm:^4.0.0":
+  version: 4.15.0
+  resolution: "type-fest@npm:4.15.0"
+  checksum: 10/8f897551877daa0df7bb17a21b6acd8a21ac5a0bdb14dbfd353b16013fed99f23c6d9c12a2c7685c8dededb4739ec8bfb120a914330f8b11a478a89758a11acc
   languageName: node
   linkType: hard
 
