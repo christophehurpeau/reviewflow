@@ -7461,17 +7461,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minipass@npm:^5.0.0":
+"minipass@npm:^5.0.0, minipass@npm:^5.0.0 || ^6.0.2":
   version: 5.0.0
   resolution: "minipass@npm:5.0.0"
   checksum: 10/61682162d29f45d3152b78b08bab7fb32ca10899bc5991ffe98afc18c9e9543bd1e3be94f8b8373ba6262497db63607079dc242ea62e43e7b2270837b7347c93
-  languageName: node
-  linkType: hard
-
-"minipass@npm:^5.0.0 || ^6.0.2":
-  version: 6.0.2
-  resolution: "minipass@npm:6.0.2"
-  checksum: 10/d2c0baa39570233002b184840065e5f8abb9f6dda45fd486a0b133896d9749de810966f0b2487af623b84ac4cf05df9156656124c2549858df2b27c18750da2b
   languageName: node
   linkType: hard
 
