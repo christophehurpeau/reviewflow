@@ -2171,7 +2171,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/express@npm:*, @types/express@npm:^4.17.21":
+"@types/express@npm:*, @types/express@npm:4.17.21, @types/express@npm:^4.17.21":
   version: 4.17.21
   resolution: "@types/express@npm:4.17.21"
   dependencies:
@@ -8822,6 +8822,7 @@ __metadata:
     "@tryfabric/mack": "npm:1.2.1"
     "@types/body-parser": "npm:1.19.5"
     "@types/cookie-parser": "npm:1.4.7"
+    "@types/express": "npm:4.17.21"
     "@types/issue-parser": "npm:3.0.5"
     "@types/jest": "npm:29.5.12"
     "@types/jsonwebtoken": "npm:9.0.6"
