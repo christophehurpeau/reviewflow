@@ -1,5 +1,6 @@
 import type { KnownBlock } from '@slack/web-api';
 import { WebClient } from '@slack/web-api';
+import type { Probot } from 'probot';
 import type { MongoStores, Org, OrgMember, ReviewflowPr } from '../mongo';
 import type { Octokit } from '../octokit';
 import { ExcludesFalsy } from '../utils/Excludes';
@@ -17,7 +18,10 @@ interface QueueItem {
 const buildPullRequestUrl = (reviewflowPullRequest: ReviewflowPr): string =>
   `https://github.com/${reviewflowPullRequest.account.login}/${reviewflowPullRequest.repo.name}/pull/${reviewflowPullRequest.pr.number}`;
 
-export const createSlackHomeWorker = (mongoStores: MongoStores) => {
+export const createSlackHomeWorker = (
+  mongoStores: MongoStores,
+  log: Probot['log'],
+) => {
   const updateMember = async (
     octokit: Octokit,
     slackClient: WebClient,
@@ -40,7 +44,9 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
           sort: 'created',
           order: 'desc',
         })
-        .catch((error: unknown) => ({ error })),
+        .catch((error: unknown) => {
+          log.error('Error searching PRs', { error });
+        }),
       mongoStores.prs.findAll(
         {
           'account.id': member.org.id,
@@ -363,13 +369,22 @@ export const createSlackHomeWorker = (mongoStores: MongoStores) => {
       });
     }
 
-    slackClient.views.publish({
-      user_id: member.slack.id,
-      view: {
-        type: 'home',
-        blocks,
-      },
-    });
+    slackClient.views
+      .publish({
+        user_id: member.slack.id,
+        view: {
+          type: 'home',
+          blocks,
+        },
+      })
+      .catch((error) => {
+        log.error('Error updating home', {
+          error,
+          memberLogin: member.user.login,
+          orgLogin: member.org.login,
+          blocks,
+        });
+      });
   };
 
   let workerInterval: ReturnType<typeof setInterval> | undefined;
