@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.11.1](https://github.com/christophehurpeau/reviewflow/compare/v3.11.0...v3.11.1) (2024-04-10)
+
+
+### Bug Fixes
+
+* remove console.log ([9eabe5a](https://github.com/christophehurpeau/reviewflow/commit/9eabe5a2d8032526c226fb7c97fe54583fb87136))
+* update slack home when pr is requested on a team ([c2dd906](https://github.com/christophehurpeau/reviewflow/commit/c2dd90646c851a05e4bd5a9503a533b913e37c33))
+
+
 ## [3.11.0](https://github.com/christophehurpeau/reviewflow/compare/v3.10.0...v3.11.0) (2024-04-10)
 
 
