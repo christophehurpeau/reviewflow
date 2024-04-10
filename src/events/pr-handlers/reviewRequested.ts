@@ -61,7 +61,7 @@ export default function reviewRequested(
         updateSlackHomeForPr(repoContext, pullRequest, {
           user: true,
           assignees: true,
-          requestedReviewers: true,
+          otherLogins: requestedReviewers.map((reviewer) => reviewer.login),
         });
 
         const requestedByNameInTeam = requestedTeam
