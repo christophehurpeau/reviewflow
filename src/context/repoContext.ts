@@ -511,11 +511,10 @@ async function initRepoContext<
 
     getMergeLockedPr: () => automergeQueue[0],
     addMergeLockPr: async (pr: LockedMergePr): Promise<void> => {
-      // eslint-disable-next-line no-console
-      console.log('merge lock: lock', {
-        repo: fullName,
-        pr,
-      });
+      // console.log('merge lock: lock', {
+      //   repo: fullName,
+      //   pr,
+      // });
       const lockMergePr = automergeQueue[0];
       if (lockMergePr && String(lockMergePr.number) === String(pr.number)) {
         return;
