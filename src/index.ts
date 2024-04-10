@@ -26,7 +26,7 @@ let mongoConnection: MongoConnection | null = null;
 const serverPromise = run((app, { getRouter }) => {
   const mongoStores = mongoInit();
   mongoConnection = mongoStores.connection;
-  const slackHome = createSlackHomeWorker(mongoStores);
+  const slackHome = createSlackHomeWorker(mongoStores, app.log);
   const appContext: AppContext = { mongoStores, slackHome };
   appRouter(app, getRouter, appContext);
   initApp(app, appContext);
