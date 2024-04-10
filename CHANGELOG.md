@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.11.0](https://github.com/christophehurpeau/reviewflow/compare/v3.10.0...v3.11.0) (2024-04-10)
+
+
+### Features
+
+* **deps:** update dependency probot to v13.2.0 ([#938](https://github.com/christophehurpeau/reviewflow/issues/938)) ([1ec8025](https://github.com/christophehurpeau/reviewflow/commit/1ec802509472d53c7e8001b7fd1e50581ae11435))
+* log errors ([cb96305](https://github.com/christophehurpeau/reviewflow/commit/cb96305989748c68e982dc7494c10534a878f952))
+
+
 ## [3.10.0](https://github.com/christophehurpeau/reviewflow/compare/v3.9.0...v3.10.0) (2024-03-01)
 
 
