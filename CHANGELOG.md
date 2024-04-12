@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.12.0](https://github.com/christophehurpeau/reviewflow/compare/v3.11.3...v3.12.0) (2024-04-12)
+
+
+### Features
+
+* allow lintPullRequestTitleWithConventionalCommit to be a regexp, change elax config ([fdf1070](https://github.com/christophehurpeau/reviewflow/commit/fdf1070d7f60d5cb9857af3c1950a5240aa4ce0a))
+
+
 ## [3.11.3](https://github.com/christophehurpeau/reviewflow/compare/v3.11.2...v3.11.3) (2024-04-10)
 
 Note: no notable changes
