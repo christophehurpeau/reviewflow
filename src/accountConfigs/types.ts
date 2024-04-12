@@ -74,7 +74,7 @@ interface WarnOnForcePushAfterReviewStarted {
 export interface Config<TeamNames extends string> {
   autoAssignToCreator?: boolean;
   cleanTitle?: boolean | 'conventionalCommit';
-  lintPullRequestTitleWithConventionalCommit?: boolean;
+  lintPullRequestTitleWithConventionalCommit?: RegExp | boolean;
   ignoreRepoPattern?: string;
   requiresReviewRequest?: boolean;
   autoMergeRenovateWithSkipCi?: boolean;

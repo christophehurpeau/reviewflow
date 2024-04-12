@@ -99,7 +99,14 @@ export const editOpenedPR = async <
   const statuses: ReviewflowStatus[] = [];
   let errorStatus: StatusInfo | undefined;
 
-  if (repoContext.config.lintPullRequestTitleWithConventionalCommit) {
+  if (
+    repoContext.config.lintPullRequestTitleWithConventionalCommit === true ||
+    (repoContext.config.lintPullRequestTitleWithConventionalCommit &&
+      repoContext.config.lintPullRequestTitleWithConventionalCommit.test &&
+      repoContext.config.lintPullRequestTitleWithConventionalCommit.test(
+        repoContext.repoEmbed.name,
+      ))
+  ) {
     try {
       const lintOutcome = await lintCommitMessage(title);
       if (!lintOutcome.valid) {
