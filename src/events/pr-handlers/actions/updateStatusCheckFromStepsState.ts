@@ -173,7 +173,7 @@ export const updateStatusCheckFromStepsState = <
   // STEP 1: Draft
   if (stepsState.write.state !== 'passed') {
     if (stepsState.write.isDraft) {
-      return createFailedStatusCheck('PR is still in draft');
+      return createPendingStatusCheck('PR is still in draft');
     }
     if (stepsState.write.isClosed) {
       return createFailedStatusCheck('PR is closed');
