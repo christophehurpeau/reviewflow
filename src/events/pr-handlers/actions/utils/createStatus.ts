@@ -35,10 +35,10 @@ export const isSameStatus = (
   status2: StatusInfo,
 ): boolean => {
   return (
+    // allow both null and undefined
     status1.type === status2.type &&
     status1.title === status2.title &&
-    status1.summary === status2.summary &&
-    // eslint-disable-next-line eqeqeq
-    status1.url == status2.url // allow both null and undefined
+    status1.summary === status2.summary && // eslint-disable-next-line eqeqeq
+    status1.url == status2.url
   );
 };

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { getEmojiFromRepoDescription } from './utils';
 
 describe('getEmojiFromRepoDescription', () => {

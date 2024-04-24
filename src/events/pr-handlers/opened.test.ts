@@ -1,6 +1,5 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { jest } from '@jest/globals';
 import type { Probot } from 'probot';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import pullRequestOpened from '../../__fixtures__/pull_request_30.opened.json';
 import pullRequestCommits from '../../__fixtures__/pull_request_30_commits.json';
 import { voidTeamSlack } from '../../context/slack/voidTeamSlack';
@@ -13,7 +12,7 @@ import {
 import type { ProbotEvent } from '../probot-types';
 import commentBodyV2InitialAfterEditSimple from './actions/utils/body/mocks/commentBody-v2-initialAfterEdit-simpleWithProgress';
 
-jest.unstable_mockModule('../../context/slack/initTeamSlack', () => ({
+vi.mock('../../context/slack/initTeamSlack', () => ({
   initTeamSlack: () => Promise.resolve(voidTeamSlack()),
 }));
 
@@ -21,9 +20,9 @@ nock.disableNetConnect();
 
 describe('opened', (): void => {
   let probot: Probot;
-  const findOnePr = jest.fn(() => Promise.resolve(undefined));
-  const insertOnePr = jest.fn(() => Promise.resolve({ commentId: 1 }));
-  const partialUpdateOnePr = jest.fn();
+  const findOnePr = vi.fn(() => Promise.resolve(undefined));
+  const insertOnePr = vi.fn(() => Promise.resolve({ commentId: 1 }));
+  const partialUpdateOnePr = vi.fn();
 
   beforeEach(async () => {
     probot = await initializeProbotApp({

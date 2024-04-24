@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { shouldIgnoreRepo } from '../context/repoContext';
 import ornikarConfig from './ornikar';
 
