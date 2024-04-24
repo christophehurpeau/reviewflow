@@ -78,7 +78,7 @@
     "emoji-regex": "10.3.0",
     "issue-parser": "6.0.0",
     "jsonwebtoken": "9.0.2",
-    "liwi-mongo": "11.0.0",
+    "liwi-mongo": "12.0.0",
     "lock": "1.1.0",
     "probot": "13.2.0",
     "react": "18.2.0",
