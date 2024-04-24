@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import initialSimple from './mocks/prBody-initial-simple';
 import initialTable from './mocks/prBody-initial-table';
 import simple from './mocks/prBody-simple';

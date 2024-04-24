@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { createCommitMessage } from './autoMergeIfPossible';
 import type { ParsedBody } from './utils/body/parseBody';
 

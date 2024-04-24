@@ -1,6 +1,5 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { jest } from '@jest/globals';
 import type { Probot } from 'probot';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import pullRequestEdited from '../../__fixtures__/pull_request_30.edited.json';
 import pullRequestCommits from '../../__fixtures__/pull_request_30_commits.json';
 import { voidTeamSlack } from '../../context/slack/voidTeamSlack';
@@ -11,7 +10,7 @@ import {
   nock,
 } from '../../tests/setup';
 
-jest.unstable_mockModule('../../context/slack/initTeamSlack', () => ({
+vi.mock('../../context/slack/initTeamSlack', () => ({
   initTeamSlack: () => Promise.resolve(voidTeamSlack()),
 }));
 
@@ -19,7 +18,7 @@ nock.disableNetConnect();
 
 describe('edited', (): void => {
   let probot: Probot;
-  const partialUpdateOnePr = jest.fn();
+  const partialUpdateOnePr = vi.fn();
 
   beforeEach(async () => {
     probot = await initializeProbotApp({

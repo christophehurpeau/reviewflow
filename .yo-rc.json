@@ -11,7 +11,7 @@
     "app": {
       "type": "node",
       "testing": true,
-      "testRunner": "jest",
+      "testRunner": "vitest",
       "ci": true
     },
     "project": {
