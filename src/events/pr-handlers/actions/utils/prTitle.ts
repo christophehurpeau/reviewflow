@@ -18,5 +18,6 @@ export const cleanTitle = (
     .replace(/^([A-Za-z]+)[/:;]\s*/, (s, arg1) => `${arg1.toLowerCase()}: `)
     .replace(/\s+(-\s*)?[()[\]]\s*no[\s-]*isss?ue\s*[()[\]]$/i, ' [no issue]')
     .replace(/^Revert "([^"]+)"( \[no issue])?$/, 'revert: $1$2')
-    .replace(/^(revert:.*)(\s+\(#\d+\))( \[no issue])?$/, '$1$3');
+    .replace(/^(revert:.*)(\s+\(#\d+\))( \[no issue])?$/, '$1$3')
+    .replace(/^(?:revert: ){2}/, '');
 };
