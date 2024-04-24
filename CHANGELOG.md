@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.13.0](https://github.com/christophehurpeau/reviewflow/compare/v3.12.0...v3.13.0) (2024-04-24)
+
+
+### Features
+
+* clean revert of revert ([8870f94](https://github.com/christophehurpeau/reviewflow/commit/8870f94df6462c6fabebe7ec9c182ddf4c613163))
+* **deps:** update dependency issue-parser to v7 ([#943](https://github.com/christophehurpeau/reviewflow/issues/943)) ([74f497f](https://github.com/christophehurpeau/reviewflow/commit/74f497f9e02e964c1fb27f7f822fb66f7d204bd6))
+* **deps:** update dependency liwi-mongo to v12 ([#950](https://github.com/christophehurpeau/reviewflow/issues/950)) ([e2ca7b6](https://github.com/christophehurpeau/reviewflow/commit/e2ca7b6b422b283fe78702102c285b6b26ad307f))
+* make draft pr a pending status instead of failed ([e4e50b2](https://github.com/christophehurpeau/reviewflow/commit/e4e50b2c660469718be4b6a6f868c2a783769bc2))
+
+
 ## [3.12.0](https://github.com/christophehurpeau/reviewflow/compare/v3.11.3...v3.12.0) (2024-04-12)
 
 
