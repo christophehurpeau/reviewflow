@@ -93,8 +93,8 @@ export default function orgSettings(
         const [installation, orgInDb] = await Promise.all([
           octokitApp.apps
             .getOrgInstallation({ org: org.login })
-            .catch((error) => {
-              return { status: error.status, data: undefined };
+            .catch((error: unknown) => {
+              return { status: (error as any).status, data: undefined };
             }),
           mongoStores.orgs.findByKey(org.id),
         ]);
@@ -167,54 +167,62 @@ export default function orgSettings(
                       : `Custom config: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/${org.login}.ts`}
 
                     <h4 style={{ marginTop: '1rem' }}>Slack Connection</h4>
-                    {!slackTeam && !orgInDb.slackToken ? (
-                      <>
-                        Slack account yet linked ! Install application to get
-                        notifications for your reviews.
-                        <br />
-                        <a
-                          href={`/app/slack-install?orgId=${encodeURIComponent(
-                            org.id,
-                          )}&orgLogin=${encodeURIComponent(org.login)}`}
-                        >
-                          <img
-                            alt="Add to Slack"
-                            height="40"
-                            width="139"
-                            src="https://platform.slack-edge.com/img/add_to_slack.png"
-                            srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"
-                          />
-                        </a>
-                      </>
-                    ) : !orgMember || !orgMember.slack ? (
-                      <>
-                        <div>Slack Team: {slackTeam?.teamName}</div>
-                        Slack account yet linked ! Sign in to get notifications
-                        for your reviews.
-                        <br />
-                        <a
-                          href={`/app/slack-connect?orgId=${encodeURIComponent(
-                            org.id,
-                          )}&orgLogin=${encodeURIComponent(org.login)}`}
-                        >
-                          <img
-                            src="https://api.slack.com/img/sign_in_with_slack.png"
-                            alt="Sign in with Slack"
-                          />
-                        </a>
-                      </>
-                    ) : (
-                      <div>
-                        {!orgInDb.slackToken
-                          ? null
-                          : '⚠ This account use a custom slack application.'}
+                    {(() => {
+                      if (!slackTeam && !orgInDb.slackToken) {
+                        return (
+                          <>
+                            Slack account yet linked ! Install application to
+                            get notifications for your reviews.
+                            <br />
+                            <a
+                              href={`/app/slack-install?orgId=${encodeURIComponent(
+                                org.id,
+                              )}&orgLogin=${encodeURIComponent(org.login)}`}
+                            >
+                              <img
+                                alt="Add to Slack"
+                                height="40"
+                                width="139"
+                                src="https://platform.slack-edge.com/img/add_to_slack.png"
+                                srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"
+                              />
+                            </a>
+                          </>
+                        );
+                      }
+                      if (!orgMember?.slack) {
+                        return (
+                          <>
+                            <div>Slack Team: {slackTeam?.teamName}</div>
+                            Slack account yet linked ! Sign in to get
+                            notifications for your reviews.
+                            <br />
+                            <a
+                              href={`/app/slack-connect?orgId=${encodeURIComponent(
+                                org.id,
+                              )}&orgLogin=${encodeURIComponent(org.login)}`}
+                            >
+                              <img
+                                src="https://api.slack.com/img/sign_in_with_slack.png"
+                                alt="Sign in with Slack"
+                              />
+                            </a>
+                          </>
+                        );
+                      }
+                      return (
                         <div>
-                          Slack Team: {slackTeam?.teamName} (
-                          {orgMember.slack.teamId || slackTeam?._id})
+                          {!orgInDb.slackToken
+                            ? null
+                            : '⚠ This account use a custom slack application.'}
+                          <div>
+                            Slack Team: {slackTeam?.teamName} (
+                            {orgMember.slack.teamId || slackTeam?._id})
+                          </div>
+                          <div>Slack User ID: {orgMember.slack.id}</div>
                         </div>
-                        <div>Slack User ID: {orgMember.slack.id}</div>
-                      </div>
-                    )}
+                      );
+                    })()}
                     <h4 style={{ marginTop: '1rem' }}>User Information</h4>
                     {!orgMember ? (
                       <>User not found in database</>
@@ -232,7 +240,7 @@ export default function orgSettings(
                   </div>
                   <div style={{ width: '380px' }}>
                     <h4>My DM Settings</h4>
-                    {!orgMember || !orgMember.slack ? (
+                    {!orgMember?.slack ? (
                       <>Link your github account to unlock DM Settings</>
                     ) : (
                       <>
@@ -240,7 +248,6 @@ export default function orgSettings(
                           <div key={key}>
                             <label htmlFor={key}>
                               <span
-                                // eslint-disable-next-line react/no-danger
                                 dangerouslySetInnerHTML={{
                                   __html: `<input id="${key}" type="checkbox" autocomplete="off" ${
                                     userDmSettings.settings[
@@ -270,12 +277,11 @@ export default function orgSettings(
                               <div key={team.id}>
                                 <label htmlFor={`team_${team.id}`}>
                                   <span
-                                    // eslint-disable-next-line react/no-danger
                                     dangerouslySetInnerHTML={{
                                       __html: `<input id="team_${
                                         team.id
                                       }" type="checkbox" autocomplete="off" ${
-                                        !userDmSettings.silentTeams?.some(
+                                        !userDmSettings.silentTeams.some(
                                           (t) => t.id === team.id,
                                         )
                                           ? 'checked="checked" '

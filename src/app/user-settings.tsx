@@ -30,7 +30,7 @@ export default function userSettings(
         // console.log(installation);
 
         const u = await mongoStores.users.findByKey(user.authInfo.id);
-        if (!u || !u.installationId) {
+        if (!u?.installationId) {
           res.redirect('/app');
           return;
         }
@@ -56,8 +56,8 @@ export default function userSettings(
           .getUserInstallation({
             username: user.authInfo.login,
           })
-          .catch((error) => {
-            return { status: error.status, data: undefined };
+          .catch((error: unknown) => {
+            return { status: (error as any).status, data: undefined };
           });
 
         if (!installation) {

@@ -36,7 +36,7 @@ async function checksAndStatusesSlackMessageAddOrUpdate<
 ): Promise<void> {
   if (!repoContext.slack) return;
 
-  const type = 'pr-checksAndStatuses' as const;
+  const type = 'pr-checksAndStatuses';
 
   if (previousSha) {
     const previousShaTypeId = `${repoContext.repoEmbed.id}_${pullRequest.id}_${previousSha}`;
@@ -127,6 +127,8 @@ async function checksAndStatusesSlackMessageAddOrUpdate<
       // When a new commit is pushed, the sha changes.
       break;
     }
+
+    // no default
   }
 }
 

@@ -169,8 +169,9 @@ export const createSlackHomeWorker = (
         {
           type: 'context',
           elements: [
-            ...(pr.assignees && pr.assignees.length > 0
-              ? pr.assignees.flatMap(
+            ...(() => {
+              if (pr.assignees && pr.assignees.length > 0) {
+                return pr.assignees.flatMap(
                   (assignee) =>
                     [
                       {
@@ -183,9 +184,10 @@ export const createSlackHomeWorker = (
                         text: assignee.login,
                       },
                     ] as const,
-                )
-              : pr.creator
-              ? ([
+                );
+              }
+              if (pr.creator) {
+                return [
                   {
                     type: 'image',
                     image_url: pr.creator.avatar_url,
@@ -195,8 +197,10 @@ export const createSlackHomeWorker = (
                     type: 'mrkdwn',
                     text: pr.creator.login,
                   },
-                ] as const)
-              : []),
+                ] as const;
+              }
+              return [];
+            })(),
 
             ...(changesInformation
               ? ([
@@ -377,7 +381,7 @@ export const createSlackHomeWorker = (
           blocks,
         },
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         log.error('Error updating home', {
           error,
           memberLogin: member.user.login,

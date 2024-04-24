@@ -54,7 +54,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
       shouldUpdateChecks && getReviewersWithState(context, pullRequest),
     ]);
 
-    const calcStateLabels = async (): Promise<LabelToSync[]> => {
+    const calcStateLabels = (): LabelToSync[] => {
       if (!checksAndStatuses) return [];
       const { state } = getFailedOrWaitingChecksAndStatuses(
         checksAndStatuses,
@@ -140,7 +140,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
         },
       },
 
-      ...(shouldUpdateChecks ? await calcStateLabels() : []),
+      ...(shouldUpdateChecks ? calcStateLabels() : []),
     ]);
 
     // update checks and reviews after labels update.

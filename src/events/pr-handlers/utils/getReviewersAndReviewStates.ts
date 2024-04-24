@@ -68,6 +68,7 @@ export const getReviewersAndReviewStates = async <
         reviewStates.dismissed++;
         break;
       case undefined:
+      default:
         break;
     }
   });

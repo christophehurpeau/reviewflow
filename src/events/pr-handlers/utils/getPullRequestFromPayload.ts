@@ -43,7 +43,8 @@ export const getPullRequestFromPayload = <
     throw new ExpectedError('No pull_request or issue found');
   }
 
-  if (issue?.pull_request) {
+  if (issue.pull_request) {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     return {
       ...issue,
       ...issue.pull_request,

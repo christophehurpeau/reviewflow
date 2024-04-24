@@ -156,9 +156,7 @@ export default function readyForReview(
                 if (result) {
                   await appContext.mongoStores.slackSentMessages.insertOne({
                     type: 'review-requested',
-                    typeId: `${pullRequest.id}_${`${requestedTeam.id}_`}${
-                      potentialReviewer.id
-                    }`,
+                    typeId: `${pullRequest.id}_${requestedTeam.id}_${potentialReviewer.id}`,
                     message,
                     account: repoContext.accountEmbed,
                     sentTo: [result],

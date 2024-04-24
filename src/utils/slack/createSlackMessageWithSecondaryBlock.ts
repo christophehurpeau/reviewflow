@@ -16,10 +16,11 @@ export const createSlackMessageWithSecondaryBlock = (
   return {
     text: message,
     blocks: [createMrkdwnSectionBlock(message)],
-    secondaryBlocks: !secondaryBlockTextOrBlocks
-      ? undefined
-      : Array.isArray(secondaryBlockTextOrBlocks)
-      ? secondaryBlockTextOrBlocks
-      : [createMrkdwnSectionBlock(secondaryBlockTextOrBlocks)],
+    secondaryBlocks: (() => {
+      if (!secondaryBlockTextOrBlocks) return undefined;
+      return Array.isArray(secondaryBlockTextOrBlocks)
+        ? secondaryBlockTextOrBlocks
+        : [createMrkdwnSectionBlock(secondaryBlockTextOrBlocks)];
+    })(),
   };
 };

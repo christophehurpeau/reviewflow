@@ -251,7 +251,10 @@ export const updateStatusCheckFromStepsState = <
           ...(pullRequest.requested_reviewers || []),
           ...(pullRequest.requested_teams || []),
         ]
-          .map((rr) => (!rr ? undefined : 'name' in rr ? rr.name : rr.login))
+          .map((rr) => {
+            if (!rr) return undefined;
+            return 'name' in rr ? rr.name : rr.login;
+          })
           .filter(ExcludesFalsy)
           .join(', ')}`,
       );

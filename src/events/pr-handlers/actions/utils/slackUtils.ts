@@ -112,7 +112,7 @@ const internalUpdateSlackSentMessages = async (
         partialMessageKeys[0] === 'text' &&
         partialMessage.text === sentMessage.message.text
       ) {
-        return;
+        return undefined;
       }
       return Promise.all(
         sentMessage.sentTo.map(

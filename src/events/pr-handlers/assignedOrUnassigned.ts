@@ -58,19 +58,18 @@ export default function assignedOrUnassignedHandler(
               ? []
               : [pullRequest.user]),
           ].map((assigneeOrOwner) => {
-            if (assigneeOrOwner.id === sender.id) return;
+            if (assigneeOrOwner.id === sender.id) return undefined;
             return repoContext.slack.postMessage('pr-review', assigneeOrOwner, {
               text: `${
                 isUnassigned ? ':man-gesturing-no:' : ':man-raising-hand:'
               } ${repoContext.slack.mention(sender.login)} ${
                 isUnassigned ? 'unassigned' : 'assigned'
-              } ${
-                sender.login === newlyAssigned.login
-                  ? 'himself'
-                  : newlyAssigned.id === assigneeOrOwner.id
+              } ${(() => {
+                if (sender.login === newlyAssigned.login) return 'himself';
+                return newlyAssigned.id === assigneeOrOwner.id
                   ? 'you'
-                  : repoContext.slack.mention(newlyAssigned.login)
-              } on ${slackUtils.createPrLink(pullRequest, repoContext)}`,
+                  : repoContext.slack.mention(newlyAssigned.login);
+              })()} on ${slackUtils.createPrLink(pullRequest, repoContext)}`,
             });
           }),
         );

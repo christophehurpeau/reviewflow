@@ -145,14 +145,14 @@ export default function closed(app: Probot, appContext: AppContext): void {
       }
 
       assigneesNotOwner.map((assignee) => {
-        if (context.payload.sender.id === assignee.id) return;
+        if (context.payload.sender.id === assignee.id) return undefined;
         return repoContext.slack.postMessage('pr-lifecycle', assignee, {
           text: createMessage({ isAssigned: true }),
         });
       });
 
       followers.map((follower) => {
-        if (context.payload.sender.id === follower.id) return;
+        if (context.payload.sender.id === follower.id) return undefined;
         return repoContext.slack.postMessage('pr-lifecycle-follow', follower, {
           text: createMessage({}),
         });

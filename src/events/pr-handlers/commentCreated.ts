@@ -183,11 +183,10 @@ export default function prCommentCreated(
       const ownerMention = repoContext.slack.mention(prUser.login);
       const commentLink = slackUtils.createLink(
         comment.html_url,
-        (comment as any).in_reply_to_id
-          ? 'replied'
-          : isReviewComment
-          ? 'reviewed'
-          : 'commented',
+        (() => {
+          if ((comment as any).in_reply_to_id) return 'replied';
+          return isReviewComment ? 'reviewed' : 'commented';
+        })(),
       );
       const commentLinkPathText = slackUtils.createLink(
         comment.html_url,

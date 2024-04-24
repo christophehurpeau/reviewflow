@@ -189,7 +189,7 @@ async function initRepoContext<
 
     if (res) {
       if (
-        !res.settings?.lastUpdated ||
+        !res.settings.lastUpdated ||
         isSettingsLastUpdatedExpired(res.settings)
       ) {
         const repoSettingsResult = await getRepositorySettings(context);
@@ -244,6 +244,7 @@ async function initRepoContext<
     };
 
   const [repoLabels, repository, repositoryMergeQueue] = await Promise.all([
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     shouldIgnore ? ({} as LabelsRecord) : initRepoLabels(context, config),
     findOrCreateRepository(),
     findOrCreateRepositoryMergeQueue(),
@@ -393,6 +394,7 @@ async function initRepoContext<
     pr: PullRequestDataMinimumData,
     time: RescheduleTime,
     user?: BasicUser,
+    // eslint-disable-next-line @typescript-eslint/require-await
   ): Promise<void> => {
     if (!pr) throw new Error('Cannot reschedule undefined');
     if (repoContext.config.disableAutoMerge) return;

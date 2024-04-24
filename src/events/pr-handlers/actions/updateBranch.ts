@@ -22,7 +22,7 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
       head: pullRequest.base.ref,
       base: pullRequest.head.ref,
     })
-    .catch((error) => ({ error } as any));
+    .catch((error: unknown) => ({ error } as any));
 
   context.log.info(
     {
@@ -53,7 +53,7 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
       }),
     );
     return false;
-  } else if (!result || !result.data || !result.data.sha) {
+  } else if (!result?.data?.sha) {
     context.octokit.issues.createComment(
       context.repo({
         issue_number: pullRequest.number,

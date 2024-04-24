@@ -28,7 +28,7 @@ export function getOwnersFromPullRequest(
     assigneesNotOwner: pr.assignees
       ? pr.assignees.filter((u) => u.id !== pr.user.id)
       : [],
-  } as PullRequestOwners;
+  } satisfies PullRequestOwners;
 }
 
 export function getRolesFromPullRequestAndReviewers(

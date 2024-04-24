@@ -72,7 +72,7 @@ export default function repository(
           return;
         }
 
-        if (!data.permissions || !data.permissions.admin) {
+        if (!data.permissions?.admin) {
           res.status(401).send(
             renderToStaticMarkup(
               <Layout>
@@ -91,8 +91,8 @@ export default function repository(
             owner: req.params.owner,
             repo: req.params.repository,
           })
-          .catch((error) => {
-            return { status: error.status, data: undefined };
+          .catch((error: unknown) => {
+            return { status: (error as any).status, data: undefined };
           });
 
         if (!data2) {
