@@ -38,6 +38,7 @@ export const createSlackHomeWorker = (
       prsInDraft,
       openedPrsWaitingForReview,
     ] = await Promise.all([
+      //prsWithRequestedReviewsFromGithub
       octokit.search
         .issuesAndPullRequests({
           q: `is:pr user:${member.org.login} is:open review-requested:${member.user.login} draft:false`,
@@ -47,6 +48,7 @@ export const createSlackHomeWorker = (
         .catch((error: unknown) => {
           log.error('Error searching PRs', { error });
         }),
+      //prsWithRequestedReviewsFromMongo
       mongoStores.prs.findAll(
         {
           'account.id': member.org.id,
@@ -57,6 +59,7 @@ export const createSlackHomeWorker = (
         // TODO sort by time since asked for review ASC
         { 'flowDates.opened': -1, created: -1 },
       ),
+      //prsToMerge
       mongoStores.prs.findAll(
         {
           'account.id': member.org.id,
@@ -68,14 +71,17 @@ export const createSlackHomeWorker = (
         },
         { created: -1 },
       ),
+      //prsWithRequestedChanges
       mongoStores.prs.findAll(
         {
           'account.id': member.org.id,
           'assignees.id': member.user.id,
+          isClosed: false,
           'reviews.changesRequested': { $exists: true, $ne: [] },
         },
         { created: -1 },
       ),
+      //prsInDraft
       mongoStores.prs.findAll(
         {
           'account.id': member.org.id,
@@ -85,6 +91,7 @@ export const createSlackHomeWorker = (
         },
         { created: -1 },
       ),
+      //openedPrsWaitingForReview
       mongoStores.prs.findAll(
         {
           'account.id': member.org.id,
