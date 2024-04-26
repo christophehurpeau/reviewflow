@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.13.1](https://github.com/christophehurpeau/reviewflow/compare/v3.13.0...v3.13.1) (2024-04-26)
+
+
+### Bug Fixes
+
+* filter closed prs with requested changes diplayed in slack home ([0ca7b67](https://github.com/christophehurpeau/reviewflow/commit/0ca7b67cc5f31b4681924967bd64e8adb8c7b885))
+
+
 ## [3.13.0](https://github.com/christophehurpeau/reviewflow/compare/v3.12.0...v3.13.0) (2024-04-24)
 
 
