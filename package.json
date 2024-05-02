@@ -8,7 +8,7 @@
   "repository": "https://github.com/christophehurpeau/reviewflow.git",
   "homepage": "https://github.com/christophehurpeau/reviewflow",
   "type": "module",
-  "packageManager": "yarn@4.1.1",
+  "packageManager": "yarn@4.2.0",
   "engines": {
     "node": ">=20.9.0"
   },
