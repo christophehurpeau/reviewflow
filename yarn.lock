@@ -1024,12 +1024,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pob/commitlint-config@npm:6.3.1":
-  version: 6.3.1
-  resolution: "@pob/commitlint-config@npm:6.3.1"
+"@pob/commitlint-config@npm:6.3.3":
+  version: 6.3.3
+  resolution: "@pob/commitlint-config@npm:6.3.3"
   dependencies:
     "@commitlint/config-conventional": "npm:^18.0.0"
-  checksum: 10/14dfcd40d81e7c3700a7082f8f04690e5469e4ef9ae51c99b717a114735f151dfa94135f82d66c2f51851d1fef9fcac517c53e1da0fc16f80a72f4b16cd99a37
+  checksum: 10/41fae33cd6fa77bc2494b1245ea1e5b3f26c2e131ae83ffa3c3b9b9b965621e21d2a9521401339edd28e7f0ff72746833d4a96c0ff67f4a0faf22151dcf22f06
   languageName: node
   linkType: hard
 
@@ -7854,7 +7854,7 @@ __metadata:
     "@octokit/core": "npm:5.0.2"
     "@octokit/rest": "npm:20.0.2"
     "@octokit/webhooks": "npm:12.0.10"
-    "@pob/commitlint-config": "npm:6.3.1"
+    "@pob/commitlint-config": "npm:6.3.3"
     "@pob/eslint-config": "npm:55.2.1"
     "@pob/eslint-config-typescript": "npm:55.2.1"
     "@pob/eslint-config-typescript-react": "npm:55.2.1"
