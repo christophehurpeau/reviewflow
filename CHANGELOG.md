@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.14.0](https://github.com/christophehurpeau/reviewflow/compare/v3.13.1...v3.14.0) (2024-05-22)
+
+
+### Features
+
+* clean title with scope ([d29bb44](https://github.com/christophehurpeau/reviewflow/commit/d29bb44b501a46383988f90ce67884625d1685e6))
+* **deps:** update react monorepo to v18.3.0 ([#962](https://github.com/christophehurpeau/reviewflow/issues/962)) ([c967b1d](https://github.com/christophehurpeau/reviewflow/commit/c967b1d5146c2ccb67b543d9a99a4b9e54000b0b))
+
+
 ## [3.13.1](https://github.com/christophehurpeau/reviewflow/compare/v3.13.0...v3.13.1) (2024-04-26)
 
 
