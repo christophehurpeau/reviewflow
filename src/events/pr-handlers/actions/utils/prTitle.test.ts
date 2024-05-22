@@ -45,6 +45,12 @@ describe('cleanTitle', () => {
     expect(cleanTitle('Feat/add something', true)).toBe('feat: add something');
   });
 
+  it('should clean slash with scope', () => {
+    expect(cleanTitle('Feat/scope/add something', true)).toBe(
+      'feat(scope): add something',
+    );
+  });
+
   it('should clean ;', () => {
     expect(cleanTitle('feat;add something', true)).toBe('feat: add something');
   });
