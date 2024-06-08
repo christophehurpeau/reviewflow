@@ -7564,25 +7564,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pino-abstract-transport@npm:v1.1.0":
-  version: 1.1.0
-  resolution: "pino-abstract-transport@npm:1.1.0"
+"pino-abstract-transport@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "pino-abstract-transport@npm:1.2.0"
   dependencies:
     readable-stream: "npm:^4.0.0"
     split2: "npm:^4.0.0"
-  checksum: 10c0/6e9b9d5a2c0a37f91ecaf224d335daae1ae682b1c79a05b06ef9e0f0a5d289f8e597992217efc857796dae6f1067e9b4882f95c6228ff433ddc153532cae8aca
+  checksum: 10c0/b4ab59529b7a91f488440147fc58ee0827a6c1c5ca3627292339354b1381072c1a6bfa9b46d03ad27872589e8477ecf74da12cf286e1e6b665ac64a3b806bf07
   languageName: node
   linkType: hard
 
-"pino-http@npm:^9.0.0":
-  version: 9.0.0
-  resolution: "pino-http@npm:9.0.0"
+"pino-http@npm:^10.0.0":
+  version: 10.1.0
+  resolution: "pino-http@npm:10.1.0"
   dependencies:
     get-caller-file: "npm:^2.0.5"
-    pino: "npm:^8.17.1"
-    pino-std-serializers: "npm:^6.2.2"
+    pino: "npm:^9.0.0"
+    pino-std-serializers: "npm:^7.0.0"
     process-warning: "npm:^3.0.0"
-  checksum: 10c0/05496cb76cc9908658e50c4620fbdf7b0b5d99fb529493d601c3e4635b0bf7ce12b8a8eed7b5b520089f643b099233d61dd71f7cdfad8b66e59b9b81d79b6512
+  checksum: 10c0/d97691f2ee248b0aca0e49169d0c7ca0d4c604ee57b63ae264a6f9914fc7277cace74686d5088a876f8152a8d5b8211af904b2d24a516728a662de0e9cc79e9f
   languageName: node
   linkType: hard
 
@@ -7608,31 +7608,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pino-std-serializers@npm:^6.0.0, pino-std-serializers@npm:^6.2.2":
-  version: 6.2.2
-  resolution: "pino-std-serializers@npm:6.2.2"
-  checksum: 10c0/8f1c7f0f0d8f91e6c6b5b2a6bfb48f06441abeb85f1c2288319f736f9c6d814fbeebe928d2314efc2ba6018fa7db9357a105eca9fc99fc1f28945a8a8b28d3d5
+"pino-std-serializers@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "pino-std-serializers@npm:7.0.0"
+  checksum: 10c0/73e694d542e8de94445a03a98396cf383306de41fd75ecc07085d57ed7a57896198508a0dec6eefad8d701044af21eb27253ccc352586a03cf0d4a0bd25b4133
   languageName: node
   linkType: hard
 
-"pino@npm:^8.16.1, pino@npm:^8.17.1":
-  version: 8.18.0
-  resolution: "pino@npm:8.18.0"
+"pino@npm:^9.0.0":
+  version: 9.1.0
+  resolution: "pino@npm:9.1.0"
   dependencies:
     atomic-sleep: "npm:^1.0.0"
     fast-redact: "npm:^3.1.1"
     on-exit-leak-free: "npm:^2.1.0"
-    pino-abstract-transport: "npm:v1.1.0"
-    pino-std-serializers: "npm:^6.0.0"
+    pino-abstract-transport: "npm:^1.2.0"
+    pino-std-serializers: "npm:^7.0.0"
     process-warning: "npm:^3.0.0"
     quick-format-unescaped: "npm:^4.0.3"
     real-require: "npm:^0.2.0"
     safe-stable-stringify: "npm:^2.3.1"
-    sonic-boom: "npm:^3.7.0"
-    thread-stream: "npm:^2.0.0"
+    sonic-boom: "npm:^4.0.1"
+    thread-stream: "npm:^3.0.0"
   bin:
     pino: bin.js
-  checksum: 10c0/ca73bb31e4656954413b89f48c486b1680fec0c6bb12d4d796c5ccf8eca40f3ee12c9532a0fa61284ed9a800c14eaa0f496f520057ef70cdee0447114813e8eb
+  checksum: 10c0/d060530ae2e4e8f21d04bb0f44f009f94d207d7f4337f508f618416514214ddaf1b29f8c5c265153a19ce3b6480b451461f40020f916ace9d53a5aa07624b79c
   languageName: node
   linkType: hard
 
@@ -7716,9 +7716,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"probot@npm:13.2.0":
-  version: 13.2.0
-  resolution: "probot@npm:13.2.0"
+"probot@npm:13.3.0":
+  version: 13.3.0
+  resolution: "probot@npm:13.3.0"
   dependencies:
     "@octokit/core": "npm:^5.0.2"
     "@octokit/plugin-enterprise-compatibility": "npm:^4.0.1"
@@ -7743,14 +7743,14 @@ __metadata:
     js-yaml: "npm:^4.1.0"
     lru-cache: "npm:^10.0.3"
     octokit-auth-probot: "npm:^2.0.0"
-    pino: "npm:^8.16.1"
-    pino-http: "npm:^9.0.0"
+    pino: "npm:^9.0.0"
+    pino-http: "npm:^10.0.0"
     pkg-conf: "npm:^3.1.0"
     resolve: "npm:^1.22.8"
     update-dotenv: "npm:^1.1.1"
   bin:
     probot: bin/probot.js
-  checksum: 10c0/dcec952eec8460f0a33d4ba3d074a39c45ae68ba1599017617a96b008ee2fe699b2dfd6ba3dc79a7c64652fb66316d2a7e2e71eb47e9805fef801703fb722cd4
+  checksum: 10c0/91175f4e8a0763a6d0376ce450429b550613fbd8f3b117dd35f60df28cb053e68fd77ac9a2d7eee53ca05eb6455b46613f99b5ec5f1f730bdcaa2a4be03cea86
   languageName: node
   linkType: hard
 
@@ -8283,7 +8283,7 @@ __metadata:
     liwi-mongo: "npm:12.0.0"
     lock: "npm:1.1.0"
     nock: "npm:14.0.0-beta.7"
-    probot: "npm:13.2.0"
+    probot: "npm:13.3.0"
     react: "npm:18.3.0"
     react-dom: "npm:18.3.0"
     simple-oauth2: "npm:5.0.0"
@@ -8716,12 +8716,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sonic-boom@npm:^3.7.0":
-  version: 3.8.0
-  resolution: "sonic-boom@npm:3.8.0"
+"sonic-boom@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "sonic-boom@npm:4.0.1"
   dependencies:
     atomic-sleep: "npm:^1.0.0"
-  checksum: 10c0/f3f61cb3fd5d4aad862dd957f22318ef85bf47d4f12ba27b915112908449f752dbdfc95a4739d2b4a9b2770e1e08d349adae9d1030fdab2a3d86128c6773a7f4
+  checksum: 10c0/7b467f2bc8af7ff60bf210382f21c59728cc4b769af9b62c31dd88723f5cc472752d2320736cc366acc7c765ddd5bec3072c033b0faf249923f576a7453ba9d3
   languageName: node
   linkType: hard
 
@@ -9102,12 +9102,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"thread-stream@npm:^2.0.0":
-  version: 2.4.1
-  resolution: "thread-stream@npm:2.4.1"
+"thread-stream@npm:^3.0.0":
+  version: 3.0.2
+  resolution: "thread-stream@npm:3.0.2"
   dependencies:
     real-require: "npm:^0.2.0"
-  checksum: 10c0/ce29265810b9550ce896726301ff006ebfe96b90292728f07cfa4c379740585583046e2a8018afc53aca66b18fed12b33a84f3883e7ebc317185f6682898b8f8
+  checksum: 10c0/12b797b38eafdb480ed8931b288c0ad1833a7d2d18b5aeba955ffbe054c53681f19b46b299f2c24d86fd52f786850586d864a4bb025d22155c273c9e5296a1ed
   languageName: node
   linkType: hard
 
