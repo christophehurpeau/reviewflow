@@ -1,6 +1,6 @@
-import type { StatusInfo } from '../../../../accountConfigs/types';
-import type { EventsWithRepository } from '../../../../context/repoContext';
-import type { ProbotEvent } from '../../../probot-types';
+import type { StatusInfo } from "../../../../accountConfigs/types";
+import type { EventsWithRepository } from "../../../../context/repoContext";
+import type { ProbotEvent } from "../../../probot-types";
 
 export default async function createStatus<
   EventName extends EventsWithRepository,
@@ -12,14 +12,14 @@ export default async function createStatus<
 ): Promise<void> {
   let description = status.title;
   if (description.length > 140) {
-    context.log.warn('description too long', { description });
+    context.log.warn("description too long", { description });
     description = description.slice(0, 140);
   }
 
   await context.octokit.repos.createCommitStatus(
     context.repo({
       context:
-        name === ''
+        name === ""
           ? process.env.REVIEWFLOW_NAME
           : `${process.env.REVIEWFLOW_NAME}/${name}`,
       sha,

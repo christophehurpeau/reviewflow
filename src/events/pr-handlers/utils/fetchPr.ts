@@ -1,9 +1,9 @@
-import type { RestEndpointMethodTypes } from '@octokit/rest';
-import type { EmitterWebhookEventName } from '@octokit/webhooks';
-import type { ProbotEvent } from '../../probot-types';
+import type { RestEndpointMethodTypes } from "@octokit/rest";
+import type { EmitterWebhookEventName } from "@octokit/webhooks";
+import type { ProbotEvent } from "../../probot-types";
 
 export type PullRequestFromRestEndpoint =
-  RestEndpointMethodTypes['pulls']['get']['response']['data'];
+  RestEndpointMethodTypes["pulls"]["get"]["response"]["data"];
 
 export const fetchPr = async <T extends EmitterWebhookEventName>(
   context: ProbotEvent<T>,

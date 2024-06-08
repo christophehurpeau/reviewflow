@@ -1,21 +1,21 @@
-import type { RestEndpointMethodTypes } from '@octokit/rest';
-import type { EmitterWebhookEventName } from '@octokit/webhooks';
-import type { PullRequestData } from '../../../events/pr-handlers/utils/PullRequestData';
-import type { ProbotEvent } from '../../../events/probot-types';
+import type { RestEndpointMethodTypes } from "@octokit/rest";
+import type { EmitterWebhookEventName } from "@octokit/webhooks";
+import type { PullRequestData } from "../../../events/pr-handlers/utils/PullRequestData";
+import type { ProbotEvent } from "../../../events/probot-types";
 
 export interface ChecksAndStatuses {
   checksConclusionRecord: Record<
     string,
     Pick<
-      RestEndpointMethodTypes['checks']['listForRef']['response']['data']['check_runs'][number],
-      'conclusion' | 'name'
+      RestEndpointMethodTypes["checks"]["listForRef"]["response"]["data"]["check_runs"][number],
+      "conclusion" | "name"
     >
   >;
   statusesConclusionRecord: Record<
     string,
     Pick<
-      RestEndpointMethodTypes['repos']['getCombinedStatusForRef']['response']['data']['statuses'][number],
-      'context' | 'state'
+      RestEndpointMethodTypes["repos"]["getCombinedStatusForRef"]["response"]["data"]["statuses"][number],
+      "context" | "state"
     >
   >;
 }
@@ -46,7 +46,7 @@ export const getChecksAndStatusesForPullRequest = async <
       .filter((checkRun) => checkRun.name !== process.env.REVIEWFLOW_NAME)
       .map((checkRun) => [
         // check_suite stays the same on rerun failed, but check id changes.
-        `${checkRun.check_suite?.id}_${checkRun.name}`.replace(/[\s.]/g, '_'),
+        `${checkRun.check_suite?.id}_${checkRun.name}`.replace(/[\s.]/g, "_"),
         { name: checkRun.name, conclusion: checkRun.conclusion },
       ]),
   );
@@ -54,7 +54,7 @@ export const getChecksAndStatusesForPullRequest = async <
     combinedStatus.data.statuses
       .filter((status) => status.context !== process.env.REVIEWFLOW_NAME)
       .map((status) => [
-        status.context.replace(/[\s.]/g, '_'),
+        status.context.replace(/[\s.]/g, "_"),
         { context: status.context, state: status.state },
       ]),
   );

@@ -1,16 +1,16 @@
-import type { ReviewLabels } from '../../../accountConfigs/types';
+import type { ReviewLabels } from "../../../accountConfigs/types";
 import type {
   EventsWithRepository,
   RepoContext,
-} from '../../../context/repoContext';
-import type { ProbotEvent } from '../../probot-types';
+} from "../../../context/repoContext";
+import type { ProbotEvent } from "../../probot-types";
 import type {
   PullRequestLabels,
   PullRequestWithDecentData,
-} from '../utils/PullRequestData';
-import type { StepsState } from './utils/steps/calcStepsState';
-import type { LabelToSync } from './utils/syncLabel';
-import { syncLabels } from './utils/syncLabel';
+} from "../utils/PullRequestData";
+import type { StepsState } from "./utils/steps/calcStepsState";
+import type { LabelToSync } from "./utils/syncLabel";
+import { syncLabels } from "./utils/syncLabel";
 
 export const updateReviewStatus = async <
   EventName extends EventsWithRepository,
@@ -50,21 +50,21 @@ export const updateReviewStatus = async <
 
   return syncLabels(pullRequest, context, [
     {
-      label: getLabelFromKey('needsReview'),
+      label: getLabelFromKey("needsReview"),
       shouldHaveLabel: stepsState.codeReview.isMissingReview,
     },
     {
-      label: getLabelFromKey('requested'),
+      label: getLabelFromKey("requested"),
       shouldHaveLabel:
         stepsState.codeReview.hasRequestedReviewers ||
         stepsState.codeReview.hasRequestedTeams,
     },
     {
-      label: getLabelFromKey('changesRequested'),
+      label: getLabelFromKey("changesRequested"),
       shouldHaveLabel: stepsState.codeReview.hasChangesRequested,
     },
     {
-      label: getLabelFromKey('approved'),
+      label: getLabelFromKey("approved"),
       shouldHaveLabel: stepsState.codeReview.isApproved,
     },
     ...teamLabels,

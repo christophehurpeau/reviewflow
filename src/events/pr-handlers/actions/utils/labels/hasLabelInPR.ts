@@ -1,5 +1,5 @@
-import type { LabelResponse } from '../../../../../context/initRepoLabels';
-import type { PullRequestLabels } from '../../../utils/PullRequestData';
+import type { LabelResponse } from "../../../../../context/initRepoLabels";
+import type { PullRequestLabels } from "../../../utils/PullRequestData";
 
 export default function hasLabelInPR(
   prLabels: PullRequestLabels,

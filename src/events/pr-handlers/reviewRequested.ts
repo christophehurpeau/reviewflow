@@ -1,12 +1,12 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import * as slackUtils from '../../slack/utils';
-import { getReviewersWithState } from '../../utils/github/pullRequest/reviews';
-import { updateAfterReviewChange } from './actions/updateAfterReviewChange';
-import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
-import type { PullRequestFromRestEndpoint } from './utils/fetchPr';
-import { fetchPr } from './utils/fetchPr';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import * as slackUtils from "../../slack/utils";
+import { getReviewersWithState } from "../../utils/github/pullRequest/reviews";
+import { updateAfterReviewChange } from "./actions/updateAfterReviewChange";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler";
+import type { PullRequestFromRestEndpoint } from "./utils/fetchPr";
+import { fetchPr } from "./utils/fetchPr";
 
 export default function reviewRequested(
   app: Probot,
@@ -15,7 +15,7 @@ export default function reviewRequested(
   createPullRequestHandler(
     app,
     appContext,
-    'pull_request.review_requested',
+    "pull_request.review_requested",
     (payload) => payload.pull_request,
     async (
       pullRequest,
@@ -78,19 +78,19 @@ export default function reviewRequested(
         const text = `:eyes: ${repoContext.slack.mention(
           sender.login,
         )} requests ${
-          requestedReviewer ? 'your' : `your team _${requestedTeam.name}_`
+          requestedReviewer ? "your" : `your team _${requestedTeam.name}_`
         } review on ${slackUtils.createPrLink(pullRequest, repoContext)}${
           requestedByNameInTeam.length > 0
             ? ` (team members requested by name: ${requestedByNameInTeam.join(
-                ', ',
+                ", ",
               )})`
-            : ''
+            : ""
         }${
           updatedPullRequest
             ? ` · ${slackUtils.createPrChangesInformationFromPullRequestRest(
                 updatedPullRequest,
               )}`
-            : ''
+            : ""
         }\n> ${pullRequest.title}`;
 
         const message = { text };
@@ -107,7 +107,7 @@ export default function reviewRequested(
             }
 
             const result = await repoContext.slack.postMessage(
-              'pr-review',
+              "pr-review",
               potentialReviewer,
               message,
               requestedTeam ? requestedTeam.id : undefined,
@@ -115,9 +115,9 @@ export default function reviewRequested(
 
             if (result) {
               await appContext.mongoStores.slackSentMessages.insertOne({
-                type: 'review-requested',
+                type: "review-requested",
                 typeId: `${pullRequest.id}_${
-                  requestedTeam ? `${requestedTeam.id}_` : ''
+                  requestedTeam ? `${requestedTeam.id}_` : ""
                 }${potentialReviewer.id}`,
                 message,
                 account: repoContext.accountEmbed,

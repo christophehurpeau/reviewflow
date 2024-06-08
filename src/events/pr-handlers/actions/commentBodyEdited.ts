@@ -1,28 +1,28 @@
-import type { AppContext } from '../../../context/AppContext';
+import type { AppContext } from "../../../context/AppContext";
 import type {
   EventsWithRepository,
   RepoContext,
-} from '../../../context/repoContext';
-import { getChecksAndStatusesForPullRequest } from '../../../utils/github/pullRequest/checksAndStatuses';
-import { getReviewersWithState } from '../../../utils/github/pullRequest/reviews';
-import type { ProbotEvent } from '../../probot-types';
-import type { PullRequestFromRestEndpoint } from '../utils/PullRequestData';
-import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
-import { getFailedOrWaitingChecksAndStatuses } from '../utils/getFailedOrWaitingChecksAndStatuses';
-import { groupReviewsWithState } from '../utils/groupReviewsWithState';
-import { editOpenedPR } from './editOpenedPR';
-import { disableGithubAutoMerge } from './enableGithubAutoMerge';
-import { tryToAutomerge } from './tryToAutomerge';
-import { updateBranch } from './updateBranch';
-import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
-import { updateReviewStatus } from './updateReviewStatus';
-import { updateStatusCheckFromStepsState } from './updateStatusCheckFromStepsState';
-import { calcDefaultOptions } from './utils/body/prOptions';
-import { updateCommentOptions } from './utils/body/updateBody';
-import { getStateChecksLabelsToSync } from './utils/labels/getStateChecksLabelsToSync';
-import { calcStepsState } from './utils/steps/calcStepsState';
-import type { LabelToSync } from './utils/syncLabel';
-import { syncLabels, removeLabel } from './utils/syncLabel';
+} from "../../../context/repoContext";
+import { getChecksAndStatusesForPullRequest } from "../../../utils/github/pullRequest/checksAndStatuses";
+import { getReviewersWithState } from "../../../utils/github/pullRequest/reviews";
+import type { ProbotEvent } from "../../probot-types";
+import type { PullRequestFromRestEndpoint } from "../utils/PullRequestData";
+import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
+import { getFailedOrWaitingChecksAndStatuses } from "../utils/getFailedOrWaitingChecksAndStatuses";
+import { groupReviewsWithState } from "../utils/groupReviewsWithState";
+import { editOpenedPR } from "./editOpenedPR";
+import { disableGithubAutoMerge } from "./enableGithubAutoMerge";
+import { tryToAutomerge } from "./tryToAutomerge";
+import { updateBranch } from "./updateBranch";
+import { updatePrCommentBodyIfNeeded } from "./updatePrCommentBody";
+import { updateReviewStatus } from "./updateReviewStatus";
+import { updateStatusCheckFromStepsState } from "./updateStatusCheckFromStepsState";
+import { calcDefaultOptions } from "./utils/body/prOptions";
+import { updateCommentOptions } from "./utils/body/updateBody";
+import { getStateChecksLabelsToSync } from "./utils/labels/getStateChecksLabelsToSync";
+import { calcStepsState } from "./utils/steps/calcStepsState";
+import type { LabelToSync } from "./utils/syncLabel";
+import { syncLabels, removeLabel } from "./utils/syncLabel";
 
 export const commentBodyEdited = async <Name extends EventsWithRepository>(
   pullRequest: PullRequestFromRestEndpoint,
@@ -31,9 +31,9 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
   repoContext: RepoContext,
   reviewflowPrContext: ReviewflowPrContext,
 ): Promise<void> => {
-  const automergeLabel = repoContext.labels['merge/automerge'];
-  const skipCiLabel = repoContext.labels['merge/skip-ci'];
-  const updateBranchLabel = repoContext.labels['merge/update-branch'];
+  const automergeLabel = repoContext.labels["merge/automerge"];
+  const skipCiLabel = repoContext.labels["merge/skip-ci"];
+  const updateBranchLabel = repoContext.labels["merge/update-branch"];
 
   const { commentBody, options, actions } = updateCommentOptions(
     repoContext.settings,
@@ -46,7 +46,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
   await updatePrCommentBodyIfNeeded(context, reviewflowPrContext, commentBody);
 
   if (options) {
-    const shouldUpdateChecks = actions.includes('updateChecks');
+    const shouldUpdateChecks = actions.includes("updateChecks");
 
     const [checksAndStatuses, reviewersWithState] = await Promise.all([
       shouldUpdateChecks &&
@@ -69,7 +69,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
         label: skipCiLabel,
       },
       {
-        shouldHaveLabel: actions.includes('updateBranch') ? true : null,
+        shouldHaveLabel: actions.includes("updateBranch") ? true : null,
         label: updateBranchLabel,
         onAdd: async () => {
           await updateBranch(
@@ -133,7 +133,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
             await repoContext.removePrFromAutomergeQueue(
               context,
               pullRequest,
-              'label removed',
+              "label removed",
             );
             return true;
           }

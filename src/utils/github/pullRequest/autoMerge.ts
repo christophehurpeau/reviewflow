@@ -1,4 +1,4 @@
-import type { Context } from 'probot';
+import type { Context } from "probot";
 
 export interface AutoMergeRequest {
   enabledAt?: string;
@@ -9,7 +9,7 @@ export interface AutoMergeRequest {
 
 export interface EnablePullRequestAutoMergeParams {
   pullRequestId: string;
-  mergeMethod: 'SQUASH';
+  mergeMethod: "SQUASH";
   commitHeadline: string;
   commitBody: string;
 }

@@ -1,4 +1,4 @@
-import type { BaseStepState, CalcStepOptions } from './BaseStepState';
+import type { BaseStepState, CalcStepOptions } from "./BaseStepState";
 
 export interface WriteStepState extends BaseStepState {
   isDraft: boolean;
@@ -13,8 +13,8 @@ export function calcWriteStep<TeamNames extends string>({
 
   return {
     state: (() => {
-      if (isDraft) return 'in-progress';
-      return 'passed';
+      if (isDraft) return "in-progress";
+      return "passed";
     })(),
     isDraft,
     isClosed,

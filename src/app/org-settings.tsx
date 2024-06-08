@@ -1,39 +1,39 @@
-import bodyParser from 'body-parser';
-import type { Router } from 'express';
-import type { ProbotOctokit } from 'probot';
-import { renderToStaticMarkup } from 'react-dom/server';
-import { accountConfigs, defaultConfig } from '../accountConfigs';
-import { getTeams } from '../context/accountContext';
-import type { MessageCategory } from '../dm/MessageCategory';
-import { getUserDmSettings, updateCache } from '../dm/getUserDmSettings';
-import { syncOrg } from '../events/account-handlers/actions/syncOrg';
-import { syncTeamsAndTeamMembers } from '../events/account-handlers/actions/syncTeams';
-import type { MongoStores } from '../mongo';
-import Layout from '../views/Layout';
-import { getUser } from './auth';
+import bodyParser from "body-parser";
+import type { Router } from "express";
+import type { ProbotOctokit } from "probot";
+import { renderToStaticMarkup } from "react-dom/server";
+import { accountConfigs, defaultConfig } from "../accountConfigs";
+import { getTeams } from "../context/accountContext";
+import type { MessageCategory } from "../dm/MessageCategory";
+import { getUserDmSettings, updateCache } from "../dm/getUserDmSettings";
+import { syncOrg } from "../events/account-handlers/actions/syncOrg";
+import { syncTeamsAndTeamMembers } from "../events/account-handlers/actions/syncTeams";
+import type { MongoStores } from "../mongo";
+import Layout from "../views/Layout";
+import { getUser } from "./auth";
 
 const dmMessages: Record<MessageCategory, string> = {
-  'pr-checksAndStatuses': 'Your PR has failed checks or statuses',
-  'pr-lifecycle': 'Your PR is closed, merged, reopened',
-  'pr-lifecycle-follow':
+  "pr-checksAndStatuses": "Your PR has failed checks or statuses",
+  "pr-lifecycle": "Your PR is closed, merged, reopened",
+  "pr-lifecycle-follow":
     "Someone closed, merged, reopened a PR you're reviewing",
-  'pr-review': 'You are assigned to a review, someone reviewed your PR',
-  'pr-review-follow': "Someone reviewed a PR you're also reviewing",
-  'pr-comment': 'Someone commented on your PR',
-  'pr-comment-bots': 'A bot commented on your PR',
-  'pr-comment-follow': "Someone commented on a PR you're reviewing",
-  'pr-comment-follow-bots': "A bot commented on a PR you're reviewing",
-  'pr-comment-mention': 'Someone mentioned you in a PR',
-  'pr-comment-thread': "Someone replied to a discussion you're in",
-  'pr-merge-conflicts': 'Your PR has a merge conflict (not implemented)',
-  'commit-comment': 'Someone commented on your commit',
-  'commit-comment-bots': 'A bot commented on your commit',
-  'commit-comment-follow': 'Someone commented on a commit you also commented',
-  'commit-comment-follow-bots':
-    'A bot commented on a commit you also commented',
-  'commit-comment-mention': 'Someone mentioned you in a commit comment',
-  'issue-comment-mention':
-    'Someone mentioned you in an issue (not implemented)',
+  "pr-review": "You are assigned to a review, someone reviewed your PR",
+  "pr-review-follow": "Someone reviewed a PR you're also reviewing",
+  "pr-comment": "Someone commented on your PR",
+  "pr-comment-bots": "A bot commented on your PR",
+  "pr-comment-follow": "Someone commented on a PR you're reviewing",
+  "pr-comment-follow-bots": "A bot commented on a PR you're reviewing",
+  "pr-comment-mention": "Someone mentioned you in a PR",
+  "pr-comment-thread": "Someone replied to a discussion you're in",
+  "pr-merge-conflicts": "Your PR has a merge conflict (not implemented)",
+  "commit-comment": "Someone commented on your commit",
+  "commit-comment-bots": "A bot commented on your commit",
+  "commit-comment-follow": "Someone commented on a commit you also commented",
+  "commit-comment-follow-bots":
+    "A bot commented on a commit you also commented",
+  "commit-comment-mention": "Someone mentioned you in a commit comment",
+  "issue-comment-mention":
+    "Someone mentioned you in an issue (not implemented)",
 };
 
 export default function orgSettings(
@@ -42,7 +42,7 @@ export default function orgSettings(
   mongoStores: MongoStores,
 ): void {
   router.get(
-    '/org/:org/force-sync',
+    "/org/:org/force-sync",
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     async (req, res, next) => {
       try {
@@ -52,13 +52,13 @@ export default function orgSettings(
         const orgs = await user.api.orgs.listForAuthenticatedUser();
         const org = orgs.data.find((o) => o.login === req.params.org);
         if (!org) {
-          res.redirect('/app');
+          res.redirect("/app");
           return;
         }
 
         const o = await mongoStores.orgs.findByKey(org.id);
         if (!o) {
-          res.redirect('/app');
+          res.redirect("/app");
           return;
         }
 
@@ -73,7 +73,7 @@ export default function orgSettings(
   );
 
   router.get(
-    '/org/:org',
+    "/org/:org",
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     async (req, res, next): Promise<void> => {
       const user = await getUser(req, res);
@@ -86,7 +86,7 @@ export default function orgSettings(
           (o) => o.login === req.params.org,
         );
         if (!org) {
-          res.redirect('/app');
+          res.redirect("/app");
           return;
         }
 
@@ -122,13 +122,13 @@ export default function orgSettings(
             renderToStaticMarkup(
               <Layout>
                 <div>
-                  {process.env.REVIEWFLOW_NAME}{' '}
+                  {process.env.REVIEWFLOW_NAME}{" "}
                   {"isn't installed for this user. Go to "}
                   <a
                     href={`https://github.com/settings/apps/${process.env.REVIEWFLOW_NAME}/installations/new`}
                   >
                     Github Configuration
-                  </a>{' '}
+                  </a>{" "}
                   to install it.
                 </div>
               </Layout>,
@@ -141,8 +141,8 @@ export default function orgSettings(
         const accountOrDefaultConfig = accountConfig || defaultConfig;
         const [orgMember, userDmSettings] = await Promise.all([
           mongoStores.orgMembers.findOne({
-            'org.id': org.id,
-            'user.id': user.authInfo.id,
+            "org.id": org.id,
+            "user.id": user.authInfo.id,
           }),
           getUserDmSettings(mongoStores, org.login, org.id, user.authInfo.id),
         ]);
@@ -154,19 +154,19 @@ export default function orgSettings(
           renderToStaticMarkup(
             <Layout>
               <div>
-                <div style={{ display: 'flex' }}>
+                <div style={{ display: "flex" }}>
                   <h2 style={{ flexGrow: 1 }}>{org.login}</h2>
                   <a href="/app">Switch account</a>
                 </div>
 
-                <div style={{ display: 'flex' }}>
+                <div style={{ display: "flex" }}>
                   <div style={{ flexGrow: 1 }}>
                     <h4>Account Config</h4>
                     {!accountConfig
-                      ? 'Default config is used: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/defaultConfig.ts'
+                      ? "Default config is used: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/defaultConfig.ts"
                       : `Custom config: https://github.com/christophehurpeau/reviewflow/blob/master/src/accountConfigs/${org.login}.ts`}
 
-                    <h4 style={{ marginTop: '1rem' }}>Slack Connection</h4>
+                    <h4 style={{ marginTop: "1rem" }}>Slack Connection</h4>
                     {(() => {
                       if (!slackTeam && !orgInDb.slackToken) {
                         return (
@@ -214,7 +214,7 @@ export default function orgSettings(
                         <div>
                           {!orgInDb.slackToken
                             ? null
-                            : '⚠ This account use a custom slack application.'}
+                            : "⚠ This account use a custom slack application."}
                           <div>
                             Slack Team: {slackTeam?.teamName} (
                             {orgMember.slack.teamId || slackTeam?._id})
@@ -223,22 +223,22 @@ export default function orgSettings(
                         </div>
                       );
                     })()}
-                    <h4 style={{ marginTop: '1rem' }}>User Information</h4>
+                    <h4 style={{ marginTop: "1rem" }}>User Information</h4>
                     {!orgMember ? (
                       <>User not found in database</>
                     ) : (
                       <>
-                        <div>Team Names: {teams.join(', ') || 'No teams'}</div>
+                        <div>Team Names: {teams.join(", ") || "No teams"}</div>
                         <div>
-                          Github Teams:{' '}
+                          Github Teams:{" "}
                           {orgMember.teams
                             .map((githubTeam) => githubTeam.name)
-                            .join(', ') || 'No teams'}
+                            .join(", ") || "No teams"}
                         </div>
                       </>
                     )}
                   </div>
-                  <div style={{ width: '380px' }}>
+                  <div style={{ width: "380px" }}>
                     <h4>My DM Settings</h4>
                     {!orgMember?.slack ? (
                       <>Link your github account to unlock DM Settings</>
@@ -254,7 +254,7 @@ export default function orgSettings(
                                       key as MessageCategory
                                     ]
                                       ? 'checked="checked" '
-                                      : ''
+                                      : ""
                                   }onclick="fetch(location.pathname, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: '${key}', value: event.currentTarget.checked }) })" />`,
                                 }}
                               />
@@ -265,7 +265,7 @@ export default function orgSettings(
 
                         {orgMember.teams.length === 0 ? null : (
                           <>
-                            <h4 style={{ marginTop: '20px' }}>
+                            <h4 style={{ marginTop: "20px" }}>
                               My DM settings - Github Teams
                             </h4>
                             <i>
@@ -285,7 +285,7 @@ export default function orgSettings(
                                           (t) => t.id === team.id,
                                         )
                                           ? 'checked="checked" '
-                                          : ''
+                                          : ""
                                       }onclick="fetch(location.pathname, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ silentTeam: ${JSON.stringify(
                                         team,
                                       )
@@ -318,17 +318,17 @@ export default function orgSettings(
   );
 
   router.patch(
-    '/org/:org',
+    "/org/:org",
     bodyParser.json(),
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     async (req, res, next) => {
       try {
         if (!req.body) {
-          res.status(400).send('not ok');
+          res.status(400).send("not ok");
           return;
         }
         if (!req.body.key && !req.body.silentTeam) {
-          res.status(400).send('not ok');
+          res.status(400).send("not ok");
           return;
         }
 
@@ -338,7 +338,7 @@ export default function orgSettings(
         const orgs = await user.api.orgs.listForAuthenticatedUser();
         const org = orgs.data.find((o) => o.login === req.params.org);
         if (!org) {
-          res.redirect('/app');
+          res.redirect("/app");
           return;
         }
         const $setOnInsert = {
@@ -347,8 +347,8 @@ export default function orgSettings(
           created: new Date(),
         };
 
-        const userDmSettingsCollection = await mongoStores.userDmSettings
-          .collection;
+        const userDmSettingsCollection =
+          await mongoStores.userDmSettings.collection;
         await userDmSettingsCollection.updateOne(
           {
             _id: `${org.id}_${user.authInfo.id}`,
@@ -362,7 +362,7 @@ export default function orgSettings(
                 $setOnInsert,
               }
             : {
-                [req.body.value ? '$push' : '$pull']: {
+                [req.body.value ? "$push" : "$pull"]: {
                   silentTeams: req.body.value
                     ? req.body.silentTeam
                     : { id: req.body.silentTeam.id },
@@ -381,7 +381,7 @@ export default function orgSettings(
           updateCache(org.login, user.authInfo.id, userDmSettingsConfig);
         }
 
-        res.send('ok');
+        res.send("ok");
       } catch (error) {
         next(error);
       }

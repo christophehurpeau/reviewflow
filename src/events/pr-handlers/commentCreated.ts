@@ -1,49 +1,49 @@
-import type { RestEndpointMethodTypes } from '@octokit/rest';
-import delay from 'delay';
-import type { Probot, Context } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import type { AccountInfo } from '../../context/getOrCreateAccount';
-import type { SlackMessage } from '../../context/slack/SlackMessage';
+import type { RestEndpointMethodTypes } from "@octokit/rest";
+import delay from "delay";
+import type { Probot, Context } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import type { AccountInfo } from "../../context/getOrCreateAccount";
+import type { SlackMessage } from "../../context/slack/SlackMessage";
 import type {
   PostSlackMessageResult,
   SlackMessageResult,
-} from '../../context/slack/TeamSlack';
-import type { MessageCategory } from '../../dm/MessageCategory';
-import type { AccountEmbed } from '../../mongo';
-import * as slackUtils from '../../slack/utils';
-import { ExcludesNullish } from '../../utils/Excludes';
+} from "../../context/slack/TeamSlack";
+import type { MessageCategory } from "../../dm/MessageCategory";
+import type { AccountEmbed } from "../../mongo";
+import * as slackUtils from "../../slack/utils";
+import { ExcludesNullish } from "../../utils/Excludes";
 import {
   checkIfUserIsBot,
   checkIfIsThisBot,
-} from '../../utils/github/isBotUser';
-import { parseMentions } from '../../utils/github/parseMentions';
-import { createSlackMessageWithSecondaryBlock } from '../../utils/slack/createSlackMessageWithSecondaryBlock';
-import { slackifyCommentBody } from '../../utils/slackifyCommentBody';
-import type { ProbotEvent } from '../probot-types';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
-import { fetchPr } from './utils/fetchPr';
-import { getPullRequestFromPayload } from './utils/getPullRequestFromPayload';
-import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
-import { getRolesFromPullRequestAndReviewers } from './utils/getRolesFromPullRequestAndReviewers';
+} from "../../utils/github/isBotUser";
+import { parseMentions } from "../../utils/github/parseMentions";
+import { createSlackMessageWithSecondaryBlock } from "../../utils/slack/createSlackMessageWithSecondaryBlock";
+import { slackifyCommentBody } from "../../utils/slackifyCommentBody";
+import type { ProbotEvent } from "../probot-types";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler";
+import { fetchPr } from "./utils/fetchPr";
+import { getPullRequestFromPayload } from "./utils/getPullRequestFromPayload";
+import { getReviewersAndReviewStates } from "./utils/getReviewersAndReviewStates";
+import { getRolesFromPullRequestAndReviewers } from "./utils/getRolesFromPullRequestAndReviewers";
 
 type Comment = ProbotEvent<
-  'issue_comment.created' | 'pull_request_review_comment.created'
->['payload']['comment'];
+  "issue_comment.created" | "pull_request_review_comment.created"
+>["payload"]["comment"];
 
 const getDiscussion = async (
   context: Context,
   comment: Comment,
 ): Promise<
   | Comment[]
-  | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data']
+  | RestEndpointMethodTypes["pulls"]["listReviewComments"]["response"]["data"]
 > => {
-  if (!('in_reply_to_id' in comment) || !comment.in_reply_to_id) {
+  if (!("in_reply_to_id" in comment) || !comment.in_reply_to_id) {
     return [comment];
   }
   return context.octokit.paginate(
     context.octokit.pulls.listReviewComments,
     context.pullRequest({
-      sort: 'created',
+      sort: "created",
     }),
     ({ data }) => {
       return data.filter(
@@ -58,7 +58,7 @@ const getDiscussion = async (
 const getMentions = (
   discussion:
     | Comment[]
-    | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data'],
+    | RestEndpointMethodTypes["pulls"]["listReviewComments"]["response"]["data"],
 ): string[] => {
   const mentions = new Set<string>();
 
@@ -72,7 +72,7 @@ const getMentions = (
 const getUsersInThread = (
   discussion:
     | Comment[]
-    | RestEndpointMethodTypes['pulls']['listReviewComments']['response']['data'],
+    | RestEndpointMethodTypes["pulls"]["listReviewComments"]["response"]["data"],
 ): AccountInfo[] => {
   const userIds = new Set<number>();
   const users: AccountInfo[] = [];
@@ -91,7 +91,7 @@ export default function prCommentCreated(
   appContext: AppContext,
 ): void {
   const saveInDb = async (
-    type: 'issue-comment' | 'review-comment',
+    type: "issue-comment" | "review-comment",
     commentId: number,
     accountEmbed: AccountEmbed,
     results: PostSlackMessageResult[],
@@ -113,10 +113,10 @@ export default function prCommentCreated(
     app,
     appContext,
     [
-      'pull_request_review_comment.created',
+      "pull_request_review_comment.created",
       // comments without review and without path are sent with issue_comment.created.
       // createHandlerPullRequestChange checks if pull_request event is present, removing real issues comments.
-      'issue_comment.created',
+      "issue_comment.created",
     ],
     (payload, context) => {
       if (checkIfIsThisBot(payload.comment.user)) {
@@ -138,7 +138,7 @@ export default function prCommentCreated(
       const isReviewComment =
         !!(comment as any).pull_request_review_id &&
         !(comment as any).in_reply_to_id;
-      const type = isReviewComment ? 'review-comment' : 'issue-comment';
+      const type = isReviewComment ? "review-comment" : "issue-comment";
 
       const body = comment.body;
       if (!body) return;
@@ -149,9 +149,9 @@ export default function prCommentCreated(
           getReviewersAndReviewStates(context),
           (comment as any).pull_request_review_id
             ? appContext.mongoStores.slackSentMessages.findAll({
-                'account.id': repoContext.accountEmbed.id,
-                'account.type': repoContext.accountEmbed.type,
-                type: 'review-submitted',
+                "account.id": repoContext.accountEmbed.id,
+                "account.type": repoContext.accountEmbed.type,
+                type: "review-submitted",
                 typeId: (comment as any).pull_request_review_id,
               } as const)
             : null,
@@ -184,8 +184,8 @@ export default function prCommentCreated(
       const commentLink = slackUtils.createLink(
         comment.html_url,
         (() => {
-          if ((comment as any).in_reply_to_id) return 'replied';
-          return isReviewComment ? 'reviewed' : 'commented';
+          if ((comment as any).in_reply_to_id) return "replied";
+          return isReviewComment ? "reviewed" : "commented";
         })(),
       );
       const commentLinkPathText = slackUtils.createLink(
@@ -198,8 +198,8 @@ export default function prCommentCreated(
         isAssignedTo?: boolean,
       ): string => {
         const ownerPart = toOwner
-          ? 'your PR'
-          : `${ownerMention}'s PR${isAssignedTo ? " you're assigned to" : ''}`;
+          ? "your PR"
+          : `${ownerMention}'s PR${isAssignedTo ? " you're assigned to" : ""}`;
         return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
       };
 
@@ -293,7 +293,7 @@ export default function prCommentCreated(
             .filter((a) => a.id === owner.id)
             .map((owner) =>
               postMessageInReviewThreadOrNewMessage(
-                isBotUser ? 'pr-comment-bots' : 'pr-comment',
+                isBotUser ? "pr-comment-bots" : "pr-comment",
                 owner,
                 ownerSlackMessage,
                 threadMessage,
@@ -313,7 +313,7 @@ export default function prCommentCreated(
             .filter((a) => a.id !== owner.id)
             .map((assignee) =>
               postMessageInReviewThreadOrNewMessage(
-                isBotUser ? 'pr-comment-bots' : 'pr-comment',
+                isBotUser ? "pr-comment-bots" : "pr-comment",
                 assignee,
                 assignedToSlackMessage,
                 threadMessage,
@@ -331,7 +331,7 @@ export default function prCommentCreated(
         Promise.all([
           ...followers.map((follower) =>
             postMessageInReviewThreadOrNewMessage(
-              isBotUser ? 'pr-comment-follow-bots' : 'pr-comment-follow',
+              isBotUser ? "pr-comment-follow-bots" : "pr-comment-follow",
               follower,
               notOwnerSlackMessage,
               threadMessage,
@@ -339,7 +339,7 @@ export default function prCommentCreated(
           ),
           ...usersInThread.map((user) =>
             postMessageInReviewThreadOrNewMessage(
-              'pr-comment-thread',
+              "pr-comment-thread",
               user,
               notOwnerSlackMessage,
               threadMessage,
@@ -347,7 +347,7 @@ export default function prCommentCreated(
           ),
           ...mentioned.map((u) =>
             postMessageInReviewThreadOrNewMessage(
-              'pr-comment-mention',
+              "pr-comment-mention",
               { id: u._id, login: u.login, type: u.type },
               notOwnerSlackMessage,
               threadMessage,

@@ -1,13 +1,13 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import * as slackUtils from '../../slack/utils';
-import { checkIfIsThisBot } from '../../utils/github/isBotUser';
-import { getReviewersWithState } from '../../utils/github/pullRequest/reviews';
-import { autoApproveAndAutoMerge } from './actions/autoApproveAndAutoMerge';
-import { updateAfterReviewChange } from './actions/updateAfterReviewChange';
-import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
-import { fetchPr } from './utils/fetchPr';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import * as slackUtils from "../../slack/utils";
+import { checkIfIsThisBot } from "../../utils/github/isBotUser";
+import { getReviewersWithState } from "../../utils/github/pullRequest/reviews";
+import { autoApproveAndAutoMerge } from "./actions/autoApproveAndAutoMerge";
+import { updateAfterReviewChange } from "./actions/updateAfterReviewChange";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler";
+import { fetchPr } from "./utils/fetchPr";
 
 export default function reviewDismissed(
   app: Probot,
@@ -16,7 +16,7 @@ export default function reviewDismissed(
   createPullRequestHandler(
     app,
     appContext,
-    'pull_request_review.dismissed',
+    "pull_request_review.dismissed",
     (payload) => payload.pull_request,
     async (
       pullRequest,
@@ -67,7 +67,7 @@ export default function reviewDismissed(
 
         if (sender.login === reviewer.login) {
           pullRequest.assignees.forEach((assignee) => {
-            repoContext.slack.postMessage('pr-review', assignee, {
+            repoContext.slack.postMessage("pr-review", assignee, {
               text: `:recycle: ${repoContext.slack.mention(
                 reviewer.login,
               )} dismissed his review on ${slackUtils.createPrLink(
@@ -77,7 +77,7 @@ export default function reviewDismissed(
             });
           });
         } else {
-          repoContext.slack.postMessage('pr-review', reviewer, {
+          repoContext.slack.postMessage("pr-review", reviewer, {
             text: `:recycle: ${repoContext.slack.mention(
               sender.login,
             )} dismissed your review on ${slackUtils.createPrLink(

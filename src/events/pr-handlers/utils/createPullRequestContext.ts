@@ -1,27 +1,27 @@
-import type { MongoInsertType } from 'liwi-mongo';
+import type { MongoInsertType } from "liwi-mongo";
 import type {
   EventsWithRepository,
   RepoContext,
-} from '../../../context/repoContext';
-import type { ReviewflowPr } from '../../../mongo';
-import { getReviewersWithState } from '../../../utils/github/pullRequest/reviews';
-import type { ProbotEvent } from '../../probot-types';
-import { defaultCommentBody } from '../actions/utils/body/updateBody';
+} from "../../../context/repoContext";
+import type { ReviewflowPr } from "../../../mongo";
+import { getReviewersWithState } from "../../../utils/github/pullRequest/reviews";
+import type { ProbotEvent } from "../../probot-types";
+import { defaultCommentBody } from "../actions/utils/body/updateBody";
 import type {
   PullRequestDataMinimumData,
   PullRequestWithDecentData,
-} from './PullRequestData';
-import { toBasicUser } from './PullRequestData';
-import { fetchPr } from './fetchPr';
+} from "./PullRequestData";
+import { toBasicUser } from "./PullRequestData";
+import { fetchPr } from "./fetchPr";
 import {
   createEmptyReviews,
   groupReviewsWithState,
-} from './groupReviewsWithState';
+} from "./groupReviewsWithState";
 import {
   createReviewflowComment,
   findReviewflowComment,
   getReviewflowCommentById,
-} from './reviewflowComment';
+} from "./reviewflowComment";
 
 export interface CreatePrContextOptions {
   reviewflowCommentPromise?: ReturnType<typeof createReviewflowComment>;
@@ -51,16 +51,16 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
       repo: repoContext.repoEmbed,
       pr: prEmbed,
       commentId: comment.id,
-      title: 'title' in pullRequest ? pullRequest.title : 'Unknown Title',
-      isClosed: 'closed_at' in pullRequest ? !!pullRequest.closed_at : false,
-      isDraft: 'draft' in pullRequest && pullRequest.draft === true,
+      title: "title" in pullRequest ? pullRequest.title : "Unknown Title",
+      isClosed: "closed_at" in pullRequest ? !!pullRequest.closed_at : false,
+      isDraft: "draft" in pullRequest && pullRequest.draft === true,
       reviews: createEmptyReviews(),
       assignees:
-        'assignees' in pullRequest && pullRequest.assignees
+        "assignees" in pullRequest && pullRequest.assignees
           ? pullRequest.assignees.map(toBasicUser)
           : [],
       flowDates:
-        'created_at' in pullRequest
+        "created_at" in pullRequest
           ? {
               createdAt: new Date(pullRequest.created_at),
               openedAt: new Date(pullRequest.created_at),
@@ -77,9 +77,9 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
   }
 
   const existing = await appContext.mongoStores.prs.findOne({
-    'account.id': repoContext.accountEmbed.id,
-    'repo.id': repoContext.repoEmbed.id,
-    'pr.number': prEmbed.number,
+    "account.id": repoContext.accountEmbed.id,
+    "repo.id": repoContext.repoEmbed.id,
+    "pr.number": prEmbed.number,
   });
 
   const [comment, reviewersWithState] = existing
@@ -94,7 +94,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
         findReviewflowComment(pullRequest.number, context),
         getReviewersWithState(
           context,
-          'assignees' in pullRequest
+          "assignees" in pullRequest
             ? pullRequest
             : await fetchPr(context, pullRequest.number),
         ),
@@ -106,11 +106,11 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
     account: repoContext.accountEmbed,
     repo: repoContext.repoEmbed,
     pr: prEmbed,
-    title: 'title' in pullRequest ? pullRequest.title : 'Unknown Title',
-    isClosed: 'closed_at' in pullRequest ? !!pullRequest.closed_at : false,
-    isDraft: 'draft' in pullRequest && pullRequest.draft === true,
+    title: "title" in pullRequest ? pullRequest.title : "Unknown Title",
+    isClosed: "closed_at" in pullRequest ? !!pullRequest.closed_at : false,
+    isDraft: "draft" in pullRequest && pullRequest.draft === true,
     changesInformation:
-      'changed_files' in pullRequest
+      "changed_files" in pullRequest
         ? {
             changedFiles: pullRequest.changed_files,
             additions: pullRequest.additions,
@@ -120,7 +120,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
     commentId,
     reviews: groupReviewsWithState(reviewersWithState!),
     assignees:
-      'assignees' in pullRequest && pullRequest.assignees
+      "assignees" in pullRequest && pullRequest.assignees
         ? pullRequest.assignees.map(toBasicUser)
         : [],
   });

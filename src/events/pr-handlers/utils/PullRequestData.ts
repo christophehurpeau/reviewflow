@@ -1,30 +1,30 @@
-import type { LabelResponse } from '../../../context/initRepoLabels';
+import type { LabelResponse } from "../../../context/initRepoLabels";
 import type {
   CustomExtract,
   EventsWithRepository,
-} from '../../../context/repoContext';
-import type { ProbotEvent } from '../../probot-types';
-import type { EventsWithPullRequest } from './createPullRequestHandler';
-import type { PullRequestFromRestEndpoint } from './fetchPr';
+} from "../../../context/repoContext";
+import type { ProbotEvent } from "../../probot-types";
+import type { EventsWithPullRequest } from "./createPullRequestHandler";
+import type { PullRequestFromRestEndpoint } from "./fetchPr";
 
 export type PullRequestWithDecentDataFromWebhook =
-  ProbotEvent<EventsWithPullRequest>['payload']['pull_request'];
+  ProbotEvent<EventsWithPullRequest>["payload"]["pull_request"];
 
 export type PullRequestFromWebhook =
   | ProbotEvent<
-      CustomExtract<EventsWithRepository, 'check_run.completed'>
-    >['payload']['check_run']['pull_requests'][number]
+      CustomExtract<EventsWithRepository, "check_run.completed">
+    >["payload"]["check_run"]["pull_requests"][number]
   | PullRequestWithDecentDataFromWebhook;
 
-export type { PullRequestFromRestEndpoint } from './fetchPr';
+export type { PullRequestFromRestEndpoint } from "./fetchPr";
 
 export type PullRequestData =
   | PullRequestFromRestEndpoint
   | PullRequestFromWebhook;
 
 export interface PullRequestDataMinimumData {
-  id: PullRequestData['id'];
-  number: PullRequestData['number'];
+  id: PullRequestData["id"];
+  number: PullRequestData["number"];
 }
 
 export type PullRequestWithDecentData =
@@ -33,12 +33,12 @@ export type PullRequestWithDecentData =
 
 export type PullRequestLabels =
   | LabelResponse[]
-  | PullRequestWithDecentData['labels'];
+  | PullRequestWithDecentData["labels"];
 
 export interface BasicUser {
   id: number;
   login: string;
-  type: string | 'Bot' | 'User';
+  type: string | "Bot" | "User";
   avatar_url: string;
 }
 export function toBasicUser<U extends BasicUser>(user: U): BasicUser {

@@ -1,13 +1,13 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test } from "vitest";
 import {
   lintCommitMessage,
   commitlintParse,
   parseCommitMessage,
-} from './commitMessages';
+} from "./commitMessages";
 
-describe('lintCommitMessage', () => {
-  test('valid message', async () => {
-    expect(await lintCommitMessage('docs: add readme')).toMatchInlineSnapshot(`
+describe("lintCommitMessage", () => {
+  test("valid message", async () => {
+    expect(await lintCommitMessage("docs: add readme")).toMatchInlineSnapshot(`
       {
         "errors": [],
         "input": "docs: add readme",
@@ -17,8 +17,8 @@ describe('lintCommitMessage', () => {
     `);
   });
 
-  test('valid message with breaking change', async () => {
-    expect(await lintCommitMessage('docs!: add readme')).toMatchInlineSnapshot(`
+  test("valid message with breaking change", async () => {
+    expect(await lintCommitMessage("docs!: add readme")).toMatchInlineSnapshot(`
       {
         "errors": [],
         "input": "docs!: add readme",
@@ -28,8 +28,8 @@ describe('lintCommitMessage', () => {
     `);
   });
 
-  test('invalid message', async () => {
-    expect(await lintCommitMessage('add readme')).toMatchInlineSnapshot(`
+  test("invalid message", async () => {
+    expect(await lintCommitMessage("add readme")).toMatchInlineSnapshot(`
       {
         "errors": [
           {
@@ -53,9 +53,9 @@ describe('lintCommitMessage', () => {
   });
 });
 
-describe('commitlintParse', () => {
-  test('valid message', async () => {
-    expect(await commitlintParse('docs: add readme')).toMatchInlineSnapshot(`
+describe("commitlintParse", () => {
+  test("valid message", async () => {
+    expect(await commitlintParse("docs: add readme")).toMatchInlineSnapshot(`
       {
         "body": null,
         "footer": null,
@@ -73,8 +73,8 @@ describe('commitlintParse', () => {
     `);
   });
 
-  test('valid message with breaking change', async () => {
-    expect(await commitlintParse('docs!: add readme')).toMatchInlineSnapshot(`
+  test("valid message with breaking change", async () => {
+    expect(await commitlintParse("docs!: add readme")).toMatchInlineSnapshot(`
       {
         "body": null,
         "footer": null,
@@ -92,8 +92,8 @@ describe('commitlintParse', () => {
     `);
   });
 
-  test('invalid message', async () => {
-    expect(await commitlintParse('add readme')).toMatchInlineSnapshot(`
+  test("invalid message", async () => {
+    expect(await commitlintParse("add readme")).toMatchInlineSnapshot(`
       {
         "body": null,
         "footer": null,
@@ -112,9 +112,9 @@ describe('commitlintParse', () => {
   });
 });
 
-describe('parseCommitMessage', () => {
-  test('valid message', async () => {
-    expect(await parseCommitMessage('docs: add readme')).toMatchInlineSnapshot(`
+describe("parseCommitMessage", () => {
+  test("valid message", async () => {
+    expect(await parseCommitMessage("docs: add readme")).toMatchInlineSnapshot(`
       {
         "body": null,
         "footer": null,
@@ -132,8 +132,8 @@ describe('parseCommitMessage', () => {
     `);
   });
 
-  test('valid message with breaking change', async () => {
-    expect(await parseCommitMessage('docs!: add readme'))
+  test("valid message with breaking change", async () => {
+    expect(await parseCommitMessage("docs!: add readme"))
       .toMatchInlineSnapshot(`
       {
         "body": null,
@@ -157,10 +157,10 @@ describe('parseCommitMessage', () => {
     `);
   });
 
-  test('valid message with breaking change and note', async () => {
+  test("valid message with breaking change and note", async () => {
     expect(
       await parseCommitMessage(
-        'docs!: add readme\n\nBREAKING CHANGE: detailed breaking change',
+        "docs!: add readme\n\nBREAKING CHANGE: detailed breaking change",
       ),
     ).toMatchInlineSnapshot(`
       {
@@ -187,8 +187,8 @@ describe('parseCommitMessage', () => {
     `);
   });
 
-  test('invalid message', async () => {
-    expect(await parseCommitMessage('add readme')).toMatchInlineSnapshot(`
+  test("invalid message", async () => {
+    expect(await parseCommitMessage("add readme")).toMatchInlineSnapshot(`
       {
         "body": null,
         "footer": null,

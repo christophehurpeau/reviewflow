@@ -1,10 +1,10 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import * as slackUtils from '../../slack/utils';
-import { checkIfIsThisBot } from '../../utils/github/isBotUser';
-import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
-import { toBasicUser } from './utils/PullRequestData';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import * as slackUtils from "../../slack/utils";
+import { checkIfIsThisBot } from "../../utils/github/isBotUser";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
+import { toBasicUser } from "./utils/PullRequestData";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler";
 
 export default function assignedOrUnassignedHandler(
   app: Probot,
@@ -13,7 +13,7 @@ export default function assignedOrUnassignedHandler(
   createPullRequestHandler(
     app,
     appContext,
-    ['pull_request.assigned', 'pull_request.unassigned'],
+    ["pull_request.assigned", "pull_request.unassigned"],
     (payload, context, repoContext) => {
       if (checkIfIsThisBot(payload.sender)) {
         // ignore assigned from this bot
@@ -33,7 +33,7 @@ export default function assignedOrUnassignedHandler(
       reviewflowPrContext,
     ): Promise<void> => {
       const { assignee: newlyAssigned, sender } = context.payload;
-      const isUnassigned = context.payload.action === 'unassigned';
+      const isUnassigned = context.payload.action === "unassigned";
 
       if (reviewflowPrContext) {
         await appContext.mongoStores.prs.partialUpdateOne(
@@ -59,15 +59,15 @@ export default function assignedOrUnassignedHandler(
               : [pullRequest.user]),
           ].map((assigneeOrOwner) => {
             if (assigneeOrOwner.id === sender.id) return undefined;
-            return repoContext.slack.postMessage('pr-review', assigneeOrOwner, {
+            return repoContext.slack.postMessage("pr-review", assigneeOrOwner, {
               text: `${
-                isUnassigned ? ':man-gesturing-no:' : ':man-raising-hand:'
+                isUnassigned ? ":man-gesturing-no:" : ":man-raising-hand:"
               } ${repoContext.slack.mention(sender.login)} ${
-                isUnassigned ? 'unassigned' : 'assigned'
+                isUnassigned ? "unassigned" : "assigned"
               } ${(() => {
-                if (sender.login === newlyAssigned.login) return 'himself';
+                if (sender.login === newlyAssigned.login) return "himself";
                 return newlyAssigned.id === assigneeOrOwner.id
-                  ? 'you'
+                  ? "you"
                   : repoContext.slack.mention(newlyAssigned.login);
               })()} on ${slackUtils.createPrLink(pullRequest, repoContext)}`,
             });

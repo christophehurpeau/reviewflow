@@ -1,9 +1,9 @@
-import type { Router } from 'express';
-import type { ProbotOctokit } from 'probot';
-import { renderToStaticMarkup } from 'react-dom/server';
-import type { MongoStores } from '../mongo';
-import Layout from '../views/Layout';
-import { getUser } from './auth';
+import type { Router } from "express";
+import type { ProbotOctokit } from "probot";
+import { renderToStaticMarkup } from "react-dom/server";
+import type { MongoStores } from "../mongo";
+import Layout from "../views/Layout";
+import { getUser } from "./auth";
 
 export default function home(
   router: Router,
@@ -11,7 +11,7 @@ export default function home(
   mongoStores: MongoStores,
 ): void {
   router.get(
-    '/',
+    "/",
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     async (req, res, next) => {
       try {
@@ -23,7 +23,7 @@ export default function home(
         res.send(
           renderToStaticMarkup(
             <Layout>
-              <div style={{ display: 'flex' }}>
+              <div style={{ display: "flex" }}>
                 <div style={{ flexGrow: 1 }}>
                   <h4>Choose your account</h4>
                   <ul>

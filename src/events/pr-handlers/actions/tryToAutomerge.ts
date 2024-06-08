@@ -1,20 +1,20 @@
 import type {
   EventsWithRepository,
   RepoContext,
-} from '../../../context/repoContext';
-import type { ProbotEvent } from '../../probot-types';
-import type { BasicUser, PullRequestLabels } from '../utils/PullRequestData';
-import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
-import type { PullRequestFromRestEndpoint } from '../utils/fetchPr';
-import { autoMergeIfPossibleLegacy } from './autoMergeIfPossible';
-import type { MergeOrEnableGithubAutoMergeResult } from './enableGithubAutoMerge';
-import { mergeOrEnableGithubAutoMerge } from './enableGithubAutoMerge';
-import hasLabelInPR from './utils/labels/hasLabelInPR';
-import type { StepsState } from './utils/steps/calcStepsState';
+} from "../../../context/repoContext";
+import type { ProbotEvent } from "../../probot-types";
+import type { BasicUser, PullRequestLabels } from "../utils/PullRequestData";
+import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
+import type { PullRequestFromRestEndpoint } from "../utils/fetchPr";
+import { autoMergeIfPossibleLegacy } from "./autoMergeIfPossible";
+import type { MergeOrEnableGithubAutoMergeResult } from "./enableGithubAutoMerge";
+import { mergeOrEnableGithubAutoMerge } from "./enableGithubAutoMerge";
+import hasLabelInPR from "./utils/labels/hasLabelInPR";
+import type { StepsState } from "./utils/steps/calcStepsState";
 import {
   calcStepsState,
   isAllStepsExceptMergePassed,
-} from './utils/steps/calcStepsState';
+} from "./utils/steps/calcStepsState";
 
 interface TryToAutomergeOptions<
   EventName extends EventsWithRepository,
@@ -48,7 +48,7 @@ export async function tryToAutomerge<
   EventName,
   TeamNames
 >): Promise<MergeOrEnableGithubAutoMergeResult> {
-  const autoMergeLabel = repoContext.labels['merge/automerge'];
+  const autoMergeLabel = repoContext.labels["merge/automerge"];
 
   if (!hasLabelInPR(pullRequestLabels, autoMergeLabel)) {
     return { wasMerged: false, didFailedToEnableAutoMerge: true };

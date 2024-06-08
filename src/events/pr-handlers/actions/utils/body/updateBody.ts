@@ -1,18 +1,18 @@
 import type {
   LabelList,
   StatusInfo,
-} from '../../../../../accountConfigs/types';
-import type { StepState } from '../steps/BaseStepState';
-import { steps } from '../steps/calcStepsState';
-import type { StepsState } from '../steps/calcStepsState';
-import type { Options } from './parseBody';
-import { parseActions, parseOptions } from './parseBody';
-import type { ActionKeys } from './prActions';
-import { actionDescriptions } from './prActions';
-import { optionsDescriptions } from './prOptions';
-import type { RepositorySettings } from './repositorySettings';
+} from "../../../../../accountConfigs/types";
+import type { StepState } from "../steps/BaseStepState";
+import { steps } from "../steps/calcStepsState";
+import type { StepsState } from "../steps/calcStepsState";
+import type { Options } from "./parseBody";
+import { parseActions, parseOptions } from "./parseBody";
+import type { ActionKeys } from "./prActions";
+import { actionDescriptions } from "./prActions";
+import { optionsDescriptions } from "./prOptions";
+import type { RepositorySettings } from "./repositorySettings";
 
-export const defaultCommentBody = 'This will be auto filled by reviewflow.';
+export const defaultCommentBody = "This will be auto filled by reviewflow.";
 
 const toMarkdownOptions = (
   repositorySettings: RepositorySettings,
@@ -38,22 +38,22 @@ const toMarkdownOptions = (
       }
 
       const checkboxWithId = `[${
-        options[key] ? 'x' : ' '
+        options[key] ? "x" : " "
       }] <!-- reviewflow-${key} -->`;
 
       const labelLink = labelDescription
         ? `[${labelDescription.name}](${repoLink}/labels/${encodeURIComponent(
             labelDescription.name,
           )}): `
-        : '';
-      const icon = labelLink || !iconValue ? '' : `${iconValue} `;
+        : "";
+      const icon = labelLink || !iconValue ? "" : `${iconValue} `;
 
       return `- ${checkboxWithId}${icon}${labelLink}${description}${
-        legacy ? ` (:warning: Legacy Option: ${legacy.legacyMessage})` : ''
+        legacy ? ` (:warning: Legacy Option: ${legacy.legacyMessage})` : ""
       }`;
     })
     .filter(Boolean)
-    .join('\n');
+    .join("\n");
 };
 
 const toMarkdownActions = (
@@ -76,13 +76,13 @@ const toMarkdownActions = (
         ? `[${labelDescription.name}](${repoLink}/labels/${encodeURIComponent(
             labelDescription.name,
           )}): `
-        : '';
-      const icon = labelLink || !iconValue ? '' : `${iconValue} `;
+        : "";
+      const icon = labelLink || !iconValue ? "" : `${iconValue} `;
 
       return `- ${checkboxWithId}${icon}${labelLink}${description}`;
     })
     .filter(Boolean)
-    .join('\n');
+    .join("\n");
 };
 
 const toMarkdownInfos = (infos: StatusInfo[]): string => {
@@ -94,7 +94,7 @@ const toMarkdownInfos = (infos: StatusInfo[]): string => {
       if (info.url) return `[${info.title}](${info.url})`;
       return info.title;
     })
-    .join('\n\n');
+    .join("\n\n");
 };
 
 interface UpdatedBodyWithOptions {
@@ -105,17 +105,17 @@ interface UpdatedBodyWithOptions {
 
 const getEmojiFromStepsState = (stepState: StepState): string => {
   switch (stepState) {
-    case 'not-started':
-      return '⬜';
-    case 'in-progress':
-      return '🟡';
-    case 'failed':
-      return '🔴';
-    case 'passed':
-      return '☑️';
+    case "not-started":
+      return "⬜";
+    case "in-progress":
+      return "🟡";
+    case "failed":
+      return "🔴";
+    case "passed":
+      return "☑️";
     default:
       // fallback
-      return '';
+      return "";
   }
 };
 
@@ -125,7 +125,7 @@ const getProgressReplacement = (stepsState: StepsState): string => {
       ({ name, key }) =>
         `${getEmojiFromStepsState(stepsState[key].state)} ${name}`,
     )
-    .join('\n')}\n\n`;
+    .join("\n")}\n\n`;
 };
 
 const getInfosReplacement = (
@@ -133,7 +133,7 @@ const getInfosReplacement = (
   infos?: StatusInfo[],
 ): string => {
   if (!infos) return infoReplacement;
-  return infos.length > 0 ? `### Infos:\n\n${toMarkdownInfos(infos)}\n\n` : '';
+  return infos.length > 0 ? `### Infos:\n\n${toMarkdownInfos(infos)}\n\n` : "";
 };
 
 const updateOptions = (
@@ -155,7 +155,7 @@ const internalUpdateBodyOptionsAndInfos = (
 ): string => {
   const infosAndCommitNotesParagraph = body.replace(
     /^\s*(?:(####? Progress:?.*)?(####? Infos:?.*)?(####? Commits Notes:?.*)?####? Options:?)?.*$/s,
-    `$1${getInfosReplacement('$2', infos)}$3`,
+    `$1${getInfosReplacement("$2", infos)}$3`,
   );
 
   return `${infosAndCommitNotesParagraph}### Options:\n${toMarkdownOptions(
@@ -179,7 +179,7 @@ export const createCommentBody = (
     repositorySettings,
     repoLink,
     labelsConfig,
-    stepsState ? getProgressReplacement(stepsState) : '',
+    stepsState ? getProgressReplacement(stepsState) : "",
     defaultOptions,
     defaultOptions,
     infos,
@@ -220,7 +220,7 @@ export const updateCommentBodyInfos = (
     // *? - zero or more (non-greedy)
 
     /^\s*(####? Progress:?.*?)?(?:(####? Infos:?.*?)?(####? Commits Notes:?.*?)?(####? Options:?.*?)?)?$/s,
-    `$1${getInfosReplacement('$2', infos)}$3$4`,
+    `$1${getInfosReplacement("$2", infos)}$3$4`,
   );
 };
 
@@ -243,16 +243,16 @@ export const updateCommentBodyCommitsNotes = (
 ): string => {
   return commentBody.replace(
     /(?:####? Commits Notes:.*?)?(####? Options:)/s,
-    !commitNotes ? '$1' : `### Commits Notes:\n\n${commitNotes}\n\n$1`,
+    !commitNotes ? "$1" : `### Commits Notes:\n\n${commitNotes}\n\n$1`,
   );
 };
 
 export const removeDeprecatedReviewflowInPrBody = (
   prBody: string | null,
 ): string => {
-  if (!prBody) return '';
+  if (!prBody) return "";
   return prBody.replace(
     /^(.*)<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->(.*)$/is,
-    '$1$3',
+    "$1$3",
   );
 };

@@ -1,4 +1,4 @@
-import type { BaseStepState, CalcStepOptions } from './BaseStepState';
+import type { BaseStepState, CalcStepOptions } from "./BaseStepState";
 
 // TODO if was pr draft, requires a new review
 
@@ -33,7 +33,7 @@ export function calcCodeReviewStep<TeamNames extends string>({
 
   const isMissingApprobation =
     repoContext.config.requiresReviewRequest ||
-    pullRequest.user?.type === 'Bot' ||
+    pullRequest.user?.type === "Bot" ||
     pullRequest.user?.id !== repoContext.accountEmbed.id
       ? !hasApprovals
       : false;
@@ -53,15 +53,15 @@ export function calcCodeReviewStep<TeamNames extends string>({
 
   return {
     state: (() => {
-      if (hasChangesRequested) return 'failed';
+      if (hasChangesRequested) return "failed";
       if (hasRequestedReviewers || hasRequestedTeams || hasChangesRequested) {
-        return 'in-progress';
+        return "in-progress";
       }
       if (!isMissingApprobation) {
-        return 'passed';
+        return "passed";
       }
-      if (hasApprovals) return 'in-progress';
-      return 'not-started';
+      if (hasApprovals) return "in-progress";
+      return "not-started";
     })(),
     isMissingReview,
     hasRequestedReviewers,

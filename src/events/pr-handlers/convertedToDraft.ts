@@ -1,14 +1,14 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import * as slackUtils from '../../slack/utils';
-import { editOpenedPR } from './actions/editOpenedPR';
-import { updateReviewStatus } from './actions/updateReviewStatus';
-import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
-import { calcStepsState } from './actions/utils/steps/calcStepsState';
-import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
-import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
-import { getRolesFromPullRequestAndReviewers } from './utils/getRolesFromPullRequestAndReviewers';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import * as slackUtils from "../../slack/utils";
+import { editOpenedPR } from "./actions/editOpenedPR";
+import { updateReviewStatus } from "./actions/updateReviewStatus";
+import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState";
+import { calcStepsState } from "./actions/utils/steps/calcStepsState";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler";
+import { getReviewersAndReviewStates } from "./utils/getReviewersAndReviewStates";
+import { getRolesFromPullRequestAndReviewers } from "./utils/getRolesFromPullRequestAndReviewers";
 
 export default function convertedToDraft(
   app: Probot,
@@ -17,7 +17,7 @@ export default function convertedToDraft(
   createPullRequestHandler(
     app,
     appContext,
-    'pull_request.converted_to_draft',
+    "pull_request.converted_to_draft",
     (payload, context, repoContext) => {
       return payload.pull_request;
     },
@@ -44,7 +44,7 @@ export default function convertedToDraft(
               },
               $unset: reviewflowPrContext.reviewflowPr.flowDates?.readyAt
                 ? {
-                    'flowDates.readyAt': true,
+                    "flowDates.readyAt": true,
                   }
                 : undefined,
             },
@@ -99,9 +99,9 @@ export default function convertedToDraft(
         isAssignedTo?: boolean,
       ): string => {
         const ownerPart = toOwner
-          ? 'your PR'
-          : `${sender.id === owner.id ? 'his' : `${ownerMention}'s`} PR${
-              isAssignedTo ? " you're assigned to" : ''
+          ? "your PR"
+          : `${sender.id === owner.id ? "his" : `${ownerMention}'s`} PR${
+              isAssignedTo ? " you're assigned to" : ""
             }`;
 
         return `:ghost: ${mention} marked ${ownerPart} ${prUrl} as draft`;
@@ -116,7 +116,7 @@ export default function convertedToDraft(
           .filter((assignee) => assignee.id === owner.id)
           .map((assigneeIsOwner) => {
             return repoContext.slack.postMessage(
-              'pr-lifecycle',
+              "pr-lifecycle",
               assigneeIsOwner,
               messageToOwner,
             );
@@ -126,7 +126,7 @@ export default function convertedToDraft(
           .filter((assignee) => assignee.id !== owner.id)
           .map((assignee) => {
             return repoContext.slack.postMessage(
-              'pr-lifecycle',
+              "pr-lifecycle",
               assignee,
               messageToAssignee,
             );
@@ -134,7 +134,7 @@ export default function convertedToDraft(
 
         ...followers.map((follower) => {
           return repoContext.slack.postMessage(
-            'pr-lifecycle-follow',
+            "pr-lifecycle-follow",
             follower,
             messageToFollower,
           );

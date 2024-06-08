@@ -1,13 +1,13 @@
-import type { AccountInfo } from '../../../context/getOrCreateAccount';
-import type { EventsWithRepository } from '../../../context/repoContext';
-import type { PullRequestWithDecentData } from '../../../events/pr-handlers/utils/PullRequestData';
-import type { ProbotEvent } from '../../../events/probot-types';
+import type { AccountInfo } from "../../../context/getOrCreateAccount";
+import type { EventsWithRepository } from "../../../context/repoContext";
+import type { PullRequestWithDecentData } from "../../../events/pr-handlers/utils/PullRequestData";
+import type { ProbotEvent } from "../../../events/probot-types";
 
 type ReviewState =
-  | 'APPROVED'
-  | 'CHANGES_REQUESTED'
-  | 'DISMISSED'
-  | 'REVIEW_REQUESTED';
+  | "APPROVED"
+  | "CHANGES_REQUESTED"
+  | "DISMISSED"
+  | "REVIEW_REQUESTED";
 
 export type Reviewer = AccountInfo;
 
@@ -42,7 +42,7 @@ export const getReviewersWithState = async <
           });
         }
         const state = review.state.toUpperCase();
-        if (state !== 'COMMENTED') {
+        if (state !== "COMMENTED") {
           reviewStatesByUser.set(review.user.id, state as ReviewState);
         }
       });
@@ -62,7 +62,7 @@ export const getReviewersWithState = async <
         type: (rr as any).type,
       });
     }
-    reviewStatesByUser.set(rr.id, 'REVIEW_REQUESTED');
+    reviewStatesByUser.set(rr.id, "REVIEW_REQUESTED");
   });
 
   return reviewers.map((reviewer) => {

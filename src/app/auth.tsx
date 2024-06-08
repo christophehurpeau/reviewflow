@@ -1,13 +1,13 @@
-import { promisify } from 'node:util';
-import { Octokit } from '@octokit/rest';
-import type { Router, Request, Response } from 'express';
-import jsonwebtoken from 'jsonwebtoken';
-import { renderToStaticMarkup } from 'react-dom/server';
-import * as githubAuth from '../auth/github';
-import Layout from '../views/Layout';
+import { promisify } from "node:util";
+import { Octokit } from "@octokit/rest";
+import type { Router, Request, Response } from "express";
+import jsonwebtoken from "jsonwebtoken";
+import { renderToStaticMarkup } from "react-dom/server";
+import * as githubAuth from "../auth/github";
+import Layout from "../views/Layout";
 
 if (!process.env.AUTH_SECRET_KEY) {
-  throw new Error('Missing env variable: AUTH_SECRET_KEY');
+  throw new Error("Missing env variable: AUTH_SECRET_KEY");
 }
 
 const AUTH_SECRET_KEY: string = process.env.AUTH_SECRET_KEY;
@@ -16,11 +16,11 @@ const signPromisified: any = promisify(jsonwebtoken.sign);
 const verifyPromisified: any = promisify(jsonwebtoken.verify);
 
 const secure =
-  !!process.env.SECURE_COOKIE && process.env.SECURE_COOKIE !== 'false';
+  !!process.env.SECURE_COOKIE && process.env.SECURE_COOKIE !== "false";
 
 const createRedirectUri = (req: Request): string => {
-  const host = `http${secure ? 's' : ''}://${req.hostname}${
-    req.hostname === 'localhost' ? `:${process.env.PORT || 3000}` : ''
+  const host = `http${secure ? "s" : ""}://${req.hostname}${
+    req.hostname === "localhost" ? `:${process.env.PORT || 3000}` : ""
   }`;
   return `${host}/app/login-response`;
 };
@@ -40,8 +40,8 @@ const readAuthCookie = (
   if (!cookie) return;
 
   return verifyPromisified(cookie, AUTH_SECRET_KEY, {
-    algorithm: 'HS512',
-    audience: req.headers['user-agent'],
+    algorithm: "HS512",
+    audience: req.headers["user-agent"],
   });
 };
 
@@ -49,7 +49,7 @@ const getAuthInfoFromCookie = async (
   req: Request,
   res: Response,
 ): Promise<AuthInfo | undefined> => {
-  const strategy = 'gh'; // req.params.strategy
+  const strategy = "gh"; // req.params.strategy
   try {
     const authInfo = await readAuthCookie(req, strategy);
 
@@ -75,7 +75,7 @@ export const getUser = async (
 } | null> => {
   const authInfo = await getAuthInfoFromCookie(req, res);
   if (!authInfo) {
-    res.redirect('/app/login');
+    res.redirect("/app/login");
     return null;
   }
 
@@ -89,12 +89,12 @@ export const getUser = async (
 
 export default function auth(router: Router): void {
   router.get(
-    '/login',
+    "/login",
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     async (req: Request, res: Response, next) => {
       try {
         if (await getAuthInfoFromCookie(req, res)) {
-          res.redirect('/app');
+          res.redirect("/app");
           return;
         }
 
@@ -107,7 +107,7 @@ export default function auth(router: Router): void {
 
         const redirectUri = githubAuth.oauth2.authorizeURL({
           redirect_uri: createRedirectUri(req),
-          scope: 'read:user,repo',
+          scope: "read:user,repo",
           // state,
           // grant_type: options.grantType,
           // access_type: options.accessType,
@@ -124,9 +124,9 @@ export default function auth(router: Router): void {
     },
   );
 
-  router.get('/logout', (req, res, next) => {
+  router.get("/logout", (req, res, next) => {
     try {
-      const strategy = 'gh';
+      const strategy = "gh";
       res.clearCookie(`auth_${strategy}`, {
         httpOnly: true,
         secure,
@@ -146,7 +146,7 @@ export default function auth(router: Router): void {
   });
 
   router.get(
-    '/login-response',
+    "/login-response",
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     async (req, res, next) => {
       try {
@@ -155,7 +155,7 @@ export default function auth(router: Router): void {
           return;
         }
 
-        const strategy = 'gh';
+        const strategy = "gh";
         const code: string = req.query.code as string;
         // const state = req.query.state;
         // const cookieName = `auth_${strategy}_${state}`;
@@ -199,9 +199,9 @@ export default function auth(router: Router): void {
           time: Date.now(),
         };
         const token = await signPromisified(authInfo, AUTH_SECRET_KEY, {
-          algorithm: 'HS512',
-          audience: req.headers['user-agent'],
-          expiresIn: '10 days',
+          algorithm: "HS512",
+          audience: req.headers["user-agent"],
+          expiresIn: "10 days",
         });
 
         res.cookie(`auth_${strategy}`, token, {
@@ -209,7 +209,7 @@ export default function auth(router: Router): void {
           secure,
         });
 
-        res.redirect('/app');
+        res.redirect("/app");
       } catch (error) {
         next(error);
       }

@@ -1,6 +1,6 @@
-import type { RepoContext } from 'src/context/repoContext';
-import type { AccountEmbedWithoutType } from '../../../../mongo';
-import type { PullRequestWithDecentData } from '../../utils/PullRequestData';
+import type { RepoContext } from "src/context/repoContext";
+import type { AccountEmbedWithoutType } from "../../../../mongo";
+import type { PullRequestWithDecentData } from "../../utils/PullRequestData";
 
 interface UpdateSlackHomeForPrOptions {
   user?: boolean;
@@ -37,7 +37,7 @@ export function updateSlackHomeForPr(
 
     if (requestedReviewers && pullRequest.requested_reviewers) {
       pullRequest.requested_reviewers.forEach((requestedReviewer) => {
-        if (!('login' in requestedReviewer)) return;
+        if (!("login" in requestedReviewer)) return;
         logins.add(requestedReviewer.login);
       });
     }

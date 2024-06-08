@@ -1,6 +1,6 @@
-import type { EmitterWebhookEventName } from '@octokit/webhooks';
-import type { ProbotEvent } from '../../probot-types';
-import type { PullRequestWithDecentData } from '../utils/PullRequestData';
+import type { EmitterWebhookEventName } from "@octokit/webhooks";
+import type { ProbotEvent } from "../../probot-types";
+import type { PullRequestWithDecentData } from "../utils/PullRequestData";
 
 interface UpdatePr {
   title?: string;
@@ -8,7 +8,7 @@ interface UpdatePr {
 }
 
 const cleanNewLines = (text: string | null): string =>
-  !text ? '' : text.replace(/\r\n/g, '\n');
+  !text ? "" : text.replace(/\r\n/g, "\n");
 const checkIfHasDiff = (text1: string | null, text2: string): boolean =>
   cleanNewLines(text1) !== cleanNewLines(text2);
 
@@ -22,7 +22,7 @@ export const updatePrIfNeeded = async <Name extends EmitterWebhookEventName>(
     update.body && checkIfHasDiff(pullRequest.body, update.body);
 
   if (hasDiffInTitle || hasDiffInBody) {
-    const diff: Partial<Record<'body' | 'title', string>> = {};
+    const diff: Partial<Record<"body" | "title", string>> = {};
     if (hasDiffInTitle) {
       diff.title = update.title;
       pullRequest.title = update.title!;

@@ -1,21 +1,21 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import type { AccountInfo } from '../../context/getOrCreateAccount';
-import type { SlackMessage } from '../../context/slack/SlackMessage';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import type { AccountInfo } from "../../context/getOrCreateAccount";
+import type { SlackMessage } from "../../context/slack/SlackMessage";
 import type {
   PostSlackMessageResult,
   SlackMessageResult,
-} from '../../context/slack/TeamSlack';
-import type { MessageCategory } from '../../dm/MessageCategory';
-import type { AccountEmbed } from '../../mongo';
-import * as slackUtils from '../../slack/utils';
-import { ExcludesNullish } from '../../utils/Excludes';
-import { checkIfUserIsBot } from '../../utils/github/isBotUser';
-import { parseMentions } from '../../utils/github/parseMentions';
-import { createSlackMessageWithSecondaryBlock } from '../../utils/slack/createSlackMessageWithSecondaryBlock';
-import { slackifyCommentBody } from '../../utils/slackifyCommentBody';
-import { createCommitHandler } from './utils/createCommitHandler';
-import { fetchCommitComments } from './utils/fetchCommitComments';
+} from "../../context/slack/TeamSlack";
+import type { MessageCategory } from "../../dm/MessageCategory";
+import type { AccountEmbed } from "../../mongo";
+import * as slackUtils from "../../slack/utils";
+import { ExcludesNullish } from "../../utils/Excludes";
+import { checkIfUserIsBot } from "../../utils/github/isBotUser";
+import { parseMentions } from "../../utils/github/parseMentions";
+import { createSlackMessageWithSecondaryBlock } from "../../utils/slack/createSlackMessageWithSecondaryBlock";
+import { slackifyCommentBody } from "../../utils/slackifyCommentBody";
+import { createCommitHandler } from "./utils/createCommitHandler";
+import { fetchCommitComments } from "./utils/fetchCommitComments";
 
 export default function commitCommentCreated(
   app: Probot,
@@ -31,7 +31,7 @@ export default function commitCommentCreated(
     if (filtered.length === 0) return;
 
     await appContext.mongoStores.slackSentMessages.insertOne({
-      type: 'commit-comment',
+      type: "commit-comment",
       typeId: commentId,
       message,
       account: accountEmbed,
@@ -42,7 +42,7 @@ export default function commitCommentCreated(
   createCommitHandler(
     app,
     appContext,
-    ['commit_comment.created'],
+    ["commit_comment.created"],
     async (commit, context, repoContext): Promise<void> => {
       const { comment } = context.payload;
       const body = comment.body;
@@ -57,7 +57,7 @@ export default function commitCommentCreated(
         : []);
       const comments = await fetchCommitComments(context, commit.sha);
 
-      const otherCommenters: NonNullable<(typeof comments)[number]['user']>[] =
+      const otherCommenters: NonNullable<(typeof comments)[number]["user"]>[] =
         [];
       comments.forEach((otherComment) => {
         if (comment.id === otherComment.id) return;
@@ -79,13 +79,13 @@ export default function commitCommentCreated(
       const commitAuthorMention =
         author && repoContext.slack.mention(author.login);
 
-      const commentLink = slackUtils.createLink(comment.html_url, 'commented');
+      const commentLink = slackUtils.createLink(comment.html_url, "commented");
       // const commentLinkPathText =
       //   comment.path && slackUtils.createLink(comment.html_url, comment.path);
 
       const createMessage = (toOwner?: boolean): string => {
         const ownerPart = toOwner
-          ? 'your commit'
+          ? "your commit"
           : `${commitAuthorMention}'s commit`;
         return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${commitUrl}`;
       };
@@ -119,7 +119,7 @@ export default function commitCommentCreated(
         author &&
           author.id !== comment.user.id &&
           postMessage(
-            isBotUser ? 'commit-comment-bots' : 'commit-comment',
+            isBotUser ? "commit-comment-bots" : "commit-comment",
             author,
             authorSlackMessage,
           ).then(
@@ -136,15 +136,15 @@ export default function commitCommentCreated(
           ...otherCommenters.map((otherCommenter) =>
             postMessage(
               isBotUser
-                ? 'commit-comment-follow-bots'
-                : 'commit-comment-follow',
+                ? "commit-comment-follow-bots"
+                : "commit-comment-follow",
               otherCommenter,
               notAuthorSlackMessage,
             ),
           ),
           ...mentioned.map((u) =>
             postMessage(
-              'commit-comment-mention',
+              "commit-comment-mention",
               { id: u._id, login: u.login, type: u.type },
               notAuthorSlackMessage,
             ),

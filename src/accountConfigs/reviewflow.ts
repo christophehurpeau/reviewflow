@@ -1,6 +1,6 @@
-import chrisconfig from './christophehurpeau';
+import chrisconfig from "./christophehurpeau";
 // import ornikarconfig from './ornikar';
-import type { Config } from './types';
+import type { Config } from "./types";
 
 const config: Config<never> = {
   ...chrisconfig,
@@ -9,7 +9,7 @@ const config: Config<never> = {
   },
   requiresReviewRequest: true,
   warnOnForcePushAfterReviewStarted: {
-    message: 'Force-pushing after the review started is a bad practice',
+    message: "Force-pushing after the review started is a bad practice",
   },
   // parsePR: ornikarconfig.parsePR,
 };

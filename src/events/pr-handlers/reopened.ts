@@ -1,21 +1,21 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import * as slackUtils from '../../slack/utils';
-import type { CreateOwnerPartOptions } from '../../slack/utils';
-import { editOpenedPR } from './actions/editOpenedPR';
-import { updateReviewStatus } from './actions/updateReviewStatus';
-import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
-import { calcStepsState } from './actions/utils/steps/calcStepsState';
-import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
-import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
-import { getRolesFromPullRequestAndReviewers } from './utils/getRolesFromPullRequestAndReviewers';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import * as slackUtils from "../../slack/utils";
+import type { CreateOwnerPartOptions } from "../../slack/utils";
+import { editOpenedPR } from "./actions/editOpenedPR";
+import { updateReviewStatus } from "./actions/updateReviewStatus";
+import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState";
+import { calcStepsState } from "./actions/utils/steps/calcStepsState";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler";
+import { getReviewersAndReviewStates } from "./utils/getReviewersAndReviewStates";
+import { getRolesFromPullRequestAndReviewers } from "./utils/getRolesFromPullRequestAndReviewers";
 
 export default function reopened(app: Probot, appContext: AppContext): void {
   createPullRequestHandler(
     app,
     appContext,
-    'pull_request.reopened',
+    "pull_request.reopened",
     (payload, context, repoContext) => {
       return payload.pull_request;
     },
@@ -41,7 +41,7 @@ export default function reopened(app: Probot, appContext: AppContext): void {
                 isDraft: pullRequest.draft === true,
                 ...(reviewflowPrContext.reviewflowPr.flowDates
                   ? {
-                      'flowDates.readyAt': new Date(),
+                      "flowDates.readyAt": new Date(),
                     }
                   : {
                       flowDates: {
@@ -53,7 +53,7 @@ export default function reopened(app: Probot, appContext: AppContext): void {
               },
               $unset: reviewflowPrContext.reviewflowPr.flowDates?.closedAt
                 ? {
-                    'flowDates.closedAt': true,
+                    "flowDates.closedAt": true,
                   }
                 : {},
             },
@@ -114,21 +114,21 @@ export default function reopened(app: Probot, appContext: AppContext): void {
       };
 
       if (context.payload.sender.id !== owner.id) {
-        repoContext.slack.postMessage('pr-lifecycle', owner, {
+        repoContext.slack.postMessage("pr-lifecycle", owner, {
           text: createMessage({ isOwner: true }),
         });
       }
 
       assigneesNotOwner.map((assignee) => {
         if (context.payload.sender.id === assignee.id) return undefined;
-        return repoContext.slack.postMessage('pr-lifecycle', assignee, {
+        return repoContext.slack.postMessage("pr-lifecycle", assignee, {
           text: createMessage({ isAssigned: true }),
         });
       });
 
       followers.map((follower) => {
         if (context.payload.sender.id === follower.id) return undefined;
-        return repoContext.slack.postMessage('pr-lifecycle-follow', follower, {
+        return repoContext.slack.postMessage("pr-lifecycle-follow", follower, {
           text: createMessage({}),
         });
       });

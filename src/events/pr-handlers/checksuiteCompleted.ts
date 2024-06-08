@@ -1,6 +1,6 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import { createPullRequestsHandler } from './utils/createPullRequestHandler';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import { createPullRequestsHandler } from "./utils/createPullRequestHandler";
 
 export default function checksuiteCompleted(
   app: Probot,
@@ -9,7 +9,7 @@ export default function checksuiteCompleted(
   createPullRequestsHandler(
     app,
     appContext,
-    'check_suite.completed',
+    "check_suite.completed",
     (payload, repoContext) => {
       if (repoContext.shouldIgnore) return [];
       return payload.check_suite.pull_requests;
@@ -18,7 +18,7 @@ export default function checksuiteCompleted(
       await repoContext.rescheduleOnChecksUpdated(
         context,
         pullRequest,
-        context.payload.check_suite.conclusion === 'success',
+        context.payload.check_suite.conclusion === "success",
       );
     },
   );

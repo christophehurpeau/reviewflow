@@ -1,16 +1,16 @@
-import type { RestEndpointMethodTypes } from '@octokit/rest';
-import type { EventsWithRepository } from '../../../context/repoContext';
-import { checkIfIsThisBot } from '../../../utils/github/isBotUser';
-import type { ProbotEvent } from '../../probot-types';
-import { defaultCommentBody } from '../actions/utils/body/updateBody';
-import type { PullRequestWithDecentDataFromWebhook } from './PullRequestData';
+import type { RestEndpointMethodTypes } from "@octokit/rest";
+import type { EventsWithRepository } from "../../../context/repoContext";
+import { checkIfIsThisBot } from "../../../utils/github/isBotUser";
+import type { ProbotEvent } from "../../probot-types";
+import { defaultCommentBody } from "../actions/utils/body/updateBody";
+import type { PullRequestWithDecentDataFromWebhook } from "./PullRequestData";
 
 export const createReviewflowComment = <EventName extends EventsWithRepository>(
-  pullRequestNumber: PullRequestWithDecentDataFromWebhook['number'],
+  pullRequestNumber: PullRequestWithDecentDataFromWebhook["number"],
   context: ProbotEvent<EventName>,
   body: string,
 ): Promise<
-  RestEndpointMethodTypes['issues']['createComment']['response']['data']
+  RestEndpointMethodTypes["issues"]["createComment"]["response"]["data"]
 > => {
   return context.octokit.issues
     .createComment(context.repo({ issue_number: pullRequestNumber, body }))
@@ -20,11 +20,11 @@ export const createReviewflowComment = <EventName extends EventsWithRepository>(
 export const getReviewflowCommentById = <
   EventName extends EventsWithRepository,
 >(
-  pullRequestNumber: PullRequestWithDecentDataFromWebhook['number'],
+  pullRequestNumber: PullRequestWithDecentDataFromWebhook["number"],
   context: ProbotEvent<EventName>,
   commentId: number,
 ): Promise<
-  RestEndpointMethodTypes['issues']['getComment']['response']['data'] | null
+  RestEndpointMethodTypes["issues"]["getComment"]["response"]["data"] | null
 > => {
   return context.octokit.issues
     .getComment(
@@ -42,14 +42,14 @@ export const getReviewflowCommentById = <
 export const findReviewflowComment = async <
   EventName extends EventsWithRepository,
 >(
-  pullRequestNumber: PullRequestWithDecentDataFromWebhook['number'],
+  pullRequestNumber: PullRequestWithDecentDataFromWebhook["number"],
   context: ProbotEvent<EventName>,
 ): Promise<
-  | RestEndpointMethodTypes['issues']['listComments']['response']['data'][number]
+  | RestEndpointMethodTypes["issues"]["listComments"]["response"]["data"][number]
   | null
 > => {
   let found:
-    | RestEndpointMethodTypes['issues']['listComments']['response']['data'][number]
+    | RestEndpointMethodTypes["issues"]["listComments"]["response"]["data"][number]
     | null = null;
   await context.octokit.paginate(
     context.octokit.issues.listComments,
@@ -63,7 +63,7 @@ export const findReviewflowComment = async <
             comment.user &&
             checkIfIsThisBot(comment.user) &&
             (comment.body === defaultCommentBody ||
-              comment.body?.includes('<!-- reviewflow-')),
+              comment.body?.includes("<!-- reviewflow-")),
         ) || null;
       if (found) done();
       return [];

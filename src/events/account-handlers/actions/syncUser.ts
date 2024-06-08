@@ -1,5 +1,5 @@
-import type { MongoStores, User } from '../../../mongo';
-import type { CommonOctokitInterface } from '../../../octokit';
+import type { MongoStores, User } from "../../../mongo";
+import type { CommonOctokitInterface } from "../../../octokit";
 
 interface UserInfo {
   login: string;
@@ -15,7 +15,7 @@ export const syncUser = async <T extends CommonOctokitInterface>(
   const user = await mongoStores.users.upsertOne({
     _id: userInfo.id,
     login: userInfo.login,
-    type: 'User',
+    type: "User",
     installationId,
   });
 

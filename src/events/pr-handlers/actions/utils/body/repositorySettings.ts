@@ -1,4 +1,4 @@
-import type { RepositorySettingsQueryResult } from '../../../../../utils/github/repo/getRepositorySettings';
+import type { RepositorySettingsQueryResult } from "../../../../../utils/github/repo/getRepositorySettings";
 
 export interface RepositorySettings {
   defaultBranch: string;

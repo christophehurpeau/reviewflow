@@ -1,10 +1,10 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import { checkIfIsThisBot } from '../../utils/github/isBotUser';
-import { mergeOrEnableGithubAutoMerge } from './actions/enableGithubAutoMerge';
-import { updatePrCommentBodyOptions } from './actions/updatePrCommentBody';
-import { syncLabels } from './actions/utils/syncLabel';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import { checkIfIsThisBot } from "../../utils/github/isBotUser";
+import { mergeOrEnableGithubAutoMerge } from "./actions/enableGithubAutoMerge";
+import { updatePrCommentBodyOptions } from "./actions/updatePrCommentBody";
+import { syncLabels } from "./actions/utils/syncLabel";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler";
 
 export default function autoMergeChangedHandler(
   app: Probot,
@@ -13,7 +13,7 @@ export default function autoMergeChangedHandler(
   createPullRequestHandler(
     app,
     appContext,
-    'pull_request.auto_merge_enabled',
+    "pull_request.auto_merge_enabled",
     (payload, context, repoContext) => {
       if (repoContext.shouldIgnore) return null;
 
@@ -25,7 +25,7 @@ export default function autoMergeChangedHandler(
       return payload.pull_request;
     },
     async (pullRequest, context, repoContext, reviewflowPrContext) => {
-      const autoMergeLabel = repoContext.labels['merge/automerge'];
+      const autoMergeLabel = repoContext.labels["merge/automerge"];
 
       await Promise.all([
         reviewflowPrContext &&
@@ -58,7 +58,7 @@ export default function autoMergeChangedHandler(
   createPullRequestHandler(
     app,
     appContext,
-    'pull_request.auto_merge_disabled',
+    "pull_request.auto_merge_disabled",
     (payload, context, repoContext) => {
       if (repoContext.shouldIgnore) return null;
 
@@ -70,7 +70,7 @@ export default function autoMergeChangedHandler(
       return payload.pull_request;
     },
     async (pullRequest, context, repoContext, reviewflowPrContext) => {
-      const autoMergeLabel = repoContext.labels['merge/automerge'];
+      const autoMergeLabel = repoContext.labels["merge/automerge"];
 
       await Promise.all([
         reviewflowPrContext &&

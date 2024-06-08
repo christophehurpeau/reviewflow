@@ -1,64 +1,64 @@
-import type { Probot } from 'probot';
-import { catchExceptedErrors } from '../../../ExpectedError';
-import type { AppContext } from '../../../context/AppContext';
+import type { Probot } from "probot";
+import { catchExceptedErrors } from "../../../ExpectedError";
+import type { AppContext } from "../../../context/AppContext";
 import type {
   RepoContext,
   CustomExtract,
   EventsWithRepository,
-} from '../../../context/repoContext';
-import { obtainRepoContext } from '../../../context/repoContext';
-import type { ProbotEvent } from '../../probot-types';
-import type { PullRequestDataMinimumData } from './PullRequestData';
+} from "../../../context/repoContext";
+import { obtainRepoContext } from "../../../context/repoContext";
+import type { ProbotEvent } from "../../probot-types";
+import type { PullRequestDataMinimumData } from "./PullRequestData";
 import type {
   CreatePrContextOptions,
   ReviewflowPrContext,
-} from './createPullRequestContext';
-import { getReviewflowPrContext } from './createPullRequestContext';
-import type { PullRequestFromProbotEvent } from './getPullRequestFromPayload';
+} from "./createPullRequestContext";
+import { getReviewflowPrContext } from "./createPullRequestContext";
+import type { PullRequestFromProbotEvent } from "./getPullRequestFromPayload";
 
 export type EventsWithPullRequest = CustomExtract<
   EventsWithRepository,
-  | 'pull_request_review_comment.created'
-  | 'pull_request_review_comment.deleted'
-  | 'pull_request_review_comment.edited'
-  | 'pull_request_review_comment'
-  | 'pull_request_review.dismissed'
-  | 'pull_request_review.edited'
-  | 'pull_request_review.submitted'
-  | 'pull_request.assigned'
-  | 'pull_request.auto_merge_disabled'
-  | 'pull_request.auto_merge_enabled'
-  | 'pull_request.closed'
-  | 'pull_request.converted_to_draft'
-  | 'pull_request.edited'
-  | 'pull_request.labeled'
-  | 'pull_request.locked'
-  | 'pull_request.opened'
-  | 'pull_request.ready_for_review'
-  | 'pull_request.reopened'
-  | 'pull_request.review_request_removed'
-  | 'pull_request.review_requested'
-  | 'pull_request.synchronize'
-  | 'pull_request.unassigned'
-  | 'pull_request.unlabeled'
-  | 'pull_request.unlocked'
+  | "pull_request_review_comment.created"
+  | "pull_request_review_comment.deleted"
+  | "pull_request_review_comment.edited"
+  | "pull_request_review_comment"
+  | "pull_request_review.dismissed"
+  | "pull_request_review.edited"
+  | "pull_request_review.submitted"
+  | "pull_request.assigned"
+  | "pull_request.auto_merge_disabled"
+  | "pull_request.auto_merge_enabled"
+  | "pull_request.closed"
+  | "pull_request.converted_to_draft"
+  | "pull_request.edited"
+  | "pull_request.labeled"
+  | "pull_request.locked"
+  | "pull_request.opened"
+  | "pull_request.ready_for_review"
+  | "pull_request.reopened"
+  | "pull_request.review_request_removed"
+  | "pull_request.review_requested"
+  | "pull_request.synchronize"
+  | "pull_request.unassigned"
+  | "pull_request.unlabeled"
+  | "pull_request.unlocked"
 >;
 
 export type EventsWithPullRequests = CustomExtract<
   EventsWithRepository,
-  | 'check_run.completed'
-  | 'check_run.created'
-  | 'check_suite.completed'
-  | 'push'
-  | 'status'
-  | 'workflow_run.completed'
-  | 'workflow_run.requested'
+  | "check_run.completed"
+  | "check_run.created"
+  | "check_suite.completed"
+  | "push"
+  | "status"
+  | "workflow_run.completed"
+  | "workflow_run.requested"
   // | 'workflow_run.in_progress'
 >;
 
 export type EventsWithIssue = CustomExtract<
   EventsWithRepository,
-  'issue_comment.created' | 'issue_comment.deleted' | 'issue_comment.edited'
+  "issue_comment.created" | "issue_comment.deleted" | "issue_comment.edited"
 >;
 
 export const createPullRequestHandler = <
@@ -69,7 +69,7 @@ export const createPullRequestHandler = <
   appContext: AppContext,
   eventName: EventName | EventName[],
   getPullRequestInPayload: (
-    payload: ProbotEvent<EventName>['payload'],
+    payload: ProbotEvent<EventName>["payload"],
     context: ProbotEvent<EventName>,
     repoContext: RepoContext<TeamNames>,
   ) => PullRequestFromProbotEvent<EventName> | null,
@@ -96,7 +96,7 @@ export const createPullRequestHandler = <
         ? callbackBeforeLock(pullRequest, context, repoContext)
         : {};
 
-      if (res && typeof (res as Promise<any>).then === 'function') {
+      if (res && typeof (res as Promise<any>).then === "function") {
         // avoid calling await if not necessary, for opened event we need to keep it synchronous
         res = await res;
       }
@@ -140,7 +140,7 @@ export const createPullRequestsHandler = <
   appContext: AppContext,
   eventName: EventName | EventName[],
   getPrs: (
-    payload: ProbotEvent<EventName>['payload'],
+    payload: ProbotEvent<EventName>["payload"],
     repoContext: RepoContext<TeamNames>,
     context: ProbotEvent<EventName>,
   ) => Promise<U[]> | U[],

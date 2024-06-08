@@ -1,26 +1,26 @@
-import { WebClient } from '@slack/web-api';
+import { WebClient } from "@slack/web-api";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- invalid used detection
-import type { CodedError } from '@slack/web-api';
-import type { Config } from '../../accountConfigs';
-import type { MessageCategory } from '../../dm/MessageCategory';
-import { getUserDmSettings } from '../../dm/getUserDmSettings';
-import type { ProbotEvent } from '../../events/probot-types';
-import type { Org, User, MongoStores } from '../../mongo';
-import type { AppContext } from '../AppContext';
-import type { AccountInfo } from '../getOrCreateAccount';
-import type { SlackMessage } from './SlackMessage';
-import type { TeamSlack, PostSlackMessageResult } from './TeamSlack';
-import { voidTeamSlack } from './voidTeamSlack';
+import type { CodedError } from "@slack/web-api";
+import type { Config } from "../../accountConfigs";
+import type { MessageCategory } from "../../dm/MessageCategory";
+import { getUserDmSettings } from "../../dm/getUserDmSettings";
+import type { ProbotEvent } from "../../events/probot-types";
+import type { Org, User, MongoStores } from "../../mongo";
+import type { AppContext } from "../AppContext";
+import type { AccountInfo } from "../getOrCreateAccount";
+import type { SlackMessage } from "./SlackMessage";
+import type { TeamSlack, PostSlackMessageResult } from "./TeamSlack";
+import { voidTeamSlack } from "./voidTeamSlack";
 
-export type { TeamSlack } from './TeamSlack';
+export type { TeamSlack } from "./TeamSlack";
 
 async function getSlackAccountFromAccount(
   mongoStores: MongoStores,
   account: Org | User,
 ): Promise<string | undefined> {
   // This is first for legacy org using their own slackToken and slack app. Keep using them.
-  if ('slackToken' in account) return account.slackToken;
-  if ('slackTeamId' in account && account.slackTeamId != null) {
+  if ("slackToken" in account) return account.slackToken;
+  if ("slackTeamId" in account && account.slackTeamId != null) {
     const slackTeam = await mongoStores.slackTeams.findByKey(
       account.slackTeamId,
     );
@@ -55,7 +55,7 @@ export const initTeamSlack = async <TeamNames extends string>(
 
   const membersMap = new Map<string, MemberObject>();
   const membersInDb = await mongoStores.orgMembers.findAll({
-    'org.id': account._id,
+    "org.id": account._id,
   });
 
   membersInDb.forEach((member) => {
@@ -74,7 +74,7 @@ export const initTeamSlack = async <TeamNames extends string>(
   const getSlackClient = (teamId?: string): WebClient | undefined => {
     if (
       !teamId ||
-      !('slackTeamId' in account) ||
+      !("slackTeamId" in account) ||
       !account.slackTeamId ||
       account.slackTeamId === teamId
     ) {
@@ -99,7 +99,7 @@ export const initTeamSlack = async <TeamNames extends string>(
       });
       return im.channel;
     } catch (error) {
-      context.log.error('could create im', { err: error });
+      context.log.error("could create im", { err: error });
     }
   };
 
@@ -115,8 +115,8 @@ export const initTeamSlack = async <TeamNames extends string>(
   return {
     mention: (githubLogin: string): string => {
       // TODO pass AccountInfo instead
-      if (githubLogin.endsWith('[bot]')) {
-        return `:robot_face: ${githubLogin.slice(0, -'[bot]'.length)}`;
+      if (githubLogin.endsWith("[bot]")) {
+        return `:robot_face: ${githubLogin.slice(0, -"[bot]".length)}`;
       }
       const user = membersMap.get(githubLogin);
       if (!user) return githubLogin;
@@ -136,9 +136,9 @@ export const initTeamSlack = async <TeamNames extends string>(
           toUser,
           message,
         },
-        'slack: post message',
+        "slack: post message",
       );
-      if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
+      if (process.env.DRY_RUN && process.env.DRY_RUN !== "false") return null;
 
       const userDmSettings = await getUserDmSettings(
         mongoStores,
@@ -186,8 +186,8 @@ export const initTeamSlack = async <TeamNames extends string>(
       channel: string,
       message: SlackMessage,
     ): Promise<PostSlackMessageResult> => {
-      context.log.debug({ ts, channel, message }, 'slack: update message');
-      if (process.env.DRY_RUN && process.env.DRY_RUN !== 'false') return null;
+      context.log.debug({ ts, channel, message }, "slack: update message");
+      if (process.env.DRY_RUN && process.env.DRY_RUN !== "false") return null;
 
       const user = membersMap.get(toUser.login);
       if (!user?.slackClient || !user.im) return null;
@@ -209,7 +209,7 @@ export const initTeamSlack = async <TeamNames extends string>(
           user: toUser,
         };
       } catch (error) {
-        context.log.error({ error }, 'could not update message');
+        context.log.error({ error }, "could not update message");
         return null;
       }
     },
@@ -218,7 +218,7 @@ export const initTeamSlack = async <TeamNames extends string>(
       ts: string,
       channel: string,
     ): Promise<void> => {
-      context.log.debug({ ts, channel }, 'slack: delete message');
+      context.log.debug({ ts, channel }, "slack: delete message");
 
       const user = membersMap.get(toUser.login);
       if (!user?.slackClient || !user.im) return;
@@ -234,7 +234,7 @@ export const initTeamSlack = async <TeamNames extends string>(
       channel: string,
       name: string,
     ): Promise<void> => {
-      context.log.debug({ ts, channel, name }, 'slack: add reaction');
+      context.log.debug({ ts, channel, name }, "slack: add reaction");
 
       const user = membersMap.get(toUser.login);
       if (!user?.slackClient || !user.im) return;
@@ -246,14 +246,14 @@ export const initTeamSlack = async <TeamNames extends string>(
           name,
         });
       } catch (error: CodedError | any) {
-        if (error && error.code === 'message_not_found') {
+        if (error && error.code === "message_not_found") {
           return;
         }
         throw error;
       }
     },
     updateHome: (githubLogin: string): void => {
-      context.log.debug({ githubLogin }, 'update slack home');
+      context.log.debug({ githubLogin }, "update slack home");
 
       const user = membersMap.get(githubLogin);
       if (!user?.slackClient || !user.member) return;
@@ -270,8 +270,8 @@ export const initTeamSlack = async <TeamNames extends string>(
       membersMap.delete(userLogin);
 
       const member = await mongoStores.orgMembers.findOne({
-        'org.id': account._id,
-        'user.id': userId,
+        "org.id": account._id,
+        "user.id": userId,
       });
 
       if (!member?.slack) return;

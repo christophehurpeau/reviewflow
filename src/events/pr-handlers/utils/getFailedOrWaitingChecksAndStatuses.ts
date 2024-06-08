@@ -1,7 +1,7 @@
-import type { RepoContext } from '../../../context/repoContext';
-import type { ChecksAndStatuses } from '../../../utils/github/pullRequest/checksAndStatuses';
+import type { RepoContext } from "../../../context/repoContext";
+import type { ChecksAndStatuses } from "../../../utils/github/pullRequest/checksAndStatuses";
 
-export type ChecksAndStatusesState = 'failed' | 'passed' | 'pending';
+export type ChecksAndStatusesState = "failed" | "passed" | "pending";
 
 export interface FailedOrWaitingChecksAndStatuses {
   failedChecks: string[];
@@ -18,12 +18,12 @@ export const isCheckNotAllowedToFail = (
   !checkName ||
   !repoContext.config.checksAllowedToFail ||
   repoContext.config.checksAllowedToFail.every((name) =>
-    name.endsWith('/') ? !checkName.startsWith(name) : checkName !== name,
+    name.endsWith("/") ? !checkName.startsWith(name) : checkName !== name,
   );
 
 export const isPendingCheckShouldBeIgnored = (checkName: string): boolean =>
   // see https://github.com/christophehurpeau/nightingale/pull/643, when label change codecov check goes to in-progress again
-  checkName?.includes('codecov') || checkName?.includes('/hold-');
+  checkName?.includes("codecov") || checkName?.includes("/hold-");
 
 export const getFailedOrWaitingChecksAndStatuses = <TeamNames extends string>(
   { checksConclusionRecord, statusesConclusionRecord }: ChecksAndStatuses,
@@ -35,9 +35,9 @@ export const getFailedOrWaitingChecksAndStatuses = <TeamNames extends string>(
   const failedChecks = checksEntries
     .filter(
       ([checkId, { name, conclusion }]) =>
-        (conclusion === 'failure' ||
-          conclusion === 'cancelled' ||
-          conclusion === 'timed_out') &&
+        (conclusion === "failure" ||
+          conclusion === "cancelled" ||
+          conclusion === "timed_out") &&
         isCheckNotAllowedToFail(repoContext, name),
     )
     .map(([checkName]) => checkName);
@@ -52,7 +52,7 @@ export const getFailedOrWaitingChecksAndStatuses = <TeamNames extends string>(
   const failedStatuses = statusesEntries
     .filter(
       ([, { context: statusContext, state: statusState }]) =>
-        (statusState === 'failure' || statusState === 'error') &&
+        (statusState === "failure" || statusState === "error") &&
         isCheckNotAllowedToFail(repoContext, statusContext),
     )
     .map(([, { context: statusContext }]) => statusContext);
@@ -60,17 +60,17 @@ export const getFailedOrWaitingChecksAndStatuses = <TeamNames extends string>(
   const pendingStatuses = statusesEntries
     .filter(
       ([, { context: statusContext, state: statusState }]) =>
-        statusState === 'pending' &&
+        statusState === "pending" &&
         !isPendingCheckShouldBeIgnored(statusContext),
     )
     .map(([, { context: statusContext }]) => statusContext);
 
   const calcState = (): ChecksAndStatusesState => {
-    if (failedChecks.length > 0 || failedStatuses.length > 0) return 'failed';
+    if (failedChecks.length > 0 || failedStatuses.length > 0) return "failed";
     if (pendingChecks.length > 0 || pendingStatuses.length > 0) {
-      return 'pending';
+      return "pending";
     }
-    return 'passed';
+    return "passed";
   };
 
   return {

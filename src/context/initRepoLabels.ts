@@ -1,7 +1,7 @@
-import type { RestEndpointMethodTypes } from '@octokit/rest';
-import type { EmitterWebhookEventName } from '@octokit/webhooks';
-import type { Config } from '../accountConfigs';
-import type { ProbotEvent } from '../events/probot-types';
+import type { RestEndpointMethodTypes } from "@octokit/rest";
+import type { EmitterWebhookEventName } from "@octokit/webhooks";
+import type { Config } from "../accountConfigs";
+import type { ProbotEvent } from "../events/probot-types";
 
 export interface LabelResponse {
   id: number;
@@ -18,7 +18,7 @@ export type LabelsRecord = Record<string, LabelResponse>;
 export const getLabelsForRepo = async <T extends EmitterWebhookEventName>(
   context: ProbotEvent<T>,
 ): Promise<
-  RestEndpointMethodTypes['issues']['listLabelsForRepo']['response']['data']
+  RestEndpointMethodTypes["issues"]["listLabelsForRepo"]["response"]["data"]
 > => {
   const { data: labels } = await context.octokit.issues.listLabelsForRepo(
     context.repo({ per_page: 100 }),
@@ -62,27 +62,27 @@ export const initRepoLabels = async <
       existingLabel = labels.find((label) => label.description === description);
     }
     if (!existingLabel) {
-      if (labelKey === 'design/needs-review') {
+      if (labelKey === "design/needs-review") {
         existingLabel = labels.find(
-          (label) => label.name === 'needs-design-review',
+          (label) => label.name === "needs-design-review",
         );
       }
-      if (labelKey === 'design/approved') {
+      if (labelKey === "design/approved") {
         existingLabel = labels.find(
-          (label) => label.name === 'design-reviewed',
+          (label) => label.name === "design-reviewed",
         );
       }
-      if (labelKey === 'teams/ops') {
-        existingLabel = labels.find((label) => label.name === 'archi');
+      if (labelKey === "teams/ops") {
+        existingLabel = labels.find((label) => label.name === "archi");
       }
-      if (labelKey === 'merge/skip-ci') {
+      if (labelKey === "merge/skip-ci") {
         existingLabel = labels.find(
-          (label) => label.name === 'automerge/skip-ci',
+          (label) => label.name === "automerge/skip-ci",
         );
       }
-      if (labelKey.includes('checks/')) {
+      if (labelKey.includes("checks/")) {
         existingLabel = labels.find(
-          (label) => label.name === labelConfig.name.replace('checks/', 'ci/'),
+          (label) => label.name === labelConfig.name.replace("checks/", "ci/"),
         );
       }
     }
@@ -110,7 +110,7 @@ export const initRepoLabels = async <
           existingLabel,
           labelColor,
         },
-        'Needs to update label',
+        "Needs to update label",
       );
 
       const result = await context.octokit.issues.updateLabel(

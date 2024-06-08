@@ -1,14 +1,14 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import type { LockedMergePr } from '../../context/repoContext';
-import type { ProbotEvent } from '../probot-types';
-import { calcAndUpdateChecksAndStatuses } from './actions/calcAndUpdateChecksAndStatuses';
-import type { PullRequestDataMinimumData } from './utils/PullRequestData';
-import { createPullRequestsHandler } from './utils/createPullRequestHandler';
-import { fetchPr } from './utils/fetchPr';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import type { LockedMergePr } from "../../context/repoContext";
+import type { ProbotEvent } from "../probot-types";
+import { calcAndUpdateChecksAndStatuses } from "./actions/calcAndUpdateChecksAndStatuses";
+import type { PullRequestDataMinimumData } from "./utils/PullRequestData";
+import { createPullRequestsHandler } from "./utils/createPullRequestHandler";
+import { fetchPr } from "./utils/fetchPr";
 
 const isSameBranch = (
-  payload: ProbotEvent<'status'>['payload'],
+  payload: ProbotEvent<"status">["payload"],
   lockedPr: LockedMergePr,
 ): boolean => {
   if (!lockedPr) return false;
@@ -19,7 +19,7 @@ export default function status(app: Probot, appContext: AppContext): void {
   createPullRequestsHandler(
     app,
     appContext,
-    'status',
+    "status",
     async (payload, repoContext): Promise<PullRequestDataMinimumData[]> => {
       if (repoContext.shouldIgnore) return [];
       if (payload.context === process.env.REVIEWFLOW_NAME) return [];
@@ -31,8 +31,8 @@ export default function status(app: Probot, appContext: AppContext): void {
       }
 
       const prsForShaCursor = await appContext.mongoStores.prs.findAll({
-        'account.id': repoContext.accountEmbed.id,
-        'repo.id': repoContext.repoEmbed.id,
+        "account.id": repoContext.accountEmbed.id,
+        "repo.id": repoContext.repoEmbed.id,
         headSha: payload.commit.sha,
       });
 
@@ -44,16 +44,16 @@ export default function status(app: Probot, appContext: AppContext): void {
       repoContext,
       reviewflowPrContext,
     ): Promise<void> => {
-      if (context.payload.state !== 'pending') {
+      if (context.payload.state !== "pending") {
         await repoContext.rescheduleOnChecksUpdated(
           context,
           pullRequest,
-          context.payload.state === 'success',
+          context.payload.state === "success",
         );
       }
 
       if (reviewflowPrContext?.reviewflowPr.statusesConclusion) {
-        const key = context.payload.context.replace(/[\s.]/g, '_');
+        const key = context.payload.context.replace(/[\s.]/g, "_");
 
         if (
           reviewflowPrContext.reviewflowPr.statusesConclusion[key]?.state ===

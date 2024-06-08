@@ -1,28 +1,28 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import type { ProbotEvent } from '../probot-types';
-import { autoMergeIfPossibleLegacy } from './actions/autoMergeIfPossible';
-import { disableGithubAutoMerge } from './actions/enableGithubAutoMerge';
-import { tryToAutomerge } from './actions/tryToAutomerge';
-import { updateBranch } from './actions/updateBranch';
-import { updatePrCommentBodyOptions } from './actions/updatePrCommentBody';
-import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
-import hasLabelInPR from './actions/utils/labels/hasLabelInPR';
-import { calcStepsState } from './actions/utils/steps/calcStepsState';
-import type { PullRequestLabels } from './utils/PullRequestData';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
-import { fetchPr } from './utils/fetchPr';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import type { ProbotEvent } from "../probot-types";
+import { autoMergeIfPossibleLegacy } from "./actions/autoMergeIfPossible";
+import { disableGithubAutoMerge } from "./actions/enableGithubAutoMerge";
+import { tryToAutomerge } from "./actions/tryToAutomerge";
+import { updateBranch } from "./actions/updateBranch";
+import { updatePrCommentBodyOptions } from "./actions/updatePrCommentBody";
+import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState";
+import hasLabelInPR from "./actions/utils/labels/hasLabelInPR";
+import { calcStepsState } from "./actions/utils/steps/calcStepsState";
+import type { PullRequestLabels } from "./utils/PullRequestData";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler";
+import { fetchPr } from "./utils/fetchPr";
 
 const isFromRenovate = (
   payload: ProbotEvent<
-    'pull_request.labeled' | 'pull_request.unlabeled'
-  >['payload'],
+    "pull_request.labeled" | "pull_request.unlabeled"
+  >["payload"],
 ): boolean => {
   const sender = payload.sender;
   return (
-    sender.type === 'Bot' &&
-    sender.login === 'renovate[bot]' &&
-    payload.pull_request.head.ref.startsWith('renovate/')
+    sender.type === "Bot" &&
+    sender.login === "renovate[bot]" &&
+    payload.pull_request.head.ref.startsWith("renovate/")
   );
 };
 
@@ -33,9 +33,9 @@ export default function labelsChanged(
   createPullRequestHandler(
     app,
     appContext,
-    ['pull_request.labeled', 'pull_request.unlabeled'],
+    ["pull_request.labeled", "pull_request.unlabeled"],
     (payload, context, repoContext) => {
-      if (payload.sender.type === 'Bot' && !isFromRenovate(payload)) {
+      if (payload.sender.type === "Bot" && !isFromRenovate(payload)) {
         return null;
       }
 
@@ -49,25 +49,25 @@ export default function labelsChanged(
       const fromRenovate = isFromRenovate(context.payload);
       const updatedPr = await fetchPr(context, pullRequest.number);
 
-      const updateBranchLabel = repoContext.labels['merge/update-branch'];
-      const autoMergeLabel = repoContext.labels['merge/automerge'];
-      const autoMergeSkipCiLabel = repoContext.labels['merge/skip-ci'];
-      const bypassProgressLabel = repoContext.labels['merge/bypass-progress'];
+      const updateBranchLabel = repoContext.labels["merge/update-branch"];
+      const autoMergeLabel = repoContext.labels["merge/automerge"];
+      const autoMergeSkipCiLabel = repoContext.labels["merge/skip-ci"];
+      const bypassProgressLabel = repoContext.labels["merge/bypass-progress"];
 
       const label = context.payload.label;
       let successful = true;
 
       if (fromRenovate) {
-        const codeApprovedLabel = repoContext.labels['code/approved'];
-        const autoApproveLabel = repoContext.labels['review/auto-approve'];
+        const codeApprovedLabel = repoContext.labels["code/approved"];
+        const autoApproveLabel = repoContext.labels["review/auto-approve"];
 
-        if (context.payload.action === 'labeled') {
+        if (context.payload.action === "labeled") {
           if (
             (codeApprovedLabel && label.id === codeApprovedLabel.id) ||
             (autoApproveLabel && label.id === autoApproveLabel.id)
           ) {
             await context.octokit.pulls.createReview(
-              context.pullRequest({ event: 'APPROVE' }),
+              context.pullRequest({ event: "APPROVE" }),
             );
 
             let labels: PullRequestLabels = updatedPr.labels;
@@ -166,13 +166,13 @@ export default function labelsChanged(
               reviewflowPrContext,
             );
           }
-        } else if (context.payload.action === 'unlabeled') {
+        } else if (context.payload.action === "unlabeled") {
         }
         return;
       }
 
       if (repoContext.protectedLabelIds.includes(label.id)) {
-        if (context.payload.action === 'labeled') {
+        if (context.payload.action === "labeled") {
           await context.octokit.issues.removeLabel(
             context.repo({
               issue_number: pullRequest.number,
@@ -192,7 +192,7 @@ export default function labelsChanged(
 
       if (bypassProgressLabel && label.id === bypassProgressLabel.id) {
         if (
-          context.payload.action === 'labeled' &&
+          context.payload.action === "labeled" &&
           repoContext.config.disableBypassMergeFor &&
           repoContext.config.disableBypassMergeFor.test(
             repoContext.repoEmbed.name,
@@ -224,7 +224,7 @@ export default function labelsChanged(
 
       // not an else if
       if (autoMergeLabel && label.id === autoMergeLabel.id) {
-        if (context.payload.action === 'labeled') {
+        if (context.payload.action === "labeled") {
           const { didFailedToEnableAutoMerge } = await tryToAutomerge({
             pullRequest: updatedPr,
             context,
@@ -265,14 +265,14 @@ export default function labelsChanged(
             await repoContext.removePrFromAutomergeQueue(
               context,
               pullRequest,
-              'automerge label removed',
+              "automerge label removed",
             );
           }
         }
       }
 
       if (updateBranchLabel && label.id === updateBranchLabel.id) {
-        if (context.payload.action === 'labeled') {
+        if (context.payload.action === "labeled") {
           await updateBranch(updatedPr, context, context.payload.sender.login);
           await context.octokit.issues.removeLabel(
             context.repo({
@@ -286,10 +286,10 @@ export default function labelsChanged(
       if (successful) {
         const option = (() => {
           if (autoMergeLabel && label.id === autoMergeLabel.id) {
-            return 'autoMerge';
+            return "autoMerge";
           }
           if (autoMergeSkipCiLabel && label.id === autoMergeSkipCiLabel.id) {
-            return 'autoMergeWithSkipCi';
+            return "autoMergeWithSkipCi";
           }
           return null;
         })();
@@ -300,7 +300,7 @@ export default function labelsChanged(
             repoContext,
             reviewflowPrContext,
             {
-              [option]: context.payload.action === 'labeled',
+              [option]: context.payload.action === "labeled",
             },
           );
         }

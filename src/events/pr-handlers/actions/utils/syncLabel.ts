@@ -1,9 +1,9 @@
-import type { EmitterWebhookEventName } from '@octokit/webhooks';
-import type { SetRequired } from 'type-fest';
-import type { LabelResponse } from '../../../../context/initRepoLabels';
-import type { ProbotEvent } from '../../../probot-types';
-import type { PullRequestWithDecentData } from '../../utils/PullRequestData';
-import hasLabelInPR from './labels/hasLabelInPR';
+import type { EmitterWebhookEventName } from "@octokit/webhooks";
+import type { SetRequired } from "type-fest";
+import type { LabelResponse } from "../../../../context/initRepoLabels";
+import type { ProbotEvent } from "../../../probot-types";
+import type { PullRequestWithDecentData } from "../../utils/PullRequestData";
+import hasLabelInPR from "./labels/hasLabelInPR";
 
 type SyncLabelCallback = (
   prLabels: LabelResponse[],
@@ -86,7 +86,7 @@ export interface LabelToSync extends SyncLabelOptions {
 
 const filterLabelNotNull = (
   labelToSync: LabelToSync,
-): labelToSync is SetRequired<LabelToSync, 'label'> => !!labelToSync.label;
+): labelToSync is SetRequired<LabelToSync, "label"> => !!labelToSync.label;
 
 export async function syncLabels<EventName extends EmitterWebhookEventName>(
   pullRequest: PullRequestWithDecentData,

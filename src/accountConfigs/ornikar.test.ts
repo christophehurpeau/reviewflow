@@ -1,43 +1,43 @@
-import { describe, expect, it } from 'vitest';
-import { shouldIgnoreRepo } from '../context/repoContext';
-import ornikarConfig from './ornikar';
+import { describe, expect, it } from "vitest";
+import { shouldIgnoreRepo } from "../context/repoContext";
+import ornikarConfig from "./ornikar";
 
-describe('ignoreRepoPattern', () => {
-  it('should ignore some repositories', () => {
-    expect(shouldIgnoreRepo('shared-config', ornikarConfig)).toBe(false);
-    expect(shouldIgnoreRepo('infra-config', ornikarConfig)).toBe(true);
-    expect(shouldIgnoreRepo('devenv', ornikarConfig)).toBe(true);
+describe("ignoreRepoPattern", () => {
+  it("should ignore some repositories", () => {
+    expect(shouldIgnoreRepo("shared-config", ornikarConfig)).toBe(false);
+    expect(shouldIgnoreRepo("infra-config", ornikarConfig)).toBe(true);
+    expect(shouldIgnoreRepo("devenv", ornikarConfig)).toBe(true);
   });
 });
 
-describe('parsePR.body', () => {
-  it('should fail with empty description', () => {
+describe("parsePR.body", () => {
+  it("should fail with empty description", () => {
     expect(
       ornikarConfig.parsePR?.body?.[0]?.createStatusInfo(
-        ['', ''],
+        ["", ""],
         {} as any,
         false,
       ),
     ).toEqual({
-      summary: 'The PR body should not be empty',
-      title: 'Body is empty',
-      type: 'failure',
+      summary: "The PR body should not be empty",
+      title: "Body is empty",
+      type: "failure",
     });
   });
-  it('should success with not empty description', () => {
+  it("should success with not empty description", () => {
     expect(
       ornikarConfig.parsePR?.body?.[0]?.createStatusInfo(
-        ['', 'something'],
+        ["", "something"],
         {} as any,
         false,
       ),
     ).toEqual(null);
   });
-  it('should fail on empty template description', () => {
+  it("should fail on empty template description", () => {
     expect(
       ornikarConfig.parsePR?.body?.[0]?.createStatusInfo(
         [
-          '',
+          "",
           `### Context
 
     <!-- Explain here why this PR is needed -->
@@ -56,16 +56,16 @@ describe('parsePR.body', () => {
         false,
       ),
     ).toEqual({
-      type: 'failure',
-      title: 'Body has no meaningful content',
-      summary: 'The PR body should not contains only titles and comments',
+      type: "failure",
+      title: "Body has no meaningful content",
+      summary: "The PR body should not contains only titles and comments",
     });
   });
-  it('should success on filled template description', () => {
+  it("should success on filled template description", () => {
     expect(
       ornikarConfig.parsePR?.body?.[0]?.createStatusInfo(
         [
-          '',
+          "",
           `### Context
 
     This is the context

@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import type { MongoBaseModel } from 'liwi-mongo';
-import { MongoStore, MongoConnection } from 'liwi-mongo';
-import type { AccountInfo } from './context/getOrCreateAccount';
-import type { LockedMergePr } from './context/repoContext';
-import type { SlackMessage } from './context/slack/SlackMessage';
-import type { MessageCategory } from './dm/MessageCategory';
-import type { ReviewflowStatus } from './events/pr-handlers/actions/editOpenedPR';
-import type { RepositorySettings } from './events/pr-handlers/actions/utils/body/repositorySettings';
-import type { BasicUser } from './events/pr-handlers/utils/PullRequestData';
-import type { ReviewersGroupedByState } from './events/pr-handlers/utils/groupReviewsWithState';
-import type { ChecksAndStatuses } from './utils/github/pullRequest/checksAndStatuses';
+import type { MongoBaseModel } from "liwi-mongo";
+import { MongoStore, MongoConnection } from "liwi-mongo";
+import type { AccountInfo } from "./context/getOrCreateAccount";
+import type { LockedMergePr } from "./context/repoContext";
+import type { SlackMessage } from "./context/slack/SlackMessage";
+import type { MessageCategory } from "./dm/MessageCategory";
+import type { ReviewflowStatus } from "./events/pr-handlers/actions/editOpenedPR";
+import type { RepositorySettings } from "./events/pr-handlers/actions/utils/body/repositorySettings";
+import type { BasicUser } from "./events/pr-handlers/utils/PullRequestData";
+import type { ReviewersGroupedByState } from "./events/pr-handlers/utils/groupReviewsWithState";
+import type { ChecksAndStatuses } from "./utils/github/pullRequest/checksAndStatuses";
 
 // export interface PrEventsModel extends MongoModel {
 //   owner: string;
@@ -19,7 +19,7 @@ import type { ChecksAndStatuses } from './utils/github/pullRequest/checksAndStat
 //   event: string;
 // }
 
-export type AccountType = 'Organization' | 'User';
+export type AccountType = "Organization" | "User";
 
 export interface AccountEmbed {
   id: number;
@@ -32,7 +32,7 @@ interface PrEmbed {
   number: number;
 }
 
-export type AccountEmbedWithoutType = Omit<AccountEmbed, 'type'>;
+export type AccountEmbedWithoutType = Omit<AccountEmbed, "type">;
 
 export interface UserDmSettings extends MongoBaseModel {
   userId: number;
@@ -69,8 +69,8 @@ export interface Repository extends MongoBaseModel<number> {
 }
 
 interface RepoEmbed {
-  id: Repository['_id'];
-  name: Repository['fullName'];
+  id: Repository["_id"];
+  name: Repository["fullName"];
 }
 
 export interface OrgTeam extends MongoBaseModel<number> {
@@ -81,9 +81,9 @@ export interface OrgTeam extends MongoBaseModel<number> {
 }
 
 export interface OrgTeamEmbed {
-  id: OrgTeam['_id'];
-  name: OrgTeam['name'];
-  slug: OrgTeam['slug'];
+  id: OrgTeam["_id"];
+  name: OrgTeam["name"];
+  slug: OrgTeam["slug"];
 }
 
 interface OrgMemberSlack {
@@ -112,16 +112,16 @@ export interface SlackTeam extends MongoBaseModel {
 }
 
 export interface SlackTeamInstallation extends SlackTeam {
-  teamId: SlackTeam['_id'];
+  teamId: SlackTeam["_id"];
 }
 
 export type SlackMessageType =
-  | 'commit-comment'
-  | 'issue-comment'
-  | 'pr-checksAndStatuses'
-  | 'review-comment'
-  | 'review-requested'
-  | 'review-submitted';
+  | "commit-comment"
+  | "issue-comment"
+  | "pr-checksAndStatuses"
+  | "review-comment"
+  | "review-requested"
+  | "review-submitted";
 
 export interface SlackSentMessage extends MongoBaseModel {
   type: SlackMessageType;
@@ -149,16 +149,16 @@ export interface AutomergeLog extends MongoBaseModel {
     mergeableState: string;
   };
   type:
-    | 'already merged'
-    | 'behind mergeable_state'
-    | 'blocked mergeable_state'
-    | 'failed status or checks'
-    | 'not mergeable'
-    | 'pending status or checks'
-    | 'rebase-renovate'
-    | 'review incomplete'
-    | 'unknown mergeable_state';
-  action: 'remove' | 'reschedule' | 'update branch' | 'wait';
+    | "already merged"
+    | "behind mergeable_state"
+    | "blocked mergeable_state"
+    | "failed status or checks"
+    | "not mergeable"
+    | "pending status or checks"
+    | "rebase-renovate"
+    | "review incomplete"
+    | "unknown mergeable_state";
+  action: "remove" | "reschedule" | "update branch" | "wait";
 }
 
 interface ReviewflowPrChangesInformation {
@@ -180,10 +180,10 @@ export interface ReviewflowPr extends MongoBaseModel {
   lastLintStatusesCommit?: string;
   lintStatuses?: ReviewflowStatus[];
   lastFlowStatusCommit?: string;
-  flowStatus?: ReviewflowStatus['status'];
-  automergeStatus?: ReviewflowStatus['status'];
-  checksConclusion?: ChecksAndStatuses['checksConclusionRecord'];
-  statusesConclusion?: ChecksAndStatuses['statusesConclusionRecord'];
+  flowStatus?: ReviewflowStatus["status"];
+  automergeStatus?: ReviewflowStatus["status"];
+  checksConclusion?: ChecksAndStatuses["checksConclusionRecord"];
+  statusesConclusion?: ChecksAndStatuses["statusesConclusionRecord"];
   reviews: ReviewersGroupedByState;
   creator?: BasicUser;
   assignees: BasicUser[];
@@ -222,18 +222,18 @@ export interface MongoStores {
 }
 
 if (!process.env.MONGO_DB) {
-  throw new Error('MONGO_DB is missing in process.env');
+  throw new Error("MONGO_DB is missing in process.env");
 }
 
 export default function init(): MongoStores {
   const config = new Map([
-    ['host', process.env.MONGO_HOST || 'localhost'],
-    ['port', process.env.MONGO_PORT || '27017'],
-    ['database', process.env.MONGO_DB!],
+    ["host", process.env.MONGO_HOST || "localhost"],
+    ["port", process.env.MONGO_PORT || "27017"],
+    ["database", process.env.MONGO_DB!],
   ]);
   if (process.env.MONGO_USER) {
-    config.set('user', process.env.MONGO_USER);
-    config.set('password', process.env.MONGO_PASSWORD!);
+    config.set("user", process.env.MONGO_USER);
+    config.set("password", process.env.MONGO_PASSWORD!);
   }
   const connection = new MongoConnection(config);
 
@@ -244,52 +244,52 @@ export default function init(): MongoStores {
 
   const userDmSettings = new MongoStore<UserDmSettings>(
     connection,
-    'userDmSettings',
+    "userDmSettings",
   );
   userDmSettings.collection.then((coll) => {
     coll.createIndex({ userId: 1, orgId: 1 }, { unique: true });
   });
 
-  const users = new MongoStore<User>(connection, 'users');
+  const users = new MongoStore<User>(connection, "users");
   users.collection.then((coll) => {
     coll.createIndex({ login: 1 }, { unique: true });
   });
 
-  const orgs = new MongoStore<Org>(connection, 'orgs');
+  const orgs = new MongoStore<Org>(connection, "orgs");
   orgs.collection.then((coll) => {
     coll.createIndex({ login: 1 }, { unique: true });
   });
 
-  const orgMembers = new MongoStore<OrgMember>(connection, 'orgMembers');
+  const orgMembers = new MongoStore<OrgMember>(connection, "orgMembers");
   orgMembers.collection.then((coll) => {
-    coll.createIndex({ 'user.id': 1, 'org.id': 1 }, { unique: true });
+    coll.createIndex({ "user.id": 1, "org.id": 1 }, { unique: true });
     coll.createIndex(
-      { 'org.id': 1, 'user.id': 1, 'teams.id': 1 },
+      { "org.id": 1, "user.id": 1, "teams.id": 1 },
       { unique: true },
     );
-    coll.createIndex({ 'org.id': 1, 'teams.id': 1 });
+    coll.createIndex({ "org.id": 1, "teams.id": 1 });
   });
 
-  const orgTeams = new MongoStore<OrgTeam>(connection, 'orgTeams');
+  const orgTeams = new MongoStore<OrgTeam>(connection, "orgTeams");
   orgTeams.collection.then((coll) => {
-    coll.createIndex({ 'org.id': 1 });
+    coll.createIndex({ "org.id": 1 });
   });
 
   const slackSentMessages = new MongoStore<SlackSentMessage>(
     connection,
-    'slackSentMessages',
+    "slackSentMessages",
   );
   slackSentMessages.collection.then((coll) => {
     coll
-      .indexExists('account.id_1_account.type_1_type_1_typeId_1')
+      .indexExists("account.id_1_account.type_1_type_1_typeId_1")
       .then((exists) => {
         if (exists) {
-          coll.dropIndex('account.id_1_account.type_1_type_1_typeId_1');
+          coll.dropIndex("account.id_1_account.type_1_type_1_typeId_1");
         }
       });
     coll.createIndex({
-      'account.id': 1,
-      'account.type': 1,
+      "account.id": 1,
+      "account.type": 1,
       type: 1,
       typeId: 1,
       messageId: 1,
@@ -302,7 +302,7 @@ export default function init(): MongoStores {
 
   const automergeLogs = new MongoStore<AutomergeLog>(
     connection,
-    'automergeLogs',
+    "automergeLogs",
   );
   automergeLogs.collection.then((coll) => {
     coll.createIndex({
@@ -311,7 +311,7 @@ export default function init(): MongoStores {
     });
     coll.createIndex({
       repoFullName: 1,
-      'pr.number': 1,
+      "pr.number": 1,
     });
     // remove older than 30 days
     coll.deleteMany({
@@ -319,24 +319,24 @@ export default function init(): MongoStores {
     });
   });
 
-  const prs = new MongoStore<ReviewflowPr>(connection, 'prs');
+  const prs = new MongoStore<ReviewflowPr>(connection, "prs");
   prs.collection.then((coll) => {
     coll.createIndex(
       {
-        'account.id': 1,
-        'repo.id': 1,
-        'pr.number': 1,
+        "account.id": 1,
+        "repo.id": 1,
+        "pr.number": 1,
       },
       { unique: true },
     );
     coll.createIndex({
-      'account.id': 1,
-      'repo.id': 1,
+      "account.id": 1,
+      "repo.id": 1,
       headSha: 1,
     });
     coll.createIndex({
-      'account.id': 1,
-      'assignees.id': 1,
+      "account.id": 1,
+      "assignees.id": 1,
     });
     // remove with no activity for 12 * 30 days
     coll.deleteMany({
@@ -344,27 +344,27 @@ export default function init(): MongoStores {
     });
   });
 
-  const slackTeams = new MongoStore<SlackTeam>(connection, 'slackTeams');
+  const slackTeams = new MongoStore<SlackTeam>(connection, "slackTeams");
   const slackTeamInstallations = new MongoStore<SlackTeamInstallation>(
     connection,
-    'slackTeamsInstallations',
+    "slackTeamsInstallations",
   );
-  const repositories = new MongoStore<Repository>(connection, 'repositories');
+  const repositories = new MongoStore<Repository>(connection, "repositories");
   repositories.collection.then((coll) => {
     coll.createIndex({
-      'account.id': 1,
+      "account.id": 1,
     });
   });
 
   const repositoryMergeQueue = new MongoStore<RepositoryMergeQueue>(
     connection,
-    'repositoryMergeQueue',
+    "repositoryMergeQueue",
   );
   repositoryMergeQueue.collection.then((coll) => {
     coll.createIndex(
       {
-        'account.id': 1,
-        'repo.id': 1,
+        "account.id": 1,
+        "repo.id": 1,
       },
       { unique: true },
     );

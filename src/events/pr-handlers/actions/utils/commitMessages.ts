@@ -1,16 +1,21 @@
+import commitlintConventionalConfig from "@commitlint/config-conventional";
+import * as commitlintLintModule from "@commitlint/lint";
+import * as commitlintParseModule from "@commitlint/parse";
 // @ts-expect-error missing typings
-import commitlintConventionalConfig from '@commitlint/config-conventional';
-import * as commitlintLintModule from '@commitlint/lint';
-import * as commitlintParseModule from '@commitlint/parse';
-// @ts-expect-error missing typings
-import createConventionalCommitsConfig from 'conventional-changelog-conventionalcommits';
+// eslint-disable-next-line import/no-unresolved
+import createConventionalCommitsConfig from "conventional-changelog-conventionalcommits";
+import type { AsyncReturnType } from "type-fest";
 
 const conventionalCommitsConfig = await createConventionalCommitsConfig({});
 
-const commitlintConventionalConfigTweakedRules = {
+const commitlintConventionalConfigTweakedRules: Parameters<
+  typeof commitlintLint
+>[1] = {
   ...commitlintConventionalConfig.rules,
-  'header-max-length': [0],
+  "header-max-length": [0],
 };
+
+export type ParsedCommit = AsyncReturnType<typeof commitlintParse>;
 
 export const commitlintParse = ((commitlintParseModule.default as any)
   .default ||
@@ -22,17 +27,13 @@ export const commitlintLint = ((commitlintLintModule.default as any).default ||
 export const parseCommitMessage = (
   message: string,
 ): ReturnType<typeof commitlintParse> => {
-  return commitlintParse(
-    message,
-    undefined,
-    conventionalCommitsConfig.parserOpts,
-  );
+  return commitlintParse(message, undefined, conventionalCommitsConfig.parser);
 };
 
 export const lintCommitMessage = (
   message: string,
 ): ReturnType<typeof commitlintLint> => {
   return commitlintLint(message, commitlintConventionalConfigTweakedRules, {
-    parserOpts: conventionalCommitsConfig.parserOpts,
+    parserOpts: conventionalCommitsConfig.parser,
   });
 };

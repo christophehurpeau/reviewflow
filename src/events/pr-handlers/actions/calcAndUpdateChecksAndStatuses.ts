@@ -1,28 +1,28 @@
-import type { AppContext } from '../../../context/AppContext';
+import type { AppContext } from "../../../context/AppContext";
 import type {
   EventsWithRepository,
   RepoContext,
-} from '../../../context/repoContext';
-import type { CreateOwnerPartOptions } from '../../../slack/utils';
-import { createOwnerPart, createPrLink } from '../../../slack/utils';
-import type { ProbotEvent } from '../../probot-types';
+} from "../../../context/repoContext";
+import type { CreateOwnerPartOptions } from "../../../slack/utils";
+import { createOwnerPart, createPrLink } from "../../../slack/utils";
+import type { ProbotEvent } from "../../probot-types";
 import type {
   PullRequestFromRestEndpoint,
   PullRequestLabels,
-} from '../utils/PullRequestData';
-import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
-import type { FailedOrWaitingChecksAndStatuses } from '../utils/getFailedOrWaitingChecksAndStatuses';
-import { getFailedOrWaitingChecksAndStatuses } from '../utils/getFailedOrWaitingChecksAndStatuses';
-import { getOwnersFromPullRequest } from '../utils/getRolesFromPullRequestAndReviewers';
-import { updateCommentBodyProgressFromStepsState } from './updateCommentBodyProgressFromStepsState';
-import { updateStatusCheckFromStepsState } from './updateStatusCheckFromStepsState';
-import { getStateChecksLabelsToSync } from './utils/labels/getStateChecksLabelsToSync';
+} from "../utils/PullRequestData";
+import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
+import type { FailedOrWaitingChecksAndStatuses } from "../utils/getFailedOrWaitingChecksAndStatuses";
+import { getFailedOrWaitingChecksAndStatuses } from "../utils/getFailedOrWaitingChecksAndStatuses";
+import { getOwnersFromPullRequest } from "../utils/getRolesFromPullRequestAndReviewers";
+import { updateCommentBodyProgressFromStepsState } from "./updateCommentBodyProgressFromStepsState";
+import { updateStatusCheckFromStepsState } from "./updateStatusCheckFromStepsState";
+import { getStateChecksLabelsToSync } from "./utils/labels/getStateChecksLabelsToSync";
 import {
   markAsDoneSlackSentMessages,
   sendOrUpdateSlackMessage,
-} from './utils/slackUtils';
-import { calcStepsState } from './utils/steps/calcStepsState';
-import { syncLabels } from './utils/syncLabel';
+} from "./utils/slackUtils";
+import { calcStepsState } from "./utils/steps/calcStepsState";
+import { syncLabels } from "./utils/syncLabel";
 
 async function checksAndStatusesSlackMessageAddOrUpdate<
   TeamNames extends string,
@@ -36,7 +36,7 @@ async function checksAndStatusesSlackMessageAddOrUpdate<
 ): Promise<void> {
   if (!repoContext.slack) return;
 
-  const type = 'pr-checksAndStatuses';
+  const type = "pr-checksAndStatuses";
 
   if (previousSha) {
     const previousShaTypeId = `${repoContext.repoEmbed.id}_${pullRequest.id}_${previousSha}`;
@@ -51,7 +51,7 @@ async function checksAndStatusesSlackMessageAddOrUpdate<
   const typeId = `${repoContext.repoEmbed.id}_${pullRequest.id}_${reviewflowPrContext.reviewflowPr.headSha}`;
 
   switch (state) {
-    case 'passed': {
+    case "passed": {
       await markAsDoneSlackSentMessages(appContext, repoContext, {
         type,
         typeId,
@@ -59,7 +59,7 @@ async function checksAndStatusesSlackMessageAddOrUpdate<
 
       break;
     }
-    case 'failed': {
+    case "failed": {
       const createText = (
         createOwnerPartOptions: CreateOwnerPartOptions,
       ): string => {
@@ -76,10 +76,10 @@ async function checksAndStatusesSlackMessageAddOrUpdate<
         ];
         const failedChecksAndStatusesString = failedChecksAndStatuses
           .map((failedCheckOrStatusName) => `\`${failedCheckOrStatusName}\``)
-          .join(', ');
+          .join(", ");
 
         return `:red_circle: Check${
-          failedChecksAndStatuses.length > 1 ? 's' : ''
+          failedChecksAndStatuses.length > 1 ? "s" : ""
         } ${failedChecksAndStatusesString} failed on ${prOwnership} ${prLink}`;
       };
 
@@ -94,8 +94,8 @@ async function checksAndStatusesSlackMessageAddOrUpdate<
           {
             type,
             typeId,
-            messageId: 'owner',
-            messageCategory: 'pr-checksAndStatuses',
+            messageId: "owner",
+            messageCategory: "pr-checksAndStatuses",
             message: {
               text: createText({ isOwner: true }),
             },
@@ -109,8 +109,8 @@ async function checksAndStatusesSlackMessageAddOrUpdate<
           {
             type,
             typeId,
-            messageId: 'assignees',
-            messageCategory: 'pr-checksAndStatuses',
+            messageId: "assignees",
+            messageCategory: "pr-checksAndStatuses",
             message: {
               text: createText({ isAssigned: true }),
             },
@@ -121,7 +121,7 @@ async function checksAndStatusesSlackMessageAddOrUpdate<
       ]);
       break;
     }
-    case 'pending': {
+    case "pending": {
       // if state is pending, we wait for resolution before creating/updating the message
       // Note that a pr can go back to pending when the ci triggers another job or a github app adds a pending status or check.
       // When a new commit is pushed, the sha changes.

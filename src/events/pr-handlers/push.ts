@@ -1,20 +1,20 @@
-import type { RestEndpointMethodTypes } from '@octokit/rest';
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import { checkIfUserIsBot } from '../../utils/github/isBotUser';
-import { createPullRequestsHandler } from './utils/createPullRequestHandler';
+import type { RestEndpointMethodTypes } from "@octokit/rest";
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import { checkIfUserIsBot } from "../../utils/github/isBotUser";
+import { createPullRequestsHandler } from "./utils/createPullRequestHandler";
 
 export default function status(app: Probot, appContext: AppContext): void {
   createPullRequestsHandler(
     app,
     appContext,
-    'push',
+    "push",
     async (
       payload,
       repoContext,
       context,
     ): Promise<
-      RestEndpointMethodTypes['repos']['listPullRequestsAssociatedWithCommit']['response']['data']
+      RestEndpointMethodTypes["repos"]["listPullRequestsAssociatedWithCommit"]["response"]["data"]
     > => {
       if (repoContext.shouldIgnore) return [];
 
@@ -34,13 +34,13 @@ export default function status(app: Probot, appContext: AppContext): void {
       // filter only force-push
       if (!payload.forced || !payload.pusher.name) return [];
 
-      if (!payload.ref.startsWith('refs/heads/')) return [];
+      if (!payload.ref.startsWith("refs/heads/")) return [];
 
       const prs = await context.octokit.pulls.list(
         context.repo({
-          state: 'open',
+          state: "open",
           head: `${payload.repository.owner.login}:${payload.ref.slice(
-            'refs/heads/'.length,
+            "refs/heads/".length,
           )}`,
         }),
       );
@@ -86,7 +86,7 @@ export default function status(app: Probot, appContext: AppContext): void {
         await context.octokit.issues.createComment(
           context.repo({
             issue_number: pullRequest.number,
-            body: `${login ? `@${login} ` : ''}: ${
+            body: `${login ? `@${login} ` : ""}: ${
               repoContext.config.warnOnForcePushAfterReviewStarted.message
             }`,
           }),

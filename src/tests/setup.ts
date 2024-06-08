@@ -1,12 +1,12 @@
-import nock from 'nock';
-import { Probot, ProbotOctokit } from 'probot';
-import repoLabels from '../__fixtures__/labels.json';
-import { createEmptyReviews } from '../events/pr-handlers/utils/groupReviewsWithState';
-import initApp from '../initApp';
+import nock from "nock";
+import { Probot, ProbotOctokit } from "probot";
+import repoLabels from "../__fixtures__/labels.json";
+import { createEmptyReviews } from "../events/pr-handlers/utils/groupReviewsWithState";
+import initApp from "../initApp";
 
-export { default as nock } from 'nock';
+export { default as nock } from "nock";
 
-process.env.REVIEWFLOW_NAME = 'reviewflow-dev';
+process.env.REVIEWFLOW_NAME = "reviewflow-dev";
 const APP_ID = 1;
 
 nock.disableNetConnect();
@@ -21,8 +21,8 @@ export const initializeProbotApp = async ({
 }: Partial<any> = {}): Promise<Probot> => {
   const probot = new Probot({
     appId: APP_ID,
-    privateKey: 'test',
-    githubToken: 'test',
+    privateKey: "test",
+    githubToken: "test",
     // Disable throttling & retrying requests for easier testing
     Octokit: ProbotOctokit.defaults({
       retry: { enabled: false },
@@ -78,14 +78,14 @@ export const initializeProbotApp = async ({
 
 export const mockAccessToken = (): void => {
   nock.disableNetConnect();
-  nock('https://api.github.com')
+  nock("https://api.github.com")
     .post(`/app/installations/${APP_ID}/access_tokens`)
-    .reply(200, { token: 'test' });
+    .reply(200, { token: "test" });
 };
 
 export const mockLabels = (): void => {
-  nock('https://api.github.com')
-    .get('/repos/reviewflow/reviewflow-test/labels')
+  nock("https://api.github.com")
+    .get("/repos/reviewflow/reviewflow-test/labels")
     .query(true)
     .reply(200, repoLabels);
 };

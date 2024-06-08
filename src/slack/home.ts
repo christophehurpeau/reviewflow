@@ -1,13 +1,13 @@
-import type { KnownBlock } from '@slack/web-api';
-import { WebClient } from '@slack/web-api';
-import type { Probot } from 'probot';
-import type { MongoStores, Org, OrgMember, ReviewflowPr } from '../mongo';
-import type { Octokit } from '../octokit';
-import { ExcludesFalsy } from '../utils/Excludes';
+import type { KnownBlock } from "@slack/web-api";
+import { WebClient } from "@slack/web-api";
+import type { Probot } from "probot";
+import type { MongoStores, Org, OrgMember, ReviewflowPr } from "../mongo";
+import type { Octokit } from "../octokit";
+import { ExcludesFalsy } from "../utils/Excludes";
 import {
   createLink,
   createPrChangesInformationFromReviewflowPr,
-} from './utils';
+} from "./utils";
 
 interface QueueItem {
   github: Octokit;
@@ -20,7 +20,7 @@ const buildPullRequestUrl = (reviewflowPullRequest: ReviewflowPr): string =>
 
 export const createSlackHomeWorker = (
   mongoStores: MongoStores,
-  log: Probot['log'],
+  log: Probot["log"],
 ) => {
   const updateMember = async (
     octokit: Octokit,
@@ -42,50 +42,50 @@ export const createSlackHomeWorker = (
       octokit.search
         .issuesAndPullRequests({
           q: `is:pr user:${member.org.login} is:open review-requested:${member.user.login} draft:false`,
-          sort: 'created',
-          order: 'desc',
+          sort: "created",
+          order: "desc",
         })
         .catch((error: unknown) => {
-          log.error('Error searching PRs', { error });
+          log.error("Error searching PRs", { error });
         }),
       //prsWithRequestedReviewsFromMongo
       mongoStores.prs.findAll(
         {
-          'account.id': member.org.id,
+          "account.id": member.org.id,
           isClosed: false,
           isDraft: false,
-          'reviews.reviewRequested.id': member.user.id,
+          "reviews.reviewRequested.id": member.user.id,
         },
         // TODO sort by time since asked for review ASC
-        { 'flowDates.opened': -1, created: -1 },
+        { "flowDates.opened": -1, created: -1 },
       ),
       //prsToMerge
       mongoStores.prs.findAll(
         {
-          'account.id': member.org.id,
-          'assignees.id': member.user.id,
+          "account.id": member.org.id,
+          "assignees.id": member.user.id,
           isClosed: false,
-          'reviews.reviewRequested': { $exists: true, $eq: [] },
-          'reviews.changesRequested': { $exists: true, $eq: [] },
-          'reviews.approved': { $exists: true, $ne: [] },
+          "reviews.reviewRequested": { $exists: true, $eq: [] },
+          "reviews.changesRequested": { $exists: true, $eq: [] },
+          "reviews.approved": { $exists: true, $ne: [] },
         },
         { created: -1 },
       ),
       //prsWithRequestedChanges
       mongoStores.prs.findAll(
         {
-          'account.id': member.org.id,
-          'assignees.id': member.user.id,
+          "account.id": member.org.id,
+          "assignees.id": member.user.id,
           isClosed: false,
-          'reviews.changesRequested': { $exists: true, $ne: [] },
+          "reviews.changesRequested": { $exists: true, $ne: [] },
         },
         { created: -1 },
       ),
       //prsInDraft
       mongoStores.prs.findAll(
         {
-          'account.id': member.org.id,
-          'assignees.id': member.user.id,
+          "account.id": member.org.id,
+          "assignees.id": member.user.id,
           isClosed: false,
           isDraft: true,
         },
@@ -94,13 +94,13 @@ export const createSlackHomeWorker = (
       //openedPrsWaitingForReview
       mongoStores.prs.findAll(
         {
-          'account.id': member.org.id,
-          'assignees.id': member.user.id,
+          "account.id": member.org.id,
+          "assignees.id": member.user.id,
           isClosed: false,
           isDraft: false,
-          'reviews.reviewRequested': { $not: { $exists: true, $ne: [] } },
-          'reviews.changesRequested': { $not: { $exists: true, $ne: [] } },
-          'reviews.approved': { $not: { $exists: true, $ne: [] } },
+          "reviews.reviewRequested": { $not: { $exists: true, $ne: [] } },
+          "reviews.changesRequested": { $not: { $exists: true, $ne: [] } },
+          "reviews.approved": { $not: { $exists: true, $ne: [] } },
         },
         { created: -1 },
       ),
@@ -108,49 +108,49 @@ export const createSlackHomeWorker = (
 
     const blocks: any[] = [
       {
-        type: 'section',
+        type: "section",
         text: {
-          type: 'mrkdwn',
+          type: "mrkdwn",
           text: `Configure your ${
             process.env.REVIEWFLOW_NAME
           } settings ${createLink(
             `${process.env.REVIEWFLOW_APP_URL}/org/${member.org.login}`,
-            'here',
+            "here",
           )}.`,
         },
       },
       {
-        type: 'header',
+        type: "header",
         text: {
-          type: 'plain_text',
-          text: 'PRs requesting your attention',
+          type: "plain_text",
+          text: "PRs requesting your attention",
         },
       },
     ];
 
     const createTitleBlock = (title: string): KnownBlock => ({
-      type: 'section',
+      type: "section",
       text: {
-        type: 'mrkdwn',
+        type: "mrkdwn",
         text: `*${title}*`,
       },
     });
-    const createDividerBlock = (): KnownBlock => ({ type: 'divider' });
+    const createDividerBlock = (): KnownBlock => ({ type: "divider" });
     const createErrorBlock = (errorMessage: string): KnownBlock => ({
-      type: 'section',
+      type: "section",
       text: {
-        type: 'plain_text',
+        type: "plain_text",
         text: errorMessage,
       },
     });
     const createPlaceholderImageBlock = (): KnownBlock => ({
-      type: 'context',
+      type: "context",
       elements: [
         {
-          type: 'image',
+          type: "image",
           image_url:
-            'https://api.slack.com/img/blocks/bkb_template_images/placeholder.png',
-          alt_text: 'placeholder',
+            "https://api.slack.com/img/blocks/bkb_template_images/placeholder.png",
+          alt_text: "placeholder",
         },
       ],
     });
@@ -165,16 +165,16 @@ export const createSlackHomeWorker = (
 
       return [
         {
-          type: 'section',
+          type: "section",
           text: {
-            type: 'mrkdwn',
+            type: "mrkdwn",
             text: `${createLink(prUrl, prFullName)}${
-              pr.isDraft ? ' · _Draft_' : ''
+              pr.isDraft ? " · _Draft_" : ""
             } · *${createLink(prUrl, pr.title)}*`,
           },
         },
         {
-          type: 'context',
+          type: "context",
           elements: [
             ...(() => {
               if (pr.assignees && pr.assignees.length > 0) {
@@ -182,12 +182,12 @@ export const createSlackHomeWorker = (
                   (assignee) =>
                     [
                       {
-                        type: 'image',
+                        type: "image",
                         image_url: assignee.avatar_url,
                         alt_text: assignee.login,
                       },
                       {
-                        type: 'mrkdwn',
+                        type: "mrkdwn",
                         text: assignee.login,
                       },
                     ] as const,
@@ -196,12 +196,12 @@ export const createSlackHomeWorker = (
               if (pr.creator) {
                 return [
                   {
-                    type: 'image',
+                    type: "image",
                     image_url: pr.creator.avatar_url,
                     alt_text: pr.creator.login,
                   },
                   {
-                    type: 'mrkdwn',
+                    type: "mrkdwn",
                     text: pr.creator.login,
                   },
                 ] as const;
@@ -212,7 +212,7 @@ export const createSlackHomeWorker = (
             ...(changesInformation
               ? ([
                   {
-                    type: 'mrkdwn',
+                    type: "mrkdwn",
                     text: createLink(`${prUrl}/files`, changesInformation),
                   },
                 ] as const)
@@ -221,17 +221,17 @@ export const createSlackHomeWorker = (
             ...(pr.flowDates?.approvedAt || pr.flowDates?.openedAt
               ? ([
                   {
-                    type: 'mrkdwn',
+                    type: "mrkdwn",
                     text: `${
-                      pr.flowDates.approvedAt ? 'Approved' : 'Opened'
+                      pr.flowDates.approvedAt ? "Approved" : "Opened"
                     } ${(
                       pr.flowDates.approvedAt || pr.flowDates.openedAt
-                    ).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: 'numeric',
+                    ).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                      hour: "numeric",
+                      minute: "numeric",
                     })}`,
                   },
                 ] as const)
@@ -250,16 +250,16 @@ export const createSlackHomeWorker = (
         blocks.push(
           createTitleBlock(title),
           createDividerBlock(),
-          createErrorBlock('No response from GitHub'),
+          createErrorBlock("No response from GitHub"),
         );
         return;
       }
 
-      if ('error' in response) {
+      if ("error" in response) {
         blocks.push(
           createTitleBlock(title),
           createDividerBlock(),
-          createErrorBlock('Error from GitHub'),
+          createErrorBlock("Error from GitHub"),
         );
         return;
       }
@@ -284,32 +284,32 @@ export const createSlackHomeWorker = (
             return createBlocksForDataFromMongoPr(prFromMongo);
           }
           const repoName = prFromGithub.repository_url.slice(
-            'https://api.github.com/repos/'.length,
+            "https://api.github.com/repos/".length,
           );
           const prFullName = `${repoName}#${prFromGithub.number}`;
 
           return [
             {
-              type: 'section',
+              type: "section",
               text: {
-                type: 'mrkdwn',
+                type: "mrkdwn",
                 text: `${createLink(prFromGithub.html_url, prFullName)} ${
-                  prFromGithub.draft ? '· _Draft_' : ''
+                  prFromGithub.draft ? "· _Draft_" : ""
                 } · *${createLink(prFromGithub.html_url, prFromGithub.title)}*`,
               },
             },
             {
-              type: 'context',
+              type: "context",
               elements: [
                 prFromGithub.user &&
                   ({
-                    type: 'image',
+                    type: "image",
                     image_url: prFromGithub.user.avatar_url,
                     alt_text: prFromGithub.user.login,
                   } as const),
                 prFromGithub.user &&
                   ({
-                    type: 'mrkdwn',
+                    type: "mrkdwn",
                     text: prFromGithub.user.login,
                   } as const),
               ].filter(ExcludesFalsy),
@@ -335,28 +335,28 @@ export const createSlackHomeWorker = (
     };
 
     buildBlocksForDataFromGithubAndMongo(
-      ':eyes: Requested reviews',
+      ":eyes: Requested reviews",
       prsWithRequestedReviewsFromGithub,
       prsWithRequestedReviewsFromMongo,
     );
     buildBlocksForDataFromMongo(
-      ':white_check_mark: Ready to merge',
+      ":white_check_mark: Ready to merge",
       prsToMerge,
     );
     buildBlocksForDataFromMongo(
-      ':x: Changes requested',
+      ":x: Changes requested",
       prsWithRequestedChanges,
     );
 
     if (prsInDraft.length > 0) {
       blocks.push({
-        type: 'header',
+        type: "header",
         text: {
-          type: 'plain_text',
-          text: 'Your PRs in progress',
+          type: "plain_text",
+          text: "Your PRs in progress",
         },
       });
-      buildBlocksForDataFromMongo(':construction: Drafts', prsInDraft);
+      buildBlocksForDataFromMongo(":construction: Drafts", prsInDraft);
     }
 
     if (openedPrsWaitingForReview.length > 0) {
@@ -365,16 +365,16 @@ export const createSlackHomeWorker = (
       //   TODO,
       // );
       buildBlocksForDataFromMongo(
-        ':clock1: Your opened PRs waiting for a review',
+        ":clock1: Your opened PRs waiting for a review",
         openedPrsWaitingForReview,
       );
     }
 
     if (blocks.length === 2) {
       blocks.push({
-        type: 'section',
+        type: "section",
         text: {
-          type: 'mrkdwn',
+          type: "mrkdwn",
           text: ":tada: It looks like you don't have any PR to review!",
         },
       });
@@ -384,12 +384,12 @@ export const createSlackHomeWorker = (
       .publish({
         user_id: member.slack.id,
         view: {
-          type: 'home',
+          type: "home",
           blocks,
         },
       })
       .catch((error: unknown) => {
-        log.error('Error updating home', {
+        log.error("Error updating home", {
           error,
           memberLogin: member.user.login,
           orgLogin: member.org.login,

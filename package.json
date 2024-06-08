@@ -28,16 +28,16 @@
     "clean": "yarn clean:build",
     "clean:build": "pob-esbuild-clean-out build",
     "generate:test-coverage": "rm -Rf docs/coverage/ ; NODE_ENV=production vitest --coverage",
-    "lint": "yarn run lint:prettier && yarn run lint:eslint",
+    "lint": "yarn run lint:prettier && tsc && yarn run lint:eslint",
     "lint:eslint": "eslint --report-unused-disable-directives --resolve-plugins-relative-to . --quiet *.{js,cjs,mjs} src scripts",
     "lint:prettier": "pob-root-prettier --check .",
     "lint:prettier:fix": "pob-root-prettier --write .",
     "postinstall": "pob-root-postinstall",
     "start": "yarn clean:build && rollup --config rollup.config.mjs --watch",
     "test": "vitest",
-    "test:coverage": "POB_VITEST_COVERAGE=json,text vitest",
-    "test:coverage:json": "POB_VITEST_COVERAGE=json vitest",
-    "test:coverage:lcov": "POB_VITEST_COVERAGE=lcovvitest",
+    "test:coverage": "POB_VITEST_COVERAGE=json,text vitest run --coverage",
+    "test:coverage:json": "POB_VITEST_COVERAGE=json vitest run --coverage",
+    "test:coverage:lcov": "POB_VITEST_COVERAGE=lcovvitest run --coverage",
     "test:watch": "vitest --watch"
   },
   "commitlint": {
@@ -47,8 +47,6 @@
   },
   "pob": {
     "bundler": "rollup-esbuild",
-    "typescript": true,
-    "jsx": true,
     "entries": [
       "index"
     ],
@@ -58,20 +56,22 @@
         "version": "20",
         "omitVersionInFileName": true
       }
-    ]
+    ],
+    "jsx": true,
+    "typescript": true
   },
   "prettier": "@pob/root/prettier-config",
   "dependencies": {
-    "@commitlint/config-conventional": "18.4.3",
-    "@commitlint/lint": "18.4.3",
-    "@commitlint/parse": "18.4.3",
+    "@commitlint/config-conventional": "19.2.2",
+    "@commitlint/lint": "19.2.2",
+    "@commitlint/parse": "19.0.3",
     "@octokit/core": "5.0.2",
     "@octokit/rest": "20.0.2",
     "@octokit/webhooks": "12.0.10",
     "@slack/web-api": "6.12.0",
     "@tryfabric/mack": "1.2.1",
     "body-parser": "1.20.2",
-    "conventional-changelog-conventionalcommits": "7.0.2",
+    "conventional-changelog-conventionalcommits": "8.0.0",
     "cookie-parser": "1.4.6",
     "delay": "6.0.0",
     "dotenv": "16.4.4",
@@ -87,12 +87,12 @@
     "slackify-markdown": "4.3.1"
   },
   "devDependencies": {
-    "@pob/commitlint-config": "6.3.3",
-    "@pob/eslint-config": "55.2.1",
-    "@pob/eslint-config-typescript": "55.2.1",
-    "@pob/eslint-config-typescript-react": "55.2.1",
-    "@pob/rollup-esbuild": "1.0.2",
-    "@pob/root": "9.3.2",
+    "@pob/commitlint-config": "6.4.0",
+    "@pob/eslint-config": "56.0.0",
+    "@pob/eslint-config-typescript": "56.0.0",
+    "@pob/eslint-config-typescript-react": "56.0.0",
+    "@pob/rollup-esbuild": "3.0.0",
+    "@pob/root": "12.0.0",
     "@types/body-parser": "1.19.5",
     "@types/cookie-parser": "1.4.7",
     "@types/express": "4.17.21",

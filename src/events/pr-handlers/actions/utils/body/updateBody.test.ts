@@ -1,20 +1,20 @@
-import { describe, expect, it } from 'vitest';
-import type { LabelList } from '../../../../../accountConfigs/types';
-import initialSimpleV1 from './mocks/commentBody-v1-initial-simple';
-import initialAfterEditSimpleV1 from './mocks/commentBody-v1-initialAfterEdit-simple';
-import initialAfterEditSimpleWithInfosV1 from './mocks/commentBody-v1-initialAfterEdit-simpleWithInfos';
-import initialAfterEditSimpleV2 from './mocks/commentBody-v2-initialAfterEdit-simple';
-import initialAfterEditSimpleWithInfosV2 from './mocks/commentBody-v2-initialAfterEdit-simpleWithInfos';
-import type { Options } from './prOptions';
-import type { RepositorySettings } from './repositorySettings';
+import { describe, expect, it } from "vitest";
+import type { LabelList } from "../../../../../accountConfigs/types";
+import initialSimpleV1 from "./mocks/commentBody-v1-initial-simple";
+import initialAfterEditSimpleV1 from "./mocks/commentBody-v1-initialAfterEdit-simple";
+import initialAfterEditSimpleWithInfosV1 from "./mocks/commentBody-v1-initialAfterEdit-simpleWithInfos";
+import initialAfterEditSimpleV2 from "./mocks/commentBody-v2-initialAfterEdit-simple";
+import initialAfterEditSimpleWithInfosV2 from "./mocks/commentBody-v2-initialAfterEdit-simpleWithInfos";
+import type { Options } from "./prOptions";
+import type { RepositorySettings } from "./repositorySettings";
 import {
   updateCommentOptions,
   updateCommentBodyCommitsNotes,
   updateCommentBodyInfos,
-} from './updateBody';
+} from "./updateBody";
 
 const repositorySettings: RepositorySettings = {
-  defaultBranch: 'main',
+  defaultBranch: "main",
   deleteBranchOnMerge: false,
   allowAutoMerge: false,
   allowRebaseMerge: false,
@@ -28,20 +28,20 @@ const defaultConfig: Options = {
   deleteAfterMerge: false,
 };
 
-const repoLinkMock = 'https://github.com/christophehurpeau/reviewflow';
+const repoLinkMock = "https://github.com/christophehurpeau/reviewflow";
 const labels: LabelList = {
   /* auto merge */
-  'merge/automerge': {
-    name: ':vertical_traffic_light: automerge',
-    color: '#64DD17',
+  "merge/automerge": {
+    name: ":vertical_traffic_light: automerge",
+    color: "#64DD17",
   },
-  'merge/skip-ci': {
-    name: ':vertical_traffic_light: skip-ci',
-    color: '#e1e8ed',
+  "merge/skip-ci": {
+    name: ":vertical_traffic_light: skip-ci",
+    color: "#e1e8ed",
   },
-  'merge/update-branch': {
-    name: ':arrows_counterclockwise: update branch',
-    color: '#64DD17',
+  "merge/update-branch": {
+    name: ":arrows_counterclockwise: update branch",
+    color: "#64DD17",
   },
 };
 
@@ -69,7 +69,7 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
     initialAfterEditSimpleWithInfos,
   }) => {
     describe(`v${versionNumber}`, () => {
-      it('should update initial description', () => {
+      it("should update initial description", () => {
         expect(
           updateCommentOptions(
             repositorySettings,
@@ -81,7 +81,7 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
         ).toEqual(initialAfterEditSimpleLatest);
       });
 
-      it('should keep infos on update', () => {
+      it("should keep infos on update", () => {
         expect(
           updateCommentOptions(
             repositorySettings,
@@ -93,7 +93,7 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
         ).toEqual(initialAfterEditSimpleWithInfosLatest);
       });
 
-      it('should update options', () => {
+      it("should update options", () => {
         expect(
           updateCommentOptions(
             repositorySettings,
@@ -107,88 +107,88 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
           ).commentBody,
         ).toEqual(
           initialAfterEditSimpleWithInfosLatest.replace(
-            '- [ ] <!-- reviewflow-autoMerge -->',
-            '- [x] <!-- reviewflow-autoMerge -->',
+            "- [ ] <!-- reviewflow-autoMerge -->",
+            "- [x] <!-- reviewflow-autoMerge -->",
           ),
         );
       });
 
-      it('should update commit notes', () => {
+      it("should update commit notes", () => {
         expect(
           updateCommentBodyCommitsNotes(
             initialAfterEditSimpleWithInfos,
-            'Some commits Notes',
+            "Some commits Notes",
           ),
         ).toEqual(
           initialAfterEditSimpleWithInfos.replace(
-            '### Options:',
-            '### Commits Notes:\n\nSome commits Notes\n\n### Options:',
+            "### Options:",
+            "### Commits Notes:\n\nSome commits Notes\n\n### Options:",
           ),
         );
       });
 
-      it('should remove commit notes', () => {
+      it("should remove commit notes", () => {
         expect(
           updateCommentBodyCommitsNotes(
             initialAfterEditSimpleWithInfos.replace(
-              '### Options:',
-              '### Commits Notes:\n\nSome commits Notes\n\n### Options:',
+              "### Options:",
+              "### Commits Notes:\n\nSome commits Notes\n\n### Options:",
             ),
-            '',
+            "",
           ),
         ).toEqual(initialAfterEditSimpleWithInfos);
       });
 
-      it('should add infos when there is none', () => {
+      it("should add infos when there is none", () => {
         expect(
           updateCommentBodyInfos(initialAfterEditSimple, [
             {
-              type: 'success',
+              type: "success",
               inBody: true,
-              title: 'Test',
-              url: 'http://test.com',
-              summary: 'Test summary',
+              title: "Test",
+              url: "http://test.com",
+              summary: "Test summary",
             },
           ]),
         ).toEqual(
           initialAfterEditSimple.replace(
-            '### Options:',
-            '### Infos:\n\n[Test](http://test.com)\n\n### Options:',
+            "### Options:",
+            "### Infos:\n\n[Test](http://test.com)\n\n### Options:",
           ),
         );
       });
 
-      it('should update infos', () => {
+      it("should update infos", () => {
         expect(
           updateCommentBodyInfos(
             initialAfterEditSimple.replace(
-              '### Options:',
-              '### Infos:\n\n[Test](http://test.com)\n\n### Options:',
+              "### Options:",
+              "### Infos:\n\n[Test](http://test.com)\n\n### Options:",
             ),
             [
               {
-                type: 'success',
+                type: "success",
                 inBody: true,
-                title: 'Test Updated',
-                url: 'http://test.com',
-                summary: 'Test summary',
+                title: "Test Updated",
+                url: "http://test.com",
+                summary: "Test summary",
               },
             ],
           ),
         ).toEqual(
           initialAfterEditSimple.replace(
-            '### Options:',
-            '### Infos:\n\n[Test Updated](http://test.com)\n\n### Options:',
+            "### Options:",
+            "### Infos:\n\n[Test Updated](http://test.com)\n\n### Options:",
           ),
         );
       });
 
-      it('should remove infos', () => {
+      it("should remove infos", () => {
         expect(
           updateCommentBodyInfos(
             initialAfterEditSimple.replace(
-              '### Options:',
-              '### Infos:\n\n[Test](http://test.com)\n\n### Options:',
+              "### Options:",
+              "### Infos:\n\n[Test](http://test.com)\n\n### Options:",
             ),
             [],
           ),
@@ -198,8 +198,8 @@ const initialAfterEditSimpleWithInfosLatest = initialAfterEditSimpleWithInfosV2;
   },
 );
 
-describe('Repository Options', () => {
-  it('should show automerge if in default options', () => {
+describe("Repository Options", () => {
+  it("should show automerge if in default options", () => {
     expect(
       updateCommentOptions(
         { ...repositorySettings, deleteBranchOnMerge: false },
@@ -210,8 +210,8 @@ describe('Repository Options', () => {
       ).commentBody,
     ).toEqual(
       initialAfterEditSimpleLatest.replace(
-        '### Actions',
-        '- [x] <!-- reviewflow-deleteAfterMerge -->:recycle: Automatically delete the branch after this PR is merged. (:warning: Legacy Option: [Delete branch with Github Setting](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-the-automatic-deletion-of-branches))\n### Actions',
+        "### Actions",
+        "- [x] <!-- reviewflow-deleteAfterMerge -->:recycle: Automatically delete the branch after this PR is merged. (:warning: Legacy Option: [Delete branch with Github Setting](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-the-automatic-deletion-of-branches))\n### Actions",
       ),
     );
   });

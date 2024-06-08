@@ -1,14 +1,14 @@
-import type { RepoContext } from '../../../../../context/repoContext';
-import type { PullRequestWithDecentData } from '../../../utils/PullRequestData';
-import type { ReviewflowPrContext } from '../../../utils/createPullRequestContext';
-import type { ChecksStepState } from './checksStep';
-import { calcChecksStep } from './checksStep';
-import type { CodeReviewStepState } from './codeReviewStep';
-import { calcCodeReviewStep } from './codeReviewStep';
-import type { MergeStepState } from './mergeStep';
-import { calcMergeStep } from './mergeStep';
-import type { WriteStepState } from './writeStep';
-import { calcWriteStep } from './writeStep';
+import type { RepoContext } from "../../../../../context/repoContext";
+import type { PullRequestWithDecentData } from "../../../utils/PullRequestData";
+import type { ReviewflowPrContext } from "../../../utils/createPullRequestContext";
+import type { ChecksStepState } from "./checksStep";
+import { calcChecksStep } from "./checksStep";
+import type { CodeReviewStepState } from "./codeReviewStep";
+import { calcCodeReviewStep } from "./codeReviewStep";
+import type { MergeStepState } from "./mergeStep";
+import { calcMergeStep } from "./mergeStep";
+import type { WriteStepState } from "./writeStep";
+import { calcWriteStep } from "./writeStep";
 
 export interface CalcStepsStateOptions<TeamNames extends string> {
   repoContext: RepoContext<TeamNames>;
@@ -27,23 +27,23 @@ export interface StepsState {
 // try to look next to updateStatusCheckFromStepsState and when editOpenedPR is not called
 export const steps = [
   {
-    name: 'Step 1: ✏️ Write code',
-    key: 'write',
+    name: "Step 1: ✏️ Write code",
+    key: "write",
     fn: calcWriteStep,
   },
   {
-    name: 'Step 2: 💚 Checks',
-    key: 'checks',
+    name: "Step 2: 💚 Checks",
+    key: "checks",
     fn: calcChecksStep,
   },
   {
-    name: 'Step 3: 👌 Code Review',
-    key: 'codeReview',
+    name: "Step 3: 👌 Code Review",
+    key: "codeReview",
     fn: calcCodeReviewStep,
   },
   {
-    name: 'Step 4: 🚦 Merge Pull Request',
-    key: 'merge',
+    name: "Step 4: 🚦 Merge Pull Request",
+    key: "merge",
     fn: calcMergeStep,
   },
 ] as const;
@@ -68,6 +68,6 @@ export function calcStepsState<TeamNames extends string>({
 
 export function isAllStepsExceptMergePassed(stepsState: StepsState): boolean {
   return steps.every(
-    ({ key }) => key === 'merge' || stepsState[key].state === 'passed',
+    ({ key }) => key === "merge" || stepsState[key].state === "passed",
   );
 }

@@ -1,8 +1,8 @@
-import type { EmitterWebhookEventName } from '@octokit/webhooks';
-import type { AccountInfo } from '../../../context/getOrCreateAccount';
-import type { ProbotEvent } from '../../probot-types';
+import type { EmitterWebhookEventName } from "@octokit/webhooks";
+import type { AccountInfo } from "../../../context/getOrCreateAccount";
+import type { ProbotEvent } from "../../probot-types";
 
-type ReviewState = 'APPROVED' | 'CHANGES_REQUESTED' | 'DISMISSED';
+type ReviewState = "APPROVED" | "CHANGES_REQUESTED" | "DISMISSED";
 
 interface ReviewStates {
   approved: number;
@@ -40,7 +40,7 @@ export const getReviewersAndReviewStates = async <
           });
         }
         const state = review.state.toUpperCase();
-        if (state !== 'COMMENTED') {
+        if (state !== "COMMENTED") {
           reviewStatesByUser.set(review.user.id, state as ReviewState);
         }
       });
@@ -58,13 +58,13 @@ export const getReviewersAndReviewStates = async <
   reviewers.forEach((reviewer) => {
     const state = reviewStatesByUser.get(reviewer.id);
     switch (state) {
-      case 'APPROVED':
+      case "APPROVED":
         reviewStates.approved++;
         break;
-      case 'CHANGES_REQUESTED':
+      case "CHANGES_REQUESTED":
         reviewStates.changesRequested++;
         break;
-      case 'DISMISSED':
+      case "DISMISSED":
         reviewStates.dismissed++;
         break;
       case undefined:

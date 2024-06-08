@@ -1,21 +1,21 @@
-import type { ReviewflowPr } from 'src/mongo';
-import type { RepoContext } from '../context/repoContext';
-import type { CommitFromRestEndpoint } from '../events/commit-handlers/utils/fetchCommit';
+import type { ReviewflowPr } from "src/mongo";
+import type { RepoContext } from "../context/repoContext";
+import type { CommitFromRestEndpoint } from "../events/commit-handlers/utils/fetchCommit";
 import type {
   PullRequestFromRestEndpoint,
   PullRequestWithDecentData,
-} from '../events/pr-handlers/utils/PullRequestData';
+} from "../events/pr-handlers/utils/PullRequestData";
 
 // https://api.slack.com/reference/surfaces/formatting#escaping
 export const escapeText = (text: string): string => {
   return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 };
 
 export const createLink = (url: string, text: string): string => {
-  return `<${url}|${escapeText(text || '')}>`;
+  return `<${url}|${escapeText(text || "")}>`;
 };
 
 export const createPrLink = (
@@ -24,7 +24,7 @@ export const createPrLink = (
 ): string => {
   return createLink(
     pr.html_url,
-    `${repoContext.repoEmoji ? `${repoContext.repoEmoji} ` : ''}${
+    `${repoContext.repoEmoji ? `${repoContext.repoEmoji} ` : ""}${
       repoContext.repoFullName
     }#${pr.number}`,
   );
@@ -33,9 +33,9 @@ export const createPrLink = (
 export const createPrChangesInformationFromPullRequestRest = (
   pr: PullRequestFromRestEndpoint,
 ): string | null => {
-  if (!('changed_files' in pr) || pr.changed_files == null) return null;
+  if (!("changed_files" in pr) || pr.changed_files == null) return null;
   return `${pr.changed_files} file${
-    pr.changed_files > 1 ? 's' : ''
+    pr.changed_files > 1 ? "s" : ""
   } changed (+${pr.additions} -${pr.deletions})`;
 };
 
@@ -44,7 +44,7 @@ export const createPrChangesInformationFromReviewflowPr = (
 ): string | null => {
   if (pr.changesInformation?.changedFiles == null) return null;
   return `${pr.changesInformation.changedFiles} file${
-    pr.changesInformation.changedFiles > 1 ? 's' : ''
+    pr.changesInformation.changedFiles > 1 ? "s" : ""
   } changed (+${pr.changesInformation.additions} -${
     pr.changesInformation.deletions
   })`;
@@ -56,7 +56,7 @@ export const createCommitLink = (
 ): string => {
   return createLink(
     commit.html_url,
-    `${repoContext.repoEmoji ? `${repoContext.repoEmoji} ` : ''}${
+    `${repoContext.repoEmoji ? `${repoContext.repoEmoji} ` : ""}${
       repoContext.repoFullName
     }#${commit.sha}`,
   );
@@ -72,12 +72,12 @@ export const createOwnerPart = (
   pullRequest: PullRequestWithDecentData,
   { isOwner, isAssigned }: CreateOwnerPartOptions,
 ): string => {
-  if (isOwner) return 'your PR';
+  if (isOwner) return "your PR";
 
   const owner = pullRequest.user;
   const ownerMention = !owner
-    ? 'unknown'
+    ? "unknown"
     : repoContext.slack.mention(owner.login);
 
-  return `${ownerMention}'s PR${isAssigned ? " you're assigned to" : ''}`;
+  return `${ownerMention}'s PR${isAssigned ? " you're assigned to" : ""}`;
 };

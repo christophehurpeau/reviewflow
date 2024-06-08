@@ -1,7 +1,7 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import { syncTeamsAndTeamMembers } from './actions/syncTeams';
-import { createHandlerOrgChange } from './utils/createHandlerOrgChange';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import { syncTeamsAndTeamMembers } from "./actions/syncTeams";
+import { createHandlerOrgChange } from "./utils/createHandlerOrgChange";
 
 export default function membershipChanged(
   app: Probot,
@@ -12,7 +12,7 @@ export default function membershipChanged(
   createHandlerOrgChange(
     app,
     appContext,
-    ['membership.added', 'membership.removed'],
+    ["membership.added", "membership.removed"],
     async (context, accountContext) => {
       // TODO: only sync team members and team parents members
       // await syncTeamMembersWithTeamParents(

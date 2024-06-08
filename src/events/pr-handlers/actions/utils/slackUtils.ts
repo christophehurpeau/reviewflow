@@ -1,28 +1,28 @@
-import type { Criteria } from 'liwi-store';
-import type { AppContext } from '../../../../context/AppContext';
-import type { AccountInfo } from '../../../../context/getOrCreateAccount';
-import type { RepoContext } from '../../../../context/repoContext';
-import type { SlackMessage } from '../../../../context/slack/SlackMessage';
-import type { MessageCategory } from '../../../../dm/MessageCategory';
-import type { SlackSentMessage } from '../../../../mongo';
-import { ExcludesNullish } from '../../../../utils/Excludes';
+import type { Criteria } from "liwi-store";
+import type { AppContext } from "../../../../context/AppContext";
+import type { AccountInfo } from "../../../../context/getOrCreateAccount";
+import type { RepoContext } from "../../../../context/repoContext";
+import type { SlackMessage } from "../../../../context/slack/SlackMessage";
+import type { MessageCategory } from "../../../../dm/MessageCategory";
+import type { SlackSentMessage } from "../../../../mongo";
+import { ExcludesNullish } from "../../../../utils/Excludes";
 
 interface GetSlackSentMessagesOptions {
-  type: SlackSentMessage['type'];
-  typeId: SlackSentMessage['typeId'];
-  messageId?: SlackSentMessage['messageId'];
+  type: SlackSentMessage["type"];
+  typeId: SlackSentMessage["typeId"];
+  messageId?: SlackSentMessage["messageId"];
 }
 
 const createCriteria = (
   repoContext: RepoContext,
-  type: SlackSentMessage['type'],
-  typeId: SlackSentMessage['typeId'],
-  messageId?: SlackSentMessage['typeId'],
+  type: SlackSentMessage["type"],
+  typeId: SlackSentMessage["typeId"],
+  messageId?: SlackSentMessage["typeId"],
   ignoreMarkedAsDone = false,
 ): Criteria<SlackSentMessage> => {
   const criteria: Criteria<SlackSentMessage> = {
-    'account.id': repoContext.accountEmbed.id,
-    'account.type': repoContext.accountEmbed.type,
+    "account.id": repoContext.accountEmbed.id,
+    "account.type": repoContext.accountEmbed.type,
     type,
     typeId,
   };
@@ -37,7 +37,7 @@ const createCriteria = (
 };
 
 interface SendSlackMessageOptions extends GetSlackSentMessagesOptions {
-  type: SlackSentMessage['type'];
+  type: SlackSentMessage["type"];
   messageCategory: MessageCategory;
   message: SlackMessage;
   sendTo: AccountInfo[];
@@ -109,7 +109,7 @@ const internalUpdateSlackSentMessages = async (
       // if the text is identical, do not update
       if (
         partialMessageKeys.length === 1 &&
-        partialMessageKeys[0] === 'text' &&
+        partialMessageKeys[0] === "text" &&
         partialMessage.text === sentMessage.message.text
       ) {
         return undefined;
@@ -144,7 +144,7 @@ const internalUpdateSlackSentMessages = async (
 };
 
 interface UpdateSlackSentMessagesOptions extends GetSlackSentMessagesOptions {
-  partialMessage: Omit<Partial<SlackSentMessage['message']>, 'threadTs'>;
+  partialMessage: Omit<Partial<SlackSentMessage["message"]>, "threadTs">;
 }
 
 export const updateSlackSentMessages = async (
@@ -176,7 +176,7 @@ export const updateSlackSentMessages = async (
 export const sendOrUpdateSlackMessage = async (
   appContext: AppContext,
   repoContext: RepoContext,
-  options: Omit<SendSlackMessageOptions, 'saveInDb'>,
+  options: Omit<SendSlackMessageOptions, "saveInDb">,
   allowSend = true,
 ): Promise<void> => {
   const slackSentMessages = await findSlackSentMessages(

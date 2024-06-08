@@ -1,22 +1,22 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import * as slackUtils from '../../slack/utils';
-import type { CreateOwnerPartOptions } from '../../slack/utils';
-import { updateCommentBodyProgressFromStepsState } from './actions/updateCommentBodyProgressFromStepsState';
-import { updateReviewStatus } from './actions/updateReviewStatus';
-import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
-import { parseOptions } from './actions/utils/body/parseBody';
-import { calcStepsState } from './actions/utils/steps/calcStepsState';
-import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
-import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
-import { getRolesFromPullRequestAndReviewers } from './utils/getRolesFromPullRequestAndReviewers';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import * as slackUtils from "../../slack/utils";
+import type { CreateOwnerPartOptions } from "../../slack/utils";
+import { updateCommentBodyProgressFromStepsState } from "./actions/updateCommentBodyProgressFromStepsState";
+import { updateReviewStatus } from "./actions/updateReviewStatus";
+import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState";
+import { parseOptions } from "./actions/utils/body/parseBody";
+import { calcStepsState } from "./actions/utils/steps/calcStepsState";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler";
+import { getReviewersAndReviewStates } from "./utils/getReviewersAndReviewStates";
+import { getRolesFromPullRequestAndReviewers } from "./utils/getRolesFromPullRequestAndReviewers";
 
 export default function closed(app: Probot, appContext: AppContext): void {
   createPullRequestHandler(
     app,
     appContext,
-    'pull_request.closed',
+    "pull_request.closed",
     (payload) => payload.pull_request,
     async (pullRequest, context, repoContext, reviewflowPrContext) => {
       /* if repo is not ignored */
@@ -36,7 +36,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
             $set: {
               isClosed: true,
               ...(reviewflowPrContext.reviewflowPr.flowDates
-                ? { 'flowDates.closedAt': new Date(pullRequest.closed_at!) }
+                ? { "flowDates.closedAt": new Date(pullRequest.closed_at!) }
                 : {
                     flowDates: {
                       createdAt: new Date(pullRequest.created_at),
@@ -60,7 +60,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
             repoContext.removePrFromAutomergeQueue(
               context,
               pullRequest,
-              'pr closed',
+              "pr closed",
             ),
             isNotFork && options.deleteAfterMerge
               ? context.octokit.git
@@ -81,7 +81,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
             repoContext.removePrFromAutomergeQueue(
               context,
               pullRequest,
-              'pr closed',
+              "pr closed",
             ),
             updateReviewStatus(pullRequest, context, repoContext, stepsState),
             updateStatusCheckFromStepsState(
@@ -139,21 +139,21 @@ export default function closed(app: Probot, appContext: AppContext): void {
         } ${ownerPart} ${prLink}\n> ${pullRequest.title}`;
       };
       if (context.payload.sender.id !== owner.id) {
-        repoContext.slack.postMessage('pr-lifecycle', owner, {
+        repoContext.slack.postMessage("pr-lifecycle", owner, {
           text: createMessage({ isOwner: true }),
         });
       }
 
       assigneesNotOwner.map((assignee) => {
         if (context.payload.sender.id === assignee.id) return undefined;
-        return repoContext.slack.postMessage('pr-lifecycle', assignee, {
+        return repoContext.slack.postMessage("pr-lifecycle", assignee, {
           text: createMessage({ isAssigned: true }),
         });
       });
 
       followers.map((follower) => {
         if (context.payload.sender.id === follower.id) return undefined;
-        return repoContext.slack.postMessage('pr-lifecycle-follow', follower, {
+        return repoContext.slack.postMessage("pr-lifecycle-follow", follower, {
           text: createMessage({}),
         });
       });

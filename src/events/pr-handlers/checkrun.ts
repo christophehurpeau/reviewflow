@@ -1,14 +1,14 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import { calcAndUpdateChecksAndStatuses } from './actions/calcAndUpdateChecksAndStatuses';
-import { createPullRequestsHandler } from './utils/createPullRequestHandler';
-import { fetchPr } from './utils/fetchPr';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import { calcAndUpdateChecksAndStatuses } from "./actions/calcAndUpdateChecksAndStatuses";
+import { createPullRequestsHandler } from "./utils/createPullRequestHandler";
+import { fetchPr } from "./utils/fetchPr";
 
 export default function checkrun(app: Probot, appContext: AppContext): void {
   createPullRequestsHandler(
     app,
     appContext,
-    ['check_run.created', 'check_run.completed'],
+    ["check_run.created", "check_run.completed"],
     (payload, repoContext) => {
       if (repoContext.shouldIgnore) return [];
       return payload.check_run.pull_requests;
@@ -16,11 +16,11 @@ export default function checkrun(app: Probot, appContext: AppContext): void {
     async (pullRequest, context, repoContext, reviewflowPrContext) => {
       const { action, check_run: checkRun } = context.payload;
 
-      if (action === 'completed') {
+      if (action === "completed") {
         await repoContext.rescheduleOnChecksUpdated(
           context,
           pullRequest,
-          checkRun.conclusion === 'success',
+          checkRun.conclusion === "success",
         );
       }
 
@@ -30,7 +30,7 @@ export default function checkrun(app: Probot, appContext: AppContext): void {
 
       if (reviewflowPrContext?.reviewflowPr.checksConclusion) {
         const checkConclusionKey =
-          `${checkRun.check_suite?.id}_${checkRun.name}`.replace(/[\s.]/g, '_');
+          `${checkRun.check_suite?.id}_${checkRun.name}`.replace(/[\s.]/g, "_");
         if (
           reviewflowPrContext.reviewflowPr.checksConclusion[checkConclusionKey]
             ?.conclusion === checkRun.conclusion

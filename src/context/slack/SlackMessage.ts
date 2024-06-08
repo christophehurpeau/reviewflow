@@ -1,4 +1,4 @@
-import type { KnownBlock } from '@slack/web-api';
+import type { KnownBlock } from "@slack/web-api";
 
 export interface SlackMessage {
   text: string;

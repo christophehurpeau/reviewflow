@@ -1,5 +1,5 @@
-import { getFailedOrWaitingChecksAndStatuses } from '../../../utils/getFailedOrWaitingChecksAndStatuses';
-import type { BaseStepState, CalcStepOptions } from './BaseStepState';
+import { getFailedOrWaitingChecksAndStatuses } from "../../../utils/getFailedOrWaitingChecksAndStatuses";
+import type { BaseStepState, CalcStepOptions } from "./BaseStepState";
 
 export interface ChecksStepState extends BaseStepState {
   isInProgress: boolean;
@@ -21,8 +21,8 @@ export function calcChecksStep<TeamNames extends string>({
   );
 
   return {
-    state: state === 'pending' ? 'in-progress' : state,
-    isInProgress: state === 'pending',
-    isFailed: state === 'failed',
+    state: state === "pending" ? "in-progress" : state,
+    isInProgress: state === "pending",
+    isFailed: state === "failed",
   };
 }

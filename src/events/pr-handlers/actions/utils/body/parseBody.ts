@@ -1,9 +1,9 @@
-import type { ActionKeys } from './prActions';
-import { actionRegexps } from './prActions';
-import { optionsRegexps } from './prOptions';
-import type { Options } from './prOptions';
+import type { ActionKeys } from "./prActions";
+import { actionRegexps } from "./prActions";
+import { optionsRegexps } from "./prOptions";
+import type { Options } from "./prOptions";
 
-export type { Options } from './prOptions';
+export type { Options } from "./prOptions";
 
 export const parseOptions = (
   content: string,
@@ -15,7 +15,7 @@ export const parseOptions = (
     const match = regexp.exec(content);
     options[key] = !match
       ? defaultOptions[key] || false
-      : match[1] === 'x' || match[1] === 'X';
+      : match[1] === "x" || match[1] === "X";
   });
 
   return options as Options;
@@ -26,7 +26,7 @@ export const parseActions = (content: string): ActionKeys[] => {
 
   actionRegexps.forEach(({ key, regexp }) => {
     const match = regexp.exec(content);
-    if (match && (match[1] === 'x' || match[1] === 'X')) {
+    if (match && (match[1] === "x" || match[1] === "X")) {
       actions.push(key);
     }
   });
@@ -37,11 +37,11 @@ export const parseActions = (content: string): ActionKeys[] => {
 export const parseCommitNotes = (content: string): string => {
   const commitNotes = content.replace(
     /^.*####? Commits Notes:(.*)####? Options:.*$/s,
-    '$1',
+    "$1",
   );
 
   if (commitNotes === content) {
-    return '';
+    return "";
   } else {
     return commitNotes.trim();
   }

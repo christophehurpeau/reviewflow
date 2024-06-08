@@ -1,11 +1,11 @@
-import { describe, expect, it } from 'vitest';
-import initialSimple from './mocks/prBody-initial-simple';
-import initialTable from './mocks/prBody-initial-table';
-import simple from './mocks/prBody-simple';
-import { parsePrBodyWithOptions } from './parsePrBody';
+import { describe, expect, it } from "vitest";
+import initialSimple from "./mocks/prBody-initial-simple";
+import initialTable from "./mocks/prBody-initial-table";
+import simple from "./mocks/prBody-simple";
+import { parsePrBodyWithOptions } from "./parsePrBody";
 
-describe('simple', () => {
-  it('should parse default description', () => {
+describe("simple", () => {
+  it("should parse default description", () => {
     const defaultOptions = {
       autoMerge: false,
       autoMergeWithSkipCi: false,
@@ -20,10 +20,10 @@ describe('simple', () => {
       autoMergeWithSkipCi: false,
       deleteAfterMerge: true,
     });
-    expect(parsed?.commitNotes).toBe('');
+    expect(parsed?.commitNotes).toBe("");
   });
 
-  it('should parse breaking changes', () => {
+  it("should parse breaking changes", () => {
     const defaultOptions = {
       autoMerge: false,
       autoMergeWithSkipCi: false,
@@ -32,8 +32,8 @@ describe('simple', () => {
 
     const parsed = parsePrBodyWithOptions(
       simple.replace(
-        '### Options:',
-        '### Commits Notes:\n\nSome commits Notes\n\n### Options:',
+        "### Options:",
+        "### Commits Notes:\n\nSome commits Notes\n\n### Options:",
       ),
       defaultOptions,
     );
@@ -44,12 +44,12 @@ describe('simple', () => {
       autoMergeWithSkipCi: false,
       deleteAfterMerge: true,
     });
-    expect(parsed?.commitNotes).toBe('Some commits Notes');
+    expect(parsed?.commitNotes).toBe("Some commits Notes");
   });
 });
 
-describe('table', () => {
-  it('should parse default description', () => {
+describe("table", () => {
+  it("should parse default description", () => {
     const defaultOptions = {
       autoMerge: false,
       autoMergeWithSkipCi: false,
@@ -64,12 +64,12 @@ describe('table', () => {
       autoMergeWithSkipCi: false,
       deleteAfterMerge: true,
     });
-    expect(parsed?.commitNotes).toBe('');
+    expect(parsed?.commitNotes).toBe("");
   });
 });
 
-describe('table', () => {
-  it('should parse edited description', () => {
+describe("table", () => {
+  it("should parse edited description", () => {
     const defaultOptions = {
       autoMerge: false,
       autoMergeWithSkipCi: false,
@@ -84,6 +84,6 @@ describe('table', () => {
       autoMergeWithSkipCi: false,
       deleteAfterMerge: true,
     });
-    expect(parsed?.commitNotes).toBe('');
+    expect(parsed?.commitNotes).toBe("");
   });
 });

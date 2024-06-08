@@ -1,7 +1,7 @@
-import type { Options } from './parseBody';
-import { parseBody } from './parseBody';
+import type { Options } from "./parseBody";
+import { parseBody } from "./parseBody";
 
-const commentStart = '<!-- do not edit after this -->';
+const commentStart = "<!-- do not edit after this -->";
 const commentEnd = "<!-- end - don't add anything after this -->";
 
 const regexpCols =

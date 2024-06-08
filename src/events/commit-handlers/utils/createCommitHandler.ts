@@ -1,19 +1,19 @@
-import type { Probot } from 'probot';
-import { catchExceptedErrors } from '../../../ExpectedError';
-import type { AppContext } from '../../../context/AppContext';
+import type { Probot } from "probot";
+import { catchExceptedErrors } from "../../../ExpectedError";
+import type { AppContext } from "../../../context/AppContext";
 import type {
   RepoContext,
   CustomExtract,
   EventsWithRepository,
-} from '../../../context/repoContext';
-import { obtainRepoContext } from '../../../context/repoContext';
-import type { ProbotEvent } from '../../probot-types';
-import { fetchCommit } from './fetchCommit';
-import type { CommitFromRestEndpoint } from './fetchCommit';
+} from "../../../context/repoContext";
+import { obtainRepoContext } from "../../../context/repoContext";
+import type { ProbotEvent } from "../../probot-types";
+import { fetchCommit } from "./fetchCommit";
+import type { CommitFromRestEndpoint } from "./fetchCommit";
 
 export type EventsWithCommit = CustomExtract<
   EventsWithRepository,
-  'commit_comment.created'
+  "commit_comment.created"
 >;
 
 export const createCommitHandler = <

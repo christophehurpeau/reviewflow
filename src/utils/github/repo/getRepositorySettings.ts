@@ -1,4 +1,4 @@
-import type { Context } from 'probot';
+import type { Context } from "probot";
 
 export interface RepositorySettingsQueryResult {
   repository: {
@@ -16,12 +16,12 @@ export interface RepositorySettingsQueryResult {
 export const getRepositorySettings = (
   context: Context,
 ): Promise<RepositorySettingsQueryResult> => {
-  if (process.env.NODE_ENV === 'test') {
+  if (process.env.NODE_ENV === "test") {
     return Promise.resolve({
       repository: {
         autoMergeAllowed: true,
         deleteBranchOnMerge: true,
-        defaultBranchRef: { name: 'main' },
+        defaultBranchRef: { name: "main" },
         mergeCommitAllowed: true,
         rebaseMergeAllowed: true,
         squashMergeAllowed: true,

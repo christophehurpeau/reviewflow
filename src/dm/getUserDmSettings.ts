@@ -1,11 +1,11 @@
-import type { MongoInsertType } from 'liwi-mongo';
-import { accountConfigs, defaultConfig } from '../accountConfigs';
-import type { MongoStores, UserDmSettings } from '../mongo';
-import { defaultDmSettings } from './defaultDmSettings';
+import type { MongoInsertType } from "liwi-mongo";
+import { accountConfigs, defaultConfig } from "../accountConfigs";
+import type { MongoStores, UserDmSettings } from "../mongo";
+import { defaultDmSettings } from "./defaultDmSettings";
 
 const cache = new Map<string, Map<number, MongoInsertType<UserDmSettings>>>();
 
-const getDefaultDmSettings = (org: string): UserDmSettings['settings'] => {
+const getDefaultDmSettings = (org: string): UserDmSettings["settings"] => {
   const accountConfig = accountConfigs[org] || defaultConfig;
   return accountConfig.defaultDmSettings
     ? { ...defaultDmSettings, ...accountConfig.defaultDmSettings }
@@ -60,7 +60,7 @@ export const getUserDmSettings = async (
     orgId,
     userId,
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    settings: {} as UserDmSettings['settings'],
+    settings: {} as UserDmSettings["settings"],
     silentTeams: [],
   });
 };

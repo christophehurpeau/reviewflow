@@ -1,7 +1,7 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import { syncOrg } from './actions/syncOrg';
-import { createHandlerOrgChange } from './utils/createHandlerOrgChange';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import { syncOrg } from "./actions/syncOrg";
+import { createHandlerOrgChange } from "./utils/createHandlerOrgChange";
 
 export default function orgMemberAddedOrRemoved(
   app: Probot,
@@ -11,7 +11,7 @@ export default function orgMemberAddedOrRemoved(
   createHandlerOrgChange(
     app,
     appContext,
-    ['organization.member_added', 'organization.member_removed'],
+    ["organization.member_added", "organization.member_removed"],
     async (context, accountContext) => {
       const o = await appContext.mongoStores.orgs.findByKey(
         accountContext.accountEmbed.id,

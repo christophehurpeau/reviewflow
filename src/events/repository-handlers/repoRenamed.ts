@@ -1,13 +1,13 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import { obtainRepoContext } from '../../context/repoContext';
-import { createHandlerOrgChange } from '../account-handlers/utils/createHandlerOrgChange';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import { obtainRepoContext } from "../../context/repoContext";
+import { createHandlerOrgChange } from "../account-handlers/utils/createHandlerOrgChange";
 
 export default function repoRenamed(app: Probot, appContext: AppContext): void {
   createHandlerOrgChange(
     app,
     appContext,
-    'repository.renamed',
+    "repository.renamed",
     async (context, orgContext): Promise<void> => {
       const repoContext = await obtainRepoContext(appContext, context);
       if (!repoContext) return;
@@ -25,28 +25,28 @@ export default function repoRenamed(app: Probot, appContext: AppContext): void {
             },
           },
           {
-            'account.id': orgContext.accountEmbed.id,
+            "account.id": orgContext.accountEmbed.id,
           },
         ),
         appContext.mongoStores.prs.partialUpdateMany(
           {
-            'account.id': orgContext.accountEmbed.id,
-            'repo.id': repo.id,
+            "account.id": orgContext.accountEmbed.id,
+            "repo.id": repo.id,
           },
           {
             $set: {
-              'repo.name': repo.name,
+              "repo.name": repo.name,
             },
           },
         ),
         appContext.mongoStores.repositoryMergeQueue.partialUpdateMany(
           {
-            'account.id': orgContext.accountEmbed.id,
-            'repo.id': repo.id,
+            "account.id": orgContext.accountEmbed.id,
+            "repo.id": repo.id,
           },
           {
             $set: {
-              'repo.name': repo.name,
+              "repo.name": repo.name,
             },
           },
         ),

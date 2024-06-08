@@ -1,5 +1,5 @@
-import type { ReviewerWithState } from '../../../utils/github/pullRequest/reviews';
-import type { Reviewer } from './getReviewersAndReviewStates';
+import type { ReviewerWithState } from "../../../utils/github/pullRequest/reviews";
+import type { Reviewer } from "./getReviewersAndReviewStates";
 
 export interface ReviewersGroupedByState {
   reviewRequested: Reviewer[];
@@ -10,18 +10,18 @@ export interface ReviewersGroupedByState {
 }
 
 const getKeyFromState = (
-  state: ReviewerWithState['state'],
+  state: ReviewerWithState["state"],
 ): keyof ReviewersGroupedByState => {
-  if (!state) return 'commented';
+  if (!state) return "commented";
   switch (state) {
-    case 'REVIEW_REQUESTED':
-      return 'reviewRequested';
-    case 'APPROVED':
-      return 'approved';
-    case 'CHANGES_REQUESTED':
-      return 'changesRequested';
-    case 'DISMISSED':
-      return 'dismissed';
+    case "REVIEW_REQUESTED":
+      return "reviewRequested";
+    case "APPROVED":
+      return "approved";
+    case "CHANGES_REQUESTED":
+      return "changesRequested";
+    case "DISMISSED":
+      return "dismissed";
     default:
       throw new Error(`Unexpected state: ${state as string}`);
   }

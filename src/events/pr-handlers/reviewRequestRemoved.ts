@@ -1,11 +1,11 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import * as slackUtils from '../../slack/utils';
-import { getReviewersWithState } from '../../utils/github/pullRequest/reviews';
-import { updateAfterReviewChange } from './actions/updateAfterReviewChange';
-import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
-import { fetchPr } from './utils/fetchPr';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import * as slackUtils from "../../slack/utils";
+import { getReviewersWithState } from "../../utils/github/pullRequest/reviews";
+import { updateAfterReviewChange } from "./actions/updateAfterReviewChange";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler";
+import { fetchPr } from "./utils/fetchPr";
 
 export default function reviewRequestRemoved(
   app: Probot,
@@ -14,7 +14,7 @@ export default function reviewRequestRemoved(
   createPullRequestHandler(
     app,
     appContext,
-    'pull_request.review_request_removed',
+    "pull_request.review_request_removed",
     (payload) => payload.pull_request,
     async (
       pullRequest,
@@ -60,7 +60,7 @@ export default function reviewRequestRemoved(
           requestedReviewers.forEach((potentialReviewer) => {
             if (potentialReviewer.login === sender.login) return;
             repoContext.slack.postMessage(
-              'pr-review',
+              "pr-review",
               potentialReviewer,
               {
                 text: `:skull_and_crossbones: ${repoContext.slack.mention(
@@ -70,7 +70,7 @@ export default function reviewRequestRemoved(
                 }_ review on ${slackUtils.createPrLink(
                   pullRequest,
                   repoContext,
-                )}${isMerged ? ' and PR is merged :tada:' : ''}`,
+                )}${isMerged ? " and PR is merged :tada:" : ""}`,
               },
               requestedTeam ? requestedTeam.id : undefined,
             );
@@ -78,17 +78,17 @@ export default function reviewRequestRemoved(
         } else {
           requestedReviewers.forEach((potentialReviewer) => {
             repoContext.slack.postMessage(
-              'pr-review',
+              "pr-review",
               potentialReviewer,
               {
                 text: `:skull_and_crossbones: ${repoContext.slack.mention(
                   sender.login,
                 )} removed the request for  ${
-                  requestedTeam ? `your team _${requestedTeam.name}_` : 'your'
+                  requestedTeam ? `your team _${requestedTeam.name}_` : "your"
                 } review on ${slackUtils.createPrLink(
                   pullRequest,
                   repoContext,
-                )}${isMerged ? ' and PR is merged :tada:' : ''}`,
+                )}${isMerged ? " and PR is merged :tada:" : ""}`,
               },
               requestedTeam ? requestedTeam.id : undefined,
             );
@@ -99,11 +99,11 @@ export default function reviewRequestRemoved(
           requestedReviewers.map(async (potentialReviewer) => {
             const sentMessageRequestedReview =
               await appContext.mongoStores.slackSentMessages.findOne({
-                'account.id': repoContext.accountEmbed.id,
-                'account.type': repoContext.accountEmbed.type,
-                type: 'review-requested',
+                "account.id": repoContext.accountEmbed.id,
+                "account.type": repoContext.accountEmbed.type,
+                type: "review-requested",
                 typeId: `${pullRequest.id}_${
-                  requestedTeam ? `${requestedTeam.id}_` : ''
+                  requestedTeam ? `${requestedTeam.id}_` : ""
                 }${potentialReviewer.id}`,
               } as const);
 
@@ -118,16 +118,16 @@ export default function reviewRequestRemoved(
                   {
                     ...message,
                     text: message.text
-                      .split('\n')
+                      .split("\n")
                       .map((l) => `~${l}~`)
-                      .join('\n'),
+                      .join("\n"),
                   },
                 ),
                 repoContext.slack.addReaction(
                   sentTo.user,
                   sentTo.ts,
                   sentTo.channel,
-                  'skull_and_crossbones',
+                  "skull_and_crossbones",
                 ),
                 appContext.mongoStores.slackSentMessages.deleteOne(
                   sentMessageRequestedReview,

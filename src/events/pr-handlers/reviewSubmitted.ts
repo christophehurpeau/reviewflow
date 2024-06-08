@@ -1,28 +1,28 @@
-import type { Probot } from 'probot';
-import slackifyMarkdown from 'slackify-markdown';
-import type { AppContext } from '../../context/AppContext';
-import type { SlackMessage } from '../../context/slack/SlackMessage';
-import type { PostSlackMessageResult } from '../../context/slack/TeamSlack';
-import type { AccountEmbed } from '../../mongo';
-import * as slackUtils from '../../slack/utils';
-import { ExcludesNullish } from '../../utils/Excludes';
-import { getReviewersWithState } from '../../utils/github/pullRequest/reviews';
-import { createSlackMessageWithSecondaryBlock } from '../../utils/slack/createSlackMessageWithSecondaryBlock';
-import { updateAfterReviewChange } from './actions/updateAfterReviewChange';
-import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
-import { fetchPr } from './utils/fetchPr';
-import { getReviewersAndReviewStates } from './utils/getReviewersAndReviewStates';
-import { getRolesFromPullRequestAndReviewers } from './utils/getRolesFromPullRequestAndReviewers';
+import type { Probot } from "probot";
+import slackifyMarkdown from "slackify-markdown";
+import type { AppContext } from "../../context/AppContext";
+import type { SlackMessage } from "../../context/slack/SlackMessage";
+import type { PostSlackMessageResult } from "../../context/slack/TeamSlack";
+import type { AccountEmbed } from "../../mongo";
+import * as slackUtils from "../../slack/utils";
+import { ExcludesNullish } from "../../utils/Excludes";
+import { getReviewersWithState } from "../../utils/github/pullRequest/reviews";
+import { createSlackMessageWithSecondaryBlock } from "../../utils/slack/createSlackMessageWithSecondaryBlock";
+import { updateAfterReviewChange } from "./actions/updateAfterReviewChange";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler";
+import { fetchPr } from "./utils/fetchPr";
+import { getReviewersAndReviewStates } from "./utils/getReviewersAndReviewStates";
+import { getRolesFromPullRequestAndReviewers } from "./utils/getRolesFromPullRequestAndReviewers";
 
 const getEmojiFromState = (state: string): string => {
   switch (state) {
-    case 'changes_requested':
-      return 'x';
-    case 'approved':
-      return 'white_check_mark';
+    case "changes_requested":
+      return "x";
+    case "approved":
+      return "white_check_mark";
     default:
-      return 'speech_balloon';
+      return "speech_balloon";
   }
 };
 
@@ -40,7 +40,7 @@ export default function reviewSubmitted(
     if (filtered.length === 0) return;
 
     await appContext.mongoStores.slackSentMessages.insertOne({
-      type: 'review-submitted',
+      type: "review-submitted",
       typeId: reviewId,
       message,
       account: accountEmbed,
@@ -51,7 +51,7 @@ export default function reviewSubmitted(
   createPullRequestHandler(
     app,
     appContext,
-    'pull_request_review.submitted',
+    "pull_request_review.submitted",
     (payload) => payload.pull_request,
     async (
       pullRequest,
@@ -71,7 +71,7 @@ export default function reviewSubmitted(
 
       const [{ reviewers }, reviewerGithubTeams] = await Promise.all([
         getReviewersAndReviewStates(context),
-        repoContext.accountEmbed.type !== 'Organization'
+        repoContext.accountEmbed.type !== "Organization"
           ? []
           : repoContext.getGithubTeamsForMember(reviewer.id),
       ]);
@@ -104,7 +104,7 @@ export default function reviewSubmitted(
           if (reviewerGithubTeams.length === 1) {
             return reviewerGithubTeams[0].id;
           }
-          return `(${reviewerGithubTeams.map((team) => team.id).join('|')})`;
+          return `(${reviewerGithubTeams.map((team) => team.id).join("|")})`;
         };
 
         const [
@@ -113,9 +113,9 @@ export default function reviewSubmitted(
         ] = await Promise.all([
           appContext.mongoStores.slackSentMessages.findOne(
             {
-              'account.id': repoContext.accountEmbed.id,
-              'account.type': repoContext.accountEmbed.type,
-              type: 'review-requested',
+              "account.id": repoContext.accountEmbed.id,
+              "account.type": repoContext.accountEmbed.type,
+              type: "review-requested",
               typeId: `${pullRequest.id}_${reviewer.id}`,
             } as const,
             { created: -1 },
@@ -123,9 +123,9 @@ export default function reviewSubmitted(
           reviewerGithubTeams.length > 0
             ? appContext.mongoStores.slackSentMessages.findAll(
                 {
-                  'account.id': repoContext.accountEmbed.id,
-                  'account.type': repoContext.accountEmbed.type,
-                  type: 'review-requested',
+                  "account.id": repoContext.accountEmbed.id,
+                  "account.type": repoContext.accountEmbed.type,
+                  type: "review-requested",
                   typeId: {
                     $regex: `^${pullRequest.id}_${createTeamsRegex()}_`,
                   },
@@ -162,9 +162,9 @@ export default function reviewSubmitted(
                       {
                         ...sentMessageRequestedReview.message,
                         text: sentMessageRequestedReview.message.text
-                          .split('\n')
+                          .split("\n")
                           .map((l) => `~${l}~`)
-                          .join('\n'),
+                          .join("\n"),
                       },
                     ),
                     repoContext.slack.addReaction(
@@ -190,9 +190,9 @@ export default function reviewSubmitted(
                       {
                         ...sentMessageRequestedReviewForReviewerTeam.message,
                         text: sentMessageRequestedReviewForReviewerTeam.message.text
-                          .split('\n')
+                          .split("\n")
                           .map((l) => `~${l}~`)
-                          .join('\n'),
+                          .join("\n"),
                       },
                     ),
                     repoContext.slack.addReaction(
@@ -220,23 +220,23 @@ export default function reviewSubmitted(
           isAssignedTo?: boolean,
         ): string => {
           const ownerPart = toOwner
-            ? 'your PR'
+            ? "your PR"
             : `${ownerMention}'s PR${
-                isAssignedTo ? " you're assigned to" : ''
+                isAssignedTo ? " you're assigned to" : ""
               }`;
 
-          if (state === 'changes_requested') {
+          if (state === "changes_requested") {
             return `:${emoji}: ${mention} requests changes on ${ownerPart} ${prUrl}`;
           }
-          if (state === 'approved') {
+          if (state === "approved") {
             return `${
-              toOwner ? ':clap: ' : ''
+              toOwner ? ":clap: " : ""
             }:${emoji}: ${mention} approves ${ownerPart} ${prUrl}${
-              merged ? ' and PR is merged :tada:' : ''
+              merged ? " and PR is merged :tada:" : ""
             }`;
           }
 
-          const commentLink = slackUtils.createLink(reviewUrl, 'commented');
+          const commentLink = slackUtils.createLink(reviewUrl, "commented");
           return `:${emoji}: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
         };
 
@@ -261,7 +261,7 @@ export default function reviewSubmitted(
               .filter((assignee) => assignee.id === owner.id)
               .map((assigneeIsOwner) => {
                 return repoContext.slack.postMessage(
-                  'pr-review',
+                  "pr-review",
                   assigneeIsOwner,
                   messageToOwner,
                 );
@@ -280,7 +280,7 @@ export default function reviewSubmitted(
               .filter((assignee) => assignee.id !== owner.id)
               .map((assignee) => {
                 return repoContext.slack.postMessage(
-                  'pr-review',
+                  "pr-review",
                   assignee,
                   messageToAssignee,
                 );
@@ -297,7 +297,7 @@ export default function reviewSubmitted(
           Promise.all(
             followers.map((follower) => {
               return repoContext.slack.postMessage(
-                'pr-review-follow',
+                "pr-review-follow",
                 follower,
                 messageToFollower,
               );
@@ -314,7 +314,7 @@ export default function reviewSubmitted(
       } else if (body) {
         const mention = repoContext.slack.mention(reviewer.login);
         const prUrl = slackUtils.createPrLink(pullRequest, repoContext);
-        const commentLink = slackUtils.createLink(reviewUrl, 'commented');
+        const commentLink = slackUtils.createLink(reviewUrl, "commented");
 
         const message = createSlackMessageWithSecondaryBlock(
           `:speech_balloon: ${mention} ${commentLink} on his PR ${prUrl}`,
@@ -327,7 +327,7 @@ export default function reviewSubmitted(
               .filter((assignee) => assignee.id !== reviewer.id)
               .map((assignee) => {
                 return repoContext.slack.postMessage(
-                  'pr-review',
+                  "pr-review",
                   assignee,
                   message,
                 );
@@ -346,7 +346,7 @@ export default function reviewSubmitted(
               .filter((follower) => follower.id !== reviewer.id)
               .map((follower) => {
                 return repoContext.slack.postMessage(
-                  'pr-review-follow',
+                  "pr-review-follow",
                   follower,
                   message,
                 );

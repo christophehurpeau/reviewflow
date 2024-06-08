@@ -1,7 +1,7 @@
-import type { TeamSlack } from './TeamSlack';
+import type { TeamSlack } from "./TeamSlack";
 
 export const voidTeamSlack = (): TeamSlack => ({
-  mention: (): string => '',
+  mention: (): string => "",
   postMessage: (): Promise<null> => Promise.resolve(null),
   updateMessage: (): Promise<null> => Promise.resolve(null),
   deleteMessage: (): Promise<undefined> => Promise.resolve(undefined),

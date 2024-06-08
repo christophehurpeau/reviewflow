@@ -1,12 +1,12 @@
 import type {
   EventsWithRepository,
   RepoContext,
-} from '../../../context/repoContext';
-import type { ProbotEvent } from '../../probot-types';
-import type { PullRequestFromRestEndpoint } from '../utils/PullRequestData';
-import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
-import { tryToAutomerge } from './tryToAutomerge';
-import hasLabelInPR from './utils/labels/hasLabelInPR';
+} from "../../../context/repoContext";
+import type { ProbotEvent } from "../../probot-types";
+import type { PullRequestFromRestEndpoint } from "../utils/PullRequestData";
+import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
+import { tryToAutomerge } from "./tryToAutomerge";
+import hasLabelInPR from "./utils/labels/hasLabelInPR";
 
 export const autoApproveAndAutoMerge = async <
   Name extends EventsWithRepository,
@@ -22,10 +22,10 @@ export const autoApproveAndAutoMerge = async <
     return false;
   }
   // const autoMergeLabel = repoContext.labels['merge/automerge'];
-  const codeApprovedLabel = repoContext.labels['code/approved'];
+  const codeApprovedLabel = repoContext.labels["code/approved"];
   if (ignoreLabel || hasLabelInPR(pullRequest.labels, codeApprovedLabel)) {
     await context.octokit.pulls.createReview(
-      context.pullRequest({ event: 'APPROVE' }),
+      context.pullRequest({ event: "APPROVE" }),
     );
 
     await tryToAutomerge({

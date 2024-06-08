@@ -1,4 +1,4 @@
-import type { BaseStepState, CalcStepOptions } from './BaseStepState';
+import type { BaseStepState, CalcStepOptions } from "./BaseStepState";
 
 export interface MergeStepState extends BaseStepState {
   isMerged: boolean;
@@ -16,10 +16,10 @@ export function calcMergeStep<TeamNames extends string>({
 
   return {
     state: (() => {
-      if (isMerged) return 'passed';
-      if (isClosed) return 'failed';
-      if (isAutoMergeEnabled) return 'in-progress';
-      return 'not-started';
+      if (isMerged) return "passed";
+      if (isClosed) return "failed";
+      if (isAutoMergeEnabled) return "in-progress";
+      return "not-started";
     })(),
     isMerged,
     isClosed,

@@ -1,6 +1,6 @@
-import type { MessageCategory } from '../../dm/MessageCategory';
-import type { AccountInfo } from '../getOrCreateAccount';
-import type { SlackMessage } from './SlackMessage';
+import type { MessageCategory } from "../../dm/MessageCategory";
+import type { AccountInfo } from "../getOrCreateAccount";
+import type { SlackMessage } from "./SlackMessage";
 
 export interface SlackMessageResult {
   ts: string;

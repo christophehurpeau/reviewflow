@@ -1,15 +1,15 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import * as slackUtils from '../../slack/utils';
-import { editOpenedPR } from './actions/editOpenedPR';
-import { mergeOrEnableGithubAutoMerge } from './actions/enableGithubAutoMerge';
-import { updateReviewStatus } from './actions/updateReviewStatus';
-import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
-import hasLabelInPR from './actions/utils/labels/hasLabelInPR';
-import { calcStepsState } from './actions/utils/steps/calcStepsState';
-import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
-import { fetchPr, type PullRequestFromRestEndpoint } from './utils/fetchPr';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import * as slackUtils from "../../slack/utils";
+import { editOpenedPR } from "./actions/editOpenedPR";
+import { mergeOrEnableGithubAutoMerge } from "./actions/enableGithubAutoMerge";
+import { updateReviewStatus } from "./actions/updateReviewStatus";
+import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState";
+import hasLabelInPR from "./actions/utils/labels/hasLabelInPR";
+import { calcStepsState } from "./actions/utils/steps/calcStepsState";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler";
+import { fetchPr, type PullRequestFromRestEndpoint } from "./utils/fetchPr";
 
 export default function readyForReview(
   app: Probot,
@@ -18,7 +18,7 @@ export default function readyForReview(
   createPullRequestHandler(
     app,
     appContext,
-    'pull_request.ready_for_review',
+    "pull_request.ready_for_review",
     (payload, context, repoContext) => {
       return payload.pull_request;
     },
@@ -41,7 +41,7 @@ export default function readyForReview(
 
       /* if repo is not ignored */
       if (reviewflowPrContext) {
-        const autoMergeLabel = repoContext.labels['merge/automerge'];
+        const autoMergeLabel = repoContext.labels["merge/automerge"];
         const stepsState = calcStepsState({
           repoContext,
           pullRequest,
@@ -79,7 +79,7 @@ export default function readyForReview(
                 repoContext,
                 reviewflowPrContext,
                 undefined,
-                statusCheckResult === 'failure',
+                statusCheckResult === "failure",
               );
             }
           }),
@@ -110,9 +110,9 @@ export default function readyForReview(
           `:eyes: ${repoContext.slack.mention(
             sender.login,
           )} marked as ready to review and requests ${
-            !requestedTeam ? 'your' : `your team _${requestedTeam.name}_`
+            !requestedTeam ? "your" : `your team _${requestedTeam.name}_`
           } review on ${slackUtils.createPrLink(pullRequest, repoContext)}${
-            prChangesInformation ? ` · ${prChangesInformation}` : ''
+            prChangesInformation ? ` · ${prChangesInformation}` : ""
           }\n> ${pullRequest.title}`;
 
         const messageRequestedReviewers = {
@@ -124,7 +124,7 @@ export default function readyForReview(
             if (sender.id === potentialReviewer.id) return;
 
             const result = await repoContext.slack.postMessage(
-              'pr-review',
+              "pr-review",
               potentialReviewer as any,
               messageRequestedReviewers,
               // requestedTeam ? requestedTeam.id : undefined,
@@ -132,7 +132,7 @@ export default function readyForReview(
             );
             if (result) {
               await appContext.mongoStores.slackSentMessages.insertOne({
-                type: 'review-requested',
+                type: "review-requested",
                 typeId: `${pullRequest.id}_${potentialReviewer.id}`,
                 message: messageRequestedReviewers,
                 account: repoContext.accountEmbed,
@@ -148,14 +148,14 @@ export default function readyForReview(
                 if (sender.login === potentialReviewer.login) return;
 
                 const result = await repoContext.slack.postMessage(
-                  'pr-review',
+                  "pr-review",
                   potentialReviewer as any,
                   message,
                   requestedTeam.id,
                 );
                 if (result) {
                   await appContext.mongoStores.slackSentMessages.insertOne({
-                    type: 'review-requested',
+                    type: "review-requested",
                     typeId: `${pullRequest.id}_${requestedTeam.id}_${potentialReviewer.id}`,
                     message,
                     account: repoContext.accountEmbed,

@@ -1,9 +1,9 @@
-import type { AccountInfo } from '../../../context/getOrCreateAccount';
+import type { AccountInfo } from "../../../context/getOrCreateAccount";
 import type {
   PullRequestWithDecentData,
   PullRequestWithDecentDataFromWebhook,
-} from './PullRequestData';
-import type { Reviewer } from './getReviewersAndReviewStates';
+} from "./PullRequestData";
+import type { Reviewer } from "./getReviewersAndReviewStates";
 
 export interface RequestedReviewers extends AccountInfo {
   isRequestedByName: boolean;
@@ -15,8 +15,8 @@ interface GetRolesFromPullRequestAndReviewersOptions {
 }
 
 interface PullRequestOwners {
-  owner: PullRequestWithDecentDataFromWebhook['user'];
-  assigneesNotOwner: PullRequestWithDecentDataFromWebhook['assignees'];
+  owner: PullRequestWithDecentDataFromWebhook["user"];
+  assigneesNotOwner: PullRequestWithDecentDataFromWebhook["assignees"];
 }
 
 export function getOwnersFromPullRequest(
@@ -36,9 +36,9 @@ export function getRolesFromPullRequestAndReviewers(
   reviewers: Reviewer[],
   { excludeIds = [] }: GetRolesFromPullRequestAndReviewersOptions = {},
 ): {
-  owner: PullRequestWithDecentDataFromWebhook['user'];
-  assigneesNotOwner: PullRequestWithDecentDataFromWebhook['assignees'];
-  assignees: PullRequestWithDecentDataFromWebhook['assignees'];
+  owner: PullRequestWithDecentDataFromWebhook["user"];
+  assigneesNotOwner: PullRequestWithDecentDataFromWebhook["assignees"];
+  assignees: PullRequestWithDecentDataFromWebhook["assignees"];
   reviewers: Reviewer[];
   requestedReviewers: RequestedReviewers[];
   followers: AccountInfo[];

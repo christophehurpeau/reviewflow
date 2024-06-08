@@ -1,6 +1,6 @@
-import type { EmitterWebhookEventName } from '@octokit/webhooks';
-import type { ProbotEvent } from '../../probot-types';
-import type { PullRequestWithDecentData } from '../utils/PullRequestData';
+import type { EmitterWebhookEventName } from "@octokit/webhooks";
+import type { ProbotEvent } from "../../probot-types";
+import type { PullRequestWithDecentData } from "../utils/PullRequestData";
 
 export const updateBranch = async <Name extends EmitterWebhookEventName>(
   pullRequest: PullRequestWithDecentData,
@@ -10,7 +10,7 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
   const repo = pullRequest.head.repo;
   if (!repo) return false;
 
-  context.log.info('update branch', {
+  context.log.info("update branch", {
     head: pullRequest.head.ref,
     base: pullRequest.base.ref,
   });
@@ -22,7 +22,7 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
       head: pullRequest.base.ref,
       base: pullRequest.head.ref,
     })
-    .catch((error: unknown) => ({ error } as any));
+    .catch((error: unknown) => ({ error }) as any);
 
   context.log.info(
     {
@@ -30,7 +30,7 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
       sha: result.data?.sha,
       error: result.error,
     },
-    'update branch result',
+    "update branch result",
   );
 
   if (result.status === 204 || result.error?.status === 204) {
@@ -38,7 +38,7 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
       context.repo({
         issue_number: pullRequest.number,
         body: `${
-          login ? `@${login} ` : ''
+          login ? `@${login} ` : ""
         }Could not update branch: base already contains the head, nothing to merge.`,
       }),
     );
@@ -48,7 +48,7 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
       context.repo({
         issue_number: pullRequest.number,
         body: `${
-          login ? `@${login} ` : ''
+          login ? `@${login} ` : ""
         }Could not update branch: merge conflict. Please resolve manually.`,
       }),
     );
@@ -57,10 +57,10 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
     context.octokit.issues.createComment(
       context.repo({
         issue_number: pullRequest.number,
-        body: `${login ? `@${login} ` : ''}Could not update branch ${
+        body: `${login ? `@${login} ` : ""}Could not update branch ${
           result?.error?.response?.data?.message ??
           `(unknown error${
-            result?.error.status ? `, status = ${result.error.status}` : ''
+            result?.error.status ? `, status = ${result.error.status}` : ""
           })`
         }.`,
       }),
@@ -70,7 +70,7 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
     context.octokit.issues.createComment(
       context.repo({
         issue_number: pullRequest.number,
-        body: `${login ? `@${login} ` : ''}Branch updated: ${result.data.sha}`,
+        body: `${login ? `@${login} ` : ""}Branch updated: ${result.data.sha}`,
       }),
     );
   }

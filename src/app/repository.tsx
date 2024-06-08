@@ -1,15 +1,15 @@
-import type { Router } from 'express';
-import type { ProbotOctokit } from 'probot';
-import { renderToStaticMarkup } from 'react-dom/server';
-import Layout from '../views/Layout';
-import { getUser } from './auth';
+import type { Router } from "express";
+import type { ProbotOctokit } from "probot";
+import { renderToStaticMarkup } from "react-dom/server";
+import Layout from "../views/Layout";
+import { getUser } from "./auth";
 
 export default function repository(
   router: Router,
   octokitApp: InstanceType<typeof ProbotOctokit>,
 ): void {
   router.get(
-    '/repositories',
+    "/repositories",
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     async (req, res, next) => {
       try {
@@ -50,7 +50,7 @@ export default function repository(
   );
 
   router.get(
-    '/repository/:owner/:repository',
+    "/repository/:owner/:repository",
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     async (req, res, next) => {
       try {
@@ -100,13 +100,13 @@ export default function repository(
             renderToStaticMarkup(
               <Layout>
                 <div>
-                  {process.env.REVIEWFLOW_NAME}{' '}
+                  {process.env.REVIEWFLOW_NAME}{" "}
                   {"isn't installed on this repo. Go to "}
                   <a
                     href={`https://github.com/apps/${process.env.REVIEWFLOW_NAME}/installations/new`}
                   >
                     Github Configuration
-                  </a>{' '}
+                  </a>{" "}
                   to add it.
                 </div>
               </Layout>,

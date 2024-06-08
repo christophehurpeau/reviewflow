@@ -1,38 +1,38 @@
-import type { Update } from 'liwi-mongo';
-import type { StatusInfo } from '../../../accountConfigs/types';
-import type { AppContext } from '../../../context/AppContext';
+import type { Update } from "liwi-mongo";
+import type { StatusInfo } from "../../../accountConfigs/types";
+import type { AppContext } from "../../../context/AppContext";
 import type {
   EventsWithRepository,
   RepoContext,
-} from '../../../context/repoContext';
-import { getKeys } from '../../../context/utils';
-import type { ReviewflowPr } from '../../../mongo';
-import { ExcludesFalsy } from '../../../utils/Excludes';
-import { checkIfUserIsBot } from '../../../utils/github/isBotUser';
-import type { ChecksAndStatuses } from '../../../utils/github/pullRequest/checksAndStatuses';
-import type { ProbotEvent } from '../../probot-types';
+} from "../../../context/repoContext";
+import { getKeys } from "../../../context/utils";
+import type { ReviewflowPr } from "../../../mongo";
+import { ExcludesFalsy } from "../../../utils/Excludes";
+import { checkIfUserIsBot } from "../../../utils/github/isBotUser";
+import type { ChecksAndStatuses } from "../../../utils/github/pullRequest/checksAndStatuses";
+import type { ProbotEvent } from "../../probot-types";
 import type {
   PullRequestLabels,
   PullRequestWithDecentData,
-} from '../utils/PullRequestData';
-import { toBasicUser } from '../utils/PullRequestData';
-import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
-import { readCommitsAndUpdateInfos } from './readCommitsAndUpdateInfos';
-import { updatePrIfNeeded } from './updatePr';
-import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
-import { calcDefaultOptions } from './utils/body/prOptions';
+} from "../utils/PullRequestData";
+import { toBasicUser } from "../utils/PullRequestData";
+import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
+import { readCommitsAndUpdateInfos } from "./readCommitsAndUpdateInfos";
+import { updatePrIfNeeded } from "./updatePr";
+import { updatePrCommentBodyIfNeeded } from "./updatePrCommentBody";
+import { calcDefaultOptions } from "./utils/body/prOptions";
 import {
   updateCommentBodyInfos,
   defaultCommentBody,
   createCommentBody,
   removeDeprecatedReviewflowInPrBody,
   updateCommentBodyProgress,
-} from './utils/body/updateBody';
-import { lintCommitMessage } from './utils/commitMessages';
-import createStatus, { isSameStatus } from './utils/createStatus';
-import { cleanTitle } from './utils/prTitle';
-import type { StepsState } from './utils/steps/calcStepsState';
-import { updateSlackHomeForPr } from './utils/updateSlackHome';
+} from "./utils/body/updateBody";
+import { lintCommitMessage } from "./utils/commitMessages";
+import createStatus, { isSameStatus } from "./utils/createStatus";
+import { cleanTitle } from "./utils/prTitle";
+import type { StepsState } from "./utils/steps/calcStepsState";
+import { updateSlackHomeForPr } from "./utils/updateSlackHome";
 
 export interface ReviewflowStatus {
   name: string;
@@ -56,7 +56,7 @@ export interface EditOpenedPullRequestOptions<
   stepsState: StepsState;
   previousSha?: string;
   checksAndStatuses?: ChecksAndStatuses;
-  reviews?: ReviewflowPr['reviews'];
+  reviews?: ReviewflowPr["reviews"];
 }
 
 export const editOpenedPR = async <
@@ -81,13 +81,13 @@ export const editOpenedPR = async <
   const title = repoContext.config.cleanTitle
     ? cleanTitle(
         pullRequest.title,
-        repoContext.config.cleanTitle === 'conventionalCommit',
+        repoContext.config.cleanTitle === "conventionalCommit",
       )
     : pullRequest.title;
 
   const parsePRValue = {
     title,
-    body: pullRequest.body || '',
+    body: pullRequest.body || "",
     head: pullRequest.head.ref,
     base: pullRequest.base.ref,
   };
@@ -112,20 +112,20 @@ export const editOpenedPR = async <
       if (!lintOutcome.valid) {
         errorStatus = {
           inBody: true,
-          type: 'failure',
-          title: 'Title does not match conventional commit.',
-          summary: '',
-          url: 'https://www.conventionalcommits.org/',
+          type: "failure",
+          title: "Title does not match conventional commit.",
+          summary: "",
+          url: "https://www.conventionalcommits.org/",
           details: `Pull Request's title does not match [conventional commit](https://www.conventionalcommits.org/):\n${lintOutcome.errors
             .map((error) => `:x: ${error.message}`)
-            .join('\n')}`,
+            .join("\n")}`,
         };
       }
     } catch {
       errorStatus = {
-        type: 'failure',
-        title: 'Failed to lint title with conventional commit linter.',
-        summary: '',
+        type: "failure",
+        title: "Failed to lint title with conventional commit linter.",
+        summary: "",
       };
     }
   }
@@ -146,7 +146,7 @@ export const editOpenedPR = async <
         if (status !== null) {
           if (rule.status) {
             statuses.push({ name: rule.status, status });
-          } else if (status.type === 'failure') {
+          } else if (status.type === "failure") {
             if (!errorStatus) {
               errorStatus = status;
             }
@@ -180,16 +180,16 @@ export const editOpenedPR = async <
     );
   } else {
     hasLegacyLintPrCheck = !reviewflowPrContext.reviewflowPr.lintStatuses.some(
-      (status) => status.name === 'lint-pr',
+      (status) => status.name === "lint-pr",
     );
   }
 
   const lintStatus: ReviewflowStatus = {
-    name: 'lint-pr',
+    name: "lint-pr",
     status: {
-      type: errorStatus ? 'failure' : 'success',
-      title: errorStatus ? errorStatus.title : '✓ PR is valid',
-      summary: errorStatus ? errorStatus.summary : '',
+      type: errorStatus ? "failure" : "success",
+      title: errorStatus ? errorStatus.title : "✓ PR is valid",
+      summary: errorStatus ? errorStatus.summary : "",
       url: errorStatus ? errorStatus.url : undefined,
       inBody: errorStatus ? errorStatus.inBody : undefined,
       details: errorStatus ? errorStatus.details : undefined,
@@ -221,12 +221,12 @@ export const editOpenedPR = async <
     }),
     ...(previousSha
       ? (reviewflowPrContext.reviewflowPr.lintStatuses || statuses)
-          .filter(({ status }) => status.type === 'failure')
+          .filter(({ status }) => status.type === "failure")
           .map(({ name }): Promise<void> | undefined =>
             createStatus(context, name, previousSha, {
-              type: 'success',
-              title: 'New commits have been pushed',
-              summary: '',
+              type: "success",
+              title: "New commits have been pushed",
+              summary: "",
             }),
           )
       : []),
@@ -236,8 +236,8 @@ export const editOpenedPR = async <
         context.repo({
           name: lintStatus.name,
           head_sha: pullRequest.head.sha,
-          status: 'completed',
-          conclusion: errorStatus ? 'failure' : 'success',
+          status: "completed",
+          conclusion: errorStatus ? "failure" : "success",
           started_at: date,
           completed_at: date,
           output: {
@@ -250,13 +250,13 @@ export const editOpenedPR = async <
 
   const body = removeDeprecatedReviewflowInPrBody(pullRequest.body);
 
-  const partialUpdateReviewflowPr: Update<ReviewflowPr>['$set'] = {
+  const partialUpdateReviewflowPr: Update<ReviewflowPr>["$set"] = {
     title,
     isDraft: pullRequest.draft === true,
     isClosed: !!pullRequest.closed_at,
   };
 
-  if ('changed_files' in pullRequest) {
+  if ("changed_files" in pullRequest) {
     partialUpdateReviewflowPr.changesInformation = {
       changedFiles: pullRequest.changed_files,
       additions: pullRequest.additions,
@@ -271,7 +271,7 @@ export const editOpenedPR = async <
     pullRequest.user
   ) {
     partialUpdateReviewflowPr.assignees = [toBasicUser(pullRequest.user)];
-  } else if ('assignees' in pullRequest && pullRequest.assignees) {
+  } else if ("assignees" in pullRequest && pullRequest.assignees) {
     partialUpdateReviewflowPr.assignees =
       pullRequest.assignees?.map(toBasicUser);
   }
@@ -332,10 +332,10 @@ export const editOpenedPR = async <
     repoContext.slack.shouldShowLoginMessage(pullRequest.user.login)
   ) {
     commentBodyInfos.push({
-      type: 'failure',
+      type: "failure",
       title: `@${pullRequest.user.login} Connect your account to Slack to get notifications for your PRs !`,
       url: `${process.env.REVIEWFLOW_APP_URL}/org/${context.payload.repository.owner.login}`,
-      summary: '',
+      summary: "",
     });
   }
 

@@ -1,8 +1,8 @@
-import type { MessageCategory } from '../dm/MessageCategory';
-import type { Options } from '../events/pr-handlers/actions/utils/body/prOptions';
+import type { MessageCategory } from "../dm/MessageCategory";
+import type { Options } from "../events/pr-handlers/actions/utils/body/prOptions";
 
 export interface StatusInfo {
-  type: 'failure' | 'pending' | 'success';
+  type: "failure" | "pending" | "success";
   inBody?: true;
   url?: string;
   title: string;
@@ -46,10 +46,10 @@ export interface LabelDescriptor {
 }
 
 export type ReviewLabels =
-  | 'approved'
-  | 'changesRequested'
-  | 'needsReview'
-  | 'requested';
+  | "approved"
+  | "changesRequested"
+  | "needsReview"
+  | "requested";
 
 export type ReviewConfig = Record<ReviewLabels, string>;
 
@@ -73,7 +73,7 @@ interface WarnOnForcePushAfterReviewStarted {
 
 export interface Config<TeamNames extends string> {
   autoAssignToCreator?: boolean;
-  cleanTitle?: boolean | 'conventionalCommit';
+  cleanTitle?: boolean | "conventionalCommit";
   lintPullRequestTitleWithConventionalCommit?: RegExp | boolean;
   ignoreRepoPattern?: string;
   requiresReviewRequest?: boolean;

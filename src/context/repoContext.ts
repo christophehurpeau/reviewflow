@@ -1,29 +1,29 @@
-import type { EmitterWebhookEventName } from '@octokit/webhooks';
-import { Lock } from 'lock';
-import type { Config } from '../accountConfigs';
-import { accountConfigs, defaultConfig } from '../accountConfigs';
-import { autoMergeIfPossibleLegacy } from '../events/pr-handlers/actions/autoMergeIfPossible';
-import { mergeOrEnableGithubAutoMerge } from '../events/pr-handlers/actions/enableGithubAutoMerge';
-import type { RepositorySettings } from '../events/pr-handlers/actions/utils/body/repositorySettings';
+import type { EmitterWebhookEventName } from "@octokit/webhooks";
+import { Lock } from "lock";
+import type { Config } from "../accountConfigs";
+import { accountConfigs, defaultConfig } from "../accountConfigs";
+import { autoMergeIfPossibleLegacy } from "../events/pr-handlers/actions/autoMergeIfPossible";
+import { mergeOrEnableGithubAutoMerge } from "../events/pr-handlers/actions/enableGithubAutoMerge";
+import type { RepositorySettings } from "../events/pr-handlers/actions/utils/body/repositorySettings";
 import {
   isSettingsLastUpdatedExpired,
   createRepositorySettings,
-} from '../events/pr-handlers/actions/utils/body/repositorySettings';
+} from "../events/pr-handlers/actions/utils/body/repositorySettings";
 import type {
   BasicUser,
   PullRequestDataMinimumData,
-} from '../events/pr-handlers/utils/PullRequestData';
-import { getReviewflowPrContext } from '../events/pr-handlers/utils/createPullRequestContext';
-import { fetchPr } from '../events/pr-handlers/utils/fetchPr';
-import type { ProbotEvent } from '../events/probot-types';
-import type { RepositoryMergeQueue, Repository } from '../mongo';
-import { getRepositorySettings } from '../utils/github/repo/getRepositorySettings';
-import type { AppContext } from './AppContext';
-import type { AccountContext } from './accountContext';
-import { obtainAccountContext } from './accountContext';
-import type { LabelResponse, LabelsRecord } from './initRepoLabels';
-import { initRepoLabels } from './initRepoLabels';
-import { getEmojiFromRepoDescription } from './utils';
+} from "../events/pr-handlers/utils/PullRequestData";
+import { getReviewflowPrContext } from "../events/pr-handlers/utils/createPullRequestContext";
+import { fetchPr } from "../events/pr-handlers/utils/fetchPr";
+import type { ProbotEvent } from "../events/probot-types";
+import type { RepositoryMergeQueue, Repository } from "../mongo";
+import { getRepositorySettings } from "../utils/github/repo/getRepositorySettings";
+import type { AppContext } from "./AppContext";
+import type { AccountContext } from "./accountContext";
+import { obtainAccountContext } from "./accountContext";
+import type { LabelResponse, LabelsRecord } from "./initRepoLabels";
+import { initRepoLabels } from "./initRepoLabels";
+import { getEmojiFromRepoDescription } from "./utils";
 
 export interface LockedMergePr {
   id: number;
@@ -35,57 +35,57 @@ export type CustomExtract<T, U extends T> = U;
 
 export type EventsWithRepository = CustomExtract<
   EmitterWebhookEventName,
-  | 'check_run.completed'
-  | 'check_run.created'
-  | 'check_run.rerequested'
-  | 'check_suite.completed'
-  | 'commit_comment.created'
-  | 'issue_comment.created'
-  | 'issue_comment.deleted'
-  | 'issue_comment.edited'
-  | 'pull_request_review_comment.created'
-  | 'pull_request_review_comment.deleted'
-  | 'pull_request_review_comment.edited'
-  | 'pull_request_review_comment'
-  | 'pull_request_review.dismissed'
-  | 'pull_request_review.edited'
-  | 'pull_request_review.submitted'
-  | 'pull_request.assigned'
-  | 'pull_request.auto_merge_disabled'
-  | 'pull_request.auto_merge_enabled'
-  | 'pull_request.closed'
-  | 'pull_request.converted_to_draft'
-  | 'pull_request.edited'
-  | 'pull_request.labeled'
-  | 'pull_request.locked'
-  | 'pull_request.opened'
-  | 'pull_request.ready_for_review'
-  | 'pull_request.reopened'
-  | 'pull_request.review_request_removed'
-  | 'pull_request.review_requested'
-  | 'pull_request.synchronize'
-  | 'pull_request.unassigned'
-  | 'pull_request.unlabeled'
-  | 'pull_request.unlocked'
-  | 'push'
-  | 'repository.archived'
-  | 'repository.created'
-  | 'repository.deleted'
-  | 'repository.edited'
-  | 'repository.privatized'
-  | 'repository.publicized'
-  | 'repository.renamed'
-  | 'repository.transferred'
-  | 'repository.unarchived'
-  | 'status'
-  | 'workflow_run.completed'
-  | 'workflow_run.requested'
+  | "check_run.completed"
+  | "check_run.created"
+  | "check_run.rerequested"
+  | "check_suite.completed"
+  | "commit_comment.created"
+  | "issue_comment.created"
+  | "issue_comment.deleted"
+  | "issue_comment.edited"
+  | "pull_request_review_comment.created"
+  | "pull_request_review_comment.deleted"
+  | "pull_request_review_comment.edited"
+  | "pull_request_review_comment"
+  | "pull_request_review.dismissed"
+  | "pull_request_review.edited"
+  | "pull_request_review.submitted"
+  | "pull_request.assigned"
+  | "pull_request.auto_merge_disabled"
+  | "pull_request.auto_merge_enabled"
+  | "pull_request.closed"
+  | "pull_request.converted_to_draft"
+  | "pull_request.edited"
+  | "pull_request.labeled"
+  | "pull_request.locked"
+  | "pull_request.opened"
+  | "pull_request.ready_for_review"
+  | "pull_request.reopened"
+  | "pull_request.review_request_removed"
+  | "pull_request.review_requested"
+  | "pull_request.synchronize"
+  | "pull_request.unassigned"
+  | "pull_request.unlabeled"
+  | "pull_request.unlocked"
+  | "push"
+  | "repository.archived"
+  | "repository.created"
+  | "repository.deleted"
+  | "repository.edited"
+  | "repository.privatized"
+  | "repository.publicized"
+  | "repository.renamed"
+  | "repository.transferred"
+  | "repository.unarchived"
+  | "status"
+  | "workflow_run.completed"
+  | "workflow_run.requested"
   // | 'commit_comment.deleted'
   // | 'commit_comment.edited'
   // | 'workflow_run.in_progress'
 >;
 
-export type RescheduleTime = 'long+timeout' | 'short';
+export type RescheduleTime = "long+timeout" | "short";
 
 interface RepoContextWithoutTeamContext {
   appContext: AppContext;
@@ -94,7 +94,7 @@ interface RepoContextWithoutTeamContext {
   repoEmoji: string | undefined;
   settings: RepositorySettings;
   labels: LabelsRecord;
-  protectedLabelIds: readonly LabelResponse['id'][];
+  protectedLabelIds: readonly LabelResponse["id"][];
   shouldIgnore: boolean;
 
   lockPullRequest: (
@@ -143,8 +143,8 @@ export const shouldIgnoreRepo = (
     accountConfig.ignoreRepoPattern &&
     new RegExp(`^${accountConfig.ignoreRepoPattern}$`);
 
-  if (repoName === 'reviewflow-test') {
-    return process.env.REVIEWFLOW_NAME !== 'reviewflow-dev';
+  if (repoName === "reviewflow-test") {
+    return process.env.REVIEWFLOW_NAME !== "reviewflow-dev";
   }
 
   if (ignoreRepoRegexp) {
@@ -184,7 +184,7 @@ async function initRepoContext<
 
   const findOrCreateRepository = async (): Promise<Repository> => {
     const res = await appContext.mongoStores.repositories.findByKey(id, {
-      'account.id': accountContext.accountEmbed.id,
+      "account.id": accountContext.accountEmbed.id,
     });
 
     if (res) {
@@ -204,10 +204,10 @@ async function initRepoContext<
               settings,
             },
             // @ts-expect-error -- remove legacy options settings
-            $unset: { options: '' },
+            $unset: { options: "" },
           },
           {
-            'account.id': accountContext.accountEmbed.id,
+            "account.id": accountContext.accountEmbed.id,
           },
         );
       }
@@ -228,8 +228,8 @@ async function initRepoContext<
   const findOrCreateRepositoryMergeQueue =
     async (): Promise<RepositoryMergeQueue> => {
       const res = await appContext.mongoStores.repositoryMergeQueue.findOne({
-        'account.id': accountContext.accountEmbed.id,
-        'repo.id': id,
+        "account.id": accountContext.accountEmbed.id,
+        "repo.id": id,
       });
 
       if (res) {
@@ -277,7 +277,7 @@ async function initRepoContext<
   if (automergeQueue.length > 0) {
     setTimeout(() => {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define, @typescript-eslint/no-floating-promises
-      reschedule(context, automergeQueue[0], 'short');
+      reschedule(context, automergeQueue[0], "short");
     }, 10);
   }
 
@@ -318,21 +318,21 @@ async function initRepoContext<
         prOrPrIssueId,
         prNumber,
       };
-      context.log.debug(logInfos, 'lock: try to lock pr');
+      context.log.debug(logInfos, "lock: try to lock pr");
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       lock(prNumberAsString, async (createReleaseCallback) => {
         const release = createReleaseCallback(() => {});
-        context.log.info(logInfos, 'lock: lock pr acquired');
+        context.log.info(logInfos, "lock: lock pr acquired");
         try {
           await callback();
         } catch (error) {
-          context.log.info(logInfos, 'lock: release pr (with error)');
+          context.log.info(logInfos, "lock: release pr (with error)");
           release();
           // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
           reject(error);
           return;
         }
-        context.log.info(logInfos, 'lock: release pr');
+        context.log.info(logInfos, "lock: release pr");
         release();
         resolve();
       });
@@ -370,7 +370,7 @@ async function initRepoContext<
         removePrContext.log.info(lockMergePr, `merge lock: next ${fullName}`);
         await Promise.all([
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          reschedule(removePrContext, lockMergePr, 'short'),
+          reschedule(removePrContext, lockMergePr, "short"),
           updateAutomergeQueueInDb(automergeQueue),
         ]);
       }
@@ -396,16 +396,16 @@ async function initRepoContext<
     user?: BasicUser,
     // eslint-disable-next-line @typescript-eslint/require-await
   ): Promise<void> => {
-    if (!pr) throw new Error('Cannot reschedule undefined');
+    if (!pr) throw new Error("Cannot reschedule undefined");
     if (repoContext.config.disableAutoMerge) return;
 
     clearWaitingToReschedule(pr.id);
-    rescheduleContext.log.info(pr, 'reschedule', { time });
+    rescheduleContext.log.info(pr, "reschedule", { time });
     const timeout = setTimeout(
       () => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        lockPR('reschedule', 'reschedule', -1, () => {
-          return lockPR('reschedule', String(pr.id), pr.number, async () => {
+        lockPR("reschedule", "reschedule", -1, () => {
+          return lockPR("reschedule", String(pr.id), pr.number, async () => {
             try {
               const [pullRequest, reviewflowPrContext] = await Promise.all([
                 fetchPr(context, pr.number),
@@ -429,11 +429,11 @@ async function initRepoContext<
                   repoContext,
                   reviewflowPrContext,
                 );
-                if (!didMerge && time === 'long+timeout') {
+                if (!didMerge && time === "long+timeout") {
                   await removePrFromAutomergeQueue(
                     rescheduleContext,
                     pr,
-                    'reschedule: !didMerge && longTime => abort lock',
+                    "reschedule: !didMerge && longTime => abort lock",
                   );
                 }
               }
@@ -441,14 +441,14 @@ async function initRepoContext<
               await removePrFromAutomergeQueue(
                 rescheduleContext,
                 pr,
-                'reschedule: error caught, removing from queue',
+                "reschedule: error caught, removing from queue",
               );
               throw error;
             }
           });
         });
       },
-      time === 'long+timeout' ? 60_000 * 10 /* 10 min */ : 10_000 /* 10s */,
+      time === "long+timeout" ? 60_000 * 10 /* 10 min */ : 10_000 /* 10s */,
     );
     waitingToReschedule.set(String(pr.id), timeout);
   };
@@ -488,11 +488,11 @@ async function initRepoContext<
       // - if is merge locked => will run automerge and might merge
       // - if not in queue => might add it back if other conditions are met
       // TODO: save condition in mongo to avoid rescheduling if not necessary
-      await reschedule(rescheduleContext, pr, 'short');
+      await reschedule(rescheduleContext, pr, "short");
     } else {
       // remove from queue as the check was not successful
       // Note: some unsucessful checks are ignored, so we should not remove the PR from queue here
-      await reschedule(rescheduleContext, pr, 'short');
+      await reschedule(rescheduleContext, pr, "short");
       // await removePrFromAutomergeQueue(
       //   rescheduleContext,
       //   pr,
@@ -521,7 +521,7 @@ async function initRepoContext<
       if (lockMergePr && String(lockMergePr.number) === String(pr.number)) {
         return;
       }
-      if (lockMergePr) throw new Error('Already have lock');
+      if (lockMergePr) throw new Error("Already have lock");
       await updateAutomergeQueueInDb([pr]);
     },
     removePrFromAutomergeQueue,
@@ -532,7 +532,7 @@ async function initRepoContext<
           pr,
           automergeQueue,
         },
-        'merge lock: push queue',
+        "merge lock: push queue",
       );
       if (!automergeQueue.some((p) => p.number === pr.number)) {
         automergeQueue.push(pr);

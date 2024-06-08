@@ -1,6 +1,6 @@
-import type { MongoStores, OrgTeamEmbed } from '../../../mongo';
-import type { CommonOctokitInterface } from '../../../octokit';
-import { syncTeamMembers } from './syncTeamMembers';
+import type { MongoStores, OrgTeamEmbed } from "../../../mongo";
+import type { CommonOctokitInterface } from "../../../octokit";
+import { syncTeamMembers } from "./syncTeamMembers";
 
 export const syncTeams = async <T extends CommonOctokitInterface>(
   mongoStores: MongoStores,
@@ -36,13 +36,13 @@ export const syncTeams = async <T extends CommonOctokitInterface>(
 
   await Promise.all([
     mongoStores.orgTeams.deleteMany({
-      'org.id': org.id,
+      "org.id": org.id,
       _id: { $not: { $in: teamIds } },
     }),
 
     mongoStores.orgMembers.partialUpdateMany(
       {
-        'org.id': org.id,
+        "org.id": org.id,
       },
       { $pull: { teams: { id: { $not: { $in: teamIds } } } } },
     ),

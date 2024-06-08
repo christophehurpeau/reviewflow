@@ -1,13 +1,13 @@
-import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
-import type { RepoContext } from '../../context/repoContext';
-import type { BasicUser } from '../../events/pr-handlers/utils/PullRequestData';
+import type { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
+import type { RepoContext } from "../../context/repoContext";
+import type { BasicUser } from "../../events/pr-handlers/utils/PullRequestData";
 
 export const checkIfUserIsBot = (
   repoContext: RepoContext,
   user: BasicUser,
 ): boolean => {
-  if (user.type === 'Bot') return true;
-  if (user.login.endsWith('-bot')) return true;
+  if (user.type === "Bot") return true;
+  if (user.login.endsWith("-bot")) return true;
   if (repoContext.config.botUsers) {
     return repoContext.config.botUsers.includes(user.login);
   }
@@ -19,12 +19,12 @@ export const checkIfIsThisBot = (user: {
   type: string;
 }): boolean => {
   return (
-    user.type === 'Bot' && user.login === `${process.env.REVIEWFLOW_NAME}[bot]`
+    user.type === "Bot" && user.login === `${process.env.REVIEWFLOW_NAME}[bot]`
   );
 };
 
 export const areCommitsAllMadeByBots = (
   repoContext: RepoContext,
-  commits: RestEndpointMethodTypes['pulls']['listCommits']['response']['data'],
+  commits: RestEndpointMethodTypes["pulls"]["listCommits"]["response"]["data"],
 ): boolean =>
   commits.every((c) => c.author && checkIfUserIsBot(repoContext, c.author));

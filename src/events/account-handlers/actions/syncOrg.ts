@@ -1,5 +1,5 @@
-import type { MongoStores, Org } from '../../../mongo';
-import type { CommonOctokitInterface } from '../../../octokit';
+import type { MongoStores, Org } from "../../../mongo";
+import type { CommonOctokitInterface } from "../../../octokit";
 
 interface OrgInfo {
   login: string;
@@ -31,7 +31,7 @@ export const syncOrg = async <T extends CommonOctokitInterface>(
         if (!member) return;
         memberIds.push(member.id);
         return Promise.all([
-          mongoStores.orgMembers.upsertOne<'teams'>(
+          mongoStores.orgMembers.upsertOne<"teams">(
             {
               _id: `${org.id}_${member.id}`,
               org: orgEmbed,
@@ -55,8 +55,8 @@ export const syncOrg = async <T extends CommonOctokitInterface>(
   }
 
   await mongoStores.orgMembers.deleteMany({
-    'org.id': org.id,
-    'user.id': { $not: { $in: memberIds } },
+    "org.id": org.id,
+    "user.id": { $not: { $in: memberIds } },
   });
 
   return orgInStore;

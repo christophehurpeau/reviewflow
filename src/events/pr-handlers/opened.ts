@@ -1,25 +1,25 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import { checkIfUserIsBot } from '../../utils/github/isBotUser';
-import { getChecksAndStatusesForPullRequest } from '../../utils/github/pullRequest/checksAndStatuses';
-import { autoAssignPRToCreator } from './actions/autoAssignPRToCreator';
-import { editOpenedPR } from './actions/editOpenedPR';
-import { mergeOrEnableGithubAutoMerge } from './actions/enableGithubAutoMerge';
-import { updateReviewStatus } from './actions/updateReviewStatus';
-import { updateStatusCheckFromStepsState } from './actions/updateStatusCheckFromStepsState';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import { checkIfUserIsBot } from "../../utils/github/isBotUser";
+import { getChecksAndStatusesForPullRequest } from "../../utils/github/pullRequest/checksAndStatuses";
+import { autoAssignPRToCreator } from "./actions/autoAssignPRToCreator";
+import { editOpenedPR } from "./actions/editOpenedPR";
+import { mergeOrEnableGithubAutoMerge } from "./actions/enableGithubAutoMerge";
+import { updateReviewStatus } from "./actions/updateReviewStatus";
+import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState";
 // import { defaultCommentBody } from './actions/utils/body/updateBody';
-import { calcStepsState } from './actions/utils/steps/calcStepsState';
-import { syncLabels } from './actions/utils/syncLabel';
-import { updateSlackHomeForPr } from './actions/utils/updateSlackHome';
-import type { PullRequestLabels } from './utils/PullRequestData';
-import { createPullRequestHandler } from './utils/createPullRequestHandler';
+import { calcStepsState } from "./actions/utils/steps/calcStepsState";
+import { syncLabels } from "./actions/utils/syncLabel";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
+import type { PullRequestLabels } from "./utils/PullRequestData";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler";
 // import { createReviewflowComment } from './utils/reviewflowComment';
 
 export default function opened(app: Probot, appContext: AppContext): void {
   createPullRequestHandler(
     app,
     appContext,
-    'pull_request.opened',
+    "pull_request.opened",
     (payload, context, repoContext) => {
       if (repoContext.shouldIgnore) return null;
       return payload.pull_request;
@@ -29,7 +29,7 @@ export default function opened(app: Probot, appContext: AppContext): void {
       const isFromBot = !pullRequest.user
         ? false
         : checkIfUserIsBot(repoContext, pullRequest.user);
-      const autoMergeLabel = repoContext.labels['merge/automerge'];
+      const autoMergeLabel = repoContext.labels["merge/automerge"];
       let pullRequestLabels: PullRequestLabels = pullRequest.labels;
 
       if (isFromBot) {

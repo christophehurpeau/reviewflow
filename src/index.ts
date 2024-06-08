@@ -1,14 +1,14 @@
-import type { MongoConnection } from 'liwi-mongo';
+import type { MongoConnection } from "liwi-mongo";
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import 'dotenv/config';
-import { run } from 'probot';
-import appRouter from './appRouter';
-import type { AppContext } from './context/AppContext';
-import initApp from './initApp';
-import mongoInit from './mongo';
-import { createSlackHomeWorker } from './slack/home';
+import "dotenv/config";
+import { run } from "probot";
+import appRouter from "./appRouter";
+import type { AppContext } from "./context/AppContext";
+import initApp from "./initApp";
+import mongoInit from "./mongo";
+import { createSlackHomeWorker } from "./slack/home";
 
-if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = 'reviewflow';
+if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = "reviewflow";
 
 // eslint-disable-next-line no-console
 console.log({ name: process.env.REVIEWFLOW_NAME });
@@ -43,5 +43,5 @@ const gracefulExit = function gracefulExit(): void {
   });
 };
 
-process.on('SIGINT', gracefulExit);
-process.on('SIGTERM', gracefulExit);
+process.on("SIGINT", gracefulExit);
+process.on("SIGTERM", gracefulExit);

@@ -2,22 +2,22 @@ import type {
   EventsWithRepository,
   RepoContext,
   RescheduleTime,
-} from '../../../context/repoContext';
-import { checkIfUserIsBot } from '../../../utils/github/isBotUser';
-import type { AutoMergeRequest } from '../../../utils/github/pullRequest/autoMerge';
+} from "../../../context/repoContext";
+import { checkIfUserIsBot } from "../../../utils/github/isBotUser";
+import type { AutoMergeRequest } from "../../../utils/github/pullRequest/autoMerge";
 import {
   enableGithubAutoMergeMutation,
   disableGithubAutoMergeMutation,
-} from '../../../utils/github/pullRequest/autoMerge';
-import type { ProbotEvent } from '../../probot-types';
+} from "../../../utils/github/pullRequest/autoMerge";
+import type { ProbotEvent } from "../../probot-types";
 import type {
   BasicUser,
   PullRequestWithDecentData,
-} from '../utils/PullRequestData';
-import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
-import { createMergeLockPrFromPr } from '../utils/mergeLock';
-import { createCommitMessage } from './autoMergeIfPossible';
-import { parseBody } from './utils/body/parseBody';
+} from "../utils/PullRequestData";
+import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
+import { createMergeLockPrFromPr } from "../utils/mergeLock";
+import { createCommitMessage } from "./autoMergeIfPossible";
+import { parseBody } from "./utils/body/parseBody";
 
 export interface MergeOrEnableGithubAutoMergeResult {
   wasMerged: boolean;
@@ -77,7 +77,7 @@ export const mergeOrEnableGithubAutoMerge = async <
       });
       await enableGithubAutoMergeMutation(context, {
         pullRequestId: pullRequest.node_id,
-        mergeMethod: 'SQUASH',
+        mergeMethod: "SQUASH",
         commitHeadline,
         commitBody,
       });
@@ -89,17 +89,17 @@ export const mergeOrEnableGithubAutoMerge = async <
   }
 
   if (
-    !('mergeable_state' in pullRequest) ||
-    pullRequest.mergeable_state === 'unknown'
+    !("mergeable_state" in pullRequest) ||
+    pullRequest.mergeable_state === "unknown"
   ) {
-    if (!fromRescheduleTime || fromRescheduleTime === 'short') {
+    if (!fromRescheduleTime || fromRescheduleTime === "short") {
       const rescheduleTime =
-        fromRescheduleTime === 'short' ? 'long+timeout' : 'short';
+        fromRescheduleTime === "short" ? "long+timeout" : "short";
       context.log.info(
         `mergeOrEnableGithubAutomerge mergeable_state is ${
-          'mergeable_state' in pullRequest
+          "mergeable_state" in pullRequest
             ? pullRequest.mergeable_state
-            : '[missing]'
+            : "[missing]"
         }, rescheduling with ${rescheduleTime}`,
       );
       // GitHub is determining whether the pull request is mergeable
@@ -116,9 +116,9 @@ export const mergeOrEnableGithubAutoMerge = async <
     } else {
       context.log.info(
         `mergeOrEnableGithubAutomerge mergeable_state is ${
-          'mergeable_state' in pullRequest
+          "mergeable_state" in pullRequest
             ? pullRequest.mergeable_state
-            : '[missing]'
+            : "[missing]"
         }, give up on rescheduling`,
       );
       return {
@@ -132,13 +132,13 @@ export const mergeOrEnableGithubAutoMerge = async <
 
   if (
     !skipCheckMergeableState &&
-    (pullRequest.mergeable_state === 'clean' ||
-      pullRequest.mergeable_state === 'has_hooks' ||
-      pullRequest.mergeable_state === 'unstable')
+    (pullRequest.mergeable_state === "clean" ||
+      pullRequest.mergeable_state === "has_hooks" ||
+      pullRequest.mergeable_state === "unstable")
   ) {
     try {
       await context.octokit.pulls.merge({
-        merge_method: 'squash',
+        merge_method: "squash",
         owner: pullRequest.base.repo.owner.login,
         repo: pullRequest.base.repo.name,
         pull_number: pullRequest.number,
@@ -157,7 +157,7 @@ export const mergeOrEnableGithubAutoMerge = async <
           }),
           err: error,
         },
-        'Could not automerge',
+        "Could not automerge",
       );
     }
   }
@@ -170,7 +170,7 @@ The pull request must be in a state where requirements have not yet been satisfi
 */
     const response = await enableGithubAutoMergeMutation(context, {
       pullRequestId: pullRequest.node_id,
-      mergeMethod: 'SQUASH',
+      mergeMethod: "SQUASH",
       commitHeadline,
       commitBody,
     });
@@ -181,7 +181,7 @@ The pull request must be in a state where requirements have not yet been satisfi
     };
   } catch (error) {
     context.log.error(
-      'Could not enable automerge',
+      "Could not enable automerge",
       context.repo({
         issue_number: pullRequest.number,
       }),
@@ -192,7 +192,7 @@ The pull request must be in a state where requirements have not yet been satisfi
         context.repo({
           issue_number: pullRequest.number,
           body: `${
-            user?.login ? `@${user.login} ` : ''
+            user?.login ? `@${user.login} ` : ""
           }Could not automerge nor enable automerge`,
         }),
       );
@@ -201,7 +201,7 @@ The pull request must be in a state where requirements have not yet been satisfi
         context.repo({
           issue_number: pullRequest.number,
           body: `${
-            user?.login ? `@${user.login} ` : ''
+            user?.login ? `@${user.login} ` : ""
           }Could not enable automerge`,
         }),
       );
@@ -236,7 +236,7 @@ The pull request must be in a state where requirements have not yet been satisfi
     );
   } catch (error) {
     context.log.error(
-      'Could not disable automerge',
+      "Could not disable automerge",
       context.repo({
         issue_number: pullRequest.number,
       }),
@@ -245,7 +245,7 @@ The pull request must be in a state where requirements have not yet been satisfi
     context.octokit.issues.createComment(
       context.repo({
         issue_number: pullRequest.number,
-        body: `${login ? `@${login} ` : ''}Could not disable automerge`,
+        body: `${login ? `@${login} ` : ""}Could not disable automerge`,
       }),
     );
     return false;

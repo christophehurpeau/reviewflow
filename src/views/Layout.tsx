@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from 'react';
+import type { ReactElement, ReactNode } from "react";
 
 interface LayoutProps {
   lang?: string;
@@ -7,7 +7,7 @@ interface LayoutProps {
 }
 
 export default function Layout({
-  lang = 'en',
+  lang = "en",
   title = process.env.REVIEWFLOW_NAME,
   children,
 }: LayoutProps): ReactElement {
@@ -27,7 +27,7 @@ export default function Layout({
             #container{height:100%} footer{position:absolute;bottom:5px;left:0;right:0;}`}</style>
       </head>
       <body>
-        <div style={{ padding: '24px 48px' }}>
+        <div style={{ padding: "24px 48px" }}>
           <div>
             <h1>{process.env.REVIEWFLOW_NAME}</h1>
             {children}

@@ -1,6 +1,6 @@
-import type { MongoStores, OrgTeamEmbed } from '../../../mongo';
-import type { CommonOctokitInterface } from '../../../octokit';
-import { ExcludesFalsy } from '../../../utils/Excludes';
+import type { MongoStores, OrgTeamEmbed } from "../../../mongo";
+import type { CommonOctokitInterface } from "../../../octokit";
+import { ExcludesFalsy } from "../../../utils/Excludes";
 
 export const syncTeamMembers = async <T extends CommonOctokitInterface>(
   mongoStores: MongoStores,
@@ -28,8 +28,8 @@ export const syncTeamMembers = async <T extends CommonOctokitInterface>(
             (memberId) => `${org.id}_${memberId}`,
           ),
         },
-        'org.id': org.id,
-        'teams.id': { $ne: team.id },
+        "org.id": org.id,
+        "teams.id": { $ne: team.id },
       },
       { $push: { teams: team } },
     );
@@ -37,8 +37,8 @@ export const syncTeamMembers = async <T extends CommonOctokitInterface>(
 
   await mongoStores.orgMembers.partialUpdateMany(
     {
-      'org.id': org.id,
-      'user.id': { $not: { $in: memberIds } },
+      "org.id": org.id,
+      "user.id": { $not: { $in: memberIds } },
     },
     { $pull: { teams: { id: team.id } } },
   );

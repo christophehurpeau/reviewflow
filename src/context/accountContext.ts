@@ -1,7 +1,7 @@
-import { Lock } from 'lock';
-import type { Config } from '../accountConfigs';
-import type { EventsWithOrganisation } from '../events/account-handlers/utils/createHandlerOrgChange';
-import type { ProbotEvent } from '../events/probot-types';
+import { Lock } from "lock";
+import type { Config } from "../accountConfigs";
+import type { EventsWithOrganisation } from "../events/account-handlers/utils/createHandlerOrgChange";
+import type { ProbotEvent } from "../events/probot-types";
 import type {
   Org,
   User,
@@ -9,14 +9,14 @@ import type {
   AccountType,
   AccountEmbedWithoutType,
   OrgMember,
-} from '../mongo';
-import type { AppContext } from './AppContext';
-import type { AccountInfo } from './getOrCreateAccount';
-import { getOrCreateAccount } from './getOrCreateAccount';
-import type { EventsWithRepository } from './repoContext';
-import type { TeamSlack } from './slack/initTeamSlack';
-import { initTeamSlack } from './slack/initTeamSlack';
-import { getKeys } from './utils';
+} from "../mongo";
+import type { AppContext } from "./AppContext";
+import type { AccountInfo } from "./getOrCreateAccount";
+import { getOrCreateAccount } from "./getOrCreateAccount";
+import type { EventsWithRepository } from "./repoContext";
+import type { TeamSlack } from "./slack/initTeamSlack";
+import { initTeamSlack } from "./slack/initTeamSlack";
+import { getKeys } from "./utils";
 
 export interface AccountContext<TeamNames extends string = any> {
   config: Config<TeamNames>;
@@ -25,7 +25,7 @@ export interface AccountContext<TeamNames extends string = any> {
   /** init slack after installation in webapp */
   initSlack: () => Promise<void>;
   getMembersForTeams: (teamIds: number[]) => Promise<AccountEmbedWithoutType[]>;
-  getGithubTeamsForMember: (memberId: number) => Promise<OrgMember['teams']>;
+  getGithubTeamsForMember: (memberId: number) => Promise<OrgMember["teams"]>;
   getTeamsForLogin: (githubLogin: string) => TeamNames[];
   updateGithubTeamMembers: () => Promise<void>;
   lock: (callback: () => Promise<void> | void) => Promise<void>;
@@ -59,7 +59,7 @@ const initAccountContext = async <
   const account = await getOrCreateAccount(
     appContext,
     context.octokit,
-    'installation' in context.payload
+    "installation" in context.payload
       ? context.payload.installation?.id
       : undefined,
     accountInfo,
@@ -72,12 +72,12 @@ const initAccountContext = async <
   // TODO const githubLoginToSlackId = new Map<string, string>();
 
   const updateGithubTeamMembers = async (): Promise<void> => {
-    if (accountInfo.type !== 'Organization') {
+    if (accountInfo.type !== "Organization") {
       return;
     }
 
     const members = await appContext.mongoStores.orgMembers.findAll({
-      'org.id': accountInfo.id,
+      "org.id": accountInfo.id,
     });
 
     members.forEach((member) => {
@@ -100,21 +100,21 @@ const initAccountContext = async <
     lock: (callback: () => Promise<void> | void): Promise<void> => {
       return new Promise((resolve, reject) => {
         const logInfos = { account: accountInfo.login };
-        context.log.info(logInfos, 'lock: try to lock account');
+        context.log.info(logInfos, "lock: try to lock account");
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        lock('_', async (createReleaseCallback) => {
+        lock("_", async (createReleaseCallback) => {
           const release = createReleaseCallback(() => {});
-          context.log.info(logInfos, 'lock: lock account acquired');
+          context.log.info(logInfos, "lock: lock account acquired");
           try {
             await callback();
           } catch (error) {
-            context.log.info(logInfos, 'lock: release account (with error)');
+            context.log.info(logInfos, "lock: release account (with error)");
             release();
             // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
             reject(error);
             return;
           }
-          context.log.info(logInfos, 'lock: release account');
+          context.log.info(logInfos, "lock: release account");
           release();
           resolve();
         });
@@ -126,30 +126,30 @@ const initAccountContext = async <
 
     getMembersForTeams: async (teamIds): Promise<AccountEmbedWithoutType[]> => {
       if (!teamIds || teamIds.length === 0) return [];
-      if (accountInfo.type !== 'Organization') {
+      if (accountInfo.type !== "Organization") {
         throw new Error(
           `Invalid account type "${accountInfo.type}" for getMembersForTeam`,
         );
       }
       const cursor = await appContext.mongoStores.orgMembers.cursor<
-        Pick<OrgMember, 'user'>
+        Pick<OrgMember, "user">
       >({
-        'org.id': account._id,
-        'teams.id': { $in: teamIds },
+        "org.id": account._id,
+        "teams.id": { $in: teamIds },
       });
       await cursor.limit(100);
       const orgMembers = await cursor.toArray();
       return orgMembers.map((member) => member.user);
     },
-    getGithubTeamsForMember: async (memberId): Promise<OrgMember['teams']> => {
-      if (accountInfo.type !== 'Organization') {
+    getGithubTeamsForMember: async (memberId): Promise<OrgMember["teams"]> => {
+      if (accountInfo.type !== "Organization") {
         throw new Error(
           `Invalid account type "${accountInfo.type}" for getGithubTeamsForMember`,
         );
       }
       const orgMember = await appContext.mongoStores.orgMembers.findOne({
-        'org.id': account._id,
-        'user.id': memberId,
+        "org.id": account._id,
+        "user.id": memberId,
       });
       return orgMember ? orgMember.teams : [];
     },

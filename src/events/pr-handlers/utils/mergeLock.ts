@@ -1,5 +1,5 @@
-import type { LockedMergePr } from '../../../context/repoContext';
-import type { PullRequestData } from './PullRequestData';
+import type { LockedMergePr } from "../../../context/repoContext";
+import type { PullRequestData } from "./PullRequestData";
 
 export const createMergeLockPrFromPr = (
   pullRequest: PullRequestData,

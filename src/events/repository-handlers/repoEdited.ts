@@ -1,16 +1,16 @@
-import type { Probot } from 'probot';
-import type { AppContext } from '../../context/AppContext';
-import { obtainRepoContext } from '../../context/repoContext';
-import { getEmojiFromRepoDescription } from '../../context/utils';
-import { getRepositorySettings } from '../../utils/github/repo/getRepositorySettings';
-import { createHandlerOrgChange } from '../account-handlers/utils/createHandlerOrgChange';
-import { createRepositorySettings } from '../pr-handlers/actions/utils/body/repositorySettings';
+import type { Probot } from "probot";
+import type { AppContext } from "../../context/AppContext";
+import { obtainRepoContext } from "../../context/repoContext";
+import { getEmojiFromRepoDescription } from "../../context/utils";
+import { getRepositorySettings } from "../../utils/github/repo/getRepositorySettings";
+import { createHandlerOrgChange } from "../account-handlers/utils/createHandlerOrgChange";
+import { createRepositorySettings } from "../pr-handlers/actions/utils/body/repositorySettings";
 
 export default function repoEdited(app: Probot, appContext: AppContext): void {
   createHandlerOrgChange(
     app,
     appContext,
-    'repository.edited',
+    "repository.edited",
     async (context, orgContext): Promise<void> => {
       const repoContext = await obtainRepoContext(appContext, context);
       if (!repoContext) return;
@@ -31,7 +31,7 @@ export default function repoEdited(app: Probot, appContext: AppContext): void {
           },
         },
         {
-          'account.id': orgContext.accountEmbed.id,
+          "account.id": orgContext.accountEmbed.id,
         },
       );
     },

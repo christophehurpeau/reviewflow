@@ -1,22 +1,22 @@
-import type { CommitNote } from '@commitlint/types';
-import type { RestEndpointMethodTypes } from '@octokit/rest';
+import type { RestEndpointMethodTypes } from "@octokit/rest";
 import type {
   EventsWithRepository,
   RepoContext,
-} from '../../../context/repoContext';
-import type { ProbotEvent } from '../../probot-types';
-import type { PullRequestWithDecentData } from '../utils/PullRequestData';
-import type { ReviewflowPrContext } from '../utils/createPullRequestContext';
-import { updatePrIfNeeded } from './updatePr';
-import { updatePrCommentBodyIfNeeded } from './updatePrCommentBody';
-import { updateCommentBodyCommitsNotes } from './utils/body/updateBody';
-import { parseCommitMessage } from './utils/commitMessages';
-import { readPullRequestCommits } from './utils/readPullRequestCommits';
-import syncLabel from './utils/syncLabel';
+} from "../../../context/repoContext";
+import type { ProbotEvent } from "../../probot-types";
+import type { PullRequestWithDecentData } from "../utils/PullRequestData";
+import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
+import { updatePrIfNeeded } from "./updatePr";
+import { updatePrCommentBodyIfNeeded } from "./updatePrCommentBody";
+import { updateCommentBodyCommitsNotes } from "./utils/body/updateBody";
+import type { ParsedCommit } from "./utils/commitMessages";
+import { parseCommitMessage } from "./utils/commitMessages";
+import { readPullRequestCommits } from "./utils/readPullRequestCommits";
+import syncLabel from "./utils/syncLabel";
 
 interface BreakingChangesCommits {
-  commit: RestEndpointMethodTypes['pulls']['listCommits']['response']['data'][number];
-  breakingChangesNotes: CommitNote[];
+  commit: RestEndpointMethodTypes["pulls"]["listCommits"]["response"]["data"][number];
+  breakingChangesNotes: ParsedCommit["notes"];
 }
 
 export const readCommitsAndUpdateInfos = async <
@@ -39,7 +39,7 @@ export const readCommitsAndUpdateInfos = async <
   const breakingChangesCommits: BreakingChangesCommits[] = [];
   conventionalCommits.forEach((c, index) => {
     const breakingChangesNotes = c.notes.filter(
-      (note) => note.title === 'BREAKING CHANGE',
+      (note) => note.title === "BREAKING CHANGE",
     );
     if (breakingChangesNotes.length > 0) {
       breakingChangesCommits.push({
@@ -49,18 +49,18 @@ export const readCommitsAndUpdateInfos = async <
     }
   });
 
-  const breakingChangesLabel = repoContext.labels['breaking-changes'];
+  const breakingChangesLabel = repoContext.labels["breaking-changes"];
   const newCommentBody = updateCommentBodyCommitsNotes(
     commentBody,
     breakingChangesCommits.length === 0
-      ? ''
+      ? ""
       : `Breaking Changes:\n${breakingChangesCommits
           .map(({ commit, breakingChangesNotes }) =>
             breakingChangesNotes.map(
-              (note) => `- ${note.text.replace('\n', ' ')} (${commit.sha})`,
+              (note) => `- ${note.text.replace("\n", " ")} (${commit.sha})`,
             ),
           )
-          .join('\n')}`,
+          .join("\n")}`,
   );
 
   const hasBreakingChanges = breakingChangesCommits.length > 0;
@@ -73,14 +73,13 @@ export const readCommitsAndUpdateInfos = async <
       ?.conventionalCommitBangBreakingChange
   ) {
     try {
-      const parsePrTitleAsConventionalCommit = await parseCommitMessage(
-        prTitle,
-      );
+      const parsePrTitleAsConventionalCommit =
+        await parseCommitMessage(prTitle);
       if (parsePrTitleAsConventionalCommit.type) {
         const typeAndScope = `${parsePrTitleAsConventionalCommit.type}${
           parsePrTitleAsConventionalCommit.scope
             ? `(${parsePrTitleAsConventionalCommit.scope})`
-            : ''
+            : ""
         }`;
         if (prTitle.startsWith(`${typeAndScope}:`)) {
           prTitle = `${typeAndScope}!${prTitle.slice(typeAndScope.length)}`;
