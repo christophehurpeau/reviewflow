@@ -6993,13 +6993,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nock@npm:14.0.0-beta.6":
-  version: 14.0.0-beta.6
-  resolution: "nock@npm:14.0.0-beta.6"
+"nock@npm:14.0.0-beta.7":
+  version: 14.0.0-beta.7
+  resolution: "nock@npm:14.0.0-beta.7"
   dependencies:
     json-stringify-safe: "npm:^5.0.1"
     propagate: "npm:^2.0.0"
-  checksum: 10c0/30a803f81aef6973bfbc4905c36c26c8d3c59d780adbd5805d876f9ee0e7f6dcfdede4af68b16b77b568c52681a75f1796d343576fa442464a35f1a4812948b4
+  checksum: 10c0/7b2a4d4825402b2e0ae8a216eb065c0cca27b87f24a9940cf1623f43ceb8e9a5b04b2e734b3e71b78f2be56246953a814b7cf1f0f1c523e68ad33ca8e7a5031f
   languageName: node
   linkType: hard
 
@@ -8282,7 +8282,7 @@ __metadata:
     jsonwebtoken: "npm:9.0.2"
     liwi-mongo: "npm:12.0.0"
     lock: "npm:1.1.0"
-    nock: "npm:14.0.0-beta.6"
+    nock: "npm:14.0.0-beta.7"
     probot: "npm:13.2.0"
     react: "npm:18.3.0"
     react-dom: "npm:18.3.0"
