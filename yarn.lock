@@ -5644,16 +5644,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"issue-parser@npm:7.0.0":
-  version: 7.0.0
-  resolution: "issue-parser@npm:7.0.0"
+"issue-parser@npm:7.0.1":
+  version: 7.0.1
+  resolution: "issue-parser@npm:7.0.1"
   dependencies:
     lodash.capitalize: "npm:^4.2.1"
     lodash.escaperegexp: "npm:^4.1.2"
     lodash.isplainobject: "npm:^4.0.6"
     lodash.isstring: "npm:^4.0.1"
     lodash.uniqby: "npm:^4.7.0"
-  checksum: 10c0/b234d6045871557f1a4adbd7e62aae568179d0fac5d619d30e8c1e0ba5fcd2d273a394d668a7a95dbcded1e5e57d2c4dc24772220bf05d8fe313f5455ab91a63
+  checksum: 10c0/1b2dad16081ae423bb96143132701e89aa8f6345ab0a10f692594ddf5699b514adccaaaf24d7c59afc977c447895bdee15fff2dfc9d6015e177f6966b06f5dcb
   languageName: node
   linkType: hard
 
@@ -8278,7 +8278,7 @@ __metadata:
     dotenv: "npm:16.4.4"
     emoji-regex: "npm:10.3.0"
     eslint: "npm:8.57.0"
-    issue-parser: "npm:7.0.0"
+    issue-parser: "npm:7.0.1"
     jsonwebtoken: "npm:9.0.2"
     liwi-mongo: "npm:12.0.0"
     lock: "npm:1.1.0"
