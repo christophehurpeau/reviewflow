@@ -1894,12 +1894,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:20.12.11, @types/node@npm:>=12.0.0, @types/node@npm:>=18.0.0":
-  version: 20.12.11
-  resolution: "@types/node@npm:20.12.11"
+"@types/node@npm:*, @types/node@npm:20.14.2, @types/node@npm:>=12.0.0, @types/node@npm:>=18.0.0":
+  version: 20.14.2
+  resolution: "@types/node@npm:20.14.2"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 10c0/efaa7b08c50ba6e6982ac7d531ba08d5935539ba76e954807df1ff9382a319ead7e003ccaca5ad7cf33ecf53f212507f7c1f2794bd2ff52df6365fef21f6e1fb
+  checksum: 10c0/2d86e5f2227aaa42212e82ea0affe72799111b888ff900916376450b02b09b963ca888b20d9c332d8d2b833ed4781987867a38eaa2e4863fa8439071468b0a6f
   languageName: node
   linkType: hard
 
@@ -8265,7 +8265,7 @@ __metadata:
     "@types/express": "npm:4.17.21"
     "@types/issue-parser": "npm:3.0.5"
     "@types/jsonwebtoken": "npm:9.0.6"
-    "@types/node": "npm:20.12.11"
+    "@types/node": "npm:20.14.2"
     "@types/react": "npm:18.3.1"
     "@types/react-dom": "npm:18.3.0"
     "@types/simple-oauth2": "npm:5.0.7"
