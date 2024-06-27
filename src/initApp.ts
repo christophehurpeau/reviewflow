@@ -5,6 +5,7 @@ import membershipChanged from "./events/account-handlers/membershipChanged";
 import orgMemberAddedOrRemoved from "./events/account-handlers/orgMemberAddedOrRemoved";
 import teamChanged from "./events/account-handlers/teamChanged";
 import commitCommentCreated from "./events/commit-handlers/commitCommentCreated";
+import installation from "./events/installation-handlers/installation";
 import assignedOrUnassignedHandler from "./events/pr-handlers/assignedOrUnassigned";
 import autoMergeChangedHandler from "./events/pr-handlers/autoMergeChanged";
 import checkrunCompleted from "./events/pr-handlers/checkrun";
@@ -29,6 +30,10 @@ import repoEdited from "./events/repository-handlers/repoEdited";
 import repoRenamed from "./events/repository-handlers/repoRenamed";
 
 export default function initApp(app: Probot, appContext: AppContext): void {
+  // Installation
+  /* https://developer.github.com/webhooks/event-payloads/#installation */
+  installation(app, appContext);
+
   // Account
   /* https://developer.github.com/webhooks/event-payloads/#organization */
   /* https://developer.github.com/webhooks/event-payloads/#team */

@@ -204,6 +204,14 @@ export interface RepositoryMergeQueue extends MongoBaseModel {
   queue: LockedMergePr[];
 }
 
+export interface InstallationEvent extends MongoBaseModel {
+  installationId: number;
+  account: AccountEmbed;
+  sender: AccountEmbed;
+  action: string;
+  data: any;
+}
+
 export interface MongoStores {
   connection: MongoConnection;
   userDmSettings: MongoStore<UserDmSettings>;
@@ -218,6 +226,7 @@ export interface MongoStores {
   automergeLogs: MongoStore<AutomergeLog>;
   prs: MongoStore<ReviewflowPr>;
   repositoryMergeQueue: MongoStore<RepositoryMergeQueue>;
+  installationsEvents: MongoStore<InstallationEvent>;
   // prEvents: MongoStore<PrEventsModel>;
 }
 
@@ -370,6 +379,15 @@ export default function init(): MongoStores {
     );
   });
 
+  const installationsEvents = new MongoStore<InstallationEvent>(
+    connection,
+    "installationsEvents",
+  );
+  installationsEvents.collection.then((coll) => {
+    coll.createIndex({ installationId: 1 });
+    coll.createIndex({ "account.login": 1 });
+  });
+
   // return { connection, prEvents };
   return {
     connection,
@@ -385,5 +403,6 @@ export default function init(): MongoStores {
     repositories,
     prs,
     repositoryMergeQueue,
+    installationsEvents,
   };
 }
