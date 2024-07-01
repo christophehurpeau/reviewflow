@@ -226,18 +226,18 @@ export default function reviewSubmitted(
               }`;
 
           if (state === "changes_requested") {
-            return `:${emoji}: ${mention} requests changes on ${ownerPart} ${prUrl}`;
+            return `:${emoji}: ${mention} requests changes on ${ownerPart} ${prUrl}\n> ${pullRequest.title}`;
           }
           if (state === "approved") {
             return `${
               toOwner ? ":clap: " : ""
             }:${emoji}: ${mention} approves ${ownerPart} ${prUrl}${
               merged ? " and PR is merged :tada:" : ""
-            }`;
+            }\n> ${pullRequest.title}`;
           }
 
           const commentLink = slackUtils.createLink(reviewUrl, "commented");
-          return `:${emoji}: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
+          return `:${emoji}: ${mention} ${commentLink} on ${ownerPart} ${prUrl}\n> ${pullRequest.title}`;
         };
 
         const slackifiedBody = slackifyMarkdown(body as unknown as string);
