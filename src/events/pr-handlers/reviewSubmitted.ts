@@ -6,7 +6,7 @@ import type { PostSlackMessageResult } from "../../context/slack/TeamSlack";
 import type { AccountEmbed } from "../../mongo";
 import * as slackUtils from "../../slack/utils";
 import { ExcludesNullish } from "../../utils/Excludes";
-import { getReviewersWithState } from "../../utils/github/pullRequest/reviews";
+import { getReviewsState } from "../../utils/github/pullRequest/reviews";
 import { createSlackMessageWithSecondaryBlock } from "../../utils/slack/createSlackMessageWithSecondaryBlock";
 import { updateAfterReviewChange } from "./actions/updateAfterReviewChange";
 import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
@@ -85,9 +85,9 @@ export default function reviewSubmitted(
         let merged: boolean;
 
         if (reviewflowPrContext && !repoContext.shouldIgnore) {
-          const [updatedPr, reviewersWithState] = await Promise.all([
+          const [updatedPr, reviewsState] = await Promise.all([
             fetchPr(context, pullRequest.number),
-            getReviewersWithState(context, pullRequest),
+            getReviewsState(context, pullRequest),
           ]);
 
           await updateAfterReviewChange(
@@ -96,7 +96,7 @@ export default function reviewSubmitted(
             appContext,
             repoContext,
             reviewflowPrContext,
-            reviewersWithState,
+            reviewsState,
           );
         }
 

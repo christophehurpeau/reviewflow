@@ -4,7 +4,7 @@ import type {
   RepoContext,
 } from "../../../context/repoContext";
 import type { ReviewflowPr } from "../../../mongo";
-import { getReviewersWithState } from "../../../utils/github/pullRequest/reviews";
+import { getReviewsState } from "../../../utils/github/pullRequest/reviews";
 import type { ProbotEvent } from "../../probot-types";
 import { defaultCommentBody } from "../actions/utils/body/updateBody";
 import type {
@@ -13,10 +13,7 @@ import type {
 } from "./PullRequestData";
 import { toBasicUser } from "./PullRequestData";
 import { fetchPr } from "./fetchPr";
-import {
-  createEmptyReviews,
-  groupReviewsWithState,
-} from "./groupReviewsWithState";
+import { createEmptyReviews, groupReviewsState } from "./groupReviewsWithState";
 import {
   createReviewflowComment,
   findReviewflowComment,
@@ -82,7 +79,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
     "pr.number": prEmbed.number,
   });
 
-  const [comment, reviewersWithState] = existing
+  const [comment, reviewsState] = existing
     ? await Promise.all([
         getReviewflowCommentById(
           pullRequest.number,
@@ -92,7 +89,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
       ])
     : await Promise.all([
         findReviewflowComment(pullRequest.number, context),
-        getReviewersWithState(
+        getReviewsState(
           context,
           "assignees" in pullRequest
             ? pullRequest
@@ -118,7 +115,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
           }
         : undefined,
     commentId,
-    reviews: groupReviewsWithState(reviewersWithState!),
+    reviews: groupReviewsState(reviewsState!),
     assignees:
       "assignees" in pullRequest && pullRequest.assignees
         ? pullRequest.assignees.map(toBasicUser)

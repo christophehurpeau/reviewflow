@@ -36,7 +36,8 @@ export const createSlackHomeWorker = (
       prsToMerge,
       prsWithRequestedChanges,
       prsInDraft,
-      openedPrsWaitingForReview,
+      openedPrsWithNoActionPlanned,
+      myOpenedPrsWaitingForRequestedReview,
     ] = await Promise.all([
       //prsWithRequestedReviewsFromGithub
       octokit.search
@@ -91,16 +92,31 @@ export const createSlackHomeWorker = (
         },
         { created: -1 },
       ),
-      //openedPrsWaitingForReview
+      //openedPrsWithNoActionPlanned
       mongoStores.prs.findAll(
         {
           "account.id": member.org.id,
           "assignees.id": member.user.id,
           isClosed: false,
           isDraft: false,
+          "reviews.teamReviewRequested": { $not: { $exists: true, $ne: [] } },
           "reviews.reviewRequested": { $not: { $exists: true, $ne: [] } },
           "reviews.changesRequested": { $not: { $exists: true, $ne: [] } },
           "reviews.approved": { $not: { $exists: true, $ne: [] } },
+        },
+        { created: -1 },
+      ),
+      //myOpenedPrsWaitingForRequestedReview
+      mongoStores.prs.findAll(
+        {
+          "account.id": member.org.id,
+          "assignees.id": member.user.id,
+          isClosed: false,
+          isDraft: false,
+          $or: [
+            { "reviews.teamReviewRequested": { $exists: true, $ne: [] } },
+            { "reviews.reviewRequested": { $exists: true, $ne: [] } },
+          ],
         },
         { created: -1 },
       ),
@@ -359,14 +375,16 @@ export const createSlackHomeWorker = (
       buildBlocksForDataFromMongo(":construction: Drafts", prsInDraft);
     }
 
-    if (openedPrsWaitingForReview.length > 0) {
-      // buildBlocksForDataFromMongo(
-      //   ':construction: Opened PRs missing a request for review',
-      //   TODO,
-      // );
+    if (openedPrsWithNoActionPlanned.length > 0) {
+      buildBlocksForDataFromMongo(
+        ":construction: Opened PRs missing a request for review",
+        openedPrsWithNoActionPlanned,
+      );
+    }
+    if (myOpenedPrsWaitingForRequestedReview.length > 0) {
       buildBlocksForDataFromMongo(
         ":clock1: Your opened PRs waiting for a review",
-        openedPrsWaitingForReview,
+        myOpenedPrsWaitingForRequestedReview,
       );
     }
 

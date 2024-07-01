@@ -15,12 +15,21 @@ export interface ReviewerWithState extends Reviewer {
   state?: ReviewState; // state can be undefined if the user only commented
 }
 
-export const getReviewersWithState = async <
-  EventName extends EventsWithRepository,
->(
+export interface TeamInfo {
+  id: number;
+  name: string;
+}
+
+export interface ReviewsState {
+  reviewersWithState: ReviewerWithState[];
+  requestedReviewers: AccountInfo[];
+  requestedTeam: TeamInfo[];
+}
+
+export const getReviewsState = async <EventName extends EventsWithRepository>(
   context: ProbotEvent<EventName>,
   pullRequest: PullRequestWithDecentData,
-): Promise<ReviewerWithState[]> => {
+): Promise<ReviewsState> => {
   const userIds = new Set<number>();
   const reviewers: Reviewer[] = [];
 
@@ -65,8 +74,21 @@ export const getReviewersWithState = async <
     reviewStatesByUser.set(rr.id, "REVIEW_REQUESTED");
   });
 
-  return reviewers.map((reviewer) => {
+  const reviewersWithState = reviewers.map((reviewer) => {
     const state = reviewStatesByUser.get(reviewer.id);
     return { ...reviewer, state };
   });
+
+  return {
+    reviewersWithState,
+    requestedReviewers: requestedReviewers.map((rr) => ({
+      id: rr.id,
+      login: (rr as any).login,
+      type: (rr as any).type,
+    })),
+    requestedTeam: (pullRequest.requested_teams || []).map((team) => ({
+      id: team.id,
+      name: team.name,
+    })),
+  };
 };

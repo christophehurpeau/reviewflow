@@ -1,7 +1,7 @@
 import type { Probot } from "probot";
 import type { AppContext } from "../../context/AppContext";
 import * as slackUtils from "../../slack/utils";
-import { getReviewersWithState } from "../../utils/github/pullRequest/reviews";
+import { getReviewsState } from "../../utils/github/pullRequest/reviews";
 import { updateAfterReviewChange } from "./actions/updateAfterReviewChange";
 import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
 import { createPullRequestHandler } from "./utils/createPullRequestHandler";
@@ -37,9 +37,9 @@ export default function reviewRequested(
         /* repo is not ignored */
         reviewflowPrContext
       ) {
-        const [updatedPr, reviewersWithState] = await Promise.all([
+        const [updatedPr, reviewsState] = await Promise.all([
           fetchPr(context, pullRequest.number),
-          getReviewersWithState(context, pullRequest),
+          getReviewsState(context, pullRequest),
         ]);
         updatedPullRequest = updatedPr;
 
@@ -49,7 +49,7 @@ export default function reviewRequested(
           appContext,
           repoContext,
           reviewflowPrContext,
-          reviewersWithState,
+          reviewsState,
         );
       }
 

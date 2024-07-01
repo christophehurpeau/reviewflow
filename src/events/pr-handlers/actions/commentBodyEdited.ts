@@ -4,12 +4,12 @@ import type {
   RepoContext,
 } from "../../../context/repoContext";
 import { getChecksAndStatusesForPullRequest } from "../../../utils/github/pullRequest/checksAndStatuses";
-import { getReviewersWithState } from "../../../utils/github/pullRequest/reviews";
+import { getReviewsState } from "../../../utils/github/pullRequest/reviews";
 import type { ProbotEvent } from "../../probot-types";
 import type { PullRequestFromRestEndpoint } from "../utils/PullRequestData";
 import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
 import { getFailedOrWaitingChecksAndStatuses } from "../utils/getFailedOrWaitingChecksAndStatuses";
-import { groupReviewsWithState } from "../utils/groupReviewsWithState";
+import { groupReviewsState } from "../utils/groupReviewsWithState";
 import { editOpenedPR } from "./editOpenedPR";
 import { disableGithubAutoMerge } from "./enableGithubAutoMerge";
 import { tryToAutomerge } from "./tryToAutomerge";
@@ -48,10 +48,10 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
   if (options) {
     const shouldUpdateChecks = actions.includes("updateChecks");
 
-    const [checksAndStatuses, reviewersWithState] = await Promise.all([
+    const [checksAndStatuses, reviewsState] = await Promise.all([
       shouldUpdateChecks &&
         getChecksAndStatusesForPullRequest(context, pullRequest),
-      shouldUpdateChecks && getReviewersWithState(context, pullRequest),
+      shouldUpdateChecks && getReviewsState(context, pullRequest),
     ]);
 
     const calcStateLabels = (): LabelToSync[] => {
@@ -144,9 +144,9 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
     ]);
 
     // update checks and reviews after labels update.
-    if (shouldUpdateChecks && checksAndStatuses && reviewersWithState) {
+    if (shouldUpdateChecks && checksAndStatuses && reviewsState) {
       reviewflowPrContext.reviewflowPr.reviews =
-        groupReviewsWithState(reviewersWithState);
+        groupReviewsState(reviewsState);
       reviewflowPrContext.reviewflowPr.checksConclusion =
         checksAndStatuses.checksConclusionRecord;
       reviewflowPrContext.reviewflowPr.statusesConclusion =
