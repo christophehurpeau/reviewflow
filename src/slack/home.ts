@@ -372,12 +372,12 @@ export const createSlackHomeWorker = (
           text: "Your PRs in progress",
         },
       });
-      buildBlocksForDataFromMongo(":construction: Drafts", prsInDraft);
+      buildBlocksForDataFromMongo(":construction: Your drafts PRs", prsInDraft);
     }
 
     if (openedPrsWithNoActionPlanned.length > 0) {
       buildBlocksForDataFromMongo(
-        ":construction: Opened PRs missing a request for review",
+        ":warning: Your opened PRs missing a request for review",
         openedPrsWithNoActionPlanned,
       );
     }
