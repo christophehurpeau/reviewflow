@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.15.0](https://github.com/christophehurpeau/reviewflow/compare/v3.14.0...v3.15.0) (2024-07-01)
+
+### Features
+
+* **deps:** update dependency probot to v13.3.0 ([#972](https://github.com/christophehurpeau/reviewflow/issues/972)) ([6b75754](https://github.com/christophehurpeau/reviewflow/commit/6b757544a302882ffdcc7dcd000d5ff77342ae76))
+* handle installation event ([6b654a4](https://github.com/christophehurpeau/reviewflow/commit/6b654a48abc8be048fdac16722b9ce97796fa38b))
+* improve reviewersWithState ([4bf6485](https://github.com/christophehurpeau/reviewflow/commit/4bf6485762d45c88724570ae50918ca83ca787d6))
+* pob, commitlint, and conventional-changelog update ([147f05e](https://github.com/christophehurpeau/reviewflow/commit/147f05e75255e2cc6aab0a76a5d17f483acd9c59))
+
+### Bug Fixes
+
+* **deps:** update dependency issue-parser to v7.0.1 ([#974](https://github.com/christophehurpeau/reviewflow/issues/974)) ([b821088](https://github.com/christophehurpeau/reviewflow/commit/b821088edd00a540d5a354e7766d500f0700af43))
+
 ## [3.14.0](https://github.com/christophehurpeau/reviewflow/compare/v3.13.1...v3.14.0) (2024-05-22)
 
 
