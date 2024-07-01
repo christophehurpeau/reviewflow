@@ -126,11 +126,10 @@ export default function closed(app: Probot, appContext: AppContext): void {
       const createMessage = (
         createOwnerPartOptions: CreateOwnerPartOptions,
       ): string => {
-        const ownerPart = slackUtils.createOwnerPart(
-          repoContext,
-          pullRequest,
-          createOwnerPartOptions,
-        );
+        const ownerPart = slackUtils.createOwnerPart(repoContext, pullRequest, {
+          ...createOwnerPartOptions,
+          isSender: context.payload.sender.login === owner.login,
+        });
 
         return `${
           (pullRequest as any).merged

@@ -65,14 +65,16 @@ export const createCommitLink = (
 export interface CreateOwnerPartOptions {
   isOwner?: boolean;
   isAssigned?: boolean;
+  isSender?: boolean;
 }
 
 export const createOwnerPart = (
   repoContext: RepoContext,
   pullRequest: PullRequestWithDecentData,
-  { isOwner, isAssigned }: CreateOwnerPartOptions,
+  { isOwner, isAssigned, isSender }: CreateOwnerPartOptions,
 ): string => {
   if (isOwner) return "your PR";
+  if (isSender) return "his/her PR";
 
   const owner = pullRequest.user;
   const ownerMention = !owner
