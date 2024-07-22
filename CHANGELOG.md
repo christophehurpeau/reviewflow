@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.16.0](https://github.com/christophehurpeau/reviewflow/compare/v3.15.1...v3.16.0) (2024-07-22)
+
+### Features
+
+* add pr title in review submitted notifications ([c6dc9ec](https://github.com/christophehurpeau/reviewflow/commit/c6dc9ec3b1cfe8b0d2c0a63f3fba7188b04df8b2))
+* use his/her instead of duplicated name for slack notifications with sender ([bc142d4](https://github.com/christophehurpeau/reviewflow/commit/bc142d43be528eb77660adad6a13fea9ea62b4c8))
+
+### Bug Fixes
+
+* catch error in slack post message ([bb54b18](https://github.com/christophehurpeau/reviewflow/commit/bb54b189d4eaa2cdcdd198592e10c2c696ad5cbf))
+
 ## [3.15.1](https://github.com/christophehurpeau/reviewflow/compare/v3.15.0...v3.15.1) (2024-07-01)
 
 ### Bug Fixes
