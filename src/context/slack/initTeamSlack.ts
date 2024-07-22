@@ -59,7 +59,7 @@ export const initTeamSlack = async <TeamNames extends string>(
   });
 
   membersInDb.forEach((member) => {
-    if (member?.slack?.id && !membersMap.has(member.user.login)) {
+    if (member.slack?.id && !membersMap.has(member.user.login)) {
       membersMap.set(member.user.login, {
         member: {
           id: member.slack.id,
@@ -159,26 +159,39 @@ export const initTeamSlack = async <TeamNames extends string>(
       const user = membersMap.get(toUser.login);
       if (!user?.slackClient || !user.im) return null;
 
-      const result = await user.slackClient.chat.postMessage({
-        username: process.env.REVIEWFLOW_NAME,
-        channel: user.im.id,
-        text: process.env.REVIEWFLOW_DEBUG
-          ? `${message.text} (${category})`
-          : message.text,
-        blocks: message.blocks,
-        attachments: message.secondaryBlocks
-          ? [{ blocks: message.secondaryBlocks }]
-          : undefined,
-        thread_ts: message.threadTs,
-        unfurl_links: false,
-        unfurl_media: false,
-      });
-      if (!result.ok) return null;
-      return {
-        ts: result.ts!,
-        channel: result.channel!,
-        user: toUser,
-      };
+      try {
+        const result = await user.slackClient.chat.postMessage({
+          username: process.env.REVIEWFLOW_NAME,
+          channel: user.im.id,
+          text: process.env.REVIEWFLOW_DEBUG
+            ? `${message.text} (${category})`
+            : message.text,
+          blocks: message.blocks,
+          attachments: message.secondaryBlocks
+            ? [{ blocks: message.secondaryBlocks }]
+            : undefined,
+          thread_ts: message.threadTs,
+          unfurl_links: false,
+          unfurl_media: false,
+        });
+        if (!result.ok) return null;
+        return {
+          ts: result.ts!,
+          channel: result.channel!,
+          user: toUser,
+        };
+      } catch (error) {
+        context.log.error(
+          {
+            error,
+            category,
+            toUser,
+            message,
+          },
+          "slack: failed to post message",
+        );
+        return null;
+      }
     },
     updateMessage: async (
       toUser: AccountInfo,
