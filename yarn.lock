@@ -698,17 +698,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hapi/hoek@npm:^10.0.1":
-  version: 10.0.1
-  resolution: "@hapi/hoek@npm:10.0.1"
-  checksum: 10c0/320d5dc7a4070fa29e6344a3af9e44854980c6606848f7b7f59715174880cc09a1fe1e8adf44cf887100bd8d6a8664e9dc415986b30dc91df13455f7114de549
-  languageName: node
-  linkType: hard
-
-"@hapi/hoek@npm:^11.0.2":
-  version: 11.0.2
-  resolution: "@hapi/hoek@npm:11.0.2"
-  checksum: 10c0/6e010f9645c2463f612b66954e72449f64d47dfd829cd6720e7c7d30272d45d2fd6f42cbb5a3dc0e17d78bcdf7d8e3c5f33bdfb6c1de69b18ee5f6a5d6d84a78
+"@hapi/hoek@npm:^11.0.2, @hapi/hoek@npm:^11.0.4":
+  version: 11.0.4
+  resolution: "@hapi/hoek@npm:11.0.4"
+  checksum: 10c0/3c0e487824daaf3af4c29e46fd57b0c5801ce9164fef2417c70e271cd970e13cc542b196f70ba1cfc9ef944eed825fcac261085ab5e2928c6017428bf576b363
   languageName: node
   linkType: hard
 
@@ -8286,7 +8279,7 @@ __metadata:
     probot: "npm:13.3.0"
     react: "npm:18.3.0"
     react-dom: "npm:18.3.0"
-    simple-oauth2: "npm:5.0.0"
+    simple-oauth2: "npm:5.1.0"
     slackify-markdown: "npm:4.3.1"
     smee-client: "npm:2.0.1"
     type-fest: "npm:4.17.0"
@@ -8621,15 +8614,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"simple-oauth2@npm:5.0.0":
-  version: 5.0.0
-  resolution: "simple-oauth2@npm:5.0.0"
+"simple-oauth2@npm:5.1.0":
+  version: 5.1.0
+  resolution: "simple-oauth2@npm:5.1.0"
   dependencies:
-    "@hapi/hoek": "npm:^10.0.1"
+    "@hapi/hoek": "npm:^11.0.4"
     "@hapi/wreck": "npm:^18.0.0"
     debug: "npm:^4.3.4"
     joi: "npm:^17.6.4"
-  checksum: 10c0/1cb5a4eb9022f656e1bb9a1f43d771dd058d4a4fa181b42d0e1e7ca7b5cfc42e35fad1c722be9bb6fa218398b3b0499010554a7367d2bd85eb9d7634f92546c1
+  checksum: 10c0/3ed7428540644363b93bac16941dfd869db1e8b43250e515130e28a7c94c537d363833ac53d22c3b8444f050953b45ef4d833815c7b704f249369747ef338537
   languageName: node
   linkType: hard
 
