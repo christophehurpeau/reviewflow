@@ -407,12 +407,15 @@ export const createSlackHomeWorker = (
         },
       })
       .catch((error: unknown) => {
-        log.error("Error updating home", {
-          error,
-          memberLogin: member.user.login,
-          orgLogin: member.org.login,
-          blocks,
-        });
+        log.error(
+          {
+            error,
+            memberLogin: member.user.login,
+            orgLogin: member.org.login,
+            blocks,
+          },
+          "Error updating home",
+        );
       });
   };
 
