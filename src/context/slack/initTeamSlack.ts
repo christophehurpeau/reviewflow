@@ -99,7 +99,9 @@ export const initTeamSlack = async <TeamNames extends string>(
       });
       return im.channel;
     } catch (error) {
-      context.log.error("could create im", { err: error });
+      context.log.error(
+        `Could not create im for ${userId}: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   };
 
