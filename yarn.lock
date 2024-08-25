@@ -859,6 +859,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mswjs/interceptors@npm:^0.34.3":
+  version: 0.34.3
+  resolution: "@mswjs/interceptors@npm:0.34.3"
+  dependencies:
+    "@open-draft/deferred-promise": "npm:^2.2.0"
+    "@open-draft/logger": "npm:^0.3.0"
+    "@open-draft/until": "npm:^2.0.0"
+    is-node-process: "npm:^1.2.0"
+    outvariant: "npm:^1.4.3"
+    strict-event-emitter: "npm:^0.5.1"
+  checksum: 10c0/54522358c5a70c3c1c5ec39cbac32a9bac449efeaa4209f8bbbee2abe9743916cb3ab2bf7dde34dceda671b805d16890fd8db4ddaac051141d8a78753a2cfe92
+  languageName: node
+  linkType: hard
+
 "@nodelib/fs.scandir@npm:2.1.5":
   version: 2.1.5
   resolution: "@nodelib/fs.scandir@npm:2.1.5"
@@ -1246,6 +1260,30 @@ __metadata:
     "@octokit/webhooks-types": "npm:7.1.0"
     aggregate-error: "npm:^3.1.0"
   checksum: 10c0/ace6483d3ac404213465ea3b4b0f0ae53ed2db47f2cb9664508c527c736f8bd605a4751207c4ba9508d75bea79be27534137af5c8916fcb8865465152b57156f
+  languageName: node
+  linkType: hard
+
+"@open-draft/deferred-promise@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "@open-draft/deferred-promise@npm:2.2.0"
+  checksum: 10c0/eafc1b1d0fc8edb5e1c753c5e0f3293410b40dde2f92688211a54806d4136887051f39b98c1950370be258483deac9dfd17cf8b96557553765198ef2547e4549
+  languageName: node
+  linkType: hard
+
+"@open-draft/logger@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@open-draft/logger@npm:0.3.0"
+  dependencies:
+    is-node-process: "npm:^1.2.0"
+    outvariant: "npm:^1.4.0"
+  checksum: 10c0/90010647b22e9693c16258f4f9adb034824d1771d3baa313057b9a37797f571181005bc50415a934eaf7c891d90ff71dcd7a9d5048b0b6bb438f31bef2c7c5c1
+  languageName: node
+  linkType: hard
+
+"@open-draft/until@npm:^2.0.0":
+  version: 2.1.0
+  resolution: "@open-draft/until@npm:2.1.0"
+  checksum: 10c0/61d3f99718dd86bb393fee2d7a785f961dcaf12f2055f0c693b27f4d0cd5f7a03d498a6d9289773b117590d794a43cd129366fd8e99222e4832f67b1653d54cf
   languageName: node
   linkType: hard
 
@@ -5486,6 +5524,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"is-node-process@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "is-node-process@npm:1.2.0"
+  checksum: 10c0/5b24fda6776d00e42431d7bcd86bce81cb0b6cabeb944142fe7b077a54ada2e155066ad06dbe790abdb397884bdc3151e04a9707b8cd185099efbc79780573ed
+  languageName: node
+  linkType: hard
+
 "is-number-object@npm:^1.0.4":
   version: 1.0.5
   resolution: "is-number-object@npm:1.0.5"
@@ -6993,13 +7038,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nock@npm:14.0.0-beta.7":
-  version: 14.0.0-beta.7
-  resolution: "nock@npm:14.0.0-beta.7"
+"nock@npm:14.0.0-beta.11":
+  version: 14.0.0-beta.11
+  resolution: "nock@npm:14.0.0-beta.11"
   dependencies:
+    "@mswjs/interceptors": "npm:^0.34.3"
     json-stringify-safe: "npm:^5.0.1"
     propagate: "npm:^2.0.0"
-  checksum: 10c0/7b2a4d4825402b2e0ae8a216eb065c0cca27b87f24a9940cf1623f43ceb8e9a5b04b2e734b3e71b78f2be56246953a814b7cf1f0f1c523e68ad33ca8e7a5031f
+  checksum: 10c0/b265b510fc2e80f285c077d3d7a2d1bc69c521620aa5d2c9d73bf490aa64fde93d1b88696fe81458e67865a03575bbecef0bbebb1db17a5084c1beefb4f892e7
   languageName: node
   linkType: hard
 
@@ -7257,6 +7303,13 @@ __metadata:
     prelude-ls: "npm:^1.2.1"
     type-check: "npm:^0.4.0"
   checksum: 10c0/66fba794d425b5be51353035cf3167ce6cfa049059cbb93229b819167687e0f48d2bc4603fcb21b091c99acb516aae1083624675b15c4765b2e4693a085e959c
+  languageName: node
+  linkType: hard
+
+"outvariant@npm:^1.4.0, outvariant@npm:^1.4.3":
+  version: 1.4.3
+  resolution: "outvariant@npm:1.4.3"
+  checksum: 10c0/5976ca7740349cb8c71bd3382e2a762b1aeca6f33dc984d9d896acdf3c61f78c3afcf1bfe9cc633a7b3c4b295ec94d292048f83ea2b2594fae4496656eba992c
   languageName: node
   linkType: hard
 
@@ -8282,7 +8335,7 @@ __metadata:
     jsonwebtoken: "npm:9.0.2"
     liwi-mongo: "npm:12.0.0"
     lock: "npm:1.1.0"
-    nock: "npm:14.0.0-beta.7"
+    nock: "npm:14.0.0-beta.11"
     probot: "npm:13.3.0"
     react: "npm:18.3.0"
     react-dom: "npm:18.3.0"
@@ -8832,6 +8885,13 @@ __metadata:
   version: 3.7.0
   resolution: "std-env@npm:3.7.0"
   checksum: 10c0/60edf2d130a4feb7002974af3d5a5f3343558d1ccf8d9b9934d225c638606884db4a20d2fe6440a09605bca282af6b042ae8070a10490c0800d69e82e478f41e
+  languageName: node
+  linkType: hard
+
+"strict-event-emitter@npm:^0.5.1":
+  version: 0.5.1
+  resolution: "strict-event-emitter@npm:0.5.1"
+  checksum: 10c0/f5228a6e6b6393c57f52f62e673cfe3be3294b35d6f7842fc24b172ae0a6e6c209fa83241d0e433fc267c503bc2f4ffdbe41a9990ff8ffd5ac425ec0489417f7
   languageName: node
   linkType: hard
 
