@@ -1872,7 +1872,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/express@npm:*, @types/express@npm:^4.17.21":
+"@types/express@npm:*, @types/express@npm:4.17.21, @types/express@npm:^4.17.21":
   version: 4.17.21
   resolution: "@types/express@npm:4.17.21"
   dependencies:
@@ -2715,26 +2715,6 @@ __metadata:
   version: 2.2.1
   resolution: "before-after-hook@npm:2.2.1"
   checksum: 10c0/9e78b20c4ae64a897b5949f60ea6fb6b80efa8f11d6007670024a8836125ce10a524e25b094a4d28aba2ac1d553f03de683e899f11688fb2692a9639e3af3857
-  languageName: node
-  linkType: hard
-
-"body-parser@npm:1.20.2":
-  version: 1.20.2
-  resolution: "body-parser@npm:1.20.2"
-  dependencies:
-    bytes: "npm:3.1.2"
-    content-type: "npm:~1.0.5"
-    debug: "npm:2.6.9"
-    depd: "npm:2.0.0"
-    destroy: "npm:1.2.0"
-    http-errors: "npm:2.0.0"
-    iconv-lite: "npm:0.4.24"
-    on-finished: "npm:2.4.1"
-    qs: "npm:6.11.0"
-    raw-body: "npm:2.5.2"
-    type-is: "npm:~1.6.18"
-    unpipe: "npm:1.0.0"
-  checksum: 10c0/06f1438fff388a2e2354c96aa3ea8147b79bfcb1262dfcc2aae68ec13723d01d5781680657b74e9f83c808266d5baf52804032fbde2b7382b89bd8cdb273ace9
   languageName: node
   linkType: hard
 
@@ -4439,7 +4419,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"express@npm:^4.18.2":
+"express@npm:4.21.0, express@npm:^4.18.2":
   version: 4.21.0
   resolution: "express@npm:4.21.0"
   dependencies:
@@ -7924,15 +7904,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:6.11.0":
-  version: 6.11.0
-  resolution: "qs@npm:6.11.0"
-  dependencies:
-    side-channel: "npm:^1.0.4"
-  checksum: 10c0/4e4875e4d7c7c31c233d07a448e7e4650f456178b9dd3766b7cfa13158fdb24ecb8c4f059fa91e820dc6ab9f2d243721d071c9c0378892dcdad86e9e9a27c68f
-  languageName: node
-  linkType: hard
-
 "qs@npm:6.13.0":
   version: 6.13.0
   resolution: "qs@npm:6.13.0"
@@ -8351,6 +8322,7 @@ __metadata:
     "@tryfabric/mack": "npm:1.2.1"
     "@types/body-parser": "npm:1.19.5"
     "@types/cookie-parser": "npm:1.4.7"
+    "@types/express": "npm:4.17.21"
     "@types/issue-parser": "npm:3.0.5"
     "@types/jsonwebtoken": "npm:9.0.6"
     "@types/node": "npm:20.14.15"
@@ -8358,7 +8330,7 @@ __metadata:
     "@types/react-dom": "npm:18.3.0"
     "@types/simple-oauth2": "npm:5.0.7"
     "@vitest/coverage-v8": "npm:1.5.2"
-    body-parser: "npm:1.20.2"
+    body-parser: "npm:1.20.3"
     check-package-dependencies: "npm:7.1.2"
     conventional-changelog-conventionalcommits: "npm:8.0.0"
     cookie-parser: "npm:1.4.6"
@@ -8366,6 +8338,7 @@ __metadata:
     dotenv: "npm:16.4.4"
     emoji-regex: "npm:10.3.0"
     eslint: "npm:8.57.0"
+    express: "npm:4.21.0"
     issue-parser: "npm:7.0.1"
     jsonwebtoken: "npm:9.0.2"
     liwi-mongo: "npm:12.0.0"
