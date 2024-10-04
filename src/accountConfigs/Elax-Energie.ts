@@ -12,7 +12,47 @@ const config: Config<never> = {
     deleteAfterMerge: true,
   },
   parsePR: {
-    title: [],
+    title: [
+      {
+        regExp: /\s([A-Z][\dA-Z]+-(\d+)|\[no issue])$/,
+        status: "notion-ticket",
+        createStatusInfo: (match, prInfo, isPrFromBot) => {
+          if (match) {
+            const ticket = match[1];
+            if (ticket === "[no ticket]") {
+              return {
+                type: "success",
+                title: "✓ No ticket",
+                summary: "",
+              };
+            }
+
+            const url = `https://www.notion.so/elaxenergie/${ticket}`;
+            return {
+              type: "success",
+              inBody: true,
+              title: `✓ Notion ticket: ${ticket}`,
+              summary: `[${ticket}](${url})`,
+              url,
+            };
+          }
+
+          if (isPrFromBot) {
+            return {
+              type: "success",
+              title: "Title does not have Notion ticket but PR created by bot",
+              summary: "",
+            };
+          }
+
+          return {
+            type: "failure",
+            title: "Title does not have Notion ticket",
+            summary: "The PR title should end with GEN-0000, or [no ticket]",
+          };
+        },
+      },
+    ],
     body: [
       {
         bot: false,
@@ -30,7 +70,7 @@ const config: Config<never> = {
             .replace(/^\s*#+\s+.*/gm, "")
             .replace(/(<!--.*?-->)|(<!--[\S\s]+?-->)|(<!--[\S\s]*?$)/gs, "");
 
-          if (!descriptionStripTitlesAndComments?.trim()) {
+          if (!descriptionStripTitlesAndComments.trim()) {
             return {
               type: "failure",
               title: "Body has no meaningful content",
