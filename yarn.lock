@@ -1907,12 +1907,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jsonwebtoken@npm:9.0.6, @types/jsonwebtoken@npm:^9.0.0":
-  version: 9.0.6
-  resolution: "@types/jsonwebtoken@npm:9.0.6"
+"@types/jsonwebtoken@npm:9.0.7, @types/jsonwebtoken@npm:^9.0.0":
+  version: 9.0.7
+  resolution: "@types/jsonwebtoken@npm:9.0.7"
   dependencies:
     "@types/node": "npm:*"
-  checksum: 10c0/9c29e3896e5fb6056e54d87514643e59e0cfb966ae25171a107776270195bba955f0373e98c8ed6450c145b18984f5df9cf0fcac360f382cec3c7c4d3510b202
+  checksum: 10c0/e1cd0e48fcae21b1d4378887a23453bd7212b480a131b11bcda2cdeb0687d03c9646ee5ba592e04cfaf76f7cc80f179950e627cdb3ebc90a5923bce49a35631a
   languageName: node
   linkType: hard
 
@@ -8324,7 +8324,7 @@ __metadata:
     "@types/cookie-parser": "npm:1.4.7"
     "@types/express": "npm:4.17.21"
     "@types/issue-parser": "npm:3.0.5"
-    "@types/jsonwebtoken": "npm:9.0.6"
+    "@types/jsonwebtoken": "npm:9.0.7"
     "@types/node": "npm:20.14.15"
     "@types/react": "npm:18.3.1"
     "@types/react-dom": "npm:18.3.0"
