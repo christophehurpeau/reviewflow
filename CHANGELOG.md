@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.17.0](https://github.com/christophehurpeau/reviewflow/compare/v3.16.0...v3.17.0) (2024-10-04)
+
+### Features
+
+* better log error message ([14e99b4](https://github.com/christophehurpeau/reviewflow/commit/14e99b49b62215168ca9028e056c02a6aec6a8ee))
+* elax parse ticket in pr title and add status ([0c23252](https://github.com/christophehurpeau/reviewflow/commit/0c2325297b2506f7cfc83d7e9f8376cafb740fca))
+
+### Bug Fixes
+
+* properly log error updating home ([0b4da97](https://github.com/christophehurpeau/reviewflow/commit/0b4da9739399647caa080a03985475821b77c867))
+
 ## [3.16.0](https://github.com/christophehurpeau/reviewflow/compare/v3.15.1...v3.16.0) (2024-07-22)
 
 ### Features
