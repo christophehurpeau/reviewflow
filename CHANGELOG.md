@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.17.1](https://github.com/christophehurpeau/reviewflow/compare/v3.17.0...v3.17.1) (2024-10-29)
+
+### Bug Fixes
+
+* no ticket bug ([b66e3b4](https://github.com/christophehurpeau/reviewflow/commit/b66e3b439a1a8faed63c2b4b01fbbbe02b04eb19))
+
 ## [3.17.0](https://github.com/christophehurpeau/reviewflow/compare/v3.16.0...v3.17.0) (2024-10-04)
 
 ### Features
