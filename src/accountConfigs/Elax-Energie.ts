@@ -14,12 +14,12 @@ const config: Config<never> = {
   parsePR: {
     title: [
       {
-        regExp: /\s([A-Z][\dA-Z]+-(\d+)|\[no issue])$/,
+        regExp: /\s([A-Z][\dA-Z]+-(\d+)|\[no (ticket|issue)])$/,
         status: "notion-ticket",
         createStatusInfo: (match, prInfo, isPrFromBot) => {
           if (match) {
             const ticket = match[1];
-            if (ticket === "[no ticket]") {
+            if (ticket === "[no ticket]" || ticket === "[no issue]") {
               return {
                 type: "success",
                 title: "✓ No ticket",
