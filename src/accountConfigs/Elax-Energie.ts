@@ -102,6 +102,12 @@ const config: Config<never> = {
         color: githubPalette.attentionEmphasis,
       },
 
+      /* auto approve */
+      "review/auto-approve": {
+        name: ":white_check_mark: bot approval",
+        color: githubPalette.successEmphasis,
+      },
+
       /* auto merge */
       "merge/automerge": {
         name: ":vertical_traffic_light: automerge",
