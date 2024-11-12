@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.18.0](https://github.com/christophehurpeau/reviewflow/compare/v3.17.1...v3.18.0) (2024-11-12)
+
+### Features
+
+* add review/auto-approve label in elax config ([84a982c](https://github.com/christophehurpeau/reviewflow/commit/84a982c3a16083cd0ae8b935d84a9afdbf897ab9))
+
 ## [3.17.1](https://github.com/christophehurpeau/reviewflow/compare/v3.17.0...v3.17.1) (2024-10-29)
 
 ### Bug Fixes
