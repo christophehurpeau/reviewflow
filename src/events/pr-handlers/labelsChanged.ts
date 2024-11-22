@@ -58,14 +58,10 @@ export default function labelsChanged(
       let successful = true;
 
       if (fromRenovate) {
-        const codeApprovedLabel = repoContext.labels["code/approved"];
         const autoApproveLabel = repoContext.labels["review/auto-approve"];
 
         if (context.payload.action === "labeled") {
-          if (
-            (codeApprovedLabel && label.id === codeApprovedLabel.id) ||
-            (autoApproveLabel && label.id === autoApproveLabel.id)
-          ) {
+          if (autoApproveLabel && label.id === autoApproveLabel.id) {
             await context.octokit.pulls.createReview(
               context.pullRequest({ event: "APPROVE" }),
             );
@@ -193,8 +189,7 @@ export default function labelsChanged(
       if (bypassProgressLabel && label.id === bypassProgressLabel.id) {
         if (
           context.payload.action === "labeled" &&
-          repoContext.config.disableBypassMergeFor &&
-          repoContext.config.disableBypassMergeFor.test(
+          repoContext.config.disableBypassMergeFor?.test(
             repoContext.repoEmbed.name,
           )
         ) {
