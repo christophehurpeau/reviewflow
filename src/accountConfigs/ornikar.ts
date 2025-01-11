@@ -35,7 +35,7 @@ const lateOceanColorPalette = {
 const config: Config<"backends" | "frontends" | "ops"> = {
   autoAssignToCreator: true,
   cleanTitle: "conventionalCommit",
-  ignoreRepoPattern: "(infra-.*|devenv|bigquery-dbt)",
+  ignoreRepoPattern: "(infra-.*|devenv|bigquery-dbt|salesforce)",
   requiresReviewRequest: true,
   autoMergeRenovateWithSkipCi: false,
   onlyEnforceProgressWhenAutomergeEnabled: true,
