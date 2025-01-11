@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.19.0](https://github.com/christophehurpeau/reviewflow/compare/v3.18.0...v3.19.0) (2025-01-11)
+
+### Features
+
+* add salesforce to ignoreRepoPattern ([#1009](https://github.com/christophehurpeau/reviewflow/issues/1009)) ([ecab329](https://github.com/christophehurpeau/reviewflow/commit/ecab329bec90f86c12190e8cfb7e1b279d33b9c1))
+* **deps:** update dependency @slack/web-api to v6.13.0 ([#990](https://github.com/christophehurpeau/reviewflow/issues/990)) ([a9736df](https://github.com/christophehurpeau/reviewflow/commit/a9736df0f03e7e8ebfa14c400006be11c62db9f7))
+* remove legacy code/approved auto approve label for renovate ([8abd582](https://github.com/christophehurpeau/reviewflow/commit/8abd5820b3cfc2a608e541e98a18acd0a0aeab4a))
+
+### Bug Fixes
+
+* **deps:** update dependency cookie-parser to v1.4.7 ([#999](https://github.com/christophehurpeau/reviewflow/issues/999)) ([4f2ea0c](https://github.com/christophehurpeau/reviewflow/commit/4f2ea0cf850931502dcdfe1660b7aa9a894041e6))
+* **deps:** update dependency dotenv to v16.4.7 ([#448](https://github.com/christophehurpeau/reviewflow/issues/448)) ([53cd47f](https://github.com/christophehurpeau/reviewflow/commit/53cd47fd0766ac3c8d35b33d7ff86aa37632c5fe))
+* **deps:** update dependency express to v4.21.2 ([#1000](https://github.com/christophehurpeau/reviewflow/issues/1000)) ([7c63a79](https://github.com/christophehurpeau/reviewflow/commit/7c63a79307c4f8ff9da241428a049846ff40eb02))
+
 ## [3.18.0](https://github.com/christophehurpeau/reviewflow/compare/v3.17.1...v3.18.0) (2024-11-12)
 
 ### Features
