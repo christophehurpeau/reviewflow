@@ -2,9 +2,9 @@ import type { Probot } from "probot";
 import { catchExceptedErrors } from "../../../ExpectedError";
 import type { AppContext } from "../../../context/AppContext";
 import type {
-  RepoContext,
   CustomExtract,
   EventsWithRepository,
+  RepoContext,
 } from "../../../context/repoContext";
 import { obtainRepoContext } from "../../../context/repoContext";
 import type { ProbotEvent } from "../../probot-types";

@@ -69,7 +69,7 @@ const config: Config<"backends" | "frontends" | "ops"> = {
     title: [
       {
         regExp:
-          /^(?<revert>revert: )?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\([/A-Za-z-]+\)?((?=:\s)|(?=!:\s)))?(?<breaking>!)?(?<subject>:\s.*)$/,
+          /^(?<revert>revert: )?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\([/A-Za-z-]+\)?(?:(?=:\s)|(?=!:\s)))?(?<breaking>!)?(?<subject>:\s.*)$/,
         createStatusInfo: (match) => {
           if (match) {
             return null;
@@ -84,7 +84,7 @@ const config: Config<"backends" | "frontends" | "ops"> = {
         },
       },
       {
-        regExp: /\s([A-Z][\dA-Z]+-(\d+)|\[no issue])$/,
+        regExp: /\s([A-Z][\dA-Z]+-(\d+)|\[no issue\])$/,
         status: "jira-issue",
         createStatusInfo: (match, prInfo, isPrFromBot) => {
           if (match) {
@@ -138,13 +138,11 @@ const config: Config<"backends" | "frontends" | "ops"> = {
               summary: "The PR body should not be empty",
             };
           }
-          const descriptionStripTitlesAndComments =
-            description &&
-            description
-              .replace(/^\s*#+\s+.*/gm, "")
-              .replace(/(<!--.*?-->)|(<!--[\S\s]+?-->)|(<!--[\S\s]*?$)/gs, "");
+          const descriptionStripTitlesAndComments = description
+            .replace(/^\s*#+\s+.*/gm, "")
+            .replace(/<!--.*?-->|<!--[\s\S]*$/gs, "");
 
-          if (!descriptionStripTitlesAndComments?.trim()) {
+          if (!descriptionStripTitlesAndComments.trim()) {
             return {
               type: "failure",
               title: "Body has no meaningful content",
@@ -160,12 +158,13 @@ const config: Config<"backends" | "frontends" | "ops"> = {
       {
         bot: false,
         regExp:
+          // eslint-disable-next-line regexp/optimal-quantifier-concatenation
           /^(?<revert>revert-\d+-)?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\/[a-z-]+)?\/(?<breaking>!)?(?<subject>.*)(?:-(?<jiraIssue>[A-Z][\dA-Z]+-(\d+)))?$/,
         status: "branch-name",
         createStatusInfo: (match, { title }) => {
           const idealBranchName = title
-            .replace(/\s*\[no issue]$/, "")
-            .replace(/\s*(\(|\):|:)\s*/g, "/")
+            .replace(/\s*\[no issue\]$/, "")
+            .replace(/\s*(?:\(|\):|:)\s*/g, "/")
             .replace(/[\s,_-]+/g, "-");
 
           if (!match) {

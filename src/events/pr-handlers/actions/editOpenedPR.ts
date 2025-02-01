@@ -22,10 +22,10 @@ import { updatePrIfNeeded } from "./updatePr";
 import { updatePrCommentBodyIfNeeded } from "./updatePrCommentBody";
 import { calcDefaultOptions } from "./utils/body/prOptions";
 import {
-  updateCommentBodyInfos,
-  defaultCommentBody,
   createCommentBody,
+  defaultCommentBody,
   removeDeprecatedReviewflowInPrBody,
+  updateCommentBodyInfos,
   updateCommentBodyProgress,
 } from "./utils/body/updateBody";
 import { lintCommitMessage } from "./utils/commitMessages";
@@ -102,7 +102,6 @@ export const editOpenedPR = async <
   if (
     repoContext.config.lintPullRequestTitleWithConventionalCommit === true ||
     (repoContext.config.lintPullRequestTitleWithConventionalCommit &&
-      repoContext.config.lintPullRequestTitleWithConventionalCommit.test &&
       repoContext.config.lintPullRequestTitleWithConventionalCommit.test(
         repoContext.repoEmbed.name,
       ))
@@ -273,7 +272,7 @@ export const editOpenedPR = async <
     partialUpdateReviewflowPr.assignees = [toBasicUser(pullRequest.user)];
   } else if ("assignees" in pullRequest && pullRequest.assignees) {
     partialUpdateReviewflowPr.assignees =
-      pullRequest.assignees?.map(toBasicUser);
+      pullRequest.assignees.map(toBasicUser);
   }
 
   const promises: (Promise<unknown> | undefined)[] = [
@@ -325,7 +324,7 @@ export const editOpenedPR = async <
     // not a bot
     !isPrFromBot &&
     // should not happen, but ts needs it
-    pullRequest.user?.login &&
+    pullRequest.user.login &&
     // belongs to the organization
     pullRequest.head.repo?.full_name === pullRequest.base.repo.full_name &&
     // has not connected its slack account yet

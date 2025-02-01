@@ -3,8 +3,8 @@ import type { ProbotEvent } from "../../probot-types";
 import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
 import { updatePrCommentBodyIfNeeded } from "./updatePrCommentBody";
 import {
-  updateCommentBodyProgress,
   defaultCommentBody,
+  updateCommentBodyProgress,
 } from "./utils/body/updateBody";
 import type { StepsState } from "./utils/steps/calcStepsState";
 

@@ -1,10 +1,10 @@
 import { promisify } from "node:util";
 import { Octokit } from "@octokit/rest";
-import type { Router, Request, Response } from "express";
+import type { Request, Response, Router } from "express";
 import jsonwebtoken from "jsonwebtoken";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as githubAuth from "../auth/github";
-import Layout from "../views/Layout";
+import Layout from "../views/Layout.tsx";
 
 if (!process.env.AUTH_SECRET_KEY) {
   throw new Error("Missing env variable: AUTH_SECRET_KEY");

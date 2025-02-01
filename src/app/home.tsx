@@ -2,8 +2,8 @@ import type { Router } from "express";
 import type { ProbotOctokit } from "probot";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { MongoStores } from "../mongo";
-import Layout from "../views/Layout";
-import { getUser } from "./auth";
+import Layout from "../views/Layout.tsx";
+import { getUser } from "./auth.tsx";
 
 export default function home(
   router: Router,

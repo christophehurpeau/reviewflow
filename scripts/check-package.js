@@ -14,10 +14,14 @@ await createCheckPackage()
   .checkSatisfiesVersionsFromDependency("probot", {
     dependencies: ["@octokit/core", "@octokit/webhooks"],
   })
-  .checkSatisfiesVersionsBetweenDependencies("@octokit/rest", "probot", {
-    dependencies: [
-      "@octokit/plugin-rest-endpoint-methods",
-      "@octokit/plugin-paginate-rest",
-    ],
+  .checkSatisfiesVersionsBetweenDependencies({
+    "@octokit/rest": {
+      probot: {
+        dependencies: [
+          "@octokit/plugin-rest-endpoint-methods",
+          "@octokit/plugin-paginate-rest",
+        ],
+      },
+    },
   })
   .run();

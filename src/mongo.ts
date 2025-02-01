@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import type { MongoBaseModel } from "liwi-mongo";
-import { MongoStore, MongoConnection } from "liwi-mongo";
+import { MongoConnection, MongoStore } from "liwi-mongo";
 import type { AccountInfo } from "./context/getOrCreateAccount";
 import type { LockedMergePr } from "./context/repoContext";
 import type { SlackMessage } from "./context/slack/SlackMessage";
@@ -38,7 +38,7 @@ export interface UserDmSettings extends MongoBaseModel {
   userId: number;
   orgId: number;
   settings: Record<MessageCategory, boolean>;
-  silentTeams: OrgTeamEmbed[];
+  silentTeams?: OrgTeamEmbed[];
 }
 
 interface BaseAccount extends MongoBaseModel<number> {

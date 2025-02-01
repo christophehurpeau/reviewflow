@@ -9,7 +9,8 @@ import hasLabelInPR from "./actions/utils/labels/hasLabelInPR";
 import { calcStepsState } from "./actions/utils/steps/calcStepsState";
 import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
 import { createPullRequestHandler } from "./utils/createPullRequestHandler";
-import { fetchPr, type PullRequestFromRestEndpoint } from "./utils/fetchPr";
+import { fetchPr } from "./utils/fetchPr";
+import type { PullRequestFromRestEndpoint } from "./utils/fetchPr";
 
 export default function readyForReview(
   app: Probot,

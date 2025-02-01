@@ -10,7 +10,7 @@
   "type": "module",
   "packageManager": "yarn@4.6.0",
   "engines": {
-    "node": ">=20.9.0"
+    "node": ">=22.11.0"
   },
   "main": "./build/index-node.mjs",
   "exports": {
@@ -29,7 +29,7 @@
     "clean:build": "pob-esbuild-clean-out build",
     "generate:test-coverage": "rm -Rf docs/coverage/ ; NODE_ENV=production vitest --coverage",
     "lint": "yarn run lint:prettier && tsc && yarn run lint:eslint",
-    "lint:eslint": "eslint --report-unused-disable-directives --resolve-plugins-relative-to . --quiet *.{js,cjs,mjs} src scripts",
+    "lint:eslint": "eslint --quiet .",
     "lint:prettier": "pob-root-prettier --check .",
     "lint:prettier:fix": "pob-root-prettier --write .",
     "postinstall": "pob-root-postinstall",
@@ -53,7 +53,7 @@
     "envs": [
       {
         "target": "node",
-        "version": "20",
+        "version": "22",
         "omitVersionInFileName": true
       }
     ],
@@ -88,28 +88,28 @@
     "slackify-markdown": "4.3.1"
   },
   "devDependencies": {
-    "@pob/commitlint-config": "6.4.0",
-    "@pob/eslint-config": "56.0.0",
-    "@pob/eslint-config-typescript": "56.0.0",
-    "@pob/eslint-config-typescript-react": "56.0.0",
-    "@pob/rollup-esbuild": "3.1.2",
-    "@pob/root": "12.0.0",
+    "@pob/commitlint-config": "8.0.1",
+    "@pob/eslint-config": "59.4.0",
+    "@pob/eslint-config-typescript": "59.4.0",
+    "@pob/eslint-config-typescript-react": "59.4.0",
+    "@pob/rollup-esbuild": "5.4.0",
+    "@pob/root": "15.2.0",
     "@types/body-parser": "1.19.5",
     "@types/cookie-parser": "1.4.8",
     "@types/express": "4.17.21",
     "@types/issue-parser": "3.0.5",
     "@types/jsonwebtoken": "9.0.8",
-    "@types/node": "20.17.16",
+    "@types/node": "22.13.0",
     "@types/react": "18.3.1",
     "@types/react-dom": "18.3.0",
     "@types/simple-oauth2": "5.0.7",
-    "@vitest/coverage-v8": "1.6.0",
-    "check-package-dependencies": "7.2.0",
-    "eslint": "8.57.1",
+    "@vitest/coverage-v8": "2.1.8",
+    "check-package-dependencies": "9.1.0",
+    "eslint": "9.18.0",
     "nock": "14.0.0-beta.19",
     "smee-client": "2.0.4",
     "type-fest": "4.31.0",
     "typescript": "5.7.3",
-    "vitest": "1.6.0"
+    "vitest": "2.1.8"
   }
 }

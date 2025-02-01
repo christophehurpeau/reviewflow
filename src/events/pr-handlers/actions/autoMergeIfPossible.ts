@@ -36,8 +36,9 @@ export const createCommitMessage = ({
     `${pullRequest.title}${options.autoMergeWithSkipCi ? " [skip ci]" : ""} (#${
       pullRequest.number
     })`,
-    parsedBody?.commitNotes
+    parsedBody.commitNotes
       ? parsedBody.commitNotes
+          // eslint-disable-next-line regexp/no-super-linear-backtracking, regexp/no-misleading-capturing-group
           .replace(/^- (.*)\s*\([^)]+\)$/gm, "$1")
           .replace(/^Breaking Changes:\n/, "BREAKING CHANGE: ")
           .replace(/\n/g, "; ")
@@ -358,7 +359,7 @@ export const autoMergeIfPossibleLegacy = async <
       reviewflowPrContext.commentBody,
       repoContext.config.prDefaultOptions,
     );
-    const options = parsedBody?.options || repoContext.config.prDefaultOptions;
+    const options = parsedBody.options || repoContext.config.prDefaultOptions;
 
     const [commitTitle, commitMessage] = createCommitMessage({
       pullRequest,

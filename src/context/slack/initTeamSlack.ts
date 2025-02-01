@@ -5,11 +5,11 @@ import type { Config } from "../../accountConfigs";
 import type { MessageCategory } from "../../dm/MessageCategory";
 import { getUserDmSettings } from "../../dm/getUserDmSettings";
 import type { ProbotEvent } from "../../events/probot-types";
-import type { Org, User, MongoStores } from "../../mongo";
+import type { MongoStores, Org, User } from "../../mongo";
 import type { AppContext } from "../AppContext";
 import type { AccountInfo } from "../getOrCreateAccount";
 import type { SlackMessage } from "./SlackMessage";
-import type { TeamSlack, PostSlackMessageResult } from "./TeamSlack";
+import type { PostSlackMessageResult, TeamSlack } from "./TeamSlack";
 import { voidTeamSlack } from "./voidTeamSlack";
 
 export type { TeamSlack } from "./TeamSlack";
@@ -152,8 +152,7 @@ export const initTeamSlack = async <TeamNames extends string>(
       if (!userDmSettings.settings[category]) return null;
       if (
         forTeamId &&
-        userDmSettings.silentTeams &&
-        userDmSettings.silentTeams.some((team) => team.id === forTeamId)
+        userDmSettings.silentTeams?.some((team) => team.id === forTeamId)
       ) {
         return null;
       }

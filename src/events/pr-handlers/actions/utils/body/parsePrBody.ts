@@ -7,6 +7,7 @@ const commentEnd = "<!-- end - don't add anything after this -->";
 const regexpCols =
   /^(.*)(<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->)(.*)$/is;
 const regexpReviewflowCol =
+  // eslint-disable-next-line regexp/no-super-linear-backtracking, regexp/optimal-quantifier-concatenation
   /^(\s*<!---? do not edit after this -?--><\/td><td [^>]*>)\s*(.*)\s*(<\/td><\/tr><\/table>\s*<!---? end - don't add anything after this -?-->)\s*$/is;
 
 interface ParsePrBodyResultWithoutOptions {

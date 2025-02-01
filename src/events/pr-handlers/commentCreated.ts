@@ -1,6 +1,6 @@
 import type { RestEndpointMethodTypes } from "@octokit/rest";
 import delay from "delay";
-import type { Probot, Context } from "probot";
+import type { Context, Probot } from "probot";
 import type { AppContext } from "../../context/AppContext";
 import type { AccountInfo } from "../../context/getOrCreateAccount";
 import type { SlackMessage } from "../../context/slack/SlackMessage";
@@ -13,8 +13,8 @@ import type { AccountEmbed } from "../../mongo";
 import * as slackUtils from "../../slack/utils";
 import { ExcludesNullish } from "../../utils/Excludes";
 import {
-  checkIfUserIsBot,
   checkIfIsThisBot,
+  checkIfUserIsBot,
 } from "../../utils/github/isBotUser";
 import { parseMentions } from "../../utils/github/parseMentions";
 import { createSlackMessageWithSecondaryBlock } from "../../utils/slack/createSlackMessageWithSecondaryBlock";

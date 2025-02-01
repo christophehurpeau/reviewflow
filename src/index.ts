@@ -2,7 +2,7 @@ import type { MongoConnection } from "liwi-mongo";
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import "dotenv/config";
 import { run } from "probot";
-import appRouter from "./appRouter";
+import appRouter from "./appRouter.tsx";
 import type { AppContext } from "./context/AppContext";
 import initApp from "./initApp";
 import mongoInit from "./mongo";
@@ -36,9 +36,9 @@ const serverPromise = run((app, { getRouter }) => {
 const gracefulExit = function gracefulExit(): void {
   Promise.all([
     serverPromise.then((server) => server.stop()),
-    mongoConnection && mongoConnection.close(),
+    mongoConnection?.close(),
   ]).then(() => {
-    // eslint-disable-next-line unicorn/no-process-exit, n/no-process-exit
+    // eslint-disable-next-line unicorn/no-process-exit
     process.exit(0);
   });
 };

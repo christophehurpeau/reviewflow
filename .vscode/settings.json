@@ -16,15 +16,18 @@
     "source.organizeImports": "never"
   },
 
-  // eslint config
+  // extension eslint config
   "eslint.workingDirectories": ["."],
-  "eslint.options": {
-    "resolvePluginsRelativeTo": ".",
-    "reportUnusedDisableDirectives": "error"
-  },
+  "eslint.useFlatConfig": true,
   "eslint.lintTask.enable": true,
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
 
-  // eslint & prettier formatter
+  // format config
   "eslint.format.enable": false,
   "editor.defaultFormatter": "esbenp.prettier-vscode"
 }

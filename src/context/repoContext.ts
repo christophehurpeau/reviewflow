@@ -6,8 +6,8 @@ import { autoMergeIfPossibleLegacy } from "../events/pr-handlers/actions/autoMer
 import { mergeOrEnableGithubAutoMerge } from "../events/pr-handlers/actions/enableGithubAutoMerge";
 import type { RepositorySettings } from "../events/pr-handlers/actions/utils/body/repositorySettings";
 import {
-  isSettingsLastUpdatedExpired,
   createRepositorySettings,
+  isSettingsLastUpdatedExpired,
 } from "../events/pr-handlers/actions/utils/body/repositorySettings";
 import type {
   BasicUser,
@@ -16,7 +16,7 @@ import type {
 import { getReviewflowPrContext } from "../events/pr-handlers/utils/createPullRequestContext";
 import { fetchPr } from "../events/pr-handlers/utils/fetchPr";
 import type { ProbotEvent } from "../events/probot-types";
-import type { RepositoryMergeQueue, Repository } from "../mongo";
+import type { Repository, RepositoryMergeQueue } from "../mongo";
 import { getRepositorySettings } from "../utils/github/repo/getRepositorySettings";
 import type { AppContext } from "./AppContext";
 import type { AccountContext } from "./accountContext";

@@ -9,8 +9,8 @@ import { getUserDmSettings, updateCache } from "../dm/getUserDmSettings";
 import { syncOrg } from "../events/account-handlers/actions/syncOrg";
 import { syncTeamsAndTeamMembers } from "../events/account-handlers/actions/syncTeams";
 import type { MongoStores } from "../mongo";
-import Layout from "../views/Layout";
-import { getUser } from "./auth";
+import Layout from "../views/Layout.tsx";
+import { getUser } from "./auth.tsx";
 
 const dmMessages: Record<MessageCategory, string> = {
   "pr-checksAndStatuses": "Your PR has failed checks or statuses",
@@ -281,7 +281,7 @@ export default function orgSettings(
                                       __html: `<input id="team_${
                                         team.id
                                       }" type="checkbox" autocomplete="off" ${
-                                        !userDmSettings.silentTeams.some(
+                                        !userDmSettings.silentTeams?.some(
                                           (t) => t.id === team.id,
                                         )
                                           ? 'checked="checked" '

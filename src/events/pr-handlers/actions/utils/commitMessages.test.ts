@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
-  lintCommitMessage,
   commitlintParse,
+  lintCommitMessage,
   parseCommitMessage,
 } from "./commitMessages";
 

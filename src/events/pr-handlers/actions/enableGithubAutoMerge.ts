@@ -6,8 +6,8 @@ import type {
 import { checkIfUserIsBot } from "../../../utils/github/isBotUser";
 import type { AutoMergeRequest } from "../../../utils/github/pullRequest/autoMerge";
 import {
-  enableGithubAutoMergeMutation,
   disableGithubAutoMergeMutation,
+  enableGithubAutoMergeMutation,
 } from "../../../utils/github/pullRequest/autoMerge";
 import type { ProbotEvent } from "../../probot-types";
 import type {

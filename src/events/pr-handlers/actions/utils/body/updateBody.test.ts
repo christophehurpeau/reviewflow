@@ -8,9 +8,9 @@ import initialAfterEditSimpleWithInfosV2 from "./mocks/commentBody-v2-initialAft
 import type { Options } from "./prOptions";
 import type { RepositorySettings } from "./repositorySettings";
 import {
-  updateCommentOptions,
   updateCommentBodyCommitsNotes,
   updateCommentBodyInfos,
+  updateCommentOptions,
 } from "./updateBody";
 
 const repositorySettings: RepositorySettings = {

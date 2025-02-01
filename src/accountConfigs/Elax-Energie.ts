@@ -14,7 +14,7 @@ const config: Config<never> = {
   parsePR: {
     title: [
       {
-        regExp: /\s([A-Z][\dA-Z]+-(\d+)|\[no (ticket|issue)])$/,
+        regExp: /\s([A-Z][\dA-Z]+-(\d+)|\[no (ticket|issue)\])$/,
         status: "notion-ticket",
         createStatusInfo: (match, prInfo, isPrFromBot) => {
           if (match) {
@@ -68,7 +68,7 @@ const config: Config<never> = {
           }
           const descriptionStripTitlesAndComments = description
             .replace(/^\s*#+\s+.*/gm, "")
-            .replace(/(<!--.*?-->)|(<!--[\S\s]+?-->)|(<!--[\S\s]*?$)/gs, "");
+            .replace(/<!--.*?-->|<!--[\s\S]*$/gs, "");
 
           if (!descriptionStripTitlesAndComments.trim()) {
             return {

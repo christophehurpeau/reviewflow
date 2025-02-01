@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/require-post-message-target-origin */
 import "dotenv/config";
 import { WebClient } from "@slack/web-api";
 import { markdownToBlocks } from "@tryfabric/mack";

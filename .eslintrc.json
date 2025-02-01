@@ -1,8 +1,0 @@
-{
-  "root": true,
-  "extends": ["@pob/eslint-config/root-module"],
-  "ignorePatterns": ["/build"],
-  "rules": {
-    "unicorn/require-post-message-target-origin": "warn"
-  }
-}

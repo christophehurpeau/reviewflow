@@ -16,7 +16,7 @@ export default function orgMemberAddedOrRemoved(
       const o = await appContext.mongoStores.orgs.findByKey(
         accountContext.accountEmbed.id,
       );
-      if (!o || !o.installationId) return;
+      if (!o?.installationId) return;
 
       await syncOrg(
         appContext.mongoStores,

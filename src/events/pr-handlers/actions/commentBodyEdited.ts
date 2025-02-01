@@ -22,7 +22,7 @@ import { updateCommentOptions } from "./utils/body/updateBody";
 import { getStateChecksLabelsToSync } from "./utils/labels/getStateChecksLabelsToSync";
 import { calcStepsState } from "./utils/steps/calcStepsState";
 import type { LabelToSync } from "./utils/syncLabel";
-import { syncLabels, removeLabel } from "./utils/syncLabel";
+import { removeLabel, syncLabels } from "./utils/syncLabel";
 
 export const commentBodyEdited = async <Name extends EventsWithRepository>(
   pullRequest: PullRequestFromRestEndpoint,

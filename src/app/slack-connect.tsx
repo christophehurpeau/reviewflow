@@ -1,13 +1,13 @@
 import { WebClient } from "@slack/web-api";
-import type { Router, Request, Response } from "express";
+import type { Request, Response, Router } from "express";
 import type { MongoInsertType } from "liwi-mongo";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { SetRequired } from "type-fest";
 import { slackOAuth2, slackOAuth2Version2 } from "../auth/slack";
 import { getExistingAccountContext } from "../context/accountContext";
 import type { MongoStores, SlackTeam } from "../mongo";
-import Layout from "../views/Layout";
-import { getUser } from "./auth";
+import Layout from "../views/Layout.tsx";
+import { getUser } from "./auth.tsx";
 
 if (!process.env.AUTH_SECRET_KEY) {
   throw new Error("Missing env variable: AUTH_SECRET_KEY");
@@ -51,7 +51,7 @@ export default function slackConnect(
 
         const org = await mongoStores.orgs.findByKey(orgId);
 
-        if (!org || !org.slackTeamId) {
+        if (!org?.slackTeamId) {
           res.send(
             renderToStaticMarkup(
               <Layout>Organization is not installed.</Layout>,
@@ -119,7 +119,11 @@ export default function slackConnect(
             renderToStaticMarkup(
               <Layout>
                 Could not get access token:{" "}
-                {String(req.query.error_description || req.query.error)}.
+                {
+                  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                  String(req.query.error_description || req.query.error)
+                }
+                .
               </Layout>,
             ),
           );
@@ -139,12 +143,12 @@ export default function slackConnect(
           scope: isInstall ? slackInstallAppScopes : undefined,
         });
 
-        if (!accessToken || !accessToken.token.ok) {
+        if (!accessToken.token.ok) {
           res.send(
             renderToStaticMarkup(
               <Layout>
                 Could not get access token (Error:{" "}
-                {(accessToken?.token as any)?.error || "Unknown"}).
+                {(accessToken.token as any)?.error || "Unknown"}).
                 <div>
                   <a href={`/app/org/${orgLogin || ""}`}>Back</a>
                 </div>
@@ -172,7 +176,7 @@ export default function slackConnect(
 
         // install slack, not login
         if (isInstall) {
-          if (!(accessToken.token?.team as any)?.id) {
+          if (!(accessToken.token.team as any)?.id) {
             res.send(
               renderToStaticMarkup(
                 <Layout>
@@ -246,10 +250,7 @@ export default function slackConnect(
           return;
         }
 
-        if (
-          org?.slackTeamId &&
-          accessToken.token.team_id !== org?.slackTeamId
-        ) {
+        if (org.slackTeamId && accessToken.token.team_id !== org.slackTeamId) {
           res.send(
             renderToStaticMarkup(
               <Layout>

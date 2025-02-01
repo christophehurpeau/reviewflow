@@ -3,12 +3,12 @@ import type { Config } from "../accountConfigs";
 import type { EventsWithOrganisation } from "../events/account-handlers/utils/createHandlerOrgChange";
 import type { ProbotEvent } from "../events/probot-types";
 import type {
-  Org,
-  User,
   AccountEmbed,
-  AccountType,
   AccountEmbedWithoutType,
+  AccountType,
+  Org,
   OrgMember,
+  User,
 } from "../mongo";
 import type { AppContext } from "./AppContext";
 import type { AccountInfo } from "./getOrCreateAccount";
