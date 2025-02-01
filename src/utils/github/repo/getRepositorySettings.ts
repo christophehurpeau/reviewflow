@@ -10,6 +10,16 @@ export interface RepositorySettingsQueryResult {
     mergeCommitAllowed: boolean;
     rebaseMergeAllowed: boolean;
     squashMergeAllowed: boolean;
+    branchProtectionRules: {
+      nodes: {
+        matchingRefs: { nodes: { name: string }[] };
+        requiresStatusChecks: boolean;
+        // requiredStatusChecks: {
+        //   app: { id: string; name: string } | null;
+        //   context: string;
+        // }[];
+      }[];
+    };
   };
 }
 
@@ -25,6 +35,21 @@ export const getRepositorySettings = (
         mergeCommitAllowed: true,
         rebaseMergeAllowed: true,
         squashMergeAllowed: true,
+        branchProtectionRules: {
+          nodes: [
+            {
+              matchingRefs: { nodes: [{ name: "main" }] },
+              requiresStatusChecks: true,
+              // requiredStatusChecks: [
+              //   { app: null, context: "reviewflow" },
+              //   {
+              //     app: { id: "MDM6QXBwMTUzNjg=", name: "GitHub Actions" },
+              //     context: "test (18)",
+              //   },
+              // ],
+            },
+          ],
+        },
       },
     });
   }
@@ -40,8 +65,26 @@ query repository($owner: String!, $repo: String!) {
     mergeCommitAllowed
     rebaseMergeAllowed
     squashMergeAllowed
+    branchProtectionRules (first: 100) {
+      nodes {
+        matchingRefs (first: 100) {
+          nodes {
+            name
+          }
+        }
+        requiresStatusChecks
+      }
+    }
   }
 }`,
     context.repo(),
   );
 };
+
+// not allowed
+/*
+requiredStatusChecks {
+          app { id, name }
+          context
+        }
+        */

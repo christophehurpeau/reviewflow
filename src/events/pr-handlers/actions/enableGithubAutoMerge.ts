@@ -55,11 +55,21 @@ export const mergeOrEnableGithubAutoMerge = async <
     }
   }
 
+  if (
+    repoContext.settings.defaultBranchProtectionRules?.requiresStatusChecks ===
+    false
+  ) {
+    return {
+      wasMerged: false,
+      didFailedToEnableAutoMerge: true,
+    };
+  }
+
   const parsedBody = parseBody(
     reviewflowPrContext.commentBody,
     repoContext.config.prDefaultOptions,
   );
-  const options = parsedBody?.options || repoContext.config.prDefaultOptions;
+  const options = parsedBody.options || repoContext.config.prDefaultOptions;
 
   const [commitHeadline, commitBody] = createCommitMessage({
     pullRequest,

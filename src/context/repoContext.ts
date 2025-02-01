@@ -190,6 +190,7 @@ async function initRepoContext<
     if (res) {
       if (
         !res.settings.lastUpdated ||
+        res.settings.defaultBranchProtectionRules === undefined ||
         isSettingsLastUpdatedExpired(res.settings)
       ) {
         const repoSettingsResult = await getRepositorySettings(context);

@@ -39,6 +39,14 @@ export const initializeProbotApp = async ({
         Promise.resolve({
           _id: 1,
           settings: {
+            allowAutoMerge: true,
+            allowMergeCommit: true,
+            allowRebaseMerge: true,
+            allowSquashMerge: true,
+            defaultBranch: "main",
+            defaultBranchProtectionRules: {
+              requiresStatusChecks: true,
+            },
             deleteBranchOnMerge: true,
             lastUpdated: new Date(2099, 0, 1),
           },

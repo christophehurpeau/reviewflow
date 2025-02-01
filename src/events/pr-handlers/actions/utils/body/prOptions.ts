@@ -28,6 +28,7 @@ interface OptionDisplay {
   labelKey?: string;
   icon?: string;
   description: string;
+  shouldAllow?: (settings: RepositorySettings) => boolean;
   legacy?: {
     repositorySettingKey: keyof RepositorySettings;
     legacyMessage?: string;
@@ -40,6 +41,9 @@ export const optionsDescriptions: OptionDisplay[] = [
     labelKey: "merge/automerge",
     description:
       "Automatically merge when this PR is ready and has no failed statuses. When the repository requires _branches to be up to date before merging_, it merges default branch, with a queue per repo to prevent multiple merges when several PRs are ready. A fail job prevents the merge.",
+    shouldAllow: ({ defaultBranchProtectionRules }) =>
+      defaultBranchProtectionRules?.requiresStatusChecks !== false,
+    // requiredStatusChecks.find(    ({ context }) => context === "reviewflow"      ),
   },
   {
     key: "autoMergeWithSkipCi",

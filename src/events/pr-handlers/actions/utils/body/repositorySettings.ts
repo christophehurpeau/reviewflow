@@ -7,12 +7,22 @@ export interface RepositorySettings {
   allowRebaseMerge?: boolean;
   allowSquashMerge?: boolean;
   allowMergeCommit?: boolean;
+  defaultBranchProtectionRules?: {
+    // requiredStatusChecks: RepositorySettingsQueryResult["repository"]["branchProtectionRules"]["nodes"][number]["requiredStatusChecks"];
+    requiresStatusChecks: RepositorySettingsQueryResult["repository"]["branchProtectionRules"]["nodes"][number]["requiresStatusChecks"];
+  } | null;
   lastUpdated?: Date;
 }
 
 export function createRepositorySettings({
   repository,
 }: RepositorySettingsQueryResult): RepositorySettings {
+  const defaultBranchProtectionRules =
+    repository.branchProtectionRules.nodes.find((node) =>
+      node.matchingRefs.nodes.some(
+        ({ name }) => name === repository.defaultBranchRef.name,
+      ),
+    );
   return {
     defaultBranch: repository.defaultBranchRef.name,
     deleteBranchOnMerge: repository.deleteBranchOnMerge,
@@ -20,6 +30,14 @@ export function createRepositorySettings({
     allowRebaseMerge: repository.rebaseMergeAllowed,
     allowSquashMerge: repository.squashMergeAllowed,
     allowMergeCommit: repository.mergeCommitAllowed,
+    defaultBranchProtectionRules: !defaultBranchProtectionRules
+      ? null
+      : {
+          requiresStatusChecks:
+            defaultBranchProtectionRules.requiresStatusChecks,
+          // requiredStatusChecks:
+          //   defaultBranchProtectionRules.requiredStatusChecks,
+        },
     lastUpdated: new Date(),
   };
 }

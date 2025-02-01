@@ -22,36 +22,46 @@ const toMarkdownOptions = (
   defaultOptions: Options,
 ): string => {
   return optionsDescriptions
-    .map(({ key, labelKey, description, icon: iconValue, legacy }) => {
-      if (
-        legacy &&
-        (repositorySettings[legacy.repositorySettingKey] ||
-          !defaultOptions[key])
-      ) {
-        return null;
-      }
-      const labelDescription = labelKey && labelsConfig[labelKey];
+    .map(
+      ({
+        key,
+        labelKey,
+        description,
+        icon: iconValue,
+        legacy,
+        shouldAllow,
+      }) => {
+        if (
+          legacy &&
+          (repositorySettings[legacy.repositorySettingKey] ||
+            !defaultOptions[key])
+        ) {
+          return null;
+        }
+        const labelDescription = labelKey && labelsConfig[labelKey];
+        const isAllowed = shouldAllow ? shouldAllow(repositorySettings) : true;
 
-      if (labelKey && !labelDescription) {
-        // this option is not enabled
-        return null;
-      }
+        if (labelKey && !labelDescription) {
+          // this option is not enabled
+          return null;
+        }
 
-      const checkboxWithId = `[${
-        options[key] ? "x" : " "
-      }] <!-- reviewflow-${key} -->`;
+        const checkboxWithId = `[${
+          options[key] ? "x" : " "
+        }] <!-- reviewflow-${key} -->`;
 
-      const labelLink = labelDescription
-        ? `[${labelDescription.name}](${repoLink}/labels/${encodeURIComponent(
-            labelDescription.name,
-          )}): `
-        : "";
-      const icon = labelLink || !iconValue ? "" : `${iconValue} `;
+        const labelLink = labelDescription
+          ? `[${labelDescription.name}](${repoLink}/labels/${encodeURIComponent(
+              labelDescription.name,
+            )}): `
+          : "";
+        const icon = labelLink || !iconValue ? "" : `${iconValue} `;
 
-      return `- ${checkboxWithId}${icon}${labelLink}${description}${
-        legacy ? ` (:warning: Legacy Option: ${legacy.legacyMessage})` : ""
-      }`;
-    })
+        return `- ${checkboxWithId}${isAllowed ? "" : ":warning: "}${icon}${labelLink}${description}${isAllowed ? "" : ` :warning: **Not available due to current configuration. Make sure ${process.env.REVIEWFLOW_NAME} is in required status checks.**`}${
+          legacy ? ` (:warning: Legacy Option: ${legacy.legacyMessage})` : ""
+        }`;
+      },
+    )
     .filter(Boolean)
     .join("\n");
 };
