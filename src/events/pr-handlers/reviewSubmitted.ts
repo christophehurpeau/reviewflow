@@ -82,7 +82,7 @@ export default function reviewSubmitted(
       const isReviewByOwner = owner.login === reviewer.login;
 
       if (!isReviewByOwner) {
-        let merged: boolean;
+        const merged = false;
 
         if (reviewflowPrContext && !repoContext.shouldIgnore) {
           const [updatedPr, reviewsState] = await Promise.all([
