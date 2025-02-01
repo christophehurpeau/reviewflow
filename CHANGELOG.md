@@ -3,6 +3,60 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 4.0.0 (2025-02-01)
+
+### ⚠ BREAKING CHANGES
+
+* require new github permission
+
+### Features
+
+* add pr body check for elax ([#909](https://github.com/christophehurpeau/reviewflow/issues/909)) ([9e61ff1](https://github.com/christophehurpeau/reviewflow/commit/9e61ff1684e6d8856c7466cd7016ab942861852f))
+* add pr title in review submitted notifications ([c6dc9ec](https://github.com/christophehurpeau/reviewflow/commit/c6dc9ec3b1cfe8b0d2c0a63f3fba7188b04df8b2))
+* add review/auto-approve label in elax config ([84a982c](https://github.com/christophehurpeau/reviewflow/commit/84a982c3a16083cd0ae8b935d84a9afdbf897ab9))
+* add salesforce to ignoreRepoPattern ([#1009](https://github.com/christophehurpeau/reviewflow/issues/1009)) ([ecab329](https://github.com/christophehurpeau/reviewflow/commit/ecab329bec90f86c12190e8cfb7e1b279d33b9c1))
+* allow lintPullRequestTitleWithConventionalCommit to be a regexp, change elax config ([fdf1070](https://github.com/christophehurpeau/reviewflow/commit/fdf1070d7f60d5cb9857af3c1950a5240aa4ce0a))
+* better log error message ([14e99b4](https://github.com/christophehurpeau/reviewflow/commit/14e99b49b62215168ca9028e056c02a6aec6a8ee))
+* clean revert of revert ([8870f94](https://github.com/christophehurpeau/reviewflow/commit/8870f94df6462c6fabebe7ec9c182ddf4c613163))
+* clean title conventional commit support typo ; ([791e30c](https://github.com/christophehurpeau/reviewflow/commit/791e30cffcdc07db89fad223486680541de32631))
+* clean title with scope ([d29bb44](https://github.com/christophehurpeau/reviewflow/commit/d29bb44b501a46383988f90ce67884625d1685e6))
+* **deps:** update dependency @slack/web-api to v6.12.0 ([#865](https://github.com/christophehurpeau/reviewflow/issues/865)) ([4f18d1b](https://github.com/christophehurpeau/reviewflow/commit/4f18d1bafd0c598a678451fc2bd9198dc6b7345e))
+* **deps:** update dependency @slack/web-api to v6.13.0 ([#990](https://github.com/christophehurpeau/reviewflow/issues/990)) ([a9736df](https://github.com/christophehurpeau/reviewflow/commit/a9736df0f03e7e8ebfa14c400006be11c62db9f7))
+* **deps:** update dependency issue-parser to v7 ([#943](https://github.com/christophehurpeau/reviewflow/issues/943)) ([74f497f](https://github.com/christophehurpeau/reviewflow/commit/74f497f9e02e964c1fb27f7f822fb66f7d204bd6))
+* **deps:** update dependency liwi-mongo to v12 ([#950](https://github.com/christophehurpeau/reviewflow/issues/950)) ([e2ca7b6](https://github.com/christophehurpeau/reviewflow/commit/e2ca7b6b422b283fe78702102c285b6b26ad307f))
+* **deps:** update dependency probot to v13 ([#889](https://github.com/christophehurpeau/reviewflow/issues/889)) ([2e570c5](https://github.com/christophehurpeau/reviewflow/commit/2e570c550d82b5e073b8575f17b3c2539dd637d2))
+* **deps:** update dependency probot to v13.2.0 ([#938](https://github.com/christophehurpeau/reviewflow/issues/938)) ([1ec8025](https://github.com/christophehurpeau/reviewflow/commit/1ec802509472d53c7e8001b7fd1e50581ae11435))
+* **deps:** update dependency probot to v13.3.0 ([#972](https://github.com/christophehurpeau/reviewflow/issues/972)) ([6b75754](https://github.com/christophehurpeau/reviewflow/commit/6b757544a302882ffdcc7dcd000d5ff77342ae76))
+* **deps:** update dependency simple-oauth2 to v5.1.0 ([#980](https://github.com/christophehurpeau/reviewflow/issues/980)) ([d2ba359](https://github.com/christophehurpeau/reviewflow/commit/d2ba3597e40dfd88f814e4df400500078918b2ca))
+* **deps:** update react monorepo to v18.3.0 ([#962](https://github.com/christophehurpeau/reviewflow/issues/962)) ([c967b1d](https://github.com/christophehurpeau/reviewflow/commit/c967b1d5146c2ccb67b543d9a99a4b9e54000b0b))
+* disable automerge if there are no required checks ([fa07e42](https://github.com/christophehurpeau/reviewflow/commit/fa07e4259b26c2ee0108b3fd7231bf2a6e8b4b6a))
+* elax parse ticket in pr title and add status ([0c23252](https://github.com/christophehurpeau/reviewflow/commit/0c2325297b2506f7cfc83d7e9f8376cafb740fca))
+* enable checks/passed for elax ([#899](https://github.com/christophehurpeau/reviewflow/issues/899)) ([be7009d](https://github.com/christophehurpeau/reviewflow/commit/be7009dc347482cd4d3f9ae29d30d89fe7dd835b))
+* handle installation event ([6b654a4](https://github.com/christophehurpeau/reviewflow/commit/6b654a48abc8be048fdac16722b9ce97796fa38b))
+* improve reviewersWithState ([4bf6485](https://github.com/christophehurpeau/reviewflow/commit/4bf6485762d45c88724570ae50918ca83ca787d6))
+* improve slack home, add additional sections for prs waiting for review ([f296ffa](https://github.com/christophehurpeau/reviewflow/commit/f296ffaf5d314a1f7cd698d279465e2c45f4e6fc))
+* lintPullRequestTitleWithConventionalCommit for Elax ([f02b51c](https://github.com/christophehurpeau/reviewflow/commit/f02b51c4da90c19cbc4bb38824a1ee9107a2714b))
+* log errors ([cb96305](https://github.com/christophehurpeau/reviewflow/commit/cb96305989748c68e982dc7494c10534a878f952))
+* make draft pr a pending status instead of failed ([e4e50b2](https://github.com/christophehurpeau/reviewflow/commit/e4e50b2c660469718be4b6a6f868c2a783769bc2))
+* pob, commitlint, and conventional-changelog update ([147f05e](https://github.com/christophehurpeau/reviewflow/commit/147f05e75255e2cc6aab0a76a5d17f483acd9c59))
+* remove legacy code/approved auto approve label for renovate ([8abd582](https://github.com/christophehurpeau/reviewflow/commit/8abd5820b3cfc2a608e541e98a18acd0a0aeab4a))
+* use his/her instead of duplicated name for slack notifications with sender ([bc142d4](https://github.com/christophehurpeau/reviewflow/commit/bc142d43be528eb77660adad6a13fea9ea62b4c8))
+
+### Bug Fixes
+
+* catch error in slack post message ([bb54b18](https://github.com/christophehurpeau/reviewflow/commit/bb54b189d4eaa2cdcdd198592e10c2c696ad5cbf))
+* **deps:** update dependency body-parser to v1.20.2 ([#887](https://github.com/christophehurpeau/reviewflow/issues/887)) ([af71e3a](https://github.com/christophehurpeau/reviewflow/commit/af71e3a687b8bde80dcae1925c97ce534f66967c))
+* **deps:** update dependency cookie-parser to v1.4.7 ([#999](https://github.com/christophehurpeau/reviewflow/issues/999)) ([4f2ea0c](https://github.com/christophehurpeau/reviewflow/commit/4f2ea0cf850931502dcdfe1660b7aa9a894041e6))
+* **deps:** update dependency dotenv to v16.4.7 ([#448](https://github.com/christophehurpeau/reviewflow/issues/448)) ([53cd47f](https://github.com/christophehurpeau/reviewflow/commit/53cd47fd0766ac3c8d35b33d7ff86aa37632c5fe))
+* **deps:** update dependency express to v4.21.2 ([#1000](https://github.com/christophehurpeau/reviewflow/issues/1000)) ([7c63a79](https://github.com/christophehurpeau/reviewflow/commit/7c63a79307c4f8ff9da241428a049846ff40eb02))
+* **deps:** update dependency issue-parser to v7.0.1 ([#974](https://github.com/christophehurpeau/reviewflow/issues/974)) ([b821088](https://github.com/christophehurpeau/reviewflow/commit/b821088edd00a540d5a354e7766d500f0700af43))
+* filter closed prs with requested changes diplayed in slack home ([0ca7b67](https://github.com/christophehurpeau/reviewflow/commit/0ca7b67cc5f31b4681924967bd64e8adb8c7b885))
+* no ticket bug ([b66e3b4](https://github.com/christophehurpeau/reviewflow/commit/b66e3b439a1a8faed63c2b4b01fbbbe02b04eb19))
+* properly log error updating home ([0b4da97](https://github.com/christophehurpeau/reviewflow/commit/0b4da9739399647caa080a03985475821b77c867))
+* remove console.log ([9eabe5a](https://github.com/christophehurpeau/reviewflow/commit/9eabe5a2d8032526c226fb7c97fe54583fb87136))
+* tweak emojis and labels for better understanding ([ba9a7ec](https://github.com/christophehurpeau/reviewflow/commit/ba9a7ec104005a819ba14a34fef1e3964a4c4cca))
+* update slack home when pr is requested on a team ([c2dd906](https://github.com/christophehurpeau/reviewflow/commit/c2dd90646c851a05e4bd5a9503a533b913e37c33))
+
 ## [3.19.0](https://github.com/christophehurpeau/reviewflow/compare/v3.18.0...v3.19.0) (2025-01-11)
 
 ### Features
