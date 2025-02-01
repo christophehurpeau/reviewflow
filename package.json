@@ -75,7 +75,7 @@
     "cookie-parser": "1.4.7",
     "delay": "6.0.0",
     "dotenv": "16.4.7",
-    "emoji-regex": "10.3.0",
+    "emoji-regex": "10.4.0",
     "express": "4.21.2",
     "issue-parser": "7.0.1",
     "jsonwebtoken": "9.0.2",
