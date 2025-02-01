@@ -112,13 +112,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/config-conventional@npm:19.2.2, @commitlint/config-conventional@npm:^19.2.2":
-  version: 19.2.2
-  resolution: "@commitlint/config-conventional@npm:19.2.2"
+"@commitlint/config-conventional@npm:19.6.0, @commitlint/config-conventional@npm:^19.2.2":
+  version: 19.6.0
+  resolution: "@commitlint/config-conventional@npm:19.6.0"
   dependencies:
-    "@commitlint/types": "npm:^19.0.3"
+    "@commitlint/types": "npm:^19.5.0"
     conventional-changelog-conventionalcommits: "npm:^7.0.2"
-  checksum: 10c0/2f2a07ee318ac42ffda488521bd84f28268a6d2ea10b332abcad6106559d8a64a765cc58ddea106fd67fce376228cb24059000a584f4986e0e8f972cedd85442
+  checksum: 10c0/984870138f5d4b947bc2ea8d12fcb8103ef9e6141d0fb50a6e387665495b80b35890d9dc025443a243a53d2a69d7c0bab1d77c5658a6e5a15a3dd7773557fad2
   languageName: node
   linkType: hard
 
@@ -163,7 +163,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/is-ignored@npm:^19.2.2, @commitlint/is-ignored@npm:^19.6.0":
+"@commitlint/is-ignored@npm:^19.6.0":
   version: 19.6.0
   resolution: "@commitlint/is-ignored@npm:19.6.0"
   dependencies:
@@ -173,19 +173,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/lint@npm:19.2.2":
-  version: 19.2.2
-  resolution: "@commitlint/lint@npm:19.2.2"
-  dependencies:
-    "@commitlint/is-ignored": "npm:^19.2.2"
-    "@commitlint/parse": "npm:^19.0.3"
-    "@commitlint/rules": "npm:^19.0.3"
-    "@commitlint/types": "npm:^19.0.3"
-  checksum: 10c0/e7b3ca6027fecc1a3eda0ee8c21ecef0071ddddc7711a922cc6eb53a590c7e4f00d550b01134a5ebaaae603a0afbeaf65809b12f8099e08cace9d594cb69ff4b
-  languageName: node
-  linkType: hard
-
-"@commitlint/lint@npm:^19.6.0":
+"@commitlint/lint@npm:19.6.0, @commitlint/lint@npm:^19.6.0":
   version: 19.6.0
   resolution: "@commitlint/lint@npm:19.6.0"
   dependencies:
@@ -222,18 +210,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/parse@npm:19.0.3":
-  version: 19.0.3
-  resolution: "@commitlint/parse@npm:19.0.3"
-  dependencies:
-    "@commitlint/types": "npm:^19.0.3"
-    conventional-changelog-angular: "npm:^7.0.0"
-    conventional-commits-parser: "npm:^5.0.0"
-  checksum: 10c0/ede8d5bfb37520337ea7836a68f280cdb4b9788d0586b8be676394b3dd8a7a9626391178c4f94d334c5b8d95ea75c73939c40c8c9d81c372cf7743f5bff3d0e1
-  languageName: node
-  linkType: hard
-
-"@commitlint/parse@npm:^19.0.3, @commitlint/parse@npm:^19.5.0":
+"@commitlint/parse@npm:19.5.0, @commitlint/parse@npm:^19.5.0":
   version: 19.5.0
   resolution: "@commitlint/parse@npm:19.5.0"
   dependencies:
@@ -271,7 +248,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/rules@npm:^19.0.3, @commitlint/rules@npm:^19.6.0":
+"@commitlint/rules@npm:^19.6.0":
   version: 19.6.0
   resolution: "@commitlint/rules@npm:19.6.0"
   dependencies:
@@ -299,7 +276,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/types@npm:^19.0.3, @commitlint/types@npm:^19.5.0":
+"@commitlint/types@npm:^19.5.0":
   version: 19.5.0
   resolution: "@commitlint/types@npm:19.5.0"
   dependencies:
@@ -8766,9 +8743,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "reviewflow@workspace:."
   dependencies:
-    "@commitlint/config-conventional": "npm:19.2.2"
-    "@commitlint/lint": "npm:19.2.2"
-    "@commitlint/parse": "npm:19.0.3"
+    "@commitlint/config-conventional": "npm:19.6.0"
+    "@commitlint/lint": "npm:19.6.0"
+    "@commitlint/parse": "npm:19.5.0"
     "@octokit/core": "npm:5.0.2"
     "@octokit/rest": "npm:20.0.2"
     "@octokit/webhooks": "npm:12.0.10"
