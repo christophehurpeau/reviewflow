@@ -1627,9 +1627,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pob/root@npm:16.3.0":
-  version: 16.3.0
-  resolution: "@pob/root@npm:16.3.0"
+"@pob/root@npm:16.3.1":
+  version: 16.3.1
+  resolution: "@pob/root@npm:16.3.1"
   dependencies:
     "@commitlint/cli": "npm:19.7.1"
     "@pob/pretty-eslint-config": "npm:9.0.0"
@@ -1639,12 +1639,12 @@ __metadata:
     husky: "npm:~9.1.7"
     json5: "npm:^2.2.3"
     lint-staged: "npm:15.4.3"
-    pob-dependencies: "npm:17.3.0"
+    pob-dependencies: "npm:17.4.0"
     prettier: "npm:3.4.2"
     repository-check-dirty: "npm:10.0.0"
     semver: "npm:^7.3.7"
     which-pm-runs: "npm:1.1.0"
-    yarn-version: "npm:6.2.0"
+    yarn-version: "npm:6.2.1"
   bin:
     commitlint: ./bin/commitlint.js
     pob-root-lint-staged: ./bin/pob-root-lint-staged.js
@@ -1655,7 +1655,7 @@ __metadata:
     pretty-pkg: ./bin/pretty-pkg.js
     repository-check-dirty: ./bin/repository-check-dirty.js
     yarn-version: ./bin/yarn-version.js
-  checksum: 10c0/6d4f8c3d4a4ece061895b5f71bac5c141fde6a683fb622b62c081bc17547f62fb96570f6903b031e764c8fb7e8c6eb2132069335ce21d991ee237a1f2e2b9320
+  checksum: 10c0/a7a125a28f103a2e5de999cd32d62a8bacbc848a669d99a68a10db92e919bf3ebf681d12f231a650d968bd3857706dc28900977f3ec44a693306b8b8b49c55d1
   languageName: node
   linkType: hard
 
@@ -8196,10 +8196,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pob-dependencies@npm:17.3.0":
-  version: 17.3.0
-  resolution: "pob-dependencies@npm:17.3.0"
-  checksum: 10c0/bce7757793fd6c539386d2d4d01972eb8c8b05dc78e6b7cd8107c72cfa83e14f3753118438cbb30ee1f3243898f96b4f93faa3e81d34afa200dcd5573e7b7e32
+"pob-dependencies@npm:17.4.0":
+  version: 17.4.0
+  resolution: "pob-dependencies@npm:17.4.0"
+  checksum: 10c0/e040e266eb3e2c13e1004849bb0c619f216fe3ebaeda4ca72b888e77ed8523b9b06903f23931dd653fee36f5cfa95eba5fd095b6a1f553ac45af4a0516d1a53f
   languageName: node
   linkType: hard
 
@@ -8790,7 +8790,7 @@ __metadata:
     "@pob/eslint-config-typescript": "npm:59.5.1"
     "@pob/eslint-config-typescript-react": "npm:59.5.1"
     "@pob/rollup-esbuild": "npm:6.2.0"
-    "@pob/root": "npm:16.3.0"
+    "@pob/root": "npm:16.3.1"
     "@slack/web-api": "npm:6.13.0"
     "@tryfabric/mack": "npm:1.2.1"
     "@types/body-parser": "npm:1.19.5"
@@ -9046,12 +9046,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:7.7.0, semver@npm:^7.1.1, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.5.2, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0, semver@npm:^7.6.3":
-  version: 7.7.0
-  resolution: "semver@npm:7.7.0"
+"semver@npm:7.7.1, semver@npm:^7.1.1, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.5.2, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0, semver@npm:^7.6.3":
+  version: 7.7.1
+  resolution: "semver@npm:7.7.1"
   bin:
     semver: bin/semver.js
-  checksum: 10c0/bcd1c03209b4be7d8ca86c976a0410beba7d4ec1d49d846a4be154b958db1ff5eaee50760c1d4f4070b19dee3236b8672d3e09642c53ea23740398bba2538a2d
+  checksum: 10c0/fd603a6fb9c399c6054015433051bdbe7b99a940a8fb44b85c2b524c4004b023d7928d47cb22154f8d054ea7ee8597f586605e05b52047f048278e4ac56ae958
   languageName: node
   linkType: hard
 
@@ -10555,9 +10555,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yarn-version@npm:6.2.0":
-  version: 6.2.0
-  resolution: "yarn-version@npm:6.2.0"
+"yarn-version@npm:6.2.1":
+  version: 6.2.1
+  resolution: "yarn-version@npm:6.2.1"
   dependencies:
     "@conventional-changelog/git-client": "npm:1.0.1"
     "@npmcli/map-workspaces": "npm:4.0.2"
@@ -10572,10 +10572,10 @@ __metadata:
     conventional-commits-parser: "npm:6.0.0"
     nightingale: "npm:15.0.0"
     nightingale-console: "npm:15.0.0"
-    semver: "npm:7.7.0"
+    semver: "npm:7.7.1"
   bin:
     yarn-version: ./dist/index-node.mjs
-  checksum: 10c0/fa32a1f0f73d3084dd5b205713fbe1e928fb221db1c0c063d0336b74de9d4f67b18878ac9fbec9f5e54ab6f346c1d504ca52220ef4012f94569fd9e6aff17904
+  checksum: 10c0/d5e2d12671a66406f717a93e00cd1048e8f86957ced6a2ddca28678d79b4e774088a3a48f5add5e9be822c8e200ec4b9d7a0bc7c7ca32f0ba5d22a9db1a2435d
   languageName: node
   linkType: hard
 
