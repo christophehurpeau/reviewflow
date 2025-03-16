@@ -103,7 +103,7 @@
     "@types/react": "18.3.18",
     "@types/react-dom": "18.3.5",
     "@types/simple-oauth2": "5.0.7",
-    "@vitest/coverage-v8": "2.1.8",
+    "@vitest/coverage-v8": "2.1.9",
     "check-package-dependencies": "9.1.0",
     "eslint": "9.19.0",
     "nock": "14.0.0",
