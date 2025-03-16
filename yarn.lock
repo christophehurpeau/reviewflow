@@ -3742,7 +3742,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chalk@npm:^5.2.0, chalk@npm:^5.3.0, chalk@npm:^5.4.1":
+"chalk@npm:^5.3.0, chalk@npm:^5.4.1":
   version: 5.4.1
   resolution: "chalk@npm:5.4.1"
   checksum: 10c0/b23e88132c702f4855ca6d25cb5538b1114343e41472d5263ee8a37cccfccd9c4216d111e1097c6a27830407a1dc81fecdf2a56f2c63033d4dbbd88c10b0dcef
@@ -3777,21 +3777,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"check-package-dependencies@npm:9.1.0":
-  version: 9.1.0
-  resolution: "check-package-dependencies@npm:9.1.0"
+"check-package-dependencies@npm:9.2.0":
+  version: 9.2.0
+  resolution: "check-package-dependencies@npm:9.2.0"
   dependencies:
     "@eslint/plugin-kit": "npm:^0.2.5"
-    chalk: "npm:^5.2.0"
+    chalk: "npm:^5.4.1"
     import-meta-resolve: "npm:^4.1.0"
     jsonc-parser: "npm:^3.3.1"
-    semver: "npm:^7.5.4"
+    semver: "npm:^7.7.1"
     semver-utils: "npm:^1.1.4"
     tslib: "npm:^2.8.1"
-    type-fest: "npm:^4.0.0"
+    type-fest: "npm:^4.34.0"
   bin:
     check-package-dependencies: ./bin/check-package-dependencies.mjs
-  checksum: 10c0/ce63434da26f0b33382edeaf1f24e0d902732cdb5cd3f5631fc74e6bdc20354a14741f27e1c0eba2bbe8eb6f26a6ff2bfceb9002dc4fb203cfc016eebbbda40d
+  checksum: 10c0/c5f7f45bb920224a96bb43fd5ef3a39b13105dca8486fa38bc236b56e69e5d9399ea0db86ed772575a088a010e7428171c4927182af5136236a46940287f991f
   languageName: node
   linkType: hard
 
@@ -9380,7 +9380,7 @@ __metadata:
     "@types/simple-oauth2": "npm:5.0.7"
     "@vitest/coverage-v8": "npm:2.1.9"
     body-parser: "npm:1.20.3"
-    check-package-dependencies: "npm:9.1.0"
+    check-package-dependencies: "npm:9.2.0"
     conventional-changelog-conventionalcommits: "npm:8.0.0"
     cookie-parser: "npm:1.4.7"
     delay: "npm:6.0.0"
@@ -9629,7 +9629,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:7.7.0, semver@npm:^7.1.1, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.5.2, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0, semver@npm:^7.6.3":
+"semver@npm:7.7.0":
   version: 7.7.0
   resolution: "semver@npm:7.7.0"
   bin:
@@ -9644,6 +9644,15 @@ __metadata:
   bin:
     semver: bin/semver.js
   checksum: 10c0/e3d79b609071caa78bcb6ce2ad81c7966a46a7431d9d58b8800cfa9cb6a63699b3899a0e4bcce36167a284578212d9ae6942b6929ba4aa5015c079a67751d42d
+  languageName: node
+  linkType: hard
+
+"semver@npm:^7.1.1, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.5.2, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0, semver@npm:^7.6.3, semver@npm:^7.7.1":
+  version: 7.7.1
+  resolution: "semver@npm:7.7.1"
+  bin:
+    semver: bin/semver.js
+  checksum: 10c0/fd603a6fb9c399c6054015433051bdbe7b99a940a8fb44b85c2b524c4004b023d7928d47cb22154f8d054ea7ee8597f586605e05b52047f048278e4ac56ae958
   languageName: node
   linkType: hard
 
@@ -10441,7 +10450,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-fest@npm:4.33.0, type-fest@npm:^4.0.0, type-fest@npm:^4.6.0, type-fest@npm:^4.7.1":
+"type-fest@npm:4.33.0":
   version: 4.33.0
   resolution: "type-fest@npm:4.33.0"
   checksum: 10c0/20015eea353605e08e3f4b967291b225fa4e7c43361de44f39b88131715e41877458af80da59c8f17e40c0e3842298996f0651219dc9823e35c7e46ecbc8a44f
@@ -10466,6 +10475,13 @@ __metadata:
   version: 0.8.1
   resolution: "type-fest@npm:0.8.1"
   checksum: 10c0/dffbb99329da2aa840f506d376c863bd55f5636f4741ad6e65e82f5ce47e6914108f44f340a0b74009b0cb5d09d6752ae83203e53e98b1192cf80ecee5651636
+  languageName: node
+  linkType: hard
+
+"type-fest@npm:^4.34.0, type-fest@npm:^4.6.0, type-fest@npm:^4.7.1":
+  version: 4.37.0
+  resolution: "type-fest@npm:4.37.0"
+  checksum: 10c0/5bad189f66fbe3431e5d36befa08cab6010e56be68b7467530b7ef94c3cf81ef775a8ac3047c8bbda4dd3159929285870357498d7bc1df062714f9c5c3a84926
   languageName: node
   linkType: hard
 
