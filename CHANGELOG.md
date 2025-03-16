@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.1.0](https://github.com/christophehurpeau/reviewflow/compare/v4.0.0...v4.1.0) (2025-03-16)
+
+### Features
+
+* **deps:** update commitlint monorepo ([#1016](https://github.com/christophehurpeau/reviewflow/issues/1016)) ([73a644d](https://github.com/christophehurpeau/reviewflow/commit/73a644d671778d1c0dda5ce3f7856f4da9cda884))
+* option to autoclose renovate prs ([955a5c8](https://github.com/christophehurpeau/reviewflow/commit/955a5c8e3abb10ae4c70a924be7b15220d13afd1))
+* update emoji-regex ([b1587af](https://github.com/christophehurpeau/reviewflow/commit/b1587affafac0d26201fead234835049bb3bc81d))
+* update probot ([7cba14f](https://github.com/christophehurpeau/reviewflow/commit/7cba14f4943dd9e9570cb1fa4603771117fb8325))
+* update slackify-markdown ([ec7bbf6](https://github.com/christophehurpeau/reviewflow/commit/ec7bbf6e319c7b04f3bee5f27ae7e061145a2a8d))
+
+### Bug Fixes
+
+* **deps:** update react monorepo ([#963](https://github.com/christophehurpeau/reviewflow/issues/963)) ([d37b1ea](https://github.com/christophehurpeau/reviewflow/commit/d37b1ea4449481543759d1a8945ee27352da09f5))
+* error searching pr log message ([3e6d473](https://github.com/christophehurpeau/reviewflow/commit/3e6d473a68894be5ea7afbe6f103246655f8ec5c))
+* error updating home log message ([470de59](https://github.com/christophehurpeau/reviewflow/commit/470de59a983d49fd3225823f711543ae6d48e8e8))
+* fix ip security issue ([87de11a](https://github.com/christophehurpeau/reviewflow/commit/87de11a11f6af15e5c25e809fdde848d78a34005))
+* handle inactive slack account ([0ba81c4](https://github.com/christophehurpeau/reviewflow/commit/0ba81c4ccdfe254eed5c85c20ea86e7f02166f92))
+* log error message ([4136c59](https://github.com/christophehurpeau/reviewflow/commit/4136c59b367c168b12ffc29da9fdd2947b3fbac3))
+
 ## 4.0.0 (2025-02-01)
 
 ### ⚠ BREAKING CHANGES
