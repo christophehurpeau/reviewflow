@@ -10,6 +10,7 @@ import type { ReviewflowPr } from "../../../mongo";
 import { ExcludesFalsy } from "../../../utils/Excludes";
 import { checkIfUserIsBot } from "../../../utils/github/isBotUser";
 import type { ChecksAndStatuses } from "../../../utils/github/pullRequest/checksAndStatuses";
+import { isPrFromRenovateBot } from "../../../utils/github/renovate";
 import type { ProbotEvent } from "../../probot-types";
 import type {
   PullRequestLabels,
@@ -95,6 +96,8 @@ export const editOpenedPR = async <
   const isPrFromBot = !pullRequest.user
     ? false
     : checkIfUserIsBot(repoContext, pullRequest.user);
+
+  const isRenovatePr = isPrFromRenovateBot(pullRequest);
 
   const statuses: ReviewflowStatus[] = [];
   let errorStatus: StatusInfo | undefined;
@@ -391,5 +394,18 @@ export const editOpenedPR = async <
       requestedTeams: true,
       teamMembers,
     });
+  }
+
+  if (
+    isRenovatePr &&
+    repoContext.config.experimentalFeatures?.autoCloseAbandonedPrs &&
+    pullRequest.title.endsWith(" - abandoned")
+  ) {
+    await context.octokit.pulls.update(
+      context.repo({
+        pull_number: pullRequest.number,
+        state: "closed",
+      }),
+    );
   }
 };

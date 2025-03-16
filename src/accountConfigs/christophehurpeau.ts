@@ -12,6 +12,7 @@ const config: Config<never> = {
   lintPullRequestTitleWithConventionalCommit: true,
   experimentalFeatures: {
     conventionalCommitBangBreakingChange: true,
+    autoCloseAbandonedPrs: true,
     betterSlackify: true,
   },
   teams: {},

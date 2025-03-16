@@ -64,6 +64,7 @@ export interface LabelsConfig {
 interface ExperimentalFeatures {
   conventionalCommitBangBreakingChange?: true;
   betterSlackify?: true;
+  autoCloseAbandonedPrs?: true;
 }
 
 interface WarnOnForcePushAfterReviewStarted {

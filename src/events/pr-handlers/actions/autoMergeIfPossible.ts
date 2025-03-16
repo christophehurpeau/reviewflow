@@ -5,6 +5,7 @@ import type {
 import type { AutomergeLog } from "../../../mongo";
 import { areCommitsAllMadeByBots } from "../../../utils/github/isBotUser";
 import { getChecksAndStatusesForPullRequest } from "../../../utils/github/pullRequest/checksAndStatuses";
+import { isPrFromRenovateBot } from "../../../utils/github/renovate";
 import type { ProbotEvent } from "../../probot-types";
 import type {
   PullRequestFromRestEndpoint,
@@ -92,7 +93,7 @@ export const autoMergeIfPossibleLegacy = async <
     return Promise.resolve();
   };
 
-  const isRenovatePr = pullRequest.head.ref.startsWith("renovate/");
+  const isRenovatePr = isPrFromRenovateBot(pullRequest);
 
   if (pullRequest.state !== "open") {
     await repoContext.removePrFromAutomergeQueue(
