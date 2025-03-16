@@ -12,7 +12,11 @@ await createCheckPackage()
     },
   })
   .checkSatisfiesVersionsFromDependency("probot", {
-    dependencies: ["@octokit/core", "@octokit/webhooks"],
+    dependencies: [
+      "@octokit/core",
+      "@octokit/webhooks",
+      "@octokit/plugin-rest-endpoint-methods",
+    ],
   })
   .checkSatisfiesVersionsBetweenDependencies({
     "@octokit/rest": {

@@ -27,4 +27,6 @@ export const areCommitsAllMadeByBots = (
   repoContext: RepoContext,
   commits: RestEndpointMethodTypes["pulls"]["listCommits"]["response"]["data"],
 ): boolean =>
-  commits.every((c) => c.author && checkIfUserIsBot(repoContext, c.author));
+  commits.every(
+    (c) => c.author && checkIfUserIsBot(repoContext, c.author as BasicUser),
+  );

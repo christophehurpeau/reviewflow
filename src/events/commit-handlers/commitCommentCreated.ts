@@ -14,6 +14,7 @@ import { checkIfUserIsBot } from "../../utils/github/isBotUser";
 import { parseMentions } from "../../utils/github/parseMentions";
 import { createSlackMessageWithSecondaryBlock } from "../../utils/slack/createSlackMessageWithSecondaryBlock";
 import { slackifyCommentBody } from "../../utils/slackifyCommentBody";
+import type { BasicUser } from "../pr-handlers/utils/PullRequestData";
 import { createCommitHandler } from "./utils/createCommitHandler";
 import { fetchCommitComments } from "./utils/fetchCommitComments";
 
@@ -120,7 +121,7 @@ export default function commitCommentCreated(
           author.id !== comment.user.id &&
           postMessage(
             isBotUser ? "commit-comment-bots" : "commit-comment",
-            author,
+            author as BasicUser,
             authorSlackMessage,
           ).then(
             (result) =>
