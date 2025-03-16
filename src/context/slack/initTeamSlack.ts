@@ -99,6 +99,13 @@ export const initTeamSlack = async <TeamNames extends string>(
       });
       return im.channel;
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === "An API error occurred: account_inactive"
+      ) {
+        // TODO save in db that the user is inactive and display a error message in app
+        return null;
+      }
       context.log.error(
         `Could not create im for ${userId}: ${error instanceof Error ? error.message : String(error)}`,
       );
