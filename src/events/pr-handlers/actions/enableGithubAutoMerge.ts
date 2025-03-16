@@ -191,7 +191,7 @@ The pull request must be in a state where requirements have not yet been satisfi
     };
   } catch (error) {
     context.log.error(
-      "Could not enable automerge",
+      `Could not enable automerge: ${(error as any)?.message}`,
       context.repo({
         issue_number: pullRequest.number,
       }),
