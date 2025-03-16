@@ -1424,29 +1424,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/webhooks-methods@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "@octokit/webhooks-methods@npm:4.0.0"
-  checksum: 10c0/67182bf353b5fad1832d8d2647192348e3cf17aed8b8feeb8c10f680691c176b51f133d143aee43961f0eac3cd848b2f993fa03c7477980fc9a926bd8d7ba934
+"@octokit/webhooks-methods@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "@octokit/webhooks-methods@npm:4.1.0"
+  checksum: 10c0/153b344b4b20b48fdf89225f482bd9aa612998c28e43d032756d5a2ec7ebf117922fb6a95ee7c0a985cab6924fa4de3378c60e9ff41e384498b8cb7aad3771f2
   languageName: node
   linkType: hard
 
-"@octokit/webhooks-types@npm:7.1.0":
-  version: 7.1.0
-  resolution: "@octokit/webhooks-types@npm:7.1.0"
-  checksum: 10c0/5a293214d8c7ba72bab1e866c308005c55b3588c13f4d1ed101726fd362ff584282e7f9a486852d7fe87d15a547a3b234e31d8c559170ecf453d7305fbe4924a
+"@octokit/webhooks-types@npm:7.6.1":
+  version: 7.6.1
+  resolution: "@octokit/webhooks-types@npm:7.6.1"
+  checksum: 10c0/7c2cb40f9ccd2bd392cf35c23f995ae0719ef35fd3bce0264ced5518cbf0a7087bd069bf5e5963fc33d0232726968db526912df3cb017c1bd1761c8849c31a30
   languageName: node
   linkType: hard
 
-"@octokit/webhooks@npm:12.0.10, @octokit/webhooks@npm:^12.0.10":
-  version: 12.0.10
-  resolution: "@octokit/webhooks@npm:12.0.10"
+"@octokit/webhooks@npm:12.3.1, @octokit/webhooks@npm:^12.0.10":
+  version: 12.3.1
+  resolution: "@octokit/webhooks@npm:12.3.1"
   dependencies:
     "@octokit/request-error": "npm:^5.0.0"
-    "@octokit/webhooks-methods": "npm:^4.0.0"
-    "@octokit/webhooks-types": "npm:7.1.0"
+    "@octokit/webhooks-methods": "npm:^4.1.0"
+    "@octokit/webhooks-types": "npm:7.6.1"
     aggregate-error: "npm:^3.1.0"
-  checksum: 10c0/ace6483d3ac404213465ea3b4b0f0ae53ed2db47f2cb9664508c527c736f8bd605a4751207c4ba9508d75bea79be27534137af5c8916fcb8865465152b57156f
+  checksum: 10c0/9330723851b0e5995dc1e9094b220bb4fed136af135ad9fa474202562d5f17c8372c01c725f357530aa1d0fe6230364afd4d88c0241cfdd057bde4e7c78d7d76
   languageName: node
   linkType: hard
 
@@ -9336,7 +9336,7 @@ __metadata:
     "@octokit/core": "npm:5.2.0"
     "@octokit/plugin-rest-endpoint-methods": "npm:13.3.2-cjs.1"
     "@octokit/rest": "npm:20.1.2"
-    "@octokit/webhooks": "npm:12.0.10"
+    "@octokit/webhooks": "npm:12.3.1"
     "@pob/commitlint-config": "npm:9.1.0"
     "@pob/eslint-config": "npm:59.5.1"
     "@pob/eslint-config-typescript": "npm:59.5.1"
