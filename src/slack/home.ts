@@ -414,7 +414,7 @@ export const createSlackHomeWorker = (
             orgLogin: member.org.login,
             blocks,
           },
-          "Error updating home",
+          `Error updating home: ${(error as any)?.message}`,
         );
       });
   };
