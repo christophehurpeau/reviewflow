@@ -112,13 +112,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/config-conventional@npm:19.6.0, @commitlint/config-conventional@npm:^19.6.0":
+"@commitlint/config-conventional@npm:19.6.0":
   version: 19.6.0
   resolution: "@commitlint/config-conventional@npm:19.6.0"
   dependencies:
     "@commitlint/types": "npm:^19.5.0"
     conventional-changelog-conventionalcommits: "npm:^7.0.2"
   checksum: 10c0/984870138f5d4b947bc2ea8d12fcb8103ef9e6141d0fb50a6e387665495b80b35890d9dc025443a243a53d2a69d7c0bab1d77c5658a6e5a15a3dd7773557fad2
+  languageName: node
+  linkType: hard
+
+"@commitlint/config-conventional@npm:^19.8.0":
+  version: 19.8.0
+  resolution: "@commitlint/config-conventional@npm:19.8.0"
+  dependencies:
+    "@commitlint/types": "npm:^19.8.0"
+    conventional-changelog-conventionalcommits: "npm:^7.0.2"
+  checksum: 10c0/c0e2ad4ee8b793ad08ce8f0fd242d8111c71c81eba53b652431b7852e02d3eef0a383e234b7574429f5d1876b712a915921f6ff61fdaccdf708cbbaf3fa1f2f0
   languageName: node
   linkType: hard
 
@@ -288,13 +298,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/types@npm:^19.5.0":
-  version: 19.5.0
-  resolution: "@commitlint/types@npm:19.5.0"
+"@commitlint/types@npm:^19.5.0, @commitlint/types@npm:^19.8.0":
+  version: 19.8.0
+  resolution: "@commitlint/types@npm:19.8.0"
   dependencies:
     "@types/conventional-commits-parser": "npm:^5.0.0"
     chalk: "npm:^5.3.0"
-  checksum: 10c0/f4a93992f43b23cd5af200c69bb73227fdc0f78a6f7ebcda73dad10d558c1ac66ff164aa6dc3c2ddb322c9ed8b1a89b05f458e40d7c440a0358f435d2d71c2df
+  checksum: 10c0/634a5db20110675da8ddf226f200c33f262c6e99d06853fd4a2f6d543e6cc7dfe48b045f7ae76bcce2e39595099bfebe6a5dd6da37ff2968733c1263b8d46644
   languageName: node
   linkType: hard
 
@@ -1919,12 +1929,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pob/commitlint-config@npm:9.1.0":
-  version: 9.1.0
-  resolution: "@pob/commitlint-config@npm:9.1.0"
+"@pob/commitlint-config@npm:9.1.4":
+  version: 9.1.4
+  resolution: "@pob/commitlint-config@npm:9.1.4"
   dependencies:
-    "@commitlint/config-conventional": "npm:^19.6.0"
-  checksum: 10c0/8b7b23f74f2a5752a3a0f7a2021956db90f3a3b20a4ea9df61be5d252a0e11ef0b5e04fb22d3b1bc1ffb444505baae0c6b54bad4cda96cf76b67b1639f78ee4e
+    "@commitlint/config-conventional": "npm:^19.8.0"
+  checksum: 10c0/008502a739b3a59b82c6b830325efb589483a57af9b3b584f4e700e5ef2a8762e75533081066fe347ef91ba2ad58abd7654f7c54e70fe2ea3191c9c13f80b2be
   languageName: node
   linkType: hard
 
@@ -9361,7 +9371,7 @@ __metadata:
     "@octokit/plugin-rest-endpoint-methods": "npm:13.3.2-cjs.1"
     "@octokit/rest": "npm:20.1.2"
     "@octokit/webhooks": "npm:12.0.10"
-    "@pob/commitlint-config": "npm:9.1.0"
+    "@pob/commitlint-config": "npm:9.1.4"
     "@pob/eslint-config": "npm:59.5.1"
     "@pob/eslint-config-typescript": "npm:59.5.1"
     "@pob/eslint-config-typescript-react": "npm:59.5.1"
