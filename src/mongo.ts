@@ -2,7 +2,6 @@
 import type { MongoBaseModel } from "liwi-mongo";
 import { MongoConnection, MongoStore } from "liwi-mongo";
 import type { AccountInfo } from "./context/getOrCreateAccount";
-import type { LockedMergePr } from "./context/repoContext";
 import type { SlackMessage } from "./context/slack/SlackMessage";
 import type { MessageCategory } from "./dm/MessageCategory";
 import type { ReviewflowStatus } from "./events/pr-handlers/actions/editOpenedPR";
@@ -139,28 +138,6 @@ export interface SlackSentMessage extends MongoBaseModel {
   }[];
 }
 
-export interface AutomergeLog extends MongoBaseModel {
-  account: AccountEmbed;
-  repoFullName: string;
-  pr: {
-    id: number;
-    number: number;
-    isRenovate: boolean;
-    mergeableState: string;
-  };
-  type:
-    | "already merged"
-    | "behind mergeable_state"
-    | "blocked mergeable_state"
-    | "failed status or checks"
-    | "not mergeable"
-    | "pending status or checks"
-    | "rebase-renovate"
-    | "review incomplete"
-    | "unknown mergeable_state";
-  action: "remove" | "reschedule" | "update branch" | "wait";
-}
-
 interface ReviewflowPrChangesInformation {
   changedFiles: number;
   additions: number;
@@ -198,12 +175,6 @@ export interface ReviewflowPr extends MongoBaseModel {
   // flowHistory: FlowHistory[];
 }
 
-export interface RepositoryMergeQueue extends MongoBaseModel {
-  account: AccountEmbed;
-  repo: RepoEmbed;
-  queue: LockedMergePr[];
-}
-
 export interface InstallationEvent extends MongoBaseModel {
   installationId: number;
   account: AccountEmbed;
@@ -223,9 +194,7 @@ export interface MongoStores {
   slackTeams: MongoStore<SlackTeam>;
   slackTeamInstallations: MongoStore<SlackTeamInstallation>;
   slackSentMessages: MongoStore<SlackSentMessage>;
-  automergeLogs: MongoStore<AutomergeLog>;
   prs: MongoStore<ReviewflowPr>;
-  repositoryMergeQueue: MongoStore<RepositoryMergeQueue>;
   installationsEvents: MongoStore<InstallationEvent>;
   // prEvents: MongoStore<PrEventsModel>;
 }
@@ -309,25 +278,6 @@ export default function init(): MongoStores {
     });
   });
 
-  const automergeLogs = new MongoStore<AutomergeLog>(
-    connection,
-    "automergeLogs",
-  );
-  automergeLogs.collection.then((coll) => {
-    coll.createIndex({
-      repoFullName: 1,
-      type: 1,
-    });
-    coll.createIndex({
-      repoFullName: 1,
-      "pr.number": 1,
-    });
-    // remove older than 30 days
-    coll.deleteMany({
-      created: { $lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
-    });
-  });
-
   const prs = new MongoStore<ReviewflowPr>(connection, "prs");
   prs.collection.then((coll) => {
     coll.createIndex(
@@ -365,20 +315,6 @@ export default function init(): MongoStores {
     });
   });
 
-  const repositoryMergeQueue = new MongoStore<RepositoryMergeQueue>(
-    connection,
-    "repositoryMergeQueue",
-  );
-  repositoryMergeQueue.collection.then((coll) => {
-    coll.createIndex(
-      {
-        "account.id": 1,
-        "repo.id": 1,
-      },
-      { unique: true },
-    );
-  });
-
   const installationsEvents = new MongoStore<InstallationEvent>(
     connection,
     "installationsEvents",
@@ -399,10 +335,8 @@ export default function init(): MongoStores {
     slackTeams,
     slackTeamInstallations,
     slackSentMessages,
-    automergeLogs,
     repositories,
     prs,
-    repositoryMergeQueue,
     installationsEvents,
   };
 }

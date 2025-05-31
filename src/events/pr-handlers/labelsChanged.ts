@@ -1,7 +1,6 @@
 import type { Probot } from "probot";
 import type { AppContext } from "../../context/AppContext";
 import type { ProbotEvent } from "../probot-types";
-import { autoMergeIfPossibleLegacy } from "./actions/autoMergeIfPossible";
 import { disableGithubAutoMerge } from "./actions/enableGithubAutoMerge";
 import { tryToAutomerge } from "./actions/tryToAutomerge";
 import { updateBranch } from "./actions/updateBranch";
@@ -153,15 +152,6 @@ export default function labelsChanged(
             });
             return;
           }
-
-          if (!repoContext.settings.allowAutoMerge) {
-            await autoMergeIfPossibleLegacy(
-              updatedPr,
-              context,
-              repoContext,
-              reviewflowPrContext,
-            );
-          }
         } else if (context.payload.action === "unlabeled") {
         }
         return;
@@ -256,12 +246,6 @@ export default function labelsChanged(
                 }),
               );
             }
-          } else {
-            await repoContext.removePrFromAutomergeQueue(
-              context,
-              pullRequest,
-              "automerge label removed",
-            );
           }
         }
       }

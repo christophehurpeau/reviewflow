@@ -14,9 +14,9 @@ import type {
   BasicUser,
   PullRequestWithDecentData,
 } from "../utils/PullRequestData";
+import { createPrMinimumDataFromPr } from "../utils/createPrMinimumDataFromPr";
 import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
-import { createMergeLockPrFromPr } from "../utils/mergeLock";
-import { createCommitMessage } from "./autoMergeIfPossible";
+import { createCommitMessage } from "./createCommitMessage";
 import { parseBody } from "./utils/body/parseBody";
 
 export interface MergeOrEnableGithubAutoMergeResult {
@@ -115,7 +115,7 @@ export const mergeOrEnableGithubAutoMerge = async <
       // GitHub is determining whether the pull request is mergeable
       await repoContext.reschedule(
         context,
-        createMergeLockPrFromPr(pullRequest),
+        createPrMinimumDataFromPr(pullRequest),
         rescheduleTime,
         user,
       );
@@ -136,6 +136,19 @@ export const mergeOrEnableGithubAutoMerge = async <
         isRescheduled: false,
       };
     }
+  }
+
+  if (pullRequest.mergeable_state === "blocked") {
+    await repoContext.reschedule(
+      context,
+      createPrMinimumDataFromPr(pullRequest),
+      "long+timeout",
+    );
+
+    return {
+      wasMerged: false,
+      isRescheduled: true,
+    };
   }
 
   let triedToMerge = false;

@@ -57,11 +57,6 @@ export default function closed(app: Probot, appContext: AppContext): void {
 
           await Promise.all([
             updateClosedPromise,
-            repoContext.removePrFromAutomergeQueue(
-              context,
-              pullRequest,
-              "pr closed",
-            ),
             isNotFork && options.deleteAfterMerge
               ? context.octokit.git
                   .deleteRef(
@@ -78,11 +73,6 @@ export default function closed(app: Probot, appContext: AppContext): void {
         } else {
           await Promise.all([
             updateClosedPromise,
-            repoContext.removePrFromAutomergeQueue(
-              context,
-              pullRequest,
-              "pr closed",
-            ),
             updateReviewStatus(pullRequest, context, repoContext, stepsState),
             updateStatusCheckFromStepsState(
               stepsState,

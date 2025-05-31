@@ -130,11 +130,6 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
               reviewflowPrContext,
             );
           } else {
-            await repoContext.removePrFromAutomergeQueue(
-              context,
-              pullRequest,
-              "label removed",
-            );
             return true;
           }
         },

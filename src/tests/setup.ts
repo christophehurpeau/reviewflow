@@ -16,7 +16,6 @@ export const initializeProbotApp = async ({
   orgMembers,
   users,
   prs,
-  repositoryMergeQueue,
   repositories,
 }: Partial<any> = {}): Promise<Probot> => {
   const probot = new Probot({
@@ -69,11 +68,6 @@ export const initializeProbotApp = async ({
           assignees: [],
         }),
       ...prs,
-    },
-
-    repositoryMergeQueue: {
-      findOne: () => Promise.resolve({ queue: [] }),
-      ...repositoryMergeQueue,
     },
   };
 

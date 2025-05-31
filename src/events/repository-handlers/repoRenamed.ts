@@ -39,17 +39,6 @@ export default function repoRenamed(app: Probot, appContext: AppContext): void {
             },
           },
         ),
-        appContext.mongoStores.repositoryMergeQueue.partialUpdateMany(
-          {
-            "account.id": orgContext.accountEmbed.id,
-            "repo.id": repo.id,
-          },
-          {
-            $set: {
-              "repo.name": repo.name,
-            },
-          },
-        ),
       ]);
     },
   );

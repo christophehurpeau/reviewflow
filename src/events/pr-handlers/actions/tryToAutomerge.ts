@@ -6,7 +6,6 @@ import type { ProbotEvent } from "../../probot-types";
 import type { BasicUser, PullRequestLabels } from "../utils/PullRequestData";
 import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
 import type { PullRequestFromRestEndpoint } from "../utils/fetchPr";
-import { autoMergeIfPossibleLegacy } from "./autoMergeIfPossible";
 import type { MergeOrEnableGithubAutoMergeResult } from "./enableGithubAutoMerge";
 import { mergeOrEnableGithubAutoMerge } from "./enableGithubAutoMerge";
 import hasLabelInPR from "./utils/labels/hasLabelInPR";
@@ -54,29 +53,16 @@ export async function tryToAutomerge<
     return { wasMerged: false, didFailedToEnableAutoMerge: true };
   }
 
-  if (repoContext.settings.allowAutoMerge) {
-    return mergeOrEnableGithubAutoMerge(
-      pullRequest,
-      context,
-      repoContext,
-      reviewflowPrContext,
-      user,
-      !isAllStepsExceptMergePassed(stepsState),
-    );
-  } else {
-    if (!isAllStepsExceptMergePassed(stepsState)) {
-      return {
-        wasMerged: false,
-      };
-    }
-
-    const wasMerged = await autoMergeIfPossibleLegacy(
-      pullRequest,
-      context,
-      repoContext,
-      reviewflowPrContext,
-    );
-
-    return { wasMerged };
+  if (!repoContext.settings.allowAutoMerge) {
+    return { wasMerged: false };
   }
+
+  return mergeOrEnableGithubAutoMerge(
+    pullRequest,
+    context,
+    repoContext,
+    reviewflowPrContext,
+    user,
+    !isAllStepsExceptMergePassed(stepsState),
+  );
 }

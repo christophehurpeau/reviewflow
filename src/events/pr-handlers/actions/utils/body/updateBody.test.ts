@@ -16,7 +16,7 @@ import {
 const repositorySettings: RepositorySettings = {
   defaultBranch: "main",
   deleteBranchOnMerge: false,
-  allowAutoMerge: false,
+  allowAutoMerge: true,
   allowRebaseMerge: false,
   allowSquashMerge: true,
   allowMergeCommit: true,
