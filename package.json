@@ -104,13 +104,13 @@
     "@types/react": "18.3.18",
     "@types/react-dom": "18.3.5",
     "@types/simple-oauth2": "5.0.7",
-    "@vitest/coverage-v8": "2.1.9",
+    "@vitest/coverage-v8": "3.2.3",
     "check-package-dependencies": "9.1.0",
     "eslint": "9.19.0",
     "nock": "14.0.1",
     "smee-client": "2.0.4",
     "type-fest": "4.33.0",
     "typescript": "5.7.3",
-    "vitest": "2.1.9"
+    "vitest": "3.2.3"
   }
 }
