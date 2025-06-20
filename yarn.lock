@@ -2345,13 +2345,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/body-parser@npm:*, @types/body-parser@npm:1.19.5":
-  version: 1.19.5
-  resolution: "@types/body-parser@npm:1.19.5"
+"@types/body-parser@npm:*, @types/body-parser@npm:1.19.6":
+  version: 1.19.6
+  resolution: "@types/body-parser@npm:1.19.6"
   dependencies:
     "@types/connect": "npm:*"
     "@types/node": "npm:*"
-  checksum: 10c0/aebeb200f25e8818d8cf39cd0209026750d77c9b85381cdd8deeb50913e4d18a1ebe4b74ca9b0b4d21952511eeaba5e9fbbf739b52731a2061e206ec60d568df
+  checksum: 10c0/542da05c924dce58ee23f50a8b981fee36921850c82222e384931fda3e106f750f7880c47be665217d72dbe445129049db6eb1f44e7a06b09d62af8f3cca8ea7
   languageName: node
   linkType: hard
 
@@ -9070,7 +9070,7 @@ __metadata:
     "@pob/root": "npm:18.0.2"
     "@slack/web-api": "npm:6.13.0"
     "@tryfabric/mack": "npm:1.2.1"
-    "@types/body-parser": "npm:1.19.5"
+    "@types/body-parser": "npm:1.19.6"
     "@types/cookie-parser": "npm:1.4.8"
     "@types/express": "npm:4.17.21"
     "@types/issue-parser": "npm:3.0.5"
