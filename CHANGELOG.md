@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.2.0](https://github.com/christophehurpeau/reviewflow/compare/v4.1.0...v4.2.0) (2025-06-20)
+
+### Features
+
+* drop legacy merge queue ([c4bd19c](https://github.com/christophehurpeau/reviewflow/commit/c4bd19cf739a7ca96c55bc38114132baacbb560e))
+
+### Bug Fixes
+
+* recheck sha before updating statuses and checks ([b47aceb](https://github.com/christophehurpeau/reviewflow/commit/b47acebecdb1e63521051f224cdfcd58be3fae96))
+
 ## [4.1.0](https://github.com/christophehurpeau/reviewflow/compare/v4.0.0...v4.1.0) (2025-03-16)
 
 ### Features
