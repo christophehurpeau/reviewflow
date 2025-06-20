@@ -6,17 +6,19 @@ import type { ProbotEvent } from "../../../events/probot-types";
 export interface ChecksAndStatuses {
   checksConclusionRecord: Record<
     string,
-    Pick<
-      RestEndpointMethodTypes["checks"]["listForRef"]["response"]["data"]["check_runs"][number],
-      "conclusion" | "name"
-    >
+    | Pick<
+        RestEndpointMethodTypes["checks"]["listForRef"]["response"]["data"]["check_runs"][number],
+        "conclusion" | "name"
+      >
+    | undefined
   >;
   statusesConclusionRecord: Record<
     string,
-    Pick<
-      RestEndpointMethodTypes["repos"]["getCombinedStatusForRef"]["response"]["data"]["statuses"][number],
-      "context" | "state"
-    >
+    | Pick<
+        RestEndpointMethodTypes["repos"]["getCombinedStatusForRef"]["response"]["data"]["statuses"][number],
+        "context" | "state"
+      >
+    | undefined
   >;
 }
 
