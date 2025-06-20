@@ -1,7 +1,7 @@
 import type { Probot } from "probot";
-import type { AppContext } from "../../context/AppContext";
-import { obtainRepoContext } from "../../context/repoContext";
-import { createHandlerOrgChange } from "../account-handlers/utils/createHandlerOrgChange";
+import type { AppContext } from "../../context/AppContext.ts";
+import { obtainRepoContext } from "../../context/repoContext.ts";
+import { createHandlerOrgChange } from "../account-handlers/utils/createHandlerOrgChange.ts";
 
 export default function repoRenamed(app: Probot, appContext: AppContext): void {
   createHandlerOrgChange(

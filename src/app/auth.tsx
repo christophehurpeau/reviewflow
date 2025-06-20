@@ -3,7 +3,7 @@ import { Octokit } from "@octokit/rest";
 import type { Request, Response, Router } from "express";
 import jsonwebtoken from "jsonwebtoken";
 import { renderToStaticMarkup } from "react-dom/server";
-import * as githubAuth from "../auth/github";
+import * as githubAuth from "../auth/github.ts";
 import Layout from "../views/Layout.tsx";
 
 if (!process.env.AUTH_SECRET_KEY) {

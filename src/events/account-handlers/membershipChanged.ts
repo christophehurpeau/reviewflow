@@ -1,7 +1,7 @@
 import type { Probot } from "probot";
-import type { AppContext } from "../../context/AppContext";
-import { syncTeamsAndTeamMembers } from "./actions/syncTeams";
-import { createHandlerOrgChange } from "./utils/createHandlerOrgChange";
+import type { AppContext } from "../../context/AppContext.ts";
+import { syncTeamsAndTeamMembers } from "./actions/syncTeams.ts";
+import { createHandlerOrgChange } from "./utils/createHandlerOrgChange.ts";
 
 export default function membershipChanged(
   app: Probot,

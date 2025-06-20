@@ -1,20 +1,20 @@
 import type { StatusInfo } from "../../../accountConfigs/types";
-import type { AppContext } from "../../../context/AppContext";
+import type { AppContext } from "../../../context/AppContext.ts";
 import type {
   EventsWithRepository,
   RepoContext,
-} from "../../../context/repoContext";
-import { ExcludesFalsy } from "../../../utils/Excludes";
-import type { ProbotEvent } from "../../probot-types";
+} from "../../../context/repoContext.ts";
+import { ExcludesFalsy } from "../../../utils/Excludes.ts";
+import type { ProbotEvent } from "../../probot-types.ts";
 import type {
   PullRequestLabels,
   PullRequestWithDecentData,
-} from "../utils/PullRequestData";
-import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
-import { getFailedOrWaitingChecksAndStatuses } from "../utils/getFailedOrWaitingChecksAndStatuses";
-import createStatus, { isSameStatus } from "./utils/createStatus";
-import hasLabelInPR from "./utils/labels/hasLabelInPR";
-import type { StepsState } from "./utils/steps/calcStepsState";
+} from "../utils/PullRequestData.ts";
+import type { ReviewflowPrContext } from "../utils/createPullRequestContext.ts";
+import { getFailedOrWaitingChecksAndStatuses } from "../utils/getFailedOrWaitingChecksAndStatuses.ts";
+import createStatus, { isSameStatus } from "./utils/createStatus.ts";
+import hasLabelInPR from "./utils/labels/hasLabelInPR.ts";
+import type { StepsState } from "./utils/steps/calcStepsState.ts";
 
 type ReviewflowStatusCheckState = "failure" | "pending" | "success";
 

@@ -1,5 +1,5 @@
-import type { Options } from "./parseBody";
-import { parseBody } from "./parseBody";
+import type { Options } from "./parseBody.ts";
+import { parseBody } from "./parseBody.ts";
 
 const commentStart = "<!-- do not edit after this -->";
 const commentEnd = "<!-- end - don't add anything after this -->";
@@ -29,12 +29,12 @@ export const parsePrBody = (
   const match = regexpCols.exec(description);
   if (!match) return null;
   const [, content, reviewFlowCol, reviewflowContent, ending] = match;
-  const reviewFlowColMatch = regexpReviewflowCol.exec(reviewFlowCol);
+  const reviewFlowColMatch = regexpReviewflowCol.exec(reviewFlowCol ?? "");
   if (!reviewFlowColMatch) {
     return {
-      content,
-      ending,
-      reviewflowContentCol: reviewflowContent,
+      content: content ?? "",
+      ending: ending ?? "",
+      reviewflowContentCol: reviewflowContent ?? "",
       reviewflowContentColPrefix: commentStart,
       reviewflowContentColSuffix: commentEnd,
     };
@@ -47,11 +47,11 @@ export const parsePrBody = (
   ] = reviewFlowColMatch;
 
   return {
-    content,
-    ending,
-    reviewflowContentCol,
-    reviewflowContentColPrefix,
-    reviewflowContentColSuffix,
+    content: content ?? "",
+    ending: ending ?? "",
+    reviewflowContentCol: reviewflowContentCol ?? "",
+    reviewflowContentColPrefix: reviewflowContentColPrefix ?? "",
+    reviewflowContentColSuffix: reviewflowContentColSuffix ?? "",
   };
 };
 

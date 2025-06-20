@@ -1,13 +1,13 @@
 import type { KnownBlock } from "@slack/web-api";
 import { WebClient } from "@slack/web-api";
 import type { Probot } from "probot";
-import type { MongoStores, Org, OrgMember, ReviewflowPr } from "../mongo";
-import type { Octokit } from "../octokit";
-import { ExcludesFalsy } from "../utils/Excludes";
+import type { MongoStores, Org, OrgMember, ReviewflowPr } from "../mongo.ts";
+import type { Octokit } from "../octokit.ts";
+import { ExcludesFalsy } from "../utils/Excludes.ts";
 import {
   createLink,
   createPrChangesInformationFromReviewflowPr,
-} from "./utils";
+} from "./utils.ts";
 
 interface QueueItem {
   github: Octokit;

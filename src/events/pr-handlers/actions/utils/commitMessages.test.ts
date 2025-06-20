@@ -3,7 +3,7 @@ import {
   commitlintParse,
   lintCommitMessage,
   parseCommitMessage,
-} from "./commitMessages";
+} from "./commitMessages.ts";
 
 describe("lintCommitMessage", () => {
   test("valid message", async () => {

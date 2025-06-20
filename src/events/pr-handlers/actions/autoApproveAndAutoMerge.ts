@@ -5,8 +5,8 @@ import type {
 import type { ProbotEvent } from "../../probot-types";
 import type { PullRequestFromRestEndpoint } from "../utils/PullRequestData";
 import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
-import { tryToAutomerge } from "./tryToAutomerge";
-import hasLabelInPR from "./utils/labels/hasLabelInPR";
+import { tryToAutomerge } from "./tryToAutomerge.ts";
+import hasLabelInPR from "./utils/labels/hasLabelInPR.ts";
 
 export const autoApproveAndAutoMerge = async <
   Name extends EventsWithRepository,

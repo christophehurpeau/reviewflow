@@ -1,22 +1,22 @@
 import type { Probot } from "probot";
-import type { AppContext } from "../../context/AppContext";
-import type { AccountInfo } from "../../context/getOrCreateAccount";
-import type { SlackMessage } from "../../context/slack/SlackMessage";
+import type { AppContext } from "../../context/AppContext.ts";
+import type { AccountInfo } from "../../context/getOrCreateAccount.ts";
+import type { SlackMessage } from "../../context/slack/SlackMessage.ts";
 import type {
   PostSlackMessageResult,
   SlackMessageResult,
-} from "../../context/slack/TeamSlack";
-import type { MessageCategory } from "../../dm/MessageCategory";
+} from "../../context/slack/TeamSlack.ts";
+import type { MessageCategory } from "../../dm/MessageCategory.ts";
 import type { AccountEmbed } from "../../mongo";
-import * as slackUtils from "../../slack/utils";
-import { ExcludesNullish } from "../../utils/Excludes";
-import { checkIfUserIsBot } from "../../utils/github/isBotUser";
-import { parseMentions } from "../../utils/github/parseMentions";
-import { createSlackMessageWithSecondaryBlock } from "../../utils/slack/createSlackMessageWithSecondaryBlock";
-import { slackifyCommentBody } from "../../utils/slackifyCommentBody";
-import type { BasicUser } from "../pr-handlers/utils/PullRequestData";
-import { createCommitHandler } from "./utils/createCommitHandler";
-import { fetchCommitComments } from "./utils/fetchCommitComments";
+import * as slackUtils from "../../slack/utils.ts";
+import { ExcludesNullish } from "../../utils/Excludes.ts";
+import { checkIfUserIsBot } from "../../utils/github/isBotUser.ts";
+import { parseMentions } from "../../utils/github/parseMentions.ts";
+import { createSlackMessageWithSecondaryBlock } from "../../utils/slack/createSlackMessageWithSecondaryBlock.ts";
+import { slackifyCommentBody } from "../../utils/slackifyCommentBody.ts";
+import type { BasicUser } from "../pr-handlers/utils/PullRequestData.ts";
+import { createCommitHandler } from "./utils/createCommitHandler.ts";
+import { fetchCommitComments } from "./utils/fetchCommitComments.ts";
 
 export default function commitCommentCreated(
   app: Probot,

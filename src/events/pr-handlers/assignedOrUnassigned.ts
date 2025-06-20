@@ -1,10 +1,10 @@
 import type { Probot } from "probot";
-import type { AppContext } from "../../context/AppContext";
-import * as slackUtils from "../../slack/utils";
-import { checkIfIsThisBot } from "../../utils/github/isBotUser";
-import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
-import { toBasicUser } from "./utils/PullRequestData";
-import { createPullRequestHandler } from "./utils/createPullRequestHandler";
+import type { AppContext } from "../../context/AppContext.ts";
+import * as slackUtils from "../../slack/utils.ts";
+import { checkIfIsThisBot } from "../../utils/github/isBotUser.ts";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome.ts";
+import { toBasicUser } from "./utils/PullRequestData.ts";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
 
 export default function assignedOrUnassignedHandler(
   app: Probot,

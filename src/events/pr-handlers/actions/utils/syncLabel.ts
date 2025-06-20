@@ -3,7 +3,7 @@ import type { SetRequired } from "type-fest";
 import type { LabelResponse } from "../../../../context/initRepoLabels";
 import type { ProbotEvent } from "../../../probot-types";
 import type { PullRequestWithDecentData } from "../../utils/PullRequestData";
-import hasLabelInPR from "./labels/hasLabelInPR";
+import hasLabelInPR from "./labels/hasLabelInPR.ts";
 
 type SyncLabelCallback = (
   prLabels: LabelResponse[],
@@ -22,10 +22,11 @@ export default async function syncLabel<
   pullRequest: PullRequestWithDecentData,
   context: ProbotEvent<EventName>,
   shouldHaveLabel: boolean,
-  label: LabelResponse,
+  label: LabelResponse | undefined,
   prHasLabel = hasLabelInPR(pullRequest.labels, label),
   { onRemove, onAdd }: SyncLabelOptions = {},
 ): Promise<void> {
+  if (!label) return;
   if (prHasLabel && !shouldHaveLabel) {
     const response = await context.octokit.issues.removeLabel(
       context.repo({

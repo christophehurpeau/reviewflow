@@ -3,10 +3,10 @@ import type { MongoConnection } from "liwi-mongo";
 import "dotenv/config";
 import { run } from "probot";
 import appRouter from "./appRouter.tsx";
-import type { AppContext } from "./context/AppContext";
-import initApp from "./initApp";
-import mongoInit from "./mongo";
-import { createSlackHomeWorker } from "./slack/home";
+import type { AppContext } from "./context/AppContext.ts";
+import initApp from "./initApp.ts";
+import mongoInit from "./mongo.ts";
+import { createSlackHomeWorker } from "./slack/home.ts";
 
 if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = "reviewflow";
 

@@ -1,6 +1,6 @@
-import type { RepoContext } from "../../../context/repoContext";
-import { ExcludesFalsy } from "../../../utils/Excludes";
-import type { ChecksAndStatuses } from "../../../utils/github/pullRequest/checksAndStatuses";
+import type { RepoContext } from "../../../context/repoContext.ts";
+import { ExcludesFalsy } from "../../../utils/Excludes.ts";
+import type { ChecksAndStatuses } from "../../../utils/github/pullRequest/checksAndStatuses.ts";
 
 export type ChecksAndStatusesState = "failed" | "passed" | "pending";
 

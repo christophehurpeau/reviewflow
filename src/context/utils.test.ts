@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getEmojiFromRepoDescription } from "./utils";
+import { getEmojiFromRepoDescription } from "./utils.ts";
 
 describe("getEmojiFromRepoDescription", () => {
   it("should return emoji when emoji is with the form :emoji_name:", () => {

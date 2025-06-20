@@ -1,10 +1,10 @@
 import type { EmitterWebhookEventName } from "@octokit/webhooks";
-import { syncOrg } from "../events/account-handlers/actions/syncOrg";
-import { syncTeamsAndTeamMembers } from "../events/account-handlers/actions/syncTeams";
-import { syncUser } from "../events/account-handlers/actions/syncUser";
-import type { ProbotEvent } from "../events/probot-types";
-import type { Org, User } from "../mongo";
-import type { AppContext } from "./AppContext";
+import { syncOrg } from "../events/account-handlers/actions/syncOrg.ts";
+import { syncTeamsAndTeamMembers } from "../events/account-handlers/actions/syncTeams.ts";
+import { syncUser } from "../events/account-handlers/actions/syncUser.ts";
+import type { ProbotEvent } from "../events/probot-types.ts";
+import type { Org, User } from "../mongo.ts";
+import type { AppContext } from "./AppContext.ts";
 
 export interface AccountInfo {
   id: number;

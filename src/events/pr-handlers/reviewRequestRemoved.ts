@@ -1,11 +1,11 @@
 import type { Probot } from "probot";
-import type { AppContext } from "../../context/AppContext";
-import * as slackUtils from "../../slack/utils";
-import { getReviewsState } from "../../utils/github/pullRequest/reviews";
-import { updateAfterReviewChange } from "./actions/updateAfterReviewChange";
-import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
-import { createPullRequestHandler } from "./utils/createPullRequestHandler";
-import { fetchPr } from "./utils/fetchPr";
+import type { AppContext } from "../../context/AppContext.ts";
+import * as slackUtils from "../../slack/utils.ts";
+import { getReviewsState } from "../../utils/github/pullRequest/reviews.ts";
+import { updateAfterReviewChange } from "./actions/updateAfterReviewChange.ts";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome.ts";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
+import { fetchPr } from "./utils/fetchPr.ts";
 
 export default function reviewRequestRemoved(
   app: Probot,
@@ -108,31 +108,32 @@ export default function reviewRequestRemoved(
               } as const);
 
             if (sentMessageRequestedReview) {
-              const sentTo = sentMessageRequestedReview.sentTo[0];
               const message = sentMessageRequestedReview.message;
-              await Promise.all([
-                repoContext.slack.updateMessage(
-                  sentTo.user,
-                  sentTo.ts,
-                  sentTo.channel,
-                  {
-                    ...message,
-                    text: message.text
-                      .split("\n")
-                      .map((l) => `~${l}~`)
-                      .join("\n"),
-                  },
-                ),
-                repoContext.slack.addReaction(
-                  sentTo.user,
-                  sentTo.ts,
-                  sentTo.channel,
-                  "skull_and_crossbones",
-                ),
-                appContext.mongoStores.slackSentMessages.deleteOne(
-                  sentMessageRequestedReview,
-                ),
-              ]);
+              await Promise.all(
+                sentMessageRequestedReview.sentTo.flatMap((sentTo) => [
+                  repoContext.slack.updateMessage(
+                    sentTo.user,
+                    sentTo.ts,
+                    sentTo.channel,
+                    {
+                      ...message,
+                      text: message.text
+                        .split("\n")
+                        .map((l) => `~${l}~`)
+                        .join("\n"),
+                    },
+                  ),
+                  repoContext.slack.addReaction(
+                    sentTo.user,
+                    sentTo.ts,
+                    sentTo.channel,
+                    "skull_and_crossbones",
+                  ),
+                  appContext.mongoStores.slackSentMessages.deleteOne(
+                    sentMessageRequestedReview,
+                  ),
+                ]),
+              );
             }
           }),
         );

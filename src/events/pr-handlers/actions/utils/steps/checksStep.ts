@@ -1,5 +1,5 @@
-import { getFailedOrWaitingChecksAndStatuses } from "../../../utils/getFailedOrWaitingChecksAndStatuses";
-import type { BaseStepState, CalcStepOptions } from "./BaseStepState";
+import { getFailedOrWaitingChecksAndStatuses } from "../../../utils/getFailedOrWaitingChecksAndStatuses.ts";
+import type { BaseStepState, CalcStepOptions } from "./BaseStepState.ts";
 
 export interface ChecksStepState extends BaseStepState {
   isInProgress: boolean;

@@ -1,5 +1,5 @@
-import chrisconfig from "./christophehurpeau";
-import type { Config } from "./types";
+import chrisconfig from "./christophehurpeau.ts";
+import type { Config } from "./types.ts";
 
 const config: Config<never> = {
   ...chrisconfig,

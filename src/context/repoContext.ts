@@ -1,28 +1,28 @@
 import type { EmitterWebhookEventName } from "@octokit/webhooks";
 import { Lock } from "lock";
-import type { Config } from "../accountConfigs";
-import { accountConfigs, defaultConfig } from "../accountConfigs";
-import { mergeOrEnableGithubAutoMerge } from "../events/pr-handlers/actions/enableGithubAutoMerge";
-import type { RepositorySettings } from "../events/pr-handlers/actions/utils/body/repositorySettings";
+import type { Config } from "../accountConfigs/index.ts";
+import { accountConfigs, defaultConfig } from "../accountConfigs/index.ts";
+import { mergeOrEnableGithubAutoMerge } from "../events/pr-handlers/actions/enableGithubAutoMerge.ts";
+import type { RepositorySettings } from "../events/pr-handlers/actions/utils/body/repositorySettings.ts";
 import {
   createRepositorySettings,
   isSettingsLastUpdatedExpired,
-} from "../events/pr-handlers/actions/utils/body/repositorySettings";
+} from "../events/pr-handlers/actions/utils/body/repositorySettings.ts";
 import type {
   BasicUser,
   PullRequestDataMinimumData,
-} from "../events/pr-handlers/utils/PullRequestData";
-import { getReviewflowPrContext } from "../events/pr-handlers/utils/createPullRequestContext";
-import { fetchPr } from "../events/pr-handlers/utils/fetchPr";
+} from "../events/pr-handlers/utils/PullRequestData.ts";
+import { getReviewflowPrContext } from "../events/pr-handlers/utils/createPullRequestContext.ts";
+import { fetchPr } from "../events/pr-handlers/utils/fetchPr.ts";
 import type { ProbotEvent } from "../events/probot-types";
-import type { Repository } from "../mongo";
-import { getRepositorySettings } from "../utils/github/repo/getRepositorySettings";
-import type { AppContext } from "./AppContext";
-import type { AccountContext } from "./accountContext";
-import { obtainAccountContext } from "./accountContext";
-import type { LabelResponse, LabelsRecord } from "./initRepoLabels";
-import { initRepoLabels } from "./initRepoLabels";
-import { getEmojiFromRepoDescription } from "./utils";
+import type { Repository } from "../mongo.ts";
+import { getRepositorySettings } from "../utils/github/repo/getRepositorySettings.ts";
+import type { AppContext } from "./AppContext.ts";
+import type { AccountContext } from "./accountContext.ts";
+import { obtainAccountContext } from "./accountContext.ts";
+import type { LabelResponse, LabelsRecord } from "./initRepoLabels.ts";
+import { initRepoLabels } from "./initRepoLabels.ts";
+import { getEmojiFromRepoDescription } from "./utils.ts";
 
 export interface LockedMergePr {
   id: number;

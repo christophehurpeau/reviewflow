@@ -1,7 +1,7 @@
 import type { Probot } from "probot";
-import type { AppContext } from "../../context/AppContext";
-import { syncOrg } from "./actions/syncOrg";
-import { createHandlerOrgChange } from "./utils/createHandlerOrgChange";
+import type { AppContext } from "../../context/AppContext.ts";
+import { syncOrg } from "./actions/syncOrg.ts";
+import { createHandlerOrgChange } from "./utils/createHandlerOrgChange.ts";
 
 export default function orgMemberAddedOrRemoved(
   app: Probot,

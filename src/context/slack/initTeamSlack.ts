@@ -1,16 +1,16 @@
 import { WebClient } from "@slack/web-api";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- invalid used detection
 import type { CodedError } from "@slack/web-api";
-import type { Config } from "../../accountConfigs";
-import type { MessageCategory } from "../../dm/MessageCategory";
-import { getUserDmSettings } from "../../dm/getUserDmSettings";
+import type { Config } from "../../accountConfigs/index.ts";
+import type { MessageCategory } from "../../dm/MessageCategory.ts";
+import { getUserDmSettings } from "../../dm/getUserDmSettings.ts";
 import type { ProbotEvent } from "../../events/probot-types";
-import type { MongoStores, Org, User } from "../../mongo";
-import type { AppContext } from "../AppContext";
-import type { AccountInfo } from "../getOrCreateAccount";
-import type { SlackMessage } from "./SlackMessage";
-import type { PostSlackMessageResult, TeamSlack } from "./TeamSlack";
-import { voidTeamSlack } from "./voidTeamSlack";
+import type { MongoStores, Org, User } from "../../mongo.ts";
+import type { AppContext } from "../AppContext.ts";
+import type { AccountInfo } from "../getOrCreateAccount.ts";
+import type { SlackMessage } from "./SlackMessage.ts";
+import type { PostSlackMessageResult, TeamSlack } from "./TeamSlack.ts";
+import { voidTeamSlack } from "./voidTeamSlack.ts";
 
 export type { TeamSlack } from "./TeamSlack";
 

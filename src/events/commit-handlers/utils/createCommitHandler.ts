@@ -1,15 +1,15 @@
 import type { Probot } from "probot";
-import { catchExceptedErrors } from "../../../ExpectedError";
-import type { AppContext } from "../../../context/AppContext";
+import { catchExceptedErrors } from "../../../ExpectedError.ts";
+import type { AppContext } from "../../../context/AppContext.ts";
 import type {
   CustomExtract,
   EventsWithRepository,
   RepoContext,
-} from "../../../context/repoContext";
-import { obtainRepoContext } from "../../../context/repoContext";
-import type { ProbotEvent } from "../../probot-types";
-import { fetchCommit } from "./fetchCommit";
-import type { CommitFromRestEndpoint } from "./fetchCommit";
+} from "../../../context/repoContext.ts";
+import { obtainRepoContext } from "../../../context/repoContext.ts";
+import type { ProbotEvent } from "../../probot-types.ts";
+import { fetchCommit } from "./fetchCommit.ts";
+import type { CommitFromRestEndpoint } from "./fetchCommit.ts";
 
 export type EventsWithCommit = CustomExtract<
   EventsWithRepository,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanTitle } from "./prTitle";
+import { cleanTitle } from "./prTitle.ts";
 
 describe("cleanTitle", () => {
   it("should clean dash before jira issue", () => {

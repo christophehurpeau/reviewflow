@@ -1,5 +1,5 @@
-import { githubPalette } from "./color-palettes/githubPalette";
-import type { Config } from "./types";
+import { githubPalette } from "./color-palettes/githubPalette.ts";
+import type { Config } from "./types.ts";
 
 const lateOceanColorPalette = {
   lateOcean: "#4C34E0",
@@ -97,7 +97,7 @@ const config: Config<"backends" | "frontends" | "ops"> = {
               };
             }
             // The 'OD' JIRA Project is hosted on guidewire's JIRA
-            const url = issue.startsWith("OD-")
+            const url = issue?.startsWith("OD-")
               ? `https://gwjira.atlassian.net/browse/${issue}`
               : `https://ornikar.atlassian.net/browse/${issue}`;
             return {

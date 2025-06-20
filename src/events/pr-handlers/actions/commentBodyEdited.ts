@@ -2,27 +2,27 @@ import type { AppContext } from "../../../context/AppContext";
 import type {
   EventsWithRepository,
   RepoContext,
-} from "../../../context/repoContext";
-import { getChecksAndStatusesForPullRequest } from "../../../utils/github/pullRequest/checksAndStatuses";
-import { getReviewsState } from "../../../utils/github/pullRequest/reviews";
+} from "../../../context/repoContext.ts";
+import { getChecksAndStatusesForPullRequest } from "../../../utils/github/pullRequest/checksAndStatuses.ts";
+import { getReviewsState } from "../../../utils/github/pullRequest/reviews.ts";
 import type { ProbotEvent } from "../../probot-types";
 import type { PullRequestFromRestEndpoint } from "../utils/PullRequestData";
 import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
-import { getFailedOrWaitingChecksAndStatuses } from "../utils/getFailedOrWaitingChecksAndStatuses";
-import { groupReviewsState } from "../utils/groupReviewsWithState";
-import { editOpenedPR } from "./editOpenedPR";
-import { disableGithubAutoMerge } from "./enableGithubAutoMerge";
-import { tryToAutomerge } from "./tryToAutomerge";
-import { updateBranch } from "./updateBranch";
-import { updatePrCommentBodyIfNeeded } from "./updatePrCommentBody";
-import { updateReviewStatus } from "./updateReviewStatus";
-import { updateStatusCheckFromStepsState } from "./updateStatusCheckFromStepsState";
-import { calcDefaultOptions } from "./utils/body/prOptions";
-import { updateCommentOptions } from "./utils/body/updateBody";
-import { getStateChecksLabelsToSync } from "./utils/labels/getStateChecksLabelsToSync";
-import { calcStepsState } from "./utils/steps/calcStepsState";
-import type { LabelToSync } from "./utils/syncLabel";
-import { removeLabel, syncLabels } from "./utils/syncLabel";
+import { getFailedOrWaitingChecksAndStatuses } from "../utils/getFailedOrWaitingChecksAndStatuses.ts";
+import { groupReviewsState } from "../utils/groupReviewsWithState.ts";
+import { editOpenedPR } from "./editOpenedPR.ts";
+import { disableGithubAutoMerge } from "./enableGithubAutoMerge.ts";
+import { tryToAutomerge } from "./tryToAutomerge.ts";
+import { updateBranch } from "./updateBranch.ts";
+import { updatePrCommentBodyIfNeeded } from "./updatePrCommentBody.ts";
+import { updateReviewStatus } from "./updateReviewStatus.ts";
+import { updateStatusCheckFromStepsState } from "./updateStatusCheckFromStepsState.ts";
+import { calcDefaultOptions } from "./utils/body/prOptions.ts";
+import { updateCommentOptions } from "./utils/body/updateBody.ts";
+import { getStateChecksLabelsToSync } from "./utils/labels/getStateChecksLabelsToSync.ts";
+import { calcStepsState } from "./utils/steps/calcStepsState.ts";
+import type { LabelToSync } from "./utils/syncLabel.ts";
+import { removeLabel, syncLabels } from "./utils/syncLabel.ts";
 
 export const commentBodyEdited = async <Name extends EventsWithRepository>(
   pullRequest: PullRequestFromRestEndpoint,
@@ -77,7 +77,9 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
             context,
             context.payload.sender.login,
           );
-          await removeLabel(context, pullRequest, updateBranchLabel);
+          if (updateBranchLabel) {
+            await removeLabel(context, pullRequest, updateBranchLabel);
+          }
         },
       },
       {

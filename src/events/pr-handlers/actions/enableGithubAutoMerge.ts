@@ -2,22 +2,22 @@ import type {
   EventsWithRepository,
   RepoContext,
   RescheduleTime,
-} from "../../../context/repoContext";
-import { checkIfUserIsBot } from "../../../utils/github/isBotUser";
-import type { AutoMergeRequest } from "../../../utils/github/pullRequest/autoMerge";
+} from "../../../context/repoContext.ts";
+import { checkIfUserIsBot } from "../../../utils/github/isBotUser.ts";
 import {
   disableGithubAutoMergeMutation,
   enableGithubAutoMergeMutation,
-} from "../../../utils/github/pullRequest/autoMerge";
-import type { ProbotEvent } from "../../probot-types";
+} from "../../../utils/github/pullRequest/autoMerge.ts";
+import type { AutoMergeRequest } from "../../../utils/github/pullRequest/autoMerge.ts";
+import type { ProbotEvent } from "../../probot-types.ts";
 import type {
   BasicUser,
   PullRequestWithDecentData,
-} from "../utils/PullRequestData";
-import { createPrMinimumDataFromPr } from "../utils/createPrMinimumDataFromPr";
-import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
-import { createCommitMessage } from "./createCommitMessage";
-import { parseBody } from "./utils/body/parseBody";
+} from "../utils/PullRequestData.ts";
+import { createPrMinimumDataFromPr } from "../utils/createPrMinimumDataFromPr.ts";
+import type { ReviewflowPrContext } from "../utils/createPullRequestContext.ts";
+import { createCommitMessage } from "./createCommitMessage.ts";
+import { parseBody } from "./utils/body/parseBody.ts";
 
 export interface MergeOrEnableGithubAutoMergeResult {
   wasMerged: boolean;

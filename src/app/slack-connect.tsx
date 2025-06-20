@@ -3,9 +3,9 @@ import type { Request, Response, Router } from "express";
 import type { MongoInsertType } from "liwi-mongo";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { SetRequired } from "type-fest";
-import { slackOAuth2, slackOAuth2Version2 } from "../auth/slack";
-import { getExistingAccountContext } from "../context/accountContext";
-import type { MongoStores, SlackTeam } from "../mongo";
+import { slackOAuth2, slackOAuth2Version2 } from "../auth/slack.ts";
+import { getExistingAccountContext } from "../context/accountContext.ts";
+import type { MongoStores, SlackTeam } from "../mongo.ts";
 import Layout from "../views/Layout.tsx";
 import { getUser } from "./auth.tsx";
 

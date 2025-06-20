@@ -1,16 +1,16 @@
 import type { Probot } from "probot";
-import type { AppContext } from "../../context/AppContext";
-import { checkIfIsThisBot } from "../../utils/github/isBotUser";
-import { slackifyCommentBody } from "../../utils/slackifyCommentBody";
-import { commentBodyEdited } from "./actions/commentBodyEdited";
+import type { AppContext } from "../../context/AppContext.ts";
+import { checkIfIsThisBot } from "../../utils/github/isBotUser.ts";
+import { slackifyCommentBody } from "../../utils/slackifyCommentBody.ts";
+import { commentBodyEdited } from "./actions/commentBodyEdited.ts";
 import {
   deleteSlackSentMessages,
   findSlackSentMessages,
   updateSlackSentMessages,
-} from "./actions/utils/slackUtils";
-import { createPullRequestHandler } from "./utils/createPullRequestHandler";
-import { fetchPr } from "./utils/fetchPr";
-import { getPullRequestFromPayload } from "./utils/getPullRequestFromPayload";
+} from "./actions/utils/slackUtils.ts";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
+import { fetchPr } from "./utils/fetchPr.ts";
+import { getPullRequestFromPayload } from "./utils/getPullRequestFromPayload.ts";
 
 export default function prCommentEditedOrDeleted<TeamNames extends string>(
   app: Probot,

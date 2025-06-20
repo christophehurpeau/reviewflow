@@ -10,13 +10,13 @@ import type {
   OrgMember,
   User,
 } from "../mongo";
-import type { AppContext } from "./AppContext";
-import type { AccountInfo } from "./getOrCreateAccount";
-import { getOrCreateAccount } from "./getOrCreateAccount";
-import type { EventsWithRepository } from "./repoContext";
-import type { TeamSlack } from "./slack/initTeamSlack";
-import { initTeamSlack } from "./slack/initTeamSlack";
-import { getKeys } from "./utils";
+import type { AppContext } from "./AppContext.ts";
+import type { AccountInfo } from "./getOrCreateAccount.ts";
+import { getOrCreateAccount } from "./getOrCreateAccount.ts";
+import type { EventsWithRepository } from "./repoContext.ts";
+import type { TeamSlack } from "./slack/initTeamSlack.ts";
+import { initTeamSlack } from "./slack/initTeamSlack.ts";
+import { getKeys } from "./utils.ts";
 
 export interface AccountContext<TeamNames extends string = any> {
   config: Config<TeamNames>;

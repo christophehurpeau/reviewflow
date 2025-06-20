@@ -1,12 +1,12 @@
 import type { Probot } from "probot";
 import type { AppContext } from "../../context/AppContext";
-import * as slackUtils from "../../slack/utils";
-import { getReviewsState } from "../../utils/github/pullRequest/reviews";
-import { updateAfterReviewChange } from "./actions/updateAfterReviewChange";
-import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
-import { createPullRequestHandler } from "./utils/createPullRequestHandler";
-import type { PullRequestFromRestEndpoint } from "./utils/fetchPr";
-import { fetchPr } from "./utils/fetchPr";
+import * as slackUtils from "../../slack/utils.ts";
+import { getReviewsState } from "../../utils/github/pullRequest/reviews.ts";
+import { updateAfterReviewChange } from "./actions/updateAfterReviewChange.ts";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome.ts";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
+import type { PullRequestFromRestEndpoint } from "./utils/fetchPr.ts";
+import { fetchPr } from "./utils/fetchPr.ts";
 
 export default function reviewRequested(
   app: Probot,

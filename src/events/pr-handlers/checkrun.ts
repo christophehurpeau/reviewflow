@@ -1,8 +1,8 @@
 import type { Probot } from "probot";
-import type { AppContext } from "../../context/AppContext";
-import { calcAndUpdateChecksAndStatuses } from "./actions/calcAndUpdateChecksAndStatuses";
-import { createPullRequestsHandler } from "./utils/createPullRequestHandler";
-import { fetchPr } from "./utils/fetchPr";
+import type { AppContext } from "../../context/AppContext.ts";
+import { calcAndUpdateChecksAndStatuses } from "./actions/calcAndUpdateChecksAndStatuses.ts";
+import { createPullRequestsHandler } from "./utils/createPullRequestHandler.ts";
+import { fetchPr } from "./utils/fetchPr.ts";
 
 export default function checkrun(app: Probot, appContext: AppContext): void {
   createPullRequestsHandler(

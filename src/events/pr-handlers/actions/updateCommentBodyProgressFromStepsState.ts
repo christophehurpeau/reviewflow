@@ -1,12 +1,12 @@
-import type { EventsWithRepository } from "../../../context/repoContext";
-import type { ProbotEvent } from "../../probot-types";
-import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
-import { updatePrCommentBodyIfNeeded } from "./updatePrCommentBody";
+import type { EventsWithRepository } from "../../../context/repoContext.ts";
+import type { ProbotEvent } from "../../probot-types.ts";
+import type { ReviewflowPrContext } from "../utils/createPullRequestContext.ts";
+import { updatePrCommentBodyIfNeeded } from "./updatePrCommentBody.ts";
 import {
   defaultCommentBody,
   updateCommentBodyProgress,
-} from "./utils/body/updateBody";
-import type { StepsState } from "./utils/steps/calcStepsState";
+} from "./utils/body/updateBody.ts";
+import type { StepsState } from "./utils/steps/calcStepsState.ts";
 
 export async function updateCommentBodyProgressFromStepsState<
   Name extends EventsWithRepository,

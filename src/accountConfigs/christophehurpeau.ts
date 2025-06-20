@@ -1,6 +1,6 @@
-import { githubPalette } from "./color-palettes/githubPalette";
-import defaultConfig from "./defaultConfig";
-import type { Config } from "./types";
+import { githubPalette } from "./color-palettes/githubPalette.ts";
+import defaultConfig from "./defaultConfig.ts";
+import type { Config } from "./types.ts";
 
 const config: Config<never> = {
   ...defaultConfig,

@@ -1,9 +1,9 @@
-import { ExpectedError } from "../../../ExpectedError";
-import type { ProbotEvent } from "../../probot-types";
+import { ExpectedError } from "../../../ExpectedError.ts";
+import type { ProbotEvent } from "../../probot-types.ts";
 import type {
   EventsWithIssue,
   EventsWithPullRequest,
-} from "./createPullRequestHandler";
+} from "./createPullRequestHandler.ts";
 
 export type PullRequestFromEventWithIssue = NonNullable<
   ProbotEvent<EventsWithIssue>["payload"]["issue"]["pull_request"]

@@ -2,17 +2,17 @@ import type { RestEndpointMethodTypes } from "@octokit/rest";
 import type {
   EventsWithRepository,
   RepoContext,
-} from "../../../context/repoContext";
+} from "../../../context/repoContext.ts";
 import type { ProbotEvent } from "../../probot-types";
 import type { PullRequestWithDecentData } from "../utils/PullRequestData";
 import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
-import { updatePrIfNeeded } from "./updatePr";
-import { updatePrCommentBodyIfNeeded } from "./updatePrCommentBody";
-import { updateCommentBodyCommitsNotes } from "./utils/body/updateBody";
-import type { ParsedCommit } from "./utils/commitMessages";
-import { parseCommitMessage } from "./utils/commitMessages";
-import { readPullRequestCommits } from "./utils/readPullRequestCommits";
-import syncLabel from "./utils/syncLabel";
+import { updatePrIfNeeded } from "./updatePr.ts";
+import { updatePrCommentBodyIfNeeded } from "./updatePrCommentBody.ts";
+import { updateCommentBodyCommitsNotes } from "./utils/body/updateBody.ts";
+import type { ParsedCommit } from "./utils/commitMessages.ts";
+import { parseCommitMessage } from "./utils/commitMessages.ts";
+import { readPullRequestCommits } from "./utils/readPullRequestCommits.ts";
+import syncLabel from "./utils/syncLabel.ts";
 
 interface BreakingChangesCommits {
   commit: RestEndpointMethodTypes["pulls"]["listCommits"]["response"]["data"][number];
@@ -43,7 +43,7 @@ export const readCommitsAndUpdateInfos = async <
     );
     if (breakingChangesNotes.length > 0) {
       breakingChangesCommits.push({
-        commit: commits[index],
+        commit: commits[index]!,
         breakingChangesNotes,
       });
     }

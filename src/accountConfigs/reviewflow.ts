@@ -1,6 +1,6 @@
-import chrisconfig from "./christophehurpeau";
+import chrisconfig from "./christophehurpeau.ts";
 // import ornikarconfig from './ornikar';
-import type { Config } from "./types";
+import type { Config } from "./types.ts";
 
 const config: Config<never> = {
   ...chrisconfig,

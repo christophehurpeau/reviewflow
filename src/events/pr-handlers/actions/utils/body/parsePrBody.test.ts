@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import initialSimple from "./mocks/prBody-initial-simple";
-import initialTable from "./mocks/prBody-initial-table";
-import simple from "./mocks/prBody-simple";
-import { parsePrBodyWithOptions } from "./parsePrBody";
+import initialSimple from "./mocks/prBody-initial-simple.ts";
+import initialTable from "./mocks/prBody-initial-table.ts";
+import simple from "./mocks/prBody-simple.ts";
+import { parsePrBodyWithOptions } from "./parsePrBody.ts";
 
 describe("simple", () => {
   it("should parse default description", () => {

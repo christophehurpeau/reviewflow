@@ -1,19 +1,19 @@
 import type { Probot } from "probot";
 import slackifyMarkdown from "slackify-markdown";
-import type { AppContext } from "../../context/AppContext";
-import type { SlackMessage } from "../../context/slack/SlackMessage";
-import type { PostSlackMessageResult } from "../../context/slack/TeamSlack";
-import type { AccountEmbed } from "../../mongo";
-import * as slackUtils from "../../slack/utils";
-import { ExcludesNullish } from "../../utils/Excludes";
-import { getReviewsState } from "../../utils/github/pullRequest/reviews";
-import { createSlackMessageWithSecondaryBlock } from "../../utils/slack/createSlackMessageWithSecondaryBlock";
-import { updateAfterReviewChange } from "./actions/updateAfterReviewChange";
-import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
-import { createPullRequestHandler } from "./utils/createPullRequestHandler";
-import { fetchPr } from "./utils/fetchPr";
-import { getReviewersAndReviewStates } from "./utils/getReviewersAndReviewStates";
-import { getRolesFromPullRequestAndReviewers } from "./utils/getRolesFromPullRequestAndReviewers";
+import type { AppContext } from "../../context/AppContext.ts";
+import type { SlackMessage } from "../../context/slack/SlackMessage.ts";
+import type { PostSlackMessageResult } from "../../context/slack/TeamSlack.ts";
+import type { AccountEmbed } from "../../mongo.ts";
+import * as slackUtils from "../../slack/utils.ts";
+import { ExcludesNullish } from "../../utils/Excludes.ts";
+import { getReviewsState } from "../../utils/github/pullRequest/reviews.ts";
+import { createSlackMessageWithSecondaryBlock } from "../../utils/slack/createSlackMessageWithSecondaryBlock.ts";
+import { updateAfterReviewChange } from "./actions/updateAfterReviewChange.ts";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome.ts";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
+import { fetchPr } from "./utils/fetchPr.ts";
+import { getReviewersAndReviewStates } from "./utils/getReviewersAndReviewStates.ts";
+import { getRolesFromPullRequestAndReviewers } from "./utils/getRolesFromPullRequestAndReviewers.ts";
 
 const getEmojiFromState = (state: string): string => {
   switch (state) {
@@ -102,7 +102,7 @@ export default function reviewSubmitted(
 
         const createTeamsRegex = () => {
           if (reviewerGithubTeams.length === 1) {
-            return reviewerGithubTeams[0].id;
+            return reviewerGithubTeams[0]?.id;
           }
           return `(${reviewerGithubTeams.map((team) => team.id).join("|")})`;
         };

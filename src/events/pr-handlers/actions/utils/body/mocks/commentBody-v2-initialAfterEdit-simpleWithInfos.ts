@@ -1,4 +1,4 @@
-import simpleWithoutInfos from "./commentBody-v2-initialAfterEdit-simple";
+import simpleWithoutInfos from "./commentBody-v2-initialAfterEdit-simple.ts";
 
 export default `
 ### Infos:

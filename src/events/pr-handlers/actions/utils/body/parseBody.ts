@@ -1,7 +1,7 @@
-import type { ActionKeys } from "./prActions";
-import { actionRegexps } from "./prActions";
-import { optionsRegexps } from "./prOptions";
-import type { Options } from "./prOptions";
+import type { ActionKeys } from "./prActions.ts";
+import { actionRegexps } from "./prActions.ts";
+import { optionsRegexps } from "./prOptions.ts";
+import type { Options } from "./prOptions.ts";
 
 export type { Options } from "./prOptions";
 

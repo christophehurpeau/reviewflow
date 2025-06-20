@@ -1,6 +1,6 @@
-import type { MongoStores, OrgTeamEmbed } from "../../../mongo";
-import type { CommonOctokitInterface } from "../../../octokit";
-import { ExcludesFalsy } from "../../../utils/Excludes";
+import type { MongoStores, OrgTeamEmbed } from "../../../mongo.ts";
+import type { CommonOctokitInterface } from "../../../octokit.ts";
+import { ExcludesFalsy } from "../../../utils/Excludes.ts";
 
 export const syncTeamMembers = async <T extends CommonOctokitInterface>(
   mongoStores: MongoStores,

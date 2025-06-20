@@ -1,13 +1,13 @@
 import type { Probot } from "probot";
-import type { AppContext } from "../../context/AppContext";
-import { getChecksAndStatusesForPullRequest } from "../../utils/github/pullRequest/checksAndStatuses";
-import { calcAndUpdateChecksAndStatuses } from "./actions/calcAndUpdateChecksAndStatuses";
-import { editOpenedPR } from "./actions/editOpenedPR";
-import { tryToAutomerge } from "./actions/tryToAutomerge";
-import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState";
-import { calcStepsState } from "./actions/utils/steps/calcStepsState";
-import { createPullRequestHandler } from "./utils/createPullRequestHandler";
-import { fetchPr } from "./utils/fetchPr";
+import type { AppContext } from "../../context/AppContext.ts";
+import { getChecksAndStatusesForPullRequest } from "../../utils/github/pullRequest/checksAndStatuses.ts";
+import { calcAndUpdateChecksAndStatuses } from "./actions/calcAndUpdateChecksAndStatuses.ts";
+import { editOpenedPR } from "./actions/editOpenedPR.ts";
+import { tryToAutomerge } from "./actions/tryToAutomerge.ts";
+import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState.ts";
+import { calcStepsState } from "./actions/utils/steps/calcStepsState.ts";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
+import { fetchPr } from "./utils/fetchPr.ts";
 
 export default function synchronize(app: Probot, appContext: AppContext): void {
   createPullRequestHandler(

@@ -1,17 +1,17 @@
-import type { AppContext } from "../../../context/AppContext";
-import type { RepoContext } from "../../../context/repoContext";
-import type { ReviewsState } from "../../../utils/github/pullRequest/reviews";
-import type { ProbotEvent } from "../../probot-types";
-import type { PullRequestFromRestEndpoint } from "../utils/PullRequestData";
-import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
-import type { EventsWithPullRequest } from "../utils/createPullRequestHandler";
-import { fetchPr } from "../utils/fetchPr";
-import { groupReviewsState } from "../utils/groupReviewsWithState";
-import { tryToAutomerge } from "./tryToAutomerge";
-import { updateCommentBodyProgressFromStepsState } from "./updateCommentBodyProgressFromStepsState";
-import { updateReviewStatus } from "./updateReviewStatus";
-import { updateStatusCheckFromStepsState } from "./updateStatusCheckFromStepsState";
-import { calcStepsState } from "./utils/steps/calcStepsState";
+import type { AppContext } from "../../../context/AppContext.ts";
+import type { RepoContext } from "../../../context/repoContext.ts";
+import type { ReviewsState } from "../../../utils/github/pullRequest/reviews.ts";
+import type { ProbotEvent } from "../../probot-types.ts";
+import type { PullRequestFromRestEndpoint } from "../utils/PullRequestData.ts";
+import type { ReviewflowPrContext } from "../utils/createPullRequestContext.ts";
+import type { EventsWithPullRequest } from "../utils/createPullRequestHandler.ts";
+import { fetchPr } from "../utils/fetchPr.ts";
+import { groupReviewsState } from "../utils/groupReviewsWithState.ts";
+import { tryToAutomerge } from "./tryToAutomerge.ts";
+import { updateCommentBodyProgressFromStepsState } from "./updateCommentBodyProgressFromStepsState.ts";
+import { updateReviewStatus } from "./updateReviewStatus.ts";
+import { updateStatusCheckFromStepsState } from "./updateStatusCheckFromStepsState.ts";
+import { calcStepsState } from "./utils/steps/calcStepsState.ts";
 
 export async function updateOnlyReviewflowPrReviews(
   appContext: AppContext,

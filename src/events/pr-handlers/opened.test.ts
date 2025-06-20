@@ -2,15 +2,15 @@ import type { Probot } from "probot";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import pullRequestOpened from "../../__fixtures__/pull_request_30.opened.json";
 import pullRequestCommits from "../../__fixtures__/pull_request_30_commits.json";
-import { voidTeamSlack } from "../../context/slack/voidTeamSlack";
+import { voidTeamSlack } from "../../context/slack/voidTeamSlack.ts";
 import {
   initializeProbotApp,
   mockAccessToken,
   mockLabels,
   nock,
-} from "../../tests/setup";
-import type { ProbotEvent } from "../probot-types";
-import commentBodyV2InitialAfterEditSimple from "./actions/utils/body/mocks/commentBody-v2-initialAfterEdit-simpleWithProgress";
+} from "../../tests/setup.ts";
+import type { ProbotEvent } from "../probot-types.ts";
+import commentBodyV2InitialAfterEditSimple from "./actions/utils/body/mocks/commentBody-v2-initialAfterEdit-simpleWithProgress.ts";
 
 vi.mock("../../context/slack/initTeamSlack", () => ({
   initTeamSlack: () => Promise.resolve(voidTeamSlack()),

@@ -1,11 +1,11 @@
 import type { Criteria } from "liwi-store";
-import type { AppContext } from "../../../../context/AppContext";
-import type { AccountInfo } from "../../../../context/getOrCreateAccount";
-import type { RepoContext } from "../../../../context/repoContext";
-import type { SlackMessage } from "../../../../context/slack/SlackMessage";
-import type { MessageCategory } from "../../../../dm/MessageCategory";
-import type { SlackSentMessage } from "../../../../mongo";
-import { ExcludesNullish } from "../../../../utils/Excludes";
+import type { AppContext } from "../../../../context/AppContext.ts";
+import type { AccountInfo } from "../../../../context/getOrCreateAccount.ts";
+import type { RepoContext } from "../../../../context/repoContext.ts";
+import type { SlackMessage } from "../../../../context/slack/SlackMessage.ts";
+import type { MessageCategory } from "../../../../dm/MessageCategory.ts";
+import type { SlackSentMessage } from "../../../../mongo.ts";
+import { ExcludesNullish } from "../../../../utils/Excludes.ts";
 
 interface GetSlackSentMessagesOptions {
   type: SlackSentMessage["type"];

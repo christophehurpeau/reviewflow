@@ -1,5 +1,5 @@
-import { githubPalette } from "./color-palettes/githubPalette";
-import type { Config } from "./types";
+import { githubPalette } from "./color-palettes/githubPalette.ts";
+import type { Config } from "./types.ts";
 
 const config: Config<never> = {
   autoAssignToCreator: true,

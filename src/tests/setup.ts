@@ -1,8 +1,8 @@
 import nock from "nock";
 import { Probot, ProbotOctokit } from "probot";
 import repoLabels from "../__fixtures__/labels.json";
-import { createEmptyReviews } from "../events/pr-handlers/utils/groupReviewsWithState";
-import initApp from "../initApp";
+import { createEmptyReviews } from "../events/pr-handlers/utils/groupReviewsWithState.ts";
+import initApp from "../initApp.ts";
 
 export { default as nock } from "nock";
 

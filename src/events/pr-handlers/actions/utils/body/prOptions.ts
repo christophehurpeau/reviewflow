@@ -1,7 +1,7 @@
-import type { RepoContext } from "../../../../../context/repoContext";
-import type { PullRequestLabels } from "../../../utils/PullRequestData";
-import hasLabelInPR from "../labels/hasLabelInPR";
-import type { RepositorySettings } from "./repositorySettings";
+import type { RepoContext } from "../../../../../context/repoContext.ts";
+import type { PullRequestLabels } from "../../../utils/PullRequestData.ts";
+import hasLabelInPR from "../labels/hasLabelInPR.ts";
+import type { RepositorySettings } from "./repositorySettings.ts";
 
 export type OptionsKeys =
   | "autoMerge"

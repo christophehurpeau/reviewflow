@@ -1,10 +1,10 @@
 import type { Probot } from "probot";
-import type { AppContext } from "../../context/AppContext";
-import { obtainRepoContext } from "../../context/repoContext";
-import { getEmojiFromRepoDescription } from "../../context/utils";
-import { getRepositorySettings } from "../../utils/github/repo/getRepositorySettings";
-import { createHandlerOrgChange } from "../account-handlers/utils/createHandlerOrgChange";
-import { createRepositorySettings } from "../pr-handlers/actions/utils/body/repositorySettings";
+import type { AppContext } from "../../context/AppContext.ts";
+import { obtainRepoContext } from "../../context/repoContext.ts";
+import { getEmojiFromRepoDescription } from "../../context/utils.ts";
+import { getRepositorySettings } from "../../utils/github/repo/getRepositorySettings.ts";
+import { createHandlerOrgChange } from "../account-handlers/utils/createHandlerOrgChange.ts";
+import { createRepositorySettings } from "../pr-handlers/actions/utils/body/repositorySettings.ts";
 
 export default function repoEdited(app: Probot, appContext: AppContext): void {
   createHandlerOrgChange(

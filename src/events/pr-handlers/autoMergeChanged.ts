@@ -1,10 +1,10 @@
 import type { Probot } from "probot";
-import type { AppContext } from "../../context/AppContext";
-import { checkIfIsThisBot } from "../../utils/github/isBotUser";
-import { mergeOrEnableGithubAutoMerge } from "./actions/enableGithubAutoMerge";
-import { updatePrCommentBodyOptions } from "./actions/updatePrCommentBody";
-import { syncLabels } from "./actions/utils/syncLabel";
-import { createPullRequestHandler } from "./utils/createPullRequestHandler";
+import type { AppContext } from "../../context/AppContext.ts";
+import { checkIfIsThisBot } from "../../utils/github/isBotUser.ts";
+import { mergeOrEnableGithubAutoMerge } from "./actions/enableGithubAutoMerge.ts";
+import { updatePrCommentBodyOptions } from "./actions/updatePrCommentBody.ts";
+import { syncLabels } from "./actions/utils/syncLabel.ts";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
 
 export default function autoMergeChangedHandler(
   app: Probot,

@@ -1,20 +1,20 @@
 import type { Probot } from "probot";
-import { catchExceptedErrors } from "../../../ExpectedError";
-import type { AppContext } from "../../../context/AppContext";
+import { catchExceptedErrors } from "../../../ExpectedError.ts";
+import type { AppContext } from "../../../context/AppContext.ts";
 import type {
   CustomExtract,
   EventsWithRepository,
   RepoContext,
-} from "../../../context/repoContext";
-import { obtainRepoContext } from "../../../context/repoContext";
-import type { ProbotEvent } from "../../probot-types";
+} from "../../../context/repoContext.ts";
+import { obtainRepoContext } from "../../../context/repoContext.ts";
+import type { ProbotEvent } from "../../probot-types.ts";
 import type { PullRequestDataMinimumData } from "./PullRequestData";
 import type {
   CreatePrContextOptions,
   ReviewflowPrContext,
-} from "./createPullRequestContext";
-import { getReviewflowPrContext } from "./createPullRequestContext";
-import type { PullRequestFromProbotEvent } from "./getPullRequestFromPayload";
+} from "./createPullRequestContext.ts";
+import { getReviewflowPrContext } from "./createPullRequestContext.ts";
+import type { PullRequestFromProbotEvent } from "./getPullRequestFromPayload.ts";
 
 export type EventsWithPullRequest = CustomExtract<
   EventsWithRepository,

@@ -2,23 +2,26 @@ import type { MongoInsertType } from "liwi-mongo";
 import type {
   EventsWithRepository,
   RepoContext,
-} from "../../../context/repoContext";
-import type { ReviewflowPr } from "../../../mongo";
-import { getReviewsState } from "../../../utils/github/pullRequest/reviews";
-import type { ProbotEvent } from "../../probot-types";
-import { defaultCommentBody } from "../actions/utils/body/updateBody";
+} from "../../../context/repoContext.ts";
+import type { ReviewflowPr } from "../../../mongo.ts";
+import { getReviewsState } from "../../../utils/github/pullRequest/reviews.ts";
+import type { ProbotEvent } from "../../probot-types.ts";
+import { defaultCommentBody } from "../actions/utils/body/updateBody.ts";
 import type {
   PullRequestDataMinimumData,
   PullRequestWithDecentData,
-} from "./PullRequestData";
-import { toBasicUser } from "./PullRequestData";
-import { fetchPr } from "./fetchPr";
-import { createEmptyReviews, groupReviewsState } from "./groupReviewsWithState";
+} from "./PullRequestData.ts";
+import { toBasicUser } from "./PullRequestData.ts";
+import { fetchPr } from "./fetchPr.ts";
+import {
+  createEmptyReviews,
+  groupReviewsState,
+} from "./groupReviewsWithState.ts";
 import {
   createReviewflowComment,
   findReviewflowComment,
   getReviewflowCommentById,
-} from "./reviewflowComment";
+} from "./reviewflowComment.ts";
 
 export interface CreatePrContextOptions {
   reviewflowCommentPromise?: ReturnType<typeof createReviewflowComment>;

@@ -1,8 +1,8 @@
 import type { RestEndpointMethodTypes } from "@octokit/rest";
-import type { EventsWithRepository } from "../../../context/repoContext";
-import { checkIfIsThisBot } from "../../../utils/github/isBotUser";
-import type { ProbotEvent } from "../../probot-types";
-import { defaultCommentBody } from "../actions/utils/body/updateBody";
+import type { EventsWithRepository } from "../../../context/repoContext.ts";
+import { checkIfIsThisBot } from "../../../utils/github/isBotUser.ts";
+import type { ProbotEvent } from "../../probot-types.ts";
+import { defaultCommentBody } from "../actions/utils/body/updateBody.ts";
 import type { PullRequestWithDecentDataFromWebhook } from "./PullRequestData";
 
 export const createReviewflowComment = <EventName extends EventsWithRepository>(

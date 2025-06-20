@@ -1,19 +1,19 @@
 import type {
   EventsWithRepository,
   RepoContext,
-} from "../../../context/repoContext";
-import type { ProbotEvent } from "../../probot-types";
-import type { BasicUser, PullRequestLabels } from "../utils/PullRequestData";
-import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
-import type { PullRequestFromRestEndpoint } from "../utils/fetchPr";
-import type { MergeOrEnableGithubAutoMergeResult } from "./enableGithubAutoMerge";
-import { mergeOrEnableGithubAutoMerge } from "./enableGithubAutoMerge";
-import hasLabelInPR from "./utils/labels/hasLabelInPR";
-import type { StepsState } from "./utils/steps/calcStepsState";
+} from "../../../context/repoContext.ts";
+import type { ProbotEvent } from "../../probot-types.ts";
+import type { BasicUser, PullRequestLabels } from "../utils/PullRequestData.ts";
+import type { ReviewflowPrContext } from "../utils/createPullRequestContext.ts";
+import type { PullRequestFromRestEndpoint } from "../utils/fetchPr.ts";
+import type { MergeOrEnableGithubAutoMergeResult } from "./enableGithubAutoMerge.ts";
+import { mergeOrEnableGithubAutoMerge } from "./enableGithubAutoMerge.ts";
+import hasLabelInPR from "./utils/labels/hasLabelInPR.ts";
+import type { StepsState } from "./utils/steps/calcStepsState.ts";
 import {
   calcStepsState,
   isAllStepsExceptMergePassed,
-} from "./utils/steps/calcStepsState";
+} from "./utils/steps/calcStepsState.ts";
 
 interface TryToAutomergeOptions<
   EventName extends EventsWithRepository,

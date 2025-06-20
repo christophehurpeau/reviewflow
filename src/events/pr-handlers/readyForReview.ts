@@ -1,16 +1,16 @@
 import type { Probot } from "probot";
 import type { AppContext } from "../../context/AppContext";
-import * as slackUtils from "../../slack/utils";
-import { editOpenedPR } from "./actions/editOpenedPR";
-import { mergeOrEnableGithubAutoMerge } from "./actions/enableGithubAutoMerge";
-import { updateReviewStatus } from "./actions/updateReviewStatus";
-import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState";
-import hasLabelInPR from "./actions/utils/labels/hasLabelInPR";
-import { calcStepsState } from "./actions/utils/steps/calcStepsState";
-import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
-import { createPullRequestHandler } from "./utils/createPullRequestHandler";
-import { fetchPr } from "./utils/fetchPr";
-import type { PullRequestFromRestEndpoint } from "./utils/fetchPr";
+import * as slackUtils from "../../slack/utils.ts";
+import { editOpenedPR } from "./actions/editOpenedPR.ts";
+import { mergeOrEnableGithubAutoMerge } from "./actions/enableGithubAutoMerge.ts";
+import { updateReviewStatus } from "./actions/updateReviewStatus.ts";
+import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState.ts";
+import hasLabelInPR from "./actions/utils/labels/hasLabelInPR.ts";
+import { calcStepsState } from "./actions/utils/steps/calcStepsState.ts";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome.ts";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
+import { fetchPr } from "./utils/fetchPr.ts";
+import type { PullRequestFromRestEndpoint } from "./utils/fetchPr.ts";
 
 export default function readyForReview(
   app: Probot,

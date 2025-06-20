@@ -1,39 +1,39 @@
 import type { Update } from "liwi-mongo";
-import type { StatusInfo } from "../../../accountConfigs/types";
-import type { AppContext } from "../../../context/AppContext";
+import type { StatusInfo } from "../../../accountConfigs/types.ts";
+import type { AppContext } from "../../../context/AppContext.ts";
 import type {
   EventsWithRepository,
   RepoContext,
-} from "../../../context/repoContext";
-import { getKeys } from "../../../context/utils";
+} from "../../../context/repoContext.ts";
+import { getKeys } from "../../../context/utils.ts";
 import type { ReviewflowPr } from "../../../mongo";
-import { ExcludesFalsy } from "../../../utils/Excludes";
-import { checkIfUserIsBot } from "../../../utils/github/isBotUser";
-import type { ChecksAndStatuses } from "../../../utils/github/pullRequest/checksAndStatuses";
-import { isPrFromRenovateBot } from "../../../utils/github/renovate";
-import type { ProbotEvent } from "../../probot-types";
+import { ExcludesFalsy } from "../../../utils/Excludes.ts";
+import { checkIfUserIsBot } from "../../../utils/github/isBotUser.ts";
+import type { ChecksAndStatuses } from "../../../utils/github/pullRequest/checksAndStatuses.ts";
+import { isPrFromRenovateBot } from "../../../utils/github/renovate.ts";
+import type { ProbotEvent } from "../../probot-types.ts";
 import type {
   PullRequestLabels,
   PullRequestWithDecentData,
-} from "../utils/PullRequestData";
-import { toBasicUser } from "../utils/PullRequestData";
-import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
-import { readCommitsAndUpdateInfos } from "./readCommitsAndUpdateInfos";
-import { updatePrIfNeeded } from "./updatePr";
-import { updatePrCommentBodyIfNeeded } from "./updatePrCommentBody";
-import { calcDefaultOptions } from "./utils/body/prOptions";
+} from "../utils/PullRequestData.ts";
+import { toBasicUser } from "../utils/PullRequestData.ts";
+import type { ReviewflowPrContext } from "../utils/createPullRequestContext.ts";
+import { readCommitsAndUpdateInfos } from "./readCommitsAndUpdateInfos.ts";
+import { updatePrIfNeeded } from "./updatePr.ts";
+import { updatePrCommentBodyIfNeeded } from "./updatePrCommentBody.ts";
+import { calcDefaultOptions } from "./utils/body/prOptions.ts";
 import {
   createCommentBody,
   defaultCommentBody,
   removeDeprecatedReviewflowInPrBody,
   updateCommentBodyInfos,
   updateCommentBodyProgress,
-} from "./utils/body/updateBody";
-import { lintCommitMessage } from "./utils/commitMessages";
-import createStatus, { isSameStatus } from "./utils/createStatus";
-import { cleanTitle } from "./utils/prTitle";
-import type { StepsState } from "./utils/steps/calcStepsState";
-import { updateSlackHomeForPr } from "./utils/updateSlackHome";
+} from "./utils/body/updateBody.ts";
+import { lintCommitMessage } from "./utils/commitMessages.ts";
+import createStatus, { isSameStatus } from "./utils/createStatus.ts";
+import { cleanTitle } from "./utils/prTitle.ts";
+import type { StepsState } from "./utils/steps/calcStepsState.ts";
+import { updateSlackHomeForPr } from "./utils/updateSlackHome.ts";
 
 export interface ReviewflowStatus {
   name: string;

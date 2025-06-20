@@ -1,13 +1,13 @@
 import type { Probot } from "probot";
-import type { AppContext } from "../../context/AppContext";
-import * as slackUtils from "../../slack/utils";
-import { checkIfIsThisBot } from "../../utils/github/isBotUser";
-import { getReviewsState } from "../../utils/github/pullRequest/reviews";
-import { autoApproveAndAutoMerge } from "./actions/autoApproveAndAutoMerge";
-import { updateAfterReviewChange } from "./actions/updateAfterReviewChange";
-import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
-import { createPullRequestHandler } from "./utils/createPullRequestHandler";
-import { fetchPr } from "./utils/fetchPr";
+import type { AppContext } from "../../context/AppContext.ts";
+import * as slackUtils from "../../slack/utils.ts";
+import { checkIfIsThisBot } from "../../utils/github/isBotUser.ts";
+import { getReviewsState } from "../../utils/github/pullRequest/reviews.ts";
+import { autoApproveAndAutoMerge } from "./actions/autoApproveAndAutoMerge.ts";
+import { updateAfterReviewChange } from "./actions/updateAfterReviewChange.ts";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome.ts";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
+import { fetchPr } from "./utils/fetchPr.ts";
 
 export default function reviewDismissed(
   app: Probot,

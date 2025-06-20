@@ -1,16 +1,16 @@
-import type { ReviewLabels } from "../../../accountConfigs/types";
+import type { ReviewLabels } from "../../../accountConfigs/types.ts";
 import type {
   EventsWithRepository,
   RepoContext,
-} from "../../../context/repoContext";
-import type { ProbotEvent } from "../../probot-types";
+} from "../../../context/repoContext.ts";
+import type { ProbotEvent } from "../../probot-types.ts";
 import type {
   PullRequestLabels,
   PullRequestWithDecentData,
-} from "../utils/PullRequestData";
-import type { StepsState } from "./utils/steps/calcStepsState";
-import type { LabelToSync } from "./utils/syncLabel";
-import { syncLabels } from "./utils/syncLabel";
+} from "../utils/PullRequestData.ts";
+import type { StepsState } from "./utils/steps/calcStepsState.ts";
+import type { LabelToSync } from "./utils/syncLabel.ts";
+import { syncLabels } from "./utils/syncLabel.ts";
 
 export const updateReviewStatus = async <
   EventName extends EventsWithRepository,

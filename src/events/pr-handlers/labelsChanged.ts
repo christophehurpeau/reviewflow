@@ -1,16 +1,16 @@
 import type { Probot } from "probot";
-import type { AppContext } from "../../context/AppContext";
-import type { ProbotEvent } from "../probot-types";
-import { disableGithubAutoMerge } from "./actions/enableGithubAutoMerge";
-import { tryToAutomerge } from "./actions/tryToAutomerge";
-import { updateBranch } from "./actions/updateBranch";
-import { updatePrCommentBodyOptions } from "./actions/updatePrCommentBody";
-import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState";
-import hasLabelInPR from "./actions/utils/labels/hasLabelInPR";
-import { calcStepsState } from "./actions/utils/steps/calcStepsState";
-import type { PullRequestLabels } from "./utils/PullRequestData";
-import { createPullRequestHandler } from "./utils/createPullRequestHandler";
-import { fetchPr } from "./utils/fetchPr";
+import type { AppContext } from "../../context/AppContext.ts";
+import type { ProbotEvent } from "../probot-types.ts";
+import { disableGithubAutoMerge } from "./actions/enableGithubAutoMerge.ts";
+import { tryToAutomerge } from "./actions/tryToAutomerge.ts";
+import { updateBranch } from "./actions/updateBranch.ts";
+import { updatePrCommentBodyOptions } from "./actions/updatePrCommentBody.ts";
+import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState.ts";
+import hasLabelInPR from "./actions/utils/labels/hasLabelInPR.ts";
+import { calcStepsState } from "./actions/utils/steps/calcStepsState.ts";
+import type { PullRequestLabels } from "./utils/PullRequestData.ts";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
+import { fetchPr } from "./utils/fetchPr.ts";
 
 const isFromRenovate = (
   payload: ProbotEvent<

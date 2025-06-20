@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createCommitMessage } from "./createCommitMessage";
-import type { ParsedBody } from "./utils/body/parseBody";
+import { createCommitMessage } from "./createCommitMessage.ts";
+import type { ParsedBody } from "./utils/body/parseBody.ts";
 
 describe(createCommitMessage.name, () => {
   it("should create title based on pr title and number", () => {

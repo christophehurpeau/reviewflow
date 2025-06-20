@@ -1,7 +1,7 @@
 import type { MongoInsertType } from "liwi-mongo";
-import { accountConfigs, defaultConfig } from "../accountConfigs";
-import type { MongoStores, UserDmSettings } from "../mongo";
-import { defaultDmSettings } from "./defaultDmSettings";
+import { accountConfigs, defaultConfig } from "../accountConfigs/index.ts";
+import type { MongoStores, UserDmSettings } from "../mongo.ts";
+import { defaultDmSettings } from "./defaultDmSettings.ts";
 
 const cache = new Map<string, Map<number, MongoInsertType<UserDmSettings>>>();
 

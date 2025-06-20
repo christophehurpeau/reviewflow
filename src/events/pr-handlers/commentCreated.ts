@@ -1,30 +1,30 @@
 import type { RestEndpointMethodTypes } from "@octokit/rest";
 import delay from "delay";
 import type { Context, Probot } from "probot";
-import type { AppContext } from "../../context/AppContext";
-import type { AccountInfo } from "../../context/getOrCreateAccount";
-import type { SlackMessage } from "../../context/slack/SlackMessage";
+import type { AppContext } from "../../context/AppContext.ts";
+import type { AccountInfo } from "../../context/getOrCreateAccount.ts";
+import type { SlackMessage } from "../../context/slack/SlackMessage.ts";
 import type {
   PostSlackMessageResult,
   SlackMessageResult,
-} from "../../context/slack/TeamSlack";
-import type { MessageCategory } from "../../dm/MessageCategory";
-import type { AccountEmbed } from "../../mongo";
-import * as slackUtils from "../../slack/utils";
-import { ExcludesNullish } from "../../utils/Excludes";
+} from "../../context/slack/TeamSlack.ts";
+import type { MessageCategory } from "../../dm/MessageCategory.ts";
+import type { AccountEmbed } from "../../mongo.ts";
+import * as slackUtils from "../../slack/utils.ts";
+import { ExcludesNullish } from "../../utils/Excludes.ts";
 import {
   checkIfIsThisBot,
   checkIfUserIsBot,
-} from "../../utils/github/isBotUser";
-import { parseMentions } from "../../utils/github/parseMentions";
-import { createSlackMessageWithSecondaryBlock } from "../../utils/slack/createSlackMessageWithSecondaryBlock";
-import { slackifyCommentBody } from "../../utils/slackifyCommentBody";
-import type { ProbotEvent } from "../probot-types";
-import { createPullRequestHandler } from "./utils/createPullRequestHandler";
-import { fetchPr } from "./utils/fetchPr";
-import { getPullRequestFromPayload } from "./utils/getPullRequestFromPayload";
-import { getReviewersAndReviewStates } from "./utils/getReviewersAndReviewStates";
-import { getRolesFromPullRequestAndReviewers } from "./utils/getRolesFromPullRequestAndReviewers";
+} from "../../utils/github/isBotUser.ts";
+import { parseMentions } from "../../utils/github/parseMentions.ts";
+import { createSlackMessageWithSecondaryBlock } from "../../utils/slack/createSlackMessageWithSecondaryBlock.ts";
+import { slackifyCommentBody } from "../../utils/slackifyCommentBody.ts";
+import type { ProbotEvent } from "../probot-types.ts";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
+import { fetchPr } from "./utils/fetchPr.ts";
+import { getPullRequestFromPayload } from "./utils/getPullRequestFromPayload.ts";
+import { getReviewersAndReviewStates } from "./utils/getReviewersAndReviewStates.ts";
+import { getRolesFromPullRequestAndReviewers } from "./utils/getRolesFromPullRequestAndReviewers.ts";
 
 type Comment = ProbotEvent<
   "issue_comment.created" | "pull_request_review_comment.created"

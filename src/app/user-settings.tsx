@@ -1,8 +1,8 @@
 import type { Router } from "express";
 import type { ProbotOctokit } from "probot";
 import { renderToStaticMarkup } from "react-dom/server";
-import { syncUser } from "../events/account-handlers/actions/syncUser";
-import type { MongoStores } from "../mongo";
+import { syncUser } from "../events/account-handlers/actions/syncUser.ts";
+import type { MongoStores } from "../mongo.ts";
 import Layout from "../views/Layout.tsx";
 import { getUser } from "./auth.tsx";
 

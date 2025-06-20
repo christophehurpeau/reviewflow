@@ -1,6 +1,6 @@
 import type { Probot } from "probot";
-import type { AppContext } from "../../context/AppContext";
-import { createPullRequestsHandler } from "./utils/createPullRequestHandler";
+import type { AppContext } from "../../context/AppContext.ts";
+import { createPullRequestsHandler } from "./utils/createPullRequestHandler.ts";
 
 export default function checksuiteCompleted(
   app: Probot,

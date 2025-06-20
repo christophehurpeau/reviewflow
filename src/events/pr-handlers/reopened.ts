@@ -1,15 +1,15 @@
 import type { Probot } from "probot";
-import type { AppContext } from "../../context/AppContext";
-import * as slackUtils from "../../slack/utils";
-import type { CreateOwnerPartOptions } from "../../slack/utils";
-import { editOpenedPR } from "./actions/editOpenedPR";
-import { updateReviewStatus } from "./actions/updateReviewStatus";
-import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState";
-import { calcStepsState } from "./actions/utils/steps/calcStepsState";
-import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome";
-import { createPullRequestHandler } from "./utils/createPullRequestHandler";
-import { getReviewersAndReviewStates } from "./utils/getReviewersAndReviewStates";
-import { getRolesFromPullRequestAndReviewers } from "./utils/getRolesFromPullRequestAndReviewers";
+import type { AppContext } from "../../context/AppContext.ts";
+import * as slackUtils from "../../slack/utils.ts";
+import type { CreateOwnerPartOptions } from "../../slack/utils.ts";
+import { editOpenedPR } from "./actions/editOpenedPR.ts";
+import { updateReviewStatus } from "./actions/updateReviewStatus.ts";
+import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState.ts";
+import { calcStepsState } from "./actions/utils/steps/calcStepsState.ts";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome.ts";
+import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
+import { getReviewersAndReviewStates } from "./utils/getReviewersAndReviewStates.ts";
+import { getRolesFromPullRequestAndReviewers } from "./utils/getRolesFromPullRequestAndReviewers.ts";
 
 export default function reopened(app: Probot, appContext: AppContext): void {
   createPullRequestHandler(

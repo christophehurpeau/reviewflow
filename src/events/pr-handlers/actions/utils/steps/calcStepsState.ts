@@ -1,14 +1,14 @@
-import type { RepoContext } from "../../../../../context/repoContext";
-import type { PullRequestWithDecentData } from "../../../utils/PullRequestData";
-import type { ReviewflowPrContext } from "../../../utils/createPullRequestContext";
-import type { ChecksStepState } from "./checksStep";
-import { calcChecksStep } from "./checksStep";
-import type { CodeReviewStepState } from "./codeReviewStep";
-import { calcCodeReviewStep } from "./codeReviewStep";
-import type { MergeStepState } from "./mergeStep";
-import { calcMergeStep } from "./mergeStep";
-import type { WriteStepState } from "./writeStep";
-import { calcWriteStep } from "./writeStep";
+import type { RepoContext } from "../../../../../context/repoContext.ts";
+import type { PullRequestWithDecentData } from "../../../utils/PullRequestData.ts";
+import type { ReviewflowPrContext } from "../../../utils/createPullRequestContext.ts";
+import type { ChecksStepState } from "./checksStep.ts";
+import { calcChecksStep } from "./checksStep.ts";
+import type { CodeReviewStepState } from "./codeReviewStep.ts";
+import { calcCodeReviewStep } from "./codeReviewStep.ts";
+import type { MergeStepState } from "./mergeStep.ts";
+import { calcMergeStep } from "./mergeStep.ts";
+import type { WriteStepState } from "./writeStep.ts";
+import { calcWriteStep } from "./writeStep.ts";
 
 export interface CalcStepsStateOptions<TeamNames extends string> {
   repoContext: RepoContext<TeamNames>;

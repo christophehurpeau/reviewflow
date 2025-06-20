@@ -1,28 +1,28 @@
-import type { AppContext } from "../../../context/AppContext";
+import type { AppContext } from "../../../context/AppContext.ts";
 import type {
   EventsWithRepository,
   RepoContext,
-} from "../../../context/repoContext";
-import type { CreateOwnerPartOptions } from "../../../slack/utils";
-import { createOwnerPart, createPrLink } from "../../../slack/utils";
-import type { ProbotEvent } from "../../probot-types";
+} from "../../../context/repoContext.ts";
+import type { CreateOwnerPartOptions } from "../../../slack/utils.ts";
+import { createOwnerPart, createPrLink } from "../../../slack/utils.ts";
+import type { ProbotEvent } from "../../probot-types.ts";
 import type {
   PullRequestFromRestEndpoint,
   PullRequestLabels,
-} from "../utils/PullRequestData";
-import type { ReviewflowPrContext } from "../utils/createPullRequestContext";
-import type { FailedOrWaitingChecksAndStatuses } from "../utils/getFailedOrWaitingChecksAndStatuses";
-import { getFailedOrWaitingChecksAndStatuses } from "../utils/getFailedOrWaitingChecksAndStatuses";
-import { getOwnersFromPullRequest } from "../utils/getRolesFromPullRequestAndReviewers";
-import { updateCommentBodyProgressFromStepsState } from "./updateCommentBodyProgressFromStepsState";
-import { updateStatusCheckFromStepsState } from "./updateStatusCheckFromStepsState";
-import { getStateChecksLabelsToSync } from "./utils/labels/getStateChecksLabelsToSync";
+} from "../utils/PullRequestData.ts";
+import type { ReviewflowPrContext } from "../utils/createPullRequestContext.ts";
+import type { FailedOrWaitingChecksAndStatuses } from "../utils/getFailedOrWaitingChecksAndStatuses.ts";
+import { getFailedOrWaitingChecksAndStatuses } from "../utils/getFailedOrWaitingChecksAndStatuses.ts";
+import { getOwnersFromPullRequest } from "../utils/getRolesFromPullRequestAndReviewers.ts";
+import { updateCommentBodyProgressFromStepsState } from "./updateCommentBodyProgressFromStepsState.ts";
+import { updateStatusCheckFromStepsState } from "./updateStatusCheckFromStepsState.ts";
+import { getStateChecksLabelsToSync } from "./utils/labels/getStateChecksLabelsToSync.ts";
 import {
   markAsDoneSlackSentMessages,
   sendOrUpdateSlackMessage,
-} from "./utils/slackUtils";
-import { calcStepsState } from "./utils/steps/calcStepsState";
-import { syncLabels } from "./utils/syncLabel";
+} from "./utils/slackUtils.ts";
+import { calcStepsState } from "./utils/steps/calcStepsState.ts";
+import { syncLabels } from "./utils/syncLabel.ts";
 
 async function checksAndStatusesSlackMessageAddOrUpdate<
   TeamNames extends string,

@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest";
 import type { LabelList } from "../../../../../accountConfigs/types";
-import initialSimpleV1 from "./mocks/commentBody-v1-initial-simple";
-import initialAfterEditSimpleV1 from "./mocks/commentBody-v1-initialAfterEdit-simple";
-import initialAfterEditSimpleWithInfosV1 from "./mocks/commentBody-v1-initialAfterEdit-simpleWithInfos";
-import initialAfterEditSimpleV2 from "./mocks/commentBody-v2-initialAfterEdit-simple";
-import initialAfterEditSimpleWithInfosV2 from "./mocks/commentBody-v2-initialAfterEdit-simpleWithInfos";
-import type { Options } from "./prOptions";
-import type { RepositorySettings } from "./repositorySettings";
+import initialSimpleV1 from "./mocks/commentBody-v1-initial-simple.ts";
+import initialAfterEditSimpleV1 from "./mocks/commentBody-v1-initialAfterEdit-simple.ts";
+import initialAfterEditSimpleWithInfosV1 from "./mocks/commentBody-v1-initialAfterEdit-simpleWithInfos.ts";
+import initialAfterEditSimpleV2 from "./mocks/commentBody-v2-initialAfterEdit-simple.ts";
+import initialAfterEditSimpleWithInfosV2 from "./mocks/commentBody-v2-initialAfterEdit-simpleWithInfos.ts";
+import type { Options } from "./prOptions.ts";
+import type { RepositorySettings } from "./repositorySettings.ts";
 import {
   updateCommentBodyCommitsNotes,
   updateCommentBodyInfos,
   updateCommentOptions,
-} from "./updateBody";
+} from "./updateBody.ts";
 
 const repositorySettings: RepositorySettings = {
   defaultBranch: "main",
