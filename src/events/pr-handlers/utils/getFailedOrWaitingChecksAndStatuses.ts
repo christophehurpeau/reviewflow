@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition, complexity */
 import type { RepoContext } from "../../../context/repoContext.ts";
 import { ExcludesFalsy } from "../../../utils/Excludes.ts";
 import type { ChecksAndStatuses } from "../../../utils/github/pullRequest/checksAndStatuses.ts";
@@ -41,6 +42,7 @@ export const getFailedOrWaitingChecksAndStatuses = <TeamNames extends string>(
         (check?.conclusion === "failure" ||
           check?.conclusion === "cancelled" ||
           check?.conclusion === "timed_out") &&
+        !check?.name.includes("/hold-") &&
         isCheckNotAllowedToFail(repoContext, check.name),
     )
     .map(([checkName]) => checkName)
