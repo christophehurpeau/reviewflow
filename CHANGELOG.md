@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.2.1](https://github.com/christophehurpeau/reviewflow/compare/v4.2.0...v4.2.1) (2025-07-24)
+
+### Bug Fixes
+
+* allow hold- jobs to be cancelled ([1ee09f7](https://github.com/christophehurpeau/reviewflow/commit/1ee09f7128933b464d9350fb6d68f3cf5f5b65b4))
+
 ## [4.2.0](https://github.com/christophehurpeau/reviewflow/compare/v4.1.0...v4.2.0) (2025-06-20)
 
 ### Features
