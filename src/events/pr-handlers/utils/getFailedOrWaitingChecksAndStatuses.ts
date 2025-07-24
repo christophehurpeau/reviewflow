@@ -62,6 +62,7 @@ export const getFailedOrWaitingChecksAndStatuses = <TeamNames extends string>(
     .filter(
       ([, status]) =>
         (status?.state === "failure" || status?.state === "error") &&
+        !status?.context.includes("/hold-") &&
         isCheckNotAllowedToFail(repoContext, status.context),
     )
     .map(([, status]) => status?.context)
