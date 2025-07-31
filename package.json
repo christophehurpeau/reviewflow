@@ -93,7 +93,7 @@
     "@pob/eslint-config": "60.1.0",
     "@pob/eslint-config-typescript": "60.1.0",
     "@pob/eslint-config-typescript-react": "60.1.0",
-    "@pob/rollup-esbuild": "6.5.1",
+    "@pob/rollup-esbuild": "6.6.0",
     "@pob/root": "18.0.2",
     "@types/body-parser": "1.19.6",
     "@types/cookie-parser": "1.4.9",
