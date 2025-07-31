@@ -75,7 +75,7 @@
     "conventional-changelog-conventionalcommits": "8.0.0",
     "cookie-parser": "1.4.7",
     "delay": "6.0.0",
-    "dotenv": "16.4.7",
+    "dotenv": "16.6.1",
     "emoji-regex": "10.4.0",
     "express": "4.21.2",
     "issue-parser": "7.0.1",
