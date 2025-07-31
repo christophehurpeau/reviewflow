@@ -112,7 +112,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/config-conventional@npm:19.8.1, @commitlint/config-conventional@npm:^19.8.0":
+"@commitlint/config-conventional@npm:19.8.1, @commitlint/config-conventional@npm:^19.8.1":
   version: 19.8.1
   resolution: "@commitlint/config-conventional@npm:19.8.1"
   dependencies:
@@ -1806,12 +1806,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pob/commitlint-config@npm:9.1.4":
-  version: 9.1.4
-  resolution: "@pob/commitlint-config@npm:9.1.4"
+"@pob/commitlint-config@npm:9.2.0":
+  version: 9.2.0
+  resolution: "@pob/commitlint-config@npm:9.2.0"
   dependencies:
-    "@commitlint/config-conventional": "npm:^19.8.0"
-  checksum: 10c0/008502a739b3a59b82c6b830325efb589483a57af9b3b584f4e700e5ef2a8762e75533081066fe347ef91ba2ad58abd7654f7c54e70fe2ea3191c9c13f80b2be
+    "@commitlint/config-conventional": "npm:^19.8.1"
+  checksum: 10c0/2743e5751930dd2fa9cdfefaf72ea4f554884183e42425297c6bd8d6fd3ec267cb93532f761552c924c5c35eaef46140decac06e295e7a44515d021f991f4381
   languageName: node
   linkType: hard
 
@@ -9093,7 +9093,7 @@ __metadata:
     "@octokit/plugin-rest-endpoint-methods": "npm:13.3.2-cjs.1"
     "@octokit/rest": "npm:20.1.2"
     "@octokit/webhooks": "npm:12.0.10"
-    "@pob/commitlint-config": "npm:9.1.4"
+    "@pob/commitlint-config": "npm:9.2.0"
     "@pob/eslint-config": "npm:60.1.0"
     "@pob/eslint-config-typescript": "npm:60.1.0"
     "@pob/eslint-config-typescript-react": "npm:60.1.0"
