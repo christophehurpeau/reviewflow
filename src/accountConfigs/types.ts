@@ -74,6 +74,7 @@ interface WarnOnForcePushAfterReviewStarted {
 
 export interface Config<TeamNames extends string> {
   autoAssignToCreator?: boolean;
+  autoReviewers?: string[];
   cleanTitle?: boolean | "conventionalCommit";
   lintPullRequestTitleWithConventionalCommit?: RegExp | boolean;
   ignoreRepoPattern?: string;

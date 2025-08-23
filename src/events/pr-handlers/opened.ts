@@ -2,12 +2,14 @@ import type { Probot } from "probot";
 import type { AppContext } from "../../context/AppContext.ts";
 import { checkIfUserIsBot } from "../../utils/github/isBotUser.ts";
 import { getChecksAndStatusesForPullRequest } from "../../utils/github/pullRequest/checksAndStatuses.ts";
+import { autoAddReviewers } from "./actions/autoAddReviewers.ts";
 import { autoAssignPRToCreator } from "./actions/autoAssignPRToCreator.ts";
 import { editOpenedPR } from "./actions/editOpenedPR.ts";
 import { mergeOrEnableGithubAutoMerge } from "./actions/enableGithubAutoMerge.ts";
 import { updateReviewStatus } from "./actions/updateReviewStatus.ts";
 import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState.ts";
 // import { defaultCommentBody } from './actions/utils/body/updateBody';
+import hasLabelInPR from "./actions/utils/labels/hasLabelInPR.ts";
 import { calcStepsState } from "./actions/utils/steps/calcStepsState.ts";
 import { syncLabels } from "./actions/utils/syncLabel.ts";
 import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome.ts";
@@ -26,10 +28,9 @@ export default function opened(app: Probot, appContext: AppContext): void {
     },
     async (pullRequest, context, repoContext, reviewflowPrContext) => {
       if (reviewflowPrContext === null) return;
-      const isFromBot = !pullRequest.user
-        ? false
-        : checkIfUserIsBot(repoContext, pullRequest.user);
+      const isFromBot = checkIfUserIsBot(repoContext, pullRequest.user);
       const autoMergeLabel = repoContext.labels["merge/automerge"];
+      const autoApproveLabel = repoContext.labels["review/auto-approve"];
       let pullRequestLabels: PullRequestLabels = pullRequest.labels;
 
       if (isFromBot) {
@@ -44,6 +45,9 @@ export default function opened(app: Probot, appContext: AppContext): void {
 
       await Promise.all<unknown>([
         !isFromBot && autoAssignPRToCreator(pullRequest, context, repoContext),
+        !pullRequest.draft &&
+          (!isFromBot || !hasLabelInPR(pullRequestLabels, autoApproveLabel)) &&
+          autoAddReviewers(pullRequest, context, repoContext),
 
         getChecksAndStatusesForPullRequest(context, pullRequest) // get required (pending) statuses or checks
           .then(async (checksAndStatuses) => {

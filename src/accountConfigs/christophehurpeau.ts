@@ -4,6 +4,7 @@ import type { Config } from "./types.ts";
 
 const config: Config<never> = {
   ...defaultConfig,
+  autoReviewers: ["christophehurpeau"],
   prDefaultOptions: {
     autoMerge: false,
     autoMergeWithSkipCi: false,

@@ -1,6 +1,8 @@
 import type { Probot } from "probot";
 import type { AppContext } from "../../context/AppContext";
 import * as slackUtils from "../../slack/utils.ts";
+import { checkIfUserIsBot } from "../../utils/github/isBotUser.ts";
+import { autoAddReviewers } from "./actions/autoAddReviewers.ts";
 import { editOpenedPR } from "./actions/editOpenedPR.ts";
 import { mergeOrEnableGithubAutoMerge } from "./actions/enableGithubAutoMerge.ts";
 import { updateReviewStatus } from "./actions/updateReviewStatus.ts";
@@ -30,6 +32,8 @@ export default function readyForReview(
       reviewflowPrContext,
     ): Promise<void> => {
       const sender = context.payload.sender;
+      const isFromBot = checkIfUserIsBot(repoContext, pullRequest.user);
+      const autoApproveLabel = repoContext.labels["review/auto-approve"];
 
       const membersForTeams = await Promise.all(
         pullRequest.requested_teams.map(async (requestedTeam) => ({
@@ -51,6 +55,9 @@ export default function readyForReview(
 
         const [updatedPr] = await Promise.all([
           fetchPr(context, pullRequest.number),
+          (!isFromBot || !hasLabelInPR(pullRequest.labels, autoApproveLabel)) &&
+            autoAddReviewers(pullRequest, context, repoContext),
+
           updateReviewStatus(pullRequest, context, repoContext, stepsState),
           editOpenedPR({
             stepsState,
