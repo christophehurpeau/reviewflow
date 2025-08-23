@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.3.0](https://github.com/christophehurpeau/reviewflow/compare/v4.2.2...v4.3.0) (2025-08-23)
+
+### Features
+
+* add autoReviewers ([cc60951](https://github.com/christophehurpeau/reviewflow/commit/cc609518eb26dc3e19e9b28eb5744dea37c9879c))
+* **deps:** update dependency dotenv to v16.6.1 ([#1056](https://github.com/christophehurpeau/reviewflow/issues/1056)) ([74eea50](https://github.com/christophehurpeau/reviewflow/commit/74eea50482a4a4dcf51f4cd01cfe1e5a4324b5ea))
+
 ## [4.2.2](https://github.com/christophehurpeau/reviewflow/compare/v4.2.1...v4.2.2) (2025-07-24)
 
 ### Bug Fixes
