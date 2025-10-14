@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.4.0](https://github.com/christophehurpeau/reviewflow/compare/v4.3.0...v4.4.0) (2025-10-14)
+
+### Features
+
+* allow elax-dagster to have no ticket ([#1065](https://github.com/christophehurpeau/reviewflow/issues/1065)) ([fe21002](https://github.com/christophehurpeau/reviewflow/commit/fe2100285393ab99bfe4b396f59f3b64e7ed84e4))
+
 ## [4.3.0](https://github.com/christophehurpeau/reviewflow/compare/v4.2.2...v4.3.0) (2025-08-23)
 
 ### Features
