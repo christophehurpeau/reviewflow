@@ -14,9 +14,10 @@ const config: Config<never> = {
   parsePR: {
     title: [
       {
+        excludeRepositoryNames: ["elax-dagster"],
         regExp: /\s([A-Z][\dA-Z]+-(\d+)|\[no (ticket|issue)\])$/,
         status: "notion-ticket",
-        createStatusInfo: (match, prInfo, isPrFromBot) => {
+        createStatusInfo: (match, prInfo, isPrFromBot, repositoryName) => {
           if (match) {
             const ticket = match[1];
             if (ticket === "[no ticket]" || ticket === "[no issue]") {
@@ -41,6 +42,14 @@ const config: Config<never> = {
             return {
               type: "success",
               title: "Title does not have Notion ticket but PR created by bot",
+              summary: "",
+            };
+          }
+
+          if (repositoryName === "elax-dagster") {
+            return {
+              type: "success",
+              title: "Title does not have Notion ticket.",
               summary: "",
             };
           }

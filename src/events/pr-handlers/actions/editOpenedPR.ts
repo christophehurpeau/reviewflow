@@ -143,7 +143,12 @@ export const editOpenedPR = async <
         if (rule.bot === false && isPrFromBot) return;
 
         const match = rule.regExp.exec(value);
-        const status = rule.createStatusInfo(match, parsePRValue, isPrFromBot);
+        const status = rule.createStatusInfo(
+          match,
+          parsePRValue,
+          isPrFromBot,
+          repoContext.repoEmbed.name,
+        );
 
         if (status !== null) {
           if (rule.status) {
