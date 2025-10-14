@@ -23,12 +23,14 @@ interface PrInfo {
 
 export interface ParsePRRule {
   bot?: false;
+  excludeRepositoryNames?: string[];
   regExp: RegExp;
   status?: string;
   createStatusInfo: (
     match: RegExpMatchArray | null,
     prInfo: PrInfo,
     isPrFromBot: boolean,
+    repositoryName: string,
   ) => StatusInfo | null;
 }
 

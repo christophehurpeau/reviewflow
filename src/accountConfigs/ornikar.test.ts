@@ -17,6 +17,7 @@ describe("parsePR.body", () => {
         ["", ""],
         {} as any,
         false,
+        "repositoryName",
       ),
     ).toEqual({
       summary: "The PR body should not be empty",
@@ -30,6 +31,7 @@ describe("parsePR.body", () => {
         ["", "something"],
         {} as any,
         false,
+        "repositoryName",
       ),
     ).toEqual(null);
   });
@@ -54,6 +56,7 @@ describe("parsePR.body", () => {
         ],
         {} as any,
         false,
+        "repositoryName",
       ),
     ).toEqual({
       type: "failure",
@@ -82,6 +85,7 @@ describe("parsePR.body", () => {
         ],
         {} as any,
         false,
+        "repositoryName",
       ),
     ).toEqual(null);
   });
