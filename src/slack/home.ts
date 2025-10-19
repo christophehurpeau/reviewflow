@@ -434,6 +434,7 @@ export const createSlackHomeWorker = (
 
   const start = (): void => {
     if (workerInterval !== undefined) return;
+    let lastMemberId: string | undefined;
     workerInterval = setInterval(() => {
       const item = queue.shift();
       if (!item) {
@@ -447,7 +448,15 @@ export const createSlackHomeWorker = (
       const key = `${member.org.id}_${memberId}`;
       queueKeys.delete(key);
 
-      updateMember(github, slackClient, member);
+      if (key === lastMemberId) {
+        // delay if retriggered
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        scheduleUpdateMember(github, slackClient, member);
+        lastMemberId = undefined;
+      } else {
+        lastMemberId = key;
+        updateMember(github, slackClient, member);
+      }
     }, 10_000); // 7/min 60s 1min = 1 ttes les 8.5s max (with 9s we have rate limit errors)
   };
 
