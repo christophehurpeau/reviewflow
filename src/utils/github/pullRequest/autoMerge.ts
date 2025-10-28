@@ -4,7 +4,7 @@ export interface AutoMergeRequest {
   enabledAt?: string;
   enabledBy: {
     login: string;
-  };
+  } | null;
 }
 
 export interface EnablePullRequestAutoMergeParams {

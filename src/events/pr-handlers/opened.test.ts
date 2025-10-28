@@ -115,7 +115,7 @@ describe("opened", (): void => {
       name: pullRequestOpened.event as any,
       //https://github.com/microsoft/TypeScript/issues/32063
       payload:
-        pullRequestOpened.payload as ProbotEvent<"pull_request.opened">["payload"],
+        pullRequestOpened.payload as unknown as ProbotEvent<"pull_request.opened">["payload"],
     });
 
     expect(insertOnePr).toHaveBeenCalled();
