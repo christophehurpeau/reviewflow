@@ -28,6 +28,7 @@ export default function autoMergeChangedHandler(
       const autoMergeLabel = repoContext.labels["merge/automerge"];
 
       await Promise.all([
+        // eslint-disable-next-line @typescript-eslint/await-thenable
         reviewflowPrContext &&
           (await updatePrCommentBodyOptions(
             context,
@@ -73,6 +74,7 @@ export default function autoMergeChangedHandler(
       const autoMergeLabel = repoContext.labels["merge/automerge"];
 
       await Promise.all([
+        // eslint-disable-next-line @typescript-eslint/await-thenable
         reviewflowPrContext &&
           (await updatePrCommentBodyOptions(
             context,

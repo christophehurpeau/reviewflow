@@ -145,6 +145,7 @@ export async function syncLabels<EventName extends EmitterWebhookEventName>(
     updatedLabels = response.data;
   }
 
+  // eslint-disable-next-line @typescript-eslint/await-thenable
   await Promise.all(callbacks.map((callback) => callback(updatedLabels)));
 
   return updatedLabels;

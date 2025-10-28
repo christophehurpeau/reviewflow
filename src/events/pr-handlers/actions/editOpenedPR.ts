@@ -385,6 +385,7 @@ export const editOpenedPR = async <
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/await-thenable
   await Promise.all(promises);
 
   if (shouldUpdateSlackHomeOnTitleChange && hasDiffInTitle) {

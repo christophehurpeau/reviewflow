@@ -267,7 +267,7 @@ export const initTeamSlack = async <TeamNames extends string>(
           name,
         });
       } catch (error: CodedError | any) {
-        if (error && error.code === "message_not_found") {
+        if (error?.code === "message_not_found") {
           return;
         }
         throw error;

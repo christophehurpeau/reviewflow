@@ -11,14 +11,14 @@
     "app": {
       "type": "node",
       "testing": true,
-      "testRunner": "vitest",
-      "ci": true
+      "testRunner": "vitest"
     },
     "project": {
       "type": "app",
       "packageManager": "yarn",
       "yarnNodeLinker": "node-modules",
-      "disableYarnGitCache": true
+      "disableYarnGitCache": true,
+      "ci": true
     }
   }
 }

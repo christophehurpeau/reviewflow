@@ -1,13 +1,12 @@
-name: Run Prettier on renovate update
+name: Run Build on renovate update related to build
 
 on:
   push:
     branches:
-      - "renovate/prettier-**"
-      - "renovate/major-prettier"
+      - "renovate/rollup-**"
 
 jobs:
-  run-prettier:
+  run-rollup-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -25,8 +24,8 @@ jobs:
       - name: Install Dependencies
         run: yarn install --immutable
 
-      - name: Run Prettier
-        run: yarn prettier --write .
+      - name: Run Build
+        run: yarn build
 
       - name: Check for added or modified files
         id: git-check-modified
@@ -38,5 +37,5 @@ jobs:
           git add .
           git -c user.name="Christophe Hurpeau" \
             -c user.email="christophehurpeau@users.noreply.github.com" \
-            commit -m "style: prettier format" --author="github-actions[bot] <actions@github.com>"
+            commit -m "build: update dist" --author="github-actions[bot] <actions@github.com>"
           git push --no-verify
