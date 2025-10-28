@@ -1066,6 +1066,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@octokit/plugin-rest-endpoint-methods@npm:13.5.0":
+  version: 13.5.0
+  resolution: "@octokit/plugin-rest-endpoint-methods@npm:13.5.0"
+  dependencies:
+    "@octokit/types": "npm:^13.10.0"
+  peerDependencies:
+    "@octokit/core": ">=6"
+  checksum: 10c0/0dd5fcdc01ac82abeab26fa32fd1c504732918bc70ad8e16924dd4d155dfd4bc8b57f2326c5012276885b9d59be3eb1e8d0b2576f5915a3b3343f26359cdba5e
+  languageName: node
+  linkType: hard
+
 "@octokit/plugin-rest-endpoint-methods@npm:^16.0.0":
   version: 16.1.1
   resolution: "@octokit/plugin-rest-endpoint-methods@npm:16.1.1"
@@ -1180,7 +1191,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/types@npm:^13.0.0, @octokit/types@npm:^13.1.0, @octokit/types@npm:^13.7.0, @octokit/types@npm:^13.8.0":
+"@octokit/types@npm:^13.0.0, @octokit/types@npm:^13.1.0, @octokit/types@npm:^13.10.0, @octokit/types@npm:^13.7.0, @octokit/types@npm:^13.8.0":
   version: 13.10.0
   resolution: "@octokit/types@npm:13.10.0"
   dependencies:
@@ -8580,7 +8591,7 @@ __metadata:
     "@commitlint/lint": "npm:20.0.0"
     "@commitlint/parse": "npm:20.0.0"
     "@octokit/core": "npm:5.2.2"
-    "@octokit/plugin-rest-endpoint-methods": "npm:13.3.2-cjs.1"
+    "@octokit/plugin-rest-endpoint-methods": "npm:13.5.0"
     "@octokit/rest": "npm:20.1.2"
     "@octokit/webhooks": "npm:12.3.2"
     "@pob/eslint-config": "npm:62.0.0"
