@@ -234,7 +234,7 @@ export default function slackConnect(
         const slackClient = new WebClient(
           accessToken.token.access_token as string,
         );
-        const identity = await slackClient.users.identity();
+        const identity = await slackClient.users.identity({});
 
         if (!org.slackTeamId && !org.slackToken) {
           res.send(
