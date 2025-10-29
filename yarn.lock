@@ -4895,10 +4895,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eventsource@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "eventsource@npm:2.0.2"
-  checksum: 10c0/0b8c70b35e45dd20f22ff64b001be9d530e33b92ca8bdbac9e004d0be00d957ab02ef33c917315f59bf2f20b178c56af85c52029bc8e6cc2d61c31d87d943573
+"eventsource-parser@npm:^3.0.1":
+  version: 3.0.6
+  resolution: "eventsource-parser@npm:3.0.6"
+  checksum: 10c0/70b8ccec7dac767ef2eca43f355e0979e70415701691382a042a2df8d6a68da6c2fca35363669821f3da876d29c02abe9b232964637c1b6635c940df05ada78a
+  languageName: node
+  linkType: hard
+
+"eventsource@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "eventsource@npm:4.0.0"
+  dependencies:
+    eventsource-parser: "npm:^3.0.1"
+  checksum: 10c0/908a3f64b60aadd053b9fd8ea8b6a896a4faf32dbbaf0150e91abbec179a9e2a3da261fb577ae296df8b744de91962d69a60b10e8d7092d7802e6e3e7a8b0f0e
   languageName: node
   linkType: hard
 
@@ -8619,7 +8628,7 @@ __metadata:
     react-dom: "npm:18.3.1"
     simple-oauth2: "npm:5.1.0"
     slackify-markdown: "npm:4.4.0"
-    smee-client: "npm:2.0.4"
+    smee-client: "npm:4.4.1"
     type-fest: "npm:4.41.0"
     typescript: "npm:5.9.3"
     vitest: "npm:4.0.4"
@@ -9099,16 +9108,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"smee-client@npm:2.0.4":
-  version: 2.0.4
-  resolution: "smee-client@npm:2.0.4"
+"smee-client@npm:4.4.1":
+  version: 4.4.1
+  resolution: "smee-client@npm:4.4.1"
   dependencies:
-    commander: "npm:^12.0.0"
-    eventsource: "npm:^2.0.2"
-    validator: "npm:^13.11.0"
+    eventsource: "npm:^4.0.0"
+    undici: "npm:^7.0.0"
   bin:
     smee: bin/smee.js
-  checksum: 10c0/4e578ebf88731fb6eb5e933192c533b2520c3265426d97fe63dee0555d7502efdb1a1127f721b23165c3a08641a3b622b8bfec81509d0a89c54da0f669f26d03
+  checksum: 10c0/6fd29bc6858bbfff5822c9883ae96ace5a0207b1537027a638636fc431e004c0145eff3d4ba6d0927125d3a4998f59acf2e9637d51b17858a176adc1650b081b
   languageName: node
   linkType: hard
 
@@ -9804,6 +9812,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"undici@npm:^7.0.0":
+  version: 7.16.0
+  resolution: "undici@npm:7.16.0"
+  checksum: 10c0/efd867792e9f233facf9efa0a087e2d9c3e4415c0b234061b9b40307ca4fa01d945fee4d43c7b564e1b80e0d519bcc682f9f6e0de13c717146c00a80e2f1fb0f
+  languageName: node
+  linkType: hard
+
 "unified@npm:^9.0.0":
   version: 9.2.0
   resolution: "unified@npm:9.2.0"
@@ -9976,13 +9991,6 @@ __metadata:
   version: 6.0.0
   resolution: "validate-npm-package-name@npm:6.0.0"
   checksum: 10c0/35d1896d90a4f00291cfc17077b553910d45018b3562841acc6471731794eeebe39b409f678e8c1fee8ef1786e087cac8dea19abdd43649c30fd0b9c752afa2f
-  languageName: node
-  linkType: hard
-
-"validator@npm:^13.11.0":
-  version: 13.15.20
-  resolution: "validator@npm:13.15.20"
-  checksum: 10c0/65453f0c91ef154ae2da4d5ff3c22acff239d2c15216335ba83895b6f79914708709c641119aa9fba0ec9dd69229c1cf8196aff0081584bdda8a7f50ea97b789
   languageName: node
   linkType: hard
 
