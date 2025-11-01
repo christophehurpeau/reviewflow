@@ -26,7 +26,7 @@ export default function edited(app: Probot, appContext: AppContext): void {
     ): Promise<void> => {
       if (reviewflowPrContext == null) return;
 
-      const sender = context.payload.sender;
+      const sender = context.payload.sender!;
       if (checkIfIsThisBot(sender)) {
         return;
       }

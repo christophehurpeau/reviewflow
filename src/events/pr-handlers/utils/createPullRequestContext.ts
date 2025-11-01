@@ -4,6 +4,7 @@ import type {
   RepoContext,
 } from "../../../context/repoContext.ts";
 import type { ReviewflowPr } from "../../../mongo.ts";
+import { ExcludesFalsy } from "../../../utils/Excludes.ts";
 import { getReviewsState } from "../../../utils/github/pullRequest/reviews.ts";
 import type { ProbotEvent } from "../../probot-types.ts";
 import { defaultCommentBody } from "../actions/utils/body/updateBody.ts";
@@ -57,7 +58,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
       reviews: createEmptyReviews(),
       assignees:
         "assignees" in pullRequest && pullRequest.assignees
-          ? pullRequest.assignees.map(toBasicUser)
+          ? pullRequest.assignees.filter(ExcludesFalsy).map(toBasicUser)
           : [],
       flowDates:
         "created_at" in pullRequest
@@ -112,16 +113,16 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
     changesInformation:
       "changed_files" in pullRequest
         ? {
-            changedFiles: pullRequest.changed_files,
-            additions: pullRequest.additions,
-            deletions: pullRequest.deletions,
+            changedFiles: pullRequest.changed_files!,
+            additions: pullRequest.additions!,
+            deletions: pullRequest.deletions!,
           }
         : undefined,
     commentId,
     reviews: groupReviewsState(reviewsState!),
     assignees:
       "assignees" in pullRequest && pullRequest.assignees
-        ? pullRequest.assignees.map(toBasicUser)
+        ? pullRequest.assignees.filter(ExcludesFalsy).map(toBasicUser)
         : [],
   });
 

@@ -9,7 +9,7 @@ export const fetchCommit = async <T extends EmitterWebhookEventName>(
   context: ProbotEvent<T>,
   ref: string,
 ): Promise<CommitFromRestEndpoint> => {
-  const commitResult = await context.octokit.repos.getCommit(
+  const commitResult = await context.octokit.rest.repos.getCommit(
     context.repo({ ref }),
   );
   return commitResult.data;

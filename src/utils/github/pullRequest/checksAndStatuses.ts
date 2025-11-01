@@ -27,13 +27,13 @@ export const getChecksAndStatusesForPullRequest = async <
   pr: PullRequestData,
 ): Promise<ChecksAndStatuses> => {
   const [checks, combinedStatus] = await Promise.all([
-    context.octokit.checks.listForRef(
+    context.octokit.rest.checks.listForRef(
       context.repo({
         ref: pr.head.sha,
         per_page: 100,
       }),
     ),
-    context.octokit.repos.getCombinedStatusForRef(
+    context.octokit.rest.repos.getCombinedStatusForRef(
       context.repo({
         ref: pr.head.sha,
         per_page: 100,

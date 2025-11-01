@@ -24,7 +24,7 @@ export const autoApproveAndAutoMerge = async <
   // const autoMergeLabel = repoContext.labels['merge/automerge'];
   const codeApprovedLabel = repoContext.labels["code/approved"];
   if (ignoreLabel || hasLabelInPR(pullRequest.labels, codeApprovedLabel)) {
-    await context.octokit.pulls.createReview(
+    await context.octokit.rest.pulls.createReview(
       context.pullRequest({ event: "APPROVE" }),
     );
 

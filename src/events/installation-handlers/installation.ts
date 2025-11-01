@@ -16,9 +16,9 @@ export default function installation(
     await appContext.mongoStores.installationsEvents.insertOne({
       installationId: payload.installation.id,
       account: {
-        id: payload.installation.account.id,
-        login: payload.installation.account.login,
-        type: payload.installation.account.type as AccountType,
+        id: account.id,
+        login: (account as any).login as string,
+        type: (account as any).type! as AccountType,
       },
       action: payload.action,
       sender: {

@@ -1,14 +1,14 @@
+import type { OctokitRestCompat } from "src/octokit";
 import type { MongoStores, User } from "../../../mongo";
-import type { CommonOctokitInterface } from "../../../octokit";
 
 interface UserInfo {
   login: string;
   id: number;
 }
 
-export const syncUser = async <T extends CommonOctokitInterface>(
+export const syncUser = async (
   mongoStores: MongoStores,
-  github: T,
+  github: OctokitRestCompat,
   installationId: number | undefined,
   userInfo: UserInfo,
 ): Promise<User> => {

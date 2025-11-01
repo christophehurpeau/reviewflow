@@ -167,7 +167,7 @@ async function initRepoContext<
     appContext,
     context,
     config,
-    org,
+    org!,
   );
   const repoContext = Object.create(accountContext);
 
@@ -399,10 +399,10 @@ export const obtainRepoContext = <T extends EventsWithRepository>(
   const existingPromise = repoContextsPromise.get(key);
   if (existingPromise) return Promise.resolve(existingPromise);
 
-  let accountConfig = accountConfigs[owner.login];
+  let accountConfig = accountConfigs[owner!.login];
 
   if (!accountConfig) {
-    context.log.info(`using default config for ${owner.login}`);
+    context.log.info(`using default config for ${owner!.login}`);
     accountConfig = defaultConfig;
   }
 

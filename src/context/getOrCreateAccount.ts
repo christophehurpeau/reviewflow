@@ -9,7 +9,7 @@ import type { AppContext } from "./AppContext.ts";
 export interface AccountInfo {
   id: number;
   login: string;
-  type: string;
+  type?: string | null;
 }
 
 export const getOrCreateAccount = async <T extends EmitterWebhookEventName>(
@@ -18,14 +18,25 @@ export const getOrCreateAccount = async <T extends EmitterWebhookEventName>(
   installationId: number | undefined,
   accountInfo: AccountInfo,
 ): Promise<Org | User> => {
-  switch (accountInfo.type) {
+  switch (accountInfo.type!) {
     case "Organization": {
       let org = await mongoStores.orgs.findByKey(accountInfo.id);
       if (org?.installationId) return org;
 
       // TODO diff org vs user...
-      org = await syncOrg(mongoStores, github, installationId, accountInfo);
-      await syncTeamsAndTeamMembers(mongoStores, github, accountInfo);
+      org = await syncOrg(
+        mongoStores,
+        github.rest,
+        github.paginate,
+        installationId,
+        accountInfo,
+      );
+      await syncTeamsAndTeamMembers(
+        mongoStores,
+        github.rest,
+        github.paginate,
+        accountInfo,
+      );
       return org;
     }
 
@@ -33,7 +44,12 @@ export const getOrCreateAccount = async <T extends EmitterWebhookEventName>(
       let user = await mongoStores.users.findByKey(accountInfo.id);
       if (user?.installationId) return user;
 
-      user = await syncUser(mongoStores, github, installationId, accountInfo);
+      user = await syncUser(
+        mongoStores,
+        github.rest,
+        installationId,
+        accountInfo,
+      );
       return user;
     }
 

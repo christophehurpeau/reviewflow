@@ -53,7 +53,7 @@ export default function labelsChanged(
       const autoMergeSkipCiLabel = repoContext.labels["merge/skip-ci"];
       const bypassProgressLabel = repoContext.labels["merge/bypass-progress"];
 
-      const label = context.payload.label;
+      const label = context.payload.label!;
       let successful = true;
 
       if (fromRenovate) {
@@ -61,7 +61,7 @@ export default function labelsChanged(
 
         if (context.payload.action === "labeled") {
           if (autoApproveLabel && label.id === autoApproveLabel.id) {
-            await context.octokit.pulls.createReview(
+            await context.octokit.rest.pulls.createReview(
               context.pullRequest({ event: "APPROVE" }),
             );
 
@@ -70,7 +70,7 @@ export default function labelsChanged(
               autoMergeSkipCiLabel &&
               repoContext.config.autoMergeRenovateWithSkipCi;
             if (autoMergeWithSkipCi) {
-              const result = await context.octokit.issues.addLabels(
+              const result = await context.octokit.rest.issues.addLabels(
                 context.repo({
                   issue_number: pullRequest.number,
                   labels: [autoMergeSkipCiLabel.name],
@@ -159,14 +159,14 @@ export default function labelsChanged(
 
       if (repoContext.protectedLabelIds.includes(label.id)) {
         if (context.payload.action === "labeled") {
-          await context.octokit.issues.removeLabel(
+          await context.octokit.rest.issues.removeLabel(
             context.repo({
               issue_number: pullRequest.number,
               name: label.name,
             }),
           );
         } else {
-          await context.octokit.issues.addLabels(
+          await context.octokit.rest.issues.addLabels(
             context.repo({
               issue_number: pullRequest.number,
               labels: [label.name],
@@ -183,7 +183,7 @@ export default function labelsChanged(
             repoContext.repoEmbed.name,
           )
         ) {
-          await context.octokit.issues.removeLabel(
+          await context.octokit.rest.issues.removeLabel(
             context.repo({
               issue_number: pullRequest.number,
               name: label.name,
@@ -220,7 +220,7 @@ export default function labelsChanged(
 
           // if not successful, remove label
           if (didFailedToEnableAutoMerge) {
-            await context.octokit.issues.removeLabel(
+            await context.octokit.rest.issues.removeLabel(
               context.repo({
                 issue_number: pullRequest.number,
                 name: label.name,
@@ -239,7 +239,7 @@ export default function labelsChanged(
             );
             // if not successful, add label back
             if (!successful) {
-              await context.octokit.issues.addLabels(
+              await context.octokit.rest.issues.addLabels(
                 context.repo({
                   issue_number: pullRequest.number,
                   labels: [label.name],
@@ -253,7 +253,7 @@ export default function labelsChanged(
       if (updateBranchLabel && label.id === updateBranchLabel.id) {
         if (context.payload.action === "labeled") {
           await updateBranch(updatedPr, context, context.payload.sender.login);
-          await context.octokit.issues.removeLabel(
+          await context.octokit.rest.issues.removeLabel(
             context.repo({
               issue_number: pullRequest.number,
               name: label.name,

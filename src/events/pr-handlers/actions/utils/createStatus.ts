@@ -16,7 +16,7 @@ export default async function createStatus<
     description = description.slice(0, 140);
   }
 
-  await context.octokit.repos.createCommitStatus(
+  await context.octokit.rest.repos.createCommitStatus(
     context.repo({
       context:
         name === ""

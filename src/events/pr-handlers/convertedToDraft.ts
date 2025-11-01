@@ -93,14 +93,14 @@ export default function convertedToDraft(
 
       const mention = repoContext.slack.mention(sender.login);
       const prUrl = slackUtils.createPrLink(pullRequest, repoContext);
-      const ownerMention = repoContext.slack.mention(owner.login);
+      const ownerMention = repoContext.slack.mention(owner!.login);
       const createMessage = (
         toOwner?: boolean,
         isAssignedTo?: boolean,
       ): string => {
         const ownerPart = toOwner
           ? "your PR"
-          : `${sender.id === owner.id ? "his" : `${ownerMention}'s`} PR${
+          : `${sender.id === owner!.id ? "his" : `${ownerMention}'s`} PR${
               isAssignedTo ? " you're assigned to" : ""
             }`;
 
@@ -112,22 +112,22 @@ export default function convertedToDraft(
       const messageToFollower = { text: createMessage(false) };
 
       await Promise.all([
-        ...assignees
-          .filter((assignee) => assignee.id === owner.id)
+        ...assignees!
+          .filter((assignee) => assignee!.id === owner!.id)
           .map((assigneeIsOwner) => {
             return repoContext.slack.postMessage(
               "pr-lifecycle",
-              assigneeIsOwner,
+              assigneeIsOwner!,
               messageToOwner,
             );
           }),
 
-        ...assignees
-          .filter((assignee) => assignee.id !== owner.id)
+        ...assignees!
+          .filter((assignee) => assignee!.id !== owner!.id)
           .map((assignee) => {
             return repoContext.slack.postMessage(
               "pr-lifecycle",
-              assignee,
+              assignee!,
               messageToAssignee,
             );
           }),

@@ -65,7 +65,7 @@ export default function commitCommentCreated(
         const otherCommentUser = otherComment.user;
         if (!otherCommentUser) return;
         if (
-          otherCommentUser.id !== comment.user.id &&
+          otherCommentUser.id !== comment.user!.id &&
           !otherCommenters.some(
             (otherCommenter) => otherCommenter.id === otherCommentUser.id,
           )
@@ -74,7 +74,7 @@ export default function commitCommentCreated(
         }
       });
 
-      const mention = repoContext.slack.mention(comment.user.login);
+      const mention = repoContext.slack.mention(comment.user!.login);
       const commitUrl = slackUtils.createCommitLink(commit, repoContext);
       const author = commit.author || commit.committer;
       const commitAuthorMention =
@@ -106,7 +106,7 @@ export default function commitCommentCreated(
         slackifiedBodyBlocks,
       );
 
-      const isBotUser = checkIfUserIsBot(repoContext, comment.user);
+      const isBotUser = checkIfUserIsBot(repoContext, comment.user!);
 
       const postMessage = async (
         category: MessageCategory,
@@ -118,7 +118,7 @@ export default function commitCommentCreated(
 
       await Promise.all([
         author &&
-          author.id !== comment.user.id &&
+          author.id !== comment.user!.id &&
           postMessage(
             isBotUser ? "commit-comment-bots" : "commit-comment",
             author as BasicUser,

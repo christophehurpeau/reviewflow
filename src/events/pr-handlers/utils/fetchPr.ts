@@ -9,7 +9,7 @@ export const fetchPr = async <T extends EmitterWebhookEventName>(
   context: ProbotEvent<T>,
   prNumber: number,
 ): Promise<PullRequestFromRestEndpoint> => {
-  const prResult = await context.octokit.pulls.get(
+  const prResult = await context.octokit.rest.pulls.get(
     context.repo({ pull_number: prNumber }),
   );
 

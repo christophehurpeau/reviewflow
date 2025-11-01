@@ -35,7 +35,7 @@ const addStatusCheck = async <EventName extends EventsWithRepository>(
   if (!previousStatus) {
     const {
       data: { check_runs: checkRuns },
-    } = await context.octokit.checks.listForRef(
+    } = await context.octokit.rest.checks.listForRef(
       context.repo({
         ref: pullRequest.head.sha,
         per_page: 100,
@@ -60,7 +60,7 @@ const addStatusCheck = async <EventName extends EventsWithRepository>(
       prCheck.conclusion !== conclusion ||
       prCheck.output.title !== description
     ) {
-      await context.octokit.checks.create(
+      await context.octokit.rest.checks.create(
         context.repo({
           name: process.env.REVIEWFLOW_NAME!,
           head_sha: pullRequest.head.sha,

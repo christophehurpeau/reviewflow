@@ -1,14 +1,15 @@
+import type { OctokitPaginate, OctokitRestCompat } from "src/octokit";
 import type { MongoStores, Org } from "../../../mongo";
-import type { CommonOctokitInterface } from "../../../octokit";
 
 interface OrgInfo {
   login: string;
   id: number;
 }
 
-export const syncOrg = async <T extends CommonOctokitInterface>(
+export const syncOrg = async (
   mongoStores: MongoStores,
-  octokit: T,
+  octokitRest: OctokitRestCompat,
+  paginate: OctokitPaginate,
   installationId: number | undefined,
   org: OrgInfo,
 ): Promise<Org> => {
@@ -22,13 +23,11 @@ export const syncOrg = async <T extends CommonOctokitInterface>(
 
   const memberIds: number[] = [];
 
-  for await (const { data } of octokit.paginate.iterator(
-    octokit.orgs.listMembers,
-    { org: org.login },
-  )) {
+  for await (const { data } of paginate.iterator(octokitRest.orgs.listMembers, {
+    org: org.login,
+  })) {
     await Promise.all(
       data.map(async (member) => {
-        if (!member) return;
         memberIds.push(member.id);
         return Promise.all([
           mongoStores.orgMembers.upsertOne<"teams">(

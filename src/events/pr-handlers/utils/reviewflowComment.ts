@@ -12,7 +12,7 @@ export const createReviewflowComment = <EventName extends EventsWithRepository>(
 ): Promise<
   RestEndpointMethodTypes["issues"]["createComment"]["response"]["data"]
 > => {
-  return context.octokit.issues
+  return context.octokit.rest.issues
     .createComment(context.repo({ issue_number: pullRequestNumber, body }))
     .then(({ data }) => data);
 };
@@ -26,7 +26,7 @@ export const getReviewflowCommentById = <
 ): Promise<
   RestEndpointMethodTypes["issues"]["getComment"]["response"]["data"] | null
 > => {
-  return context.octokit.issues
+  return context.octokit.rest.issues
     .getComment(
       context.repo({
         issue_number: pullRequestNumber,
@@ -52,7 +52,7 @@ export const findReviewflowComment = async <
     | RestEndpointMethodTypes["issues"]["listComments"]["response"]["data"][number]
     | null = null;
   await context.octokit.paginate(
-    context.octokit.issues.listComments,
+    context.octokit.rest.issues.listComments,
     context.repo({
       issue_number: pullRequestNumber,
     }),

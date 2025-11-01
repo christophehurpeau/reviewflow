@@ -31,12 +31,14 @@ export function updateSlackHomeForPr(
     }
     if (assignees && pullRequest.assignees) {
       pullRequest.assignees.forEach((assignee) => {
+        if (!assignee) return;
         logins.add(assignee.login);
       });
     }
 
     if (requestedReviewers && pullRequest.requested_reviewers) {
       pullRequest.requested_reviewers.forEach((requestedReviewer) => {
+        if (!requestedReviewer) return;
         if (!("login" in requestedReviewer)) return;
         logins.add(requestedReviewer.login);
       });

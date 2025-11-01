@@ -58,7 +58,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
           await Promise.all([
             updateClosedPromise,
             isNotFork && options.deleteAfterMerge
-              ? context.octokit.git
+              ? context.octokit.rest.git
                   .deleteRef(
                     context.repo({ ref: `heads/${pullRequest.head.ref}` }),
                   )
@@ -93,7 +93,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
 
       /* update slack home */
       const teamMembers = await repoContext.getMembersForTeams(
-        pullRequest.requested_teams.map((team) => team.id),
+        pullRequest.requested_teams!.map((team) => team.id),
       );
       updateSlackHomeForPr(repoContext, pullRequest, {
         user: true,
@@ -118,7 +118,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
       ): string => {
         const ownerPart = slackUtils.createOwnerPart(repoContext, pullRequest, {
           ...createOwnerPartOptions,
-          isSender: context.payload.sender.login === owner.login,
+          isSender: context.payload.sender.login === owner!.login,
         });
 
         return `${
@@ -127,15 +127,15 @@ export default function closed(app: Probot, appContext: AppContext): void {
             : `:wastebasket: ${senderMention} closed`
         } ${ownerPart} ${prLink}\n> ${pullRequest.title}`;
       };
-      if (context.payload.sender.id !== owner.id) {
-        repoContext.slack.postMessage("pr-lifecycle", owner, {
+      if (context.payload.sender.id !== owner!.id) {
+        repoContext.slack.postMessage("pr-lifecycle", owner!, {
           text: createMessage({ isOwner: true }),
         });
       }
 
-      assigneesNotOwner.map((assignee) => {
-        if (context.payload.sender.id === assignee.id) return undefined;
-        return repoContext.slack.postMessage("pr-lifecycle", assignee, {
+      assigneesNotOwner!.map((assignee) => {
+        if (context.payload.sender.id === assignee!.id) return undefined;
+        return repoContext.slack.postMessage("pr-lifecycle", assignee!, {
           text: createMessage({ isAssigned: true }),
         });
       });

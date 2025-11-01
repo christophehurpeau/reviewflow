@@ -17,12 +17,12 @@ export const autoAddReviewers = async <Name extends EmitterWebhookEventName>(
   }
 
   const autoReviewers = repoContext.config.autoReviewers.filter(
-    (reviewer) => pullRequest.user.login !== reviewer,
+    (reviewer) => pullRequest.user!.login !== reviewer,
   );
 
   if (autoReviewers.length === 0) return;
 
-  await context.octokit.pulls.requestReviewers(
+  await context.octokit.rest.pulls.requestReviewers(
     context.pullRequest({
       pull_number: pullRequest.number,
       reviewers: autoReviewers,

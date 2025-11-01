@@ -75,7 +75,7 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
           await updateBranch(
             pullRequest,
             context,
-            context.payload.sender.login,
+            context.payload.sender!.login,
           );
           if (updateBranchLabel) {
             await removeLabel(context, pullRequest, updateBranchLabel);

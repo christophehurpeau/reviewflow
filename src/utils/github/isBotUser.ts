@@ -16,7 +16,7 @@ export const checkIfUserIsBot = (
 
 export const checkIfIsThisBot = (user: {
   login: string;
-  type: string;
+  type?: string;
 }): boolean => {
   return (
     user.type === "Bot" && user.login === `${process.env.REVIEWFLOW_NAME}[bot]`

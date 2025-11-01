@@ -175,7 +175,7 @@ export const editOpenedPR = async <
     // if it is the first time we see this PR or it's before we started saving statuses
     const {
       data: { check_runs: checkRuns },
-    } = await context.octokit.checks.listForRef(
+    } = await context.octokit.rest.checks.listForRef(
       context.repo({
         ref: pullRequest.head.sha,
         per_page: 100,
@@ -239,7 +239,7 @@ export const editOpenedPR = async <
       : []),
     hasLegacyLintPrCheck &&
       !previousSha &&
-      context.octokit.checks.create(
+      context.octokit.rest.checks.create(
         context.repo({
           name: lintStatus.name,
           head_sha: pullRequest.head.sha,
@@ -265,9 +265,9 @@ export const editOpenedPR = async <
 
   if ("changed_files" in pullRequest) {
     partialUpdateReviewflowPr.changesInformation = {
-      changedFiles: pullRequest.changed_files,
-      additions: pullRequest.additions,
-      deletions: pullRequest.deletions,
+      changedFiles: pullRequest.changed_files!,
+      additions: pullRequest.additions!,
+      deletions: pullRequest.deletions!,
     };
   }
 
@@ -279,8 +279,9 @@ export const editOpenedPR = async <
   ) {
     partialUpdateReviewflowPr.assignees = [toBasicUser(pullRequest.user)];
   } else if ("assignees" in pullRequest && pullRequest.assignees) {
-    partialUpdateReviewflowPr.assignees =
-      pullRequest.assignees.map(toBasicUser);
+    partialUpdateReviewflowPr.assignees = pullRequest.assignees
+      .filter(ExcludesFalsy)
+      .map(toBasicUser);
   }
 
   const promises: (Promise<unknown> | undefined)[] = [
@@ -317,7 +318,11 @@ export const editOpenedPR = async <
               // update old data
               ...(!reviewflowPrContext.reviewflowPr.assignees &&
               pullRequest.assignees
-                ? { assignees: pullRequest.assignees.map(toBasicUser) }
+                ? {
+                    assignees: pullRequest.assignees
+                      .filter(ExcludesFalsy)
+                      .map(toBasicUser),
+                  }
                 : {}),
             },
           },
@@ -332,16 +337,16 @@ export const editOpenedPR = async <
     // not a bot
     !isPrFromBot &&
     // should not happen, but ts needs it
-    pullRequest.user.login &&
+    pullRequest.user!.login &&
     // belongs to the organization
     pullRequest.head.repo?.full_name === pullRequest.base.repo.full_name &&
     // has not connected its slack account yet
-    repoContext.slack.shouldShowLoginMessage(pullRequest.user.login)
+    repoContext.slack.shouldShowLoginMessage(pullRequest.user!.login)
   ) {
     commentBodyInfos.push({
       type: "failure",
-      title: `@${pullRequest.user.login} Connect your account to Slack to get notifications for your PRs !`,
-      url: `${process.env.REVIEWFLOW_APP_URL}/org/${context.payload.repository.owner.login}`,
+      title: `@${pullRequest.user!.login} Connect your account to Slack to get notifications for your PRs !`,
+      url: `${process.env.REVIEWFLOW_APP_URL}/org/${context.payload.repository.owner!.login}`,
       summary: "",
     });
   }
@@ -407,7 +412,7 @@ export const editOpenedPR = async <
     repoContext.config.experimentalFeatures?.autoCloseAbandonedPrs &&
     pullRequest.title.endsWith(" - abandoned")
   ) {
-    await context.octokit.pulls.update(
+    await context.octokit.rest.pulls.update(
       context.repo({
         pull_number: pullRequest.number,
         state: "closed",

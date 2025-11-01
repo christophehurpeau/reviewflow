@@ -32,11 +32,11 @@ export default function readyForReview(
       reviewflowPrContext,
     ): Promise<void> => {
       const sender = context.payload.sender;
-      const isFromBot = checkIfUserIsBot(repoContext, pullRequest.user);
+      const isFromBot = checkIfUserIsBot(repoContext, pullRequest.user!);
       const autoApproveLabel = repoContext.labels["review/auto-approve"];
 
       const membersForTeams = await Promise.all(
-        pullRequest.requested_teams.map(async (requestedTeam) => ({
+        pullRequest.requested_teams!.map(async (requestedTeam) => ({
           requestedTeam,
           members: await repoContext.getMembersForTeams([requestedTeam.id]),
         })),
@@ -113,7 +113,9 @@ export default function readyForReview(
         const createText = ({
           requestedTeam,
         }: {
-          requestedTeam?: (typeof pullRequest.requested_teams)[number];
+          requestedTeam?: NonNullable<
+            typeof pullRequest.requested_teams
+          >[number];
         }): string =>
           `:eyes: ${repoContext.slack.mention(
             sender.login,
@@ -128,8 +130,8 @@ export default function readyForReview(
         };
 
         await Promise.all([
-          ...pullRequest.requested_reviewers.map(async (potentialReviewer) => {
-            if (sender.id === potentialReviewer.id) return;
+          ...pullRequest.requested_reviewers!.map(async (potentialReviewer) => {
+            if (sender.id === potentialReviewer!.id) return;
 
             const result = await repoContext.slack.postMessage(
               "pr-review",
@@ -141,7 +143,7 @@ export default function readyForReview(
             if (result) {
               await appContext.mongoStores.slackSentMessages.insertOne({
                 type: "review-requested",
-                typeId: `${pullRequest.id}_${potentialReviewer.id}`,
+                typeId: `${pullRequest.id}_${potentialReviewer!.id}`,
                 message: messageRequestedReviewers,
                 account: repoContext.accountEmbed,
                 sentTo: [result],

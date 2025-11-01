@@ -1,6 +1,7 @@
 import type { Probot } from "probot";
 import type { AppContext } from "../../context/AppContext.ts";
 import * as slackUtils from "../../slack/utils.ts";
+import { ExcludesFalsy } from "../../utils/Excludes.ts";
 import { checkIfIsThisBot } from "../../utils/github/isBotUser.ts";
 import { getReviewsState } from "../../utils/github/pullRequest/reviews.ts";
 import { autoApproveAndAutoMerge } from "./actions/autoApproveAndAutoMerge.ts";
@@ -25,7 +26,7 @@ export default function reviewDismissed(
       reviewflowPrContext,
     ): Promise<void> => {
       const sender = context.payload.sender;
-      const reviewer = context.payload.review.user;
+      const reviewer = context.payload.review.user!;
 
       // if reviewflow's approval was dismissed (probably by "stale" option when a new commit is pushed)
       if (reviewflowPrContext && checkIfIsThisBot(reviewer)) {
@@ -66,7 +67,7 @@ export default function reviewDismissed(
         });
 
         if (sender.login === reviewer.login) {
-          pullRequest.assignees.forEach((assignee) => {
+          pullRequest.assignees?.filter(ExcludesFalsy).forEach((assignee) => {
             repoContext.slack.postMessage("pr-review", assignee, {
               text: `:recycle: ${repoContext.slack.mention(
                 reviewer.login,

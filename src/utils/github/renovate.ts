@@ -2,6 +2,6 @@ import type { PullRequestWithDecentData } from "../../events/pr-handlers/utils/P
 
 export const isPrFromRenovateBot = (pr: PullRequestWithDecentData) => {
   return (
-    pr.head.ref.startsWith("renovate/") && pr.user.login === "renovate[bot]"
+    pr.head.ref.startsWith("renovate/") && pr.user?.login === "renovate[bot]"
   );
 };

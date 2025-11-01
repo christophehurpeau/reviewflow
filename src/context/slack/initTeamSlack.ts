@@ -279,7 +279,7 @@ export const initTeamSlack = async <TeamNames extends string>(
       const user = membersMap.get(githubLogin);
       if (!user?.slackClient || !user.member) return;
 
-      slackHome.scheduleUpdateMember(context.octokit, user.slackClient, {
+      slackHome.scheduleUpdateMember(context.octokit.rest, user.slackClient, {
         user: { id: user.member.userGithubId, login: githubLogin },
         org: { id: account._id, login: account.login },
         slack: { id: user.member.id },

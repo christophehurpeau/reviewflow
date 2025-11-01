@@ -26,7 +26,7 @@ export const getReviewersAndReviewStates = async <
   const reviewStatesByUser = new Map<number, ReviewState>();
 
   await context.octokit.paginate(
-    context.octokit.pulls.listReviews,
+    context.octokit.rest.pulls.listReviews,
     context.pullRequest({ page: undefined }),
     ({ data: reviews }) => {
       reviews.forEach((review) => {

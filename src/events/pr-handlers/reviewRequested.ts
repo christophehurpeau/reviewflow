@@ -65,8 +65,8 @@ export default function reviewRequested(
         });
 
         const requestedByNameInTeam = requestedTeam
-          ? pullRequest.requested_reviewers
-              .map((reviewer) => (reviewer as any).login)
+          ? pullRequest
+              .requested_reviewers!.map((reviewer) => (reviewer as any).login)
               .filter(
                 (login) =>
                   login &&

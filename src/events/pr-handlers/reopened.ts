@@ -82,7 +82,9 @@ export default function reopened(app: Probot, appContext: AppContext): void {
 
       /* update slack home */
       const teamMembers = await repoContext.getMembersForTeams(
-        pullRequest.requested_teams.map((team) => team.id),
+        pullRequest.requested_teams
+          ? pullRequest.requested_teams.map((team) => team.id)
+          : [],
       );
       updateSlackHomeForPr(repoContext, pullRequest, {
         assignees: true,
@@ -106,21 +108,21 @@ export default function reopened(app: Probot, appContext: AppContext): void {
       ): string => {
         const ownerPart = slackUtils.createOwnerPart(repoContext, pullRequest, {
           ...createOwnerPartOptions,
-          isSender: context.payload.sender.login === owner.login,
+          isSender: context.payload.sender.login === owner!.login,
         });
 
         return `:recycle: ${senderMention} reopened ${ownerPart} ${prLink}\n> ${pullRequest.title}`;
       };
 
-      if (context.payload.sender.id !== owner.id) {
-        repoContext.slack.postMessage("pr-lifecycle", owner, {
+      if (context.payload.sender.id !== owner!.id) {
+        repoContext.slack.postMessage("pr-lifecycle", owner!, {
           text: createMessage({ isOwner: true }),
         });
       }
 
-      assigneesNotOwner.map((assignee) => {
-        if (context.payload.sender.id === assignee.id) return undefined;
-        return repoContext.slack.postMessage("pr-lifecycle", assignee, {
+      assigneesNotOwner!.map((assignee) => {
+        if (context.payload.sender.id === assignee!.id) return undefined;
+        return repoContext.slack.postMessage("pr-lifecycle", assignee!, {
           text: createMessage({ isAssigned: true }),
         });
       });

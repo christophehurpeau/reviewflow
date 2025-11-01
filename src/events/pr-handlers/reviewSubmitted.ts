@@ -73,13 +73,13 @@ export default function reviewSubmitted(
         getReviewersAndReviewStates(context),
         repoContext.accountEmbed.type !== "Organization"
           ? []
-          : repoContext.getGithubTeamsForMember(reviewer.id),
+          : repoContext.getGithubTeamsForMember(reviewer!.id),
       ]);
       const { owner, assignees, followers } =
         getRolesFromPullRequestAndReviewers(pullRequest, reviewers, {
-          excludeIds: [reviewer.id],
+          excludeIds: [reviewer!.id],
         });
-      const isReviewByOwner = owner.login === reviewer.login;
+      const isReviewByOwner = owner!.login === reviewer!.login;
 
       if (!isReviewByOwner) {
         const merged = false;
@@ -116,7 +116,7 @@ export default function reviewSubmitted(
               "account.id": repoContext.accountEmbed.id,
               "account.type": repoContext.accountEmbed.type,
               type: "review-requested",
-              typeId: `${pullRequest.id}_${reviewer.id}`,
+              typeId: `${pullRequest.id}_${reviewer!.id}`,
             } as const,
             { created: -1 },
           ),
@@ -138,7 +138,7 @@ export default function reviewSubmitted(
         updateSlackHomeForPr(repoContext, pullRequest, {
           assignees: true,
           otherLogins: [
-            reviewer.login,
+            reviewer!.login,
             ...sentMessageRequestedReviewForReviewerTeams.flatMap(
               ({ sentTo }) => sentTo.map(({ user }) => user.login),
             ),
@@ -211,9 +211,9 @@ export default function reviewSubmitted(
           ]);
         }
 
-        const mention = repoContext.slack.mention(reviewer.login);
+        const mention = repoContext.slack.mention(reviewer!.login);
         const prUrl = slackUtils.createPrLink(pullRequest, repoContext);
-        const ownerMention = repoContext.slack.mention(owner.login);
+        const ownerMention = repoContext.slack.mention(owner!.login);
 
         const createMessage = (
           toOwner?: boolean,
@@ -257,12 +257,13 @@ export default function reviewSubmitted(
 
         await Promise.all([
           Promise.all(
-            assignees
-              .filter((assignee) => assignee.id === owner.id)
+            assignees!
+              .filter((assignee) => assignee!.id === owner!.id)
               .map((assigneeIsOwner) => {
                 return repoContext.slack.postMessage(
                   "pr-review",
-                  assigneeIsOwner,
+
+                  assigneeIsOwner!,
                   messageToOwner,
                 );
               }),
@@ -276,12 +277,12 @@ export default function reviewSubmitted(
           }),
 
           Promise.all(
-            assignees
-              .filter((assignee) => assignee.id !== owner.id)
+            assignees!
+              .filter((assignee) => assignee!.id !== owner!.id)
               .map((assignee) => {
                 return repoContext.slack.postMessage(
                   "pr-review",
-                  assignee,
+                  assignee!,
                   messageToAssignee,
                 );
               }),
@@ -312,7 +313,7 @@ export default function reviewSubmitted(
           }),
         ]);
       } else if (body) {
-        const mention = repoContext.slack.mention(reviewer.login);
+        const mention = repoContext.slack.mention(reviewer!.login);
         const prUrl = slackUtils.createPrLink(pullRequest, repoContext);
         const commentLink = slackUtils.createLink(reviewUrl, "commented");
 
@@ -323,12 +324,12 @@ export default function reviewSubmitted(
 
         await Promise.all([
           Promise.all(
-            assignees
-              .filter((assignee) => assignee.id !== reviewer.id)
+            assignees!
+              .filter((assignee) => assignee!.id !== reviewer!.id)
               .map((assignee) => {
                 return repoContext.slack.postMessage(
                   "pr-review",
-                  assignee,
+                  assignee!,
                   message,
                 );
               }),
@@ -343,7 +344,7 @@ export default function reviewSubmitted(
 
           Promise.all(
             followers
-              .filter((follower) => follower.id !== reviewer.id)
+              .filter((follower) => follower.id !== reviewer!.id)
               .map((follower) => {
                 return repoContext.slack.postMessage(
                   "pr-review-follow",

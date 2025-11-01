@@ -41,7 +41,7 @@ const getDiscussion = async (
     return [comment];
   }
   return context.octokit.paginate(
-    context.octokit.pulls.listReviewComments,
+    context.octokit.rest.pulls.listReviewComments,
     context.pullRequest({
       sort: "created",
     }),
@@ -119,7 +119,7 @@ export default function prCommentCreated(
       "issue_comment.created",
     ],
     (payload, context) => {
-      if (checkIfIsThisBot(payload.comment.user)) {
+      if (checkIfIsThisBot(payload.comment.user!)) {
         // ignore comments from this bot
         return null;
       }
@@ -159,26 +159,26 @@ export default function prCommentCreated(
 
       const { owner, assignees, followers } =
         getRolesFromPullRequestAndReviewers(pr as any, reviewers, {
-          excludeIds: [comment.user.id],
+          excludeIds: [comment.user!.id],
         });
 
       const usersInThread = getUsersInThread(discussion).filter(
         (u) =>
           u.id !== prUser.id &&
-          u.id !== comment.user.id &&
-          !assignees.some((a) => a.id === u.id) &&
+          u.id !== comment.user!.id &&
+          !assignees!.some((a) => a!.id === u.id) &&
           !followers.some((f) => f.id === u.id),
       );
       const mentions = getMentions(discussion).filter(
         (m) =>
           m !== prUser.login &&
-          m !== comment.user.login &&
-          !assignees.some((a) => a.login === m) &&
+          m !== comment.user!.login &&
+          !assignees!.some((a) => a!.login === m) &&
           !followers.some((f) => f.login === m) &&
           !usersInThread.some((u) => u.login === m),
       );
 
-      const mention = repoContext.slack.mention(comment.user.login);
+      const mention = repoContext.slack.mention(comment.user!.login);
       const prUrl = slackUtils.createPrLink(pr, repoContext);
       const ownerMention = repoContext.slack.mention(prUser.login);
       const commentLink = slackUtils.createLink(
@@ -227,7 +227,7 @@ export default function prCommentCreated(
         slackifiedBodyBlocks,
       );
 
-      const isBotUser = checkIfUserIsBot(repoContext, comment.user);
+      const isBotUser = checkIfUserIsBot(repoContext, comment.user!);
 
       const mentioned = await (mentions.length > 0
         ? appContext.mongoStores.users.findAll({ login: { $in: mentions } })
@@ -289,12 +289,12 @@ export default function prCommentCreated(
 
       await Promise.all([
         Promise.all(
-          assignees
-            .filter((a) => a.id === owner.id)
+          assignees!
+            .filter((a) => a!.id === owner!.id)
             .map((owner) =>
               postMessageInReviewThreadOrNewMessage(
                 isBotUser ? "pr-comment-bots" : "pr-comment",
-                owner,
+                owner!,
                 ownerSlackMessage,
                 threadMessage,
               ),
@@ -309,12 +309,12 @@ export default function prCommentCreated(
           ),
         ),
         Promise.all(
-          assignees
-            .filter((a) => a.id !== owner.id)
+          assignees!
+            .filter((a) => a!.id !== owner!.id)
             .map((assignee) =>
               postMessageInReviewThreadOrNewMessage(
                 isBotUser ? "pr-comment-bots" : "pr-comment",
-                assignee,
+                assignee!,
                 assignedToSlackMessage,
                 threadMessage,
               ),

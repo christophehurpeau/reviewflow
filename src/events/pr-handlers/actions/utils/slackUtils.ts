@@ -5,7 +5,7 @@ import type { RepoContext } from "../../../../context/repoContext.ts";
 import type { SlackMessage } from "../../../../context/slack/SlackMessage.ts";
 import type { MessageCategory } from "../../../../dm/MessageCategory.ts";
 import type { SlackSentMessage } from "../../../../mongo.ts";
-import { ExcludesNullish } from "../../../../utils/Excludes.ts";
+import { ExcludesFalsy, ExcludesNullish } from "../../../../utils/Excludes.ts";
 
 interface GetSlackSentMessagesOptions {
   type: SlackSentMessage["type"];
@@ -40,7 +40,7 @@ interface SendSlackMessageOptions extends GetSlackSentMessagesOptions {
   type: SlackSentMessage["type"];
   messageCategory: MessageCategory;
   message: SlackMessage;
-  sendTo: AccountInfo[];
+  sendTo: (AccountInfo | null)[];
   saveInDb: boolean;
 }
 
@@ -59,9 +59,11 @@ export const sendSlackMessage = async (
 ): Promise<void> => {
   if (!repoContext.slack) return;
   const sentMessages = await Promise.all(
-    sendTo.map((accountUser) =>
-      repoContext.slack.postMessage(messageCategory, accountUser, message),
-    ),
+    sendTo
+      .filter(ExcludesFalsy)
+      .map((accountUser) =>
+        repoContext.slack.postMessage(messageCategory, accountUser, message),
+      ),
   );
 
   if (saveInDb) {

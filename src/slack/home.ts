@@ -2,7 +2,7 @@ import type { KnownBlock } from "@slack/web-api";
 import { WebClient } from "@slack/web-api";
 import type { Probot } from "probot";
 import type { MongoStores, Org, OrgMember, ReviewflowPr } from "../mongo.ts";
-import type { Octokit } from "../octokit.ts";
+import type { OctokitRestCompat } from "../octokit.ts";
 import { ExcludesFalsy } from "../utils/Excludes.ts";
 import {
   createLink,
@@ -10,7 +10,7 @@ import {
 } from "./utils.ts";
 
 interface QueueItem {
-  github: Octokit;
+  octokitRest: OctokitRestCompat;
   slackClient: WebClient;
   member: OrgMember;
 }
@@ -23,7 +23,7 @@ export const createSlackHomeWorker = (
   log: Probot["log"],
 ) => {
   const updateMember = async (
-    octokit: Octokit,
+    octokitRest: OctokitRestCompat,
     slackClient: WebClient,
     member: OrgMember,
   ): Promise<void> => {
@@ -40,7 +40,7 @@ export const createSlackHomeWorker = (
       myOpenedPrsWaitingForRequestedReview,
     ] = await Promise.all([
       //prsWithRequestedReviewsFromGithub
-      octokit.search
+      octokitRest.search
         .issuesAndPullRequests({
           q: `is:pr user:${member.org.login} is:open review-requested:${member.user.login} draft:false`,
           sort: "created",
@@ -204,7 +204,7 @@ export const createSlackHomeWorker = (
                     [
                       {
                         type: "image",
-                        image_url: assignee.avatar_url,
+                        image_url: assignee.avatar_url!,
                         alt_text: assignee.login,
                       },
                       {
@@ -218,7 +218,7 @@ export const createSlackHomeWorker = (
                 return [
                   {
                     type: "image",
-                    image_url: pr.creator.avatar_url,
+                    image_url: pr.creator.avatar_url!,
                     alt_text: pr.creator.login,
                   },
                   {
@@ -445,7 +445,7 @@ export const createSlackHomeWorker = (
         return;
       }
 
-      const { github, slackClient, member } = item;
+      const { octokitRest, slackClient, member } = item;
       const memberId = member.slack?.id;
 
       const key = `${member.org.id}_${memberId}`;
@@ -454,17 +454,17 @@ export const createSlackHomeWorker = (
       if (key === lastMemberId) {
         // delay if retriggered
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        scheduleUpdateMember(github, slackClient, member);
+        scheduleUpdateMember(octokitRest, slackClient, member);
         lastMemberId = undefined;
       } else {
         lastMemberId = key;
-        updateMember(github, slackClient, member);
+        updateMember(octokitRest, slackClient, member);
       }
     }, 10_000); // 7/min 60s 1min = 1 ttes les 8.5s max (with 9s we have rate limit errors)
   };
 
   const scheduleUpdateMember = (
-    github: Octokit,
+    octokitRest: OctokitRestCompat,
     slackClient: WebClient,
     member: OrgMember,
   ): void => {
@@ -476,7 +476,7 @@ export const createSlackHomeWorker = (
     if (!queueKeys.has(key)) {
       queueKeys.add(key);
       queue.push({
-        github,
+        octokitRest,
         slackClient,
         member,
       });
@@ -485,7 +485,7 @@ export const createSlackHomeWorker = (
   };
 
   const scheduleUpdateOrg = async (
-    github: Octokit,
+    octokitRest: OctokitRestCompat,
     org: Org,
   ): Promise<void> => {
     if (!org.slackTeamId || !org.slackToken) return;
@@ -504,12 +504,12 @@ export const createSlackHomeWorker = (
     if (!slackClient) return;
 
     cursor.forEach((member) => {
-      scheduleUpdateMember(github, slackClient, member);
+      scheduleUpdateMember(octokitRest, slackClient, member);
     });
   };
 
   const scheduleUpdateAllOrgs = async (
-    auth: (installationId: number) => Promise<Octokit>,
+    auth: (installationId: number) => Promise<OctokitRestCompat>,
   ): Promise<void> => {
     const cursor = await mongoStores.orgs.cursor();
     cursor.forEach(async (org) => {

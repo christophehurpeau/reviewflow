@@ -1,6 +1,7 @@
 import type { Probot } from "probot";
 import type { AppContext } from "../../context/AppContext.ts";
 import * as slackUtils from "../../slack/utils.ts";
+import { ExcludesFalsy } from "../../utils/Excludes.ts";
 import { checkIfIsThisBot } from "../../utils/github/isBotUser.ts";
 import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome.ts";
 import { toBasicUser } from "./utils/PullRequestData.ts";
@@ -15,7 +16,7 @@ export default function assignedOrUnassignedHandler(
     appContext,
     ["pull_request.assigned", "pull_request.unassigned"],
     (payload, context, repoContext) => {
-      if (checkIfIsThisBot(payload.sender)) {
+      if (checkIfIsThisBot(payload.sender!)) {
         // ignore assigned from this bot
         return null;
       }
@@ -40,7 +41,9 @@ export default function assignedOrUnassignedHandler(
           reviewflowPrContext.reviewflowPr,
           {
             $set: {
-              assignees: pullRequest.assignees.map(toBasicUser),
+              assignees: pullRequest
+                .assignees!.filter(ExcludesFalsy)
+                .map(toBasicUser),
             },
           },
         );
@@ -48,30 +51,36 @@ export default function assignedOrUnassignedHandler(
 
       if (repoContext.slack) {
         updateSlackHomeForPr(repoContext, pullRequest, {
-          otherLogins: [newlyAssigned.login],
+          otherLogins: [newlyAssigned!.login],
         });
 
         await Promise.all(
           // eslint-disable-next-line @typescript-eslint/await-thenable
           [
-            ...pullRequest.assignees,
-            ...(pullRequest.assignees.some((a) => a.id === pullRequest.user.id)
+            ...pullRequest.assignees!,
+            ...(pullRequest.assignees!.some(
+              (a) => a!.id === pullRequest.user!.id,
+            )
               ? []
               : [pullRequest.user]),
           ].map((assigneeOrOwner) => {
-            if (assigneeOrOwner.id === sender.id) return undefined;
-            return repoContext.slack.postMessage("pr-review", assigneeOrOwner, {
-              text: `${
-                isUnassigned ? ":man-gesturing-no:" : ":man-raising-hand:"
-              } ${repoContext.slack.mention(sender.login)} ${
-                isUnassigned ? "unassigned" : "assigned"
-              } ${(() => {
-                if (sender.login === newlyAssigned.login) return "himself";
-                return newlyAssigned.id === assigneeOrOwner.id
-                  ? "you"
-                  : repoContext.slack.mention(newlyAssigned.login);
-              })()} on ${slackUtils.createPrLink(pullRequest, repoContext)}`,
-            });
+            if (assigneeOrOwner!.id === sender!.id) return undefined;
+            return repoContext.slack.postMessage(
+              "pr-review",
+              assigneeOrOwner!,
+              {
+                text: `${
+                  isUnassigned ? ":man-gesturing-no:" : ":man-raising-hand:"
+                } ${repoContext.slack.mention(sender!.login)} ${
+                  isUnassigned ? "unassigned" : "assigned"
+                } ${(() => {
+                  if (sender!.login === newlyAssigned!.login) return "himself";
+                  return newlyAssigned!.id === assigneeOrOwner!.id
+                    ? "you"
+                    : repoContext.slack.mention(newlyAssigned!.login);
+                })()} on ${slackUtils.createPrLink(pullRequest, repoContext)}`,
+              },
+            );
           }),
         );
       }

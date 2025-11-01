@@ -166,9 +166,9 @@ export const mergeOrEnableGithubAutoMerge = async <
       pullRequest.mergeable_state === "unstable")
   ) {
     try {
-      await context.octokit.pulls.merge({
+      await context.octokit.rest.pulls.merge({
         merge_method: "squash",
-        owner: pullRequest.base.repo.owner.login,
+        owner: pullRequest.base.repo.owner!.login,
         repo: pullRequest.base.repo.name,
         pull_number: pullRequest.number,
         commit_title: commitHeadline,
@@ -220,7 +220,7 @@ The pull request must be in a state where requirements have not yet been satisfi
     );
     if (fromRescheduleTime) {
       if (triedToMerge) {
-        context.octokit.issues.createComment(
+        context.octokit.rest.issues.createComment(
           context.repo({
             issue_number: pullRequest.number,
             body: `${
@@ -229,7 +229,7 @@ The pull request must be in a state where requirements have not yet been satisfi
           }),
         );
       } else {
-        context.octokit.issues.createComment(
+        context.octokit.rest.issues.createComment(
           context.repo({
             issue_number: pullRequest.number,
             body: `${
@@ -284,7 +284,7 @@ The pull request must be in a state where requirements have not yet been satisfi
       },
       "Could not disable automerge",
     );
-    context.octokit.issues.createComment(
+    context.octokit.rest.issues.createComment(
       context.repo({
         issue_number: pullRequest.number,
         body: `${login ? `@${login} ` : ""}Could not disable automerge`,

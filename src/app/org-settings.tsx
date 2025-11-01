@@ -59,8 +59,19 @@ export default function orgSettings(
         return;
       }
 
-      await syncOrg(mongoStores, user.api, o.installationId, org);
-      await syncTeamsAndTeamMembers(mongoStores, user.api, org);
+      await syncOrg(
+        mongoStores,
+        user.api,
+        user.api.paginate,
+        o.installationId,
+        org,
+      );
+      await syncTeamsAndTeamMembers(
+        mongoStores,
+        user.api,
+        user.api.paginate,
+        org,
+      );
 
       res.redirect(`/app/org/${req.params.org}`);
     } catch (error) {
@@ -84,7 +95,7 @@ export default function orgSettings(
       }
 
       const [installation, orgInDb] = await Promise.all([
-        octokitApp.apps
+        octokitApp.rest.apps
           .getOrgInstallation({ org: org.login })
           .catch((error: unknown) => {
             return { status: (error as any).status, data: undefined };
@@ -315,7 +326,8 @@ export default function orgSettings(
         res.status(400).send("not ok");
         return;
       }
-      if (!req.body.key && !req.body.silentTeam) {
+      const body = req.body as any;
+      if (!body.key && !body.silentTeam) {
         res.status(400).send("not ok");
         return;
       }
@@ -341,19 +353,19 @@ export default function orgSettings(
         {
           _id: `${org.id}_${user.authInfo.id}`,
         },
-        req.body.key
+        body.key
           ? {
               $set: {
-                [`settings.${req.body.key}`]: req.body.value,
+                [`settings.${body.key}`]: body.value,
                 updated: new Date(),
               },
               $setOnInsert,
             }
           : {
-              [req.body.value ? "$push" : "$pull"]: {
-                silentTeams: req.body.value
-                  ? req.body.silentTeam
-                  : { id: req.body.silentTeam.id },
+              [body.value ? "$push" : "$pull"]: {
+                silentTeams: body.value
+                  ? body.silentTeam
+                  : { id: body.silentTeam.id },
               },
               $setOnInsert,
             },

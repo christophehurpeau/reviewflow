@@ -18,9 +18,9 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
     "update branch",
   );
 
-  const result = await context.octokit.repos
+  const result = await context.octokit.rest.repos
     .merge({
-      owner: repo.owner.login,
+      owner: repo.owner!.login,
       repo: repo.name,
       head: pullRequest.base.ref,
       base: pullRequest.head.ref,
@@ -37,7 +37,7 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
   );
 
   if (result.status === 204 || result.error?.status === 204) {
-    context.octokit.issues.createComment(
+    context.octokit.rest.issues.createComment(
       context.repo({
         issue_number: pullRequest.number,
         body: `${
@@ -47,7 +47,7 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
     );
     return true;
   } else if (result.status === 409 || result.error?.status === 409) {
-    context.octokit.issues.createComment(
+    context.octokit.rest.issues.createComment(
       context.repo({
         issue_number: pullRequest.number,
         body: `${
@@ -57,7 +57,7 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
     );
     return false;
   } else if (!result?.data?.sha) {
-    context.octokit.issues.createComment(
+    context.octokit.rest.issues.createComment(
       context.repo({
         issue_number: pullRequest.number,
         body: `${login ? `@${login} ` : ""}Could not update branch ${
@@ -70,7 +70,7 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
     );
     return false;
   } else if (login) {
-    context.octokit.issues.createComment(
+    context.octokit.rest.issues.createComment(
       context.repo({
         issue_number: pullRequest.number,
         body: `${login ? `@${login} ` : ""}Branch updated: ${result.data.sha}`,

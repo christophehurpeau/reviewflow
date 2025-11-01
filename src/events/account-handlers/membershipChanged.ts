@@ -27,7 +27,8 @@ export default function membershipChanged(
       // );
       await syncTeamsAndTeamMembers(
         appContext.mongoStores,
-        context.octokit,
+        context.octokit.rest,
+        context.octokit.paginate,
         context.payload.organization,
       );
       await accountContext.updateGithubTeamMembers();

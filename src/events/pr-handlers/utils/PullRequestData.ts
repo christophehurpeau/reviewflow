@@ -1,3 +1,4 @@
+import type { SetRequired } from "type-fest";
 import type { LabelResponse } from "../../../context/initRepoLabels";
 import type {
   CustomExtract,
@@ -38,14 +39,16 @@ export type PullRequestLabels =
 export interface BasicUser {
   id: number;
   login: string;
-  type: string | "Bot" | "User";
-  avatar_url: string;
+  type?: string | "Bot" | "User";
+  avatar_url?: string;
 }
-export function toBasicUser<U extends BasicUser>(user: U): BasicUser {
+export function toBasicUser<U extends BasicUser>(
+  user: U,
+): SetRequired<BasicUser, "avatar_url" | "type"> {
   return {
     id: user.id,
     login: user.login,
-    type: user.type,
-    avatar_url: user.avatar_url,
+    type: user.type!,
+    avatar_url: user.avatar_url!,
   };
 }

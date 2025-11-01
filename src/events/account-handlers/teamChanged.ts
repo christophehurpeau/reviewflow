@@ -12,7 +12,8 @@ export default function teamChanged(app: Probot, appContext: AppContext): void {
     async (context, accountContext) => {
       await syncTeams(
         appContext.mongoStores,
-        context.octokit,
+        context.octokit.rest,
+        context.octokit.paginate,
         context.payload.organization,
       );
     },

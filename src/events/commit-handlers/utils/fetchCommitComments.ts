@@ -10,7 +10,7 @@ export const fetchCommitComments = async <T extends EmitterWebhookEventName>(
   commit_sha: string,
 ): Promise<CommentsForCommitFromRestEndpoint> => {
   return context.octokit.paginate(
-    context.octokit.repos.listCommentsForCommit,
+    context.octokit.rest.repos.listCommentsForCommit,
     context.repo({
       commit_sha,
     }),

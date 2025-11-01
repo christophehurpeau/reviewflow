@@ -28,7 +28,7 @@ export default async function syncLabel<
 ): Promise<void> {
   if (!label) return;
   if (prHasLabel && !shouldHaveLabel) {
-    const response = await context.octokit.issues.removeLabel(
+    const response = await context.octokit.rest.issues.removeLabel(
       context.repo({
         issue_number: pullRequest.number,
         name: label.name,
@@ -36,7 +36,7 @@ export default async function syncLabel<
     );
     if (onRemove) {
       if ((await onRemove(response.data)) === false) {
-        await context.octokit.issues.addLabels(
+        await context.octokit.rest.issues.addLabels(
           context.repo({
             issue_number: pullRequest.number,
             labels: [label.name],
@@ -46,7 +46,7 @@ export default async function syncLabel<
     }
   }
   if (shouldHaveLabel && !prHasLabel) {
-    const response = await context.octokit.issues.addLabels(
+    const response = await context.octokit.rest.issues.addLabels(
       context.repo({
         issue_number: pullRequest.number,
         labels: [label.name],
@@ -54,7 +54,7 @@ export default async function syncLabel<
     );
     if (onAdd) {
       if ((await onAdd(response.data)) === false) {
-        await context.octokit.issues.removeLabel(
+        await context.octokit.rest.issues.removeLabel(
           context.repo({
             issue_number: pullRequest.number,
             name: label.name,
@@ -70,7 +70,7 @@ export const removeLabel = async <EventName extends EmitterWebhookEventName>(
   pullRequest: PullRequestWithDecentData,
   label: LabelResponse,
 ): Promise<LabelResponse[]> => {
-  const response = await context.octokit.issues.removeLabel(
+  const response = await context.octokit.rest.issues.removeLabel(
     context.repo({
       issue_number: pullRequest.number,
       name: label.name,
@@ -136,7 +136,7 @@ export async function syncLabels<EventName extends EmitterWebhookEventName>(
     }
   }
   if (labelsToAdd.length > 0) {
-    const response = await context.octokit.issues.addLabels(
+    const response = await context.octokit.rest.issues.addLabels(
       context.repo({
         issue_number: pullRequest.number,
         labels: labelsToAdd,

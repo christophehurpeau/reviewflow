@@ -88,36 +88,38 @@ async function checksAndStatusesSlackMessageAddOrUpdate<
       const { owner, assigneesNotOwner } =
         getOwnersFromPullRequest(pullRequest);
       await Promise.all([
-        sendOrUpdateSlackMessage(
-          appContext,
-          repoContext,
-          {
-            type,
-            typeId,
-            messageId: "owner",
-            messageCategory: "pr-checksAndStatuses",
-            message: {
-              text: createText({ isOwner: true }),
+        owner &&
+          sendOrUpdateSlackMessage(
+            appContext,
+            repoContext,
+            {
+              type,
+              typeId,
+              messageId: "owner",
+              messageCategory: "pr-checksAndStatuses",
+              message: {
+                text: createText({ isOwner: true }),
+              },
+              sendTo: [owner],
             },
-            sendTo: [owner],
-          },
-          !isPrClosed,
-        ),
-        sendOrUpdateSlackMessage(
-          appContext,
-          repoContext,
-          {
-            type,
-            typeId,
-            messageId: "assignees",
-            messageCategory: "pr-checksAndStatuses",
-            message: {
-              text: createText({ isAssigned: true }),
+            !isPrClosed,
+          ),
+        assigneesNotOwner &&
+          sendOrUpdateSlackMessage(
+            appContext,
+            repoContext,
+            {
+              type,
+              typeId,
+              messageId: "assignees",
+              messageCategory: "pr-checksAndStatuses",
+              message: {
+                text: createText({ isAssigned: true }),
+              },
+              sendTo: assigneesNotOwner,
             },
-            sendTo: assigneesNotOwner,
-          },
-          !isPrClosed,
-        ),
+            !isPrClosed,
+          ),
       ]);
       break;
     }

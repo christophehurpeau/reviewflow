@@ -19,7 +19,7 @@ export const autoAssignPRToCreator = async <
     return;
   }
 
-  await context.octokit.issues.addAssignees(
+  await context.octokit.rest.issues.addAssignees(
     context.issue({
       assignees: [pullRequest.user.login],
     }),

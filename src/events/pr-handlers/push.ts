@@ -36,10 +36,10 @@ export default function status(app: Probot, appContext: AppContext): void {
 
       if (!payload.ref.startsWith("refs/heads/")) return [];
 
-      const prs = await context.octokit.pulls.list(
+      const prs = await context.octokit.rest.pulls.list(
         context.repo({
           state: "open",
-          head: `${payload.repository.owner.login}:${payload.ref.slice(
+          head: `${payload.repository.owner!.login}:${payload.ref.slice(
             "refs/heads/".length,
           )}`,
         }),
@@ -53,7 +53,7 @@ export default function status(app: Probot, appContext: AppContext): void {
 
       const isPushedByBot = checkIfUserIsBot(
         repoContext,
-        context.payload.sender,
+        context.payload.sender!,
       );
 
       const isClosedPr = !!pullRequest.closed_at;
@@ -65,7 +65,7 @@ export default function status(app: Probot, appContext: AppContext): void {
         );
 
       if (!isPushedByBot && !isClosedPr && !hasReviewStarted) {
-        const reviewsResponse = await context.octokit.pulls.listReviews(
+        const reviewsResponse = await context.octokit.rest.pulls.listReviews(
           context.repo({
             pull_number: pullRequest.number,
             per_page: 1,
@@ -83,7 +83,7 @@ export default function status(app: Probot, appContext: AppContext): void {
         hasReviewStarted &&
         repoContext.config.warnOnForcePushAfterReviewStarted
       ) {
-        await context.octokit.issues.createComment(
+        await context.octokit.rest.issues.createComment(
           context.repo({
             issue_number: pullRequest.number,
             body: `${login ? `@${login} ` : ""}: ${

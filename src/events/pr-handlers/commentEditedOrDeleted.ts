@@ -55,7 +55,7 @@ export default function prCommentEditedOrDeleted<TeamNames extends string>(
         context.payload.comment &&
         reviewflowPrContext !== null &&
         context.payload.action === "edited" &&
-        checkIfIsThisBot(context.payload.comment.user)
+        checkIfIsThisBot(context.payload.comment.user!)
       ) {
         const updatedPr = await fetchPr(context, pullRequest.number);
         if (!updatedPr.closed_at) {

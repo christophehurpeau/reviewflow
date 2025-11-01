@@ -2,6 +2,7 @@ import type { AccountInfo } from "../../../context/getOrCreateAccount";
 import type { EventsWithRepository } from "../../../context/repoContext";
 import type { PullRequestWithDecentData } from "../../../events/pr-handlers/utils/PullRequestData";
 import type { ProbotEvent } from "../../../events/probot-types";
+import { ExcludesFalsy } from "../../Excludes.ts";
 
 type ReviewState =
   | "APPROVED"
@@ -37,7 +38,7 @@ export const getReviewsState = async <EventName extends EventsWithRepository>(
 
   // in chronological order
   await context.octokit.paginate(
-    context.octokit.pulls.listReviews,
+    context.octokit.rest.pulls.listReviews,
     context.repo({ page: undefined, pull_number: pullRequest.number }),
     ({ data: reviews }) => {
       reviews.forEach((review) => {
@@ -62,7 +63,7 @@ export const getReviewsState = async <EventName extends EventsWithRepository>(
 
   // override state if review is requested since
   const requestedReviewers = pullRequest.requested_reviewers || [];
-  requestedReviewers.forEach((rr) => {
+  requestedReviewers.filter(ExcludesFalsy).forEach((rr) => {
     if (!userIds.has(rr.id)) {
       userIds.add(rr.id);
       reviewers.push({
@@ -81,7 +82,7 @@ export const getReviewsState = async <EventName extends EventsWithRepository>(
 
   return {
     reviewersWithState,
-    requestedReviewers: requestedReviewers.map((rr) => ({
+    requestedReviewers: requestedReviewers.filter(ExcludesFalsy).map((rr) => ({
       id: rr.id,
       login: (rr as any).login,
       type: (rr as any).type,

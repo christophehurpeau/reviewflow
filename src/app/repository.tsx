@@ -79,7 +79,7 @@ export default function repository(
         return;
       }
 
-      const { data: data2 } = await octokitApp.apps
+      const { data: data2 } = await octokitApp.rest.apps
         .getRepoInstallation({
           owner: req.params.owner,
           repo: req.params.repository,

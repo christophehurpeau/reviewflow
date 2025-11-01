@@ -20,7 +20,8 @@ export default function orgMemberAddedOrRemoved(
 
       await syncOrg(
         appContext.mongoStores,
-        context.octokit,
+        context.octokit.rest,
+        context.octokit.paginate,
         o.installationId,
         context.payload.organization,
       );

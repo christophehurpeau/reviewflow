@@ -28,7 +28,7 @@ export default function opened(app: Probot, appContext: AppContext): void {
     },
     async (pullRequest, context, repoContext, reviewflowPrContext) => {
       if (reviewflowPrContext === null) return;
-      const isFromBot = checkIfUserIsBot(repoContext, pullRequest.user);
+      const isFromBot = checkIfUserIsBot(repoContext, pullRequest.user!);
       const autoMergeLabel = repoContext.labels["merge/automerge"];
       const autoApproveLabel = repoContext.labels["review/auto-approve"];
       let pullRequestLabels: PullRequestLabels = pullRequest.labels;

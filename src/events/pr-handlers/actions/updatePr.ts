@@ -32,7 +32,7 @@ export const updatePrIfNeeded = async <Name extends EmitterWebhookEventName>(
       pullRequest.body = update.body!;
     }
 
-    await context.octokit.pulls.update(
+    await context.octokit.rest.pulls.update(
       context.repo({
         pull_number: pullRequest.number,
         ...diff,

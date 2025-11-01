@@ -12,7 +12,7 @@ const updatePrCommentBody = async <Name extends EventsWithRepository>(
   reviewflowPrContext: ReviewflowPrContext,
   newBody: string,
 ): Promise<void> => {
-  await context.octokit.issues.updateComment(
+  await context.octokit.rest.issues.updateComment(
     context.repo({
       comment_id: reviewflowPrContext.reviewflowPr.commentId,
       body: newBody,

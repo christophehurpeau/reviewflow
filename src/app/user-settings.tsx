@@ -45,7 +45,7 @@ export default function userSettings(
       const user = await getUser(req, res);
       if (!user) return null;
 
-      const { data: installation } = await octokitApp.apps
+      const { data: installation } = await octokitApp.rest.apps
         .getUserInstallation({
           username: user.authInfo.login,
         })

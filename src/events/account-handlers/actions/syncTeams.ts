@@ -1,10 +1,11 @@
 import type { MongoStores, OrgTeamEmbed } from "../../../mongo.ts";
-import type { CommonOctokitInterface } from "../../../octokit.ts";
+import type { OctokitPaginate, OctokitRestCompat } from "../../../octokit.ts";
 import { syncTeamMembers } from "./syncTeamMembers.ts";
 
-export const syncTeams = async <T extends CommonOctokitInterface>(
+export const syncTeams = async (
   mongoStores: MongoStores,
-  octokit: T,
+  octokitRest: OctokitRestCompat,
+  octokitPaginate: OctokitPaginate,
   org: { login: string; id: number },
 ): Promise<OrgTeamEmbed[]> => {
   const orgEmbed = { id: org.id, login: org.login };
@@ -12,9 +13,12 @@ export const syncTeams = async <T extends CommonOctokitInterface>(
   const teamEmbeds: OrgTeamEmbed[] = [];
   const teamIds: number[] = [];
 
-  for await (const { data } of octokit.paginate.iterator(octokit.teams.list, {
-    org: org.login,
-  })) {
+  for await (const { data } of octokitPaginate.iterator(
+    octokitRest.teams.list,
+    {
+      org: org.login,
+    },
+  )) {
     await Promise.all(
       data.map(async (team) => {
         teamIds.push(team.id);
@@ -51,13 +55,14 @@ export const syncTeams = async <T extends CommonOctokitInterface>(
   return teamEmbeds;
 };
 
-export const syncTeamsAndTeamMembers = async <T extends CommonOctokitInterface>(
+export const syncTeamsAndTeamMembers = async (
   mongoStores: MongoStores,
-  octokit: T,
+  octokitRest: OctokitRestCompat,
+  octokitPaginate: OctokitPaginate,
   org: { login: string; id: number },
 ): Promise<void> => {
-  const teams = await syncTeams(mongoStores, octokit, org);
+  const teams = await syncTeams(mongoStores, octokitRest, octokitPaginate, org);
   for (const team of teams) {
-    await syncTeamMembers(mongoStores, octokit, org, team);
+    await syncTeamMembers(mongoStores, octokitRest, octokitPaginate, org, team);
   }
 };

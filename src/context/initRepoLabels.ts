@@ -20,7 +20,7 @@ export const getLabelsForRepo = async <T extends EmitterWebhookEventName>(
 ): Promise<
   RestEndpointMethodTypes["issues"]["listLabelsForRepo"]["response"]["data"]
 > => {
-  const { data: labels } = await context.octokit.issues.listLabelsForRepo(
+  const { data: labels } = await context.octokit.rest.issues.listLabelsForRepo(
     context.repo({ per_page: 100 }),
   );
   return labels;
@@ -42,7 +42,7 @@ export const initRepoLabels = async <
         (label) => label.name === labelConfig.name,
       );
       if (existingLabel) {
-        await context.octokit.issues.deleteLabel(
+        await context.octokit.rest.issues.deleteLabel(
           context.repo({
             name: labelConfig.name,
           }),
@@ -88,7 +88,7 @@ export const initRepoLabels = async <
     }
 
     if (!existingLabel) {
-      const result = await context.octokit.issues.createLabel(
+      const result = await context.octokit.rest.issues.createLabel(
         context.repo({
           name: labelConfig.name,
           color: labelColor,
@@ -113,7 +113,7 @@ export const initRepoLabels = async <
         "Needs to update label",
       );
 
-      const result = await context.octokit.issues.updateLabel(
+      const result = await context.octokit.rest.issues.updateLabel(
         context.repo({
           name: existingLabel.name,
           new_name: labelConfig.name,
