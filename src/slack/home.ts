@@ -511,6 +511,7 @@ export const createSlackHomeWorker = (
     const cursor = await mongoStores.orgs.cursor();
     cursor.forEach(async (org) => {
       if (!(org.slackToken || org.slackTeamId) || !org.installationId) return;
+      if (org.status !== "active") return;
       const github = await auth(org.installationId);
       await scheduleUpdateOrg(github, org);
     });

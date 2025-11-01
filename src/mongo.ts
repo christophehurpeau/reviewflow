@@ -58,6 +58,7 @@ export interface Org extends BaseAccount {
   /** @deprecated */
   slackToken?: string;
   config: OrgConfig;
+  status: "active" | "deleted" | "suspended";
 }
 
 export interface Repository extends MongoBaseModel<number> {
@@ -236,6 +237,7 @@ export default function init(): MongoStores {
   const orgs = new MongoStore<Org>(connection, "orgs");
   orgs.collection.then((coll) => {
     coll.createIndex({ login: 1 }, { unique: true });
+    coll.createIndex({ installationId: 1 }, { unique: true, sparse: true });
   });
 
   const orgMembers = new MongoStore<OrgMember>(connection, "orgMembers");

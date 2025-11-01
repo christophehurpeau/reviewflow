@@ -10,22 +10,54 @@ export default function installation(
   // keep track of installations to know which organizations updated permissions
 
   app.on("installation", async (context) => {
-    const account = context.payload.installation.account;
+    const payload = context.payload;
+    const account = payload.installation.account;
     if (!account) return;
     await appContext.mongoStores.installationsEvents.insertOne({
-      installationId: context.payload.installation.id,
+      installationId: payload.installation.id,
       account: {
-        id: context.payload.installation.account.id,
-        login: context.payload.installation.account.login,
-        type: context.payload.installation.account.type as AccountType,
+        id: payload.installation.account.id,
+        login: payload.installation.account.login,
+        type: payload.installation.account.type as AccountType,
       },
-      action: context.payload.action,
+      action: payload.action,
       sender: {
-        id: context.payload.sender.id,
-        login: context.payload.sender.login,
-        type: context.payload.sender.type as AccountType,
+        id: payload.sender.id,
+        login: payload.sender.login,
+        type: payload.sender.type as AccountType,
       },
-      data: context.payload.installation,
+      data: payload.installation,
     });
+
+    if (
+      payload.action === "deleted" ||
+      payload.action === "suspend" ||
+      payload.action === "unsuspend"
+    ) {
+      const org = await appContext.mongoStores.orgs.findOne({
+        installationId: payload.installation.id,
+      });
+      if (org) {
+        switch (payload.action) {
+          case "suspend":
+            await appContext.mongoStores.orgs.partialUpdateOne(org, {
+              $set: { status: "suspended" },
+            });
+            break;
+          case "unsuspend":
+            await appContext.mongoStores.orgs.partialUpdateOne(org, {
+              $set: { status: "active" },
+            });
+            break;
+          case "deleted":
+            await appContext.mongoStores.orgs.partialUpdateOne(org, {
+              $set: { status: "deleted" },
+            });
+            break;
+          default:
+            break;
+        }
+      }
+    }
   });
 }
