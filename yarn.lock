@@ -8627,7 +8627,7 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     simple-oauth2: "npm:5.1.0"
-    slackify-markdown: "npm:4.4.0"
+    slackify-markdown: "npm:4.5.0"
     smee-client: "npm:4.4.1"
     type-fest: "npm:4.41.0"
     typescript: "npm:5.9.3"
@@ -9076,9 +9076,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"slackify-markdown@npm:4.4.0":
-  version: 4.4.0
-  resolution: "slackify-markdown@npm:4.4.0"
+"slackify-markdown@npm:4.5.0":
+  version: 4.5.0
+  resolution: "slackify-markdown@npm:4.5.0"
   dependencies:
     mdast-util-to-markdown: "npm:^0.6.2"
     remark-gfm: "npm:^1.0.0"
@@ -9087,7 +9087,7 @@ __metadata:
     unified: "npm:^9.0.0"
     unist-util-remove: "npm:^2.0.1"
     unist-util-visit: "npm:^2.0.3"
-  checksum: 10c0/e336ae6338e2cedfd76f53c89d5bbdcba345f00aa4b8b024223454316711c85d349838ecbb5dbd21176038f61ea7ce232e9b007a2e613a1b29749bb01508cf34
+  checksum: 10c0/f16695a8f8d5761a44b467e79ab4caa9357cb030ae63e050b54c50f7e986405b16cf9f55ad70adb4130e8ba3f87b7a7860e18cfd20c716997c9b873f801e6f2b
   languageName: node
   linkType: hard
 
