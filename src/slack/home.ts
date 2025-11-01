@@ -47,9 +47,12 @@ export const createSlackHomeWorker = (
           order: "desc",
         })
         .catch((error: unknown) => {
-          log.error(`Error searching PRs: ${(error as any)?.message}`, {
-            error,
-          });
+          log.error(
+            {
+              error,
+            },
+            `Error searching PRs: ${(error as any)?.message}`,
+          );
         }),
       //prsWithRequestedReviewsFromMongo
       mongoStores.prs.findAll(

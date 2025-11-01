@@ -10,10 +10,13 @@ export const updateBranch = async <Name extends EmitterWebhookEventName>(
   const repo = pullRequest.head.repo;
   if (!repo) return false;
 
-  context.log.info("update branch", {
-    head: pullRequest.head.ref,
-    base: pullRequest.base.ref,
-  });
+  context.log.info(
+    {
+      head: pullRequest.head.ref,
+      base: pullRequest.base.ref,
+    },
+    "update branch",
+  );
 
   const result = await context.octokit.repos
     .merge({

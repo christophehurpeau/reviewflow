@@ -210,11 +210,13 @@ The pull request must be in a state where requirements have not yet been satisfi
     };
   } catch (error) {
     context.log.error(
+      {
+        ...context.repo({
+          issue_number: pullRequest.number,
+        }),
+        error,
+      },
       `Could not enable automerge: ${(error as any)?.message}`,
-      context.repo({
-        issue_number: pullRequest.number,
-      }),
-      error,
     );
     if (fromRescheduleTime) {
       if (triedToMerge) {
@@ -274,11 +276,13 @@ The pull request must be in a state where requirements have not yet been satisfi
     );
   } catch (error) {
     context.log.error(
+      {
+        ...context.repo({
+          issue_number: pullRequest.number,
+        }),
+        error,
+      },
       "Could not disable automerge",
-      context.repo({
-        issue_number: pullRequest.number,
-      }),
-      error,
     );
     context.octokit.issues.createComment(
       context.repo({

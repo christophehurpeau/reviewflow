@@ -12,7 +12,7 @@ export default async function createStatus<
 ): Promise<void> {
   let description = status.title;
   if (description.length > 140) {
-    context.log.warn("description too long", { description });
+    context.log.warn({ description }, "description too long");
     description = description.slice(0, 140);
   }
 
