@@ -38,7 +38,13 @@ export const mergeOrEnableGithubAutoMerge = async <
   skipCheckMergeableState?: boolean,
   fromRescheduleTime?: RescheduleTime,
 ): Promise<MergeOrEnableGithubAutoMergeResult> => {
-  if (pullRequest.merged_at || pullRequest.draft) {
+  if (pullRequest.draft) {
+    return {
+      wasMerged: false,
+      wasAlreadyMerged: false,
+    };
+  }
+  if (pullRequest.merged_at) {
     return {
       wasMerged: false,
       wasAlreadyMerged: true,
