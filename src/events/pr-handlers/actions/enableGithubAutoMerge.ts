@@ -216,23 +216,32 @@ The pull request must be in a state where requirements have not yet been satisfi
       }),
       error,
     );
-    if (triedToMerge) {
-      context.octokit.issues.createComment(
-        context.repo({
-          issue_number: pullRequest.number,
-          body: `${
-            user?.login ? `@${user.login} ` : ""
-          }Could not automerge nor enable automerge`,
-        }),
-      );
+    if (fromRescheduleTime) {
+      if (triedToMerge) {
+        context.octokit.issues.createComment(
+          context.repo({
+            issue_number: pullRequest.number,
+            body: `${
+              user?.login ? `@${user.login} ` : ""
+            }Could not automerge nor enable automerge`,
+          }),
+        );
+      } else {
+        context.octokit.issues.createComment(
+          context.repo({
+            issue_number: pullRequest.number,
+            body: `${
+              user?.login ? `@${user.login} ` : ""
+            }Could not enable automerge`,
+          }),
+        );
+      }
     } else {
-      context.octokit.issues.createComment(
-        context.repo({
-          issue_number: pullRequest.number,
-          body: `${
-            user?.login ? `@${user.login} ` : ""
-          }Could not enable automerge`,
-        }),
+      await repoContext.reschedule(
+        context,
+        createPrMinimumDataFromPr(pullRequest),
+        "short",
+        user,
       );
     }
   }
