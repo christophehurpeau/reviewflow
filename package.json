@@ -105,7 +105,7 @@
     "@types/simple-oauth2": "5.0.7",
     "@vitest/coverage-v8": "4.0.6",
     "check-package-dependencies": "10.5.0",
-    "eslint": "9.38.0",
+    "eslint": "9.39.1",
     "nock": "14.0.10",
     "smee-client": "4.4.1",
     "type-fest": "4.41.0",
