@@ -3933,10 +3933,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"delay@npm:6.0.0":
-  version: 6.0.0
-  resolution: "delay@npm:6.0.0"
-  checksum: 10c0/5175e887512d65b2bfe9e1168b5ce7a488de99c1d0af52cb4f799bb13dd7cb0bbbba8a4f5c500a5b03fb42bec8621d6ab59244bd8dfbe9a2bf7b173f25621a10
+"delay@npm:7.0.0":
+  version: 7.0.0
+  resolution: "delay@npm:7.0.0"
+  dependencies:
+    random-int: "npm:^3.1.0"
+    unlimited-timeout: "npm:^0.1.0"
+  checksum: 10c0/714811a891e76ad402355899d264867034231492b4606a5a4c137dca6015c766370d9fe082bfaa2c8fc992b1072ec9e32522f9ac1e98121995f303b86a4d9a02
   languageName: node
   linkType: hard
 
@@ -7961,6 +7964,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"random-int@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "random-int@npm:3.1.0"
+  checksum: 10c0/c8a8cd324bc6aeefdf4f6e1f88cf373da1acf63c3ee3992b1d4b267e13425a3d2aced531c7bb684a53670d139b4a710f7ac5cb3bf8d47b91e73bc777c3c86129
+  languageName: node
+  linkType: hard
+
 "range-parser@npm:^1.2.1":
   version: 1.2.1
   resolution: "range-parser@npm:1.2.1"
@@ -8291,7 +8301,7 @@ __metadata:
     check-package-dependencies: "npm:10.5.0"
     conventional-changelog-conventionalcommits: "npm:9.1.0"
     cookie-parser: "npm:1.4.7"
-    delay: "npm:6.0.0"
+    delay: "npm:7.0.0"
     dotenv: "npm:17.2.3"
     emoji-regex: "npm:10.6.0"
     eslint: "npm:9.39.1"
@@ -9570,6 +9580,13 @@ __metadata:
   version: 7.0.2
   resolution: "universal-user-agent@npm:7.0.2"
   checksum: 10c0/e60517ee929813e6b3ac0ceb3c66deccafadc71341edca160279ff046319c684fd7090a60d63aa61cd34a06c2d2acebeb8c2f8d364244ae7bf8ab788e20cd8c8
+  languageName: node
+  linkType: hard
+
+"unlimited-timeout@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "unlimited-timeout@npm:0.1.0"
+  checksum: 10c0/07b61f3ab7771254f3b742edde177b7d22439ac193025d6fa36d7f4b2064809886f37a9bcef4859d302d1bf3a18e17ca07d16032dc463e959e70cde18f288eb8
   languageName: node
   linkType: hard
 
