@@ -3,6 +3,36 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.0.0](https://github.com/christophehurpeau/reviewflow/compare/v4.4.0...v5.0.0) (2025-11-08)
+
+### ⚠ BREAKING CHANGES
+
+* update probot
+* drop node 20
+
+### Features
+
+* **deps:** update dependency @commitlint/config-conventional to v20 ([#1079](https://github.com/christophehurpeau/reviewflow/issues/1079))
+* **deps:** update dependency @slack/web-api to v7 ([#878](https://github.com/christophehurpeau/reviewflow/issues/878))
+* **deps:** update dependency emoji-regex to v10.6.0 ([#1073](https://github.com/christophehurpeau/reviewflow/issues/1073))
+* **deps:** update dependency probot to v13.4.7 ([#1044](https://github.com/christophehurpeau/reviewflow/issues/1044))
+* **deps:** update dependency slackify-markdown to v4.5.0 ([#1074](https://github.com/christophehurpeau/reviewflow/issues/1074))
+* properly handle suspend/deleted/unsuspend actions
+* update probot
+
+### Bug Fixes
+
+* delay update if it was retriggered
+* draft does not mean merged
+* try to reschedule before creating failed comment
+* update pino
+* update pino
+* update pob
+
+### Miscellaneous Chores
+
+* update dev dependencies
+
 ## [4.4.0](https://github.com/christophehurpeau/reviewflow/compare/v4.3.0...v4.4.0) (2025-10-14)
 
 ### Features
