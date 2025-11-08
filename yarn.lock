@@ -3933,13 +3933,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"delay@npm:6.0.0":
-  version: 6.0.0
-  resolution: "delay@npm:6.0.0"
-  checksum: 10c0/5175e887512d65b2bfe9e1168b5ce7a488de99c1d0af52cb4f799bb13dd7cb0bbbba8a4f5c500a5b03fb42bec8621d6ab59244bd8dfbe9a2bf7b173f25621a10
-  languageName: node
-  linkType: hard
-
 "delayed-stream@npm:~1.0.0":
   version: 1.0.0
   resolution: "delayed-stream@npm:1.0.0"
@@ -8291,7 +8284,6 @@ __metadata:
     check-package-dependencies: "npm:10.5.0"
     conventional-changelog-conventionalcommits: "npm:9.1.0"
     cookie-parser: "npm:1.4.7"
-    delay: "npm:6.0.0"
     dotenv: "npm:17.2.3"
     emoji-regex: "npm:10.6.0"
     eslint: "npm:9.39.1"

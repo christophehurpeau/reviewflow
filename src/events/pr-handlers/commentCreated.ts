@@ -1,5 +1,4 @@
 import type { RestEndpointMethodTypes } from "@octokit/rest";
-import delay from "delay";
 import type { Context, Probot } from "probot";
 import type { AppContext } from "../../context/AppContext.ts";
 import type { AccountInfo } from "../../context/getOrCreateAccount.ts";
@@ -25,6 +24,11 @@ import { fetchPr } from "./utils/fetchPr.ts";
 import { getPullRequestFromPayload } from "./utils/getPullRequestFromPayload.ts";
 import { getReviewersAndReviewStates } from "./utils/getReviewersAndReviewStates.ts";
 import { getRolesFromPullRequestAndReviewers } from "./utils/getRolesFromPullRequestAndReviewers.ts";
+
+const delay = (ms: number): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 
 type Comment = ProbotEvent<
   "issue_comment.created" | "pull_request_review_comment.created"
