@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.0.1](https://github.com/christophehurpeau/reviewflow/compare/v5.0.0...v5.0.1) (2025-11-08)
+
+Note: no notable changes
+
+
 ## [5.0.0](https://github.com/christophehurpeau/reviewflow/compare/v4.4.0...v5.0.0) (2025-11-08)
 
 ### ⚠ BREAKING CHANGES
