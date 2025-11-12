@@ -1,5 +1,5 @@
 import type { Probot } from "probot";
-import slackifyMarkdown from "slackify-markdown";
+import { slackifyMarkdown } from "slackify-markdown";
 import type { AppContext } from "../../context/AppContext.ts";
 import type { SlackMessage } from "../../context/slack/SlackMessage.ts";
 import type { PostSlackMessageResult } from "../../context/slack/TeamSlack.ts";

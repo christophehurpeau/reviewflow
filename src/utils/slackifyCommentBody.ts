@@ -1,6 +1,6 @@
 import type { KnownBlock } from "@slack/web-api";
 import { markdownToBlocks } from "@tryfabric/mack";
-import slackifyMarkdown from "slackify-markdown";
+import { slackifyMarkdown } from "slackify-markdown";
 import type { RepoContext } from "../context/repoContext.ts";
 import { createMrkdwnSectionBlock } from "./slack/createSlackMessageWithSecondaryBlock.ts";
 
