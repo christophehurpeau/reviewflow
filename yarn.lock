@@ -8567,7 +8567,7 @@ __metadata:
     react-dom: "npm:18.3.1"
     simple-oauth2: "npm:5.1.0"
     slackify-markdown: "npm:5.0.0"
-    smee-client: "npm:4.4.1"
+    smee-client: "npm:5.0.0"
     type-fest: "npm:5.2.0"
     typescript: "npm:5.9.3"
     vitest: "npm:4.0.8"
@@ -9047,15 +9047,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"smee-client@npm:4.4.1":
-  version: 4.4.1
-  resolution: "smee-client@npm:4.4.1"
+"smee-client@npm:5.0.0":
+  version: 5.0.0
+  resolution: "smee-client@npm:5.0.0"
   dependencies:
     eventsource: "npm:^4.0.0"
     undici: "npm:^7.0.0"
   bin:
     smee: bin/smee.js
-  checksum: 10c0/6fd29bc6858bbfff5822c9883ae96ace5a0207b1537027a638636fc431e004c0145eff3d4ba6d0927125d3a4998f59acf2e9637d51b17858a176adc1650b081b
+  checksum: 10c0/a38d177beccbe64af8849580db6899bdf1ca65680a0a3053de32c525016ae55625f9a469133e37d57c825144efdc2aaf276557db9691ebcec433bff190aa2077
   languageName: node
   linkType: hard
 
