@@ -956,7 +956,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/plugin-paginate-rest@npm:^13.0.1, @octokit/plugin-paginate-rest@npm:^13.1.1":
+"@octokit/plugin-paginate-rest@npm:^13.0.1":
   version: 13.2.1
   resolution: "@octokit/plugin-paginate-rest@npm:13.2.1"
   dependencies:
@@ -8082,18 +8082,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"probot@npm:14.2.1":
-  version: 14.2.1
-  resolution: "probot@npm:14.2.1"
+"probot@npm:14.2.4":
+  version: 14.2.4
+  resolution: "probot@npm:14.2.4"
   dependencies:
     "@octokit/core": "npm:^7.0.3"
     "@octokit/plugin-enterprise-compatibility": "npm:^6.0.1"
-    "@octokit/plugin-paginate-rest": "npm:^13.1.1"
-    "@octokit/plugin-rest-endpoint-methods": "npm:^16.0.0"
+    "@octokit/plugin-paginate-rest": "npm:^14.0.0"
+    "@octokit/plugin-rest-endpoint-methods": "npm:^17.0.0"
     "@octokit/plugin-retry": "npm:^8.0.1"
     "@octokit/plugin-throttling": "npm:^11.0.1"
     "@octokit/request": "npm:^10.0.3"
-    "@octokit/types": "npm:^15.0.0"
+    "@octokit/types": "npm:^16.0.0"
     "@octokit/webhooks": "npm:^14.1.2"
     "@probot/get-private-key": "npm:^2.1.1"
     "@probot/octokit-plugin-config": "npm:^4.0.0"
@@ -8111,7 +8111,7 @@ __metadata:
     yaml: "npm:^2.8.1"
   bin:
     probot: bin/probot.js
-  checksum: 10c0/18ddcb637ac9ec9f61fd955dfaac8d025b87a8fef62a32da7c42a6e9fff52e5b43b5bd5254cab2d75960eff36623ad718ca4db7d8c5b60de75e7e8d8ba66c667
+  checksum: 10c0/f2928627d02f9e5d9bcaaf04dd914de42e67ca70b1a15f715d04e33cf51f4d261ca5469c46c37f11baeef0d3e1035bf02e0eaad89f0c5aee7739d26630ebff24
   languageName: node
   linkType: hard
 
@@ -8562,7 +8562,7 @@ __metadata:
     liwi-mongo: "npm:12.0.0"
     lock: "npm:1.1.0"
     nock: "npm:14.0.10"
-    probot: "npm:14.2.1"
+    probot: "npm:14.2.4"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     simple-oauth2: "npm:5.1.0"
