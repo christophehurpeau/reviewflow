@@ -3,13 +3,7 @@ import { createCheckPackage } from "check-package-dependencies";
 await createCheckPackage()
   .checkRecommended({
     isLibrary: false,
-    onlyWarnsForInDependencies: {
-      "@commitlint/config-conventional": {
-        duplicateDirectDependency: [
-          "conventional-changelog-conventionalcommits",
-        ],
-      },
-    },
+    onlyWarnsForInDependencies: {},
   })
   .checkSatisfiesVersionsFromDependency("probot", {
     dependencies: [

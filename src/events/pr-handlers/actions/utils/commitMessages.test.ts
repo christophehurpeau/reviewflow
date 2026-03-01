@@ -164,7 +164,7 @@ describe("parseCommitMessage", () => {
       ),
     ).toMatchInlineSnapshot(`
       {
-        "body": null,
+        "body": "",
         "footer": "BREAKING CHANGE: detailed breaking change",
         "header": "docs!: add readme",
         "mentions": [],

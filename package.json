@@ -8,7 +8,7 @@
   "repository": "https://github.com/christophehurpeau/reviewflow.git",
   "homepage": "https://github.com/christophehurpeau/reviewflow",
   "type": "module",
-  "packageManager": "yarn@4.11.0",
+  "packageManager": "yarn@4.12.0",
   "engines": {
     "node": ">=22.18.0"
   },
@@ -61,9 +61,9 @@
   },
   "prettier": "@pob/root/prettier-config",
   "dependencies": {
-    "@commitlint/config-conventional": "20.0.0",
-    "@commitlint/lint": "20.0.0",
-    "@commitlint/parse": "20.0.0",
+    "@commitlint/config-conventional": "20.4.2",
+    "@commitlint/lint": "20.4.2",
+    "@commitlint/parse": "20.4.1",
     "@octokit/core": "7.0.6",
     "@octokit/plugin-rest-endpoint-methods": "16.0.0",
     "@octokit/rest": "22.0.0",
@@ -88,11 +88,10 @@
     "slackify-markdown": "5.0.0"
   },
   "devDependencies": {
-    "@pob/eslint-config": "62.0.0",
-    "@pob/eslint-config-typescript": "62.0.0",
-    "@pob/eslint-config-typescript-react": "62.0.0",
-    "@pob/rollup-esbuild": "7.4.2",
-    "@pob/root": "19.7.1",
+    "@pob/eslint-config": "65.0.2",
+    "@pob/eslint-config-typescript-react": "65.0.2",
+    "@pob/rollup-esbuild": "8.0.0",
+    "@pob/root": "22.0.0",
     "@types/body-parser": "1.19.6",
     "@types/cookie-parser": "1.4.10",
     "@types/express": "5.0.5",
@@ -102,13 +101,13 @@
     "@types/react": "18.3.27",
     "@types/react-dom": "18.3.7",
     "@types/simple-oauth2": "5.0.7",
-    "@vitest/coverage-v8": "4.0.9",
+    "@vitest/coverage-v8": "4.0.18",
     "check-package-dependencies": "10.5.0",
-    "eslint": "9.39.1",
+    "eslint": "9.39.3",
     "nock": "14.0.10",
     "smee-client": "5.0.0",
     "type-fest": "5.2.0",
     "typescript": "5.9.3",
-    "vitest": "4.0.9"
+    "vitest": "4.0.18"
   }
 }

@@ -285,8 +285,7 @@ export const markAsDoneSlackSentMessages = async (
   ]);
 };
 
-interface AddReactionToSlackSentMessageOptions
-  extends GetSlackSentMessagesOptions {
+interface AddReactionToSlackSentMessageOptions extends GetSlackSentMessagesOptions {
   reaction: string;
 }
 

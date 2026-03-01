@@ -1,6 +1,6 @@
-import pobTypescriptConfig, { applyTs } from "@pob/eslint-config-typescript";
+import pobConfig, { applyTs } from "@pob/eslint-config";
 
-const configs = pobTypescriptConfig(import.meta.url).configs;
+const configs = pobConfig(import.meta.url).configs;
 
 export default [
   { ignores: ["vite.config.ts"] },

@@ -2,7 +2,6 @@ import commitlintConventionalConfig from "@commitlint/config-conventional";
 import * as commitlintLintModule from "@commitlint/lint";
 import * as commitlintParseModule from "@commitlint/parse";
 // @ts-expect-error missing typings
-// eslint-disable-next-line import/no-unresolved
 import createConventionalCommitsConfig from "conventional-changelog-conventionalcommits";
 import type { AsyncReturnType } from "type-fest";
 

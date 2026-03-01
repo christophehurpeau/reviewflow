@@ -19,7 +19,7 @@ export function calcCodeReviewStep<TeamNames extends string>({
 }: CalcStepOptions<TeamNames>): CodeReviewStepState {
   const hasRequestedReviewers = Boolean(
     pullRequest.requested_reviewers &&
-      pullRequest.requested_reviewers.length > 0,
+    pullRequest.requested_reviewers.length > 0,
   );
   const hasRequestedTeams = Boolean(
     pullRequest.requested_teams && pullRequest.requested_teams.length > 0,
