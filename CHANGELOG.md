@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.1.0](https://github.com/christophehurpeau/reviewflow/compare/v5.0.1...v5.1.0) (2026-03-01)
+
+### Features
+
+* **deps:** update dependency @sentry/node to v10.27.0 [security] ([#1110](https://github.com/christophehurpeau/reviewflow/issues/1110))
+* **deps:** update dependency @sentry/node to v10.40.0 ([#1130](https://github.com/christophehurpeau/reviewflow/issues/1130))
+* **deps:** update dependency @slack/web-api to v7.14.1 ([#1131](https://github.com/christophehurpeau/reviewflow/issues/1131))
+* drop better slackify waiting for a better implementation
+* handle closed pull request errors in auto-merge logic
+* upgrade slackify-markdown
+
+### Bug Fixes
+
+* **deps:** update dependency body-parser to v2.2.1 [security] ([#1113](https://github.com/christophehurpeau/reviewflow/issues/1113))
+* **deps:** update dependency body-parser to v2.2.2 ([#1126](https://github.com/christophehurpeau/reviewflow/issues/1126))
+* **deps:** update dependency jsonwebtoken to v9.0.3 ([#1127](https://github.com/christophehurpeau/reviewflow/issues/1127))
+* fix unset null
+* like status, find head for checkrun as they can start before a pr is created
+* use pr number instead of pr id
+* use real check name for failed checks
+
 ## [5.0.1](https://github.com/christophehurpeau/reviewflow/compare/v5.0.0...v5.0.1) (2025-11-08)
 
 Note: no notable changes
