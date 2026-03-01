@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition, complexity */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import type { RepoContext } from "../../../context/repoContext.ts";
 import { ExcludesFalsy } from "../../../utils/Excludes.ts";
 import type { ChecksAndStatuses } from "../../../utils/github/pullRequest/checksAndStatuses.ts";
@@ -45,7 +45,7 @@ export const getFailedOrWaitingChecksAndStatuses = <TeamNames extends string>(
         !check?.name.includes("/hold-") &&
         isCheckNotAllowedToFail(repoContext, check.name),
     )
-    .map(([checkName]) => checkName)
+    .map(([checkId, check]) => check?.name || checkId)
     .filter(ExcludesFalsy);
 
   const pendingChecks = checksEntries
@@ -55,7 +55,7 @@ export const getFailedOrWaitingChecksAndStatuses = <TeamNames extends string>(
         check.conclusion == null &&
         !isPendingCheckShouldBeIgnored(check.name),
     )
-    .map(([checkId, check]) => check?.name)
+    .map(([checkId, check]) => check?.name || checkId)
     .filter(ExcludesFalsy);
 
   const failedStatuses = statusesEntries
