@@ -2323,10 +2323,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/simple-oauth2@npm:5.0.7":
-  version: 5.0.7
-  resolution: "@types/simple-oauth2@npm:5.0.7"
-  checksum: 10c0/1cfb87b1ee4b58b30e4f9753271ea73282e707553b9b3360755064e4c7b1e96a01cabc5e83d13841369595ea7e451d3d576bea02340b4f17f9e930f54c08a15e
+"@types/simple-oauth2@npm:5.0.8":
+  version: 5.0.8
+  resolution: "@types/simple-oauth2@npm:5.0.8"
+  checksum: 10c0/e1e6e7222f74a230c10c4dabe482b5852ec6bbc5d9c587ee514e35a7aebe7e3131f50a64e861cb9b2844b591adbe4a9709fd001b85c77bbf0226d8e1e0dbac60
   languageName: node
   linkType: hard
 
@@ -8116,7 +8116,7 @@ __metadata:
     "@types/node": "npm:22.19.1"
     "@types/react": "npm:18.3.28"
     "@types/react-dom": "npm:18.3.7"
-    "@types/simple-oauth2": "npm:5.0.7"
+    "@types/simple-oauth2": "npm:5.0.8"
     "@vitest/coverage-v8": "npm:4.0.18"
     body-parser: "npm:2.2.2"
     check-package-dependencies: "npm:10.5.0"
