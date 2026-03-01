@@ -42,11 +42,9 @@ export default function convertedToDraft(
               $set: {
                 isDraft: true,
               },
-              $unset: reviewflowPrContext.reviewflowPr.flowDates?.readyAt
-                ? {
-                    "flowDates.readyAt": true,
-                  }
-                : undefined,
+              ...(reviewflowPrContext.reviewflowPr.flowDates?.readyAt
+                ? { $unset: { "flowDates.readyAt": true } }
+                : {}),
             },
           ),
           updateReviewStatus(pullRequest, context, repoContext, stepsState),
