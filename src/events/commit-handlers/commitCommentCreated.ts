@@ -91,7 +91,7 @@ export default function commitCommentCreated(
         return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${commitUrl}`;
       };
 
-      const slackifiedBodyBlocks = await slackifyCommentBody(
+      const slackifiedBodyBlocks = slackifyCommentBody(
         repoContext,
         comment.body,
         (comment as any).start_line !== null,

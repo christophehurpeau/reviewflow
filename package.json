@@ -71,7 +71,6 @@
     "@octokit/webhooks": "14.1.3",
     "@sentry/node": "10.27.0",
     "@slack/web-api": "7.12.0",
-    "@tryfabric/mack": "1.2.1",
     "body-parser": "2.2.2",
     "conventional-changelog-conventionalcommits": "9.1.0",
     "cookie-parser": "1.4.7",

@@ -107,7 +107,7 @@ export default function prCommentEditedOrDeleted<TeamNames extends string>(
 
       if (sentMessages.length === 0) return;
 
-      const secondaryBlocks = await slackifyCommentBody(
+      const secondaryBlocks = slackifyCommentBody(
         repoContext,
         comment.body || "",
         (comment as any).start_line !== null,

@@ -2004,7 +2004,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@slack/types@npm:^2.1.0, @slack/types@npm:^2.18.0":
+"@slack/types@npm:^2.18.0":
   version: 2.18.0
   resolution: "@slack/types@npm:2.18.0"
   checksum: 10c0/e7f514226d6a0b8ca99442641b8f69e41f6c68494e31f7ca6b820e8cc087fc2ff193a49c2bda4e07c1c8102261d2d6f53e4200f047cf942285aff2f62d39c938
@@ -2042,17 +2042,6 @@ __metadata:
   version: 1.1.2
   resolution: "@tootallnate/once@npm:1.1.2"
   checksum: 10c0/8fe4d006e90422883a4fa9339dd05a83ff626806262e1710cee5758d493e8cbddf2db81c0e4690636dc840b02c9fda62877866ea774ebd07c1777ed5fafbdec6
-  languageName: node
-  linkType: hard
-
-"@tryfabric/mack@npm:1.2.1":
-  version: 1.2.1
-  resolution: "@tryfabric/mack@npm:1.2.1"
-  dependencies:
-    "@slack/types": "npm:^2.1.0"
-    fast-xml-parser: "npm:^4.0.6"
-    marked: "npm:^4.0.12"
-  checksum: 10c0/0e8fea6d6070c389d15ab4f4aca215c98cc36808f7d43f15441439333ddb3af9c9445b6d118861b378dfd6f943c57bc6e54879992ba3c940254ff4b56d6c82ef
   languageName: node
   linkType: hard
 
@@ -4692,17 +4681,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-xml-parser@npm:^4.0.6":
-  version: 4.5.4
-  resolution: "fast-xml-parser@npm:4.5.4"
-  dependencies:
-    strnum: "npm:^1.0.5"
-  bin:
-    fxparser: src/cli/cli.js
-  checksum: 10c0/7989148650fc1fce988798b62467f7dee0fd5a7ad049373e00e65fbc68f689c119975d03da32c427f0a1f5aad01de2efbd783a48dcdaf3ca41817a8b161ad3e8
-  languageName: node
-  linkType: hard
-
 "fastq@npm:^1.6.0":
   version: 1.10.0
   resolution: "fastq@npm:1.10.0"
@@ -6231,15 +6209,6 @@ __metadata:
   version: 3.0.4
   resolution: "markdown-table@npm:3.0.4"
   checksum: 10c0/1257b31827629a54c24a5030a3dac952256c559174c95ce3ef89bebd6bff0cb1444b1fd667b1a1bb53307f83278111505b3e26f0c4e7b731e0060d435d2d930b
-  languageName: node
-  linkType: hard
-
-"marked@npm:^4.0.12":
-  version: 4.3.0
-  resolution: "marked@npm:4.3.0"
-  bin:
-    marked: bin/marked.js
-  checksum: 10c0/0013463855e31b9c88d8bb2891a611d10ef1dc79f2e3cbff1bf71ba389e04c5971298c886af0be799d7fa9aa4593b086a136062d59f1210b0480b026a8c5dc47
   languageName: node
   linkType: hard
 
@@ -8107,7 +8076,6 @@ __metadata:
     "@pob/root": "npm:22.0.0"
     "@sentry/node": "npm:10.27.0"
     "@slack/web-api": "npm:7.12.0"
-    "@tryfabric/mack": "npm:1.2.1"
     "@types/body-parser": "npm:1.19.6"
     "@types/cookie-parser": "npm:1.4.10"
     "@types/express": "npm:5.0.5"
@@ -8908,13 +8876,6 @@ __metadata:
   version: 3.1.1
   resolution: "strip-json-comments@npm:3.1.1"
   checksum: 10c0/9681a6257b925a7fa0f285851c0e613cc934a50661fa7bb41ca9cbbff89686bb4a0ee366e6ecedc4daafd01e83eee0720111ab294366fe7c185e935475ebcecd
-  languageName: node
-  linkType: hard
-
-"strnum@npm:^1.0.5":
-  version: 1.0.5
-  resolution: "strnum@npm:1.0.5"
-  checksum: 10c0/64fb8cc2effbd585a6821faa73ad97d4b553c8927e49086a162ffd2cc818787643390b89d567460a8e74300148d11ac052e21c921ef2049f2987f4b1b89a7ff1
   languageName: node
   linkType: hard
 

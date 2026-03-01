@@ -1,4 +1,4 @@
-import pobConfig, { applyTs } from "@pob/eslint-config";
+import pobConfig, { apply, applyTs } from "@pob/eslint-config";
 
 const configs = pobConfig(import.meta.url).configs;
 
@@ -7,6 +7,11 @@ export default [
   ...configs.node,
   ...configs.app,
   ...configs.allowUnsafeAsWarn,
+  ...apply({
+    configs: [
+      { rules: { "unicorn/require-post-message-target-origin": "off" } },
+    ],
+  }),
   ...applyTs({
     configs: [
       {

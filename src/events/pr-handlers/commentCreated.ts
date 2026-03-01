@@ -207,7 +207,7 @@ export default function prCommentCreated(
         return `:speech_balloon: ${mention} ${commentLink} on ${ownerPart} ${prUrl}`;
       };
 
-      const slackifiedBodyBlocks = await slackifyCommentBody(
+      const slackifiedBodyBlocks = slackifyCommentBody(
         repoContext,
         comment.body,
         (comment as any).start_line !== null,

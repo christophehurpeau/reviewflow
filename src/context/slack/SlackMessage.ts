@@ -1,8 +1,8 @@
-import type { KnownBlock } from "@slack/web-api";
+import type { Block, KnownBlock } from "@slack/web-api";
 
 export interface SlackMessage {
   text: string;
   blocks?: KnownBlock[];
-  secondaryBlocks?: KnownBlock[];
+  secondaryBlocks?: Block[];
   threadTs?: string;
 }
