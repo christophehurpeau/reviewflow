@@ -9,9 +9,24 @@ export default function checkrun(app: Probot, appContext: AppContext): void {
     app,
     appContext,
     ["check_run.created", "check_run.completed"],
-    (payload, repoContext) => {
+    async (payload, repoContext) => {
       if (repoContext.shouldIgnore) return [];
-      return payload.check_run.pull_requests;
+
+      const prsForShaCursor = await appContext.mongoStores.prs.findAll({
+        "account.id": repoContext.accountEmbed.id,
+        "repo.id": repoContext.repoEmbed.id,
+        headSha: payload.check_run.head_sha,
+      });
+
+      const prs = prsForShaCursor.map((reviewflowPr) => reviewflowPr.pr);
+
+      for (const pr of payload.check_run.pull_requests) {
+        if (!prs.some((reviewflowPr) => reviewflowPr.number === pr.number)) {
+          prs.push(pr);
+        }
+      }
+
+      return prs;
     },
     async (pullRequestCheckRun, context, repoContext, reviewflowPrContext) => {
       const { action, check_run: checkRun } = context.payload;
