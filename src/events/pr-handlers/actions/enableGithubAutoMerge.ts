@@ -1,3 +1,4 @@
+import { GraphqlResponseError } from "@octokit/graphql";
 import type {
   EventsWithRepository,
   RepoContext,
@@ -18,6 +19,20 @@ import { createPrMinimumDataFromPr } from "../utils/createPrMinimumDataFromPr.ts
 import type { ReviewflowPrContext } from "../utils/createPullRequestContext.ts";
 import { createCommitMessage } from "./createCommitMessage.ts";
 import { parseBody } from "./utils/body/parseBody.ts";
+
+function isPullRequestClosedGraphQLError(err: unknown): boolean {
+  if (!err) return false;
+
+  if (err instanceof GraphqlResponseError) {
+    if (err.message.includes("Pull request is closed")) return true;
+    const errors = Array.isArray(err.errors) ? err.errors : [];
+    return errors.some((e) => {
+      return e.message?.includes("Pull request is closed");
+    });
+  }
+
+  return false;
+}
 
 export interface MergeOrEnableGithubAutoMergeResult {
   wasMerged: boolean;
@@ -48,6 +63,14 @@ export const mergeOrEnableGithubAutoMerge = async <
     return {
       wasMerged: false,
       wasAlreadyMerged: true,
+    };
+  }
+
+  // if the pull request is closed (but not merged) we must not try to enable auto-merge
+  if (pullRequest.state === "closed" || pullRequest.closed_at) {
+    return {
+      wasMerged: false,
+      didFailedToEnableAutoMerge: true,
     };
   }
 
@@ -209,6 +232,13 @@ The pull request must be in a state where requirements have not yet been satisfi
         response.enablePullRequestAutoMerge.pullRequest.autoMergeRequest,
     };
   } catch (error) {
+    if (isPullRequestClosedGraphQLError(error)) {
+      return {
+        wasMerged: false,
+        didFailedToEnableAutoMerge: true,
+      };
+    }
+
     context.log.error(
       {
         ...context.repo({
@@ -218,6 +248,7 @@ The pull request must be in a state where requirements have not yet been satisfi
       },
       `Could not enable automerge: ${(error as any)?.message}`,
     );
+
     if (fromRescheduleTime) {
       if (triedToMerge) {
         context.octokit.rest.issues.createComment(

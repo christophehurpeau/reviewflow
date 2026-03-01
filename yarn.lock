@@ -797,7 +797,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/graphql@npm:^9.0.3":
+"@octokit/graphql@npm:9.0.3, @octokit/graphql@npm:^9.0.3":
   version: 9.0.3
   resolution: "@octokit/graphql@npm:9.0.3"
   dependencies:
@@ -8126,6 +8126,7 @@ __metadata:
     "@commitlint/lint": "npm:20.4.2"
     "@commitlint/parse": "npm:20.4.1"
     "@octokit/core": "npm:7.0.6"
+    "@octokit/graphql": "npm:9.0.3"
     "@octokit/plugin-rest-endpoint-methods": "npm:16.0.0"
     "@octokit/rest": "npm:22.0.0"
     "@octokit/webhooks": "npm:14.1.3"

@@ -12,6 +12,9 @@ await createCheckPackage()
       "@octokit/plugin-rest-endpoint-methods",
     ],
   })
+  .checkSatisfiesVersionsFromDependency("@octokit/core", {
+    dependencies: ["@octokit/graphql"],
+  })
   .checkSatisfiesVersionsBetweenDependencies({
     "@octokit/rest": {
       probot: {

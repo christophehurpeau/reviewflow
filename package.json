@@ -65,6 +65,7 @@
     "@commitlint/lint": "20.4.2",
     "@commitlint/parse": "20.4.1",
     "@octokit/core": "7.0.6",
+    "@octokit/graphql": "9.0.3",
     "@octokit/plugin-rest-endpoint-methods": "16.0.0",
     "@octokit/rest": "22.0.0",
     "@octokit/webhooks": "14.1.3",
