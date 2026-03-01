@@ -24,7 +24,7 @@ export type PullRequestData =
   | PullRequestFromWebhook;
 
 export interface PullRequestDataMinimumData {
-  id: PullRequestData["id"];
+  // id: PullRequestData["id"];
   number: PullRequestData["number"];
 }
 

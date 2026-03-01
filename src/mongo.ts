@@ -27,7 +27,7 @@ export interface AccountEmbed {
 }
 
 interface PrEmbed {
-  id: number;
+  // id: number;
   number: number;
 }
 

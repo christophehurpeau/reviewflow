@@ -6,7 +6,6 @@ import type {
 export const createPrMinimumDataFromPr = (
   pullRequest: PullRequestData,
 ): PullRequestDataMinimumData => ({
-  id: pullRequest.id,
   number: pullRequest.number,
   // branch: pullRequest.head.ref,
 });

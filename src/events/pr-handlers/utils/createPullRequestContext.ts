@@ -41,7 +41,6 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
 ): Promise<ReviewflowPrContext> => {
   const appContext = repoContext.appContext;
   const prEmbed = {
-    id: pullRequest.id,
     number: pullRequest.number,
   };
 

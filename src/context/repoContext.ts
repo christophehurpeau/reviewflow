@@ -102,14 +102,6 @@ interface RepoContextWithoutTeamContext {
     callback: () => Promise<void> | void,
   ) => Promise<void>;
 
-  /** @deprecated */
-  lockPR: (
-    eventName: string,
-    prId: string,
-    prNumber: number,
-    callback: () => Promise<void> | void,
-  ) => Promise<void>;
-
   reschedule: <EventName extends EmitterWebhookEventName>(
     context: ProbotEvent<EventName>,
     pr: PullRequestDataMinimumData,
@@ -243,34 +235,39 @@ async function initRepoContext<
   // const updateStatusCheck = (context, reviewGroup, statusInfo) => {};
 
   const lock = Lock();
-  const waitingToReschedule = new Map<string, ReturnType<typeof setTimeout>>();
+  const waitingToReschedule = new Map<number, ReturnType<typeof setTimeout>>();
 
-  const clearWaitingToReschedule = (prId: number): void => {
-    const prIdAsString = String(prId);
-    const timeout = waitingToReschedule.get(prIdAsString);
+  const clearWaitingToReschedule = (prNumber: number): void => {
+    const timeout = waitingToReschedule.get(prNumber);
     if (timeout) {
       clearTimeout(timeout);
-      waitingToReschedule.delete(prIdAsString);
+      waitingToReschedule.delete(prNumber);
     }
   };
 
   const lockPR = (
     eventName: string,
-    prOrPrIssueId: string,
     prNumber: number,
     callback: () => Promise<void> | void,
   ): Promise<void> =>
     new Promise((resolve, reject) => {
-      const prNumberAsString = String(prNumber);
+      if (typeof prNumber !== "number") {
+        reject(
+          new TypeError(
+            `prNumber must be a number, got ${typeof prNumber}: ${prNumber}`,
+          ),
+        );
+        return;
+      }
+
       const logInfos = {
         eventName,
         repo: fullName,
-        prOrPrIssueId,
         prNumber,
       };
       context.log.debug(logInfos, "lock: try to lock pr");
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      lock(prNumberAsString, async (createReleaseCallback) => {
+      lock(String(prNumber), async (createReleaseCallback) => {
         const release = createReleaseCallback(() => {});
         context.log.info(logInfos, "lock: lock pr acquired");
         try {
@@ -293,12 +290,7 @@ async function initRepoContext<
     pullRequest: PullRequestDataMinimumData,
     callback: () => Promise<void> | void,
   ): Promise<void> => {
-    return lockPR(
-      eventName,
-      String(pullRequest.id),
-      pullRequest.number,
-      callback,
-    );
+    return lockPR(eventName, pullRequest.number, callback);
   };
 
   const reschedule = async (
@@ -309,16 +301,21 @@ async function initRepoContext<
     // eslint-disable-next-line @typescript-eslint/require-await
   ): Promise<void> => {
     if (!pr) throw new Error("Cannot reschedule undefined");
+    if (typeof pr.number !== "number") {
+      throw new TypeError(
+        `Cannot reschedule pr with non-numeric number: ${pr.number}`,
+      );
+    }
     if (repoContext.config.disableAutoMerge) return;
     if (!repoContext.settings.allowAutoMerge) return;
 
-    clearWaitingToReschedule(pr.id);
+    clearWaitingToReschedule(pr.number);
     rescheduleContext.log.info(pr, "reschedule", { time });
     const timeout = setTimeout(
       () => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        lockPR("reschedule", "reschedule", -1, () => {
-          return lockPR("reschedule", String(pr.id), pr.number, async () => {
+        lockPR("reschedule", -1, () => {
+          return lockPR("reschedule", pr.number, async () => {
             const [pullRequest, reviewflowPrContext] = await Promise.all([
               fetchPr(context, pr.number),
               getReviewflowPrContext(pr, rescheduleContext, repoContext),
@@ -338,7 +335,7 @@ async function initRepoContext<
       },
       time === "long+timeout" ? 60_000 * 10 /* 10 min */ : 10_000 /* 10s */,
     );
-    waitingToReschedule.set(String(pr.id), timeout);
+    waitingToReschedule.set(pr.number, timeout);
   };
 
   const rescheduleOnChecksUpdated = async (
@@ -377,7 +374,6 @@ async function initRepoContext<
     reschedule,
     rescheduleOnChecksUpdated,
 
-    lockPR,
     lockPullRequest,
   } as RepoContextWithoutTeamContext);
 }
