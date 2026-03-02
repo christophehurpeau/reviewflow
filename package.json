@@ -90,7 +90,7 @@
   "devDependencies": {
     "@pob/eslint-config": "65.0.2",
     "@pob/eslint-config-typescript-react": "65.0.2",
-    "@pob/rollup-esbuild": "8.0.0",
+    "@pob/rollup-esbuild": "8.1.0",
     "@pob/root": "22.0.0",
     "@types/body-parser": "1.19.6",
     "@types/cookie-parser": "1.4.10",
