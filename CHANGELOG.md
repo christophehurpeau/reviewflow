@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.2.0](https://github.com/christophehurpeau/reviewflow/compare/v5.1.0...v5.2.0) (2026-03-02)
+
+### Features
+
+* **deps:** update dependency dotenv to v17.3.1 ([#1133](https://github.com/christophehurpeau/reviewflow/issues/1133))
+* **deps:** update dependency express to v5.2.1 ([#1135](https://github.com/christophehurpeau/reviewflow/issues/1135))
+* remove body content check now that AI can do summary for us
+
 ## [5.1.0](https://github.com/christophehurpeau/reviewflow/compare/v5.0.1...v5.1.0) (2026-03-01)
 
 ### Features
