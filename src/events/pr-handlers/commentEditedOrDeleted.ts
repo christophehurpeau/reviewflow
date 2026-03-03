@@ -8,6 +8,7 @@ import {
   findSlackSentMessages,
   updateSlackSentMessages,
 } from "./actions/utils/slackUtils.ts";
+import { getInitialFlowDatesFromPullRequest } from "./utils/createPullRequestContext.ts";
 import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
 import { fetchPr } from "./utils/fetchPr.ts";
 import { getPullRequestFromPayload } from "./utils/getPullRequestFromPayload.ts";
@@ -58,7 +59,21 @@ export default function prCommentEditedOrDeleted<TeamNames extends string>(
         checkIfIsThisBot(context.payload.comment.user!)
       ) {
         const updatedPr = await fetchPr(context, pullRequest.number);
-        if (!updatedPr.closed_at) {
+        if (updatedPr.closed_at) {
+          if (!reviewflowPrContext.reviewflowPr.isClosed) {
+            await appContext.mongoStores.prs.partialUpdateByKey(
+              reviewflowPrContext.reviewflowPr._id,
+              {
+                $set: {
+                  isClosed: true,
+                  ...(reviewflowPrContext.reviewflowPr.flowDates
+                    ? { "flowDates.closedAt": new Date(updatedPr.closed_at) }
+                    : getInitialFlowDatesFromPullRequest(pullRequest)),
+                },
+              },
+            );
+          }
+        } else {
           await commentBodyEdited(
             updatedPr,
             context,

@@ -6,6 +6,7 @@ import { updateReviewStatus } from "./actions/updateReviewStatus.ts";
 import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState.ts";
 import { calcStepsState } from "./actions/utils/steps/calcStepsState.ts";
 import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome.ts";
+import { getInitialFlowDatesFromPullRequest } from "./utils/createPullRequestContext.ts";
 import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
 import { getReviewersAndReviewStates } from "./utils/getReviewersAndReviewStates.ts";
 import { getRolesFromPullRequestAndReviewers } from "./utils/getRolesFromPullRequestAndReviewers.ts";
@@ -41,6 +42,12 @@ export default function convertedToDraft(
             {
               $set: {
                 isDraft: true,
+                ...(!reviewflowPrContext.reviewflowPr.flowDates
+                  ? {
+                      flowDates:
+                        getInitialFlowDatesFromPullRequest(pullRequest),
+                    }
+                  : {}),
               },
               ...(reviewflowPrContext.reviewflowPr.flowDates?.readyAt
                 ? { $unset: { "flowDates.readyAt": true } }

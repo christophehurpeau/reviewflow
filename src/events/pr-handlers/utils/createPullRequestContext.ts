@@ -33,6 +33,25 @@ export interface ReviewflowPrContext {
   commentBody: string;
 }
 
+export const getInitialFlowDatesFromPullRequest = (
+  pullRequest: PullRequestDataMinimumData | PullRequestWithDecentData,
+) => {
+  if ("created_at" in pullRequest) {
+    return {
+      createdAt: new Date(pullRequest.created_at),
+      openedAt: new Date(pullRequest.created_at),
+      readyAt:
+        "draft" in pullRequest && pullRequest.draft
+          ? undefined
+          : new Date(pullRequest.created_at),
+      closedAt: pullRequest.closed_at
+        ? new Date(pullRequest.closed_at)
+        : undefined,
+    };
+  }
+  return undefined;
+};
+
 export const getReviewflowPrContext = async <T extends EventsWithRepository>(
   pullRequest: PullRequestDataMinimumData | PullRequestWithDecentData,
   context: ProbotEvent<T>,
@@ -61,16 +80,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
           : [],
       flowDates:
         "created_at" in pullRequest
-          ? {
-              createdAt: new Date(pullRequest.created_at),
-              openedAt: new Date(pullRequest.created_at),
-              readyAt: pullRequest.draft
-                ? undefined
-                : new Date(pullRequest.created_at),
-              closedAt: pullRequest.closed_at
-                ? new Date(pullRequest.closed_at)
-                : undefined,
-            }
+          ? getInitialFlowDatesFromPullRequest(pullRequest)
           : undefined,
     });
     return { reviewflowPr, commentBody: comment.body! };

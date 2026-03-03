@@ -125,6 +125,12 @@ describe("edited", (): void => {
           changedFiles: 1,
           deletions: 0,
         },
+        flowDates: {
+          closedAt: undefined,
+          createdAt: new Date("2021-11-10T16:18:08Z"),
+          openedAt: new Date("2021-11-10T16:18:08Z"),
+          readyAt: new Date("2021-11-10T16:18:08Z"),
+        },
         title: "feat: test draft",
         assignees: [
           {

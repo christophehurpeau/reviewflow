@@ -17,7 +17,10 @@ import type {
   PullRequestWithDecentData,
 } from "../utils/PullRequestData.ts";
 import { toBasicUser } from "../utils/PullRequestData.ts";
-import type { ReviewflowPrContext } from "../utils/createPullRequestContext.ts";
+import {
+  type ReviewflowPrContext,
+  getInitialFlowDatesFromPullRequest,
+} from "../utils/createPullRequestContext.ts";
 import { readCommitsAndUpdateInfos } from "./readCommitsAndUpdateInfos.ts";
 import { updatePrIfNeeded } from "./updatePr.ts";
 import { updatePrCommentBodyIfNeeded } from "./updatePrCommentBody.ts";
@@ -269,6 +272,28 @@ export const editOpenedPR = async <
       additions: pullRequest.additions!,
       deletions: pullRequest.deletions!,
     };
+  }
+
+  if (!reviewflowPrContext.reviewflowPr.flowDates) {
+    partialUpdateReviewflowPr.flowDates =
+      getInitialFlowDatesFromPullRequest(pullRequest);
+  } else {
+    const flowDates = reviewflowPrContext.reviewflowPr.flowDates;
+    if (pullRequest.closed_at && !flowDates.closedAt) {
+      partialUpdateReviewflowPr["flowDates.closedAt"] = new Date(
+        pullRequest.closed_at,
+      );
+    }
+    if (pullRequest.draft === false && !flowDates.readyAt) {
+      partialUpdateReviewflowPr["flowDates.readyAt"] = new Date();
+    }
+    if (
+      (pullRequest.requested_reviewers?.length ||
+        pullRequest.requested_teams?.length) &&
+      !flowDates.reviewStartedAt
+    ) {
+      partialUpdateReviewflowPr["flowDates.reviewStartedAt"] = new Date();
+    }
   }
 
   if (
