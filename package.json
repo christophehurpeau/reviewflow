@@ -61,9 +61,9 @@
   },
   "prettier": "@pob/root/prettier-config",
   "dependencies": {
-    "@commitlint/config-conventional": "20.4.2",
-    "@commitlint/lint": "20.4.2",
-    "@commitlint/parse": "20.4.1",
+    "@commitlint/config-conventional": "20.4.3",
+    "@commitlint/lint": "20.4.3",
+    "@commitlint/parse": "20.4.3",
     "@octokit/core": "7.0.6",
     "@octokit/graphql": "9.0.3",
     "@octokit/plugin-rest-endpoint-methods": "16.0.0",
