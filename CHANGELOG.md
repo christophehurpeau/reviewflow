@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.2.1](https://github.com/christophehurpeau/reviewflow/compare/v5.2.0...v5.2.1) (2026-03-03)
+
+### Bug Fixes
+
+* allow update closed state when comment is changed and update more frequently flow dates
+
 ## [5.2.0](https://github.com/christophehurpeau/reviewflow/compare/v5.1.0...v5.2.0) (2026-03-02)
 
 ### Features
