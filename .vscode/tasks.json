@@ -106,7 +106,17 @@
     },
     {
       "label": "test:watch",
-      "problemMatcher": [],
+      "problemMatcher": {
+        "owner": "vitest-watch",
+        "pattern": {
+          "regexp": ".*"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "RERUN",
+          "endsPattern": "Waiting for file changes"
+        }
+      },
       "type": "npm",
       "script": "test:watch",
       "group": "test",
@@ -114,7 +124,8 @@
         "panel": "dedicated",
         "group": "test",
         "clear": true
-      }
+      },
+      "isBackground": true
     },
     {
       "label": "version",

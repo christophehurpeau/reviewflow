@@ -34,7 +34,7 @@
     "lint:prettier:fix": "pob-root-prettier --write .",
     "postinstall": "pob-root-postinstall",
     "start": "yarn clean:build && rollup --config rollup.config.mjs --watch",
-    "test": "TZ=UTC vitest",
+    "test": "TZ=UTC vitest run",
     "test:coverage": "TZ=UTC POB_VITEST_COVERAGE=json,text vitest run --coverage",
     "test:coverage:json": "TZ=UTC POB_VITEST_COVERAGE=json vitest run --coverage",
     "test:watch": "TZ=UTC vitest --watch"

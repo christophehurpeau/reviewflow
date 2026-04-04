@@ -1,13 +1,13 @@
 import type { KnownBlock } from "@slack/web-api";
 import { WebClient } from "@slack/web-api";
 import type { Probot } from "probot";
-import type { MongoStores, Org, OrgMember, ReviewflowPr } from "../mongo.ts";
+import type { MongoStores, Org, OrgMember } from "../mongo.ts";
 import type { OctokitRestCompat } from "../octokit.ts";
-import { ExcludesFalsy } from "../utils/Excludes.ts";
 import {
-  createLink,
-  createPrChangesInformationFromReviewflowPr,
-} from "./utils.ts";
+  buildBlocksForDataFromGithubAndMongo,
+  buildBlocksForDataFromMongo,
+} from "./homeHelpers.ts";
+import { createLink } from "./utils.ts";
 
 interface QueueItem {
   octokitRest: OctokitRestCompat;
@@ -15,8 +15,7 @@ interface QueueItem {
   member: OrgMember;
 }
 
-const buildPullRequestUrl = (reviewflowPullRequest: ReviewflowPr): string =>
-  `https://github.com/${reviewflowPullRequest.account.login}/${reviewflowPullRequest.repo.name}/pull/${reviewflowPullRequest.pr.number}`;
+// helpers are in src/slack/homeHelpers.ts
 
 export const createSlackHomeWorker = (
   mongoStores: MongoStores,
@@ -53,6 +52,7 @@ export const createSlackHomeWorker = (
             },
             `Error searching PRs: ${(error as any)?.message}`,
           );
+          return undefined;
         }),
       //prsWithRequestedReviewsFromMongo
       mongoStores.prs.findAll(
@@ -127,14 +127,12 @@ export const createSlackHomeWorker = (
       ),
     ]);
 
-    const blocks: any[] = [
+    const baseBlocks: KnownBlock[] = [
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `Configure your ${
-            process.env.REVIEWFLOW_NAME
-          } settings ${createLink(
+          text: `Configure your ${process.env.REVIEWFLOW_NAME} settings ${createLink(
             `${process.env.REVIEWFLOW_APP_URL}/org/${member.org.login}`,
             "here",
           )}.`,
@@ -149,258 +147,70 @@ export const createSlackHomeWorker = (
       },
     ];
 
-    const createTitleBlock = (title: string): KnownBlock => ({
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*${title}*`,
-      },
-    });
-    const createDividerBlock = (): KnownBlock => ({ type: "divider" });
-    const createErrorBlock = (errorMessage: string): KnownBlock => ({
-      type: "section",
-      text: {
-        type: "plain_text",
-        text: errorMessage,
-      },
-    });
-    const createPlaceholderImageBlock = (): KnownBlock => ({
-      type: "context",
-      elements: [
+    let blocks: KnownBlock[] = [
+      ...baseBlocks,
+      ...buildBlocksForDataFromGithubAndMongo(
+        ":eyes: Requested reviews",
+        prsWithRequestedReviewsFromGithub,
+        prsWithRequestedReviewsFromMongo,
+      ),
+      ...buildBlocksForDataFromMongo(
+        ":white_check_mark: Ready to merge",
+        prsToMerge,
+      ),
+      ...buildBlocksForDataFromMongo(
+        ":x: Changes requested",
+        prsWithRequestedChanges,
+      ),
+    ];
+
+    if (prsInDraft.length > 0) {
+      blocks = [
+        ...blocks,
         {
-          type: "image",
-          image_url:
-            "https://api.slack.com/img/blocks/bkb_template_images/placeholder.png",
-          alt_text: "placeholder",
+          type: "header",
+          text: {
+            type: "plain_text",
+            text: "Your PRs in progress",
+          },
         },
-      ],
-    });
+        ...buildBlocksForDataFromMongo(
+          ":construction: Your drafts PRs",
+          prsInDraft,
+        ),
+      ];
+    }
 
-    const createBlocksForDataFromMongoPr = (
-      pr: (typeof prsToMerge)[number],
-    ): KnownBlock[] => {
-      const repoName = pr.repo.name;
-      const prFullName = `${repoName}#${pr.pr.number}`;
-      const prUrl = buildPullRequestUrl(pr);
-      const changesInformation = createPrChangesInformationFromReviewflowPr(pr);
+    if (openedPrsWithNoActionPlanned.length > 0) {
+      blocks = [
+        ...blocks,
+        ...buildBlocksForDataFromMongo(
+          ":warning: Your opened PRs missing a request for review",
+          openedPrsWithNoActionPlanned,
+        ),
+      ];
+    }
+    if (myOpenedPrsWaitingForRequestedReview.length > 0) {
+      blocks = [
+        ...blocks,
+        ...buildBlocksForDataFromMongo(
+          ":clock1: Your opened PRs waiting for a review",
+          myOpenedPrsWaitingForRequestedReview,
+        ),
+      ];
+    }
 
-      return [
+    if (blocks.length === 2) {
+      blocks = [
+        ...blocks,
         {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `${createLink(prUrl, prFullName)}${
-              pr.isDraft ? " · _Draft_" : ""
-            } · *${createLink(prUrl, pr.title)}*`,
+            text: ":tada: It looks like you don't have any PR to review!",
           },
         },
-        {
-          type: "context",
-          elements: [
-            ...(() => {
-              if (pr.assignees && pr.assignees.length > 0) {
-                return pr.assignees.flatMap(
-                  (assignee) =>
-                    [
-                      {
-                        type: "image",
-                        image_url: assignee.avatar_url!,
-                        alt_text: assignee.login,
-                      },
-                      {
-                        type: "mrkdwn",
-                        text: assignee.login,
-                      },
-                    ] as const,
-                );
-              }
-              if (pr.creator) {
-                return [
-                  {
-                    type: "image",
-                    image_url: pr.creator.avatar_url!,
-                    alt_text: pr.creator.login,
-                  },
-                  {
-                    type: "mrkdwn",
-                    text: pr.creator.login,
-                  },
-                ] as const;
-              }
-              return [];
-            })(),
-
-            ...(changesInformation
-              ? ([
-                  {
-                    type: "mrkdwn",
-                    text: createLink(`${prUrl}/files`, changesInformation),
-                  },
-                ] as const)
-              : []),
-
-            ...(pr.flowDates?.approvedAt || pr.flowDates?.openedAt
-              ? ([
-                  {
-                    type: "mrkdwn",
-                    text: `${
-                      pr.flowDates.approvedAt ? "Approved" : "Opened"
-                    } ${(
-                      pr.flowDates.approvedAt || pr.flowDates.openedAt
-                    ).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                      hour: "numeric",
-                      minute: "numeric",
-                    })}`,
-                  },
-                ] as const)
-              : []),
-          ],
-        },
-      ] as const;
-    };
-
-    const buildBlocksForDataFromGithubAndMongo = (
-      title: string,
-      response: typeof prsWithRequestedReviewsFromGithub,
-      mongoResponse: typeof prsWithRequestedReviewsFromMongo,
-    ) => {
-      if (!response) {
-        blocks.push(
-          createTitleBlock(title),
-          createDividerBlock(),
-          createErrorBlock("No response from GitHub"),
-        );
-        return;
-      }
-
-      if ("error" in response) {
-        blocks.push(
-          createTitleBlock(title),
-          createDividerBlock(),
-          createErrorBlock("Error from GitHub"),
-        );
-        return;
-      }
-
-      const results = response.data;
-
-      if (!results.total_count) return;
-
-      blocks.push(
-        createTitleBlock(title),
-        createDividerBlock(),
-        ...results.items.flatMap((prFromGithub): KnownBlock[] => {
-          const prFromMongo = mongoResponse.find(
-            (prfm) =>
-              // does not work as pr from github id is not the pr id, curiously prFromGithub.id === prfm.pr.id,
-              prFromGithub.number === prfm.pr.number &&
-              prFromGithub.repository_url ===
-                `https://api.github.com/repos/${prfm.account.login}/${prfm.repo.name}`,
-          );
-
-          if (prFromMongo) {
-            return createBlocksForDataFromMongoPr(prFromMongo);
-          }
-          const repoName = prFromGithub.repository_url.slice(
-            "https://api.github.com/repos/".length,
-          );
-          const prFullName = `${repoName}#${prFromGithub.number}`;
-
-          return [
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: `${createLink(prFromGithub.html_url, prFullName)} ${
-                  prFromGithub.draft ? "· _Draft_" : ""
-                } · *${createLink(prFromGithub.html_url, prFromGithub.title)}*`,
-              },
-            },
-            {
-              type: "context",
-              elements: [
-                prFromGithub.user &&
-                  ({
-                    type: "image",
-                    image_url: prFromGithub.user.avatar_url,
-                    alt_text: prFromGithub.user.login,
-                  } as const),
-                prFromGithub.user &&
-                  ({
-                    type: "mrkdwn",
-                    text: prFromGithub.user.login,
-                  } as const),
-              ].filter(ExcludesFalsy),
-            },
-          ];
-        }),
-        createPlaceholderImageBlock(),
-      );
-    };
-
-    const buildBlocksForDataFromMongo = (
-      title: string,
-      results: typeof prsToMerge,
-    ) => {
-      if (results.length === 0) return;
-
-      blocks.push(
-        createTitleBlock(title),
-        createDividerBlock(),
-        ...results.flatMap((pr) => createBlocksForDataFromMongoPr(pr)),
-        createPlaceholderImageBlock(),
-      );
-    };
-
-    buildBlocksForDataFromGithubAndMongo(
-      ":eyes: Requested reviews",
-      prsWithRequestedReviewsFromGithub,
-      prsWithRequestedReviewsFromMongo,
-    );
-    buildBlocksForDataFromMongo(
-      ":white_check_mark: Ready to merge",
-      prsToMerge,
-    );
-    buildBlocksForDataFromMongo(
-      ":x: Changes requested",
-      prsWithRequestedChanges,
-    );
-
-    if (prsInDraft.length > 0) {
-      blocks.push({
-        type: "header",
-        text: {
-          type: "plain_text",
-          text: "Your PRs in progress",
-        },
-      });
-      buildBlocksForDataFromMongo(":construction: Your drafts PRs", prsInDraft);
-    }
-
-    if (openedPrsWithNoActionPlanned.length > 0) {
-      buildBlocksForDataFromMongo(
-        ":warning: Your opened PRs missing a request for review",
-        openedPrsWithNoActionPlanned,
-      );
-    }
-    if (myOpenedPrsWaitingForRequestedReview.length > 0) {
-      buildBlocksForDataFromMongo(
-        ":clock1: Your opened PRs waiting for a review",
-        myOpenedPrsWaitingForRequestedReview,
-      );
-    }
-
-    if (blocks.length === 2) {
-      blocks.push({
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: ":tada: It looks like you don't have any PR to review!",
-        },
-      });
+      ];
     }
 
     slackClient.views
@@ -524,5 +334,7 @@ export const createSlackHomeWorker = (
     scheduleUpdateMember,
     scheduleUpdateOrg,
     scheduleUpdateAllOrgs,
+    // exposed for testing
+    updateMember,
   };
 };
