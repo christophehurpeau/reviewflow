@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.3.0](https://github.com/christophehurpeau/reviewflow/compare/v5.2.2...v5.3.0) (2026-04-05)
+
+### Features
+
+* add requested for prs
+
+### Bug Fixes
+
+* stop excluding replies from pull request reviews threads
+
 ## [5.2.2](https://github.com/christophehurpeau/reviewflow/compare/v5.2.1...v5.2.2) (2026-03-03)
 
 Note: no notable changes
