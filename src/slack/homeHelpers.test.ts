@@ -41,7 +41,7 @@ describe("homeHelpers", () => {
       updated: new Date("2020-01-01T00:00:00Z"),
     };
 
-    const blocks = createBlocksForDataFromMongoPr(mockPr);
+    const blocks = createBlocksForDataFromMongoPr(mockPr, "bob");
     expect(blocks.length).toBeGreaterThanOrEqual(2);
     const section = blocks[0]!;
     if (section.type !== "section") throw new Error("expected section block");
@@ -82,6 +82,7 @@ describe("homeHelpers", () => {
     ]);
 
     const blocks = buildBlocksForDataFromGithubAndMongo(
+      "bob",
       ":eyes:",
       githubResponse,
       [],

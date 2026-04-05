@@ -131,6 +131,11 @@ describe("createSlackHomeWorker", () => {
       creator: { login: "alice", avatar_url: "https://example.com/a.png" },
       flowDates: { openedAt: new Date("2020-01-01T00:00:00Z") },
       changesInformation: { changedFiles: 2, additions: 5, deletions: 1 },
+      reviews: {
+        reviewRequested: [{ login: "charlie" }, { login: "bob" }],
+        teamReviewRequested: [{ name: "team1" }],
+        approved: [],
+      },
     } as any;
 
     const mongoStores: any = {
@@ -208,6 +213,15 @@ describe("createSlackHomeWorker", () => {
           e.type === "mrkdwn" &&
           e.text.includes("/pull/1/files") &&
           e.text.includes("2 file"),
+      ),
+    ).toBe(true);
+
+    // should include review requested text with both users and team
+    expect(
+      elements.some(
+        (e: any) =>
+          e.type === "mrkdwn" &&
+          e.text.includes("Requested @charlie, @bob, #team1"),
       ),
     ).toBe(true);
   });

@@ -150,15 +150,18 @@ export const createSlackHomeWorker = (
     let blocks: KnownBlock[] = [
       ...baseBlocks,
       ...buildBlocksForDataFromGithubAndMongo(
+        member.user.login,
         ":eyes: Requested reviews",
         prsWithRequestedReviewsFromGithub,
         prsWithRequestedReviewsFromMongo,
       ),
       ...buildBlocksForDataFromMongo(
+        member.user.login,
         ":white_check_mark: Ready to merge",
         prsToMerge,
       ),
       ...buildBlocksForDataFromMongo(
+        member.user.login,
         ":x: Changes requested",
         prsWithRequestedChanges,
       ),
@@ -175,6 +178,7 @@ export const createSlackHomeWorker = (
           },
         },
         ...buildBlocksForDataFromMongo(
+          member.user.login,
           ":construction: Your drafts PRs",
           prsInDraft,
         ),
@@ -185,6 +189,7 @@ export const createSlackHomeWorker = (
       blocks = [
         ...blocks,
         ...buildBlocksForDataFromMongo(
+          member.user.login,
           ":warning: Your opened PRs missing a request for review",
           openedPrsWithNoActionPlanned,
         ),
@@ -194,6 +199,7 @@ export const createSlackHomeWorker = (
       blocks = [
         ...blocks,
         ...buildBlocksForDataFromMongo(
+          member.user.login,
           ":clock1: Your opened PRs waiting for a review",
           myOpenedPrsWaitingForRequestedReview,
         ),

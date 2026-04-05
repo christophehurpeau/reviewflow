@@ -58,6 +58,7 @@ interface MrkdwnElement {
 
 export const createBlocksForDataFromMongoPr = (
   pr: ReviewflowPr,
+  userLogin: string,
 ): KnownBlock[] => {
   const repoName = pr.repo.name;
   const prFullName = `${repoName}#${pr.pr.number}`;
@@ -130,12 +131,28 @@ export const createBlocksForDataFromMongoPr = (
               },
             ] as const)
           : []),
+
+        ...(pr.reviews?.reviewRequested?.length > 0 ||
+        pr.reviews?.teamReviewRequested?.length > 0
+          ? ([
+              {
+                type: "mrkdwn",
+                text: `Requested ${[
+                  ...pr.reviews.reviewRequested.map((r) =>
+                    r.login === userLogin ? "_YOU_" : `@${r.login}`,
+                  ),
+                  ...pr.reviews.teamReviewRequested.map((t) => `#${t.name}`),
+                ].join(", ")}`,
+              },
+            ] as const)
+          : []),
       ],
     },
   ] as const;
 };
 
 export const buildBlocksForDataFromGithubAndMongo = (
+  userLogin: string,
   title: string,
   response: GithubSearchResponse | undefined,
   mongoResponse: ReviewflowPr[] = [],
@@ -173,7 +190,7 @@ export const buildBlocksForDataFromGithubAndMongo = (
       );
 
       if (prFromMongo) {
-        return createBlocksForDataFromMongoPr(prFromMongo);
+        return createBlocksForDataFromMongoPr(prFromMongo, userLogin);
       }
 
       const repoName = prFromGithub.repository_url.slice(
@@ -212,6 +229,7 @@ export const buildBlocksForDataFromGithubAndMongo = (
 };
 
 export const buildBlocksForDataFromMongo = (
+  userLogin: string,
   title: string,
   results: ReviewflowPr[],
 ): KnownBlock[] => {
@@ -220,7 +238,7 @@ export const buildBlocksForDataFromMongo = (
   return [
     createTitleBlock(title),
     createDividerBlock(),
-    ...results.flatMap((pr) => createBlocksForDataFromMongoPr(pr)),
+    ...results.flatMap((pr) => createBlocksForDataFromMongoPr(pr, userLogin)),
     createPlaceholderImageBlock(),
   ];
 };
