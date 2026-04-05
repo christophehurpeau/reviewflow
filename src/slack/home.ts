@@ -60,7 +60,18 @@ export const createSlackHomeWorker = (
           "account.id": member.org.id,
           isClosed: false,
           isDraft: false,
-          "reviews.reviewRequested.id": member.user.id,
+          ...(member.teams?.length > 0
+            ? {
+                $or: [
+                  { "reviews.reviewRequested.id": member.user.id },
+                  {
+                    "reviews.teamReviewRequested.id": {
+                      $in: member.teams.map((t) => t.id),
+                    },
+                  },
+                ],
+              }
+            : { "reviews.reviewRequested.id": member.user.id }),
         },
         // TODO sort by time since asked for review ASC
         { "flowDates.opened": -1, created: -1 },
