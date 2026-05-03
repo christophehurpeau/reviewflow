@@ -76,7 +76,10 @@ export const mergeOrEnableGithubAutoMerge = async <
 
   // don't enable auto merge merge for forks unless there is a login
   if (!user || checkIfUserIsBot(repoContext, user)) {
-    if (pullRequest.head.repo?.full_name !== pullRequest.base.repo.full_name) {
+    if (
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- it seems base or head can be undefined
+      pullRequest.head?.repo?.full_name !== pullRequest.base?.repo.full_name
+    ) {
       return {
         wasMerged: false,
         didFailedToEnableAutoMerge: true,
