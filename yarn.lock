@@ -1063,7 +1063,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/plugin-rest-endpoint-methods@npm:16.0.0, @octokit/plugin-rest-endpoint-methods@npm:^16.0.0":
+"@octokit/plugin-rest-endpoint-methods@npm:17.0.0":
+  version: 17.0.0
+  resolution: "@octokit/plugin-rest-endpoint-methods@npm:17.0.0"
+  dependencies:
+    "@octokit/types": "npm:^16.0.0"
+  peerDependencies:
+    "@octokit/core": ">=6"
+  checksum: 10c0/cf9984d7cf6a36ff7ff1b86078ae45fe246e3df10fcef0bccf20c8cfd27bf5e7d98dcb9cf5a7b56332b9c6fa30be28d159c2987d272a4758f77056903d94402f
+  languageName: node
+  linkType: hard
+
+"@octokit/plugin-rest-endpoint-methods@npm:^16.0.0":
   version: 16.0.0
   resolution: "@octokit/plugin-rest-endpoint-methods@npm:16.0.0"
   dependencies:
@@ -8401,7 +8412,7 @@ __metadata:
     "@commitlint/parse": "npm:20.4.1"
     "@octokit/core": "npm:7.0.6"
     "@octokit/graphql": "npm:9.0.3"
-    "@octokit/plugin-rest-endpoint-methods": "npm:16.0.0"
+    "@octokit/plugin-rest-endpoint-methods": "npm:17.0.0"
     "@octokit/rest": "npm:22.0.0"
     "@octokit/webhooks": "npm:14.1.3"
     "@pob/eslint-config": "npm:65.0.2"
