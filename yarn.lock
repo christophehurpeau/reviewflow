@@ -1043,7 +1043,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/plugin-paginate-rest@npm:^13.0.1, @octokit/plugin-paginate-rest@npm:^13.1.1":
+"@octokit/plugin-paginate-rest@npm:^13.0.1":
   version: 13.2.1
   resolution: "@octokit/plugin-paginate-rest@npm:13.2.1"
   dependencies:
@@ -1051,6 +1051,17 @@ __metadata:
   peerDependencies:
     "@octokit/core": ">=6"
   checksum: 10c0/16cd034ee6426f742514d0ca553a2c4355cd68c2eb9211030f3ec2538f4c833d587b3737bb720e34f98be8fae15acb07693d17314350cf067557abb4cb1598fb
+  languageName: node
+  linkType: hard
+
+"@octokit/plugin-paginate-rest@npm:^14.0.0":
+  version: 14.0.0
+  resolution: "@octokit/plugin-paginate-rest@npm:14.0.0"
+  dependencies:
+    "@octokit/types": "npm:^16.0.0"
+  peerDependencies:
+    "@octokit/core": ">=6"
+  checksum: 10c0/841d79d4ccfe18fc809a4a67529b75c1dcdda13399bf4bf5b48ce7559c8b4b2cd422e3204bad4cbdea31c0cf0943521067415268e5bcfc615a3b813e058cad6b
   languageName: node
   linkType: hard
 
@@ -1071,6 +1082,17 @@ __metadata:
   peerDependencies:
     "@octokit/core": ">=6"
   checksum: 10c0/6cfe068dbd550bd5914374e65b89482b9deac29f6c26bf02ab6298e956d95b62fc15a2a49dfc6ff76f5938c6ff7fdfe5b7eccdb7551eaff8b1daf7394bc946cb
+  languageName: node
+  linkType: hard
+
+"@octokit/plugin-rest-endpoint-methods@npm:^17.0.0":
+  version: 17.0.0
+  resolution: "@octokit/plugin-rest-endpoint-methods@npm:17.0.0"
+  dependencies:
+    "@octokit/types": "npm:^16.0.0"
+  peerDependencies:
+    "@octokit/core": ">=6"
+  checksum: 10c0/cf9984d7cf6a36ff7ff1b86078ae45fe246e3df10fcef0bccf20c8cfd27bf5e7d98dcb9cf5a7b56332b9c6fa30be28d159c2987d272a4758f77056903d94402f
   languageName: node
   linkType: hard
 
@@ -4069,7 +4091,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dotenv@npm:17.3.1, dotenv@npm:^17.0.0":
+"dotenv@npm:17.3.1":
   version: 17.3.1
   resolution: "dotenv@npm:17.3.1"
   checksum: 10c0/c78e0c2d5a549c751e544cc60e2b95e7cb67e0c551f42e094d161c6b297aa44b630a3c2dcacf5569e529a6c2a6b84e2ab9be8d37b299d425df5a18b81ce4a35f
@@ -7971,25 +7993,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"probot@npm:14.2.1":
-  version: 14.2.1
-  resolution: "probot@npm:14.2.1"
+"probot@npm:14.3.2":
+  version: 14.3.2
+  resolution: "probot@npm:14.3.2"
   dependencies:
     "@octokit/core": "npm:^7.0.3"
     "@octokit/plugin-enterprise-compatibility": "npm:^6.0.1"
-    "@octokit/plugin-paginate-rest": "npm:^13.1.1"
-    "@octokit/plugin-rest-endpoint-methods": "npm:^16.0.0"
+    "@octokit/plugin-paginate-rest": "npm:^14.0.0"
+    "@octokit/plugin-rest-endpoint-methods": "npm:^17.0.0"
     "@octokit/plugin-retry": "npm:^8.0.1"
     "@octokit/plugin-throttling": "npm:^11.0.1"
     "@octokit/request": "npm:^10.0.3"
-    "@octokit/types": "npm:^15.0.0"
+    "@octokit/types": "npm:^16.0.0"
     "@octokit/webhooks": "npm:^14.1.2"
     "@probot/get-private-key": "npm:^2.1.1"
     "@probot/octokit-plugin-config": "npm:^4.0.0"
     "@probot/pino": "npm:^5.0.1"
     bottleneck: "npm:^2.19.5"
     deepmerge: "npm:^4.3.1"
-    dotenv: "npm:^17.0.0"
     import-meta-resolve: "npm:^4.1.0"
     npx-import-light: "npm:^1.0.0"
     octokit-auth-probot: "npm:^4.0.1"
@@ -8000,7 +8021,7 @@ __metadata:
     yaml: "npm:^2.8.1"
   bin:
     probot: bin/probot.js
-  checksum: 10c0/18ddcb637ac9ec9f61fd955dfaac8d025b87a8fef62a32da7c42a6e9fff52e5b43b5bd5254cab2d75960eff36623ad718ca4db7d8c5b60de75e7e8d8ba66c667
+  checksum: 10c0/9e29022d572012e19209ac7bca5c908d7ae64b4667cb6c3f69ec597b04483635058eb9eebc3e72b72f5ffb11e85f8ba7812d3bc1b16b9970cd20d709feb37136
   languageName: node
   linkType: hard
 
@@ -8433,7 +8454,7 @@ __metadata:
     liwi-mongo: "npm:12.0.0"
     lock: "npm:1.1.0"
     nock: "npm:14.0.11"
-    probot: "npm:14.2.1"
+    probot: "npm:14.3.2"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     simple-oauth2: "npm:5.1.0"
