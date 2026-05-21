@@ -119,7 +119,7 @@ export async function syncLabels<EventName extends EmitterWebhookEventName>(
       },
     );
 
-  let updatedLabels: LabelResponse[] = pullRequest.labels as LabelResponse[];
+  let updatedLabels: LabelResponse[] = pullRequest.labels;
 
   if (labelsToRemove.length > 0) {
     for (const label of labelsToRemove) {

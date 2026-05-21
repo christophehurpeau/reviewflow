@@ -60,7 +60,7 @@ export default function labelsChanged(
         const autoApproveLabel = repoContext.labels["review/auto-approve"];
 
         if (context.payload.action === "labeled") {
-          if (autoApproveLabel && label.id === autoApproveLabel.id) {
+          if (label.id === autoApproveLabel?.id) {
             await context.octokit.rest.pulls.createReview(
               context.pullRequest({ event: "APPROVE" }),
             );
@@ -110,7 +110,7 @@ export default function labelsChanged(
               ),
             ]);
             // }
-          } else if (autoMergeLabel && label.id === autoMergeLabel.id) {
+          } else if (label.id === autoMergeLabel?.id) {
             await updatePrCommentBodyOptions(
               context,
               repoContext,
@@ -176,7 +176,7 @@ export default function labelsChanged(
         return;
       }
 
-      if (bypassProgressLabel && label.id === bypassProgressLabel.id) {
+      if (label.id === bypassProgressLabel?.id) {
         if (
           context.payload.action === "labeled" &&
           repoContext.config.disableBypassMergeFor?.test(
@@ -208,7 +208,7 @@ export default function labelsChanged(
       );
 
       // not an else if
-      if (autoMergeLabel && label.id === autoMergeLabel.id) {
+      if (label.id === autoMergeLabel?.id) {
         if (context.payload.action === "labeled") {
           const { didFailedToEnableAutoMerge } = await tryToAutomerge({
             pullRequest: updatedPr,
@@ -250,7 +250,7 @@ export default function labelsChanged(
         }
       }
 
-      if (updateBranchLabel && label.id === updateBranchLabel.id) {
+      if (label.id === updateBranchLabel?.id) {
         if (context.payload.action === "labeled") {
           await updateBranch(updatedPr, context, context.payload.sender.login);
           await context.octokit.rest.issues.removeLabel(
@@ -264,10 +264,10 @@ export default function labelsChanged(
 
       if (successful) {
         const option = (() => {
-          if (autoMergeLabel && label.id === autoMergeLabel.id) {
+          if (label.id === autoMergeLabel?.id) {
             return "autoMerge";
           }
-          if (autoMergeSkipCiLabel && label.id === autoMergeSkipCiLabel.id) {
+          if (label.id === autoMergeSkipCiLabel?.id) {
             return "autoMergeWithSkipCi";
           }
           return null;

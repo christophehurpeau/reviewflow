@@ -23,7 +23,7 @@ interface PullRequestOwners {
 export function getOwnersFromPullRequest(
   pullRequest: PullRequestWithDecentData,
 ): PullRequestOwners {
-  const pr = pullRequest as PullRequestWithDecentDataFromWebhook; // fix typings
+  const pr = pullRequest; // fix typings
   return {
     owner: pr.user!,
     // @ts-expect-error invalid gravatar_id compat

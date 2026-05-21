@@ -209,9 +209,11 @@ async function initRepoContext<
       settings: createRepositorySettings(repoSettingsResult),
     });
   };
+
+  const emptyLabelsRecord: LabelsRecord = {};
+
   const [repoLabels, repository] = await Promise.all([
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    shouldIgnore ? ({} as LabelsRecord) : initRepoLabels(context, config),
+    shouldIgnore ? emptyLabelsRecord : initRepoLabels(context, config),
     findOrCreateRepository(),
   ]);
 

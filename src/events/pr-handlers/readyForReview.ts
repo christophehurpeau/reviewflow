@@ -159,7 +159,7 @@ export default function readyForReview(
 
                 const result = await repoContext.slack.postMessage(
                   "pr-review",
-                  potentialReviewer as any,
+                  potentialReviewer,
                   message,
                   requestedTeam.id,
                 );

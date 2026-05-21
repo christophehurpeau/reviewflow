@@ -87,7 +87,7 @@ describe("edited", (): void => {
     await probot.receive({
       id: "1",
       name: pullRequestReadyForReview.event as any,
-      payload: pullRequestReadyForReview.payload as any,
+      payload: pullRequestReadyForReview.payload,
     });
 
     expect(partialUpdateOnePr).toHaveBeenCalledWith(expect.any(Object), {

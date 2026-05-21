@@ -160,7 +160,7 @@ export default function prCommentCreated(
         ]);
 
       const { owner, assignees, followers } =
-        getRolesFromPullRequestAndReviewers(pr as any, reviewers, {
+        getRolesFromPullRequestAndReviewers(pr, reviewers, {
           excludeIds: [comment.user!.id],
         });
 
