@@ -1,6 +1,6 @@
 import type { Probot } from "probot";
-import type { ReviewflowPr } from "src/mongo.ts";
 import type { AppContext } from "../../context/AppContext.ts";
+import type { ReviewflowPr } from "../../mongo.ts";
 import { calcAndUpdateChecksAndStatuses } from "./actions/calcAndUpdateChecksAndStatuses.ts";
 import { createPullRequestsHandler } from "./utils/createPullRequestHandler.ts";
 import { fetchPr } from "./utils/fetchPr.ts";

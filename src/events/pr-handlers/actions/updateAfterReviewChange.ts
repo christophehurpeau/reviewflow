@@ -22,7 +22,11 @@ export async function updateOnlyReviewflowPrReviews(
 
   await appContext.mongoStores.prs.partialUpdateOne(
     reviewflowPrContext.reviewflowPr,
-    { $set: { reviews: reviewflowPrContext.reviewflowPr.reviews } },
+    {
+      $set: {
+        reviews: reviewflowPrContext.reviewflowPr.reviews,
+      },
+    },
   );
 }
 

@@ -1,10 +1,10 @@
-import type { ReviewflowPr } from "src/mongo";
 import type { RepoContext } from "../context/repoContext";
 import type { CommitFromRestEndpoint } from "../events/commit-handlers/utils/fetchCommit";
 import type {
   PullRequestFromRestEndpoint,
   PullRequestWithDecentData,
 } from "../events/pr-handlers/utils/PullRequestData";
+import type { ReviewflowPr } from "../mongo";
 
 // https://api.slack.com/reference/surfaces/formatting#escaping
 export const escapeText = (text: string): string => {

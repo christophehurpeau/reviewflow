@@ -1,17 +1,13 @@
 {
   "name": "reviewflow",
-  "private": true,
   "version": "5.3.1",
+  "private": true,
   "description": "🚦 Open Source GitHub bot that improves PR flow from opening to merging.",
-  "author": "Christophe Hurpeau <christophe@hurpeau.com> (https://christophe.hurpeau.com)",
-  "license": "ISC",
-  "repository": "https://github.com/christophehurpeau/reviewflow.git",
   "homepage": "https://github.com/christophehurpeau/reviewflow",
+  "license": "ISC",
+  "author": "Christophe Hurpeau <christophe@hurpeau.com> (https://christophe.hurpeau.com)",
+  "repository": "https://github.com/christophehurpeau/reviewflow.git",
   "type": "module",
-  "packageManager": "yarn@4.12.0",
-  "engines": {
-    "node": ">=22.18.0"
-  },
   "main": "./build/index-node.mjs",
   "exports": {
     "./package.json": "./package.json",
@@ -27,43 +23,22 @@
     "checks": "node scripts/check-package.js",
     "clean": "yarn clean:build",
     "clean:build": "pob-esbuild-clean-out build",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check .",
     "generate:test-coverage": "rm -Rf docs/coverage/ ; NODE_ENV=production vitest --coverage",
-    "lint": "yarn run lint:prettier && tsc && yarn run lint:eslint",
+    "lint": "yarn run format && tsc && yarn run lint:eslint",
     "lint:eslint": "eslint --quiet .",
-    "lint:prettier": "pob-root-prettier --check .",
-    "lint:prettier:fix": "pob-root-prettier --write .",
     "postinstall": "pob-root-postinstall",
     "start": "yarn clean:build && rollup --config rollup.config.mjs --watch",
-    "test": "TZ=UTC vitest run",
+    "test": "TZ=UTC vitest",
     "test:coverage": "TZ=UTC POB_VITEST_COVERAGE=json,text vitest run --coverage",
     "test:coverage:json": "TZ=UTC POB_VITEST_COVERAGE=json vitest run --coverage",
     "test:watch": "TZ=UTC vitest --watch"
   },
-  "commitlint": {
-    "extends": [
-      "@pob/root/commitlint-config"
-    ]
-  },
-  "pob": {
-    "bundler": "rollup-esbuild",
-    "entries": [
-      "index"
-    ],
-    "envs": [
-      {
-        "target": "node",
-        "version": "22",
-        "omitVersionInFileName": true
-      }
-    ],
-    "jsx": true,
-    "typescript": true
-  },
-  "prettier": "@pob/root/prettier-config",
   "dependencies": {
-    "@commitlint/config-conventional": "20.4.2",
-    "@commitlint/lint": "20.4.2",
-    "@commitlint/parse": "20.4.1",
+    "@commitlint/config-conventional": "21.0.1",
+    "@commitlint/lint": "21.0.1",
+    "@commitlint/parse": "21.0.1",
     "@octokit/core": "7.0.6",
     "@octokit/graphql": "9.0.3",
     "@octokit/plugin-rest-endpoint-methods": "16.0.0",
@@ -72,7 +47,7 @@
     "@sentry/node": "10.40.0",
     "@slack/web-api": "7.14.1",
     "body-parser": "2.2.2",
-    "conventional-changelog-conventionalcommits": "9.1.0",
+    "conventional-changelog-conventionalcommits": "9.3.1",
     "cookie-parser": "1.4.7",
     "dotenv": "17.3.1",
     "emoji-regex": "10.6.0",
@@ -85,29 +60,54 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "simple-oauth2": "5.1.0",
-    "slackify-markdown": "5.0.0"
+    "slackify-markdown": "5.0.0",
+    "vite": "8.0.13"
   },
   "devDependencies": {
-    "@pob/eslint-config": "65.0.2",
-    "@pob/eslint-config-typescript-react": "65.0.2",
-    "@pob/rollup-esbuild": "8.1.0",
-    "@pob/root": "22.0.0",
+    "@pob/eslint-config": "65.4.3",
+    "@pob/eslint-config-typescript-react": "65.4.3",
+    "@pob/rollup-esbuild": "9.0.0",
+    "@pob/root": "24.1.0",
     "@types/body-parser": "1.19.6",
     "@types/cookie-parser": "1.4.10",
     "@types/express": "5.0.6",
     "@types/issue-parser": "3.0.5",
     "@types/jsonwebtoken": "9.0.10",
-    "@types/node": "22.19.1",
+    "@types/node": "24.12.4",
     "@types/react": "18.3.28",
     "@types/react-dom": "18.3.7",
     "@types/simple-oauth2": "5.0.8",
-    "@vitest/coverage-v8": "4.0.18",
-    "check-package-dependencies": "10.5.0",
-    "eslint": "9.39.3",
+    "@vitest/coverage-v8": "4.1.6",
+    "check-package-dependencies": "11.1.1",
+    "eslint": "10.4.0",
     "nock": "14.0.11",
     "smee-client": "5.0.0",
     "type-fest": "5.4.4",
-    "typescript": "5.9.3",
-    "vitest": "4.0.18"
+    "typescript": "6.0.3",
+    "vitest": "4.1.6"
+  },
+  "commitlint": {
+    "extends": [
+      "@pob/root/commitlint-config"
+    ]
+  },
+  "engines": {
+    "node": ">=24.14.1"
+  },
+  "packageManager": "yarn@4.12.0",
+  "pob": {
+    "bundler": "rollup-esbuild",
+    "entries": [
+      "index"
+    ],
+    "envs": [
+      {
+        "target": "node",
+        "version": "24",
+        "omitVersionInFileName": true
+      }
+    ],
+    "jsx": true,
+    "typescript": true
   }
 }

@@ -1,4 +1,4 @@
-import type { RepoContext } from "src/context/repoContext";
+import type { RepoContext } from "../../../../context/repoContext";
 import type { AccountEmbedWithoutType } from "../../../../mongo";
 import type { PullRequestWithDecentData } from "../../utils/PullRequestData";
 

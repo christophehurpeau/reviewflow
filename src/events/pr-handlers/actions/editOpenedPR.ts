@@ -168,6 +168,7 @@ export const editOpenedPR = async <
 
   const date = new Date().toISOString();
 
+  // eslint-disable-next-line no-useless-assignment
   let hasLegacyLintPrCheck = false;
 
   if (checksAndStatuses) {

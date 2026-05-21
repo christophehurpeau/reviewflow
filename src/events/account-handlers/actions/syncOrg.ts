@@ -1,5 +1,5 @@
-import type { OctokitPaginate, OctokitRestCompat } from "src/octokit";
 import type { MongoStores, Org } from "../../../mongo";
+import type { OctokitPaginate, OctokitRestCompat } from "../../../octokit";
 
 interface OrgInfo {
   login: string;

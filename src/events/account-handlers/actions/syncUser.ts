@@ -1,5 +1,5 @@
-import type { OctokitRestCompat } from "src/octokit";
 import type { MongoStores, User } from "../../../mongo";
+import type { OctokitRestCompat } from "../../../octokit";
 
 interface UserInfo {
   login: string;
