@@ -48,7 +48,7 @@ jobs:
 
       - name: Check nothing was forgotten before commit
         if: startsWith(matrix.node-version, '24.')
-        run: yarn run repository-check-dirty
+        run: yarn repository-check-dirty
 
       - name: Test
         run: yarn run test
