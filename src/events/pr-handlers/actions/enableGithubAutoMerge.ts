@@ -97,6 +97,17 @@ export const mergeOrEnableGithubAutoMerge = async <
       didFailedToEnableAutoMerge: true,
     };
   }
+  if (
+    repoContext.config.restrictAutoMergeTo &&
+    !reviewflowPrContext.reviewflowPr.reviews.approved.some((r) =>
+      repoContext.config.restrictAutoMergeTo?.includes(r.login),
+    )
+  ) {
+    return {
+      wasMerged: false,
+      didFailedToEnableAutoMerge: true,
+    };
+  }
 
   const parsedBody = parseBody(
     reviewflowPrContext.commentBody,

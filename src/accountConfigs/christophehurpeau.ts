@@ -16,7 +16,7 @@ const config: Config<never> = {
     autoCloseAbandonedPrs: true,
     betterSlackify: true,
   },
-  disableAutoMerge: true,
+  restrictAutoMergeTo: ["christophehurpeau"],
   teams: {},
   labels: {
     legacyToRemove: {
