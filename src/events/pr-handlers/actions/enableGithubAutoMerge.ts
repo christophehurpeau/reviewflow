@@ -89,7 +89,8 @@ export const mergeOrEnableGithubAutoMerge = async <
 
   if (
     repoContext.settings.defaultBranchProtectionRules?.requiresStatusChecks ===
-    false
+      false ||
+    repoContext.config.disableAutoMerge
   ) {
     return {
       wasMerged: false,
