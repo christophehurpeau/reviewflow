@@ -78,7 +78,7 @@
     "@types/issue-parser": "3.0.5",
     "@types/jsonwebtoken": "9.0.10",
     "@types/node": "24.12.4",
-    "@types/react": "18.3.28",
+    "@types/react": "18.3.31",
     "@types/react-dom": "18.3.7",
     "@types/simple-oauth2": "5.0.8",
     "@vitest/coverage-v8": "4.1.8",
