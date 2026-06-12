@@ -3,6 +3,29 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.0.0](https://github.com/christophehurpeau/reviewflow/compare/v5.3.1...v6.0.0) (2026-06-12)
+
+### ⚠ BREAKING CHANGES
+
+* update dev dependencies and require node 24
+
+### Features
+
+* add restrictAutoMergeTo
+* **deps:** update dependency probot to v14.3.2 ([#1100](https://github.com/christophehurpeau/reviewflow/issues/1100))
+* **deps:** update sentry-javascript monorepo to v10.57.0 ([#1136](https://github.com/christophehurpeau/reviewflow/issues/1136))
+* disable automerge in personal config
+
+### Bug Fixes
+
+* **deps:** update dependency vite to v8.0.16 ([#1154](https://github.com/christophehurpeau/reviewflow/issues/1154))
+* **deps:** update semantic-release monorepo to v7.0.2 ([#1153](https://github.com/christophehurpeau/reviewflow/issues/1153))
+* handle potential undefined values for pull request repository comparison
+
+### Miscellaneous Chores
+
+* update dev dependencies and require node 24
+
 ## [5.3.1](https://github.com/christophehurpeau/reviewflow/compare/v5.3.0...v5.3.1) (2026-04-05)
 
 ### Bug Fixes
