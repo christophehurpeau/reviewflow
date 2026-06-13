@@ -1195,12 +1195,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pob/eslint-config-typescript-react@npm:65.4.3":
-  version: 65.4.3
-  resolution: "@pob/eslint-config-typescript-react@npm:65.4.3"
+"@pob/eslint-config-typescript-react@npm:65.5.0":
+  version: 65.5.0
+  resolution: "@pob/eslint-config-typescript-react@npm:65.5.0"
   dependencies:
-    "@pob/eslint-config": "npm:65.4.3"
-    "@pob/eslint-plugin": "npm:65.4.1"
+    "@pob/eslint-config": "npm:65.5.0"
+    "@pob/eslint-plugin": "npm:65.5.0"
     eslint-plugin-import-x: "npm:4.16.2"
     eslint-plugin-jsx-a11y: "npm:6.10.2"
     eslint-plugin-react: "npm:7.37.5"
@@ -1208,17 +1208,17 @@ __metadata:
   peerDependencies:
     eslint: ^9.39.1 || ^10.0.2
     typescript: ">=5.0.0 <7.0.0"
-  checksum: 10c0/183878af297228d6e4e522887e609d010adeaeba6d0bdd6378a2836bc1269eda231d9e162a19e29f5785b9fea8ebd9694fa29298d6a842ce0cb40b727c1c3711
+  checksum: 10c0/ce4fe128d674377210b42f1bce74d77b36f303e08046d00e0cd3e850d1e92a0fca3d647ab5dc94adbd1d48ceb66b23802faf55753b6efc85f2c37bc834ce0de9
   languageName: node
   linkType: hard
 
-"@pob/eslint-config@npm:65.4.3":
-  version: 65.4.3
-  resolution: "@pob/eslint-config@npm:65.4.3"
+"@pob/eslint-config@npm:65.5.0":
+  version: 65.5.0
+  resolution: "@pob/eslint-config@npm:65.5.0"
   dependencies:
     "@eslint/js": "npm:^10.0.1"
     "@eslint/json": "npm:^1.2.0"
-    "@pob/eslint-plugin": "npm:65.4.1"
+    "@pob/eslint-plugin": "npm:65.5.0"
     "@typescript-eslint/eslint-plugin": "npm:^8.59.1"
     "@typescript-eslint/parser": "npm:^8.59.1"
     confusing-browser-globals: "npm:^1.0.11"
@@ -1233,13 +1233,13 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10c0/76c601403f507a1f4f64ee1c85911aa9b14ba3bd01e88be9cc924c0de81cf3df6137b409f9e1cfb4bf1068abd653e52b1ef2fa2b6743daa4f56287a1834a3ca6
+  checksum: 10c0/b8bcc4adce6300dfb4de6da0268018ce9a22f768899625aafb078711ca83986e61ad03213a8211547722543a85a4f200e5d62a3adb5a09f6ab649e41eaa80ff7
   languageName: node
   linkType: hard
 
-"@pob/eslint-plugin@npm:65.4.1":
-  version: 65.4.1
-  resolution: "@pob/eslint-plugin@npm:65.4.1"
+"@pob/eslint-plugin@npm:65.5.0":
+  version: 65.5.0
+  resolution: "@pob/eslint-plugin@npm:65.5.0"
   dependencies:
     "@typescript-eslint/utils": "npm:8.59.1"
     eslint-plugin-react: "npm:^7.37.5"
@@ -1249,7 +1249,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10c0/d2409a9eb30eade56b06d837869e2b7a39fdc80d257b34030fb3638df2cb842d4b60e9328ba3f38aac0540edf7b6b921bf9181d873ab0262f7fdc1b155096856
+  checksum: 10c0/766dd59550ae3cc13799af1b54ddd69ea4eaf397c7714476fb98a2e47960931837f9d4741fc5d757d5e611c715597f0edfd394295b5bf7aa95ef977b9e6f959c
   languageName: node
   linkType: hard
 
@@ -7817,8 +7817,8 @@ __metadata:
     "@octokit/plugin-rest-endpoint-methods": "npm:17.0.0"
     "@octokit/rest": "npm:22.0.1"
     "@octokit/webhooks": "npm:14.2.0"
-    "@pob/eslint-config": "npm:65.4.3"
-    "@pob/eslint-config-typescript-react": "npm:65.4.3"
+    "@pob/eslint-config": "npm:65.5.0"
+    "@pob/eslint-config-typescript-react": "npm:65.5.0"
     "@pob/rollup-esbuild": "npm:9.1.1"
     "@pob/root": "npm:24.3.0"
     "@sentry/node": "npm:10.57.0"
