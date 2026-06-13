@@ -14,14 +14,14 @@ jobs:
   run-install-and-commit-modified-files:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.3
         with:
           ssh-key: ${{ secrets.PUSH_DEPLOY_KEY }}
 
       - name: Enable Corepack
         run: corepack enable
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6.4.0
         with:
           node-version: 24
 
