@@ -81,14 +81,14 @@
     "@types/react": "18.3.31",
     "@types/react-dom": "18.3.7",
     "@types/simple-oauth2": "5.0.8",
-    "@vitest/coverage-v8": "4.1.8",
+    "@vitest/coverage-v8": "4.1.9",
     "check-package-dependencies": "11.1.1",
     "eslint": "10.4.0",
     "nock": "14.0.15",
     "smee-client": "5.0.0",
     "type-fest": "5.7.0",
     "typescript": "6.0.3",
-    "vitest": "4.1.8"
+    "vitest": "4.1.9"
   },
   "commitlint": {
     "extends": [
