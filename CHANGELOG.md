@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.1.0](https://github.com/christophehurpeau/reviewflow/compare/v6.0.0...v6.1.0) (2026-06-26)
+
+### Features
+
+* **deps:** update dependency dotenv to v17.4.2 ([#1164](https://github.com/christophehurpeau/reviewflow/issues/1164))
+
+### Bug Fixes
+
+* do not consider pr is ready to merge if waiting for team review
+
 ## [6.0.0](https://github.com/christophehurpeau/reviewflow/compare/v5.3.1...v6.0.0) (2026-06-12)
 
 ### ⚠ BREAKING CHANGES
