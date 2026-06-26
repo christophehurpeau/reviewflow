@@ -82,6 +82,7 @@ export const createSlackHomeWorker = (
           "account.id": member.org.id,
           "assignees.id": member.user.id,
           isClosed: false,
+          "reviews.teamReviewRequested": { $exists: true, $eq: [] },
           "reviews.reviewRequested": { $exists: true, $eq: [] },
           "reviews.changesRequested": { $exists: true, $eq: [] },
           "reviews.approved": { $exists: true, $ne: [] },
