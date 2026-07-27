@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.2.0](https://github.com/christophehurpeau/reviewflow/compare/v6.1.0...v6.2.0) (2026-07-27)
+
+### Features
+
+* **deps:** update dependency @slack/web-api to v7.19.0 ([#1163](https://github.com/christophehurpeau/reviewflow/issues/1163))
+* **deps:** update dependency body-parser to v2.3.0 [security] ([#1178](https://github.com/christophehurpeau/reviewflow/issues/1178))
+* implement repository transfer handling and associated updates
+
 ## [6.1.0](https://github.com/christophehurpeau/reviewflow/compare/v6.0.0...v6.1.0) (2026-06-26)
 
 ### Features
