@@ -63,8 +63,8 @@ importers:
         specifier: 9.0.3
         version: 9.0.3
       liwi-mongo:
-        specifier: 12.0.0
-        version: 12.0.0
+        specifier: 13.1.1
+        version: 13.1.1
       lock:
         specifier: 1.1.0
         version: 1.1.0
@@ -176,10 +176,6 @@ packages:
     resolution: {integrity: sha512-hnORnjP/1P/zFEndoeX+n+t1RwWRJiJpM/jO7FW32Kn9r5+sJB2JWOdYo4L6k78j15eCwY3Gm/7364B1EMwtNg==}
     engines: {node: '>=6.0.0'}
     hasBin: true
-
-  '@babel/runtime@7.29.7':
-    resolution: {integrity: sha512-Nq8OhGWiZIZGV6hLHoyAKLLcJihP/xFeBMGJoUrxTX2psI8dCifzLhZISFb+VWS3wFMRDmCGw5R+dOySCqPLhw==}
-    engines: {node: '>=6.9.0'}
 
   '@babel/types@7.29.7':
     resolution: {integrity: sha512-4zBIxpPzowiZpusoFkyGVwakdRJUyuH5PxQ/PrqghfdFWWasvnCdPfQXHrenDai+gyLARulZjZowCOj6fjT4pA==}
@@ -1325,8 +1321,8 @@ packages:
   '@types/webidl-conversions@7.0.3':
     resolution: {integrity: sha512-CiJJvcRtIgzadHCYXw7dqEnMNRjhGZlYK05Mj9OyktqV8uVT8fD2BFOB7S1uwBE3Kj2Z+4UyPmFw/Ixgw/LAlA==}
 
-  '@types/whatwg-url@11.0.5':
-    resolution: {integrity: sha512-coYR071JRaHa+xoEvvYqvnIHaVqaYrLPbsufM9BF63HkwI5Lgmy2QR8Q5K/lYDYo5AK82wOvSOS0UsLTpTG7uQ==}
+  '@types/whatwg-url@13.0.0':
+    resolution: {integrity: sha512-N8WXpbE6Wgri7KUSvrmQcqrMllKZ9uxkYWMt+mCSGwNc0Hsw9VQTW7ApqI4XNrx6/SaM2QQJCzMPDEXE058s+Q==}
 
   '@typescript-eslint/eslint-plugin@8.63.0':
     resolution: {integrity: sha512-rvwSgqT+DHpWdzfSzPatRLm02a0GlESt++9iy3hLCDY4BgkaLcl8LBi9Yh7XGFBpwcBE/K3024QuXWTpbz4FfQ==}
@@ -1869,9 +1865,9 @@ packages:
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
 
-  bson@6.10.4:
-    resolution: {integrity: sha512-WIsKqkSC0ABoBJuT1LEX+2HEvNmNKKgnTAyd0fL8qzK4SH2i9NXg+t08YtdZp/V9IZ33cxe3iV4yM0qg8lMQng==}
-    engines: {node: '>=16.20.1'}
+  bson@7.3.1:
+    resolution: {integrity: sha512-h/C0qe6857pQhcSJHLfsR1uYGj98Ge3wKAD3Ed9KqH3wcVh+BM4Jq4xISD7vs9OPuT07n+q3QQVjslJ286j6ag==}
+    engines: {node: '>=20.19.0'}
 
   buffer-equal-constant-time@1.0.1:
     resolution: {integrity: sha512-zRpUiDwd/xk6ADqPMATG8vc9VPrkck7T07OIx0gnjmJAnHnTVXNQG3vfvWNuiZIkwu9KrKdA1iJKfsfTVxE6NA==}
@@ -2889,17 +2885,17 @@ packages:
     engines: {node: '>=22.22.1'}
     hasBin: true
 
-  liwi-mongo@12.0.0:
-    resolution: {integrity: sha512-sSKXmG36M3s6gI8un/J6UuI+exgh6Lx4g3tXPNVneMVK93kU4fQDTmzU7unXmYxEBpvW6JsCQGhFkRiDVg4EdA==}
-    engines: {node: '>=18.12.0'}
+  liwi-mongo@13.1.1:
+    resolution: {integrity: sha512-+HBrzMcBUxipphLzkthMBq8I3k0UBpEBpaxOrVNQFrBMx4Qt8veMnRlR1ECqFu1z8RQWfZAsGMTcjg+J0oT17g==}
+    engines: {node: '>=22.18.0'}
 
-  liwi-store@12.0.0:
-    resolution: {integrity: sha512-AaQmbnq8p+T38GwArcMQ0tY4N+hPe1u1jdL/JfavG86zeoMRnlMB3yBtoNMemArRNrOQx9cxdQDPnCmXJ7zaSA==}
-    engines: {node: '>=18.12.0'}
+  liwi-store@13.1.1:
+    resolution: {integrity: sha512-TqweWIPS7UyBbT+1hEQZ+L2mPjyfAlWO97SPt8zP8v3uo/Oyn46NutURERwwqYChCGC+SD1LYPJAXJ4lVkmUAg==}
+    engines: {node: '>=22.18.0'}
 
-  liwi-subscribe-store@12.0.0:
-    resolution: {integrity: sha512-aap3kBNskfQDSZNDK6OEVbALJC69oegTMZvkXkcrZmA4dMELJ5xA2dm2Fziyj2GBVwTIu3glHa7tFaO4+fQLLg==}
-    engines: {node: '>=18.12.0'}
+  liwi-subscribe-store@13.1.1:
+    resolution: {integrity: sha512-NRm7kkihzp/KJrmom77I0ZmchsPNd+3/wmKrSYtMtKlCDSjnpgLVcuA5DLqbXfj15fNJFhUKXI9maS5DQ3i1sQ==}
+    engines: {node: '>=22.18.0'}
 
   load-json-file@7.0.1:
     resolution: {integrity: sha512-Gnxj3ev3mB5TkVBGad0JM6dmLiQL+o0t23JPBZ9sd+yvSLk05mFoqKBw5N8gbbkU4TNXyqCgIrl/VM17OgUIgQ==}
@@ -3118,8 +3114,8 @@ packages:
     resolution: {integrity: sha512-Lbgzdk0h4juoQ9fCKXW4by0UJqj+nOOrI9MJ1sSj4nI8aI2eo1qmvQEie4VD1glsS250n15LsWsYtCugiStS5A==}
     engines: {node: '>=18'}
 
-  mingo@6.7.2:
-    resolution: {integrity: sha512-5HKLu2GiNxw71EYZbWPh6dpcucHLlHqOXa0gbsYYtAjRpT/8EbDBJURLlUt3cNkISd9grOJ/AeYogyWj3QoxGA==}
+  mingo@6.2.7:
+    resolution: {integrity: sha512-r+yKmrZ+6SjwGxSot+/3S8sP9+LCxWNueR6xppMx7BzV60OegjbeklWAf/UveyQi8PDW8g/mwrQSHZVY/5jBJQ==}
 
   minimatch@10.2.5:
     resolution: {integrity: sha512-MULkVLfKGYDFYejP07QOurDLLQpcjk7Fw+7jXS2R2czRQzR56yHRveU5NDJEOviH+hETZKSkIk5c+T23GjFUMg==}
@@ -3134,20 +3130,21 @@ packages:
   module-details-from-path@1.0.4:
     resolution: {integrity: sha512-EGWKgxALGMgzvxYF1UyGTy0HXX/2vHLkw6+NvDKW2jypWbHpjQuj4UMcqQWXHERJhVGKikolT06G3bcKe4fi7w==}
 
-  mongodb-connection-string-url@3.0.2:
-    resolution: {integrity: sha512-rMO7CGo/9BFwyZABcKAWL8UJwH/Kc2x0g72uhDWzG48URRax5TCIcJ7Rc3RZqffZzO/Gwff/jyKwCU9TN8gehA==}
+  mongodb-connection-string-url@7.0.2:
+    resolution: {integrity: sha512-ZoS07RoFqpKYQwAk59qmrx8+jJHNHU30UjlU96QktiGn1ltvDr+vCznLX5DiUBLEpMAHatHNWV1nM/74ul66kA==}
+    engines: {node: '>=20.19.0'}
 
-  mongodb@6.21.0:
-    resolution: {integrity: sha512-URyb/VXMjJ4da46OeSXg+puO39XH9DeQpWCslifrRn9JWugy0D+DvvBvkm2WxmHe61O/H19JM66p1z7RHVkZ6A==}
-    engines: {node: '>=16.20.1'}
+  mongodb@7.5.0:
+    resolution: {integrity: sha512-5FnrEDLnvp6ycUOGLNLLU33BfCx2qmp2mJjGPDwKLruYsVzXVSK5fsGpoDXvsXJwBfBsD7ebMRdawbDxC2814g==}
+    engines: {node: '>=20.19.0'}
     peerDependencies:
-      '@aws-sdk/credential-providers': ^3.188.0
-      '@mongodb-js/zstd': ^1.1.0 || ^2.0.0
-      gcp-metadata: ^5.2.0
-      kerberos: ^2.0.1
-      mongodb-client-encryption: '>=6.0.0 <7'
+      '@aws-sdk/credential-providers': ^3.806.0
+      '@mongodb-js/zstd': ^7.0.0
+      gcp-metadata: ^7.0.1
+      kerberos: ^7.0.0
+      mongodb-client-encryption: ^7.2.0
       snappy: ^7.3.2
-      socks: ^2.7.1
+      socks: ^2.8.6
     peerDependenciesMeta:
       '@aws-sdk/credential-providers':
         optional: true
@@ -3187,25 +3184,13 @@ packages:
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
-  nightingale-levels@15.0.0:
-    resolution: {integrity: sha512-8IXnUydZ6qrxmpydjrcMdALIda+6QTKktjo5PCmhsGS6QBzCssP7RU+EjHVIfIEYLkcGKMe8tPEYTIsr1q1chg==}
-    engines: {node: '>=18.12.0'}
-
   nightingale-levels@18.2.0:
     resolution: {integrity: sha512-kl3OKYQCWjcTvlTDgwBq2QcRajmEyD5VV9jf2sHF27SOgY/Fhf2YxSzeqFO6u+GSyU1uNMD9xg2N04949022aA==}
     engines: {node: '>=22.18.0'}
 
-  nightingale-logger@15.0.0:
-    resolution: {integrity: sha512-0WxPE/JWK2T9Tbpwg7hL4aaRiDp/iOgCrZO2s1mTsG1U0avwWy7gm2NCzPx/+L/nlED4ebBOqlW3xqG03R8BeA==}
-    engines: {node: '>=18.12.0'}
-
   nightingale-logger@18.2.0:
     resolution: {integrity: sha512-ni7Qztw3bb2GTuNyyo0YxHEDaUNL14lP/fhJOjNFUqK8nc9ZGpBWmdp3+3MKrZbonEEvK7vkHo8ktTb+grqsOQ==}
     engines: {node: '>=22.18.0'}
-
-  nightingale-types@15.0.0:
-    resolution: {integrity: sha512-QtR2VWKBQPvmfoe8amkpBNCRMmjMlHPOqiwgRMuQ8H0Glcln9qTqxGeED59Sf8clsVhJg6GL9KeWSI8m4cWMOQ==}
-    engines: {node: '>=18.12.0'}
 
   nightingale-types@18.2.0:
     resolution: {integrity: sha512-4eGgasLzIzyeAXz2ASosL3RHZ8awLMLrYV/xCeYbFN+dJFJ9Wx0y/vztFrOno2QmWXiDrYpyaH6Vi3Jdc389QQ==}
@@ -4078,8 +4063,6 @@ snapshots:
   '@babel/parser@7.29.7':
     dependencies:
       '@babel/types': 7.29.7
-
-  '@babel/runtime@7.29.7': {}
 
   '@babel/types@7.29.7':
     dependencies:
@@ -5087,7 +5070,7 @@ snapshots:
 
   '@types/webidl-conversions@7.0.3': {}
 
-  '@types/whatwg-url@11.0.5':
+  '@types/whatwg-url@13.0.0':
     dependencies:
       '@types/webidl-conversions': 7.0.3
 
@@ -5630,7 +5613,7 @@ snapshots:
       node-releases: 2.0.51
       update-browserslist-db: 1.2.3(browserslist@4.28.7)
 
-  bson@6.10.4: {}
+  bson@7.3.1: {}
 
   buffer-equal-constant-time@1.0.1: {}
 
@@ -6792,13 +6775,13 @@ snapshots:
     optionalDependencies:
       yaml: 2.9.0
 
-  liwi-mongo@12.0.0:
+  liwi-mongo@13.1.1:
     dependencies:
-      liwi-store: 12.0.0
-      liwi-subscribe-store: 12.0.0
-      mingo: 6.7.2
-      mongodb: 6.21.0
-      nightingale-logger: 15.0.0
+      liwi-store: 13.1.1
+      liwi-subscribe-store: 13.1.1
+      mingo: 6.2.7
+      mongodb: 7.5.0
+      nightingale-logger: 18.2.0
     transitivePeerDependencies:
       - '@aws-sdk/credential-providers'
       - '@mongodb-js/zstd'
@@ -6808,14 +6791,11 @@ snapshots:
       - snappy
       - socks
 
-  liwi-store@12.0.0:
-    dependencies:
-      '@babel/runtime': 7.29.7
+  liwi-store@13.1.1: {}
 
-  liwi-subscribe-store@12.0.0:
+  liwi-subscribe-store@13.1.1:
     dependencies:
-      '@babel/runtime': 7.29.7
-      liwi-store: 12.0.0
+      liwi-store: 13.1.1
 
   load-json-file@7.0.1: {}
 
@@ -7184,7 +7164,7 @@ snapshots:
     dependencies:
       mime-db: 1.54.0
 
-  mingo@6.7.2: {}
+  mingo@6.2.7: {}
 
   minimatch@10.2.5:
     dependencies:
@@ -7198,16 +7178,16 @@ snapshots:
 
   module-details-from-path@1.0.4: {}
 
-  mongodb-connection-string-url@3.0.2:
+  mongodb-connection-string-url@7.0.2:
     dependencies:
-      '@types/whatwg-url': 11.0.5
+      '@types/whatwg-url': 13.0.0
       whatwg-url: 14.2.0
 
-  mongodb@6.21.0:
+  mongodb@7.5.0:
     dependencies:
       '@mongodb-js/saslprep': 1.4.13
-      bson: 6.10.4
-      mongodb-connection-string-url: 3.0.2
+      bson: 7.3.1
+      mongodb-connection-string-url: 7.0.2
 
   ms@2.1.3: {}
 
@@ -7221,25 +7201,13 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  nightingale-levels@15.0.0: {}
-
   nightingale-levels@18.2.0: {}
-
-  nightingale-logger@15.0.0:
-    dependencies:
-      '@types/node': 24.12.4
-      nightingale-levels: 15.0.0
-      nightingale-types: 15.0.0
 
   nightingale-logger@18.2.0:
     dependencies:
       '@types/node': 24.12.4
       nightingale-levels: 18.2.0
       nightingale-types: 18.2.0
-
-  nightingale-types@15.0.0:
-    dependencies:
-      nightingale-levels: 15.0.0
 
   nightingale-types@18.2.0:
     dependencies:

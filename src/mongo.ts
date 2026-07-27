@@ -205,16 +205,13 @@ if (!process.env.MONGO_DB) {
 }
 
 export default function init(): MongoStores {
-  const config = new Map([
-    ["host", process.env.MONGO_HOST || "localhost"],
-    ["port", process.env.MONGO_PORT || "27017"],
-    ["database", process.env.MONGO_DB!],
-  ]);
-  if (process.env.MONGO_USER) {
-    config.set("user", process.env.MONGO_USER);
-    config.set("password", process.env.MONGO_PASSWORD!);
-  }
-  const connection = new MongoConnection(config);
+  const connection = new MongoConnection({
+    host: process.env.MONGO_HOST || "localhost",
+    port: process.env.MONGO_PORT || "27017",
+    database: process.env.MONGO_DB!,
+    user: process.env.MONGO_USER,
+    password: process.env.MONGO_USER ? process.env.MONGO_PASSWORD : undefined,
+  });
 
   // const prEvents = new MongoStore<PrEventsModel>(connection, 'prEvents');
   // prEvents.collection.then((coll) => {

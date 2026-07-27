@@ -9,6 +9,7 @@ minimumReleaseAgeExclude:
   - check-package-dependencies
   - alouette
   - alouette-icons
+  - "liwi-*"
   - nightingale
   - nightingale-logger
 nodeLinker: hoisted
