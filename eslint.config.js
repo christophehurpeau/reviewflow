@@ -25,4 +25,51 @@ export default [
       },
     ],
   }),
+  ...configs.checkPackages,
+  {
+    settings: {
+      "check-package-dependencies": {
+        library: false,
+      },
+    },
+  },
+  {
+    files: ["package.json"],
+    rules: {
+      "check-package-dependencies/satisfies-versions-from-dependencies": [
+        "error",
+        {
+          dependencies: {
+            probot: {
+              dependencies: [
+                "@octokit/core",
+                "@octokit/webhooks",
+                "@octokit/plugin-rest-endpoint-methods",
+              ],
+            },
+            "@octokit/core": {
+              dependencies: ["@octokit/graphql"],
+            },
+          },
+        },
+      ],
+      "check-package-dependencies/satisfies-versions-between-dependencies": [
+        "error",
+        {
+          dependencies: [
+            {
+              name: "@octokit/plugin-rest-endpoint-methods",
+              from: "probot",
+              to: "@octokit/rest",
+            },
+            {
+              name: "@octokit/plugin-paginate-rest",
+              from: "probot",
+              to: "@octokit/rest",
+            },
+          ],
+        },
+      ],
+    },
+  },
 ];

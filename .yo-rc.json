@@ -15,9 +15,7 @@
     },
     "project": {
       "type": "app",
-      "packageManager": "yarn",
-      "yarnNodeLinker": "node-modules",
-      "disableYarnGitCache": true,
+      "packageManager": "pnpm",
       "ci": true
     }
   }
