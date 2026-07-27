@@ -1,14 +1,14 @@
 import type { Probot } from "probot";
 import type { AppContext } from "../../context/AppContext.ts";
 import { obtainRepoContext } from "../../context/repoContext.ts";
-import { createHandlerOrgChange } from "../account-handlers/utils/createHandlerOrgChange.ts";
+import { createRepositoryHandler } from "./utils/createRepositoryHandler.ts";
 
 export default function repoRenamed(app: Probot, appContext: AppContext): void {
-  createHandlerOrgChange(
+  createRepositoryHandler(
     app,
     appContext,
     "repository.renamed",
-    async (context, orgContext): Promise<void> => {
+    async (context, accountContext): Promise<void> => {
       const repoContext = await obtainRepoContext(appContext, context);
       if (!repoContext) return;
       const repo = context.payload.repository;
@@ -17,20 +17,15 @@ export default function repoRenamed(app: Probot, appContext: AppContext): void {
       repoContext.repoEmbed.name = repo.name;
 
       await Promise.all([
-        appContext.mongoStores.repositories.partialUpdateByKey(
-          repo.id,
-          {
-            $set: {
-              fullName: repo.full_name,
-            },
+        appContext.mongoStores.repositories.partialUpdateByKey(repo.id, {
+          $set: {
+            account: accountContext.accountEmbed,
+            fullName: repo.full_name,
           },
-          {
-            "account.id": orgContext.accountEmbed.id,
-          },
-        ),
+        }),
         appContext.mongoStores.prs.partialUpdateMany(
           {
-            "account.id": orgContext.accountEmbed.id,
+            "account.id": accountContext.accountEmbed.id,
             "repo.id": repo.id,
           },
           {

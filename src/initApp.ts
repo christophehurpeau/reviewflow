@@ -28,6 +28,7 @@ import status from "./events/pr-handlers/status.ts";
 import synchronizeHandler from "./events/pr-handlers/synchronize.ts";
 import repoEdited from "./events/repository-handlers/repoEdited.ts";
 import repoRenamed from "./events/repository-handlers/repoRenamed.ts";
+import repoTransferred from "./events/repository-handlers/repoTransferred.ts";
 
 export default function initApp(app: Probot, appContext: AppContext): void {
   // Installation
@@ -46,6 +47,7 @@ export default function initApp(app: Probot, appContext: AppContext): void {
   /* https://developer.github.com/webhooks/event-payloads/#repository */
   repoEdited(app, appContext);
   repoRenamed(app, appContext);
+  repoTransferred(app, appContext);
 
   // Push
   /* https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#push */

@@ -36,7 +36,13 @@ export const initializeProbotApp = async ({
     repositories: {
       findByKey: () =>
         Promise.resolve({
-          _id: 1,
+          _id: 167_861_157,
+          account: {
+            id: 64_312_233,
+            login: "reviewflow",
+            type: "Organization",
+          },
+          fullName: "reviewflow/reviewflow-test",
           settings: {
             allowAutoMerge: true,
             allowMergeCommit: true,

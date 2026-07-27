@@ -15,6 +15,7 @@ import type {
 import { getReviewflowPrContext } from "../events/pr-handlers/utils/createPullRequestContext.ts";
 import { fetchPr } from "../events/pr-handlers/utils/fetchPr.ts";
 import type { ProbotEvent } from "../events/probot-types";
+import { updateRepositoryAccount } from "../events/repository-handlers/utils/updateRepositoryAccount.ts";
 import type { Repository } from "../mongo.ts";
 import { getRepositorySettings } from "../utils/github/repo/getRepositorySettings.ts";
 import type { AppContext } from "./AppContext.ts";
@@ -166,44 +167,67 @@ async function initRepoContext<
   const shouldIgnore = shouldIgnoreRepo(name, config);
 
   const findOrCreateRepository = async (): Promise<Repository> => {
-    const res = await appContext.mongoStores.repositories.findByKey(id, {
-      "account.id": accountContext.accountEmbed.id,
-    });
+    const account = accountContext.accountEmbed;
+    // the document is keyed by the github repository id only, it must be found
+    // whatever account currently owns it, otherwise the insert below conflicts
+    const existingRepository =
+      await appContext.mongoStores.repositories.findByKey(id);
 
-    if (res) {
-      if (
-        !res.settings.lastUpdated ||
-        res.settings.defaultBranchProtectionRules === undefined ||
-        isSettingsLastUpdatedExpired(res.settings)
-      ) {
-        const repoSettingsResult = await getRepositorySettings(context);
-
-        const settings = createRepositorySettings(repoSettingsResult);
-        res.settings = settings;
-
-        await appContext.mongoStores.repositories.partialUpdateByKey(
-          res._id,
+    if (existingRepository) {
+      if (existingRepository.account?.id !== account.id) {
+        context.log.info(
           {
-            $set: {
-              settings,
-            },
-            // @ts-expect-error -- remove legacy options settings
-            $unset: { options: "" },
+            repositoryId: id,
+            previousAccount: existingRepository.account,
+            account,
           },
-          {
-            "account.id": accountContext.accountEmbed.id,
-          },
+          "repository transferred to another account, updating documents",
         );
+        await updateRepositoryAccount({
+          mongoStores: appContext.mongoStores,
+          repositoryId: id,
+          repoName: name,
+          fullName,
+          account,
+        });
+        existingRepository.account = account;
+        existingRepository.fullName = fullName;
       }
-      return res;
+
+      const needsSettingsUpdate =
+        !existingRepository.settings?.lastUpdated ||
+        existingRepository.settings.defaultBranchProtectionRules ===
+          undefined ||
+        isSettingsLastUpdatedExpired(existingRepository.settings);
+
+      if (needsSettingsUpdate || existingRepository.fullName !== fullName) {
+        if (needsSettingsUpdate) {
+          const repoSettingsResult = await getRepositorySettings(context);
+          existingRepository.settings =
+            createRepositorySettings(repoSettingsResult);
+        }
+        existingRepository.fullName = fullName;
+
+        await appContext.mongoStores.repositories.partialUpdateByKey(id, {
+          $set: {
+            fullName,
+            settings: existingRepository.settings,
+          },
+          // @ts-expect-error -- remove legacy options settings
+          $unset: { options: "" },
+        });
+      }
+
+      return existingRepository;
     }
 
     const repoSettingsResult = await getRepositorySettings(context);
 
     const repoEmoji = getEmojiFromRepoDescription(description);
-    return appContext.mongoStores.repositories.insertOne({
+    // upsert instead of insert, another process may have created it concurrently
+    return appContext.mongoStores.repositories.upsertOne({
       _id: id,
-      account: accountContext.accountEmbed,
+      account,
       emoji: repoEmoji,
       fullName,
       settings: createRepositorySettings(repoSettingsResult),
@@ -411,6 +435,12 @@ export const obtainRepoContext = <T extends EventsWithRepository>(
       repoContexts.set(key, repoContext);
       return repoContext;
     },
+    (error: unknown) => {
+      // without this, the rejected promise stays cached and every next event for
+      // this repository replays the same error until the process restarts
+      repoContextsPromise.delete(key);
+      throw error;
+    },
   );
   repoContextsPromise.set(key, promise);
 
@@ -421,6 +451,7 @@ export const deleteRepoContext = async (
   repositoryId: number,
 ): Promise<void> => {
   const existingPromise = repoContextsPromise.get(repositoryId);
-  if (existingPromise) await existingPromise;
+  if (existingPromise) await existingPromise.catch(() => undefined);
+  repoContextsPromise.delete(repositoryId);
   repoContexts.delete(repositoryId);
 };
