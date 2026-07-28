@@ -84,7 +84,7 @@
     "eslint": "10.7.0",
     "nock": "14.0.16",
     "smee-client": "5.0.0",
-    "type-fest": "5.7.0",
+    "type-fest": "5.8.0",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vitest": "4.1.10"
   },
