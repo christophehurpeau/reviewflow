@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.3.0](https://github.com/christophehurpeau/reviewflow/compare/v6.2.0...v6.3.0) (2026-07-28)
+
+### Features
+
+* **deps:** update dependency @sentry/node to v10.68.0 ([#1168](https://github.com/christophehurpeau/reviewflow/issues/1168))
+* **deps:** update dependency @slack/web-api to v8 ([#1185](https://github.com/christophehurpeau/reviewflow/issues/1185))
+* **deps:** update dependency vite to v8.1.5 ([#1174](https://github.com/christophehurpeau/reviewflow/issues/1174))
+* improve automerge flow
+
 ## [6.2.0](https://github.com/christophehurpeau/reviewflow/compare/v6.1.0...v6.2.0) (2026-07-27)
 
 ### Features
