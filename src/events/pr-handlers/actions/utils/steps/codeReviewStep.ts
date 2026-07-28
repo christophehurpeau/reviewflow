@@ -1,3 +1,4 @@
+import { checkIsMissingRestrictedApprobation } from "../restrictedApprobation.ts";
 import type { BaseStepState, CalcStepOptions } from "./BaseStepState";
 
 // TODO if was pr draft, requires a new review
@@ -9,6 +10,7 @@ export interface CodeReviewStepState extends BaseStepState {
   hasApprovals: boolean;
   isMissingReview: boolean;
   isMissingApprobation: boolean;
+  isMissingRestrictedApprobation: boolean;
   isApproved: boolean;
 }
 
@@ -28,15 +30,22 @@ export function calcCodeReviewStep<TeamNames extends string>({
   const hasChangesRequested =
     reviewflowPrContext.reviewflowPr.reviews?.changesRequested.length > 0;
 
-  const hasApprovals =
-    reviewflowPrContext.reviewflowPr.reviews?.approved.length > 0;
+  const approvals = reviewflowPrContext.reviewflowPr.reviews?.approved ?? [];
+  const hasApprovals = approvals.length > 0;
+
+  const isMissingRestrictedApprobation = checkIsMissingRestrictedApprobation({
+    restrictAutoMergeTo: repoContext.config.restrictAutoMergeTo,
+    authorLogin: pullRequest.user?.login,
+    approvedLogins: approvals.map((approval) => approval.login),
+  });
 
   const isMissingApprobation =
-    repoContext.config.requiresReviewRequest ||
+    isMissingRestrictedApprobation ||
+    (repoContext.config.requiresReviewRequest ||
     pullRequest.user?.type === "Bot" ||
     pullRequest.user?.id !== repoContext.accountEmbed.id
       ? !hasApprovals
-      : false;
+      : false);
 
   const isMissingReview =
     !pullRequest.draft &&
@@ -69,6 +78,7 @@ export function calcCodeReviewStep<TeamNames extends string>({
     hasChangesRequested,
     hasApprovals,
     isMissingApprobation,
+    isMissingRestrictedApprobation,
     isApproved,
   };
 }

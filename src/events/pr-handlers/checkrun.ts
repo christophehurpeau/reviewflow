@@ -34,12 +34,18 @@ export default function checkrun(app: Probot, appContext: AppContext): void {
       // after lock, we need to fetch pr again to get the latest data. If pr was synchronized, and new commit is pushed, we need to ignore this status update.
       const pullRequest = await fetchPr(context, pullRequestCheckRun.number);
 
-      if (action === "completed") {
-        await repoContext.rescheduleOnChecksUpdated(
-          context,
-          pullRequest,
-          checkRun.conclusion === "success",
-        );
+      if (
+        action === "completed" &&
+        checkRun.head_sha === pullRequest.head.sha
+      ) {
+        await repoContext.rescheduleOnChecksUpdated(context, pullRequest, {
+          checkName: checkRun.name,
+          hasFailed:
+            checkRun.conclusion === "failure" ||
+            checkRun.conclusion === "cancelled" ||
+            checkRun.conclusion === "timed_out",
+          pullRequestLabels: pullRequest.labels,
+        });
       }
 
       if (reviewflowPrContext?.reviewflowPr.headSha !== checkRun.head_sha) {

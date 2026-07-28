@@ -15,11 +15,15 @@ export default function checksuiteCompleted(
       return payload.check_suite.pull_requests;
     },
     async (pullRequest, context, repoContext) => {
-      await repoContext.rescheduleOnChecksUpdated(
-        context,
-        pullRequest,
-        context.payload.check_suite.conclusion === "success",
-      );
+      const { check_suite: checkSuite } = context.payload;
+
+      await repoContext.rescheduleOnChecksUpdated(context, pullRequest, {
+        checkName: checkSuite.app.name,
+        hasFailed:
+          checkSuite.conclusion === "failure" ||
+          checkSuite.conclusion === "cancelled" ||
+          checkSuite.conclusion === "timed_out",
+      });
     },
   );
 }

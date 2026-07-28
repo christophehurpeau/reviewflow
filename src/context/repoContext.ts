@@ -8,12 +8,15 @@ import {
   createRepositorySettings,
   isSettingsLastUpdatedExpired,
 } from "../events/pr-handlers/actions/utils/body/repositorySettings.ts";
+import hasLabelInPR from "../events/pr-handlers/actions/utils/labels/hasLabelInPR.ts";
 import type {
   BasicUser,
   PullRequestDataMinimumData,
+  PullRequestLabels,
 } from "../events/pr-handlers/utils/PullRequestData.ts";
 import { getReviewflowPrContext } from "../events/pr-handlers/utils/createPullRequestContext.ts";
 import { fetchPr } from "../events/pr-handlers/utils/fetchPr.ts";
+import { isCheckNotAllowedToFail } from "../events/pr-handlers/utils/getFailedOrWaitingChecksAndStatuses.ts";
 import type { ProbotEvent } from "../events/probot-types";
 import { updateRepositoryAccount } from "../events/repository-handlers/utils/updateRepositoryAccount.ts";
 import type { Repository } from "../mongo.ts";
@@ -87,6 +90,13 @@ export type EventsWithRepository = CustomExtract<
 
 export type RescheduleTime = "long+timeout" | "short";
 
+export interface RescheduleOnChecksUpdatedOptions {
+  checkName: string;
+  hasFailed: boolean;
+  // when known, only pull requests with the automerge label are rescheduled
+  pullRequestLabels?: PullRequestLabels;
+}
+
 interface RepoContextWithoutTeamContext {
   appContext: AppContext;
   repoFullName: string;
@@ -108,11 +118,12 @@ interface RepoContextWithoutTeamContext {
     pr: PullRequestDataMinimumData,
     time: RescheduleTime,
     user?: BasicUser,
+    attempt?: number,
   ) => Promise<void>;
   rescheduleOnChecksUpdated: <EventName extends EmitterWebhookEventName>(
     context: ProbotEvent<EventName>,
     pr: PullRequestDataMinimumData,
-    isSuccessful: boolean,
+    options: RescheduleOnChecksUpdatedOptions,
   ) => Promise<void>;
 }
 
@@ -324,6 +335,7 @@ async function initRepoContext<
     pr: PullRequestDataMinimumData,
     time: RescheduleTime,
     user?: BasicUser,
+    attempt = 0,
     // eslint-disable-next-line @typescript-eslint/require-await
   ): Promise<void> => {
     if (!pr) throw new Error("Cannot reschedule undefined");
@@ -355,6 +367,7 @@ async function initRepoContext<
               user,
               undefined,
               time,
+              attempt,
             );
           });
         });
@@ -364,27 +377,33 @@ async function initRepoContext<
     waitingToReschedule.set(pr.number, timeout);
   };
 
+  // TODO: save condition in mongo to avoid rescheduling if not necessary
   const rescheduleOnChecksUpdated = async (
     rescheduleContext: ProbotEvent<any>,
     pr: PullRequestDataMinimumData,
-    isSuccessful: boolean,
+    {
+      checkName,
+      hasFailed,
+      pullRequestLabels,
+    }: RescheduleOnChecksUpdatedOptions,
   ): Promise<void> => {
+    if (repoContext.config.disableAutoMerge) return;
+    if (!repoContext.settings.allowAutoMerge) return;
+
+    const autoMergeLabel = repoLabels["merge/automerge"];
     if (
-      repoContext.settings.allowAutoMerge ||
-      accountContext.config.disableAutoMerge
+      autoMergeLabel &&
+      pullRequestLabels &&
+      !hasLabelInPR(pullRequestLabels, autoMergeLabel)
     ) {
       return;
     }
 
-    if (isSuccessful) {
-      // - if is merge locked => will run automerge and might merge
-      // - if not in queue => might add it back if other conditions are met
-      // TODO: save condition in mongo to avoid rescheduling if not necessary
-      await reschedule(rescheduleContext, pr, "short");
-    } else {
-      // Note: some unsucessful checks are ignored
-      await reschedule(rescheduleContext, pr, "short");
-    }
+    // a check that failed keeps the pull request unmergeable: whatever unblocks it later
+    // (rerun, new commit, ...) triggers its own reschedule
+    if (hasFailed && isCheckNotAllowedToFail(repoContext, checkName)) return;
+
+    await reschedule(rescheduleContext, pr, "short");
   };
 
   return Object.assign(repoContext, {

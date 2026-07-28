@@ -38,11 +38,13 @@ export default function status(app: Probot, appContext: AppContext): void {
       }
 
       if (context.payload.state !== "pending") {
-        await repoContext.rescheduleOnChecksUpdated(
-          context,
-          pullRequest,
-          context.payload.state === "success",
-        );
+        await repoContext.rescheduleOnChecksUpdated(context, pullRequest, {
+          checkName: context.payload.context,
+          hasFailed:
+            context.payload.state === "failure" ||
+            context.payload.state === "error",
+          pullRequestLabels: pullRequest.labels,
+        });
       }
 
       if (reviewflowPrContext?.reviewflowPr.statusesConclusion) {

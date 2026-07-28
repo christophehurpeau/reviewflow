@@ -268,6 +268,13 @@ export const updateStatusCheckFromStepsState = <
   }
 
   if (shouldEnforceProgress && stepsState.codeReview.isMissingApprobation) {
+    if (stepsState.codeReview.isMissingRestrictedApprobation) {
+      return createPendingStatusCheck(
+        `Awaiting approval from: ${repoContext.config.restrictAutoMergeTo!.join(
+          ", ",
+        )}`,
+      );
+    }
     return createFailedStatusCheck(
       "Awaiting review... Perhaps request someone ?",
     );

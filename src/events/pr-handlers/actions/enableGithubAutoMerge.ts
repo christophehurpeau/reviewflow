@@ -18,7 +18,9 @@ import type {
 import { createPrMinimumDataFromPr } from "../utils/createPrMinimumDataFromPr.ts";
 import type { ReviewflowPrContext } from "../utils/createPullRequestContext.ts";
 import { createCommitMessage } from "./createCommitMessage.ts";
+import { requestRestrictedApprovalReviewers } from "./requestRestrictedApprovalReviewers.ts";
 import { parseBody } from "./utils/body/parseBody.ts";
+import { checkIsMissingRestrictedApprobation } from "./utils/restrictedApprobation.ts";
 
 function isPullRequestClosedGraphQLError(err: unknown): boolean {
   if (!err) return false;
@@ -39,8 +41,13 @@ export interface MergeOrEnableGithubAutoMergeResult {
   wasAlreadyMerged?: boolean;
   isRescheduled?: boolean;
   didFailedToEnableAutoMerge?: boolean;
+  isWaitingForRestrictedApproval?: boolean;
   mergedRequest?: AutoMergeRequest;
 }
+
+// github computes mergeability lazily: reading it triggers the computation and returns
+// "unknown" until it's done, so a cold read must be retried instead of ending the flow.
+const maxUnknownMergeableStateRetries = 5;
 
 export const mergeOrEnableGithubAutoMerge = async <
   EventName extends EventsWithRepository,
@@ -52,6 +59,7 @@ export const mergeOrEnableGithubAutoMerge = async <
   user?: BasicUser,
   skipCheckMergeableState?: boolean,
   fromRescheduleTime?: RescheduleTime,
+  fromRescheduleAttempt = 0,
 ): Promise<MergeOrEnableGithubAutoMergeResult> => {
   if (pullRequest.draft) {
     return {
@@ -98,14 +106,19 @@ export const mergeOrEnableGithubAutoMerge = async <
     };
   }
   if (
-    repoContext.config.restrictAutoMergeTo &&
-    !reviewflowPrContext.reviewflowPr.reviews.approved.some((r) =>
-      repoContext.config.restrictAutoMergeTo?.includes(r.login),
-    )
+    checkIsMissingRestrictedApprobation({
+      restrictAutoMergeTo: repoContext.config.restrictAutoMergeTo,
+      authorLogin: pullRequest.user?.login,
+      approvedLogins: reviewflowPrContext.reviewflowPr.reviews.approved.map(
+        (approval) => approval.login,
+      ),
+    })
   ) {
+    await requestRestrictedApprovalReviewers(pullRequest, context, repoContext);
+
     return {
       wasMerged: false,
-      didFailedToEnableAutoMerge: true,
+      isWaitingForRestrictedApproval: true,
     };
   }
 
@@ -146,63 +159,63 @@ export const mergeOrEnableGithubAutoMerge = async <
     !("mergeable_state" in pullRequest) ||
     pullRequest.mergeable_state === "unknown"
   ) {
-    if (!fromRescheduleTime || fromRescheduleTime === "short") {
-      const rescheduleTime =
-        fromRescheduleTime === "short" ? "long+timeout" : "short";
+    const mergeableStateLog =
+      "mergeable_state" in pullRequest
+        ? pullRequest.mergeable_state
+        : "[missing]";
+    const attempt = fromRescheduleAttempt + 1;
+
+    if (attempt > maxUnknownMergeableStateRetries) {
       context.log.info(
-        `mergeOrEnableGithubAutomerge mergeable_state is ${
-          "mergeable_state" in pullRequest
-            ? pullRequest.mergeable_state
-            : "[missing]"
-        }, rescheduling with ${rescheduleTime}`,
-      );
-      // GitHub is determining whether the pull request is mergeable
-      await repoContext.reschedule(
-        context,
-        createPrMinimumDataFromPr(pullRequest),
-        rescheduleTime,
-        user,
-      );
-      return {
-        wasMerged: false,
-        isRescheduled: true,
-      };
-    } else {
-      context.log.info(
-        `mergeOrEnableGithubAutomerge mergeable_state is ${
-          "mergeable_state" in pullRequest
-            ? pullRequest.mergeable_state
-            : "[missing]"
-        }, give up on rescheduling`,
+        `mergeOrEnableGithubAutomerge mergeable_state is ${mergeableStateLog} after ${fromRescheduleAttempt} attempts, give up on rescheduling`,
       );
       return {
         wasMerged: false,
         isRescheduled: false,
       };
     }
-  }
 
-  if (pullRequest.mergeable_state === "blocked") {
+    const rescheduleTime = fromRescheduleTime ? "long+timeout" : "short";
+    context.log.info(
+      `mergeOrEnableGithubAutomerge mergeable_state is ${mergeableStateLog}, rescheduling with ${rescheduleTime} (attempt ${attempt})`,
+    );
     await repoContext.reschedule(
       context,
       createPrMinimumDataFromPr(pullRequest),
-      "long+timeout",
+      rescheduleTime,
+      user,
+      attempt,
     );
-
     return {
       wasMerged: false,
       isRescheduled: true,
     };
   }
 
+  const isBlocked = pullRequest.mergeable_state === "blocked";
+  const isMergeableNow =
+    pullRequest.mergeable_state === "clean" ||
+    pullRequest.mergeable_state === "has_hooks" ||
+    pullRequest.mergeable_state === "unstable";
+
   let triedToMerge = false;
 
-  if (
-    !skipCheckMergeableState &&
-    (pullRequest.mergeable_state === "clean" ||
-      pullRequest.mergeable_state === "has_hooks" ||
-      pullRequest.mergeable_state === "unstable")
-  ) {
+  if (isMergeableNow) {
+    // github refuses to enable auto merge when the pull request can already be merged,
+    // so when reviewflow steps are not all passed there is nothing to do but wait
+    if (skipCheckMergeableState) {
+      await repoContext.reschedule(
+        context,
+        createPrMinimumDataFromPr(pullRequest),
+        fromRescheduleTime === "long+timeout" ? "long+timeout" : "short",
+        user,
+      );
+      return {
+        wasMerged: false,
+        isRescheduled: true,
+      };
+    }
+
     try {
       await context.octokit.rest.pulls.merge({
         merge_method: "squash",
@@ -263,6 +276,19 @@ The pull request must be in a state where requirements have not yet been satisfi
       },
       `Could not enable automerge: ${(error as any)?.message}`,
     );
+
+    if (isBlocked) {
+      await repoContext.reschedule(
+        context,
+        createPrMinimumDataFromPr(pullRequest),
+        "long+timeout",
+        user,
+      );
+      return {
+        wasMerged: false,
+        isRescheduled: true,
+      };
+    }
 
     if (fromRescheduleTime) {
       if (triedToMerge) {
