@@ -46,7 +46,7 @@
     "@octokit/plugin-rest-endpoint-methods": "17.0.0",
     "@octokit/rest": "22.0.1",
     "@octokit/webhooks": "14.2.0",
-    "@sentry/node": "10.68.0",
+    "@sentry/node": "10.69.0",
     "@slack/web-api": "8.0.0",
     "body-parser": "2.3.0",
     "conventional-changelog-conventionalcommits": "9.3.1",
