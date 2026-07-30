@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.3.1](https://github.com/christophehurpeau/reviewflow/compare/v6.3.0...v6.3.1) (2026-07-30)
+
+### Bug Fixes
+
+* check automerge label before merging from a reschedule ([#1190](https://github.com/christophehurpeau/reviewflow/issues/1190))
+
 ## [6.3.0](https://github.com/christophehurpeau/reviewflow/compare/v6.2.0...v6.3.0) (2026-07-28)
 
 ### Features
