@@ -2,7 +2,7 @@ import type { EmitterWebhookEventName } from "@octokit/webhooks";
 import { Lock } from "lock";
 import type { Config } from "../accountConfigs/index.ts";
 import { accountConfigs, defaultConfig } from "../accountConfigs/index.ts";
-import { mergeOrEnableGithubAutoMerge } from "../events/pr-handlers/actions/enableGithubAutoMerge.ts";
+import { tryToAutomergeFromReschedule } from "../events/pr-handlers/actions/tryToAutomerge.ts";
 import type { RepositorySettings } from "../events/pr-handlers/actions/utils/body/repositorySettings.ts";
 import {
   createRepositorySettings,
@@ -359,16 +359,15 @@ async function initRepoContext<
               getReviewflowPrContext(pr, rescheduleContext, repoContext),
             ]);
 
-            await mergeOrEnableGithubAutoMerge(
+            await tryToAutomergeFromReschedule({
               pullRequest,
               context,
               repoContext,
               reviewflowPrContext,
               user,
-              undefined,
-              time,
-              attempt,
-            );
+              fromRescheduleTime: time,
+              fromRescheduleAttempt: attempt,
+            });
           });
         });
       },
