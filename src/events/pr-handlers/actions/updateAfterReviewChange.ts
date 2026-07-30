@@ -60,7 +60,13 @@ export async function updateAfterReviewChange<
 
   await Promise.all([
     updateReviewflowPrPromise,
-    updateReviewStatus(pullRequest, context, repoContext, stepsState),
+    updateReviewStatus(
+      pullRequest,
+      context,
+      repoContext,
+      stepsState,
+      reviewflowPrContext,
+    ),
     updateStatusCheckFromStepsState(
       stepsState,
       pullRequest,

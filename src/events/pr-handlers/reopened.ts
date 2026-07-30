@@ -58,7 +58,13 @@ export default function reopened(app: Probot, appContext: AppContext): void {
                 : {},
             },
           ),
-          updateReviewStatus(pullRequest, context, repoContext, stepsState),
+          updateReviewStatus(
+            pullRequest,
+            context,
+            repoContext,
+            stepsState,
+            reviewflowPrContext,
+          ),
           updateStatusCheckFromStepsState(
             stepsState,
             pullRequest,

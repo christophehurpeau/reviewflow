@@ -16,6 +16,7 @@ export const initializeProbotApp = async ({
   orgMembers,
   users,
   prs,
+  labels,
   repositories,
 }: Partial<any> = {}): Promise<Probot> => {
   const probot = new Probot({
@@ -73,7 +74,17 @@ export const initializeProbotApp = async ({
           reviews: createEmptyReviews(),
           assignees: [],
         }),
+      partialUpdateOne: () => Promise.resolve(),
+      partialUpdateByKey: () => Promise.resolve(),
+      partialUpdateMany: () => Promise.resolve(),
       ...prs,
+    },
+    labels: {
+      findAll: () => Promise.resolve([]),
+      upsertOne: () => Promise.resolve(),
+      deleteMany: () => Promise.resolve(),
+      partialUpdateMany: () => Promise.resolve(),
+      ...labels,
     },
   };
 

@@ -24,8 +24,13 @@ import { getRepositorySettings } from "../utils/github/repo/getRepositorySetting
 import type { AppContext } from "./AppContext.ts";
 import type { AccountContext } from "./accountContext.ts";
 import { obtainAccountContext } from "./accountContext.ts";
-import type { LabelResponse, LabelsRecord } from "./initRepoLabels.ts";
+import type {
+  InitRepoLabelsResult,
+  LabelResponse,
+  LabelsRecord,
+} from "./initRepoLabels.ts";
 import { initRepoLabels } from "./initRepoLabels.ts";
+import { syncRepositoryLabels } from "./syncRepositoryLabels.ts";
 import { getEmojiFromRepoDescription } from "./utils.ts";
 
 export interface LockedMergePr {
@@ -46,6 +51,9 @@ export type EventsWithRepository = CustomExtract<
   | "issue_comment.created"
   | "issue_comment.deleted"
   | "issue_comment.edited"
+  | "label.created"
+  | "label.deleted"
+  | "label.edited"
   | "pull_request_review_comment.created"
   | "pull_request_review_comment.deleted"
   | "pull_request_review_comment.edited"
@@ -245,12 +253,25 @@ async function initRepoContext<
     });
   };
 
-  const emptyLabelsRecord: LabelsRecord = {};
+  const emptyLabelsResult: InitRepoLabelsResult = {
+    labelsRecord: {},
+    allLabels: [],
+  };
 
-  const [repoLabels, repository] = await Promise.all([
-    shouldIgnore ? emptyLabelsRecord : initRepoLabels(context, config),
-    findOrCreateRepository(),
-  ]);
+  const [{ labelsRecord: repoLabels, allLabels }, repository] =
+    await Promise.all([
+      shouldIgnore ? emptyLabelsResult : initRepoLabels(context, config),
+      findOrCreateRepository(),
+    ]);
+
+  if (!shouldIgnore) {
+    await syncRepositoryLabels({
+      mongoStores: appContext.mongoStores,
+      account: accountContext.accountEmbed,
+      repo: { id, name },
+      labels: allLabels,
+    });
+  }
 
   const getReviewLabel = (name?: string) =>
     name ? repoLabels[name] : undefined;

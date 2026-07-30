@@ -118,7 +118,9 @@ describe("opened", (): void => {
         pullRequestOpened.payload as unknown as ProbotEvent<"pull_request.opened">["payload"],
     });
 
-    expect(insertOnePr).toHaveBeenCalled();
+    expect(insertOnePr).toHaveBeenCalledWith(
+      expect.objectContaining({ labels: [] }),
+    );
     expect(partialUpdateOnePr).toHaveBeenCalled();
     expect(scope.pendingMocks()).toEqual([]);
     expect(scope.activeMocks()).toEqual([]);

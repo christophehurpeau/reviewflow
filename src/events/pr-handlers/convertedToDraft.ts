@@ -54,7 +54,13 @@ export default function convertedToDraft(
                 : {}),
             },
           ),
-          updateReviewStatus(pullRequest, context, repoContext, stepsState),
+          updateReviewStatus(
+            pullRequest,
+            context,
+            repoContext,
+            stepsState,
+            reviewflowPrContext,
+          ),
           updateStatusCheckFromStepsState(
             stepsState,
             pullRequest,

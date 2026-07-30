@@ -19,12 +19,17 @@ export const getLabelsForRepo = async <T extends EmitterWebhookEventName>(
   context: ProbotEvent<T>,
 ): Promise<
   RestEndpointMethodTypes["issues"]["listLabelsForRepo"]["response"]["data"]
-> => {
-  const { data: labels } = await context.octokit.rest.issues.listLabelsForRepo(
+> =>
+  context.octokit.paginate(
+    context.octokit.rest.issues.listLabelsForRepo,
     context.repo({ per_page: 100 }),
   );
-  return labels;
-};
+
+export interface InitRepoLabelsResult {
+  labelsRecord: LabelsRecord;
+  /** every label of the repository, with the changes made below applied */
+  allLabels: LabelResponse[];
+}
 
 export const initRepoLabels = async <
   T extends EmitterWebhookEventName,
@@ -32,9 +37,12 @@ export const initRepoLabels = async <
 >(
   context: ProbotEvent<T>,
   config: Config<TeamNames>,
-): Promise<LabelsRecord> => {
+): Promise<InitRepoLabelsResult> => {
   const labels = await getLabelsForRepo<T>(context);
   const finalLabels: Record<string, LabelResponse> = {};
+  const allLabels = new Map<number, LabelResponse>(
+    labels.map((label) => [label.id, label]),
+  );
 
   if (config.labels.legacyToRemove) {
     for (const labelConfig of Object.values(config.labels.legacyToRemove)) {
@@ -47,6 +55,7 @@ export const initRepoLabels = async <
             name: labelConfig.name,
           }),
         );
+        allLabels.delete(existingLabel.id);
       }
     }
   }
@@ -96,6 +105,7 @@ export const initRepoLabels = async <
         }),
       );
       finalLabels[labelKey] = result.data;
+      allLabels.set(result.data.id, result.data);
     } else if (
       existingLabel.name !== labelConfig.name ||
       existingLabel.color !== labelColor ||
@@ -122,10 +132,11 @@ export const initRepoLabels = async <
         }),
       );
       finalLabels[labelKey] = result.data;
+      allLabels.set(result.data.id, result.data);
     } else {
       finalLabels[labelKey] = existingLabel;
     }
   }
 
-  return finalLabels;
+  return { labelsRecord: finalLabels, allLabels: [...allLabels.values()] };
 };

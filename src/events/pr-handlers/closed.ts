@@ -73,7 +73,13 @@ export default function closed(app: Probot, appContext: AppContext): void {
         } else {
           await Promise.all([
             updateClosedPromise,
-            updateReviewStatus(pullRequest, context, repoContext, stepsState),
+            updateReviewStatus(
+              pullRequest,
+              context,
+              repoContext,
+              stepsState,
+              reviewflowPrContext,
+            ),
             updateStatusCheckFromStepsState(
               stepsState,
               pullRequest,

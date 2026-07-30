@@ -1,18 +1,34 @@
 import type { EmitterWebhookEventName } from "@octokit/webhooks";
 import type { SetRequired } from "type-fest";
+import type { AppContext } from "../../../../context/AppContext.ts";
 import type { LabelResponse } from "../../../../context/initRepoLabels";
+import type { ReviewflowPr } from "../../../../mongo.ts";
 import type { ProbotEvent } from "../../../probot-types";
 import type { PullRequestWithDecentData } from "../../utils/PullRequestData";
 import hasLabelInPR from "./labels/hasLabelInPR.ts";
+import { updateReviewflowPrLabels } from "./labels/reviewflowPrLabels.ts";
 
 type SyncLabelCallback = (
   prLabels: LabelResponse[],
   // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
 ) => Promise<boolean | undefined | void> | boolean | undefined | void;
 
+/**
+ * Labels changed by reviewflow itself are notified with a bot sender, and those events
+ * are ignored: the pull request document is updated here instead.
+ */
+export interface PersistLabelsTo {
+  appContext: AppContext;
+  reviewflowPr: ReviewflowPr;
+}
+
 interface SyncLabelOptions {
   onRemove?: SyncLabelCallback;
   onAdd?: SyncLabelCallback;
+}
+
+interface SyncSingleLabelOptions extends SyncLabelOptions {
+  persist?: PersistLabelsTo;
 }
 
 /** @deprecated use syncLabels instead */
@@ -24,7 +40,7 @@ export default async function syncLabel<
   shouldHaveLabel: boolean,
   label: LabelResponse | undefined,
   prHasLabel = hasLabelInPR(pullRequest.labels, label),
-  { onRemove, onAdd }: SyncLabelOptions = {},
+  { onRemove, onAdd, persist }: SyncSingleLabelOptions = {},
 ): Promise<void> {
   if (!label) return;
   if (prHasLabel && !shouldHaveLabel) {
@@ -34,15 +50,20 @@ export default async function syncLabel<
         name: label.name,
       }),
     );
+    let updatedLabels = response.data;
     if (onRemove) {
       if ((await onRemove(response.data)) === false) {
-        await context.octokit.rest.issues.addLabels(
+        const addResponse = await context.octokit.rest.issues.addLabels(
           context.repo({
             issue_number: pullRequest.number,
             labels: [label.name],
           }),
         );
+        updatedLabels = addResponse.data;
       }
+    }
+    if (persist) {
+      await updateReviewflowPrLabels({ ...persist, labels: updatedLabels });
     }
   }
   if (shouldHaveLabel && !prHasLabel) {
@@ -52,15 +73,20 @@ export default async function syncLabel<
         labels: [label.name],
       }),
     );
+    let updatedLabels = response.data;
     if (onAdd) {
       if ((await onAdd(response.data)) === false) {
-        await context.octokit.rest.issues.removeLabel(
+        const removeResponse = await context.octokit.rest.issues.removeLabel(
           context.repo({
             issue_number: pullRequest.number,
             name: label.name,
           }),
         );
+        updatedLabels = removeResponse.data;
       }
+    }
+    if (persist) {
+      await updateReviewflowPrLabels({ ...persist, labels: updatedLabels });
     }
   }
 }
@@ -69,6 +95,7 @@ export const removeLabel = async <EventName extends EmitterWebhookEventName>(
   context: ProbotEvent<EventName>,
   pullRequest: PullRequestWithDecentData,
   label: LabelResponse,
+  persist?: PersistLabelsTo,
 ): Promise<LabelResponse[]> => {
   const response = await context.octokit.rest.issues.removeLabel(
     context.repo({
@@ -76,6 +103,9 @@ export const removeLabel = async <EventName extends EmitterWebhookEventName>(
       name: label.name,
     }),
   );
+  if (persist) {
+    await updateReviewflowPrLabels({ ...persist, labels: response.data });
+  }
   return response.data;
 };
 
@@ -93,6 +123,7 @@ export async function syncLabels<EventName extends EmitterWebhookEventName>(
   pullRequest: PullRequestWithDecentData,
   context: ProbotEvent<EventName>,
   labelsToSync: LabelToSync[],
+  persist?: PersistLabelsTo,
 ): Promise<LabelResponse[]> {
   const labelsToRemove: LabelResponse[] = [];
   const labelsToAdd: string[] = [];
@@ -143,6 +174,15 @@ export async function syncLabels<EventName extends EmitterWebhookEventName>(
       }),
     );
     updatedLabels = response.data;
+  }
+
+  /*
+   * Only persisted when github answered with the labels of the pull request: `pullRequest`
+   * can be a payload snapshot taken before another action of the same handler changed them.
+   * Persisted before the callbacks, which can change labels again through their own persist.
+   */
+  if (persist && updatedLabels !== pullRequest.labels) {
+    await updateReviewflowPrLabels({ ...persist, labels: updatedLabels });
   }
 
   // eslint-disable-next-line @typescript-eslint/await-thenable

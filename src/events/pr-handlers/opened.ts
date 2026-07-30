@@ -35,12 +35,17 @@ export default function opened(app: Probot, appContext: AppContext): void {
 
       if (isFromBot) {
         // sync labels before `editOpenedPR` to make sure comment has automerge selected
-        pullRequestLabels = await syncLabels(pullRequest, context, [
-          {
-            shouldHaveLabel: true,
-            label: autoMergeLabel,
-          },
-        ]);
+        pullRequestLabels = await syncLabels(
+          pullRequest,
+          context,
+          [
+            {
+              shouldHaveLabel: true,
+              label: autoMergeLabel,
+            },
+          ],
+          { appContext, reviewflowPr: reviewflowPrContext.reviewflowPr },
+        );
       }
 
       await Promise.all<unknown>([
@@ -63,7 +68,13 @@ export default function opened(app: Probot, appContext: AppContext): void {
             });
 
             await Promise.all([
-              updateReviewStatus(pullRequest, context, repoContext, stepsState),
+              updateReviewStatus(
+                pullRequest,
+                context,
+                repoContext,
+                stepsState,
+                reviewflowPrContext,
+              ),
               isFromBot &&
                 mergeOrEnableGithubAutoMerge(
                   pullRequest,

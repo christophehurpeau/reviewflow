@@ -38,12 +38,19 @@ export default function autoMergeChangedHandler(
               autoMerge: true,
             },
           )),
-        syncLabels(pullRequest, context, [
-          {
-            shouldHaveLabel: true,
-            label: autoMergeLabel,
-          },
-        ]),
+        syncLabels(
+          pullRequest,
+          context,
+          [
+            {
+              shouldHaveLabel: true,
+              label: autoMergeLabel,
+            },
+          ],
+          reviewflowPrContext
+            ? { appContext, reviewflowPr: reviewflowPrContext.reviewflowPr }
+            : undefined,
+        ),
         reviewflowPrContext &&
           mergeOrEnableGithubAutoMerge(
             pullRequest,
@@ -84,12 +91,19 @@ export default function autoMergeChangedHandler(
               autoMerge: false,
             },
           )),
-        syncLabels(pullRequest, context, [
-          {
-            shouldHaveLabel: false,
-            label: autoMergeLabel,
-          },
-        ]),
+        syncLabels(
+          pullRequest,
+          context,
+          [
+            {
+              shouldHaveLabel: false,
+              label: autoMergeLabel,
+            },
+          ],
+          reviewflowPrContext
+            ? { appContext, reviewflowPr: reviewflowPrContext.reviewflowPr }
+            : undefined,
+        ),
       ]);
     },
   );

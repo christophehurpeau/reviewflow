@@ -143,7 +143,17 @@ describe("edited", (): void => {
       },
     });
 
-    expect(partialUpdateOnePr).toHaveBeenCalledTimes(3);
+    // the pull request has no label yet, then reviewflow adds the needs-review one
+    expect(partialUpdateOnePr).toHaveBeenCalledWith(expect.any(Object), {
+      $set: { labels: [] },
+    });
+    expect(partialUpdateOnePr).toHaveBeenCalledWith(expect.any(Object), {
+      $set: {
+        labels: [{ id: 1_210_432_920, name: ":ok_hand: code/needs-review" }],
+      },
+    });
+
+    expect(partialUpdateOnePr).toHaveBeenCalledTimes(5);
     expect(scope.pendingMocks()).toEqual([]);
     expect(scope.activeMocks()).toEqual([]);
   });

@@ -24,11 +24,13 @@ const createMongoStores = (prsToUpdate: ReviewflowPr[]) => {
   const partialUpdateByKeyRepository = vi.fn(() => Promise.resolve());
   const partialUpdateOnePr = vi.fn(() => Promise.resolve());
   const deleteOnePr = vi.fn(() => Promise.resolve());
+  const partialUpdateManyLabels = vi.fn(() => Promise.resolve());
 
   return {
     partialUpdateByKeyRepository,
     partialUpdateOnePr,
     deleteOnePr,
+    partialUpdateManyLabels,
     mongoStores: {
       repositories: { partialUpdateByKey: partialUpdateByKeyRepository },
       prs: {
@@ -36,6 +38,7 @@ const createMongoStores = (prsToUpdate: ReviewflowPr[]) => {
         partialUpdateOne: partialUpdateOnePr,
         deleteOne: deleteOnePr,
       },
+      labels: { partialUpdateMany: partialUpdateManyLabels },
     } as unknown as MongoStores,
   };
 };
@@ -55,6 +58,21 @@ describe("updateRepositoryAccount", () => {
     expect(partialUpdateByKeyRepository).toHaveBeenCalledWith(42, {
       $set: { account, fullName: "new-owner/new-name" },
     });
+  });
+
+  test("moves the labels of the repository", async () => {
+    const { mongoStores, partialUpdateManyLabels } = createMongoStores([]);
+
+    await updateRepositoryAccount({
+      mongoStores,
+      ...options,
+      fullName: "new-owner/new-name",
+    });
+
+    expect(partialUpdateManyLabels).toHaveBeenCalledWith(
+      { "repo.id": 42 },
+      { $set: { account, "repo.name": "new-name" } },
+    );
   });
 
   test("moves the pull requests left on the previous account", async () => {

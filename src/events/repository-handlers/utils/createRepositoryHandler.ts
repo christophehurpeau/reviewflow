@@ -16,7 +16,12 @@ import type { ProbotEvent } from "../../probot-types.ts";
  */
 export type EventsWithRepositoryOwner = CustomExtract<
   EmitterWebhookEventName,
-  "repository.edited" | "repository.renamed" | "repository.transferred"
+  | "label.created"
+  | "label.deleted"
+  | "label.edited"
+  | "repository.edited"
+  | "repository.renamed"
+  | "repository.transferred"
 >;
 
 type CallbackContextAndAccountContext<

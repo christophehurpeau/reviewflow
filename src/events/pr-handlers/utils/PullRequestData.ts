@@ -4,6 +4,7 @@ import type {
   CustomExtract,
   EventsWithRepository,
 } from "../../../context/repoContext";
+import type { LabelEmbed } from "../../../mongo";
 import type { ProbotEvent } from "../../probot-types";
 import type { EventsWithPullRequest } from "./createPullRequestHandler";
 import type { PullRequestFromRestEndpoint } from "./fetchPr";
@@ -33,6 +34,7 @@ export type PullRequestWithDecentData =
   | PullRequestWithDecentDataFromWebhook;
 
 export type PullRequestLabels =
+  | LabelEmbed[]
   | LabelResponse[]
   | PullRequestWithDecentData["labels"];
 

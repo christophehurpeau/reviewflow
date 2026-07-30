@@ -31,6 +31,11 @@ export const updateRepositoryAccount = async ({
     $set: { account, fullName },
   });
 
+  await mongoStores.labels.partialUpdateMany(
+    { "repo.id": repositoryId },
+    { $set: { account, "repo.name": repoName } },
+  );
+
   const prsToUpdate = await mongoStores.prs.findAll({
     "repo.id": repositoryId,
     "account.id": { $ne: account.id },

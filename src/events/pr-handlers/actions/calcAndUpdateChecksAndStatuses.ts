@@ -178,6 +178,7 @@ export async function calcAndUpdateChecksAndStatuses<
     pullRequest,
     context,
     getStateChecksLabelsToSync(repoContext, state),
+    { appContext, reviewflowPr: reviewflowPrContext.reviewflowPr },
   );
 
   if (updateStatusCheckAndBodyProgress) {

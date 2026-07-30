@@ -73,6 +73,19 @@ interface RepoEmbed {
   name: Repository["fullName"];
 }
 
+export interface Label extends MongoBaseModel<number> {
+  account: AccountEmbed;
+  repo: RepoEmbed;
+  name: string;
+  color: string;
+  description?: string | null;
+}
+
+export interface LabelEmbed {
+  id: Label["_id"];
+  name: Label["name"];
+}
+
 export interface OrgTeam extends MongoBaseModel<number> {
   org: AccountEmbedWithoutType;
   name: string;
@@ -165,6 +178,7 @@ export interface ReviewflowPr extends MongoBaseModel {
   reviews: ReviewersGroupedByState;
   creator?: BasicUser;
   assignees: BasicUser[];
+  labels?: LabelEmbed[];
   flowDates?: {
     createdAt: Date;
     openedAt: Date;
@@ -191,6 +205,7 @@ export interface MongoStores {
   orgs: MongoStore<Org>;
   orgMembers: MongoStore<OrgMember>;
   repositories: MongoStore<Repository>;
+  labels: MongoStore<Label>;
   orgTeams: MongoStore<OrgTeam>;
   slackTeams: MongoStore<SlackTeam>;
   slackTeamInstallations: MongoStore<SlackTeamInstallation>;
@@ -314,6 +329,12 @@ export default function init(): MongoStores {
     });
   });
 
+  const labels = new MongoStore<Label>(connection, "labels");
+  labels.collection.then((coll) => {
+    coll.createIndex({ "repo.id": 1 });
+    coll.createIndex({ "account.id": 1 });
+  });
+
   const installationsEvents = new MongoStore<InstallationEvent>(
     connection,
     "installationsEvents",
@@ -335,6 +356,7 @@ export default function init(): MongoStores {
     slackTeamInstallations,
     slackSentMessages,
     repositories,
+    labels,
     prs,
     installationsEvents,
   };

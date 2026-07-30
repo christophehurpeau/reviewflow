@@ -90,7 +90,19 @@ export const readCommitsAndUpdateInfos = async <
 
   await Promise.all([
     updatePrIfNeeded(pullRequest, context, { title: prTitle, body: prBody }),
-    syncLabel(pullRequest, context, hasBreakingChanges, breakingChangesLabel),
+    syncLabel(
+      pullRequest,
+      context,
+      hasBreakingChanges,
+      breakingChangesLabel,
+      undefined,
+      {
+        persist: {
+          appContext: repoContext.appContext,
+          reviewflowPr: reviewflowPrContext.reviewflowPr,
+        },
+      },
+    ),
     updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newCommentBody),
   ]);
 };

@@ -8,6 +8,10 @@ import { ExcludesFalsy } from "../../../utils/Excludes.ts";
 import { getReviewsState } from "../../../utils/github/pullRequest/reviews.ts";
 import type { ProbotEvent } from "../../probot-types.ts";
 import { defaultCommentBody } from "../actions/utils/body/updateBody.ts";
+import {
+  toLabelEmbeds,
+  updateReviewflowPrLabels,
+} from "../actions/utils/labels/reviewflowPrLabels.ts";
 import type {
   PullRequestDataMinimumData,
   PullRequestWithDecentData,
@@ -78,6 +82,8 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
         "assignees" in pullRequest && pullRequest.assignees
           ? pullRequest.assignees.filter(ExcludesFalsy).map(toBasicUser)
           : [],
+      labels:
+        "labels" in pullRequest ? toLabelEmbeds(pullRequest.labels) : undefined,
       flowDates:
         "created_at" in pullRequest
           ? getInitialFlowDatesFromPullRequest(pullRequest)
@@ -91,6 +97,14 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
     "repo.id": repoContext.repoEmbed.id,
     "pr.number": prEmbed.number,
   });
+
+  if (existing && "labels" in pullRequest) {
+    await updateReviewflowPrLabels({
+      appContext,
+      reviewflowPr: existing,
+      labels: pullRequest.labels,
+    });
+  }
 
   const [comment, reviewsState] = existing
     ? await Promise.all([
@@ -133,6 +147,8 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
       "assignees" in pullRequest && pullRequest.assignees
         ? pullRequest.assignees.filter(ExcludesFalsy).map(toBasicUser)
         : [],
+    labels:
+      "labels" in pullRequest ? toLabelEmbeds(pullRequest.labels) : undefined,
   });
 
   if (!comment) {

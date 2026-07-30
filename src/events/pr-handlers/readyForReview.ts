@@ -58,7 +58,13 @@ export default function readyForReview(
           (!isFromBot || !hasLabelInPR(pullRequest.labels, autoApproveLabel)) &&
             autoAddReviewers(pullRequest, context, repoContext),
 
-          updateReviewStatus(pullRequest, context, repoContext, stepsState),
+          updateReviewStatus(
+            pullRequest,
+            context,
+            repoContext,
+            stepsState,
+            reviewflowPrContext,
+          ),
           editOpenedPR({
             stepsState,
             pullRequest,

@@ -1,5 +1,6 @@
 import type { Probot } from "probot";
 import type { AppContext } from "../../context/AppContext.ts";
+import type { LabelResponse } from "../../context/initRepoLabels.ts";
 import type { ProbotEvent } from "../probot-types.ts";
 import { disableGithubAutoMerge } from "./actions/enableGithubAutoMerge.ts";
 import { tryToAutomerge } from "./actions/tryToAutomerge.ts";
@@ -7,7 +8,9 @@ import { updateBranch } from "./actions/updateBranch.ts";
 import { updatePrCommentBodyOptions } from "./actions/updatePrCommentBody.ts";
 import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState.ts";
 import hasLabelInPR from "./actions/utils/labels/hasLabelInPR.ts";
+import { updateReviewflowPrLabels } from "./actions/utils/labels/reviewflowPrLabels.ts";
 import { calcStepsState } from "./actions/utils/steps/calcStepsState.ts";
+import { removeLabel } from "./actions/utils/syncLabel.ts";
 import type { PullRequestLabels } from "./utils/PullRequestData.ts";
 import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
 import { fetchPr } from "./utils/fetchPr.ts";
@@ -47,6 +50,23 @@ export default function labelsChanged(
 
       const fromRenovate = isFromRenovate(context.payload);
       const updatedPr = await fetchPr(context, pullRequest.number);
+      const persistLabels = {
+        appContext,
+        reviewflowPr: reviewflowPrContext.reviewflowPr,
+      };
+
+      const addLabels = async (
+        labelNames: string[],
+      ): Promise<LabelResponse[]> => {
+        const { data } = await context.octokit.rest.issues.addLabels(
+          context.repo({
+            issue_number: pullRequest.number,
+            labels: labelNames,
+          }),
+        );
+        await updateReviewflowPrLabels({ ...persistLabels, labels: data });
+        return data;
+      };
 
       const updateBranchLabel = repoContext.labels["merge/update-branch"];
       const autoMergeLabel = repoContext.labels["merge/automerge"];
@@ -70,13 +90,7 @@ export default function labelsChanged(
               autoMergeSkipCiLabel &&
               repoContext.config.autoMergeRenovateWithSkipCi;
             if (autoMergeWithSkipCi) {
-              const result = await context.octokit.rest.issues.addLabels(
-                context.repo({
-                  issue_number: pullRequest.number,
-                  labels: [autoMergeSkipCiLabel.name],
-                }),
-              );
-              labels = result.data;
+              labels = await addLabels([autoMergeSkipCiLabel.name]);
             }
 
             const stepsState = calcStepsState({
@@ -159,19 +173,9 @@ export default function labelsChanged(
 
       if (repoContext.protectedLabelIds.includes(label.id)) {
         if (context.payload.action === "labeled") {
-          await context.octokit.rest.issues.removeLabel(
-            context.repo({
-              issue_number: pullRequest.number,
-              name: label.name,
-            }),
-          );
+          await removeLabel(context, pullRequest, label, persistLabels);
         } else {
-          await context.octokit.rest.issues.addLabels(
-            context.repo({
-              issue_number: pullRequest.number,
-              labels: [label.name],
-            }),
-          );
+          await addLabels([label.name]);
         }
         return;
       }
@@ -183,12 +187,7 @@ export default function labelsChanged(
             repoContext.repoEmbed.name,
           )
         ) {
-          await context.octokit.rest.issues.removeLabel(
-            context.repo({
-              issue_number: pullRequest.number,
-              name: label.name,
-            }),
-          );
+          await removeLabel(context, pullRequest, label, persistLabels);
         }
       }
 
@@ -220,12 +219,7 @@ export default function labelsChanged(
 
           // if not successful, remove label
           if (didFailedToEnableAutoMerge) {
-            await context.octokit.rest.issues.removeLabel(
-              context.repo({
-                issue_number: pullRequest.number,
-                name: label.name,
-              }),
-            );
+            await removeLabel(context, pullRequest, label, persistLabels);
           }
         } else {
           // eslint-disable-next-line no-lonely-if
@@ -239,12 +233,7 @@ export default function labelsChanged(
             );
             // if not successful, add label back
             if (!successful) {
-              await context.octokit.rest.issues.addLabels(
-                context.repo({
-                  issue_number: pullRequest.number,
-                  labels: [label.name],
-                }),
-              );
+              await addLabels([label.name]);
             }
           }
         }
@@ -253,12 +242,7 @@ export default function labelsChanged(
       if (label.id === updateBranchLabel?.id) {
         if (context.payload.action === "labeled") {
           await updateBranch(updatedPr, context, context.payload.sender.login);
-          await context.octokit.rest.issues.removeLabel(
-            context.repo({
-              issue_number: pullRequest.number,
-              name: label.name,
-            }),
-          );
+          await removeLabel(context, pullRequest, label, persistLabels);
         }
       }
 

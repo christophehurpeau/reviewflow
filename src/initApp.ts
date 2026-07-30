@@ -6,6 +6,7 @@ import orgMemberAddedOrRemoved from "./events/account-handlers/orgMemberAddedOrR
 import teamChanged from "./events/account-handlers/teamChanged.ts";
 import commitCommentCreated from "./events/commit-handlers/commitCommentCreated.ts";
 import installation from "./events/installation-handlers/installation.ts";
+import labelChanged from "./events/label-handlers/labelChanged.ts";
 import assignedOrUnassignedHandler from "./events/pr-handlers/assignedOrUnassigned.ts";
 import autoMergeChangedHandler from "./events/pr-handlers/autoMergeChanged.ts";
 import checkrunCompleted from "./events/pr-handlers/checkrun.ts";
@@ -48,6 +49,10 @@ export default function initApp(app: Probot, appContext: AppContext): void {
   repoEdited(app, appContext);
   repoRenamed(app, appContext);
   repoTransferred(app, appContext);
+
+  // Label
+  /* https://docs.github.com/en/webhooks/webhook-events-and-payloads#label */
+  labelChanged(app, appContext);
 
   // Push
   /* https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#push */

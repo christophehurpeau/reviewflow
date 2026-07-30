@@ -1,4 +1,5 @@
 import type { ReviewLabels } from "../../../accountConfigs/types.ts";
+import type { LabelResponse } from "../../../context/initRepoLabels.ts";
 import type {
   EventsWithRepository,
   RepoContext,
@@ -8,6 +9,7 @@ import type {
   PullRequestLabels,
   PullRequestWithDecentData,
 } from "../utils/PullRequestData.ts";
+import type { ReviewflowPrContext } from "../utils/createPullRequestContext.ts";
 import type { StepsState } from "./utils/steps/calcStepsState.ts";
 import type { LabelToSync } from "./utils/syncLabel.ts";
 import { syncLabels } from "./utils/syncLabel.ts";
@@ -20,10 +22,9 @@ export const updateReviewStatus = async <
   context: ProbotEvent<EventName>,
   repoContext: RepoContext<TeamNames>,
   stepsState: StepsState,
+  reviewflowPrContext: ReviewflowPrContext | null,
 ): Promise<PullRequestLabels> => {
-  const getLabelFromKey = (
-    key: ReviewLabels,
-  ): PullRequestLabels[number] | undefined => {
+  const getLabelFromKey = (key: ReviewLabels): LabelResponse | undefined => {
     const reviewConfig = repoContext.config.labels.review;
     if (!reviewConfig) return undefined;
 
@@ -48,25 +49,35 @@ export const updateReviewStatus = async <
     });
   }
 
-  return syncLabels(pullRequest, context, [
-    {
-      label: getLabelFromKey("needsReview"),
-      shouldHaveLabel: stepsState.codeReview.isMissingReview,
-    },
-    {
-      label: getLabelFromKey("requested"),
-      shouldHaveLabel:
-        stepsState.codeReview.hasRequestedReviewers ||
-        stepsState.codeReview.hasRequestedTeams,
-    },
-    {
-      label: getLabelFromKey("changesRequested"),
-      shouldHaveLabel: stepsState.codeReview.hasChangesRequested,
-    },
-    {
-      label: getLabelFromKey("approved"),
-      shouldHaveLabel: stepsState.codeReview.isApproved,
-    },
-    ...teamLabels,
-  ]);
+  return syncLabels(
+    pullRequest,
+    context,
+    [
+      {
+        label: getLabelFromKey("needsReview"),
+        shouldHaveLabel: stepsState.codeReview.isMissingReview,
+      },
+      {
+        label: getLabelFromKey("requested"),
+        shouldHaveLabel:
+          stepsState.codeReview.hasRequestedReviewers ||
+          stepsState.codeReview.hasRequestedTeams,
+      },
+      {
+        label: getLabelFromKey("changesRequested"),
+        shouldHaveLabel: stepsState.codeReview.hasChangesRequested,
+      },
+      {
+        label: getLabelFromKey("approved"),
+        shouldHaveLabel: stepsState.codeReview.isApproved,
+      },
+      ...teamLabels,
+    ],
+    reviewflowPrContext
+      ? {
+          appContext: repoContext.appContext,
+          reviewflowPr: reviewflowPrContext.reviewflowPr,
+        }
+      : undefined,
+  );
 };
