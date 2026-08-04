@@ -82,7 +82,7 @@
     "@typescript/native": "npm:typescript@7.0.2",
     "@vitest/coverage-v8": "4.1.10",
     "eslint": "10.8.0",
-    "nock": "14.0.16",
+    "nock": "14.0.17",
     "smee-client": "5.0.0",
     "type-fest": "5.8.0",
     "typescript": "npm:@typescript/typescript6@6.0.2",
