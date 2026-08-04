@@ -43,7 +43,7 @@
     "@commitlint/parse": "21.0.2",
     "@octokit/core": "7.0.6",
     "@octokit/graphql": "9.0.3",
-    "@octokit/plugin-rest-endpoint-methods": "17.0.0",
+    "@octokit/plugin-rest-endpoint-methods": "18.0.0",
     "@octokit/rest": "22.0.1",
     "@octokit/webhooks": "14.2.0",
     "@sentry/node": "10.68.0",
