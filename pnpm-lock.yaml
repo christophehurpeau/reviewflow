@@ -97,8 +97,8 @@ importers:
         specifier: 10.0.0
         version: 10.0.0(@typescript/typescript6@6.0.2)(rollup@4.60.4)(supports-color@7.2.0)
       '@pob/root':
-        specifier: 26.0.0
-        version: 26.0.0
+        specifier: 27.4.0
+        version: 27.4.0
       '@types/body-parser':
         specifier: 1.19.6
         version: 1.19.6
@@ -847,8 +847,8 @@ packages:
     engines: {node: '>=22.18.0'}
     hasBin: true
 
-  '@pob/root@26.0.0':
-    resolution: {integrity: sha512-duF58bcwqkk55fNnub5uG1F+V3v+fcCqwgcCDtaA3SefHAsp3UmlHJVERELrYwr2wTVgrgC8xbogvWQpLdV3Ww==}
+  '@pob/root@27.4.0':
+    resolution: {integrity: sha512-0h+HgoZIjz0DWZkkmpw4O+trrDGytScSR1hbsShXcFBbO22kImuYDDgz3dKASH4MgPqNE0ldnNTeczxZ48ZW2Q==}
     engines: {node: '>=22.18.0'}
     hasBin: true
 
@@ -3315,8 +3315,8 @@ packages:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
 
-  pob-dependencies@26.0.0:
-    resolution: {integrity: sha512-d+dwe8ATBiIZfsqLZJ2Sb+Nya7AHL26YMV6E7ozRpiosjJ3PHwRU10Do2nEBodF7ZOelL9hAAdprLoSkeGs9Lw==}
+  pob-dependencies@27.3.0:
+    resolution: {integrity: sha512-8v303Ms40ymBOSNkMVstVoFCiJjMLAaGpP81SMyq5bCK3HOrTC1PZ61CMwGyvfb9AnV+RImYg4vjvov3F3Selg==}
     engines: {node: '>=22.18.0'}
 
   possible-typed-array-names@1.1.0:
@@ -4621,7 +4621,7 @@ snapshots:
     dependencies:
       rollup: 4.60.4
 
-  '@pob/root@26.0.0':
+  '@pob/root@27.4.0':
     dependencies:
       '@commitlint/format': 21.0.1
       '@commitlint/lint': 21.0.2
@@ -4634,7 +4634,7 @@ snapshots:
       lint-staged: 17.2.0
       oxfmt: 0.54.0
       picomatch: 4.0.5
-      pob-dependencies: 26.0.0
+      pob-dependencies: 27.3.0
       semver: 7.8.5
     transitivePeerDependencies:
       - svelte
@@ -7312,7 +7312,7 @@ snapshots:
 
   pluralize@8.0.0: {}
 
-  pob-dependencies@26.0.0: {}
+  pob-dependencies@27.3.0: {}
 
   possible-typed-array-names@1.1.0: {}
 
