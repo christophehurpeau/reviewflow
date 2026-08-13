@@ -1,5 +1,5 @@
-import type { Probot } from "probot";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import type { Probot } from "probot";
 import { voidTeamSlack } from "../../context/slack/voidTeamSlack.ts";
 import { initializeProbotApp, nock } from "../../tests/setup.ts";
 import type { ProbotEvent } from "../probot-types.ts";

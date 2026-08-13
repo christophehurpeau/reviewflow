@@ -1,5 +1,5 @@
-import type { Probot } from "probot";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import type { Probot } from "probot";
 import pullRequestEdited from "../../__fixtures__/pull_request_30.edited.json";
 import { voidTeamSlack } from "../../context/slack/voidTeamSlack.ts";
 import {

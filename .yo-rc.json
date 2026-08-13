@@ -1,22 +1,23 @@
 {
   "pob": {
-    "promptValues": {
-      "authorName": "Christophe Hurpeau",
-      "authorEmail": "christophe@hurpeau.com",
-      "authorUrl": "https://christophe.hurpeau.com"
-    },
-    "renovate": {
-      "enable": true
-    },
-    "app": {
-      "type": "node",
-      "testing": true,
-      "testRunner": "vitest"
-    },
     "project": {
       "type": "app",
       "packageManager": "pnpm",
       "ci": true
+    },
+    "renovate": {
+      "enable": true
+    },
+    "monorepo": {
+      "ci": true,
+      "disablePushWorkflow": false,
+      "testing": true,
+      "testRunner": "vitest",
+      "e2eTesting": false,
+      "codecov": false,
+      "typescript": true,
+      "eslint": true,
+      "packageNames": ["reviewflow"]
     }
   }
 }

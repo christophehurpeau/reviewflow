@@ -6,10 +6,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-/build
-/.env*
-!/.env.example
-
 # IDE
 /.settings
 /.project
@@ -20,6 +16,9 @@ yarn-error.log*
 
 # default coverage directory
 /coverage
+
+# Typescript
+*.tsbuildinfo
 
 #*
 *$

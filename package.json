@@ -1,8 +1,7 @@
 {
-  "name": "reviewflow",
+  "name": "reviewflow-monorepo",
   "version": "6.3.1",
   "private": true,
-  "description": "🚦 Open Source GitHub bot that improves PR flow from opening to merging.",
   "homepage": "https://github.com/christophehurpeau/reviewflow",
   "bugs": {
     "url": "https://github.com/christophehurpeau/reviewflow/issues"
@@ -10,82 +9,32 @@
   "license": "ISC",
   "author": "Christophe Hurpeau <christophe@hurpeau.com> (https://christophe.hurpeau.com)",
   "repository": "https://github.com/christophehurpeau/reviewflow.git",
+  "workspaces": [
+    "packages/*"
+  ],
   "type": "module",
-  "main": "./build/index-node.mjs",
-  "exports": {
-    "./package.json": "./package.json",
-    ".": {
-      "types": "./src/index.ts",
-      "node": {
-        "import": "./build/index-node.mjs"
-      }
-    }
-  },
   "scripts": {
-    "build": "pnpm run clean:build && rollup --config rollup.config.mjs",
-    "clean": "pnpm run clean:build",
-    "clean:build": "pob-esbuild-clean-out build",
+    "build": "pnpm -r run build",
     "format": "oxfmt",
     "format:check": "oxfmt --check .",
-    "lint": "pnpm run format && tsc && pnpm run lint:eslint",
+    "lint": "pnpm run format && pnpm run lint:eslint",
     "lint:eslint": "eslint --quiet .",
     "prepare": "pob-root-postinstall",
-    "start": "pnpm run clean:build && rollup --config rollup.config.mjs --watch",
     "test": "TZ=UTC vitest",
     "test:coverage": "TZ=UTC POB_VITEST_COVERAGE=json,text vitest run --coverage",
     "test:coverage:generate": "TZ=UTC POB_VITEST_COVERAGE=json vitest run --coverage",
     "test:watch": "TZ=UTC vitest --watch",
-    "tsc": "tsc"
-  },
-  "dependencies": {
-    "@commitlint/config-conventional": "21.0.2",
-    "@commitlint/lint": "21.0.2",
-    "@commitlint/parse": "21.0.2",
-    "@octokit/core": "7.0.6",
-    "@octokit/graphql": "9.0.3",
-    "@octokit/plugin-rest-endpoint-methods": "17.0.0",
-    "@octokit/rest": "22.0.1",
-    "@octokit/webhooks": "14.2.0",
-    "@sentry/node": "10.68.0",
-    "@slack/web-api": "8.0.0",
-    "body-parser": "2.3.0",
-    "conventional-changelog-conventionalcommits": "9.3.1",
-    "cookie-parser": "1.4.7",
-    "dotenv": "17.4.2",
-    "emoji-regex": "10.6.0",
-    "express": "5.2.1",
-    "issue-parser": "7.0.2",
-    "jsonwebtoken": "9.0.3",
-    "liwi-mongo": "13.1.1",
-    "lock": "1.1.0",
-    "probot": "14.3.2",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "simple-oauth2": "5.1.0",
-    "slackify-markdown": "5.0.0",
-    "vite": "8.1.5"
+    "tsc": "tsc -b",
+    "watch": "pnpm -r --parallel --filter \"!*-example\" run watch"
   },
   "devDependencies": {
-    "@pob/eslint-config": "66.0.0",
-    "@pob/eslint-config-typescript-react": "66.0.0",
-    "@pob/rollup-esbuild": "10.0.0",
-    "@pob/root": "26.0.0",
-    "@types/body-parser": "1.19.6",
-    "@types/cookie-parser": "1.4.10",
-    "@types/express": "5.0.6",
-    "@types/issue-parser": "3.0.5",
-    "@types/jsonwebtoken": "9.0.10",
-    "@types/node": "24.12.4",
-    "@types/react": "18.3.31",
-    "@types/react-dom": "18.3.7",
-    "@types/simple-oauth2": "5.0.8",
+    "@pob/eslint-config": "67.4.0",
+    "@pob/root": "27.5.0",
     "@typescript/native": "npm:typescript@7.0.2",
     "@vitest/coverage-v8": "4.1.10",
-    "eslint": "10.8.0",
-    "nock": "14.0.16",
-    "smee-client": "5.0.0",
-    "type-fest": "5.8.0",
+    "eslint": "10.8.1",
     "typescript": "npm:@typescript/typescript6@6.0.2",
+    "vite": "8.1.5",
     "vitest": "4.1.10"
   },
   "commitlint": {
@@ -94,21 +43,7 @@
     ]
   },
   "engines": {
-    "node": ">=24.14.1"
-  },
-  "pob": {
-    "bundler": "rollup-esbuild",
-    "entries": [
-      "index"
-    ],
-    "envs": [
-      {
-        "target": "node",
-        "version": "24",
-        "omitVersionInFileName": true
-      }
-    ],
-    "jsx": true,
-    "typescript": true
+    "node": ">=24.14.1",
+    "pnpm": ">= 11.0.0"
   }
 }

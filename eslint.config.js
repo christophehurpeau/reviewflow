@@ -1,10 +1,11 @@
 import pobConfig, { apply, applyTs } from "@pob/eslint-config";
 
-const configs = pobConfig(import.meta.url).configs;
+const configs = pobConfig.configs;
 
 export default [
   { ignores: ["vite.config.ts"] },
   ...configs.node,
+  ...configs.monorepo,
   ...configs.app,
   ...configs.allowUnsafeAsWarn,
   ...apply({
@@ -25,16 +26,18 @@ export default [
       },
     ],
   }),
-  ...configs.checkPackages,
-  {
-    settings: {
-      "check-package-dependencies": {
-        library: false,
+  ...apply({
+    files: ["**/*.test.{js,ts}", "vitest.config.js"],
+    configs: [
+      {
+        settings: {
+          "import-x/core-modules": ["vitest"],
+        },
       },
-    },
-  },
+    ],
+  }),
   {
-    files: ["package.json"],
+    files: ["packages/reviewflow/package.json"],
     rules: {
       "check-package-dependencies/satisfies-versions-from-dependencies": [
         "error",

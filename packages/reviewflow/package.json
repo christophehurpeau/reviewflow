@@ -1,0 +1,99 @@
+{
+  "name": "reviewflow",
+  "version": "6.3.1",
+  "private": true,
+  "description": "🚦 Open Source GitHub bot that improves PR flow from opening to merging.",
+  "homepage": "https://github.com/christophehurpeau/reviewflow",
+  "license": "ISC",
+  "author": "Christophe Hurpeau <christophe@hurpeau.com> (https://christophe.hurpeau.com)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/christophehurpeau/reviewflow.git",
+    "directory": "packages/reviewflow"
+  },
+  "type": "module",
+  "main": "./build/index-node.mjs",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./src/index.ts",
+      "node": {
+        "import": "./build/index-node.mjs"
+      }
+    }
+  },
+  "scripts": {
+    "build": "pnpm run clean:build && rollup --config rollup.config.mjs",
+    "clean": "pnpm run clean:build",
+    "clean:build": "pob-esbuild-clean-out build",
+    "lint": "pnpm run lint:eslint",
+    "lint:eslint": "pnpm run --dir '../..' eslint --quiet 'packages/reviewflow'",
+    "start": "pnpm run clean:build && rollup --config rollup.config.mjs --watch",
+    "test": "pnpm run --dir '../..' test -- 'packages/reviewflow'",
+    "test:coverage:generate": "TZ=UTC POB_VITEST_COVERAGE=json vitest run --coverage",
+    "tsc": "tsc"
+  },
+  "dependencies": {
+    "@commitlint/config-conventional": "21.0.2",
+    "@commitlint/lint": "21.0.2",
+    "@commitlint/parse": "21.0.2",
+    "@octokit/core": "7.0.6",
+    "@octokit/graphql": "9.0.3",
+    "@octokit/plugin-rest-endpoint-methods": "17.0.0",
+    "@octokit/rest": "22.0.1",
+    "@octokit/webhooks": "14.2.0",
+    "@sentry/node": "10.68.0",
+    "@slack/web-api": "8.0.0",
+    "body-parser": "2.3.0",
+    "conventional-changelog-conventionalcommits": "9.3.1",
+    "cookie-parser": "1.4.7",
+    "dotenv": "17.4.2",
+    "emoji-regex": "10.6.0",
+    "express": "5.2.1",
+    "issue-parser": "7.0.2",
+    "jsonwebtoken": "9.0.3",
+    "liwi-mongo": "13.1.1",
+    "lock": "1.1.0",
+    "probot": "14.3.2",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "simple-oauth2": "5.1.0",
+    "slackify-markdown": "5.0.0",
+    "vite": "8.1.5"
+  },
+  "devDependencies": {
+    "@pob/rollup-esbuild": "10.0.0",
+    "@types/body-parser": "1.19.6",
+    "@types/cookie-parser": "1.4.10",
+    "@types/express": "5.0.6",
+    "@types/issue-parser": "3.0.5",
+    "@types/jsonwebtoken": "9.0.10",
+    "@types/node": "24.12.4",
+    "@types/react": "18.3.31",
+    "@types/react-dom": "18.3.7",
+    "@types/simple-oauth2": "5.0.8",
+    "@typescript/native": "npm:typescript@7.0.2",
+    "nock": "14.0.16",
+    "smee-client": "5.0.0",
+    "type-fest": "5.8.0",
+    "typescript": "npm:@typescript/typescript6@6.0.2"
+  },
+  "engines": {
+    "node": ">=24.14.1"
+  },
+  "pob": {
+    "bundler": "rollup-esbuild",
+    "entries": [
+      "index"
+    ],
+    "envs": [
+      {
+        "target": "node",
+        "version": "24",
+        "omitVersionInFileName": true
+      }
+    ],
+    "jsx": true,
+    "typescript": true
+  }
+}
