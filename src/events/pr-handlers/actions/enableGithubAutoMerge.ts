@@ -17,6 +17,7 @@ import type {
 } from "../utils/PullRequestData.ts";
 import { createPrMinimumDataFromPr } from "../utils/createPrMinimumDataFromPr.ts";
 import type { ReviewflowPrContext } from "../utils/createPullRequestContext.ts";
+import { getFailedChecksAndStatusesForMerge } from "../utils/getFailedChecksAndStatusesForMerge.ts";
 import { createCommitMessage } from "./createCommitMessage.ts";
 import { requestRestrictedApprovalReviewers } from "./requestRestrictedApprovalReviewers.ts";
 import { parseBody } from "./utils/body/parseBody.ts";
@@ -42,6 +43,7 @@ export interface MergeOrEnableGithubAutoMergeResult {
   isRescheduled?: boolean;
   didFailedToEnableAutoMerge?: boolean;
   isWaitingForRestrictedApproval?: boolean;
+  hasFailedChecks?: boolean;
   mergedRequest?: AutoMergeRequest;
 }
 
@@ -119,6 +121,29 @@ export const mergeOrEnableGithubAutoMerge = async <
     return {
       wasMerged: false,
       isWaitingForRestrictedApproval: true,
+    };
+  }
+
+  // a failed check keeps the pull request unmergeable: whatever unblocks it later (rerun, new
+  // commit, ...) triggers its own reschedule, so there is nothing to reschedule here.
+  const failedChecksAndStatuses = await getFailedChecksAndStatusesForMerge({
+    pullRequest,
+    context,
+    repoContext,
+    reviewflowPrContext,
+  });
+
+  if (failedChecksAndStatuses.length > 0) {
+    context.log.info(
+      {
+        ...context.repo({ issue_number: pullRequest.number }),
+        failedChecksAndStatuses,
+      },
+      "mergeOrEnableGithubAutomerge: failed checks, not merging",
+    );
+    return {
+      wasMerged: false,
+      hasFailedChecks: true,
     };
   }
 

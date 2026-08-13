@@ -30,15 +30,26 @@ const codeNeedsReviewLabel = createLabel(
   ":ok_hand: code/needs-review",
 );
 
+const headSha = "b8f2e0a6b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8";
+
 const merge = vi.fn(() => Promise.resolve({}));
 const graphql = vi.fn(() => Promise.resolve({}));
 const createComment = vi.fn(() => Promise.resolve({}));
 const reschedule = vi.fn(() => Promise.resolve());
+const listForRef = vi.fn(() => Promise.resolve({ data: { check_runs: [] } }));
+const getCombinedStatusForRef = vi.fn(() =>
+  Promise.resolve({ data: { statuses: [] } }),
+);
 
 const createContext = (): ProbotEvent<"check_suite.completed"> =>
   ({
     octokit: {
-      rest: { pulls: { merge }, issues: { createComment } },
+      rest: {
+        pulls: { merge },
+        issues: { createComment },
+        checks: { listForRef },
+        repos: { getCombinedStatusForRef },
+      },
       graphql,
     },
     log: { info: vi.fn(), error: vi.fn() },
@@ -87,7 +98,7 @@ const createPullRequest = (
     auto_merge: null,
     mergeable_state: "clean",
     user: { id: 302_891, login: "christophehurpeau", type: "User" },
-    head: { repo },
+    head: { repo, sha: headSha },
     base: {
       repo: {
         ...repo,
@@ -97,17 +108,29 @@ const createPullRequest = (
     },
   }) as unknown as PullRequestFromRestEndpoint;
 
-const reviewflowPrContext = {
-  commentBody: "",
-  reviewflowPr: {
-    reviews: {
-      approved: [],
-      changesRequested: [],
-      dismissed: [],
-      commented: [],
+const createReviewflowPrContext = (
+  failedCheckName?: string,
+): ReviewflowPrContext =>
+  ({
+    commentBody: "",
+    reviewflowPr: {
+      headSha,
+      checksConclusion: failedCheckName
+        ? {
+            "1_build": { name: failedCheckName, conclusion: "failure" },
+          }
+        : {},
+      statusesConclusion: {},
+      reviews: {
+        approved: [],
+        changesRequested: [],
+        dismissed: [],
+        commented: [],
+      },
     },
-  },
-} as unknown as ReviewflowPrContext;
+  }) as unknown as ReviewflowPrContext;
+
+const reviewflowPrContext = createReviewflowPrContext();
 
 const createStepsState = (codeReviewPassed: boolean): StepsState =>
   ({
@@ -174,6 +197,52 @@ describe("tryToAutomergeFromReschedule", (): void => {
       commit_message: "",
     });
     expect(result).toEqual({ wasMerged: true });
+  });
+
+  test("does not merge when a check failed on the head commit", async (): Promise<void> => {
+    const result = await tryToAutomergeFromReschedule({
+      pullRequest: createPullRequest([autoMergeLabel]),
+      context: createContext(),
+      repoContext: createRepoContext(),
+      reviewflowPrContext: createReviewflowPrContext("build"),
+      fromRescheduleTime: "short",
+      fromRescheduleAttempt: 0,
+    });
+
+    expect(merge).not.toHaveBeenCalled();
+    expect(graphql).not.toHaveBeenCalled();
+    expect(reschedule).not.toHaveBeenCalled();
+    expect(result).toEqual({ wasMerged: false, hasFailedChecks: true });
+  });
+
+  test("re-fetches the checks when the stored conclusions are from another commit", async (): Promise<void> => {
+    listForRef.mockResolvedValueOnce({
+      data: {
+        check_runs: [
+          {
+            name: "build",
+            conclusion: "failure",
+            check_suite: { id: 2 },
+          },
+        ],
+      },
+    } as unknown as Awaited<ReturnType<typeof listForRef>>);
+
+    const reviewflowPrContextWithOtherSha = createReviewflowPrContext();
+    reviewflowPrContextWithOtherSha.reviewflowPr.headSha = "another-sha";
+
+    const result = await tryToAutomergeFromReschedule({
+      pullRequest: createPullRequest([autoMergeLabel]),
+      context: createContext(),
+      repoContext: createRepoContext(),
+      reviewflowPrContext: reviewflowPrContextWithOtherSha,
+      fromRescheduleTime: "short",
+      fromRescheduleAttempt: 0,
+    });
+
+    expect(listForRef).toHaveBeenCalled();
+    expect(merge).not.toHaveBeenCalled();
+    expect(result).toEqual({ wasMerged: false, hasFailedChecks: true });
   });
 });
 

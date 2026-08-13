@@ -71,6 +71,24 @@ const mockMergeablePr = (
       mergeable_state: "clean",
     });
 
+const mockChecksAndStatuses = (
+  checkRuns: { name: string; conclusion: string }[] = [],
+): nock.Scope =>
+  nock("https://api.github.com")
+    .get(
+      "/repos/reviewflow/reviewflow-test/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da/check-runs?per_page=100",
+    )
+    .reply(200, {
+      check_runs: checkRuns.map((checkRun) => ({
+        ...checkRun,
+        check_suite: { id: 1 },
+      })),
+    })
+    .get(
+      "/repos/reviewflow/reviewflow-test/commits/2ab411d5c55f25f3dc2de6a3244f290a804e33da/status?per_page=100",
+    )
+    .reply(200, { statuses: [] });
+
 const mockMerge = (prNumber: number): nock.Scope =>
   nock("https://api.github.com")
     .put(`/repos/reviewflow/reviewflow-test/pulls/${prNumber}/merge`)
@@ -108,6 +126,7 @@ describe("check_suite.completed", (): void => {
     ]);
     const mergeWithoutAutoMergeScope = mockMerge(30);
     const mergeWithAutoMergeScope = mockMerge(31);
+    mockChecksAndStatuses();
 
     await probot.receive({
       id: "1",
@@ -125,5 +144,32 @@ describe("check_suite.completed", (): void => {
     expect(prWithAutoMergeScope.isDone()).toBe(true);
     expect(mergeWithAutoMergeScope.isDone()).toBe(true);
     expect(mergeWithoutAutoMergeScope.isDone()).toBe(false);
+  }, 25_000);
+
+  test("does not merge when another check failed on the head commit", async (): Promise<void> => {
+    mockReviewflowComment(31);
+    const prScope = mockMergeablePr(31, [codeNeedsReviewLabel, autoMergeLabel]);
+    const mergeScope = mockMerge(31);
+    const checksScope = mockChecksAndStatuses([
+      { name: "lint", conclusion: "failure" },
+    ]);
+
+    await probot.receive({
+      id: "1",
+      name: "check_suite",
+      payload: {
+        ...checkSuiteCompletedPayload,
+        check_suite: {
+          ...checkSuiteCompletedPayload.check_suite,
+          pull_requests: [{ id: 324_609_851, number: 31 }],
+        },
+      } as unknown as ProbotEvent<"check_suite.completed">["payload"],
+    });
+
+    await waitFor(() => checksScope.isDone());
+
+    expect(prScope.isDone()).toBe(true);
+    expect(checksScope.isDone()).toBe(true);
+    expect(mergeScope.isDone()).toBe(false);
   }, 25_000);
 });
