@@ -68,13 +68,14 @@ export function PrRow({ pr }: PrRowProps): ReactNode {
   ].filter(Boolean);
 
   return (
-    <VStack className="gap-xs">
+    <VStack className="gap-xxs">
       <HStack className="items-baseline gap-sm">
-        <Text className="font-mono text-sm text-muted">
+        <Text className="font-mono text-xs text-muted">
           {`${pr.orgLogin}/${pr.repoName}#${pr.number}`}
         </Text>
-        <Text className="flex-1 font-body-bold">{pr.title}</Text>
       </HStack>
+
+      <Text className="flex-1 font-body-bold">{pr.title}</Text>
 
       <HStack className="flex-wrap items-center gap-xs">
         {pr.isDraft ? <Badge variant="solid">draft</Badge> : null}
