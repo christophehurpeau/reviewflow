@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.6.0](https://github.com/christophehurpeau/reviewflow/compare/v6.5.0...v6.6.0) (2026-08-15)
+
+### Features
+
+* implement repository deletion and archiving handling
+
+### Bug Fixes
+
+* **deps:** update octokit monorepo ([#1193](https://github.com/christophehurpeau/reviewflow/issues/1193))
+
+Version bump for dependency: reviewflow-core
+Version bump for dependency: reviewflow-modules
+
+
 ## [6.5.0](https://github.com/christophehurpeau/reviewflow/compare/v6.4.0...v6.5.0) (2026-08-15)
 
 ### Features
