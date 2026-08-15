@@ -3,7 +3,7 @@ import pobConfig, { apply, applyTs } from "@pob/eslint-config";
 const configs = pobConfig.configs;
 
 export default [
-  { ignores: ["vite.config.ts"] },
+  { ignores: ["vite.config.ts", "packages/webapp/src/themeVariables.ts"] },
   ...configs.node,
   ...configs.monorepo,
   ...configs.app,

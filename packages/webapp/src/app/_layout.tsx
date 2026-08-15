@@ -1,6 +1,5 @@
 import "../global.css";
 import { AlouetteProvider, ConnectionState } from "alouette";
-import { themeVariables } from "alouette/defaultThemeVariables";
 import { Slot } from "expo-router";
 import { createVoidTransportClient } from "liwi-resources-void-client";
 import type { WebsocketTransportClientOptions } from "liwi-resources-websocket-client";
@@ -14,6 +13,7 @@ import {
 import { AuthenticatedUserProvider } from "#/services/AuthenticatedUserProvider.tsx";
 import { ReviewflowServicesProvider } from "#/services/ReviewflowServicesProvider.tsx";
 import { websocketUrl } from "#/services/serverUrl.ts";
+import { themeVariables } from "#/themeVariables.ts";
 
 const isServerRendering = globalThis.window === undefined;
 

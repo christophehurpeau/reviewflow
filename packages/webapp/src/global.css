@@ -1,5 +1,7 @@
 /* Tailwind only emits classes it finds while scanning the @source paths below.
    alouette is hoisted to the repo root node_modules, hence the depth. */
-@import "alouette/global.css";
+@import "alouette/core.css";
+@import "./palette.css";
+@import "./palette-oklch.css";
 @source "./**/*.{ts,tsx}";
 @source "../../../node_modules/alouette/src/**/*.{ts,tsx,js}";

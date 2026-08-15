@@ -67,3 +67,10 @@ elevation.
 - A list of pressable rows goes on the screen background, wrapped in
   `ListSection` for its heading.
 - `Surface` / `SettingsSection` is for static content only.
+
+The webapp ships its own palette instead of alouette's default: GitHub-Primer
+hues (green `brand` and `success`, Primer blue, red, amber, cool grays) declared
+in [packages/webapp/build-theme.ts](packages/webapp/build-theme.ts). It generates
+`src/palette.css`, `src/palette-oklch.css` and `src/themeVariables.ts` — all
+three generated, committed and never edited by hand. Change a hue in the script
+then `pnpm --filter webapp run build:theme`.
