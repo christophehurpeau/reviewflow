@@ -25,13 +25,13 @@
     "upgrade-expo": "expo install expo@57 --fix"
   },
   "dependencies": {
-    "@expo/metro-runtime": "57.0.9",
+    "@expo/metro-runtime": "57.0.10",
     "alouette": "22.6.0",
     "alouette-icons": "11.1.0",
-    "expo": "57.0.12",
-    "expo-constants": "57.0.10",
-    "expo-linking": "57.0.5",
-    "expo-router": "57.0.12",
+    "expo": "57.0.13",
+    "expo-constants": "57.0.11",
+    "expo-linking": "57.0.6",
+    "expo-router": "57.0.13",
     "expo-web-browser": "57.0.2",
     "lightningcss": "1.33.0",
     "liwi-resources-client": "13.1.1",
