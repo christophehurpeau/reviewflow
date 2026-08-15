@@ -14,6 +14,7 @@ import type {
 import { ExcludesFalsy } from "../../../utils/Excludes.ts";
 import { checkIfUserIsBot } from "../../../utils/github/isBotUser.ts";
 import { isPrFromRenovateBot } from "../../../utils/github/renovate.ts";
+import { orgSettingsUrl } from "../../../webappUrl.ts";
 import type { ProbotEvent } from "../../probot-types.ts";
 import type {
   PullRequestLabels,
@@ -371,7 +372,7 @@ export const editOpenedPR = async <
     commentBodyInfos.push({
       type: "failure",
       title: `@${pullRequest.user!.login} Connect your account to Slack to get notifications for your PRs !`,
-      url: `${process.env.REVIEWFLOW_APP_URL}/org/${context.payload.repository.owner!.login}`,
+      url: orgSettingsUrl(context.payload.repository.owner!.login),
       summary: "",
     });
   }

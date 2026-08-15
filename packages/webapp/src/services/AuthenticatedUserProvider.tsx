@@ -1,21 +1,31 @@
 import { Button, ErrorMessage, VStack } from "alouette";
 import { ResourcesServerError } from "liwi-resources-client";
 import type { ReactNode } from "react";
-import { createContext, use, useEffect, useState } from "react";
+import { createContext, use, useEffect, useMemo, useState } from "react";
 import { useTransportClientIsReady } from "react-liwi";
 import type { AuthenticatedUser } from "reviewflow-modules";
 import { SkeletonSections } from "#/components/skeleton.tsx";
 import { errorToMessage } from "#/errorToMessage.ts";
 import { useReviewflowServices } from "./ReviewflowServicesProvider.tsx";
-import { goToLogin } from "./serverUrl.ts";
 
-const AuthenticatedUserContext = createContext<AuthenticatedUser | undefined>(
-  undefined,
-);
+interface AuthenticatedUserContextValue {
+  user: AuthenticatedUser | null;
+}
+
+const AuthenticatedUserContext = createContext<
+  AuthenticatedUserContextValue | undefined
+>(undefined);
+
+/** `null` while signed out, which only the landing page is allowed to render. */
+export const useAuthenticatedUserOrNull = (): AuthenticatedUser | null => {
+  const contextValue = use(AuthenticatedUserContext);
+  if (!contextValue) throw new Error("Missing AuthenticatedUserProvider");
+  return contextValue.user;
+};
 
 export const useAuthenticatedUser = (): AuthenticatedUser => {
-  const user = use(AuthenticatedUserContext);
-  if (!user) throw new Error("Missing AuthenticatedUserProvider");
+  const user = useAuthenticatedUserOrNull();
+  if (!user) throw new Error("Not authenticated");
   return user;
 };
 
@@ -33,12 +43,12 @@ export function AuthenticatedUserProvider({
 }: AuthenticatedUserProviderProps): ReactNode {
   const { usersService } = useReviewflowServices();
   const isReady = useTransportClientIsReady();
-  const [user, setUser] = useState<AuthenticatedUser>();
+  const [user, setUser] = useState<AuthenticatedUser | null>();
   const [error, setError] = useState<unknown>();
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    if (!isReady || user) return;
+    if (!isReady || user !== undefined) return;
 
     let cancelled = false;
     usersService.operations.getAuthenticatedUser().then(
@@ -50,7 +60,7 @@ export function AuthenticatedUserProvider({
           error instanceof ResourcesServerError &&
           error.code === "UNAUTHENTICATED"
         ) {
-          goToLogin();
+          if (!cancelled) setUser(null);
           return;
         }
         // nothing retries this lookup on its own, and the whole app is gated
@@ -64,10 +74,15 @@ export function AuthenticatedUserProvider({
     };
   }, [isReady, user, usersService, retryCount]);
 
-  if (!user) {
+  const contextValue = useMemo(
+    () => (user === undefined ? undefined : { user }),
+    [user],
+  );
+
+  if (!contextValue) {
     return (
       <VStack className="min-h-screen bg-screen">
-        <VStack className="mx-auto w-full max-w-[960px] gap-l p-lg">
+        <VStack className="mx-auto w-full max-w-[960px] gap-l p-l">
           {error ? (
             <>
               <ErrorMessage>{errorToMessage(error)}</ErrorMessage>
@@ -89,6 +104,8 @@ export function AuthenticatedUserProvider({
   }
 
   return (
-    <AuthenticatedUserContext value={user}>{children}</AuthenticatedUserContext>
+    <AuthenticatedUserContext value={contextValue}>
+      {children}
+    </AuthenticatedUserContext>
   );
 }

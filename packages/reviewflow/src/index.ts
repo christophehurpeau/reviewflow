@@ -6,8 +6,11 @@ import type { AppContext } from "./context/AppContext.ts";
 import initApp from "./initApp.ts";
 import internalApiRouter from "./internalApi.ts";
 import { createSlackHomeWorker } from "./slack/home.ts";
+import { checkWebappUrlConfig } from "./webappUrl.ts";
 
 if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = "reviewflow";
+
+checkWebappUrlConfig();
 
 // eslint-disable-next-line no-console
 console.log({ name: process.env.REVIEWFLOW_NAME });

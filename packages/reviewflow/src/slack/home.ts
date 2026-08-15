@@ -10,6 +10,7 @@ import type {
 import { buildPrBucketQuery } from "reviewflow-core";
 import type { PrBucket } from "reviewflow-modules";
 import type { OctokitRestCompat } from "../octokit.ts";
+import { orgSettingsUrl } from "../webappUrl.ts";
 import {
   buildBlocksForDataFromGithubAndMongo,
   buildBlocksForDataFromMongo,
@@ -89,7 +90,7 @@ export const createSlackHomeWorker = (
         text: {
           type: "mrkdwn",
           text: `Configure your ${process.env.REVIEWFLOW_NAME} settings ${createLink(
-            `${process.env.REVIEWFLOW_APP_URL}/org/${member.org.login}`,
+            orgSettingsUrl(member.org.login),
             "here",
           )}.`,
         },

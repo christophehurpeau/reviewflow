@@ -1,10 +1,5 @@
 import "../global.css";
-import {
-  AlouetteProvider,
-  ConnectionState,
-  ScrollView,
-  VStack,
-} from "alouette";
+import { AlouetteProvider, ConnectionState } from "alouette";
 import { themeVariables } from "alouette/defaultThemeVariables";
 import { Slot } from "expo-router";
 import { createVoidTransportClient } from "liwi-resources-void-client";
@@ -16,7 +11,6 @@ import {
   transportClientStateToSimplifiedState,
   useTransportClientState,
 } from "react-liwi";
-import { AppHeader } from "#/components/app-header.tsx";
 import { AuthenticatedUserProvider } from "#/services/AuthenticatedUserProvider.tsx";
 import { ReviewflowServicesProvider } from "#/services/ReviewflowServicesProvider.tsx";
 import { websocketUrl } from "#/services/serverUrl.ts";
@@ -49,12 +43,7 @@ export default function RootLayout(): ReactNode {
         <ReviewflowServicesProvider>
           <AppConnectionState />
           <AuthenticatedUserProvider>
-            <VStack className="h-screen bg-screen">
-              <ScrollView className="flex-1" contentContainerClassName="pb-xl">
-                <AppHeader />
-                <Slot />
-              </ScrollView>
-            </VStack>
+            <Slot />
           </AuthenticatedUserProvider>
         </ReviewflowServicesProvider>
       </TransportClientProvider>
