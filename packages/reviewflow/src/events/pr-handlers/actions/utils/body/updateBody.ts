@@ -1,7 +1,8 @@
 import type {
   LabelList,
+  RepositorySettings,
   StatusInfo,
-} from "../../../../../accountConfigs/types";
+} from "reviewflow-core";
 import type { StepState } from "../steps/BaseStepState.ts";
 import { steps } from "../steps/calcStepsState.ts";
 import type { StepsState } from "../steps/calcStepsState.ts";
@@ -10,7 +11,6 @@ import { parseActions, parseOptions } from "./parseBody.ts";
 import type { ActionKeys } from "./prActions.ts";
 import { actionDescriptions } from "./prActions.ts";
 import { optionsDescriptions } from "./prOptions.ts";
-import type { RepositorySettings } from "./repositorySettings.ts";
 
 export const defaultCommentBody = "This will be auto filled by reviewflow.";
 

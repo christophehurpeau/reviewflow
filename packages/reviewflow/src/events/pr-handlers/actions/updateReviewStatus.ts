@@ -1,4 +1,4 @@
-import type { ReviewLabels } from "../../../accountConfigs/types.ts";
+import type { ReviewLabels } from "reviewflow-core";
 import type { LabelResponse } from "../../../context/initRepoLabels.ts";
 import type {
   EventsWithRepository,

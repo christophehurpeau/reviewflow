@@ -1,7 +1,14 @@
 import type { KnownBlock } from "@slack/web-api";
 import { WebClient } from "@slack/web-api";
 import type { Probot } from "probot";
-import type { MongoStores, Org, OrgMember } from "../mongo.ts";
+import type {
+  MongoStores,
+  Org,
+  OrgMember,
+  ReviewflowPr,
+} from "reviewflow-core";
+import { buildPrBucketQuery } from "reviewflow-core";
+import type { PrBucket } from "reviewflow-modules";
 import type { OctokitRestCompat } from "../octokit.ts";
 import {
   buildBlocksForDataFromGithubAndMongo,
@@ -27,6 +34,14 @@ export const createSlackHomeWorker = (
     member: OrgMember,
   ): Promise<void> => {
     if (!member.slack?.id) return;
+
+    const findPrsInBucket = (bucket: PrBucket): Promise<ReviewflowPr[]> => {
+      const { criteria, sort } = buildPrBucketQuery(bucket, {
+        userId: member.user.id,
+        orgs: [{ orgId: member.org.id, teams: member.teams }],
+      });
+      return mongoStores.prs.findAll(criteria, sort);
+    };
 
     /* search limit: 30 requests per minute = 7 update/min max */
     const [
@@ -55,88 +70,17 @@ export const createSlackHomeWorker = (
           return undefined;
         }),
       //prsWithRequestedReviewsFromMongo
-      mongoStores.prs.findAll(
-        {
-          "account.id": member.org.id,
-          isClosed: false,
-          isDraft: false,
-          ...(member.teams?.length > 0
-            ? {
-                $or: [
-                  { "reviews.reviewRequested.id": member.user.id },
-                  {
-                    "reviews.teamReviewRequested.id": {
-                      $in: member.teams.map((t) => t.id),
-                    },
-                  },
-                ],
-              }
-            : { "reviews.reviewRequested.id": member.user.id }),
-        },
-        // TODO sort by time since asked for review ASC
-        { "flowDates.opened": -1, created: -1 },
-      ),
+      findPrsInBucket("requested-reviews"),
       //prsToMerge
-      mongoStores.prs.findAll(
-        {
-          "account.id": member.org.id,
-          "assignees.id": member.user.id,
-          isClosed: false,
-          "reviews.teamReviewRequested": { $exists: true, $eq: [] },
-          "reviews.reviewRequested": { $exists: true, $eq: [] },
-          "reviews.changesRequested": { $exists: true, $eq: [] },
-          "reviews.approved": { $exists: true, $ne: [] },
-        },
-        { created: -1 },
-      ),
+      findPrsInBucket("ready-to-merge"),
       //prsWithRequestedChanges
-      mongoStores.prs.findAll(
-        {
-          "account.id": member.org.id,
-          "assignees.id": member.user.id,
-          isClosed: false,
-          "reviews.changesRequested": { $exists: true, $ne: [] },
-        },
-        { created: -1 },
-      ),
+      findPrsInBucket("changes-requested"),
       //prsInDraft
-      mongoStores.prs.findAll(
-        {
-          "account.id": member.org.id,
-          "assignees.id": member.user.id,
-          isClosed: false,
-          isDraft: true,
-        },
-        { created: -1 },
-      ),
+      findPrsInBucket("drafts"),
       //openedPrsWithNoActionPlanned
-      mongoStores.prs.findAll(
-        {
-          "account.id": member.org.id,
-          "assignees.id": member.user.id,
-          isClosed: false,
-          isDraft: false,
-          "reviews.teamReviewRequested": { $not: { $exists: true, $ne: [] } },
-          "reviews.reviewRequested": { $not: { $exists: true, $ne: [] } },
-          "reviews.changesRequested": { $not: { $exists: true, $ne: [] } },
-          "reviews.approved": { $not: { $exists: true, $ne: [] } },
-        },
-        { created: -1 },
-      ),
+      findPrsInBucket("no-action-planned"),
       //myOpenedPrsWaitingForRequestedReview
-      mongoStores.prs.findAll(
-        {
-          "account.id": member.org.id,
-          "assignees.id": member.user.id,
-          isClosed: false,
-          isDraft: false,
-          $or: [
-            { "reviews.teamReviewRequested": { $exists: true, $ne: [] } },
-            { "reviews.reviewRequested": { $exists: true, $ne: [] } },
-          ],
-        },
-        { created: -1 },
-      ),
+      findPrsInBucket("waiting-for-review"),
     ]);
 
     const baseBlocks: KnownBlock[] = [

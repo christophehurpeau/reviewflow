@@ -1,14 +1,18 @@
 import { WebClient } from "@slack/web-api";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- invalid used detection
 import type { CodedError } from "@slack/web-api";
-import type { Config } from "../../accountConfigs/index.ts";
-import type { MessageCategory } from "../../dm/MessageCategory.ts";
+import type {
+  AccountInfo,
+  Config,
+  MongoStores,
+  Org,
+  SlackMessage,
+  User,
+} from "reviewflow-core";
+import type { MessageCategory } from "reviewflow-modules";
 import { getUserDmSettings } from "../../dm/getUserDmSettings.ts";
 import type { ProbotEvent } from "../../events/probot-types";
-import type { MongoStores, Org, User } from "../../mongo.ts";
 import type { AppContext } from "../AppContext.ts";
-import type { AccountInfo } from "../getOrCreateAccount.ts";
-import type { SlackMessage } from "./SlackMessage.ts";
 import type { PostSlackMessageResult, TeamSlack } from "./TeamSlack.ts";
 import { voidTeamSlack } from "./voidTeamSlack.ts";
 

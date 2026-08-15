@@ -1,5 +1,5 @@
 import type { Block, KnownBlock } from "@slack/web-api";
-import type { SlackMessage } from "../../context/slack/SlackMessage";
+import type { SlackMessage } from "reviewflow-core";
 
 export const createMrkdwnSectionBlock = (text: string): KnownBlock => ({
   type: "section",

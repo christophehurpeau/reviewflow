@@ -1,7 +1,7 @@
 import type { Probot } from "probot";
+import { getEmojiFromRepoDescription } from "reviewflow-core";
 import type { AppContext } from "../../context/AppContext.ts";
 import { obtainRepoContext } from "../../context/repoContext.ts";
-import { getEmojiFromRepoDescription } from "../../context/utils.ts";
 import { getRepositorySettings } from "../../utils/github/repo/getRepositorySettings.ts";
 import { createRepositorySettings } from "../pr-handlers/actions/utils/body/repositorySettings.ts";
 import { createRepositoryHandler } from "./utils/createRepositoryHandler.ts";

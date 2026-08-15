@@ -1,18 +1,7 @@
-import type { RepositorySettingsQueryResult } from "../../../../../utils/github/repo/getRepositorySettings";
-
-export interface RepositorySettings {
-  defaultBranch: string;
-  deleteBranchOnMerge?: boolean;
-  allowAutoMerge?: boolean;
-  allowRebaseMerge?: boolean;
-  allowSquashMerge?: boolean;
-  allowMergeCommit?: boolean;
-  defaultBranchProtectionRules?: {
-    // requiredStatusChecks: RepositorySettingsQueryResult["repository"]["branchProtectionRules"]["nodes"][number]["requiredStatusChecks"];
-    requiresStatusChecks: RepositorySettingsQueryResult["repository"]["branchProtectionRules"]["nodes"][number]["requiresStatusChecks"];
-  } | null;
-  lastUpdated?: Date;
-}
+import type {
+  RepositorySettings,
+  RepositorySettingsQueryResult,
+} from "reviewflow-core";
 
 export function createRepositorySettings({
   repository,

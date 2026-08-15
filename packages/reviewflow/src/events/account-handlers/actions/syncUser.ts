@@ -1,4 +1,4 @@
-import type { MongoStores, User } from "../../../mongo";
+import type { MongoStores, User } from "reviewflow-core";
 import type { OctokitRestCompat } from "../../../octokit";
 
 interface UserInfo {

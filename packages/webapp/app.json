@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "reviewflow",
+    "slug": "reviewflow",
+    "scheme": "reviewflow",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": ["expo-router", "expo-web-browser"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

@@ -4,6 +4,31 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "webapp > start",
+      "type": "shell",
+      "command": "pnpm start",
+      "options": {
+        "cwd": "${workspaceFolder}/packages/webapp"
+      },
+      "group": {
+        "kind": "none"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "backend > dev",
+      "problemMatcher": [],
+      "type": "npm",
+      "script": "dev",
+      "group": "build",
+      "presentation": {
+        "panel": "dedicated",
+        "group": "build",
+        "clear": true
+      },
+      "isBackground": true
+    },
+    {
       "label": "build",
       "problemMatcher": [],
       "type": "npm",
@@ -78,19 +103,6 @@
         "group": "lint",
         "clear": true
       }
-    },
-    {
-      "label": "start",
-      "problemMatcher": [],
-      "type": "npm",
-      "script": "start",
-      "group": "build",
-      "presentation": {
-        "panel": "dedicated",
-        "group": "build",
-        "clear": true
-      },
-      "isBackground": true
     },
     {
       "label": "test",

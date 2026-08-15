@@ -1,15 +1,18 @@
 import type { Update } from "liwi-mongo";
-import type { StatusInfo } from "../../../accountConfigs/types.ts";
+import type {
+  ChecksAndStatuses,
+  ReviewflowPr,
+  ReviewflowStatus,
+  StatusInfo,
+} from "reviewflow-core";
+import { getKeys } from "reviewflow-core";
 import type { AppContext } from "../../../context/AppContext.ts";
 import type {
   EventsWithRepository,
   RepoContext,
 } from "../../../context/repoContext.ts";
-import { getKeys } from "../../../context/utils.ts";
-import type { ReviewflowPr } from "../../../mongo";
 import { ExcludesFalsy } from "../../../utils/Excludes.ts";
 import { checkIfUserIsBot } from "../../../utils/github/isBotUser.ts";
-import type { ChecksAndStatuses } from "../../../utils/github/pullRequest/checksAndStatuses.ts";
 import { isPrFromRenovateBot } from "../../../utils/github/renovate.ts";
 import type { ProbotEvent } from "../../probot-types.ts";
 import type {
@@ -37,11 +40,6 @@ import createStatus, { isSameStatus } from "./utils/createStatus.ts";
 import { cleanTitle } from "./utils/prTitle.ts";
 import type { StepsState } from "./utils/steps/calcStepsState.ts";
 import { updateSlackHomeForPr } from "./utils/updateSlackHome.ts";
-
-export interface ReviewflowStatus {
-  name: string;
-  status: StatusInfo;
-}
 
 export interface EditOpenedPullRequestOptions<
   EventName extends EventsWithRepository,
@@ -105,12 +103,13 @@ export const editOpenedPR = async <
   const statuses: ReviewflowStatus[] = [];
   let errorStatus: StatusInfo | undefined;
 
+  const lintTitleConfig =
+    repoContext.config.lintPullRequestTitleWithConventionalCommit;
+
   if (
-    repoContext.config.lintPullRequestTitleWithConventionalCommit === true ||
-    (repoContext.config.lintPullRequestTitleWithConventionalCommit &&
-      repoContext.config.lintPullRequestTitleWithConventionalCommit.test(
-        repoContext.repoEmbed.name,
-      ))
+    lintTitleConfig === true ||
+    (lintTitleConfig instanceof RegExp &&
+      lintTitleConfig.test(repoContext.repoEmbed.name))
   ) {
     try {
       const lintOutcome = await lintCommitMessage(title);

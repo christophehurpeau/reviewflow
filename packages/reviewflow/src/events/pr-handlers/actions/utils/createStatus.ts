@@ -1,4 +1,4 @@
-import type { StatusInfo } from "../../../../accountConfigs/types";
+import type { StatusInfo } from "reviewflow-core";
 import type { EventsWithRepository } from "../../../../context/repoContext";
 import type { ProbotEvent } from "../../../probot-types";
 

@@ -1,6 +1,6 @@
 import type { RestEndpointMethodTypes } from "@octokit/rest";
 import type { EmitterWebhookEventName } from "@octokit/webhooks";
-import type { Config } from "../accountConfigs";
+import type { Config } from "reviewflow-core";
 import type { ProbotEvent } from "../events/probot-types";
 
 export interface LabelResponse {

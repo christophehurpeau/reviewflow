@@ -1,0 +1,20 @@
+{
+  "extends": [
+    "@pob/root/tsconfigs/strict.json",
+    "@pob/root/tsconfigs/targets/expo.json"
+  ],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "./*.ts", "nativewind-env.d.ts"],
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true,
+    "tsBuildInfoFile": "node_modules/.cache/tsc/tsbuildinfo",
+    "incremental": true,
+    "jsx": "react-jsx" /* 'react-jsx' is used with react/jsx-runtime (react >=17 || >= 16.14.0 | >= 15.7.0) */,
+    "resolveJsonModule": true,
+    "paths": {
+      "#/*": ["./src/*"],
+      "reviewflow-modules": ["../../packages/reviewflow-modules/lib"],
+      "reviewflow-modules/*": ["../../packages/reviewflow-modules/lib/*"]
+    }
+  }
+}

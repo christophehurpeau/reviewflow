@@ -1,4 +1,4 @@
-import type { MongoStores, Org } from "../../../mongo";
+import type { MongoStores, Org } from "reviewflow-core";
 import type { OctokitPaginate, OctokitRestCompat } from "../../../octokit";
 
 interface OrgInfo {

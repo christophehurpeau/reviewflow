@@ -1,5 +1,5 @@
+import type { AccountEmbedWithoutType } from "reviewflow-core";
 import type { RepoContext } from "../../../../context/repoContext";
-import type { AccountEmbedWithoutType } from "../../../../mongo";
 import type { PullRequestWithDecentData } from "../../utils/PullRequestData";
 
 interface UpdateSlackHomeForPrOptions {

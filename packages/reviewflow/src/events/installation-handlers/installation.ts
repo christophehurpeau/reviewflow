@@ -1,6 +1,6 @@
 import type { Probot } from "probot";
+import type { AccountType } from "reviewflow-core";
 import type { AppContext } from "../../context/AppContext";
-import type { AccountType } from "../../mongo";
 
 export default function installation(
   app: Probot,

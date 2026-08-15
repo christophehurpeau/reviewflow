@@ -1,7 +1,7 @@
+import type { ChecksAndStatuses } from "reviewflow-core";
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import type { RepoContext } from "../../../context/repoContext.ts";
 import { ExcludesFalsy } from "../../../utils/Excludes.ts";
-import type { ChecksAndStatuses } from "../../../utils/github/pullRequest/checksAndStatuses.ts";
 
 export type ChecksAndStatusesState = "failed" | "passed" | "pending";
 

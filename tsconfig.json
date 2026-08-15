@@ -1,4 +1,11 @@
 {
   "files": [],
-  "references": [{ "path": "packages/reviewflow/tsconfig.json" }]
+  "references": [
+    { "path": "packages/modules/tsconfig.json" },
+    { "path": "packages/core/tsconfig.json" },
+    { "path": "packages/webapp/tsconfig.json" },
+    { "path": "packages/reviewflow/tsconfig.json" },
+    { "path": "packages/webapp-server/tsconfig.json" },
+    { "path": "tsconfig.tools.json" }
+  ]
 }

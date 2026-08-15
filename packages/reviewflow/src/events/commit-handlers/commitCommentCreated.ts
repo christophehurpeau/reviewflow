@@ -1,20 +1,22 @@
 import type { Probot } from "probot";
+import type {
+  AccountEmbed,
+  AccountInfo,
+  BasicUser,
+  SlackMessage,
+} from "reviewflow-core";
+import type { MessageCategory } from "reviewflow-modules";
 import type { AppContext } from "../../context/AppContext.ts";
-import type { AccountInfo } from "../../context/getOrCreateAccount.ts";
-import type { SlackMessage } from "../../context/slack/SlackMessage.ts";
 import type {
   PostSlackMessageResult,
   SlackMessageResult,
 } from "../../context/slack/TeamSlack.ts";
-import type { MessageCategory } from "../../dm/MessageCategory.ts";
-import type { AccountEmbed } from "../../mongo";
 import * as slackUtils from "../../slack/utils.ts";
 import { ExcludesNullish } from "../../utils/Excludes.ts";
 import { checkIfUserIsBot } from "../../utils/github/isBotUser.ts";
 import { parseMentions } from "../../utils/github/parseMentions.ts";
 import { createSlackMessageWithSecondaryBlock } from "../../utils/slack/createSlackMessageWithSecondaryBlock.ts";
 import { slackifyCommentBody } from "../../utils/slackifyCommentBody.ts";
-import type { BasicUser } from "../pr-handlers/utils/PullRequestData.ts";
 import { createCommitHandler } from "./utils/createCommitHandler.ts";
 import { fetchCommitComments } from "./utils/fetchCommitComments.ts";
 

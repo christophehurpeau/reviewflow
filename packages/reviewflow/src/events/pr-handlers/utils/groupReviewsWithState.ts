@@ -1,18 +1,8 @@
+import type { ReviewersGroupedByState } from "reviewflow-core";
 import type {
   ReviewerWithState,
   ReviewsState,
-  TeamInfo,
 } from "../../../utils/github/pullRequest/reviews";
-import type { Reviewer } from "./getReviewersAndReviewStates";
-
-export interface ReviewersGroupedByState {
-  teamReviewRequested: TeamInfo[];
-  reviewRequested: Reviewer[];
-  approved: Reviewer[];
-  changesRequested: Reviewer[];
-  dismissed: Reviewer[];
-  commented: Reviewer[];
-}
 
 const getKeyFromState = (
   state: ReviewerWithState["state"],

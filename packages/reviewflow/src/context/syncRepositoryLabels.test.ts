@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import type { AccountEmbed, Label, MongoStores } from "../mongo.ts";
+import type { AccountEmbed, Label, MongoStores } from "reviewflow-core";
 import type { LabelResponse } from "./initRepoLabels.ts";
 import { syncRepositoryLabels } from "./syncRepositoryLabels.ts";
 

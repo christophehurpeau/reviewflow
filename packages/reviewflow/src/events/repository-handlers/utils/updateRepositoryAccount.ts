@@ -1,4 +1,4 @@
-import type { AccountEmbed, MongoStores } from "../../../mongo.ts";
+import type { AccountEmbed, MongoStores } from "reviewflow-core";
 
 const mongoDuplicateKeyErrorCode = 11_000;
 

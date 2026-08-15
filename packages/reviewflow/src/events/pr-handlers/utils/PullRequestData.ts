@@ -1,10 +1,10 @@
+import type { BasicUser, LabelEmbed } from "reviewflow-core";
 import type { SetRequired } from "type-fest";
 import type { LabelResponse } from "../../../context/initRepoLabels";
 import type {
   CustomExtract,
   EventsWithRepository,
 } from "../../../context/repoContext";
-import type { LabelEmbed } from "../../../mongo";
 import type { ProbotEvent } from "../../probot-types";
 import type { EventsWithPullRequest } from "./createPullRequestHandler";
 import type { PullRequestFromRestEndpoint } from "./fetchPr";
@@ -38,12 +38,6 @@ export type PullRequestLabels =
   | LabelResponse[]
   | PullRequestWithDecentData["labels"];
 
-export interface BasicUser {
-  id: number;
-  login: string;
-  type?: string | "Bot" | "User";
-  avatar_url?: string;
-}
 export function toBasicUser<U extends BasicUser>(
   user: U,
 ): SetRequired<BasicUser, "avatar_url" | "type"> {

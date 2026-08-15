@@ -1,20 +1,9 @@
+import type { Options, OptionsKeys, RepositorySettings } from "reviewflow-core";
+import { options } from "reviewflow-core";
 import type { RepoContext } from "../../../../../context/repoContext.ts";
 import type { PullRequestLabels } from "../../../utils/PullRequestData.ts";
 import hasLabelInPR from "../labels/hasLabelInPR.ts";
-import type { RepositorySettings } from "./repositorySettings.ts";
 
-export type OptionsKeys =
-  | "autoMerge"
-  | "autoMergeWithSkipCi"
-  | "deleteAfterMerge";
-
-export type Options = Record<OptionsKeys, boolean>;
-
-export const options: OptionsKeys[] = [
-  "autoMerge",
-  "autoMergeWithSkipCi",
-  "deleteAfterMerge",
-];
 export const optionsRegexps: {
   key: OptionsKeys;
   regexp: RegExp;

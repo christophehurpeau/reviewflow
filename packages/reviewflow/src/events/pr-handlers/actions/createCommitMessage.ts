@@ -1,6 +1,6 @@
+import type { Options } from "reviewflow-core";
 import type { PullRequestWithDecentData } from "../utils/PullRequestData";
 import type { ParsedBody } from "./utils/body/parseBody";
-import type { Options } from "./utils/body/prOptions";
 
 interface CreateCommitMessageOptions {
   pullRequest: PullRequestWithDecentData;

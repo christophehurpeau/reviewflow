@@ -1,0 +1,17 @@
+{
+  "pob": {
+    "promptValues": {
+      "authorName": "Christophe Hurpeau",
+      "authorEmail": "christophe@hurpeau.com",
+      "authorUrl": "https://christophe.hurpeau.com"
+    },
+    "project": {
+      "type": "app",
+      "packageManager": "pnpm",
+      "ci": true
+    },
+    "app": {
+      "type": "node-library"
+    }
+  }
+}

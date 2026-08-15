@@ -1,9 +1,9 @@
+import type { Options } from "reviewflow-core";
 import type { ActionKeys } from "./prActions.ts";
 import { actionRegexps } from "./prActions.ts";
 import { optionsRegexps } from "./prOptions.ts";
-import type { Options } from "./prOptions.ts";
 
-export type { Options } from "./prOptions";
+export type { Options } from "reviewflow-core";
 
 export const parseOptions = (
   content: string,

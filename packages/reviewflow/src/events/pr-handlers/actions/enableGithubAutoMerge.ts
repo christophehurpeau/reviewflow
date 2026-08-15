@@ -1,4 +1,5 @@
 import { GraphqlResponseError } from "@octokit/graphql";
+import type { BasicUser } from "reviewflow-core";
 import type {
   EventsWithRepository,
   RepoContext,
@@ -11,10 +12,7 @@ import {
 } from "../../../utils/github/pullRequest/autoMerge.ts";
 import type { AutoMergeRequest } from "../../../utils/github/pullRequest/autoMerge.ts";
 import type { ProbotEvent } from "../../probot-types.ts";
-import type {
-  BasicUser,
-  PullRequestWithDecentData,
-} from "../utils/PullRequestData.ts";
+import type { PullRequestWithDecentData } from "../utils/PullRequestData.ts";
 import { createPrMinimumDataFromPr } from "../utils/createPrMinimumDataFromPr.ts";
 import type { ReviewflowPrContext } from "../utils/createPullRequestContext.ts";
 import { getFailedChecksAndStatusesForMerge } from "../utils/getFailedChecksAndStatusesForMerge.ts";

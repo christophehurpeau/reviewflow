@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import type { Config } from "../accountConfigs/index.ts";
+import type { Config } from "reviewflow-core";
 import type { ProbotEvent } from "../events/probot-types.ts";
 import type { LabelResponse } from "./initRepoLabels.ts";
 import { initRepoLabels } from "./initRepoLabels.ts";

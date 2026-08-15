@@ -1,0 +1,80 @@
+{
+  "name": "reviewflow-modules",
+  "version": "6.3.2",
+  "private": true,
+  "description": "shared types and service contracts between the reviewflow server and the webapp",
+  "homepage": "https://github.com/christophehurpeau/reviewflow",
+  "license": "ISC",
+  "author": "Christophe Hurpeau <christophe@hurpeau.com> (https://christophe.hurpeau.com)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/christophehurpeau/reviewflow.git",
+    "directory": "packages/modules"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "main": "./build/index-node.mjs",
+  "module": "./build/index-browser.es.js",
+  "browser": "./build/index-browser.es.js",
+  "types": "./src/index.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./src/index.ts",
+      "node": {
+        "import": "./build/index-node.mjs"
+      },
+      "browser": {
+        "import": "./build/index-browser.es.js"
+      }
+    }
+  },
+  "scripts": {
+    "build": "pnpm run clean:build && rollup --config rollup.config.mjs",
+    "clean": "pnpm run clean:build",
+    "clean:build": "pob-esbuild-clean-out build",
+    "lint": "pnpm run lint:eslint",
+    "lint:eslint": "pnpm run --dir '../..' eslint --quiet 'packages/modules'",
+    "start": "pnpm run clean:build && rollup --config rollup.config.mjs --watch",
+    "tsc": "tsc",
+    "watch": "pnpm run clean:build && rollup --config rollup.config.mjs --watch"
+  },
+  "dependencies": {
+    "liwi-mongo": "13.1.1",
+    "liwi-resources-client": "13.1.1"
+  },
+  "devDependencies": {
+    "@pob/rollup-esbuild": "10.0.0",
+    "@typescript/native": "npm:typescript@7.0.2",
+    "typescript": "npm:@typescript/typescript6@6.0.2"
+  },
+  "browserslist": {
+    "production": [
+      "defaults",
+      "> 0.2%",
+      "not ie < 12",
+      "not safari < 10",
+      "not ios_saf < 10"
+    ]
+  },
+  "engines": {
+    "node": ">=24.14.1"
+  },
+  "pob": {
+    "bundler": "rollup-esbuild",
+    "entries": [
+      "index"
+    ],
+    "envs": [
+      {
+        "target": "node",
+        "version": "24",
+        "omitVersionInFileName": true
+      },
+      {
+        "target": "browser"
+      }
+    ],
+    "typescript": true
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "name": "reviewflow-webapp-server",
+  "version": "6.3.2",
+  "private": true,
+  "description": "serves the reviewflow webapp, its oauth flows and its resources websocket",
+  "homepage": "https://github.com/christophehurpeau/reviewflow",
+  "license": "ISC",
+  "author": "Christophe Hurpeau <christophe@hurpeau.com> (https://christophe.hurpeau.com)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/christophehurpeau/reviewflow.git",
+    "directory": "packages/webapp-server"
+  },
+  "type": "module",
+  "main": "./build/index-node.mjs",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./src/index.ts",
+      "node": {
+        "import": "./build/index-node.mjs"
+      }
+    }
+  },
+  "scripts": {
+    "build": "pnpm run clean:build && rollup --config rollup.config.mjs",
+    "clean": "pnpm run clean:build",
+    "clean:build": "pob-esbuild-clean-out build",
+    "lint": "pnpm run lint:eslint",
+    "lint:eslint": "pnpm run --dir '../..' eslint --quiet 'packages/webapp-server'",
+    "start": "pnpm run clean:build && rollup --config rollup.config.mjs --watch",
+    "test": "pnpm run --dir '../..' test -- 'packages/webapp-server'",
+    "tsc": "tsc"
+  },
+  "dependencies": {
+    "@octokit/rest": "22.0.1",
+    "@slack/web-api": "8.0.0",
+    "cookie": "0.7.2",
+    "cookie-parser": "1.4.7",
+    "dotenv": "17.4.2",
+    "express": "5.2.1",
+    "jsonwebtoken": "9.0.3",
+    "liwi-mongo": "13.1.1",
+    "liwi-resources-server": "13.1.1",
+    "liwi-resources-websocket-server": "13.1.1",
+    "liwi-store": "13.1.1",
+    "reviewflow-core": "workspace:*",
+    "reviewflow-modules": "workspace:*",
+    "simple-oauth2": "5.1.0"
+  },
+  "devDependencies": {
+    "@pob/rollup-esbuild": "10.0.0",
+    "@types/cookie": "0.6.0",
+    "@types/cookie-parser": "1.4.10",
+    "@types/express": "5.0.6",
+    "@types/jsonwebtoken": "9.0.10",
+    "@types/node": "24.12.4",
+    "@types/simple-oauth2": "5.0.8",
+    "@typescript/native": "npm:typescript@7.0.2",
+    "type-fest": "5.8.0",
+    "typescript": "npm:@typescript/typescript6@6.0.2"
+  },
+  "engines": {
+    "node": ">=24.14.1"
+  },
+  "pob": {
+    "bundler": "rollup-esbuild",
+    "entries": [
+      "index"
+    ],
+    "envs": [
+      {
+        "target": "node",
+        "version": "24",
+        "omitVersionInFileName": true
+      }
+    ],
+    "typescript": true
+  }
+}

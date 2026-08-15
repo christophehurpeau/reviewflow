@@ -1,27 +1,5 @@
 import type { Context } from "probot";
-
-export interface RepositorySettingsQueryResult {
-  repository: {
-    autoMergeAllowed: boolean;
-    deleteBranchOnMerge: boolean;
-    defaultBranchRef: {
-      name: string;
-    };
-    mergeCommitAllowed: boolean;
-    rebaseMergeAllowed: boolean;
-    squashMergeAllowed: boolean;
-    branchProtectionRules: {
-      nodes: {
-        matchingRefs: { nodes: { name: string }[] };
-        requiresStatusChecks: boolean;
-        // requiredStatusChecks: {
-        //   app: { id: string; name: string } | null;
-        //   context: string;
-        // }[];
-      }[];
-    };
-  };
-}
+import type { RepositorySettingsQueryResult } from "reviewflow-core";
 
 export const getRepositorySettings = (
   context: Context,

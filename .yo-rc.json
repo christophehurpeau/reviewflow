@@ -17,7 +17,13 @@
       "codecov": false,
       "typescript": true,
       "eslint": true,
-      "packageNames": ["reviewflow"]
+      "packageNames": [
+        "reviewflow-modules",
+        "reviewflow-core",
+        "webapp",
+        "reviewflow",
+        "reviewflow-webapp-server"
+      ]
     }
   }
 }

@@ -1,10 +1,10 @@
+import type { Options } from "reviewflow-core";
 import type {
   EventsWithRepository,
   RepoContext,
 } from "../../../context/repoContext.ts";
 import type { ProbotEvent } from "../../probot-types.ts";
 import type { ReviewflowPrContext } from "../utils/createPullRequestContext.ts";
-import type { Options } from "./utils/body/prOptions.ts";
 import { updateCommentOptions } from "./utils/body/updateBody.ts";
 
 const updatePrCommentBody = async <Name extends EventsWithRepository>(

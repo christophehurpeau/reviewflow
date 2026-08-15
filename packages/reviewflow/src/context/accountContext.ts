@@ -1,22 +1,22 @@
 import { Lock } from "lock";
-import type { Config } from "../accountConfigs";
-import type { EventsWithOrganisation } from "../events/account-handlers/utils/createHandlerOrgChange";
-import type { ProbotEvent } from "../events/probot-types";
 import type {
   AccountEmbed,
   AccountEmbedWithoutType,
+  AccountInfo,
   AccountType,
+  Config,
   Org,
   OrgMember,
   User,
-} from "../mongo";
+} from "reviewflow-core";
+import { getTeams } from "reviewflow-core";
+import type { EventsWithOrganisation } from "../events/account-handlers/utils/createHandlerOrgChange";
+import type { ProbotEvent } from "../events/probot-types";
 import type { AppContext } from "./AppContext.ts";
-import type { AccountInfo } from "./getOrCreateAccount.ts";
 import { getOrCreateAccount } from "./getOrCreateAccount.ts";
 import type { EventsWithRepository } from "./repoContext.ts";
 import type { TeamSlack } from "./slack/initTeamSlack.ts";
 import { initTeamSlack } from "./slack/initTeamSlack.ts";
-import { getKeys } from "./utils.ts";
 
 export interface AccountContext<TeamNames extends string = any> {
   config: Config<TeamNames>;
@@ -30,23 +30,6 @@ export interface AccountContext<TeamNames extends string = any> {
   updateGithubTeamMembers: () => Promise<void>;
   lock: (callback: () => Promise<void> | void) => Promise<void>;
 }
-
-export const getTeams = <TeamNames extends string>(
-  config: Config<TeamNames>,
-  member: OrgMember,
-): TeamNames[] => {
-  const { teams } = config;
-
-  const teamNames = getKeys(teams).filter((teamName) => {
-    const githubTeamName = teams[teamName].githubTeamName;
-    if (!githubTeamName) {
-      return false;
-    }
-    return member.teams.some((team) => team.name === githubTeamName);
-  });
-
-  return teamNames;
-};
 
 const initAccountContext = async <
   EventName extends EventsWithOrganisation | EventsWithRepository,

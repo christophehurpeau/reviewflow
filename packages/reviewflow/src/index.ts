@@ -1,12 +1,10 @@
 import "dotenv/config";
-import cookieParser from "cookie-parser";
 import Express from "express";
-import type { MongoConnection } from "liwi-mongo";
-import { createNodeMiddleware, createProbot, run } from "probot";
-import appRouter from "./appRouter.tsx";
+import { createNodeMiddleware, createProbot } from "probot";
+import { mongoInit } from "reviewflow-core";
 import type { AppContext } from "./context/AppContext.ts";
 import initApp from "./initApp.ts";
-import mongoInit from "./mongo.ts";
+import internalApiRouter from "./internalApi.ts";
 import { createSlackHomeWorker } from "./slack/home.ts";
 
 if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = "reviewflow";
@@ -14,18 +12,15 @@ if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = "reviewflow";
 // eslint-disable-next-line no-console
 console.log({ name: process.env.REVIEWFLOW_NAME });
 
-// const getConfig = require('probot-config')
-// const { MongoClient } = require('mongodb');
+const port = Number(process.env.PORT) || 3001;
+const webhooksPath = "/api/github/webhooks";
 
-// const connect = MongoClient.connect(process.env.MONGO_URL);
-// const db = connect.then(client => client.db(process.env.MONGO_DB));
-
-// let config = await getConfig(context, 'reviewflow.yml');
-
-let mongoConnection: MongoConnection | null = null;
+// github must reach `port` from the internet, so the internal api gets its own
+// listener bound to the loopback interface instead of sharing that exposure
+const internalApiPort = Number(process.env.INTERNAL_API_PORT) || 3002;
+const internalApiHost = process.env.INTERNAL_API_HOST || "127.0.0.1";
 
 const mongoStores = mongoInit();
-mongoConnection = mongoStores.connection;
 
 const expressApp = Express();
 
@@ -41,36 +36,57 @@ const middleware = await createNodeMiddleware(
     initApp(probot, appContext);
   },
   {
-    webhooksPath: "/api/github/webhooks",
+    webhooksPath,
     probot,
   },
 );
 
 expressApp.use(middleware);
 
-expressApp.use(cookieParser());
-expressApp.use("/app", await appRouter(probot, appContext));
+const internalApiApp = Express();
+internalApiApp.use("/api/internal", internalApiRouter(probot, appContext));
 
-if (process.env.WEBHOOK_PROXY_URL) {
-  run((probot) => {
-    initApp(probot, appContext);
-  });
-} else {
-  const server = expressApp.listen(3000, () => {
-    console.log("Server is running at http://localhost:3000");
-    slackHome.scheduleUpdateAllOrgs((id) => probot.auth(id) as any);
-  });
+const server = expressApp.listen(port, () => {
+  console.log(`Webhook server is running at http://localhost:${port}`);
+  slackHome.scheduleUpdateAllOrgs((id) => probot.auth(id) as any);
+});
 
-  const gracefulExit = function gracefulExit(): void {
-    server.close();
-    setTimeout(() => {
-      mongoConnection?.close().then(() => {
-        // eslint-disable-next-line unicorn/no-process-exit
-        process.exit(0);
-      });
-    }, 200);
-  };
+const internalApiServer = internalApiApp.listen(
+  internalApiPort,
+  internalApiHost,
+  () => {
+    console.log(
+      `Internal api is running at http://${internalApiHost}:${internalApiPort}`,
+    );
+  },
+);
 
-  process.on("SIGINT", gracefulExit);
-  process.on("SIGTERM", gracefulExit);
-}
+// In development github cannot reach this machine, so smee replays the
+// webhooks onto the same route the production deliveries hit.
+const smeeClient = process.env.WEBHOOK_PROXY_URL
+  ? await import("smee-client").then(
+      ({ default: SmeeClient }) =>
+        new SmeeClient({
+          source: process.env.WEBHOOK_PROXY_URL!,
+          target: `http://localhost:${port}${webhooksPath}`,
+          logger: console,
+        }),
+    )
+  : undefined;
+
+await smeeClient?.start();
+
+const gracefulExit = function gracefulExit(): void {
+  smeeClient?.stop().catch(console.error);
+  server.close();
+  internalApiServer.close();
+  setTimeout(() => {
+    mongoStores.connection.close().then(() => {
+      // eslint-disable-next-line unicorn/no-process-exit
+      process.exit(0);
+    });
+  }, 200);
+};
+
+process.on("SIGINT", gracefulExit);
+process.on("SIGTERM", gracefulExit);

@@ -3,14 +3,20 @@
     "@pob/root/tsconfigs/strict.json",
     "@pob/root/tsconfigs/targets/rollup-node-24.json"
   ],
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "include": ["src/**/*.ts"],
   "compilerOptions": {
     "rootDir": "src",
     "noEmit": true,
     "tsBuildInfoFile": "node_modules/.cache/tsc/tsbuildinfo",
     "incremental": true,
 
-    "jsx": "react-jsx" /* 'react-jsx' is used with react/jsx-runtime (react >=17 || >= 16.14.0 | >= 15.7.0) */,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+
+    "paths": {
+      "reviewflow-modules": ["../../packages/reviewflow-modules/lib"],
+      "reviewflow-modules/*": ["../../packages/reviewflow-modules/lib/*"],
+      "reviewflow-core": ["../../packages/reviewflow-core/lib"],
+      "reviewflow-core/*": ["../../packages/reviewflow-core/lib/*"]
+    }
   }
 }

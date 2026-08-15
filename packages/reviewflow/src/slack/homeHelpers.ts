@@ -1,5 +1,6 @@
 import type { KnownBlock } from "@slack/web-api";
-import type { ReviewflowPr } from "../mongo.ts";
+import type { ReviewflowPr } from "reviewflow-core";
+import { buildPullRequestUrl } from "reviewflow-core";
 import type { OctokitRestCompat } from "../octokit.ts";
 import { ExcludesFalsy } from "../utils/Excludes.ts";
 import {
@@ -10,11 +11,6 @@ import {
 export type GithubSearchResponse = Awaited<
   ReturnType<OctokitRestCompat["search"]["issuesAndPullRequests"]>
 >;
-
-export const buildPullRequestUrl = (
-  reviewflowPullRequest: ReviewflowPr,
-): string =>
-  `https://github.com/${reviewflowPullRequest.account.login}/${reviewflowPullRequest.repo.name}/pull/${reviewflowPullRequest.pr.number}`;
 
 export const createTitleBlock = (title: string): KnownBlock => ({
   type: "section",

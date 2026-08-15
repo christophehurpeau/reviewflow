@@ -15,6 +15,7 @@
   "type": "module",
   "scripts": {
     "build": "pnpm -r run build",
+    "dev": "pnpm -r --parallel --filter reviewflow-core --filter reviewflow --filter reviewflow-webapp-server run start",
     "format": "oxfmt",
     "format:check": "oxfmt --check .",
     "lint": "pnpm run format && pnpm run lint:eslint",

@@ -1,9 +1,8 @@
 import type { Probot } from "probot";
+import type { AccountEmbed, SlackMessage } from "reviewflow-core";
 import { slackifyMarkdown } from "slackify-markdown";
 import type { AppContext } from "../../context/AppContext.ts";
-import type { SlackMessage } from "../../context/slack/SlackMessage.ts";
 import type { PostSlackMessageResult } from "../../context/slack/TeamSlack.ts";
-import type { AccountEmbed } from "../../mongo.ts";
 import * as slackUtils from "../../slack/utils.ts";
 import { ExcludesNullish } from "../../utils/Excludes.ts";
 import { getReviewsState } from "../../utils/github/pullRequest/reviews.ts";

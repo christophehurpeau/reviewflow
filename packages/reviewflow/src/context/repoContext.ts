@@ -1,16 +1,24 @@
 import type { EmitterWebhookEventName } from "@octokit/webhooks";
 import { Lock } from "lock";
-import type { Config } from "../accountConfigs/index.ts";
-import { accountConfigs, defaultConfig } from "../accountConfigs/index.ts";
+import type {
+  BasicUser,
+  Config,
+  Repository,
+  RepositorySettings,
+} from "reviewflow-core";
+import {
+  accountConfigs,
+  defaultConfig,
+  getEmojiFromRepoDescription,
+  shouldIgnoreRepo,
+} from "reviewflow-core";
 import { tryToAutomergeFromReschedule } from "../events/pr-handlers/actions/tryToAutomerge.ts";
-import type { RepositorySettings } from "../events/pr-handlers/actions/utils/body/repositorySettings.ts";
 import {
   createRepositorySettings,
   isSettingsLastUpdatedExpired,
 } from "../events/pr-handlers/actions/utils/body/repositorySettings.ts";
 import hasLabelInPR from "../events/pr-handlers/actions/utils/labels/hasLabelInPR.ts";
 import type {
-  BasicUser,
   PullRequestDataMinimumData,
   PullRequestLabels,
 } from "../events/pr-handlers/utils/PullRequestData.ts";
@@ -19,7 +27,6 @@ import { fetchPr } from "../events/pr-handlers/utils/fetchPr.ts";
 import { isCheckNotAllowedToFail } from "../events/pr-handlers/utils/getFailedOrWaitingChecksAndStatuses.ts";
 import type { ProbotEvent } from "../events/probot-types";
 import { updateRepositoryAccount } from "../events/repository-handlers/utils/updateRepositoryAccount.ts";
-import type { Repository } from "../mongo.ts";
 import { getRepositorySettings } from "../utils/github/repo/getRepositorySettings.ts";
 import type { AppContext } from "./AppContext.ts";
 import type { AccountContext } from "./accountContext.ts";
@@ -31,7 +38,6 @@ import type {
 } from "./initRepoLabels.ts";
 import { initRepoLabels } from "./initRepoLabels.ts";
 import { syncRepositoryLabels } from "./syncRepositoryLabels.ts";
-import { getEmojiFromRepoDescription } from "./utils.ts";
 
 export interface LockedMergePr {
   id: number;
@@ -137,25 +143,6 @@ interface RepoContextWithoutTeamContext {
 
 export type RepoContext<TeamNames extends string = any> =
   AccountContext<TeamNames> & RepoContextWithoutTeamContext;
-
-export const shouldIgnoreRepo = (
-  repoName: string,
-  accountConfig: Config<any>,
-): boolean => {
-  const ignoreRepoRegexp =
-    accountConfig.ignoreRepoPattern &&
-    new RegExp(`^${accountConfig.ignoreRepoPattern}$`);
-
-  if (repoName === "reviewflow-test") {
-    return process.env.REVIEWFLOW_NAME !== "reviewflow-dev";
-  }
-
-  if (ignoreRepoRegexp) {
-    return ignoreRepoRegexp.test(repoName);
-  }
-
-  return false;
-};
 
 export const allRepoContexts = new Map<string, RepoContext<any>>();
 

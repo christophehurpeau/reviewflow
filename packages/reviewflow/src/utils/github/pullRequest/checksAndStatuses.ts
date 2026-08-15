@@ -1,24 +1,7 @@
-import type { RestEndpointMethodTypes } from "@octokit/rest";
 import type { EmitterWebhookEventName } from "@octokit/webhooks";
+import type { ChecksAndStatuses } from "reviewflow-core";
 import type { PullRequestData } from "../../../events/pr-handlers/utils/PullRequestData";
 import type { ProbotEvent } from "../../../events/probot-types";
-
-export interface ChecksAndStatuses {
-  checksConclusionRecord: Record<
-    string,
-    Pick<
-      RestEndpointMethodTypes["checks"]["listForRef"]["response"]["data"]["check_runs"][number],
-      "conclusion" | "name"
-    >
-  >;
-  statusesConclusionRecord: Record<
-    string,
-    Pick<
-      RestEndpointMethodTypes["repos"]["getCombinedStatusForRef"]["response"]["data"]["statuses"][number],
-      "context" | "state"
-    >
-  >;
-}
 
 export const getChecksAndStatusesForPullRequest = async <
   Name extends EmitterWebhookEventName,

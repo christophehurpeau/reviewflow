@@ -1,4 +1,4 @@
-import type { AccountEmbed, Label, MongoStores } from "../mongo.ts";
+import type { AccountEmbed, Label, MongoStores } from "reviewflow-core";
 import type { LabelResponse } from "./initRepoLabels.ts";
 
 interface RepoEmbed {

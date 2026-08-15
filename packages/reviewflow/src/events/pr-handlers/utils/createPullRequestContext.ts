@@ -1,9 +1,9 @@
 import type { MongoInsertType } from "liwi-mongo";
+import type { ReviewflowPr } from "reviewflow-core";
 import type {
   EventsWithRepository,
   RepoContext,
 } from "../../../context/repoContext.ts";
-import type { ReviewflowPr } from "../../../mongo.ts";
 import { ExcludesFalsy } from "../../../utils/Excludes.ts";
 import { getReviewsState } from "../../../utils/github/pullRequest/reviews.ts";
 import type { ProbotEvent } from "../../probot-types.ts";

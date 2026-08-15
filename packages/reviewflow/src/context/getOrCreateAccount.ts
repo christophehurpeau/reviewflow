@@ -1,16 +1,10 @@
 import type { EmitterWebhookEventName } from "@octokit/webhooks";
+import type { AccountInfo, Org, User } from "reviewflow-core";
 import { syncOrg } from "../events/account-handlers/actions/syncOrg.ts";
 import { syncTeamsAndTeamMembers } from "../events/account-handlers/actions/syncTeams.ts";
 import { syncUser } from "../events/account-handlers/actions/syncUser.ts";
 import type { ProbotEvent } from "../events/probot-types.ts";
-import type { Org, User } from "../mongo.ts";
 import type { AppContext } from "./AppContext.ts";
-
-export interface AccountInfo {
-  id: number;
-  login: string;
-  type?: string | null;
-}
 
 export const getOrCreateAccount = async <T extends EmitterWebhookEventName>(
   { mongoStores }: AppContext,

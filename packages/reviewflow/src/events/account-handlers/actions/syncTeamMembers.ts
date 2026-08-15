@@ -1,4 +1,4 @@
-import type { MongoStores, OrgTeamEmbed } from "../../../mongo.ts";
+import type { MongoStores, OrgTeamEmbed } from "reviewflow-core";
 import type { OctokitPaginate, OctokitRestCompat } from "../../../octokit.ts";
 import { ExcludesFalsy } from "../../../utils/Excludes.ts";
 

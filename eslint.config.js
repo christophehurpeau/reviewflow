@@ -27,6 +27,15 @@ export default [
     ],
   }),
   ...apply({
+    // @pob/eslint-config only maps root config files to the tools project
+    files: ["packages/*/*.config.{ts,mts,cts}"],
+    configs: [
+      {
+        languageOptions: { parserOptions: { project: "tsconfig.tools.json" } },
+      },
+    ],
+  }),
+  ...apply({
     files: ["**/*.test.{js,ts}", "vitest.config.js"],
     configs: [
       {

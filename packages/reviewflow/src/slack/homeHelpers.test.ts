@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ReviewflowPr } from "../mongo";
+import type { ReviewflowPr } from "reviewflow-core";
 import {
   type GithubSearchResponse,
   buildBlocksForDataFromGithubAndMongo,

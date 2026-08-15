@@ -1,5 +1,5 @@
+import type { LabelEmbed, ReviewflowPr } from "reviewflow-core";
 import type { AppContext } from "../../../../../context/AppContext.ts";
-import type { LabelEmbed, ReviewflowPr } from "../../../../../mongo.ts";
 import type { PullRequestLabels } from "../../../utils/PullRequestData.ts";
 
 export const toLabelEmbeds = (labels: PullRequestLabels): LabelEmbed[] =>

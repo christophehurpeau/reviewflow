@@ -1,0 +1,12 @@
+{
+  "pob": {
+    "app": {
+      "type": "expo",
+      "testing": false,
+      "e2e": false
+    },
+    "project": {
+      "type": "app"
+    }
+  }
+}

@@ -1,6 +1,9 @@
 allowBuilds:
+  # optional native speedups of ws, the js fallbacks are enough here
+  bufferutil: false
   esbuild: true
   unrs-resolver: true
+  utf-8-validate: false
 dedupePeerDependents: true
 minimumReleaseAge: 4320
 minimumReleaseAgeExclude:

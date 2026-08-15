@@ -1,10 +1,11 @@
+import type { BasicUser } from "reviewflow-core";
 import type {
   EventsWithRepository,
   RepoContext,
   RescheduleTime,
 } from "../../../context/repoContext.ts";
 import type { ProbotEvent } from "../../probot-types.ts";
-import type { BasicUser, PullRequestLabels } from "../utils/PullRequestData.ts";
+import type { PullRequestLabels } from "../utils/PullRequestData.ts";
 import type { ReviewflowPrContext } from "../utils/createPullRequestContext.ts";
 import type { PullRequestFromRestEndpoint } from "../utils/fetchPr.ts";
 import type { MergeOrEnableGithubAutoMergeResult } from "./enableGithubAutoMerge.ts";
