@@ -1,6 +1,6 @@
 {
   "name": "reviewflow-modules",
-  "version": "6.4.0",
+  "version": "6.5.0",
   "private": true,
   "description": "shared types and service contracts between the reviewflow server and the webapp",
   "homepage": "https://github.com/christophehurpeau/reviewflow",

@@ -1,6 +1,6 @@
 {
   "name": "reviewflow-core",
-  "version": "6.4.0",
+  "version": "6.5.0",
   "private": true,
   "description": "mongo stores, models and account configs shared by the reviewflow servers",
   "homepage": "https://github.com/christophehurpeau/reviewflow",
