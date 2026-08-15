@@ -332,8 +332,8 @@ importers:
         specifier: 10.0.0
         version: 10.0.0(@typescript/typescript6@6.0.2)(rollup@4.60.4)(supports-color@8.1.1)
       '@types/cookie':
-        specifier: 0.6.0
-        version: 0.6.0
+        specifier: 1.0.0
+        version: 1.0.0
       '@types/cookie-parser':
         specifier: 1.4.10
         version: 1.4.10(@types/express@5.0.6)
@@ -2428,8 +2428,9 @@ packages:
     peerDependencies:
       '@types/express': '*'
 
-  '@types/cookie@0.6.0':
-    resolution: {integrity: sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA==}
+  '@types/cookie@1.0.0':
+    resolution: {integrity: sha512-mGFXbkDQJ6kAXByHS7QAggRXgols0mAdP4MuXgloGY1tXokvzaFFM4SMqWvf7AH0oafI7zlFJwoGWzmhDqTZ9w==}
+    deprecated: This is a stub types definition. cookie provides its own type definitions, so you do not need this installed.
 
   '@types/debug@4.1.13':
     resolution: {integrity: sha512-KSVgmQmzMwPlmtljOomayoR89W4FynCAi3E8PPs7vmDVPe84hT+vGPKkJfThkmXs0x0jAaa9U8uW8bbfyS2fWw==}
@@ -8930,7 +8931,9 @@ snapshots:
     dependencies:
       '@types/express': 5.0.6
 
-  '@types/cookie@0.6.0': {}
+  '@types/cookie@1.0.0':
+    dependencies:
+      cookie: 0.7.2
 
   '@types/debug@4.1.13':
     dependencies:
