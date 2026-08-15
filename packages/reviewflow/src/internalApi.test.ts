@@ -6,6 +6,8 @@ import { getExistingAccountContext } from "./context/accountContext.ts";
 import { syncOrg } from "./events/account-handlers/actions/syncOrg.ts";
 import { syncTeamsAndTeamMembers } from "./events/account-handlers/actions/syncTeams.ts";
 import { syncUser } from "./events/account-handlers/actions/syncUser.ts";
+import { syncRepository } from "./events/repository-handlers/actions/syncRepository.ts";
+import { deleteRepositoryData } from "./events/repository-handlers/utils/deleteRepositoryData.ts";
 import internalApiRouter from "./internalApi.ts";
 import { callApp } from "./tests/callRouter.ts";
 
@@ -20,6 +22,12 @@ vi.mock("./events/account-handlers/actions/syncTeams.ts", () => ({
 }));
 vi.mock("./events/account-handlers/actions/syncUser.ts", () => ({
   syncUser: vi.fn(() => Promise.resolve()),
+}));
+vi.mock("./events/repository-handlers/utils/deleteRepositoryData.ts", () => ({
+  deleteRepositoryData: vi.fn(() => Promise.resolve()),
+}));
+vi.mock("./events/repository-handlers/actions/syncRepository.ts", () => ({
+  syncRepository: vi.fn(() => Promise.resolve("synced")),
 }));
 
 const secret = "internal-secret";
@@ -38,9 +46,11 @@ interface Harness {
 const createApp = ({
   org,
   user,
+  repository,
 }: {
   org?: unknown;
   user?: unknown;
+  repository?: unknown;
 } = {}): Harness => {
   const auth = vi.fn(() => Promise.resolve(installationOctokit));
 
@@ -48,6 +58,7 @@ const createApp = ({
     mongoStores: {
       orgs: { findByKey: () => Promise.resolve(org) },
       users: { findByKey: () => Promise.resolve(user) },
+      repositories: { findByKey: () => Promise.resolve(repository) },
     },
   } as unknown as AppContext;
 
@@ -245,6 +256,139 @@ describe("POST /sync/user", () => {
         login: "someone",
       },
     );
+  });
+});
+
+describe("POST /sync/repository", () => {
+  const orgRepository = {
+    _id: 42,
+    account: { id: 1, login: "acme", type: "Organization" },
+    fullName: "acme/website",
+  };
+
+  it("rejects a missing repositoryId", async () => {
+    const { app } = createApp();
+
+    const response = await callApp(app, {
+      method: "POST",
+      url: "/api/internal/sync/repository",
+      headers: authorized,
+      body: {},
+    });
+
+    expect(response.status).toBe(400);
+    expect(syncRepository).not.toHaveBeenCalled();
+  });
+
+  it("answers not found for an unknown repository", async () => {
+    const { app } = createApp();
+
+    const response = await callApp(app, {
+      method: "POST",
+      url: "/api/internal/sync/repository",
+      headers: authorized,
+      body: { repositoryId: 42 },
+    });
+
+    expect(response.status).toBe(404);
+    expect(syncRepository).not.toHaveBeenCalled();
+  });
+
+  it("answers not found when the account has no installation", async () => {
+    const { app } = createApp({
+      repository: orgRepository,
+      org: { _id: 1, login: "acme" },
+    });
+
+    const response = await callApp(app, {
+      method: "POST",
+      url: "/api/internal/sync/repository",
+      headers: authorized,
+      body: { repositoryId: 42 },
+    });
+
+    expect(response.status).toBe(404);
+    expect(syncRepository).not.toHaveBeenCalled();
+  });
+
+  it("syncs a repository with the installation of its org", async () => {
+    const { app, auth } = createApp({
+      repository: orgRepository,
+      org: { _id: 1, login: "acme", installationId: 77 },
+    });
+
+    const response = await callApp(app, {
+      method: "POST",
+      url: "/api/internal/sync/repository",
+      headers: authorized,
+      body: { repositoryId: 42 },
+    });
+
+    expect(response.status).toBe(204);
+    expect(auth).toHaveBeenCalledWith(77);
+    expect(syncRepository).toHaveBeenCalledWith({
+      mongoStores: expect.anything(),
+      octokit: installationOctokit,
+      repository: orgRepository,
+    });
+  });
+
+  it("syncs a repository of a user account with the user installation", async () => {
+    const userRepository = {
+      _id: 42,
+      account: { id: 5, login: "someone", type: "User" },
+      fullName: "someone/website",
+    };
+    const { app, auth } = createApp({
+      repository: userRepository,
+      user: { _id: 5, login: "someone", installationId: 9 },
+    });
+
+    const response = await callApp(app, {
+      method: "POST",
+      url: "/api/internal/sync/repository",
+      headers: authorized,
+      body: { repositoryId: 42 },
+    });
+
+    expect(response.status).toBe(204);
+    expect(auth).toHaveBeenCalledWith(9);
+    expect(syncRepository).toHaveBeenCalledWith(
+      expect.objectContaining({ repository: userRepository }),
+    );
+  });
+});
+
+describe("POST /cleanup/repository", () => {
+  it("rejects a missing repositoryId", async () => {
+    const { app } = createApp();
+
+    const response = await callApp(app, {
+      method: "POST",
+      url: "/api/internal/cleanup/repository",
+      headers: authorized,
+      body: {},
+    });
+
+    expect(response.status).toBe(400);
+    expect(deleteRepositoryData).not.toHaveBeenCalled();
+  });
+
+  it("deletes everything mirrored for the repository", async () => {
+    const { app } = createApp();
+
+    const response = await callApp(app, {
+      method: "POST",
+      url: "/api/internal/cleanup/repository",
+      headers: authorized,
+      body: { repositoryId: 42 },
+    });
+
+    expect(response.status).toBe(204);
+    expect(deleteRepositoryData).toHaveBeenCalledWith({
+      mongoStores: expect.anything(),
+      repositoryId: 42,
+    });
   });
 });
 

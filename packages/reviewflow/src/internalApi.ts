@@ -7,6 +7,8 @@ import { getExistingAccountContext } from "./context/accountContext.ts";
 import { syncOrg } from "./events/account-handlers/actions/syncOrg.ts";
 import { syncTeamsAndTeamMembers } from "./events/account-handlers/actions/syncTeams.ts";
 import { syncUser } from "./events/account-handlers/actions/syncUser.ts";
+import { syncRepository } from "./events/repository-handlers/actions/syncRepository.ts";
+import { deleteRepositoryData } from "./events/repository-handlers/utils/deleteRepositoryData.ts";
 
 /**
  * Server to server routes for the webapp server: it holds no github app
@@ -121,6 +123,53 @@ export default function internalApiRouter(
         login: user.login,
       });
 
+      res.status(204).end();
+    })().catch(next);
+  });
+
+  router.post("/sync/repository", (req, res, next) => {
+    const repositoryId = readNumber(req.body?.repositoryId);
+    if (!repositoryId) {
+      res.status(400).json({ error: "Invalid repositoryId" });
+      return;
+    }
+
+    (async () => {
+      const repository = await mongoStores.repositories.findByKey(repositoryId);
+      if (!repository) {
+        res.status(404).json({ error: "Unknown repository" });
+        return;
+      }
+
+      const account =
+        repository.account.type === "Organization"
+          ? await mongoStores.orgs.findByKey(repository.account.id)
+          : await mongoStores.users.findByKey(repository.account.id);
+
+      if (!account?.installationId) {
+        res
+          .status(404)
+          .json({ error: "Reviewflow is not installed for this account" });
+        return;
+      }
+
+      const octokit = await probot.auth(account.installationId);
+
+      await syncRepository({ mongoStores, octokit, repository });
+
+      res.status(204).end();
+    })().catch(next);
+  });
+
+  router.post("/cleanup/repository", (req, res, next) => {
+    const repositoryId = readNumber(req.body?.repositoryId);
+    if (!repositoryId) {
+      res.status(400).json({ error: "Invalid repositoryId" });
+      return;
+    }
+
+    (async () => {
+      await deleteRepositoryData({ mongoStores, repositoryId });
       res.status(204).end();
     })().catch(next);
   });

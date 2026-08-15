@@ -2,18 +2,18 @@ import { useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useResource } from "react-liwi";
 import { RepositoriesScreen } from "#/sections/repositories/RepositoriesScreen.tsx";
-import { useOrg } from "#/services/OrgProvider.tsx";
+import { useAuthenticatedUser } from "#/services/AuthenticatedUserProvider.tsx";
 import { useReviewflowServices } from "#/services/ReviewflowServicesProvider.tsx";
 
-export default function RepositoriesPage(): ReactNode {
+export default function UserRepositoriesPage(): ReactNode {
   const router = useRouter();
-  const org = useOrg();
+  const user = useAuthenticatedUser();
   const { repositoriesService } = useReviewflowServices();
 
   const repositories = useResource(
     repositoriesService.queries.queryAccountRepositories,
-    { params: { accountId: org._id }, subscribe: true },
-    [org._id],
+    { params: { accountId: user.id }, subscribe: true },
+    [user.id],
   );
 
   return (
@@ -21,7 +21,7 @@ export default function RepositoriesPage(): ReactNode {
       repositories={repositories}
       onSelectRepository={(repository) => {
         router.navigate(
-          `/org/${org.login}/repositories/${encodeURIComponent(repository.name)}`,
+          `/user/repositories/${encodeURIComponent(repository.name)}`,
         );
       }}
     />

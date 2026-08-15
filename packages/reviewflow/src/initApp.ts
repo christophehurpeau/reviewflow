@@ -6,6 +6,7 @@ import orgMemberAddedOrRemoved from "./events/account-handlers/orgMemberAddedOrR
 import teamChanged from "./events/account-handlers/teamChanged.ts";
 import commitCommentCreated from "./events/commit-handlers/commitCommentCreated.ts";
 import installation from "./events/installation-handlers/installation.ts";
+import installationRepositoriesRemoved from "./events/installation-handlers/installationRepositoriesRemoved.ts";
 import labelChanged from "./events/label-handlers/labelChanged.ts";
 import assignedOrUnassignedHandler from "./events/pr-handlers/assignedOrUnassigned.ts";
 import autoMergeChangedHandler from "./events/pr-handlers/autoMergeChanged.ts";
@@ -27,6 +28,8 @@ import reviewRequestedHandler from "./events/pr-handlers/reviewRequested.ts";
 import reviewSubmittedHandler from "./events/pr-handlers/reviewSubmitted.ts";
 import status from "./events/pr-handlers/status.ts";
 import synchronizeHandler from "./events/pr-handlers/synchronize.ts";
+import repoArchivedOrUnarchived from "./events/repository-handlers/repoArchivedOrUnarchived.ts";
+import repoDeleted from "./events/repository-handlers/repoDeleted.ts";
 import repoEdited from "./events/repository-handlers/repoEdited.ts";
 import repoRenamed from "./events/repository-handlers/repoRenamed.ts";
 import repoTransferred from "./events/repository-handlers/repoTransferred.ts";
@@ -35,6 +38,8 @@ export default function initApp(app: Probot, appContext: AppContext): void {
   // Installation
   /* https://developer.github.com/webhooks/event-payloads/#installation */
   installation(app, appContext);
+  /* https://docs.github.com/en/webhooks/webhook-events-and-payloads#installation_repositories */
+  installationRepositoriesRemoved(app, appContext);
 
   // Account
   /* https://developer.github.com/webhooks/event-payloads/#organization */
@@ -49,6 +54,8 @@ export default function initApp(app: Probot, appContext: AppContext): void {
   repoEdited(app, appContext);
   repoRenamed(app, appContext);
   repoTransferred(app, appContext);
+  repoDeleted(app, appContext);
+  repoArchivedOrUnarchived(app, appContext);
 
   // Label
   /* https://docs.github.com/en/webhooks/webhook-events-and-payloads#label */

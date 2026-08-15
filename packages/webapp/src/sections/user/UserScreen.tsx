@@ -18,20 +18,13 @@ import { reviewflowName } from "#/reviewflowName.ts";
 const userInstallUrl = `https://github.com/settings/apps/${reviewflowName}/installations/new`;
 
 interface UserScreenProps {
-  userLogin: string;
   me: ResourceResult<UserSummary | undefined, Record<string, never>>;
-  onBack: () => void;
   onForceSync: () => Promise<void>;
 }
 
-export function UserScreen({
-  userLogin,
-  me,
-  onBack,
-  onForceSync,
-}: UserScreenProps): ReactNode {
+export function UserScreen({ me, onForceSync }: UserScreenProps): ReactNode {
   return (
-    <Screen title={userLogin} backLabel="Back to settings" onBack={onBack}>
+    <Screen title="">
       <ResourceView resource={me} loading={<SkeletonBlock />}>
         {(user) =>
           user?.installed ? (

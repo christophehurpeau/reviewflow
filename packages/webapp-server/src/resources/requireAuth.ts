@@ -36,6 +36,36 @@ export const requireOrgMember = async (
   return { user, orgMember };
 };
 
+export interface AuthorizedAccount {
+  id: number;
+  login: string;
+}
+
+/**
+ * An account is either the user's own — reviewflow installed on a personal
+ * account, authorized by identity alone — or an org they belong to. Everything
+ * scoped to an account id goes through here, the client never sends the login.
+ */
+export const requireAccount = async (
+  mongoStores: MongoStores,
+  accountId: number,
+  loggedInUser: AuthenticatedWsUser | undefined,
+): Promise<{ user: AuthenticatedWsUser; account: AuthorizedAccount }> => {
+  const user = requireAuthenticatedUser(loggedInUser);
+
+  if (accountId === user.id) {
+    return { user, account: { id: user.id, login: user.login } };
+  }
+
+  await requireOrgMember(mongoStores, accountId, user);
+  const org = await mongoStores.orgs.findByKey(accountId);
+  if (!org) {
+    throw new ResourcesServerError("NOT_FOUND", "Unknown organization");
+  }
+
+  return { user, account: { id: org._id, login: org.login } };
+};
+
 const toPrBucketAccount = (orgMember: OrgMember): PrBucketAccount => ({
   accountId: orgMember.org.id,
   teams: orgMember.teams,

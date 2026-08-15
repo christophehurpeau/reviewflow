@@ -70,6 +70,8 @@ export interface Repository extends MongoBaseModel<number> {
   fullName: string;
   emoji: string;
   settings: RepositorySettings;
+  /** archived on github: kept, without its pull requests */
+  archived?: boolean;
 }
 
 interface RepoEmbed {

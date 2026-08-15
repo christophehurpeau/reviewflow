@@ -6,28 +6,37 @@ export interface RepositorySummary {
   name: string;
   fullName: string;
   emoji: string;
-  orgLogin: string;
+  accountLogin: string;
+  /** archived on github: kept, without its pull requests */
+  archived: boolean;
 }
 
-export interface QueryOrgRepositoriesParams {
-  orgId: number;
+export interface QueryAccountRepositoriesParams {
+  accountId: number;
 }
 
 export interface QueryRepositoryParams {
-  orgId: number;
+  accountId: number;
   name: string;
+}
+
+export interface SyncRepositoryParams {
+  accountId: number;
+  repositoryId: number;
 }
 
 export interface RepositoriesService {
   queries: {
-    queryOrgRepositories: ServiceQuery<
+    queryAccountRepositories: ServiceQuery<
       RepositorySummary[],
-      QueryOrgRepositoriesParams
+      QueryAccountRepositoriesParams
     >;
     queryRepository: ServiceQuery<
       RepositorySummary | undefined,
       QueryRepositoryParams
     >;
   };
-  operations: Record<string, never>;
+  operations: {
+    syncRepository: (params: SyncRepositoryParams) => Promise<void>;
+  };
 }

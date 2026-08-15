@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MongoStores, OrgMember } from "reviewflow-core";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
-import { requireAccounts } from "./requireAuth.ts";
+import { requireAccount, requireAccounts } from "./requireAuth.ts";
 
 const loggedInUser: AuthenticatedWsUser = {
   id: 42,
@@ -18,13 +18,24 @@ const orgMember = (orgId: number, teams: OrgMember["teams"]): OrgMember => ({
   updated: new Date(),
 });
 
-const createStores = (orgMembers: OrgMember[]): MongoStores => {
+const createStores = (
+  orgMembers: OrgMember[],
+  knownOrgIds = orgMembers.map(({ org }) => org.id),
+): MongoStores => {
   const mongoStores: any = {
     orgMembers: {
       findAll: () => Promise.resolve(orgMembers),
       findOne: ({ "org.id": orgId }: Record<string, number>) =>
         Promise.resolve(
           orgMembers.find((member) => member.org.id === orgId) ?? null,
+        ),
+    },
+    orgs: {
+      findByKey: (orgId: number) =>
+        Promise.resolve(
+          knownOrgIds.includes(orgId)
+            ? { _id: orgId, login: `org-${orgId}` }
+            : undefined,
         ),
     },
   };
@@ -87,6 +98,46 @@ describe("requireAccounts", () => {
   it("rejects an anonymous caller", async () => {
     await expect(
       requireAccounts(createStores([]), null, undefined),
+    ).rejects.toThrow("Not authenticated");
+  });
+});
+
+describe("requireAccount", () => {
+  it("resolves the user's own account without any lookup", async () => {
+    const { account } = await requireAccount(
+      createStores([]),
+      42,
+      loggedInUser,
+    );
+
+    expect(account).toEqual({ id: 42, login: "christophehurpeau" });
+  });
+
+  it("resolves an org the user belongs to", async () => {
+    const { account } = await requireAccount(
+      createStores([orgMember(1, [])]),
+      1,
+      loggedInUser,
+    );
+
+    expect(account).toEqual({ id: 1, login: "org-1" });
+  });
+
+  it("rejects an org the user does not belong to", async () => {
+    await expect(
+      requireAccount(createStores([orgMember(1, [])]), 2, loggedInUser),
+    ).rejects.toThrow("You are not a member of this organization");
+  });
+
+  it("rejects an org member whose org document is gone", async () => {
+    await expect(
+      requireAccount(createStores([orgMember(1, [])], []), 1, loggedInUser),
+    ).rejects.toThrow("Unknown organization");
+  });
+
+  it("rejects an anonymous caller", async () => {
+    await expect(
+      requireAccount(createStores([]), 42, undefined),
     ).rejects.toThrow("Not authenticated");
   });
 });

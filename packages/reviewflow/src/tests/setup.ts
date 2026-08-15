@@ -18,6 +18,7 @@ export const initializeProbotApp = async ({
   prs,
   labels,
   repositories,
+  installationsEvents,
 }: Partial<any> = {}): Promise<Probot> => {
   const probot = new Probot({
     appId: APP_ID,
@@ -57,6 +58,9 @@ export const initializeProbotApp = async ({
             lastUpdated: new Date(2099, 0, 1),
           },
         }),
+      findAll: () => Promise.resolve([]),
+      deleteByKey: () => Promise.resolve(),
+      deleteMany: () => Promise.resolve(),
       ...repositories,
     },
     orgMembers: {
@@ -77,6 +81,7 @@ export const initializeProbotApp = async ({
       partialUpdateOne: () => Promise.resolve(),
       partialUpdateByKey: () => Promise.resolve(),
       partialUpdateMany: () => Promise.resolve(),
+      deleteMany: () => Promise.resolve(),
       ...prs,
     },
     labels: {
@@ -85,6 +90,10 @@ export const initializeProbotApp = async ({
       deleteMany: () => Promise.resolve(),
       partialUpdateMany: () => Promise.resolve(),
       ...labels,
+    },
+    installationsEvents: {
+      insertOne: () => Promise.resolve(),
+      ...installationsEvents,
     },
   };
 

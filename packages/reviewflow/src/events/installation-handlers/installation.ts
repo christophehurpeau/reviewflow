@@ -1,6 +1,32 @@
 import type { Probot } from "probot";
-import type { AccountType } from "reviewflow-core";
+import type { AccountType, MongoStores } from "reviewflow-core";
 import type { AppContext } from "../../context/AppContext";
+import { deleteRepoContext } from "../../context/repoContext.ts";
+
+/**
+ * The app no longer receives any event for this account, its pull requests
+ * would otherwise stay in the webapp forever.
+ */
+const deleteAccountRepositoriesData = async (
+  mongoStores: MongoStores,
+  accountId: number,
+): Promise<void> => {
+  const repositories = await mongoStores.repositories.findAll({
+    "account.id": accountId,
+  });
+
+  await Promise.all(
+    repositories.map((repository) => deleteRepoContext(repository._id)),
+  );
+
+  // by account rather than by repository, so documents orphaned by a missed
+  // transfer are removed too
+  await Promise.all([
+    mongoStores.prs.deleteMany({ "account.id": accountId }),
+    mongoStores.labels.deleteMany({ "account.id": accountId }),
+    mongoStores.repositories.deleteMany({ "account.id": accountId }),
+  ]);
+};
 
 export default function installation(
   app: Probot,
@@ -54,9 +80,15 @@ export default function installation(
               $set: { status: "deleted" },
             });
             break;
+
           default:
             break;
         }
+      }
+
+      // outside the org lookup above, an installation on a user account has no org document
+      if (payload.action === "deleted") {
+        await deleteAccountRepositoriesData(appContext.mongoStores, account.id);
       }
     }
   });

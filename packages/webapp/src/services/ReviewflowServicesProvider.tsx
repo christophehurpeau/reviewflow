@@ -31,8 +31,8 @@ const createOrgsServiceClient = createResourceClientService<OrgsService>(
 
 const createRepositoriesServiceClient =
   createResourceClientService<RepositoriesService>("repositories", {
-    queries: { queryOrgRepositories: null, queryRepository: null },
-    operations: {},
+    queries: { queryAccountRepositories: null, queryRepository: null },
+    operations: { syncRepository: null },
   });
 
 const createPrsServiceClient = createResourceClientService<PrsService>("prs", {
