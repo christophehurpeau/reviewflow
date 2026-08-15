@@ -1,6 +1,6 @@
 {
   "name": "reviewflow-webapp-server",
-  "version": "6.3.2",
+  "version": "6.4.0",
   "private": true,
   "description": "serves the reviewflow webapp, its oauth flows and its resources websocket",
   "homepage": "https://github.com/christophehurpeau/reviewflow",
