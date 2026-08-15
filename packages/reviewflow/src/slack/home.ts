@@ -38,7 +38,7 @@ export const createSlackHomeWorker = (
     const findPrsInBucket = (bucket: PrBucket): Promise<ReviewflowPr[]> => {
       const { criteria, sort } = buildPrBucketQuery(bucket, {
         userId: member.user.id,
-        orgs: [{ orgId: member.org.id, teams: member.teams }],
+        accounts: [{ accountId: member.org.id, teams: member.teams }],
       });
       return mongoStores.prs.findAll(criteria, sort);
     };

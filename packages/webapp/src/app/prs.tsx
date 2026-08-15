@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useResource } from "react-liwi";
 import { PrsScreen } from "#/sections/prs/PrsScreen.tsx";
+import { buildPrAccounts } from "#/sections/prs/prAccounts.ts";
 import { useReviewflowServices } from "#/services/ReviewflowServicesProvider.tsx";
 import { useMyPrsByBucket } from "#/services/useMyPrsByBucket.ts";
 
@@ -11,9 +12,12 @@ const openPr = (url: string): void => {
 
 export default function PrsPage(): ReactNode {
   const router = useRouter();
-  const { org: orgLogin } = useLocalSearchParams<{ org?: string }>();
-  const { orgsService } = useReviewflowServices();
+  const { account: accountLogin } = useLocalSearchParams<{
+    account?: string;
+  }>();
+  const { orgsService, usersService } = useReviewflowServices();
 
+  const me = useResource(usersService.queries.queryMe, { subscribe: true }, []);
   const orgs = useResource(
     orgsService.queries.queryMyOrgs,
     { subscribe: true },
@@ -22,25 +26,29 @@ export default function PrsPage(): ReactNode {
 
   // the filter is a login, the query needs an id: an unknown login is dropped
   // rather than kept pending, so a stale link still shows something.
-  const selectedOrg = orgs.fetched
-    ? orgs.data.find((org) => org.login === orgLogin)
-    : undefined;
-  const pending = orgLogin !== undefined && !orgs.fetched;
+  const selectedAccount =
+    me.fetched && orgs.fetched
+      ? buildPrAccounts(me.data, orgs.data).find(
+          (account) => account.login === accountLogin,
+        )
+      : undefined;
+  const pending = accountLogin !== undefined && !(me.fetched && orgs.fetched);
 
   const prsByBucket = useMyPrsByBucket({
-    orgId: selectedOrg?._id ?? null,
+    accountId: selectedAccount?.id ?? null,
     skip: pending,
   });
 
   return (
     <PrsScreen
+      me={me}
       orgs={orgs}
-      selectedOrgLogin={selectedOrg?.login}
+      selectedAccountLogin={selectedAccount?.login}
       prsByBucket={prsByBucket}
       pending={pending}
-      onSelectOrgLogin={(login) => {
+      onSelectAccountLogin={(login) => {
         router.replace(
-          login ? { pathname: "/prs", params: { org: login } } : "/prs",
+          login ? { pathname: "/prs", params: { account: login } } : "/prs",
         );
       }}
       onSelectPr={(pr) => {

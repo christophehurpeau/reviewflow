@@ -1,5 +1,5 @@
 import { ResourcesServerError } from "liwi-resources-server";
-import type { MongoStores, OrgMember } from "reviewflow-core";
+import type { MongoStores, OrgMember, PrBucketAccount } from "reviewflow-core";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
 
 export const requireAuthenticatedUser = (
@@ -36,28 +36,48 @@ export const requireOrgMember = async (
   return { user, orgMember };
 };
 
+const toPrBucketAccount = (orgMember: OrgMember): PrBucketAccount => ({
+  accountId: orgMember.org.id,
+  teams: orgMember.teams,
+});
+
 /**
- * `orgId: null` spans every org the user belongs to. Memberships stay the only
- * thing bounding the query, so an unscoped read can never widen past them.
+ * The user's own account holds no org membership document — reviewflow installed
+ * on a personal account stores it in `users` — so it is scoped by identity
+ * alone, and never needs a lookup to be authorized.
  */
-export const requireOrgMembers = async (
+const ownAccount = (user: AuthenticatedWsUser): PrBucketAccount => ({
+  accountId: user.id,
+  teams: [],
+});
+
+/**
+ * `accountId: null` spans the user's own account and every org they belong to.
+ * Identity and memberships stay the only things bounding the query, so an
+ * unscoped read can never widen past them.
+ */
+export const requireAccounts = async (
   mongoStores: MongoStores,
-  orgId: number | null,
+  accountId: number | null,
   loggedInUser: AuthenticatedWsUser | undefined,
-): Promise<{ user: AuthenticatedWsUser; orgMembers: OrgMember[] }> => {
-  if (orgId !== null) {
-    const { user, orgMember } = await requireOrgMember(
-      mongoStores,
-      orgId,
-      loggedInUser,
-    );
-    return { user, orgMembers: [orgMember] };
+): Promise<{ user: AuthenticatedWsUser; accounts: PrBucketAccount[] }> => {
+  const user = requireAuthenticatedUser(loggedInUser);
+
+  if (accountId === user.id) {
+    return { user, accounts: [ownAccount(user)] };
   }
 
-  const user = requireAuthenticatedUser(loggedInUser);
+  if (accountId !== null) {
+    const { orgMember } = await requireOrgMember(mongoStores, accountId, user);
+    return { user, accounts: [toPrBucketAccount(orgMember)] };
+  }
+
   const orgMembers = await mongoStores.orgMembers.findAll({
     "user.id": user.id,
   });
 
-  return { user, orgMembers };
+  return {
+    user,
+    accounts: [ownAccount(user), ...orgMembers.map(toPrBucketAccount)],
+  };
 };

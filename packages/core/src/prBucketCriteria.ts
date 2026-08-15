@@ -2,16 +2,19 @@ import type { Criteria, Sort } from "liwi-store";
 import type { PrBucket } from "reviewflow-modules";
 import type { OrgTeamEmbed, ReviewflowPr } from "./mongo.ts";
 
-export interface PrBucketOrg {
-  orgId: number;
-  /** older org member documents were stored without any team */
+export interface PrBucketAccount {
+  accountId: number;
+  /**
+   * Empty for a personal account, and older org member documents were stored
+   * without any team.
+   */
   teams: OrgTeamEmbed[] | undefined;
 }
 
 interface PrBucketContext {
   userId: number;
-  /** every org the query spans, one entry when a single org is selected */
-  orgs: PrBucketOrg[];
+  /** every account the query spans, one entry when a single one is selected */
+  accounts: PrBucketAccount[];
 }
 
 export interface PrBucketQuery {
@@ -30,17 +33,19 @@ const anyOf = (clauses: Criteria<ReviewflowPr>[]): Criteria<ReviewflowPr> => {
   return { $or: clauses };
 };
 
-const orgIdsCriteria = (orgs: PrBucketOrg[]): Criteria<ReviewflowPr> => ({
-  "account.id": { $in: orgs.map((org) => org.orgId) },
+const accountIdsCriteria = (
+  accounts: PrBucketAccount[],
+): Criteria<ReviewflowPr> => ({
+  "account.id": { $in: accounts.map((account) => account.accountId) },
 });
 
-const buildOrgRequestedReviewsCriteria = (
-  { orgId, teams }: PrBucketOrg,
+const buildAccountRequestedReviewsCriteria = (
+  { accountId, teams }: PrBucketAccount,
   userId: number,
 ): Criteria<ReviewflowPr> =>
   teams && teams.length > 0
     ? {
-        "account.id": orgId,
+        "account.id": accountId,
         $or: [
           { "reviews.reviewRequested.id": userId },
           {
@@ -50,23 +55,27 @@ const buildOrgRequestedReviewsCriteria = (
           },
         ],
       }
-    : { "account.id": orgId, "reviews.reviewRequested.id": userId };
+    : { "account.id": accountId, "reviews.reviewRequested.id": userId };
 
 /** teams are per org, so review requests cannot be matched with a single `$in` */
 const buildRequestedReviewsCriteria = ({
-  orgs,
+  accounts,
   userId,
 }: PrBucketContext): Criteria<ReviewflowPr> => ({
   isClosed: false,
   isDraft: false,
-  ...anyOf(orgs.map((org) => buildOrgRequestedReviewsCriteria(org, userId))),
+  ...anyOf(
+    accounts.map((account) =>
+      buildAccountRequestedReviewsCriteria(account, userId),
+    ),
+  ),
 });
 
 const buildAssignedCriteria = (
-  { orgs, userId }: PrBucketContext,
+  { accounts, userId }: PrBucketContext,
   extra: Criteria<ReviewflowPr>,
 ): Criteria<ReviewflowPr> => ({
-  ...orgIdsCriteria(orgs),
+  ...accountIdsCriteria(accounts),
   "assignees.id": userId,
   isClosed: false,
   ...extra,

@@ -4,9 +4,9 @@ import type { PrBucketResource } from "#/sections/prs/PrBucketSection.tsx";
 import { useReviewflowServices } from "./ReviewflowServicesProvider.tsx";
 
 interface UseMyPrsByBucketOptions {
-  /** `null` spans every org the user belongs to */
-  orgId: number | null;
-  /** the org filter is not resolved yet, querying now would use the wrong scope */
+  /** `null` spans the user's own account and every org they belong to */
+  accountId: number | null;
+  /** the account filter is not resolved yet, querying now would use the wrong scope */
   skip: boolean;
 }
 
@@ -15,7 +15,7 @@ interface UseMyPrsByBucketOptions {
  * are a fixed set, hence the explicit calls rather than a loop.
  */
 export const useMyPrsByBucket = ({
-  orgId,
+  accountId,
   skip,
 }: UseMyPrsByBucketOptions): Record<PrBucket, PrBucketResource> => {
   const { prsService } = useReviewflowServices();
@@ -23,33 +23,49 @@ export const useMyPrsByBucket = ({
 
   const requestedReviews = useResource(
     queryMyPrs,
-    { params: { orgId, bucket: "requested-reviews" }, subscribe: true, skip },
-    [orgId, skip],
+    {
+      params: { accountId, bucket: "requested-reviews" },
+      subscribe: true,
+      skip,
+    },
+    [accountId, skip],
   );
   const readyToMerge = useResource(
     queryMyPrs,
-    { params: { orgId, bucket: "ready-to-merge" }, subscribe: true, skip },
-    [orgId, skip],
+    { params: { accountId, bucket: "ready-to-merge" }, subscribe: true, skip },
+    [accountId, skip],
   );
   const changesRequested = useResource(
     queryMyPrs,
-    { params: { orgId, bucket: "changes-requested" }, subscribe: true, skip },
-    [orgId, skip],
+    {
+      params: { accountId, bucket: "changes-requested" },
+      subscribe: true,
+      skip,
+    },
+    [accountId, skip],
   );
   const waitingForReview = useResource(
     queryMyPrs,
-    { params: { orgId, bucket: "waiting-for-review" }, subscribe: true, skip },
-    [orgId, skip],
+    {
+      params: { accountId, bucket: "waiting-for-review" },
+      subscribe: true,
+      skip,
+    },
+    [accountId, skip],
   );
   const noActionPlanned = useResource(
     queryMyPrs,
-    { params: { orgId, bucket: "no-action-planned" }, subscribe: true, skip },
-    [orgId, skip],
+    {
+      params: { accountId, bucket: "no-action-planned" },
+      subscribe: true,
+      skip,
+    },
+    [accountId, skip],
   );
   const drafts = useResource(
     queryMyPrs,
-    { params: { orgId, bucket: "drafts" }, subscribe: true, skip },
-    [orgId, skip],
+    { params: { accountId, bucket: "drafts" }, subscribe: true, skip },
+    [accountId, skip],
   );
 
   return {
