@@ -8,12 +8,19 @@ const movedPermanently = (res: Response, path: string): void => {
 
 const segment = (value: string): string => encodeURIComponent(value);
 
+interface RepositoryParams {
+  owner: string;
+  repository: string;
+}
+
 /**
  * The old page took an owner without telling a personal account from an
  * organization, which are two routes in the webapp: the signed in login decides
  * which one, so the redirect is not a permanent one.
  */
-const repositoryPath = async (req: Request): Promise<string> => {
+const repositoryPath = async (
+  req: Request<RepositoryParams>,
+): Promise<string> => {
   const { owner, repository } = req.params;
   const cookie: string | undefined = req.cookies[authCookieName];
   const authInfo = cookie
