@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.7.0](https://github.com/christophehurpeau/reviewflow/compare/v6.6.0...v6.7.0) (2026-08-16)
+
+### Features
+
+* add webapp URL configuration and legacy redirects
+* custom palette
+
+### Bug Fixes
+
+* update icon type to SVGIconElement in LandingScreen
+
 ## [6.6.0](https://github.com/christophehurpeau/reviewflow/compare/v6.5.0...v6.6.0) (2026-08-15)
 
 ### Features
