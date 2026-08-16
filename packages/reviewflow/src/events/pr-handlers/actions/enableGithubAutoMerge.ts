@@ -11,8 +11,10 @@ import {
   enableGithubAutoMergeMutation,
 } from "../../../utils/github/pullRequest/autoMerge.ts";
 import type { AutoMergeRequest } from "../../../utils/github/pullRequest/autoMerge.ts";
+import { refreshRepositorySettings } from "../../../utils/github/repo/refreshRepositorySettings.ts";
 import type { ProbotEvent } from "../../probot-types.ts";
 import type { PullRequestWithDecentData } from "../utils/PullRequestData.ts";
+import { createCommentOnce } from "../utils/createCommentOnce.ts";
 import { createPrMinimumDataFromPr } from "../utils/createPrMinimumDataFromPr.ts";
 import type { ReviewflowPrContext } from "../utils/createPullRequestContext.ts";
 import { getFailedChecksAndStatusesForMerge } from "../utils/getFailedChecksAndStatusesForMerge.ts";
@@ -40,6 +42,15 @@ function isPullRequestAlreadyMergedGraphQLError(err: unknown): boolean {
     message.includes("Pull request is already merged"),
   );
 }
+
+function isAutoMergeNotAllowedGraphQLError(err: unknown): boolean {
+  return getGraphQLErrorMessages(err).some((message) =>
+    message.includes("Auto merge is not allowed for this repository"),
+  );
+}
+
+const autoMergeNotAllowedCommentMarker =
+  "<!-- reviewflow-auto-merge-not-allowed -->";
 
 export interface MergeOrEnableGithubAutoMergeResult {
   wasMerged: boolean;
@@ -104,6 +115,7 @@ export const mergeOrEnableGithubAutoMerge = async <
   if (
     repoContext.settings.defaultBranchProtectionRules?.requiresStatusChecks ===
       false ||
+    repoContext.settings.allowAutoMerge === false ||
     repoContext.config.disableAutoMerge
   ) {
     return {
@@ -307,6 +319,23 @@ The pull request must be in a state where requirements have not yet been satisfi
     }
 
     if (isPullRequestClosedGraphQLError(error)) {
+      return {
+        wasMerged: false,
+        didFailedToEnableAutoMerge: true,
+      };
+    }
+
+    // nothing reviewflow can do until the repository admin turns the setting on: refresh the
+    // cached settings so the next pull requests skip auto merge, and tell the author once.
+    if (isAutoMergeNotAllowedGraphQLError(error)) {
+      await refreshRepositorySettings(context, repoContext);
+      await createCommentOnce(context, {
+        pullRequestNumber: pullRequest.number,
+        marker: autoMergeNotAllowedCommentMarker,
+        body: `${
+          user?.login ? `@${user.login} ` : ""
+        }Could not enable automerge: auto merge is not allowed on this repository. Enable "Allow auto-merge" in the repository settings (Settings > General > Pull Requests).`,
+      });
       return {
         wasMerged: false,
         didFailedToEnableAutoMerge: true,

@@ -12,8 +12,9 @@ import {
 } from "./tryToAutomerge.ts";
 import type { StepsState } from "./utils/steps/calcStepsState.ts";
 
-const createAlreadyMergedGraphQLError = (
+const createGraphQLError = (
   mutationName: string,
+  message: string,
 ): GraphqlResponseError<unknown> =>
   new GraphqlResponseError(
     { query: `mutation { ${mutationName} }` },
@@ -25,7 +26,7 @@ const createAlreadyMergedGraphQLError = (
           type: "UNPROCESSABLE",
           path: [mutationName],
           locations: [],
-          message: "Pull request Pull request is already merged",
+          message,
         },
       ],
     },
@@ -52,13 +53,34 @@ const codeNeedsReviewLabel = createLabel(
 
 const headSha = "b8f2e0a6b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8";
 
+interface ExistingComment {
+  user: { login: string; type: string };
+  body: string;
+}
+
 const merge = vi.fn(() => Promise.resolve({}));
 const graphql = vi.fn(() => Promise.resolve({}));
 const createComment = vi.fn(() => Promise.resolve({}));
+const listComments = vi.fn((): ExistingComment[] => []);
 const reschedule = vi.fn(() => Promise.resolve());
 const listForRef = vi.fn(() => Promise.resolve({ data: { check_runs: [] } }));
 const getCombinedStatusForRef = vi.fn(() =>
   Promise.resolve({ data: { statuses: [] } }),
+);
+const partialUpdateByKey = vi.fn(() => Promise.resolve());
+
+const paginate = vi.fn(
+  (
+    _route: unknown,
+    _parameters: unknown,
+    mapFn: (
+      response: { data: ExistingComment[] },
+      done: () => void,
+    ) => unknown[],
+  ) => {
+    mapFn({ data: listComments() }, () => {});
+    return Promise.resolve([]);
+  },
 );
 
 const createContext = (): ProbotEvent<"check_suite.completed"> =>
@@ -66,11 +88,12 @@ const createContext = (): ProbotEvent<"check_suite.completed"> =>
     octokit: {
       rest: {
         pulls: { merge },
-        issues: { createComment },
+        issues: { createComment, listComments },
         checks: { listForRef },
         repos: { getCombinedStatusForRef },
       },
       graphql,
+      paginate,
     },
     log: { info: vi.fn(), error: vi.fn() },
     repo: (object: object) => ({
@@ -98,6 +121,8 @@ const createRepoContext = (allowAutoMerge = true): RepoContext =>
     },
     accountEmbed: { id: 64_312_233, login: "reviewflow", type: "Organization" },
     repoFullName: "reviewflow/reviewflow-test",
+    repoEmbed: { id: 167_861_157, name: "reviewflow-test" },
+    appContext: { mongoStores: { repositories: { partialUpdateByKey } } },
     reschedule,
   }) as unknown as RepoContext;
 
@@ -219,10 +244,72 @@ describe("tryToAutomergeFromReschedule", (): void => {
     expect(result).toEqual({ wasMerged: true });
   });
 
+  test("comments once and stops rescheduling when auto merge is not allowed on the repository", async (): Promise<void> => {
+    merge.mockRejectedValueOnce(new Error("Pull Request is not mergeable"));
+    graphql.mockRejectedValueOnce(
+      createGraphQLError(
+        "enablePullRequestAutoMerge",
+        "Auto merge is not allowed for this repository",
+      ),
+    );
+
+    const result = await tryToAutomergeFromReschedule({
+      pullRequest: createPullRequest([autoMergeLabel]),
+      context: createContext(),
+      repoContext: createRepoContext(),
+      reviewflowPrContext,
+      fromRescheduleTime: "short",
+      fromRescheduleAttempt: 0,
+    });
+
+    expect(partialUpdateByKey).toHaveBeenCalled();
+    expect(createComment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        issue_number: 30,
+        body: expect.stringContaining("<!-- reviewflow-auto-merge-not-allowed"),
+      }),
+    );
+    expect(reschedule).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      wasMerged: false,
+      didFailedToEnableAutoMerge: true,
+    });
+  });
+
+  test("does not comment again when auto merge is not allowed and the comment is already there", async (): Promise<void> => {
+    merge.mockRejectedValueOnce(new Error("Pull Request is not mergeable"));
+    graphql.mockRejectedValueOnce(
+      createGraphQLError(
+        "enablePullRequestAutoMerge",
+        "Auto merge is not allowed for this repository",
+      ),
+    );
+    listComments.mockReturnValueOnce([
+      {
+        user: { login: "reviewflow-dev[bot]", type: "Bot" },
+        body: "<!-- reviewflow-auto-merge-not-allowed -->\nCould not enable automerge",
+      },
+    ]);
+
+    await tryToAutomergeFromReschedule({
+      pullRequest: createPullRequest([autoMergeLabel]),
+      context: createContext(),
+      repoContext: createRepoContext(),
+      reviewflowPrContext,
+      fromRescheduleTime: "short",
+      fromRescheduleAttempt: 0,
+    });
+
+    expect(createComment).not.toHaveBeenCalled();
+  });
+
   test("reports the pull request as already merged when it was merged during the mutation", async (): Promise<void> => {
     merge.mockRejectedValueOnce(new Error("Pull Request is not mergeable"));
     graphql.mockRejectedValueOnce(
-      createAlreadyMergedGraphQLError("enablePullRequestAutoMerge"),
+      createGraphQLError(
+        "enablePullRequestAutoMerge",
+        "Pull request Pull request is already merged",
+      ),
     );
 
     const result = await tryToAutomergeFromReschedule({
