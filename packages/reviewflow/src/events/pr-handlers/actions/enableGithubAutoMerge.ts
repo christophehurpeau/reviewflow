@@ -21,18 +21,24 @@ import { requestRestrictedApprovalReviewers } from "./requestRestrictedApprovalR
 import { parseBody } from "./utils/body/parseBody.ts";
 import { checkIsMissingRestrictedApprobation } from "./utils/restrictedApprobation.ts";
 
+function getGraphQLErrorMessages(err: unknown): string[] {
+  if (!(err instanceof GraphqlResponseError)) return [];
+  const errors = Array.isArray(err.errors) ? err.errors : [];
+  return [err.message, ...errors.map((e) => e.message)].filter(Boolean);
+}
+
 function isPullRequestClosedGraphQLError(err: unknown): boolean {
-  if (!err) return false;
+  return getGraphQLErrorMessages(err).some((message) =>
+    message.includes("Pull request is closed"),
+  );
+}
 
-  if (err instanceof GraphqlResponseError) {
-    if (err.message.includes("Pull request is closed")) return true;
-    const errors = Array.isArray(err.errors) ? err.errors : [];
-    return errors.some((e) => {
-      return e.message?.includes("Pull request is closed");
-    });
-  }
-
-  return false;
+// the pull request can be merged (by github auto merge or by someone else) between the moment it
+// was fetched and the mutation, so this is a race, not a failure to enable auto merge.
+function isPullRequestAlreadyMergedGraphQLError(err: unknown): boolean {
+  return getGraphQLErrorMessages(err).some((message) =>
+    message.includes("Pull request is already merged"),
+  );
 }
 
 export interface MergeOrEnableGithubAutoMergeResult {
@@ -162,15 +168,25 @@ export const mergeOrEnableGithubAutoMerge = async <
       pullRequest.auto_merge.commit_title !== commitHeadline ||
       pullRequest.auto_merge.commit_message !== commitBody
     ) {
-      await disableGithubAutoMergeMutation(context, {
-        pullRequestId: pullRequest.node_id,
-      });
-      await enableGithubAutoMergeMutation(context, {
-        pullRequestId: pullRequest.node_id,
-        mergeMethod: "SQUASH",
-        commitHeadline,
-        commitBody,
-      });
+      try {
+        await disableGithubAutoMergeMutation(context, {
+          pullRequestId: pullRequest.node_id,
+        });
+        await enableGithubAutoMergeMutation(context, {
+          pullRequestId: pullRequest.node_id,
+          mergeMethod: "SQUASH",
+          commitHeadline,
+          commitBody,
+        });
+      } catch (error) {
+        if (isPullRequestAlreadyMergedGraphQLError(error)) {
+          return {
+            wasMerged: false,
+            wasAlreadyMerged: true,
+          };
+        }
+        throw error;
+      }
     }
     return {
       wasMerged: false,
@@ -283,6 +299,13 @@ The pull request must be in a state where requirements have not yet been satisfi
         response.enablePullRequestAutoMerge.pullRequest.autoMergeRequest,
     };
   } catch (error) {
+    if (isPullRequestAlreadyMergedGraphQLError(error)) {
+      return {
+        wasMerged: false,
+        wasAlreadyMerged: true,
+      };
+    }
+
     if (isPullRequestClosedGraphQLError(error)) {
       return {
         wasMerged: false,

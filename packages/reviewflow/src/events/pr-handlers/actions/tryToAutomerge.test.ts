@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { GraphqlResponseError } from "@octokit/graphql";
 import type { LabelResponse } from "../../../context/initRepoLabels.ts";
 import type { RepoContext } from "../../../context/repoContext.ts";
 import type { ProbotEvent } from "../../probot-types.ts";
@@ -10,6 +11,25 @@ import {
   tryToAutomergeFromReschedule,
 } from "./tryToAutomerge.ts";
 import type { StepsState } from "./utils/steps/calcStepsState.ts";
+
+const createAlreadyMergedGraphQLError = (
+  mutationName: string,
+): GraphqlResponseError<unknown> =>
+  new GraphqlResponseError(
+    { query: `mutation { ${mutationName} }` },
+    {},
+    {
+      data: null,
+      errors: [
+        {
+          type: "UNPROCESSABLE",
+          path: [mutationName],
+          locations: [],
+          message: "Pull request Pull request is already merged",
+        },
+      ],
+    },
+  );
 
 const createLabel = (id: number, name: string): LabelResponse => ({
   id,
@@ -197,6 +217,26 @@ describe("tryToAutomergeFromReschedule", (): void => {
       commit_message: "",
     });
     expect(result).toEqual({ wasMerged: true });
+  });
+
+  test("reports the pull request as already merged when it was merged during the mutation", async (): Promise<void> => {
+    merge.mockRejectedValueOnce(new Error("Pull Request is not mergeable"));
+    graphql.mockRejectedValueOnce(
+      createAlreadyMergedGraphQLError("enablePullRequestAutoMerge"),
+    );
+
+    const result = await tryToAutomergeFromReschedule({
+      pullRequest: createPullRequest([autoMergeLabel]),
+      context: createContext(),
+      repoContext: createRepoContext(),
+      reviewflowPrContext,
+      fromRescheduleTime: "short",
+      fromRescheduleAttempt: 0,
+    });
+
+    expect(createComment).not.toHaveBeenCalled();
+    expect(reschedule).not.toHaveBeenCalled();
+    expect(result).toEqual({ wasMerged: false, wasAlreadyMerged: true });
   });
 
   test("does not merge when a check failed on the head commit", async (): Promise<void> => {
