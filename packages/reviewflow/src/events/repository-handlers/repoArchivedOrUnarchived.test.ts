@@ -23,7 +23,7 @@ describe("repository archived or unarchived", (): void => {
   let probot: Probot;
   const deleteManyPrs = vi.fn(() => Promise.resolve());
   const deleteManyLabels = vi.fn(() => Promise.resolve());
-  const deleteByKeyRepository = vi.fn(() => Promise.resolve());
+  const deleteManyRepositories = vi.fn(() => Promise.resolve());
   const partialUpdateByKeyRepository = vi.fn(() => Promise.resolve());
 
   beforeEach(async () => {
@@ -32,7 +32,7 @@ describe("repository archived or unarchived", (): void => {
       prs: { deleteMany: deleteManyPrs },
       labels: { deleteMany: deleteManyLabels },
       repositories: {
-        deleteByKey: deleteByKeyRepository,
+        deleteMany: deleteManyRepositories,
         partialUpdateByKey: partialUpdateByKeyRepository,
       },
     });
@@ -50,7 +50,7 @@ describe("repository archived or unarchived", (): void => {
     });
     expect(deleteManyPrs).toHaveBeenCalledWith({ "repo.id": 42 });
     expect(deleteManyLabels).not.toHaveBeenCalled();
-    expect(deleteByKeyRepository).not.toHaveBeenCalled();
+    expect(deleteManyRepositories).not.toHaveBeenCalled();
   });
 
   test("clears the flag when unarchived", async (): Promise<void> => {

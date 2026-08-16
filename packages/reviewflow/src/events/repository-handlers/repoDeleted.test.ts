@@ -20,14 +20,14 @@ describe("repository deleted", (): void => {
   let probot: Probot;
   const deleteManyPrs = vi.fn(() => Promise.resolve());
   const deleteManyLabels = vi.fn(() => Promise.resolve());
-  const deleteByKeyRepository = vi.fn(() => Promise.resolve());
+  const deleteManyRepositories = vi.fn(() => Promise.resolve());
 
   beforeEach(async () => {
     vi.clearAllMocks();
     probot = await initializeProbotApp({
       prs: { deleteMany: deleteManyPrs },
       labels: { deleteMany: deleteManyLabels },
-      repositories: { deleteByKey: deleteByKeyRepository },
+      repositories: { deleteMany: deleteManyRepositories },
     });
   });
 
@@ -40,6 +40,6 @@ describe("repository deleted", (): void => {
 
     expect(deleteManyPrs).toHaveBeenCalledWith({ "repo.id": 42 });
     expect(deleteManyLabels).toHaveBeenCalledWith({ "repo.id": 42 });
-    expect(deleteByKeyRepository).toHaveBeenCalledWith(42);
+    expect(deleteManyRepositories).toHaveBeenCalledWith({ _id: 42 });
   });
 });

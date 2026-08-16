@@ -23,5 +23,9 @@ export const deleteRepositoryData = async ({
     mongoStores.prs.deleteMany({ "repo.id": repositoryId }),
     mongoStores.labels.deleteMany({ "repo.id": repositoryId }),
   ]);
-  await mongoStores.repositories.deleteByKey(repositoryId);
+  // deleteMany, not deleteByKey: the subscribe store's deleteByKey reads the
+  // document before deleting it and throws when it is already missing, which
+  // happens when github delivers both repository.deleted and
+  // installation_repositories.removed, or when reviewflow never stored it
+  await mongoStores.repositories.deleteMany({ _id: repositoryId });
 };
