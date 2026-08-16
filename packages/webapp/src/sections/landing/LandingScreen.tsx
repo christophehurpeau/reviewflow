@@ -1,3 +1,4 @@
+import type { SVGIconElement } from "alouette";
 import {
   Button,
   ConfirmationMessage,
@@ -20,7 +21,7 @@ import { ListChecksRegularIcon } from "alouette-icons/phosphor-icons/ListChecksR
 // import { PlusCircleRegularIcon } from "alouette-icons/phosphor-icons/PlusCircleRegularIcon";
 import { SlackLogoRegularIcon } from "alouette-icons/phosphor-icons/SlackLogoRegularIcon";
 import { TagRegularIcon } from "alouette-icons/phosphor-icons/TagRegularIcon";
-import type { ReactElement, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { PageContainer } from "#/components/page-container.tsx";
 // import { reviewflowName } from "#/reviewflowName.ts";
 
@@ -28,7 +29,7 @@ const sourceUrl = "https://github.com/christophehurpeau/reviewflow";
 // const installUrl = `https://github.com/apps/${reviewflowName}`;
 
 interface Feature {
-  icon: ReactElement;
+  icon: SVGIconElement;
   title: string;
   description: string;
 }
