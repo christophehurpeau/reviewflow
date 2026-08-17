@@ -189,8 +189,8 @@ importers:
         specifier: 57.0.9
         version: 57.0.9(@expo/log-box@57.0.2)(expo@57.0.12)(react-dom@19.2.8(react@19.2.8))(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1))(react@19.2.8)
       alouette:
-        specifier: 22.6.0
-        version: 22.6.0(ff56b058e89461954bd87ad34fa26741)
+        specifier: 22.7.0
+        version: 22.7.0(ff56b058e89461954bd87ad34fa26741)
       alouette-icons:
         specifier: 11.1.0
         version: 11.1.0(react-native-svg@15.15.5(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1))(react@19.2.8))(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1))(react@19.2.8)
@@ -2987,8 +2987,8 @@ packages:
       react-native: '*'
       react-native-svg: '*'
 
-  alouette@22.6.0:
-    resolution: {integrity: sha512-JBxmmK6Oqw4BAqSsWGvP5GWdAULu456/3He0ATivPtWBfhSDVNv+b6kln8cHCF7XOon6+ZD2HDcgCH7aFUimHg==}
+  alouette@22.7.0:
+    resolution: {integrity: sha512-XdSbpmqbiFIA3lktu9w/NoSaDoBNwCWZIMgDc8CBTNes4D9vzcOUyXDiW4jxfv5Xxgm7yoxEfYYLZ6V1OLorLg==}
     engines: {node: '>=22.18.0'}
     hasBin: true
     peerDependencies:
@@ -9449,7 +9449,7 @@ snapshots:
       react-native: 0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)
       react-native-svg: 15.15.5(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1))(react@19.2.8)
 
-  alouette@22.6.0(ff56b058e89461954bd87ad34fa26741):
+  alouette@22.7.0(ff56b058e89461954bd87ad34fa26741):
     dependencies:
       '@tailwindcss/postcss': 4.3.3
       alouette-icons: 11.1.0(react-native-svg@15.15.5(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1))(react@19.2.8))(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1))(react@19.2.8)
