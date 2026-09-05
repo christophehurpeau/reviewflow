@@ -61,6 +61,20 @@ describe("cleanTitle", () => {
     ).toBe("revert: chore(deps): update node.js to v8.14");
   });
 
+  it("should write correct revert with missing closing quote", () => {
+    expect(
+      cleanTitle(
+        'Revert "feat(api): reject unknown fields in the B2B API body [no ticket]',
+        true,
+      ),
+    ).toBe(
+      "revert: feat(api): reject unknown fields in the B2B API body [no ticket]",
+    );
+    expect(
+      cleanTitle('Revert "chore(deps): update node.js to v8.14 (#296)', true),
+    ).toBe("revert: chore(deps): update node.js to v8.14");
+  });
+
   it("should correct revert of revert", () => {
     expect(
       cleanTitle("revert: revert: chore(deps): update node.js to v8.14", true),

@@ -27,7 +27,7 @@ export const cleanTitle = (
         /\s+(?:-\s*)?[()[\]]\s*no[\s-]*ticket\s*[()[\]]$/i,
         " [no ticket]",
       )
-      .replace(/^Revert "([^"]+)"( \[no (?:issue|ticket)\])?$/, "revert: $1$2")
+      .replace(/^Revert "([^"]+)"?( \[no (?:issue|ticket)\])?$/, "revert: $1$2")
       // eslint-disable-next-line regexp/no-unused-capturing-group, regexp/no-super-linear-backtracking, regexp/no-misleading-capturing-group
       .replace(/^(revert:.*)(\s+\(#\d+\))( \[no (?:issue|ticket)\])?$/, "$1$3")
       .replace(/^(?:revert: ){2}/, "")
