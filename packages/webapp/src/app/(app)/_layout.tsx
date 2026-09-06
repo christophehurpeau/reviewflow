@@ -1,7 +1,8 @@
+import { AppShellMain } from "alouette";
 import { Redirect, Slot } from "expo-router";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
-import { AppShell } from "#/components/app-shell.tsx";
+import { ReviewflowShell } from "#/components/app-shell.tsx";
 import { useAuthenticatedUserOrNull } from "#/services/AuthenticatedUserProvider.tsx";
 import {
   currentPath,
@@ -26,8 +27,10 @@ export default function AuthenticatedLayout(): ReactNode {
   if (!user) return <SignInFirst />;
 
   return (
-    <AppShell>
-      <Slot />
-    </AppShell>
+    <ReviewflowShell>
+      <AppShellMain>
+        <Slot />
+      </AppShellMain>
+    </ReviewflowShell>
   );
 }

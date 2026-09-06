@@ -1,4 +1,5 @@
 import {
+  Avatar,
   ExternalLinkButton,
   HStack,
   InfoMessage,
@@ -35,7 +36,10 @@ export function SettingsHomeScreen({
       <VStack className="gap-l">
         <ListSection title="Your account">
           <PressableListItem onPress={onSelectUser}>
-            <Text className="font-body-bold">{userLogin}</Text>
+            <HStack className="items-center gap-m">
+              <Avatar name={userLogin} size="sm" />
+              <Text className="font-body-bold">{userLogin}</Text>
+            </HStack>
           </PressableListItem>
         </ListSection>
 
@@ -64,7 +68,10 @@ export function SettingsHomeScreen({
                         onSelectOrg(org);
                       }}
                     >
-                      <Text className="font-body-bold">{org.login}</Text>
+                      <HStack className="items-center gap-m">
+                        <Avatar name={org.login} size="sm" />
+                        <Text className="font-body-bold">{org.login}</Text>
+                      </HStack>
                     </PressableListItem>
                   ))}
                 </VStack>

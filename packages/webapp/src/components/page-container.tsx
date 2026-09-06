@@ -1,9 +1,12 @@
 import { VStack } from "alouette";
 import type { ReactNode } from "react";
 
-/** Shared page gutter, so header, nav and content stay aligned at every width. */
+/**
+ * Shared page gutter, matching the boxed row `AppHeader` centers its own
+ * content in, so header, nav and content stay aligned at every width.
+ */
 export const pageContainerClassName =
-  "mx-auto w-full max-w-[960px] px-l xl:max-w-[1280px] xl:px-xl";
+  "mx-auto w-full max-w-[1200px] px-m md:px-l";
 
 interface PageContainerProps {
   className?: string;

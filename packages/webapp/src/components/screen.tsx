@@ -27,7 +27,7 @@ export function Screen({
               icon={<ArrowLeftRegularIcon />}
               variant="contained"
               size="sm"
-              aria-label="Back to settings"
+              aria-label={backLabel}
               onPress={onBack}
             />
           ) : null}

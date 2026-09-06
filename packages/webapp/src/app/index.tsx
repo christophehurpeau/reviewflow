@@ -1,8 +1,9 @@
+import { AppShellMain } from "alouette";
 import { Redirect, useLocalSearchParams } from "expo-router";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { useResource } from "react-liwi";
-import { AppShell } from "#/components/app-shell.tsx";
+import { ReviewflowShell } from "#/components/app-shell.tsx";
 import { ResourceView } from "#/components/resource-view.tsx";
 import { Screen } from "#/components/screen.tsx";
 import { SkeletonSections } from "#/components/skeleton.tsx";
@@ -14,11 +15,13 @@ import { goToLogin } from "#/services/serverUrl.ts";
 import { takeSignInRedirect } from "#/services/signInRedirect.ts";
 
 const redirectingScreen = (
-  <AppShell>
-    <Screen title="reviewflow">
-      <SkeletonSections sections={2} />
-    </Screen>
-  </AppShell>
+  <ReviewflowShell>
+    <AppShellMain>
+      <Screen title="reviewflow">
+        <SkeletonSections sections={2} />
+      </Screen>
+    </AppShellMain>
+  </ReviewflowShell>
 );
 
 /**

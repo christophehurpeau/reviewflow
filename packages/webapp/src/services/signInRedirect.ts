@@ -1,3 +1,5 @@
+import type { Href } from "expo-router";
+
 /**
  * A signed out visitor following a link — the settings link in a slack message,
  * a pull request body, a bookmark — is shown the landing page, and the github
@@ -35,9 +37,14 @@ export const rememberSignInRedirect = (path: string | undefined): void => {
   if (path) getSessionStorage()?.setItem(storageKey, path);
 };
 
-export const takeSignInRedirect = (): string | undefined => {
+/**
+ * `Href` is the set of routes typed routes knows statically; a path read back
+ * from the session storage is only known at runtime, so `isInternalPath` is
+ * what vouches for it.
+ */
+export const takeSignInRedirect = (): Href | undefined => {
   const sessionStorage = getSessionStorage();
   const path = sessionStorage?.getItem(storageKey);
   sessionStorage?.removeItem(storageKey);
-  return path && isInternalPath(path) ? path : undefined;
+  return path && isInternalPath(path) ? (path as Href) : undefined;
 };

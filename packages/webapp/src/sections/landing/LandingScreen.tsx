@@ -1,5 +1,6 @@
 import type { SVGIconElement } from "alouette";
 import {
+  Box,
   Button,
   ConfirmationMessage,
   ErrorMessage,
@@ -9,7 +10,6 @@ import {
   Icon,
   Paragraph,
   ScrollView,
-  Stack,
   Surface,
   Text,
   VStack,
@@ -120,7 +120,7 @@ export function LandingScreen({
             </HStack>
           </VStack>
 
-          <Stack className="gap-m">
+          <Box className="flex-row flex-wrap-balance gap-m">
             {features.map((feature) => (
               <Surface
                 key={feature.title}
@@ -135,7 +135,7 @@ export function LandingScreen({
                 </Paragraph>
               </Surface>
             ))}
-          </Stack>
+          </Box>
 
           <HStack>
             <ExternalLinkButton

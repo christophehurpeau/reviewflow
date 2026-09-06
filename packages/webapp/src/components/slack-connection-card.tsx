@@ -1,8 +1,9 @@
 import {
+  Code,
   ConfirmationMessage,
   ExternalLinkButton,
   InfoMessage,
-  Text,
+  Paragraph,
   VStack,
   WarningMessage,
 } from "alouette";
@@ -61,9 +62,9 @@ export function SlackConnectionCard({
           <ConfirmationMessage variant="flat">
             {`Linked to slack team ${slack.teamName ?? slack.teamId ?? ""}.`}
           </ConfirmationMessage>
-          <Text className="font-mono text-sm text-muted">
-            {`Slack user id: ${slack.userId ?? ""}`}
-          </Text>
+          <Paragraph className="text-sm text-muted">
+            Slack user id: <Code>{slack.userId ?? ""}</Code>
+          </Paragraph>
         </>
       ) : null}
     </VStack>

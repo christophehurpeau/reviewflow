@@ -1,4 +1,4 @@
-import { ActionButton, Badge, InfoMessage, Text, VStack, View } from "alouette";
+import { ActionButton, Badge, Code, InfoMessage, Text, VStack } from "alouette";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
 import type {
@@ -88,13 +88,11 @@ function OrgSettingsContent({
           <Badge variant="solid.enabled">
             {orgSettings.hasCustomAccountConfig ? "custom" : "default"}
           </Badge>
-          <View>
-            <Text className="font-mono text-sm text-muted">
-              {orgSettings.hasCustomAccountConfig
-                ? `${configRepoUrl}/${orgSettings.login}.ts`
-                : `${configRepoUrl}/defaultConfig.ts`}
-            </Text>
-          </View>
+          <Code className="self-start text-sm">
+            {orgSettings.hasCustomAccountConfig
+              ? `${configRepoUrl}/${orgSettings.login}.ts`
+              : `${configRepoUrl}/defaultConfig.ts`}
+          </Code>
           <ActionButton
             text="Force sync"
             size="sm"

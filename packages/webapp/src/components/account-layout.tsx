@@ -1,5 +1,13 @@
-import { HStack, IconButton, NavBar, NavBarItem, Text } from "alouette";
-import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeftRegularIcon";
+import {
+  Avatar,
+  BreadcrumbItem,
+  Breadcrumbs,
+  HStack,
+  NavBar,
+  NavBarItem,
+  Text,
+} from "alouette";
+import { GearRegularIcon } from "alouette-icons/phosphor-icons/GearRegularIcon";
 import type { Href } from "expo-router";
 import { usePathname, useRouter } from "expo-router";
 import type { ReactNode } from "react";
@@ -17,6 +25,8 @@ interface AccountLayoutProps {
   children: ReactNode;
 }
 
+const settingsHref = "/settings";
+
 /**
  * Header of an account section, for the user's own account as well as for an
  * org: both hold the same kinds of pages, only reached under different routes.
@@ -32,16 +42,20 @@ export function AccountLayout({
   return (
     <>
       <PageContainer className="gap-xs pt-l">
-        <HStack className="gap-m items-center">
-          <IconButton
-            icon={<ArrowLeftRegularIcon />}
-            variant="contained"
-            size="sm"
-            aria-label="Back to settings"
-            onPress={() => {
-              router.navigate("/settings");
+        <Breadcrumbs>
+          <BreadcrumbItem
+            href={settingsHref}
+            label="Settings"
+            icon={<GearRegularIcon />}
+            onPress={(event) => {
+              event.preventDefault();
+              router.navigate(settingsHref);
             }}
           />
+          <BreadcrumbItem href={sections[0]?.href} label={title} />
+        </Breadcrumbs>
+        <HStack className="gap-m items-center">
+          <Avatar name={title} size="lg" />
           <Text className="font-heading-extrabold text-3xl xl:text-4xl">
             {title}
           </Text>
