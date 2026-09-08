@@ -60,7 +60,7 @@ export function RepositoryScreen({
                   without its pull requests. One that is deleted or no longer
                   part of the installation is removed from reviewflow.
                 </Text>
-                <HStack className="gap-s">
+                <HStack className="gap-sm">
                   <ActionButton
                     text="Resync"
                     onPress={() => onSync(repositoryData._id)}

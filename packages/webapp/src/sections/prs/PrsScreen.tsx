@@ -1,4 +1,10 @@
 import { ExternalLinkButton, HStack, InfoMessage, VStack } from "alouette";
+import { BarricadeRegularIcon } from "alouette-icons/phosphor-icons/BarricadeRegularIcon";
+import { CheckCircleRegularIcon } from "alouette-icons/phosphor-icons/CheckCircleRegularIcon";
+import { ClockRegularIcon } from "alouette-icons/phosphor-icons/ClockRegularIcon";
+import { EyeRegularIcon } from "alouette-icons/phosphor-icons/EyeRegularIcon";
+import { WarningRegularIcon } from "alouette-icons/phosphor-icons/WarningRegularIcon";
+import { XCircleRegularIcon } from "alouette-icons/phosphor-icons/XCircleRegularIcon";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
 import type {
@@ -12,41 +18,13 @@ import { ResourceView } from "#/components/resource-view.tsx";
 import { Screen } from "#/components/screen.tsx";
 import { reviewflowName } from "#/reviewflowName.ts";
 import type { PrBucketResource } from "./PrBucketSection.tsx";
-import { PrBucketSection } from "./PrBucketSection.tsx";
+import { PrBucketSection, hasBucketContent } from "./PrBucketSection.tsx";
+import { PrGroupSection } from "./PrGroupSection.tsx";
 import { PrsAccountFilter } from "./PrsAccountFilter.tsx";
+import { PrsEmptyState } from "./PrsEmptyState.tsx";
 import { buildPrAccounts } from "./prAccounts.ts";
 
 const installUrl = `https://github.com/apps/${reviewflowName}/installations/new`;
-
-interface BucketSection {
-  bucket: PrBucket;
-  title: string;
-  /** Optional buckets stay out of the page until they have something to show. */
-  hideWhenEmpty?: boolean;
-}
-
-const sections: BucketSection[] = [
-  { bucket: "requested-reviews", title: "Requested reviews" },
-  { bucket: "ready-to-merge", title: "Ready to merge" },
-  { bucket: "changes-requested", title: "Changes requested" },
-  {
-    bucket: "waiting-for-review",
-    title: "Waiting for review",
-    hideWhenEmpty: true,
-  },
-  {
-    bucket: "opened-missing-review-request",
-    title: "Missing request for review",
-    hideWhenEmpty: true,
-  },
-  { bucket: "drafts", title: "Drafts", hideWhenEmpty: true },
-];
-
-const isHidden = (section: BucketSection, prs: PrBucketResource): boolean => {
-  if (!section.hideWhenEmpty) return false;
-  if (prs.initialLoading) return true;
-  return prs.fetched && prs.data.length === 0;
-};
 
 interface PrsScreenProps {
   me: ResourceResult<UserSummary | undefined, Record<string, never>>;
@@ -68,6 +46,22 @@ export function PrsScreen({
   onSelectAccountLogin,
   onSelectPr,
 }: PrsScreenProps): ReactNode {
+  const requestedReviews = prsByBucket["requested-reviews"];
+  const readyToMerge = prsByBucket["ready-to-merge"];
+  const changesRequested = prsByBucket["changes-requested"];
+  const waitingForReview = prsByBucket["waiting-for-review"];
+  const missingReviewRequest = prsByBucket["opened-missing-review-request"];
+  const drafts = prsByBucket.drafts;
+
+  const hasPrsRequestingAttention =
+    hasBucketContent(requestedReviews, pending) ||
+    hasBucketContent(readyToMerge, pending) ||
+    hasBucketContent(changesRequested, pending);
+  const hasPrsInProgress =
+    hasBucketContent(waitingForReview, pending) ||
+    hasBucketContent(missingReviewRequest, pending) ||
+    hasBucketContent(drafts, pending);
+
   return (
     <Screen title="Pull requests">
       <ResourceView resource={me}>
@@ -100,23 +94,67 @@ export function PrsScreen({
                     selectedAccountLogin={selectedAccountLogin}
                     onSelectAccountLogin={onSelectAccountLogin}
                   />
-                  <Columns>
-                    {sections
-                      .filter(
-                        (section) =>
-                          pending ||
-                          !isHidden(section, prsByBucket[section.bucket]),
-                      )
-                      .map((section) => (
-                        <PrBucketSection
-                          key={section.bucket}
-                          title={section.title}
-                          prs={prsByBucket[section.bucket]}
-                          pending={pending}
-                          onSelectPr={onSelectPr}
-                        />
-                      ))}
-                  </Columns>
+
+                  {!hasPrsRequestingAttention && !hasPrsInProgress ? (
+                    <PrsEmptyState />
+                  ) : (
+                    <Columns>
+                      {hasPrsRequestingAttention ? (
+                        <PrGroupSection title="PRs requesting your attention">
+                          <PrBucketSection
+                            title="Requested reviews"
+                            icon={<EyeRegularIcon />}
+                            prs={requestedReviews}
+                            pending={pending}
+                            onSelectPr={onSelectPr}
+                          />
+                          <PrBucketSection
+                            title="Ready to merge"
+                            icon={<CheckCircleRegularIcon />}
+                            iconAccent="success"
+                            prs={readyToMerge}
+                            pending={pending}
+                            onSelectPr={onSelectPr}
+                          />
+                          <PrBucketSection
+                            title="Changes requested"
+                            icon={<XCircleRegularIcon />}
+                            iconAccent="danger"
+                            prs={changesRequested}
+                            pending={pending}
+                            onSelectPr={onSelectPr}
+                          />
+                        </PrGroupSection>
+                      ) : null}
+
+                      {hasPrsInProgress ? (
+                        <PrGroupSection title="Your PRs in progress">
+                          <PrBucketSection
+                            title="Waiting for review"
+                            icon={<ClockRegularIcon />}
+                            prs={waitingForReview}
+                            pending={pending}
+                            onSelectPr={onSelectPr}
+                          />
+                          <PrBucketSection
+                            title="Missing request for review"
+                            icon={<WarningRegularIcon />}
+                            iconAccent="warning"
+                            prs={missingReviewRequest}
+                            pending={pending}
+                            onSelectPr={onSelectPr}
+                          />
+                          <PrBucketSection
+                            title="Drafts"
+                            icon={<BarricadeRegularIcon />}
+                            prs={drafts}
+                            pending={pending}
+                            onSelectPr={onSelectPr}
+                          />
+                        </PrGroupSection>
+                      ) : null}
+                    </Columns>
+                  )}
                 </VStack>
               );
             }}

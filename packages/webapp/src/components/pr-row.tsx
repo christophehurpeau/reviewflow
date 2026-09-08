@@ -78,32 +78,45 @@ export function PrRow({ pr }: PrRowProps): ReactNode {
       <Text className="flex-1 font-body-bold">{pr.title}</Text>
 
       <HStack className="flex-wrap items-center gap-xs">
-        {pr.isDraft ? <Badge variant="solid">draft</Badge> : null}
-
-        {checksBadge ? (
-          <Badge accent={checksBadge.accent}>{checksBadge.text}</Badge>
+        {pr.isDraft ? (
+          <Badge size="sm" variant="solid">
+            draft
+          </Badge>
         ) : null}
 
-        {pr.lintFailed ? <Badge accent="danger">lint failed</Badge> : null}
+        {checksBadge ? (
+          <Badge size="sm" accent={checksBadge.accent}>
+            {checksBadge.text}
+          </Badge>
+        ) : null}
+
+        {pr.lintFailed ? (
+          <Badge size="sm" accent="danger">
+            lint failed
+          </Badge>
+        ) : null}
 
         {pr.changesRequestedCount > 0 ? (
-          <Badge accent="danger">
+          <Badge size="sm" accent="danger">
             {`${pluralize(pr.changesRequestedCount, "change")} requested`}
           </Badge>
         ) : null}
 
         {pr.approvedCount > 0 ? (
-          <Badge accent="success">{`${pr.approvedCount} approved`}</Badge>
+          <Badge
+            size="sm"
+            accent="success"
+          >{`${pr.approvedCount} approved`}</Badge>
         ) : null}
 
         {pr.requestedReviewers.map((reviewer) => (
-          <Badge key={reviewer.id} variant="outlined">
+          <Badge size="sm" key={reviewer.id} variant="outlined">
             {`awaiting @${reviewer.login}`}
           </Badge>
         ))}
 
         {pr.requestedTeams.map((team) => (
-          <Badge key={team} variant="outlined">
+          <Badge size="sm" key={team} variant="outlined">
             {`awaiting #${team}`}
           </Badge>
         ))}
