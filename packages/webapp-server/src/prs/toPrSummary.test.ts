@@ -76,6 +76,50 @@ describe("toPrSummary checks", () => {
     });
   });
 
+  it("ignores held checks and statuses, failed or pending", () => {
+    const summary = toPrSummary(
+      buildPr({
+        checksConclusion: {
+          a: { name: "ci/hold-deploy", conclusion: "failure" },
+          b: { name: "ci/hold-e2e", conclusion: null },
+        },
+        statusesConclusion: {
+          c: { context: "ci/hold-preview", state: "error" },
+          d: { context: "codecov/patch", state: "pending" },
+        },
+      }),
+    );
+
+    expect(summary.checks).toEqual({
+      conclusion: "passed",
+      failedCount: 0,
+      runningCount: 0,
+      failedNames: [],
+    });
+  });
+
+  it("ignores the checks the account config allows to fail", () => {
+    const summary = toPrSummary(
+      buildPr({
+        account: { id: 1, login: "ornikar", type: "Organization" },
+        checksConclusion: {
+          a: { name: "build", conclusion: "failure" },
+        },
+        statusesConclusion: {
+          b: { context: "SonarCloud Code Analysis", state: "failure" },
+          c: { context: "codecov/project", state: "failure" },
+        },
+      }),
+    );
+
+    expect(summary.checks).toEqual({
+      conclusion: "failed",
+      failedCount: 1,
+      runningCount: 0,
+      failedNames: ["build"],
+    });
+  });
+
   it("passes once every check and status settled without failure", () => {
     const summary = toPrSummary(
       buildPr({

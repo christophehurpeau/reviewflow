@@ -120,7 +120,7 @@ export const buildPrBucketQuery = (
         sort: { created: -1 },
       };
 
-    case "no-action-planned":
+    case "opened-missing-review-request":
       return {
         criteria: buildAssignedCriteria(context, {
           isDraft: false,

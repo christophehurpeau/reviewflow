@@ -35,11 +35,11 @@ const sections: BucketSection[] = [
     hideWhenEmpty: true,
   },
   {
-    bucket: "no-action-planned",
-    title: "No action planned",
+    bucket: "opened-missing-review-request",
+    title: "Missing request for review",
     hideWhenEmpty: true,
   },
-  { bucket: "drafts", title: "Your drafts", hideWhenEmpty: true },
+  { bucket: "drafts", title: "Drafts", hideWhenEmpty: true },
 ];
 
 const isHidden = (section: BucketSection, prs: PrBucketResource): boolean => {

@@ -1,6 +1,7 @@
 export * from "./accountConfigs/index.ts";
 export type * from "./accountConfigs/types.ts";
 export * from "./buildPullRequestUrl.ts";
+export * from "./checksAndStatuses/getFailedOrWaitingChecksAndStatuses.ts";
 export * from "./dm/defaultDmSettings.ts";
 export * from "./getTeams.ts";
 export type * from "./models/AccountInfo.ts";

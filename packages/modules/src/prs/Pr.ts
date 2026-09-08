@@ -1,7 +1,7 @@
 export type PrBucket =
   | "changes-requested"
   | "drafts"
-  | "no-action-planned"
+  | "opened-missing-review-request"
   | "ready-to-merge"
   | "requested-reviews"
   | "waiting-for-review";

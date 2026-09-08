@@ -27,7 +27,7 @@ const buckets = [
   "ready-to-merge",
   "changes-requested",
   "drafts",
-  "no-action-planned",
+  "opened-missing-review-request",
   "waiting-for-review",
 ] as const;
 
@@ -132,7 +132,7 @@ describe("buildPrBucketQuery", () => {
   it("excludes drafts from the buckets about open pull requests", () => {
     for (const bucket of [
       "requested-reviews",
-      "no-action-planned",
+      "opened-missing-review-request",
       "waiting-for-review",
     ] as const) {
       expect(buildPrBucketQuery(bucket, withTeams).criteria.isDraft).toBe(

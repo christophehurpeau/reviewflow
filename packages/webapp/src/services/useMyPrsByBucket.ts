@@ -56,7 +56,7 @@ export const useMyPrsByBucket = ({
   const noActionPlanned = useResource(
     queryMyPrs,
     {
-      params: { accountId, bucket: "no-action-planned" },
+      params: { accountId, bucket: "opened-missing-review-request" },
       subscribe: true,
       skip,
     },
@@ -73,7 +73,7 @@ export const useMyPrsByBucket = ({
     "ready-to-merge": readyToMerge,
     "changes-requested": changesRequested,
     "waiting-for-review": waitingForReview,
-    "no-action-planned": noActionPlanned,
+    "opened-missing-review-request": noActionPlanned,
     drafts,
   };
 };
