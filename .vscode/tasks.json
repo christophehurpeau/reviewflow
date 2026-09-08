@@ -13,11 +13,43 @@
       "problemMatcher": []
     },
     {
+      "label": "core > start",
+      "type": "shell",
+      "command": "pnpm start",
+      "options": { "cwd": "${workspaceFolder}/packages/core" },
+      "group": { "kind": "none" },
+      "presentation": { "panel": "dedicated", "group": "dev", "clear": true },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "reviewflow > start",
+      "type": "shell",
+      "command": "pnpm start",
+      "options": { "cwd": "${workspaceFolder}/packages/reviewflow" },
+      "group": { "kind": "none" },
+      "presentation": { "panel": "dedicated", "group": "dev", "clear": true },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "webapp-server > start",
+      "type": "shell",
+      "command": "pnpm start",
+      "options": { "cwd": "${workspaceFolder}/packages/webapp-server" },
+      "group": { "kind": "none" },
+      "presentation": { "panel": "dedicated", "group": "dev", "clear": true },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
       "label": "webapp > start",
       "type": "shell",
       "command": "pnpm start",
       "options": { "cwd": "${workspaceFolder}/packages/webapp" },
       "group": { "kind": "none" },
+      "presentation": { "panel": "dedicated", "group": "dev", "clear": true },
+      "isBackground": true,
       "problemMatcher": []
     },
     {
@@ -35,14 +67,14 @@
     },
     {
       "label": "dev",
-      "problemMatcher": [],
-      "type": "npm",
-      "script": "dev",
-      "presentation": {
-        "panel": "dedicated",
-        "clear": true,
-        "isBackground": false
-      }
+      "dependsOrder": "parallel",
+      "dependsOn": [
+        "core > start",
+        "reviewflow > start",
+        "webapp-server > start",
+        "webapp > start"
+      ],
+      "problemMatcher": []
     },
     {
       "label": "format",
