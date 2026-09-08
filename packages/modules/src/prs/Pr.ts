@@ -52,7 +52,7 @@ export interface PrSummary {
   /** reviewflow's own pull request lint (title, commits), failing independently of the checks */
   lintFailed: boolean;
   statusLinks: PrStatusLink[];
-  approvedCount: number;
+  approvedBy: PrUserSummary[];
   changesRequestedBy: PrUserSummary[];
   requestedReviewers: PrUserSummary[];
   requestedTeams: string[];

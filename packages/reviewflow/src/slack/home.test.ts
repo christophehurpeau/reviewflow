@@ -201,9 +201,12 @@ describe("createSlackHomeWorker", () => {
           e.type === "image" && e.image_url === "https://example.com/b.png",
       ),
     ).toBe(true);
-    // assignee login
+    // the owners label names both the author and the assignee it went to
     expect(
-      elements.some((e: any) => e.type === "mrkdwn" && e.text === "bob"),
+      elements.some(
+        (e: any) =>
+          e.type === "mrkdwn" && e.text === "by @alice · assigned to @bob",
+      ),
     ).toBe(true);
 
     // changes information link to files

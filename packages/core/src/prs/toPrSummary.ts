@@ -63,18 +63,23 @@ const markdownLinkRegExp = /^\[(?<label>[^\]]+)\]\(\S+\)$/;
 const toStatusLinkLabel = ({ summary, title }: ReviewflowStatus["status"]) =>
   markdownLinkRegExp.exec(summary)?.groups?.label ?? title;
 
+/**
+ * A status only links somewhere when it carries a url. Statuses are written with
+ * an explicit `url: undefined` when they have none, which mongo stores as null,
+ * so an empty url is anything falsy rather than a missing key.
+ */
 const toStatusLinks = ({ lintStatuses }: ReviewflowPr): PrStatusLink[] =>
   lintStatuses?.flatMap(({ name, status }) =>
-    status.url === undefined
-      ? []
-      : [
+    status.url
+      ? [
           {
             name,
             label: toStatusLinkLabel(status),
             url: status.url,
             type: status.type,
           },
-        ],
+        ]
+      : [],
   ) ?? [];
 
 /** documents written before a field existed reach this without it */
@@ -93,10 +98,11 @@ export const toPrSummary = (pr: ReviewflowPr): PrSummary => ({
   checks: toChecksSummary(pr),
   lintFailed: hasLintFailure(pr),
   statusLinks: toStatusLinks(pr),
-  approvedCount: pr.reviews?.approved.length ?? 0,
+  approvedBy: toUserSummaries(pr.reviews?.approved),
   changesRequestedBy: toUserSummaries(pr.reviews?.changesRequested),
   requestedReviewers: toUserSummaries(pr.reviews?.reviewRequested),
-  requestedTeams: pr.reviews?.teamReviewRequested.map(({ name }) => name) ?? [],
+  requestedTeams:
+    pr.reviews?.teamReviewRequested?.map(({ name }) => name) ?? [],
   assignees:
     pr.assignees?.map(({ id, login, avatar_url: avatarUrl }) => ({
       id,

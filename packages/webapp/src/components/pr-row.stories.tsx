@@ -14,12 +14,14 @@ const basePr: PrSummary = {
   checks: { conclusion: "passed", runningCount: 0, failedNames: [] },
   lintFailed: false,
   statusLinks: [],
-  approvedCount: 0,
+  approvedBy: [],
   changesRequestedBy: [],
   requestedReviewers: [],
   requestedTeams: [],
   assignees: [],
+  creator: { id: 9, login: "frank" },
   changes: { changedFiles: 5, additions: 120, deletions: 8 },
+  openedAt: new Date("2026-01-05T15:04:00Z"),
 };
 
 const buildPr = (overrides: Partial<PrSummary>): PrSummary => ({
@@ -139,16 +141,87 @@ export const VariantsStory: StoryObj<typeof PrRow> = {
         />
       </Story.Section>
 
+      <Story.Section title="approved, dated by its approval">
+        <PrRow
+          pr={buildPr({
+            approvedBy: [
+              { id: 7, login: "dan" },
+              { id: 8, login: "erin" },
+            ],
+            approvedAt: new Date("2026-01-06T09:12:00Z"),
+          })}
+        />
+      </Story.Section>
+
+      <Story.Section title="no date at all">
+        <PrRow pr={buildPr({ openedAt: undefined })} />
+      </Story.Section>
+
       <Story.Section title="approved and awaiting reviewers">
         <PrRow
           pr={buildPr({
-            approvedCount: 2,
+            approvedBy: [
+              { id: 7, login: "dan" },
+              { id: 8, login: "erin" },
+            ],
             requestedReviewers: [
               { id: 1, login: "alice" },
               { id: 2, login: "bob" },
             ],
             requestedTeams: ["core"],
           })}
+        />
+      </Story.Section>
+
+      <Story.Section title="owners, assigned away from its author">
+        <PrRow
+          pr={buildPr({
+            assignees: [
+              { id: 3, login: "bob" },
+              { id: 4, login: "carol" },
+            ],
+          })}
+        />
+      </Story.Section>
+
+      <Story.Section title="owners, author among several assignees">
+        <PrRow
+          pr={buildPr({
+            assignees: [
+              { id: 9, login: "frank" },
+              { id: 3, login: "bob" },
+            ],
+          })}
+        />
+      </Story.Section>
+
+      <Story.Section title="owners, assigned to its own author">
+        <PrRow pr={buildPr({ assignees: [{ id: 9, login: "frank" }] })} />
+      </Story.Section>
+
+      <Story.Section title="owners, no assignee at all">
+        <PrRow pr={buildPr({ assignees: [] })} />
+      </Story.Section>
+
+      <Story.Section title="owners, the viewer alongside someone else">
+        <PrRow
+          pr={buildPr({
+            assignees: [
+              { id: 3, login: "chris" },
+              { id: 4, login: "carol" },
+            ],
+          })}
+          currentUserLogin="chris"
+        />
+      </Story.Section>
+
+      <Story.Section title="owners hidden, the pull request is only the viewer's">
+        <PrRow
+          pr={buildPr({
+            creator: { id: 3, login: "chris" },
+            assignees: [{ id: 3, login: "chris" }],
+          })}
+          currentUserLogin="chris"
         />
       </Story.Section>
 
@@ -253,7 +326,7 @@ export const VariantsStory: StoryObj<typeof PrRow> = {
                 type: "success",
               },
             ],
-            approvedCount: 1,
+            approvedBy: [{ id: 7, login: "dan" }],
             changesRequestedBy: [{ id: 1, login: "bob" }],
             requestedReviewers: [{ id: 2, login: "carol" }],
             requestedTeams: ["core"],

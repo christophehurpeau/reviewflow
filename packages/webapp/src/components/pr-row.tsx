@@ -1,4 +1,14 @@
-import { AccentScope, ExternalLinkText, HStack, Text, VStack } from "alouette";
+import {
+  AccentScope,
+  ExternalLink,
+  ExternalLinkText,
+  HStack,
+  InteractiveBox,
+  Text,
+  VStack,
+} from "alouette";
+import type { ExternalOpenLinkBehavior } from "alouette";
+import { Fragment } from "react";
 import type { ReactNode } from "react";
 import type {
   PrChangesSummary,
@@ -6,7 +16,7 @@ import type {
   PrSummary,
   PrUserSummary,
 } from "reviewflow-modules";
-import { splitFailedCheckNames } from "reviewflow-modules";
+import { selectPrOwners, splitFailedCheckNames } from "reviewflow-modules";
 
 const pluralize = (count: number, word: string): string =>
   `${count} ${word}${count > 1 ? "s" : ""}`;
@@ -42,8 +52,13 @@ const formatChecks = (
   return undefined;
 };
 
-const formatLogins = (users: PrUserSummary[]): string =>
-  users.map(({ login }) => `@${login}`).join(", ");
+const formatLogins = (
+  users: PrUserSummary[],
+  currentUserLogin: string | undefined,
+): string =>
+  users
+    .map(({ login }) => (login === currentUserLogin ? "you" : `@${login}`))
+    .join(", ");
 
 /**
  * Someone else's pull request requests a review, your own waits for one, so the
@@ -65,7 +80,35 @@ const formatReviewRequests = (
   return awaited.length === 0 ? undefined : `${verb} ${awaited.join(", ")}`;
 };
 
+/** the same wording the slack home uses, so both surfaces read alike */
+const formatFlowDate = ({
+  approvedAt,
+  openedAt,
+}: PrSummary): string | undefined => {
+  const date = approvedAt ?? openedAt;
+  if (!date) return undefined;
+
+  return `${approvedAt ? "approved" : "opened"} ${date.toLocaleDateString(
+    "en-US",
+    {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+    },
+  )}`;
+};
+
+/** matches what ExternalLinkText does on its own */
+const openLinkBehavior: ExternalOpenLinkBehavior = {
+  native: "webBrowser",
+  web: "targetBlank",
+};
+
 const separator = <Text className="font-body text-muted text-sm">·</Text>;
+
+const metaSeparator = <Text className="text-muted text-xs">·</Text>;
 
 interface PrRowStatusProps {
   /** what broke, in the danger accent */
@@ -147,16 +190,20 @@ export function PrRow({
 
   const changesRequested =
     pr.changesRequestedBy.length > 0
-      ? `changes requested by ${formatLogins(pr.changesRequestedBy)}`
+      ? `changes requested by ${formatLogins(pr.changesRequestedBy, currentUserLogin)}`
       : undefined;
 
   const rest = joinSegments([
     formatChecks(pr.checks, showPassedChecks),
-    pr.approvedCount > 0 ? pluralize(pr.approvedCount, "approval") : undefined,
+    pr.approvedBy.length > 0
+      ? `approved by ${formatLogins(pr.approvedBy, currentUserLogin)}`
+      : undefined,
     formatReviewRequests(pr, reviewRequestVerb, currentUserLogin),
   ]);
 
   const links = pr.statusLinks.filter(({ type }) => type === "success");
+  const flowDate = formatFlowDate(pr);
+  const owners = selectPrOwners(pr, { currentUserLogin });
 
   return (
     <VStack className="gap-xxs">
@@ -166,26 +213,54 @@ export function PrRow({
         </Text>
 
         {links.map((link) => (
-          <ExternalLinkText
-            key={link.name}
-            size="sm"
-            href={link.url}
-            text={link.label}
-            // the whole row opens github, so the link must keep the press
-            onPress={(event) => {
-              event.stopPropagation();
-            }}
-          />
+          <Fragment key={link.name}>
+            {metaSeparator}
+            <ExternalLinkText
+              size="sm"
+              href={link.url}
+              text={link.label}
+              // the whole row opens github, so the link must keep the press
+              onPress={(event) => {
+                event.stopPropagation();
+              }}
+            />
+          </Fragment>
         ))}
 
         {pr.changes ? (
-          <Text className="text-xs text-muted italic">
-            {formatChanges(pr.changes)}
-          </Text>
+          <>
+            {metaSeparator}
+            <ExternalLink
+              as={InteractiveBox}
+              href={`${pr.url}/files`}
+              openLinkBehavior={openLinkBehavior}
+              role="link"
+              // the whole row opens github, so the link must keep the press
+              onPress={(event) => {
+                event.stopPropagation();
+              }}
+            >
+              <Text className="text-xs text-muted italic underline">
+                {formatChanges(pr.changes)}
+              </Text>
+            </ExternalLink>
+          </>
+        ) : null}
+
+        {flowDate ? (
+          <>
+            {metaSeparator}
+            <Text className="text-xs text-muted">{flowDate}</Text>
+          </>
         ) : null}
       </HStack>
 
-      <Text className="font-body-bold">{pr.title}</Text>
+      <HStack className="flex-wrap items-baseline gap-xs">
+        <Text className="font-body-bold">{pr.title}</Text>
+        {owners ? (
+          <Text className="text-muted text-sm">{owners.label}</Text>
+        ) : null}
+      </HStack>
 
       <PrRowStatus
         failed={failed}

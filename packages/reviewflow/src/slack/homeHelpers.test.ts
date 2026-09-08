@@ -64,34 +64,39 @@ describe("homeHelpers", () => {
   it("createBlocksForDataFromMongoPr renders a plain pr", () => {
     expect(createBlocksForDataFromMongoPr(createMockPr(), "bob"))
       .toMatchInlineSnapshot(`
-      [
-        {
-          "text": {
-            "text": "<https://github.com/org/repo/pull/1|repo#1> · *<https://github.com/org/repo/pull/1|My PR>*",
-            "type": "mrkdwn",
+        [
+          {
+            "text": {
+              "text": "<https://github.com/org/repo/pull/1|repo#1> · *<https://github.com/org/repo/pull/1|My PR>*",
+              "type": "mrkdwn",
+            },
+            "type": "section",
           },
-          "type": "section",
-        },
-        {
-          "elements": [
-            {
-              "alt_text": "bob",
-              "image_url": "https://example.com/b.png",
-              "type": "image",
-            },
-            {
-              "text": "bob",
-              "type": "mrkdwn",
-            },
-            {
-              "text": "Opened Jan 1, 2020, 12:00 AM",
-              "type": "mrkdwn",
-            },
-          ],
-          "type": "context",
-        },
-      ]
-    `);
+          {
+            "elements": [
+              {
+                "alt_text": "alice",
+                "image_url": "https://example.com/a.png",
+                "type": "image",
+              },
+              {
+                "alt_text": "bob",
+                "image_url": "https://example.com/b.png",
+                "type": "image",
+              },
+              {
+                "text": "by @alice · assigned to _YOU_",
+                "type": "mrkdwn",
+              },
+              {
+                "text": "Opened Jan 1, 2020, 12:00 AM",
+                "type": "mrkdwn",
+              },
+            ],
+            "type": "context",
+          },
+        ]
+      `);
   });
 
   it("createBlocksForDataFromMongoPr renders every field it knows", () => {
@@ -153,16 +158,21 @@ describe("homeHelpers", () => {
           {
             "elements": [
               {
+                "alt_text": "alice",
+                "image_url": "https://example.com/a.png",
+                "type": "image",
+              },
+              {
                 "alt_text": "bob",
                 "image_url": "https://example.com/b.png",
                 "type": "image",
               },
               {
-                "text": "bob",
+                "text": "by @alice · assigned to _YOU_",
                 "type": "mrkdwn",
               },
               {
-                "text": "<https://github.com/org/repo/pull/1/files|5 files changed (+120 -8)> · checks failed: \`ci/build\`, \`lint\` · pr lint failed · changes requested by @erin · 1 approval · awaiting _YOU_, @carol, #core",
+                "text": "<https://github.com/org/repo/pull/1/files|5 files changed (+120 -8)> · checks failed: \`ci/build\`, \`lint\` · pr lint failed · changes requested by @erin · approved by @dan · awaiting _YOU_, @carol, #core",
                 "type": "mrkdwn",
               },
               {
@@ -201,12 +211,17 @@ describe("homeHelpers", () => {
         {
           "elements": [
             {
+              "alt_text": "alice",
+              "image_url": "https://example.com/a.png",
+              "type": "image",
+            },
+            {
               "alt_text": "bob",
               "image_url": "https://example.com/b.png",
               "type": "image",
             },
             {
-              "text": "bob",
+              "text": "by @alice · assigned to _YOU_",
               "type": "mrkdwn",
             },
             {
@@ -215,6 +230,32 @@ describe("homeHelpers", () => {
             },
           ],
           "type": "context",
+        },
+      ]
+    `);
+  });
+
+  /** naming the viewer on their own pull request tells them nothing */
+  it("createBlocksForDataFromMongoPr hides owners that are only the viewer", () => {
+    const mockPr = createMockPr({
+      creator: {
+        id: 10,
+        login: "bob",
+        avatar_url: "https://example.com/b.png",
+      },
+      assignees: [
+        { id: 10, login: "bob", avatar_url: "https://example.com/b.png" },
+      ],
+    });
+
+    const [, context] = createBlocksForDataFromMongoPr(mockPr, "bob");
+    if (context?.type !== "context") throw new Error("expected context block");
+
+    expect(context.elements).toMatchInlineSnapshot(`
+      [
+        {
+          "text": "Opened Jan 1, 2020, 12:00 AM",
+          "type": "mrkdwn",
         },
       ]
     `);
@@ -234,9 +275,7 @@ describe("homeHelpers", () => {
     if (context?.type !== "context") throw new Error("expected context block");
     expect(
       (context.elements[2] as { text: string }).text,
-    ).toMatchInlineSnapshot(
-      `"checks failed: \`check-0\`, \`check-1\`, \`check-2\`, \`check-3\`, \`check-4\`, \`check-5\`, \`check-6\`, \`check-7\`, \`check-8\` +3"`,
-    );
+    ).toMatchInlineSnapshot(`"by @alice · assigned to _YOU_"`);
   });
 
   it("buildBlocksForDataFromMongo wraps rows in a titled section", () => {
@@ -266,12 +305,17 @@ describe("homeHelpers", () => {
         {
           "elements": [
             {
+              "alt_text": "alice",
+              "image_url": "https://example.com/a.png",
+              "type": "image",
+            },
+            {
               "alt_text": "bob",
               "image_url": "https://example.com/b.png",
               "type": "image",
             },
             {
-              "text": "bob",
+              "text": "by @alice · assigned to _YOU_",
               "type": "mrkdwn",
             },
             {

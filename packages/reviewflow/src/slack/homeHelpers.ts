@@ -1,8 +1,8 @@
 import type { KnownBlock } from "@slack/web-api";
 import type { ReviewflowPr } from "reviewflow-core";
 import { toPrSummary } from "reviewflow-core";
-import type { PrSummary, PrUserSummary } from "reviewflow-modules";
-import { splitFailedCheckNames } from "reviewflow-modules";
+import type { PrOwners, PrSummary, PrUserSummary } from "reviewflow-modules";
+import { selectPrOwners, splitFailedCheckNames } from "reviewflow-modules";
 import type { OctokitRestCompat } from "../octokit.ts";
 import { ExcludesFalsy } from "../utils/Excludes.ts";
 import {
@@ -113,25 +113,20 @@ const formatReviewRequests = (
   ].join(", ")}`;
 };
 
-const createAuthorElements = ({
-  assignees,
-  creator,
-}: PrSummary): (ImageElement | MrkdwnElement)[] => {
-  const users =
-    assignees.length > 0 ? assignees : [creator].filter(ExcludesFalsy);
+/** the faces of everyone the owners label names, then the label itself */
+const createOwnerElements = (
+  owners: PrOwners | undefined,
+): (ImageElement | MrkdwnElement)[] => {
+  if (!owners) return [];
 
-  return users.flatMap((user) => {
-    const elements: (ImageElement | MrkdwnElement)[] = [];
-    if (user.avatarUrl) {
-      elements.push({
-        type: "image",
-        image_url: user.avatarUrl,
-        alt_text: user.login,
-      });
-    }
-    elements.push({ type: "mrkdwn", text: user.login });
-    return elements;
-  });
+  return [
+    ...owners.users.flatMap((user): ImageElement[] =>
+      user.avatarUrl
+        ? [{ type: "image", image_url: user.avatarUrl, alt_text: user.login }]
+        : [],
+    ),
+    { type: "mrkdwn", text: owners.label },
+  ];
 };
 
 const formatDate = (date: Date): string =>
@@ -178,7 +173,9 @@ export const createBlocksForPrSummary = (
       ? `changes requested by ${formatLogins(pr.changesRequestedBy)}`
       : undefined,
     formatChecks(pr.checks, showPassedChecks),
-    pr.approvedCount > 0 ? pluralize(pr.approvedCount, "approval") : undefined,
+    pr.approvedBy.length > 0
+      ? `approved by ${formatLogins(pr.approvedBy)}`
+      : undefined,
     formatReviewRequests(pr, reviewRequestVerb, userLogin),
   ]);
 
@@ -195,7 +192,12 @@ export const createBlocksForPrSummary = (
     {
       type: "context",
       elements: [
-        ...createAuthorElements(pr),
+        ...createOwnerElements(
+          selectPrOwners(pr, {
+            currentUserLogin: userLogin,
+            selfLabel: "_YOU_",
+          }),
+        ),
         ...(status ? [{ type: "mrkdwn" as const, text: status }] : []),
         ...(date
           ? [

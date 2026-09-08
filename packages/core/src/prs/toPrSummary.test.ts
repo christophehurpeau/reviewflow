@@ -191,11 +191,38 @@ describe("toPrSummary reviews", () => {
     });
 
     const summary = toPrSummary(pr);
-    expect(summary.approvedCount).toBe(1);
+    expect(summary.approvedBy).toEqual([{ id: 1, login: "dan" }]);
     expect(summary.changesRequestedBy).toEqual([
       { id: 2, login: "erin" },
       { id: 3, login: "frank" },
     ]);
+  });
+});
+
+describe("toPrSummary defaults", () => {
+  /** older documents were stored before some of these fields existed */
+  it("survives a pull request missing its reviews and assignees", () => {
+    const summary = toPrSummary(
+      buildPr({ reviews: undefined, assignees: undefined }),
+    );
+
+    expect(summary.approvedBy).toEqual([]);
+    expect(summary.changesRequestedBy).toEqual([]);
+    expect(summary.requestedReviewers).toEqual([]);
+    expect(summary.requestedTeams).toEqual([]);
+    expect(summary.assignees).toEqual([]);
+  });
+
+  it("survives reviews holding only some of its groups", () => {
+    const summary = toPrSummary(
+      buildPr({
+        reviews: { reviewRequested: [{ id: 1, login: "bob" }] } as any,
+      }),
+    );
+
+    expect(summary.approvedBy).toEqual([]);
+    expect(summary.requestedTeams).toEqual([]);
+    expect(summary.requestedReviewers).toEqual([{ id: 1, login: "bob" }]);
   });
 });
 
@@ -262,6 +289,42 @@ describe("toPrSummary status links", () => {
     });
 
     expect(toPrSummary(pr).statusLinks).toEqual([]);
+  });
+
+  /**
+   * The passing reviewflow lint is written with an explicit `url: undefined`,
+   * which comes back from mongo as null rather than as a missing key.
+   */
+  it("ignores a status whose url came back empty", () => {
+    const withNullUrl = buildPr({
+      lintStatuses: [
+        {
+          name: "lint-pr",
+          status: {
+            type: "success",
+            title: "✓ PR is valid",
+            summary: "",
+            url: null as unknown as undefined,
+          },
+        },
+      ],
+    });
+    const withEmptyUrl = buildPr({
+      lintStatuses: [
+        {
+          name: "lint-pr",
+          status: {
+            type: "success",
+            title: "✓ PR is valid",
+            summary: "",
+            url: "",
+          },
+        },
+      ],
+    });
+
+    expect(toPrSummary(withNullUrl).statusLinks).toEqual([]);
+    expect(toPrSummary(withEmptyUrl).statusLinks).toEqual([]);
   });
 
   it("carries the type through, so a failing link stays distinguishable", () => {
