@@ -1,8 +1,10 @@
 import {
   AppHeader,
   AppHeaderAccount,
+  AppHeaderActions,
   AppHeaderBrand,
   BrandLogo,
+  ColorModePicker,
   ExternalLink,
   MenuItem,
   NavBar,
@@ -14,6 +16,7 @@ import { SignOutRegularIcon } from "alouette-icons/phosphor-icons/SignOutRegular
 import { usePathname, useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useAuthenticatedUser } from "#/services/AuthenticatedUserProvider.tsx";
+import { useColorModePreference } from "#/services/ColorModeProvider.tsx";
 import { serverUrl } from "#/services/serverUrl.ts";
 
 const prsHref = "/prs";
@@ -30,6 +33,7 @@ export function ReviewflowHeader(): ReactNode {
   const router = useRouter();
   const pathname = usePathname();
   const user = useAuthenticatedUser();
+  const { preference, setPreference } = useColorModePreference();
 
   return (
     <AppHeader
@@ -45,21 +49,26 @@ export function ReviewflowHeader(): ReactNode {
         />
       }
       actions={
-        <AppHeaderAccount
-          name={user.login}
-          header={<Text className="font-body-bold text-sm">{user.login}</Text>}
-        >
-          {/* logging out clears the session cookie the app itself rides on, so
-              it replaces the current page rather than opening a tab beside it */}
-          <ExternalLink
-            as={MenuItem}
-            href={serverUrl("/app/logout")}
-            openLinkBehavior={{ native: "linking", web: "targetSelf" }}
-            label="Log out"
-            icon={<SignOutRegularIcon />}
-            accent="danger"
-          />
-        </AppHeaderAccount>
+        <AppHeaderActions>
+          <ColorModePicker value={preference} onValueChange={setPreference} />
+          <AppHeaderAccount
+            name={user.login}
+            header={
+              <Text className="font-body-bold text-sm">{user.login}</Text>
+            }
+          >
+            {/* logging out clears the session cookie the app itself rides on, so
+                it replaces the current page rather than opening a tab beside it */}
+            <ExternalLink
+              as={MenuItem}
+              href={serverUrl("/app/logout")}
+              openLinkBehavior={{ native: "linking", web: "targetSelf" }}
+              label="Log out"
+              icon={<SignOutRegularIcon />}
+              accent="danger"
+            />
+          </AppHeaderAccount>
+        </AppHeaderActions>
       }
     >
       <NavBar stretch aria-label="Sections" value={sectionOf(pathname)}>
