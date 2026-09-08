@@ -12,6 +12,8 @@ export default defineConfig({
       reporter: (process.env.POB_VITEST_COVERAGE || "json,text").split(","),
     },
     projects: [
+      // renders every webapp story in a browser, see its own config
+      "packages/webapp/vitest.config.ts",
       {
         test: {
           name: "core",
@@ -25,6 +27,8 @@ export default defineConfig({
           name: "reviewflow",
           root: "packages/reviewflow",
           testTimeout,
+          // slack blocks format dates with toLocaleDateString
+          env: { TZ: "UTC" },
           // builds a probot instance and mocks github with nock
           setupFiles: ["src/tests/setup.ts"],
           include: ["src/**/__tests__/**/*.ts?(x)", "src/**/*.test.ts?(x)"],

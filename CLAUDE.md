@@ -74,3 +74,12 @@ in [packages/webapp/build-theme.ts](packages/webapp/build-theme.ts). It generate
 `src/palette.css`, `src/palette-oklch.css` and `src/themeVariables.ts` — all
 three generated, committed and never edited by hand. Change a hue in the script
 then `pnpm --filter webapp run build:theme`.
+
+## Storybook (webapp)
+
+Stories live next to their subject as `<component>.stories.tsx`. Use the
+`storybook` skill before writing or reviewing one — it holds the conventions, the
+two configs and how each runs.
+
+`pnpm test` renders every story in a browser, so a story that no longer renders
+fails the suite.

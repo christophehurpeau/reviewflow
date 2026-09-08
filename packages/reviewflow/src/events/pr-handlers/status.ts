@@ -1,7 +1,11 @@
 import type { Probot } from "probot";
 import type { ReviewflowPr } from "reviewflow-core";
 import type { AppContext } from "../../context/AppContext.ts";
-import { calcAndUpdateChecksAndStatuses } from "./actions/calcAndUpdateChecksAndStatuses.ts";
+import {
+  calcAndUpdateChecksAndStatuses,
+  getChecksAndStatusesState,
+} from "./actions/calcAndUpdateChecksAndStatuses.ts";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome.ts";
 import { createPullRequestsHandler } from "./utils/createPullRequestHandler.ts";
 import { fetchPr } from "./utils/fetchPr.ts";
 
@@ -57,6 +61,11 @@ export default function status(app: Probot, appContext: AppContext): void {
           return;
         }
 
+        const previousChecksState = getChecksAndStatusesState(
+          reviewflowPrContext.reviewflowPr,
+          repoContext,
+        );
+
         reviewflowPrContext.reviewflowPr.statusesConclusion[key] = {
           state: context.payload.state,
           context: context.payload.context,
@@ -83,6 +92,19 @@ export default function status(app: Probot, appContext: AppContext): void {
             },
           ),
         ]);
+
+        // the home shows the checks, but only a transition is worth republishing
+        if (
+          getChecksAndStatusesState(
+            reviewflowPrContext.reviewflowPr,
+            repoContext,
+          ) !== previousChecksState
+        ) {
+          updateSlackHomeForPr(repoContext, pullRequest, {
+            user: true,
+            assignees: true,
+          });
+        }
       }
     },
   );

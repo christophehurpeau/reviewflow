@@ -1,8 +1,7 @@
 import type { ServiceResource } from "liwi-resources-server";
-import { buildPrBucketQuery } from "reviewflow-core";
+import { buildPrBucketQuery, toPrSummary } from "reviewflow-core";
 import type { PrsService } from "reviewflow-modules";
 import type { ResourcesContext } from "../ResourcesContext.ts";
-import { toPrSummary } from "../prs/toPrSummary.ts";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
 import { requireAccounts } from "./requireAuth.ts";
 

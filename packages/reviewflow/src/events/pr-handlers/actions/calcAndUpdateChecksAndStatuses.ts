@@ -134,6 +134,27 @@ async function checksAndStatusesSlackMessageAddOrUpdate<
   }
 }
 
+/**
+ * The conclusion the slack home displays, so a handler can tell an actual
+ * transition from one of the many check events that do not change it.
+ */
+export function getChecksAndStatusesState<TeamNames extends string>(
+  reviewflowPr: ReviewflowPrContext["reviewflowPr"],
+  repoContext: RepoContext<TeamNames>,
+): FailedOrWaitingChecksAndStatuses["state"] | undefined {
+  if (!reviewflowPr.checksConclusion || !reviewflowPr.statusesConclusion) {
+    return undefined;
+  }
+
+  return getFailedOrWaitingChecksAndStatuses(
+    {
+      checksConclusionRecord: reviewflowPr.checksConclusion,
+      statusesConclusionRecord: reviewflowPr.statusesConclusion,
+    },
+    repoContext,
+  ).state;
+}
+
 export async function calcAndUpdateChecksAndStatuses<
   EventName extends EventsWithRepository,
   TeamNames extends string,

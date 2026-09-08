@@ -48,6 +48,10 @@ jobs:
         if: startsWith(matrix.node-version, '24.')
         run: pnpm exec repository-check-dirty
 
+      # the webapp storybook project renders its stories in a real browser
+      - name: Install Playwright chromium
+        run: pnpm --filter webapp exec playwright install --with-deps chromium
+
       - name: Test
         run: pnpm run test
         env:

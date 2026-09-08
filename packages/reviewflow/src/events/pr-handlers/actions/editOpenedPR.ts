@@ -55,7 +55,6 @@ export interface EditOpenedPullRequestOptions<
   reviewflowPrContext: ReviewflowPrContext;
   shouldUpdateCommentBodyInfos: boolean;
   shouldUpdateCommentBodyProgress: boolean;
-  shouldUpdateSlackHomeOnTitleChange?: boolean;
   stepsState: StepsState;
   previousSha?: string;
   checksAndStatuses?: ChecksAndStatuses;
@@ -75,7 +74,6 @@ export const editOpenedPR = async <
   reviewflowPrContext,
   shouldUpdateCommentBodyInfos,
   shouldUpdateCommentBodyProgress,
-  shouldUpdateSlackHomeOnTitleChange,
   stepsState,
   previousSha,
   checksAndStatuses,
@@ -210,6 +208,16 @@ export const editOpenedPR = async <
   if (!hasLegacyLintPrCheck || previousSha) {
     statuses.push(lintStatus);
   }
+
+  const previousLintStatuses = reviewflowPrContext.reviewflowPr.lintStatuses;
+  const hasDiffInLintStatuses =
+    previousLintStatuses?.length !== statuses.length ||
+    statuses.some(({ name, status }) => {
+      const previousStatus = previousLintStatuses.find(
+        (reviewflowStatus) => reviewflowStatus.name === name,
+      )?.status;
+      return !previousStatus || !isSameStatus(previousStatus, status);
+    });
 
   const updateStatusesPromises: Promise<unknown>[] = [
     ...statuses.map(({ name, status }): Promise<void> | undefined => {
@@ -419,7 +427,8 @@ export const editOpenedPR = async <
   // eslint-disable-next-line @typescript-eslint/await-thenable
   await Promise.all(promises);
 
-  if (shouldUpdateSlackHomeOnTitleChange && hasDiffInTitle) {
+  // the home shows the title and the lint statuses, so both are worth a refresh
+  if (hasDiffInTitle || hasDiffInLintStatuses) {
     const teamMembers = await repoContext.getMembersForTeams(
       pullRequest.requested_teams
         ? pullRequest.requested_teams.map((team) => team.id)

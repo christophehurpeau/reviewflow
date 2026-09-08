@@ -6,6 +6,7 @@ import type {
   Config,
   MongoStores,
   Org,
+  OrgTeamEmbed,
   SlackMessage,
   User,
 } from "reviewflow-core";
@@ -38,6 +39,8 @@ interface MemberObject {
     id: string;
     userGithubId: number;
     teamId?: string;
+    /** the requested-reviews bucket matches on them, so the home needs them */
+    teams: OrgTeamEmbed[] | undefined;
   };
   slackClient?: WebClient;
   im: any;
@@ -69,6 +72,7 @@ export const initTeamSlack = async <TeamNames extends string>(
           id: member.slack.id,
           userGithubId: member.user.id,
           teamId: member.slack.teamId,
+          teams: member.teams,
         },
         im: undefined,
       });
@@ -287,6 +291,7 @@ export const initTeamSlack = async <TeamNames extends string>(
         user: { id: user.member.userGithubId, login: githubLogin },
         org: { id: account._id, login: account.login },
         slack: { id: user.member.id },
+        teams: user.member.teams,
       } as any);
     },
 
@@ -305,7 +310,11 @@ export const initTeamSlack = async <TeamNames extends string>(
       if (slackClient) {
         const im = await openConversation(slackClient, member.slack.id);
         membersMap.set(userLogin, {
-          member: { id: member.slack.id, userGithubId: member.user.id },
+          member: {
+            id: member.slack.id,
+            userGithubId: member.user.id,
+            teams: member.teams,
+          },
           slackClient,
           im,
         });

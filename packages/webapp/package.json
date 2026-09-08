@@ -13,7 +13,8 @@
   "type": "module",
   "main": "expo-router/entry",
   "imports": {
-    "#/*": "./src/*"
+    "#/*": "./src/*",
+    "#storybook/*": "./.storybook/*"
   },
   "scripts": {
     "build": "expo export --platform web --output-dir dist",
@@ -27,6 +28,9 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "57.0.9",
+    "@gorhom/bottom-sheet": "5.2.14",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@storybook/react-native": "10.5.4",
     "alouette": "22.12.0",
     "alouette-icons": "11.1.0",
     "expo": "57.0.12",
@@ -44,6 +48,7 @@
     "react-liwi": "13.1.1",
     "react-native": "0.86.2",
     "react-native-css": "3.0.7",
+    "react-native-gesture-handler": "2.32.0",
     "react-native-reanimated": "4.5.3",
     "react-native-safe-area-context": "5.8.0",
     "react-native-screens": "4.26.2",
@@ -55,11 +60,24 @@
   },
   "devDependencies": {
     "@babel/core": "7.29.7",
+    "@react-native-community/datetimepicker": "9.1.0",
+    "@react-native-community/slider": "5.2.0",
     "@react-native/metro-config": "0.86.2",
+    "@storybook/addon-ondevice-actions": "10.5.4",
+    "@storybook/addon-ondevice-controls": "10.5.4",
+    "@storybook/addon-vitest": "10.6.0",
+    "@storybook/react": "10.6.0",
+    "@storybook/react-native-web-vite": "10.6.0",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "@typescript/native": "npm:typescript@7.0.2",
-    "typescript": "npm:@typescript/typescript6@6.0.2"
+    "@vitejs/plugin-react": "6.1.1",
+    "@vitest/browser-playwright": "4.1.11",
+    "playwright": "1.63.0",
+    "storybook": "10.6.0",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
+    "vite": "8.2.1",
+    "vitest": "4.1.11"
   },
   "engines": {
     "node": ">=22.18.0"

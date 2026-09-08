@@ -1,6 +1,10 @@
 import type { Probot } from "probot";
 import type { AppContext } from "../../context/AppContext.ts";
-import { calcAndUpdateChecksAndStatuses } from "./actions/calcAndUpdateChecksAndStatuses.ts";
+import {
+  calcAndUpdateChecksAndStatuses,
+  getChecksAndStatusesState,
+} from "./actions/calcAndUpdateChecksAndStatuses.ts";
+import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome.ts";
 import { createPullRequestsHandler } from "./utils/createPullRequestHandler.ts";
 import { fetchPr } from "./utils/fetchPr.ts";
 
@@ -63,6 +67,11 @@ export default function checkrun(app: Probot, appContext: AppContext): void {
           return;
         }
 
+        const previousChecksState = getChecksAndStatusesState(
+          reviewflowPrContext.reviewflowPr,
+          repoContext,
+        );
+
         reviewflowPrContext.reviewflowPr.checksConclusion[checkConclusionKey] =
           { name: checkRun.name, conclusion: checkRun.conclusion as any };
 
@@ -86,6 +95,19 @@ export default function checkrun(app: Probot, appContext: AppContext): void {
             },
           ),
         ]);
+
+        // the home shows the checks, but only a transition is worth republishing
+        if (
+          getChecksAndStatusesState(
+            reviewflowPrContext.reviewflowPr,
+            repoContext,
+          ) !== previousChecksState
+        ) {
+          updateSlackHomeForPr(repoContext, pullRequest, {
+            user: true,
+            assignees: true,
+          });
+        }
       }
     },
   );

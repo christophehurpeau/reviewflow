@@ -1,36 +1,52 @@
-import { AppShellMain } from "alouette";
-import { Redirect, Slot } from "expo-router";
+import { ConnectionState } from "alouette";
+import { Slot } from "expo-router";
+import { createVoidTransportClient } from "liwi-resources-void-client";
+import type { WebsocketTransportClientOptions } from "liwi-resources-websocket-client";
+import { createWebsocketTransportClient } from "liwi-resources-websocket-client";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
-import { ReviewflowShell } from "#/components/app-shell.tsx";
-import { useAuthenticatedUserOrNull } from "#/services/AuthenticatedUserProvider.tsx";
 import {
-  currentPath,
-  rememberSignInRedirect,
-} from "#/services/signInRedirect.ts";
+  TransportClientProvider,
+  transportClientStateToSimplifiedState,
+  useTransportClientState,
+} from "react-liwi";
+import { AuthenticatedUserProvider } from "#/services/AuthenticatedUserProvider.tsx";
+import { ReviewflowServicesProvider } from "#/services/ReviewflowServicesProvider.tsx";
+import { websocketUrl } from "#/services/serverUrl.ts";
 
-function SignInFirst(): ReactNode {
-  // captured before the redirect below navigates away from it
-  const [askedPath] = useState(currentPath);
+const isServerRendering = globalThis.window === undefined;
 
-  useEffect(() => {
-    rememberSignInRedirect(askedPath);
-  }, [askedPath]);
-
-  return <Redirect href="/" />;
+function AppConnectionState(): ReactNode {
+  const state = transportClientStateToSimplifiedState(
+    useTransportClientState(),
+  );
+  return (
+    <ConnectionState state={state}>
+      {state === "connected" ? "Connected" : "Reconnecting…"}
+    </ConnectionState>
+  );
 }
 
-/** Every screen below reads the signed in user: signing in comes first. */
-export default function AuthenticatedLayout(): ReactNode {
-  const user = useAuthenticatedUserOrNull();
-
-  if (!user) return <SignInFirst />;
-
+/**
+ * Everything the app needs to talk to the server. Routes outside this group,
+ * `/storybook`, render components in isolation and have no server to ask.
+ */
+export default function AppLayout(): ReactNode {
   return (
-    <ReviewflowShell>
-      <AppShellMain>
-        <Slot />
-      </AppShellMain>
-    </ReviewflowShell>
+    <TransportClientProvider<WebsocketTransportClientOptions>
+      url={isServerRendering ? undefined : websocketUrl()}
+      createFn={
+        isServerRendering
+          ? createVoidTransportClient
+          : createWebsocketTransportClient
+      }
+      onError={console.error}
+    >
+      <ReviewflowServicesProvider>
+        <AppConnectionState />
+        <AuthenticatedUserProvider>
+          <Slot />
+        </AuthenticatedUserProvider>
+      </ReviewflowServicesProvider>
+    </TransportClientProvider>
   );
 }

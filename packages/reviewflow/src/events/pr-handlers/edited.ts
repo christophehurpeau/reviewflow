@@ -62,7 +62,6 @@ export default function edited(app: Probot, appContext: AppContext): void {
           stepsState,
           shouldUpdateCommentBodyInfos: true,
           shouldUpdateCommentBodyProgress: true,
-          shouldUpdateSlackHomeOnTitleChange: true,
           checksAndStatuses,
         }),
         updateStatusCheckFromStepsState(

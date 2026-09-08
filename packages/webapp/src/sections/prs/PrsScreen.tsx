@@ -106,6 +106,8 @@ export function PrsScreen({
                             icon={<EyeRegularIcon />}
                             prs={requestedReviews}
                             pending={pending}
+                            reviewRequestVerb="requested"
+                            currentUserLogin={user?.login}
                             onSelectPr={onSelectPr}
                           />
                           <PrBucketSection
@@ -114,6 +116,8 @@ export function PrsScreen({
                             iconAccent="success"
                             prs={readyToMerge}
                             pending={pending}
+                            reviewRequestVerb="requested"
+                            currentUserLogin={user?.login}
                             onSelectPr={onSelectPr}
                           />
                           <PrBucketSection
@@ -122,6 +126,9 @@ export function PrsScreen({
                             iconAccent="danger"
                             prs={changesRequested}
                             pending={pending}
+                            showPassedChecks={false}
+                            reviewRequestVerb="requested"
+                            currentUserLogin={user?.login}
                             onSelectPr={onSelectPr}
                           />
                         </PrGroupSection>
@@ -130,18 +137,12 @@ export function PrsScreen({
                       {hasPrsInProgress ? (
                         <PrGroupSection title="Your PRs in progress">
                           <PrBucketSection
-                            title="Waiting for review"
-                            icon={<ClockRegularIcon />}
-                            prs={waitingForReview}
-                            pending={pending}
-                            onSelectPr={onSelectPr}
-                          />
-                          <PrBucketSection
                             title="Missing request for review"
                             icon={<WarningRegularIcon />}
                             iconAccent="warning"
                             prs={missingReviewRequest}
                             pending={pending}
+                            currentUserLogin={user?.login}
                             onSelectPr={onSelectPr}
                           />
                           <PrBucketSection
@@ -149,6 +150,17 @@ export function PrsScreen({
                             icon={<BarricadeRegularIcon />}
                             prs={drafts}
                             pending={pending}
+                            showDraft={false}
+                            showPassedChecks={false}
+                            currentUserLogin={user?.login}
+                            onSelectPr={onSelectPr}
+                          />
+                          <PrBucketSection
+                            title="Waiting for review"
+                            icon={<ClockRegularIcon />}
+                            prs={waitingForReview}
+                            pending={pending}
+                            currentUserLogin={user?.login}
                             onSelectPr={onSelectPr}
                           />
                         </PrGroupSection>

@@ -27,7 +27,6 @@ describe("toPrSummary checks", () => {
   it("reports unknown when the pull request has no check nor status", () => {
     expect(toPrSummary(buildPr()).checks).toEqual({
       conclusion: "unknown",
-      failedCount: 0,
       runningCount: 0,
       failedNames: [],
     });
@@ -49,7 +48,6 @@ describe("toPrSummary checks", () => {
 
     expect(summary.checks).toEqual({
       conclusion: "failed",
-      failedCount: 3,
       runningCount: 0,
       failedNames: ["build", "e2e", "netlify"],
     });
@@ -70,7 +68,6 @@ describe("toPrSummary checks", () => {
 
     expect(summary.checks).toEqual({
       conclusion: "in-progress",
-      failedCount: 0,
       runningCount: 2,
       failedNames: [],
     });
@@ -92,7 +89,6 @@ describe("toPrSummary checks", () => {
 
     expect(summary.checks).toEqual({
       conclusion: "passed",
-      failedCount: 0,
       runningCount: 0,
       failedNames: [],
     });
@@ -114,7 +110,6 @@ describe("toPrSummary checks", () => {
 
     expect(summary.checks).toEqual({
       conclusion: "failed",
-      failedCount: 1,
       runningCount: 0,
       failedNames: ["build"],
     });
@@ -176,5 +171,122 @@ describe("toPrSummary changes", () => {
       additions: 120,
       deletions: 30,
     });
+  });
+});
+
+describe("toPrSummary reviews", () => {
+  it("names the reviewers who requested changes", () => {
+    const pr = buildPr({
+      reviews: {
+        approved: [{ id: 1, login: "dan" }],
+        changesRequested: [
+          { id: 2, login: "erin" },
+          { id: 3, login: "frank" },
+        ],
+        commented: [],
+        dismissed: [],
+        reviewRequested: [],
+        teamReviewRequested: [],
+      },
+    });
+
+    const summary = toPrSummary(pr);
+    expect(summary.approvedCount).toBe(1);
+    expect(summary.changesRequestedBy).toEqual([
+      { id: 2, login: "erin" },
+      { id: 3, login: "frank" },
+    ]);
+  });
+});
+
+describe("toPrSummary status links", () => {
+  it("labels a link from the markdown link its summary carries", () => {
+    const pr = buildPr({
+      lintStatuses: [
+        {
+          name: "notion-ticket",
+          status: {
+            type: "success",
+            inBody: true,
+            title: "✓ Notion ticket: GEN-1234",
+            summary: "[GEN-1234](https://www.notion.so/elaxenergie/GEN-1234)",
+            url: "https://www.notion.so/elaxenergie/GEN-1234",
+          },
+        },
+      ],
+    });
+
+    expect(toPrSummary(pr).statusLinks).toEqual([
+      {
+        name: "notion-ticket",
+        label: "GEN-1234",
+        url: "https://www.notion.so/elaxenergie/GEN-1234",
+        type: "success",
+      },
+    ]);
+  });
+
+  it("falls back to the title when the summary is not a markdown link", () => {
+    const pr = buildPr({
+      lintStatuses: [
+        {
+          name: "some-rule",
+          status: {
+            type: "success",
+            title: "✓ Deployed",
+            summary: "the preview is up",
+            url: "https://preview.example.com",
+          },
+        },
+      ],
+    });
+
+    expect(toPrSummary(pr).statusLinks).toEqual([
+      {
+        name: "some-rule",
+        label: "✓ Deployed",
+        url: "https://preview.example.com",
+        type: "success",
+      },
+    ]);
+  });
+
+  it("ignores a status without a url", () => {
+    const pr = buildPr({
+      lintStatuses: [
+        {
+          name: "lint-pr",
+          status: { type: "success", title: "✓ PR is valid", summary: "" },
+        },
+      ],
+    });
+
+    expect(toPrSummary(pr).statusLinks).toEqual([]);
+  });
+
+  it("carries the type through, so a failing link stays distinguishable", () => {
+    const pr = buildPr({
+      lintStatuses: [
+        {
+          name: "lint-pr",
+          status: {
+            type: "failure",
+            inBody: true,
+            title: "Title does not match conventional commit.",
+            summary: "",
+            url: "https://www.conventionalcommits.org/",
+          },
+        },
+      ],
+    });
+
+    expect(toPrSummary(pr).statusLinks).toEqual([
+      {
+        name: "lint-pr",
+        label: "Title does not match conventional commit.",
+        url: "https://www.conventionalcommits.org/",
+        type: "failure",
+      },
+    ]);
   });
 });

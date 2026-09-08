@@ -221,7 +221,21 @@ describe("createSlackHomeWorker", () => {
       elements.some(
         (e: any) =>
           e.type === "mrkdwn" &&
-          e.text.includes("Requested @charlie, @bob, #team1"),
+          e.text.includes("requested @charlie, @bob, #team1"),
+      ),
+    ).toBe(true);
+
+    // the same pull request is in every bucket here, and the sections under
+    // "Your PRs in progress" ask who it waits on rather than who it requests
+    expect(
+      blocks.some(
+        (b: any) =>
+          b.type === "context" &&
+          b.elements?.some(
+            (e: any) =>
+              e.type === "mrkdwn" &&
+              e.text?.includes("awaiting @charlie, @bob, #team1"),
+          ),
       ),
     ).toBe(true);
   });

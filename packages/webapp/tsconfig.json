@@ -6,11 +6,16 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
+    ".storybook/**/*.ts",
+    ".storybook/**/*.tsx",
+    ".storybook-web/**/*.ts",
+    ".storybook-web/**/*.tsx",
     "./*.ts",
     "nativewind-env.d.ts",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ],
+  "exclude": ["vitest.config.ts"],
   "compilerOptions": {
     "rootDir": ".",
     "noEmit": true,
@@ -20,6 +25,7 @@
     "resolveJsonModule": true,
     "paths": {
       "#/*": ["./src/*"],
+      "#storybook/*": ["./.storybook/*"],
       "reviewflow-modules": ["../../packages/reviewflow-modules/lib"],
       "reviewflow-modules/*": ["../../packages/reviewflow-modules/lib/*"]
     }

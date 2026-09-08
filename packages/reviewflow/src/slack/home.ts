@@ -111,16 +111,19 @@ export const createSlackHomeWorker = (
         ":eyes: Requested reviews",
         prsWithRequestedReviewsFromGithub,
         prsWithRequestedReviewsFromMongo,
+        { reviewRequestVerb: "requested" },
       ),
       ...buildBlocksForDataFromMongo(
         member.user.login,
         ":white_check_mark: Ready to merge",
         prsToMerge,
+        { reviewRequestVerb: "requested" },
       ),
       ...buildBlocksForDataFromMongo(
         member.user.login,
         ":x: Changes requested",
         prsWithRequestedChanges,
+        { showPassedChecks: false, reviewRequestVerb: "requested" },
       ),
     ];
 
@@ -141,17 +144,6 @@ export const createSlackHomeWorker = (
       ];
     }
 
-    if (prsInDraft.length > 0) {
-      blocks = [
-        ...blocks,
-        ...buildBlocksForDataFromMongo(
-          member.user.login,
-          ":construction: Your drafts PRs",
-          prsInDraft,
-        ),
-      ];
-    }
-
     if (openedPrsWithNoActionPlanned.length > 0) {
       blocks = [
         ...blocks,
@@ -162,6 +154,19 @@ export const createSlackHomeWorker = (
         ),
       ];
     }
+
+    if (prsInDraft.length > 0) {
+      blocks = [
+        ...blocks,
+        ...buildBlocksForDataFromMongo(
+          member.user.login,
+          ":construction: Your drafts PRs",
+          prsInDraft,
+          { showDraft: false, showPassedChecks: false },
+        ),
+      ];
+    }
+
     if (myOpenedPrsWaitingForRequestedReview.length > 0) {
       blocks = [
         ...blocks,

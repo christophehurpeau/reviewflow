@@ -17,15 +17,16 @@ const createGraphQLError = (
   message: string,
 ): GraphqlResponseError<unknown> =>
   new GraphqlResponseError(
-    { query: `mutation { ${mutationName} }` },
+    { method: "POST", url: "/graphql", query: `mutation { ${mutationName} }` },
     {},
     {
       data: null,
       errors: [
         {
           type: "UNPROCESSABLE",
+          extensions: {},
           path: [mutationName],
-          locations: [],
+          locations: [{ line: 1, column: 1 }],
           message,
         },
       ],

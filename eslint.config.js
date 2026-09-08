@@ -3,7 +3,13 @@ import pobConfig, { apply, applyTs } from "@pob/eslint-config";
 const configs = pobConfig.configs;
 
 export default [
-  { ignores: ["vite.config.ts", "packages/webapp/src/themeVariables.ts"] },
+  {
+    ignores: [
+      "vite.config.ts",
+      "packages/webapp/src/themeVariables.ts",
+      "packages/webapp/.storybook/storybook.requires.ts",
+    ],
+  },
   ...configs.node,
   ...configs.monorepo,
   ...configs.app,
@@ -45,6 +51,21 @@ export default [
       },
     ],
   }),
+  {
+    files: ["packages/webapp/package.json"],
+    rules: {
+      "check-package-dependencies/require-direct-peer-dependencies": [
+        "error",
+        {
+          // storybook pins reanimated to an exact patch; the app tracks the
+          // newer one expo and renovate give it
+          onlyWarnsFor: {
+            "@storybook/react-native": ["react-native-reanimated"],
+          },
+        },
+      ],
+    },
+  },
   {
     files: ["packages/reviewflow/package.json"],
     rules: {

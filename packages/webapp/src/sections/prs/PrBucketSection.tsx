@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
 import type { PrSummary, QueryMyPrsParams } from "reviewflow-modules";
 import { ListSection } from "#/components/list-section.tsx";
+import type { ReviewRequestVerb } from "#/components/pr-row.tsx";
 import { PrRow } from "#/components/pr-row.tsx";
 import { ResourceView } from "#/components/resource-view.tsx";
 import { SkeletonList } from "#/components/skeleton.tsx";
@@ -29,6 +30,12 @@ interface PrBucketSectionProps {
   iconAccent?: Accent;
   prs: PrBucketResource;
   pending?: boolean;
+  /** off where the section title already states it */
+  showDraft?: boolean;
+  /** off where the section is about something other than the checks */
+  showPassedChecks?: boolean;
+  reviewRequestVerb?: ReviewRequestVerb;
+  currentUserLogin?: string;
   onSelectPr: (pr: PrSummary) => void;
 }
 
@@ -38,6 +45,10 @@ export function PrBucketSection({
   iconAccent,
   prs,
   pending = false,
+  showDraft,
+  showPassedChecks,
+  reviewRequestVerb,
+  currentUserLogin,
   onSelectPr,
 }: PrBucketSectionProps): ReactNode {
   if (!hasBucketContent(prs, pending)) return null;
@@ -58,7 +69,13 @@ export function PrBucketSection({
                   onSelectPr(pr);
                 }}
               >
-                <PrRow pr={pr} />
+                <PrRow
+                  pr={pr}
+                  showDraft={showDraft}
+                  showPassedChecks={showPassedChecks}
+                  reviewRequestVerb={reviewRequestVerb}
+                  currentUserLogin={currentUserLogin}
+                />
               </PressableListItem>
             ))}
           </VStack>
