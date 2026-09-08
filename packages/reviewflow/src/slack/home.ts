@@ -79,7 +79,7 @@ export const createSlackHomeWorker = (
       //prsInDraft
       findPrsInBucket("drafts"),
       //openedPrsWithNoActionPlanned
-      findPrsInBucket("no-action-planned"),
+      findPrsInBucket("opened-missing-review-request"),
       //myOpenedPrsWaitingForRequestedReview
       findPrsInBucket("waiting-for-review"),
     ]);
@@ -124,7 +124,11 @@ export const createSlackHomeWorker = (
       ),
     ];
 
-    if (prsInDraft.length > 0) {
+    if (
+      prsInDraft.length > 0 ||
+      openedPrsWithNoActionPlanned.length > 0 ||
+      myOpenedPrsWaitingForRequestedReview.length > 0
+    ) {
       blocks = [
         ...blocks,
         {
@@ -134,6 +138,12 @@ export const createSlackHomeWorker = (
             text: "Your PRs in progress",
           },
         },
+      ];
+    }
+
+    if (prsInDraft.length > 0) {
+      blocks = [
+        ...blocks,
         ...buildBlocksForDataFromMongo(
           member.user.login,
           ":construction: Your drafts PRs",
