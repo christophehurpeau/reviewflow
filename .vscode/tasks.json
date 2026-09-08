@@ -13,6 +13,16 @@
       "problemMatcher": []
     },
     {
+      "label": "modules > start",
+      "type": "shell",
+      "command": "pnpm start",
+      "options": { "cwd": "${workspaceFolder}/packages/modules" },
+      "group": { "kind": "none" },
+      "presentation": { "panel": "dedicated", "group": "dev", "clear": true },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
       "label": "core > start",
       "type": "shell",
       "command": "pnpm start",
@@ -53,6 +63,18 @@
       "problemMatcher": []
     },
     {
+      "label": "dev",
+      "dependsOrder": "parallel",
+      "dependsOn": [
+        "modules > start",
+        "core > start",
+        "reviewflow > start",
+        "webapp-server > start",
+        "webapp > start"
+      ],
+      "problemMatcher": []
+    },
+    {
       "label": "build",
       "problemMatcher": [],
       "type": "npm",
@@ -67,14 +89,14 @@
     },
     {
       "label": "dev",
-      "dependsOrder": "parallel",
-      "dependsOn": [
-        "core > start",
-        "reviewflow > start",
-        "webapp-server > start",
-        "webapp > start"
-      ],
-      "problemMatcher": []
+      "problemMatcher": [],
+      "type": "npm",
+      "script": "dev",
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true,
+        "isBackground": false
+      }
     },
     {
       "label": "format",
