@@ -34,9 +34,13 @@ interface PrBucketSectionProps {
   showDraft?: boolean;
   /** off where the section is about something other than the checks */
   showPassedChecks?: boolean;
+  /** off where the section title already says the review was asked again */
+  showReRequests?: boolean;
   reviewRequestVerb?: ReviewRequestVerb;
   currentUserLogin?: string;
   onSelectPr: (pr: PrSummary) => void;
+  /** the section's own control on each row, if it has one */
+  renderAction?: (pr: PrSummary) => ReactNode;
 }
 
 export function PrBucketSection({
@@ -47,9 +51,11 @@ export function PrBucketSection({
   pending = false,
   showDraft,
   showPassedChecks,
+  showReRequests,
   reviewRequestVerb,
   currentUserLogin,
   onSelectPr,
+  renderAction,
 }: PrBucketSectionProps): ReactNode {
   if (!hasBucketContent(prs, pending)) return null;
 
@@ -73,8 +79,10 @@ export function PrBucketSection({
                   pr={pr}
                   showDraft={showDraft}
                   showPassedChecks={showPassedChecks}
+                  showReRequests={showReRequests}
                   reviewRequestVerb={reviewRequestVerb}
                   currentUserLogin={currentUserLogin}
+                  action={renderAction?.(pr)}
                 />
               </PressableListItem>
             ))}

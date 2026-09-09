@@ -7,9 +7,24 @@ export interface QueryMyPrsParams {
   bucket: PrBucket;
 }
 
+export interface StartReviewParams {
+  prId: string;
+}
+
+export interface StartReviewResult {
+  /**
+   * Where the reviewer goes next. Returned rather than passed in, so a caller
+   * holding only a pull request id — the slack home link — cannot decide where
+   * the redirect lands.
+   */
+  prUrl: string;
+}
+
 export interface PrsService {
   queries: {
     queryMyPrs: ServiceQuery<PrSummary[], QueryMyPrsParams>;
   };
-  operations: Record<string, never>;
+  operations: {
+    startReview: (params: StartReviewParams) => Promise<StartReviewResult>;
+  };
 }

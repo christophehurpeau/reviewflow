@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { ReviewflowPr } from "reviewflow-core";
 import {
   type GithubSearchResponse,
@@ -137,6 +137,7 @@ describe("homeHelpers", () => {
         teamReviewRequested: [{ id: 20, name: "core" }],
         dismissed: [],
         commented: [],
+        reviewed: [{ id: 14, login: "carol" }],
       },
       flowDates: {
         createdAt: new Date("2020-01-01T00:00:00Z"),
@@ -172,7 +173,7 @@ describe("homeHelpers", () => {
                 "type": "mrkdwn",
               },
               {
-                "text": "<https://github.com/org/repo/pull/1/files|5 files changed (+120 -8)> · checks failed: \`ci/build\`, \`lint\` · pr lint failed · changes requested by @erin · approved by @dan · awaiting _YOU_, @carol, #core",
+                "text": "<https://github.com/org/repo/pull/1/files|5 files changed (+120 -8)> · checks failed: \`ci/build\`, \`lint\` · pr lint failed · changes requested by @erin · approved by @dan · awaiting _YOU_, #core · asked again of @carol",
                 "type": "mrkdwn",
               },
               {
@@ -186,11 +187,46 @@ describe("homeHelpers", () => {
       `);
   });
 
+  /**
+   * slack cannot act as the reviewer, so the link hands the webapp the pull
+   * request id and lets it start the review and forward to github.
+   */
+  it("createBlocksForDataFromMongoPr links to the webapp to start the review", () => {
+    vi.stubEnv("REVIEWFLOW_APP_URL", "https://reviewflow.example");
+
+    const [section] = createBlocksForDataFromMongoPr(
+      createMockPr({ _id: "pr 1/2" }),
+      "bob",
+      { showStartReview: true },
+    );
+    if (section?.type !== "section") throw new Error("expected section block");
+
+    expect(section.text?.text).toContain(
+      "<https://reviewflow.example/start-review?prId=pr%201%2F2|Start the review>",
+    );
+  });
+
+  it("createBlocksForDataFromMongoPr keeps the link out by default", () => {
+    const [section] = createBlocksForDataFromMongoPr(createMockPr(), "bob");
+    if (section?.type !== "section") throw new Error("expected section block");
+
+    expect(section.text?.text).not.toContain("Start the review");
+  });
+
   it("createBlocksForDataFromMongoPr drops what the section already states", () => {
     const mockPr = createMockPr({
       isDraft: true,
       checksConclusion: {
         "1_ci/build": { name: "ci/build", conclusion: "success" },
+      },
+      reviews: {
+        approved: [],
+        changesRequested: [],
+        reviewRequested: [{ id: 10, login: "bob" }],
+        teamReviewRequested: [],
+        dismissed: [],
+        commented: [],
+        reviewed: [{ id: 10, login: "bob" }],
       },
     });
 
@@ -198,6 +234,7 @@ describe("homeHelpers", () => {
       createBlocksForDataFromMongoPr(mockPr, "bob", {
         showDraft: false,
         showPassedChecks: false,
+        showReRequests: false,
       }),
     ).toMatchInlineSnapshot(`
       [

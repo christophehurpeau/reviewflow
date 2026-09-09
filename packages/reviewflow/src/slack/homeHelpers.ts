@@ -5,6 +5,7 @@ import type { PrOwners, PrSummary, PrUserSummary } from "reviewflow-modules";
 import { selectPrOwners, splitFailedCheckNames } from "reviewflow-modules";
 import type { OctokitRestCompat } from "../octokit.ts";
 import { ExcludesFalsy } from "../utils/Excludes.ts";
+import { webappUrl } from "../webappUrl.ts";
 import {
   createLink,
   createPrChangesInformationFromReviewflowPr,
@@ -22,6 +23,10 @@ export type GithubSearchResponse = Awaited<
 export interface PrRowOptions {
   showDraft?: boolean;
   showPassedChecks?: boolean;
+  /** off where the section title already says the review was asked again */
+  showReRequests?: boolean;
+  /** on where the viewer is the one being asked for the review */
+  showStartReview?: boolean;
   /**
    * Someone else's pull request requests a review, your own waits for one, so
    * the section the row sits in decides the verb.
@@ -97,6 +102,13 @@ const formatChecks = (
 const formatLogins = (users: PrUserSummary[]): string =>
   users.map(({ login }) => `@${login}`).join(", ");
 
+/** the viewer reads as themselves where naming them is the point of the segment */
+const formatLoginsWithSelf = (
+  users: PrUserSummary[],
+  userLogin: string,
+): string[] =>
+  users.map(({ login }) => (login === userLogin ? "_YOU_" : `@${login}`));
+
 const formatReviewRequests = (
   { requestedReviewers, requestedTeams }: PrSummary,
   verb: NonNullable<PrRowOptions["reviewRequestVerb"]>,
@@ -106,12 +118,29 @@ const formatReviewRequests = (
     return undefined;
   }
   return `${verb} ${[
-    ...requestedReviewers.map(({ login }) =>
-      login === userLogin ? "_YOU_" : `@${login}`,
-    ),
+    ...formatLoginsWithSelf(requestedReviewers, userLogin),
     ...requestedTeams.map((team) => `#${team}`),
   ].join(", ")}`;
 };
+
+/**
+ * Slack cannot submit the review itself: it would have to act as the reviewer,
+ * whose github token only ever exists in the webapp's session. The link opens
+ * the webapp, which starts the review and forwards to the pull request.
+ */
+const startReviewLink = (prId: string): string =>
+  createLink(
+    webappUrl(`/start-review?prId=${encodeURIComponent(prId)}`),
+    "Start the review",
+  );
+
+const formatReReviewRequests = (
+  { reRequestedReviewers }: PrSummary,
+  userLogin: string,
+): string | undefined =>
+  reRequestedReviewers.length === 0
+    ? undefined
+    : `asked again of ${formatLoginsWithSelf(reRequestedReviewers, userLogin).join(", ")}`;
 
 /** the faces of everyone the owners label names, then the label itself */
 const createOwnerElements = (
@@ -145,6 +174,8 @@ export const createBlocksForPrSummary = (
   {
     showDraft = true,
     showPassedChecks = true,
+    showReRequests = true,
+    showStartReview = false,
     reviewRequestVerb = "awaiting",
   }: PrRowOptions = {},
 ): KnownBlock[] => {
@@ -158,6 +189,7 @@ export const createBlocksForPrSummary = (
       .filter(({ type }) => type === "success")
       .map(({ url, label }) => createLink(url, label)),
     `*${createLink(pr.url, pr.title)}*`,
+    showStartReview ? startReviewLink(pr._id) : undefined,
   ]);
 
   // the section title says which bucket a row is in, but not that its build broke
@@ -177,6 +209,7 @@ export const createBlocksForPrSummary = (
       ? `approved by ${formatLogins(pr.approvedBy)}`
       : undefined,
     formatReviewRequests(pr, reviewRequestVerb, userLogin),
+    showReRequests ? formatReReviewRequests(pr, userLogin) : undefined,
   ]);
 
   const date = pr.approvedAt ?? pr.openedAt;

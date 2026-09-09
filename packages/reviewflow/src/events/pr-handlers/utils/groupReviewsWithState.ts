@@ -6,7 +6,10 @@ import type {
 
 const getKeyFromState = (
   state: ReviewerWithState["state"],
-): Exclude<keyof ReviewersGroupedByState, "teamReviewRequested"> => {
+): Exclude<
+  keyof ReviewersGroupedByState,
+  "reviewed" | "teamReviewRequested"
+> => {
   if (!state) return "commented";
   switch (state) {
     case "REVIEW_REQUESTED":
@@ -29,6 +32,7 @@ export function createEmptyReviews(): ReviewersGroupedByState {
     changesRequested: [],
     dismissed: [],
     commented: [],
+    reviewed: [],
   };
 }
 
@@ -37,8 +41,17 @@ export function groupReviewsState(
 ): ReviewersGroupedByState {
   const reviews: ReviewersGroupedByState = createEmptyReviews();
 
-  reviewsState.reviewersWithState.forEach(({ state, ...reviewer }) => {
+  reviewsState.reviewersWithState.forEach(({ state, review, ...reviewer }) => {
     reviews[getKeyFromState(state)].push(reviewer);
+    // a request replaces the state a reviewer had reached, so the fact that
+    // they reviewed is recorded apart from the group they end up in
+    if (review) {
+      reviews.reviewed!.push({
+        id: reviewer.id,
+        login: reviewer.login,
+        ...review,
+      });
+    }
   });
 
   reviews.teamReviewRequested = reviewsState.requestedTeam;

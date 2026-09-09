@@ -30,6 +30,15 @@ export const useMyPrsByBucket = ({
     },
     [accountId, skip],
   );
+  const reReviewsRequested = useResource(
+    queryMyPrs,
+    {
+      params: { accountId, bucket: "re-requested-reviews" },
+      subscribe: true,
+      skip,
+    },
+    [accountId, skip],
+  );
   const readyToMerge = useResource(
     queryMyPrs,
     { params: { accountId, bucket: "ready-to-merge" }, subscribe: true, skip },
@@ -69,6 +78,7 @@ export const useMyPrsByBucket = ({
   );
 
   return {
+    "re-requested-reviews": reReviewsRequested,
     "requested-reviews": requestedReviews,
     "ready-to-merge": readyToMerge,
     "changes-requested": changesRequested,

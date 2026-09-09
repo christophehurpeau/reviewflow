@@ -48,6 +48,7 @@ export const createSlackHomeWorker = (
     const [
       prsWithRequestedReviewsFromGithub,
       prsWithRequestedReviewsFromMongo,
+      prsWithReRequestedReviews,
       prsToMerge,
       prsWithRequestedChanges,
       prsInDraft,
@@ -72,6 +73,8 @@ export const createSlackHomeWorker = (
         }),
       //prsWithRequestedReviewsFromMongo
       findPrsInBucket("requested-reviews"),
+      //prsWithReRequestedReviews
+      findPrsInBucket("re-requested-reviews"),
       //prsToMerge
       findPrsInBucket("ready-to-merge"),
       //prsWithRequestedChanges
@@ -106,12 +109,21 @@ export const createSlackHomeWorker = (
 
     let blocks: KnownBlock[] = [
       ...baseBlocks,
+      // above the requested reviews: a review asked again is one the member has
+      // already been through, so it comes before the ones they have not seen
+      ...buildBlocksForDataFromMongo(
+        member.user.login,
+        ":eyeglasses: Re-Requested reviews",
+        prsWithReRequestedReviews,
+        // the review is under way there, so there is nothing left to start
+        { showReRequests: false, reviewRequestVerb: "requested" },
+      ),
       ...buildBlocksForDataFromGithubAndMongo(
         member.user.login,
         ":eyes: Requested reviews",
         prsWithRequestedReviewsFromGithub,
         prsWithRequestedReviewsFromMongo,
-        { reviewRequestVerb: "requested" },
+        { reviewRequestVerb: "requested", showStartReview: true },
       ),
       ...buildBlocksForDataFromMongo(
         member.user.login,

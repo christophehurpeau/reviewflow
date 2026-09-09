@@ -197,6 +197,29 @@ describe("toPrSummary reviews", () => {
       { id: 3, login: "frank" },
     ]);
   });
+
+  /** a review asked of someone who already reviewed is a different ask */
+  it("tells a first review request apart from one asked again", () => {
+    const summary = toPrSummary(
+      buildPr({
+        reviews: {
+          approved: [],
+          changesRequested: [],
+          commented: [],
+          dismissed: [],
+          reviewRequested: [
+            { id: 4, login: "grace" },
+            { id: 5, login: "heidi" },
+          ],
+          teamReviewRequested: [],
+          reviewed: [{ id: 5, login: "heidi" }],
+        },
+      }),
+    );
+
+    expect(summary.requestedReviewers).toEqual([{ id: 4, login: "grace" }]);
+    expect(summary.reRequestedReviewers).toEqual([{ id: 5, login: "heidi" }]);
+  });
 });
 
 describe("toPrSummary defaults", () => {
@@ -210,6 +233,7 @@ describe("toPrSummary defaults", () => {
     expect(summary.changesRequestedBy).toEqual([]);
     expect(summary.requestedReviewers).toEqual([]);
     expect(summary.requestedTeams).toEqual([]);
+    expect(summary.reRequestedReviewers).toEqual([]);
     expect(summary.assignees).toEqual([]);
   });
 

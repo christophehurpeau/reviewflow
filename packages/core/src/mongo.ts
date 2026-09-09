@@ -325,6 +325,10 @@ export default function init(): MongoStores {
       "account.id": 1,
       "assignees.id": 1,
     });
+    coll.createIndex({
+      "account.id": 1,
+      "reviews.reviewRequested.id": 1,
+    });
     // remove with no activity for 12 * 30 days
     coll.deleteMany({
       updated: { $lt: new Date(Date.now() - 12 * 30 * 24 * 60 * 60 * 1000) },

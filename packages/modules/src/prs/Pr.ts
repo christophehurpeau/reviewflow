@@ -2,6 +2,7 @@ export type PrBucket =
   | "changes-requested"
   | "drafts"
   | "opened-missing-review-request"
+  | "re-requested-reviews"
   | "ready-to-merge"
   | "requested-reviews"
   | "waiting-for-review";
@@ -54,7 +55,10 @@ export interface PrSummary {
   statusLinks: PrStatusLink[];
   approvedBy: PrUserSummary[];
   changesRequestedBy: PrUserSummary[];
+  /** asked for a review they have not given on this pull request before */
   requestedReviewers: PrUserSummary[];
+  /** asked again, having already reviewed this pull request */
+  reRequestedReviewers: PrUserSummary[];
   requestedTeams: string[];
   assignees: PrUserSummary[];
   creator?: PrUserSummary;

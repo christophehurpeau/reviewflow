@@ -169,17 +169,23 @@ interface PrRowProps {
   showDraft?: boolean;
   /** irrelevant where the section is about something other than the checks */
   showPassedChecks?: boolean;
+  /** off where the section title already says the review was asked again */
+  showReRequests?: boolean;
   reviewRequestVerb?: ReviewRequestVerb;
   /** rendered as `you` rather than as one more login */
   currentUserLogin?: string;
+  /** the section's own control, pressed without opening the row */
+  action?: ReactNode;
 }
 
 export function PrRow({
   pr,
   showDraft = true,
   showPassedChecks = true,
+  showReRequests = true,
   reviewRequestVerb = "awaiting",
   currentUserLogin,
+  action,
 }: PrRowProps): ReactNode {
   const failed = joinSegments([
     pr.checks.failedNames.length > 0
@@ -199,6 +205,9 @@ export function PrRow({
       ? `approved by ${formatLogins(pr.approvedBy, currentUserLogin)}`
       : undefined,
     formatReviewRequests(pr, reviewRequestVerb, currentUserLogin),
+    showReRequests && pr.reRequestedReviewers.length > 0
+      ? `asked again of ${formatLogins(pr.reRequestedReviewers, currentUserLogin)}`
+      : undefined,
   ]);
 
   const links = pr.statusLinks.filter(({ type }) => type === "success");
@@ -206,68 +215,72 @@ export function PrRow({
   const owners = selectPrOwners(pr, { currentUserLogin });
 
   return (
-    <VStack className="gap-xxs">
-      <HStack className="flex-wrap items-center gap-xs">
-        <Text className="font-mono text-xs text-muted">
-          {`${pr.orgLogin}/${pr.repoName}#${pr.number}`}
-        </Text>
+    <HStack className="items-start gap-sm">
+      <VStack className="flex-1 gap-xxs">
+        <HStack className="flex-wrap items-center gap-xs">
+          <Text className="font-mono text-xs text-muted">
+            {`${pr.orgLogin}/${pr.repoName}#${pr.number}`}
+          </Text>
 
-        {links.map((link) => (
-          <Fragment key={link.name}>
-            {metaSeparator}
-            <ExternalLinkText
-              size="sm"
-              href={link.url}
-              text={link.label}
-              // the whole row opens github, so the link must keep the press
-              onPress={(event) => {
-                event.stopPropagation();
-              }}
-            />
-          </Fragment>
-        ))}
+          {links.map((link) => (
+            <Fragment key={link.name}>
+              {metaSeparator}
+              <ExternalLinkText
+                size="sm"
+                href={link.url}
+                text={link.label}
+                // the whole row opens github, so the link must keep the press
+                onPress={(event) => {
+                  event.stopPropagation();
+                }}
+              />
+            </Fragment>
+          ))}
 
-        {pr.changes ? (
-          <>
-            {metaSeparator}
-            <ExternalLink
-              as={InteractiveBox}
-              href={`${pr.url}/files`}
-              openLinkBehavior={openLinkBehavior}
-              role="link"
-              // the whole row opens github, so the link must keep the press
-              onPress={(event) => {
-                event.stopPropagation();
-              }}
-            >
-              <Text className="text-xs text-muted italic underline">
-                {formatChanges(pr.changes)}
-              </Text>
-            </ExternalLink>
-          </>
-        ) : null}
+          {pr.changes ? (
+            <>
+              {metaSeparator}
+              <ExternalLink
+                as={InteractiveBox}
+                href={`${pr.url}/files`}
+                openLinkBehavior={openLinkBehavior}
+                role="link"
+                // the whole row opens github, so the link must keep the press
+                onPress={(event) => {
+                  event.stopPropagation();
+                }}
+              >
+                <Text className="text-xs text-muted italic underline">
+                  {formatChanges(pr.changes)}
+                </Text>
+              </ExternalLink>
+            </>
+          ) : null}
 
-        {flowDate ? (
-          <>
-            {metaSeparator}
-            <Text className="text-xs text-muted">{flowDate}</Text>
-          </>
-        ) : null}
-      </HStack>
+          {flowDate ? (
+            <>
+              {metaSeparator}
+              <Text className="text-xs text-muted">{flowDate}</Text>
+            </>
+          ) : null}
+        </HStack>
 
-      <HStack className="flex-wrap items-baseline gap-xs">
-        <Text className="font-body-bold">{pr.title}</Text>
-        {owners ? (
-          <Text className="text-muted text-sm">{owners.label}</Text>
-        ) : null}
-      </HStack>
+        <HStack className="flex-wrap items-baseline gap-xs">
+          <Text className="font-body-bold">{pr.title}</Text>
+          {owners ? (
+            <Text className="text-muted text-sm">{owners.label}</Text>
+          ) : null}
+        </HStack>
 
-      <PrRowStatus
-        failed={failed}
-        changesRequested={changesRequested}
-        isDraft={showDraft && pr.isDraft}
-        rest={rest}
-      />
-    </VStack>
+        <PrRowStatus
+          failed={failed}
+          changesRequested={changesRequested}
+          isDraft={showDraft && pr.isDraft}
+          rest={rest}
+        />
+      </VStack>
+
+      {action}
+    </HStack>
   );
 }

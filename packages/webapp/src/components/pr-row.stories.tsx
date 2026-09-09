@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-native";
+import { Button } from "alouette";
 import type { PrSummary } from "reviewflow-modules";
 import { PrRow } from "#/components/pr-row.tsx";
 import { Story } from "#storybook/Story.tsx";
@@ -18,6 +19,7 @@ const basePr: PrSummary = {
   changesRequestedBy: [],
   requestedReviewers: [],
   requestedTeams: [],
+  reRequestedReviewers: [],
   assignees: [],
   creator: { id: 9, login: "frank" },
   changes: { changedFiles: 5, additions: 120, deletions: 8 },
@@ -266,6 +268,53 @@ export const VariantsStory: StoryObj<typeof PrRow> = {
         />
       </Story.Section>
 
+      <Story.Section title="asked again of someone else">
+        <PrRow
+          pr={buildPr({
+            reRequestedReviewers: [{ id: 2, login: "alice" }],
+            requestedReviewers: [{ id: 1, login: "chris" }],
+          })}
+          reviewRequestVerb="requested"
+          currentUserLogin="chris"
+        />
+      </Story.Section>
+
+      <Story.Section title="asked again of the viewer, among others">
+        <PrRow
+          pr={buildPr({
+            reRequestedReviewers: [
+              { id: 1, login: "chris" },
+              { id: 2, login: "alice" },
+            ],
+          })}
+          currentUserLogin="chris"
+        />
+      </Story.Section>
+
+      <Story.Section title="asked again, hidden by the section">
+        <PrRow
+          pr={buildPr({ reRequestedReviewers: [{ id: 1, login: "chris" }] })}
+          showReRequests={false}
+          currentUserLogin="chris"
+        />
+      </Story.Section>
+
+      <Story.Section title="with an action">
+        <PrRow pr={basePr} action={<Button size="sm" text="Start review" />} />
+      </Story.Section>
+
+      <Story.Section title="an action alongside a long title">
+        <PrRow
+          pr={buildPr({
+            title:
+              "refactor: move the pull request summary derivation into core so the slack home and the webapp stop drifting",
+            requestedReviewers: [{ id: 2, login: "alice" }],
+            requestedTeams: ["core", "platform"],
+          })}
+          action={<Button size="sm" text="Start review" />}
+        />
+      </Story.Section>
+
       <Story.Section title="one status link">
         <PrRow
           pr={buildPr({
@@ -330,7 +379,9 @@ export const VariantsStory: StoryObj<typeof PrRow> = {
             changesRequestedBy: [{ id: 1, login: "bob" }],
             requestedReviewers: [{ id: 2, login: "carol" }],
             requestedTeams: ["core"],
+            reRequestedReviewers: [{ id: 5, login: "erin" }],
           })}
+          action={<Button size="sm" text="Start review" />}
         />
       </Story.Section>
 

@@ -3,6 +3,7 @@ import { BarricadeRegularIcon } from "alouette-icons/phosphor-icons/BarricadeReg
 import { CheckCircleRegularIcon } from "alouette-icons/phosphor-icons/CheckCircleRegularIcon";
 import { ClockRegularIcon } from "alouette-icons/phosphor-icons/ClockRegularIcon";
 import { EyeRegularIcon } from "alouette-icons/phosphor-icons/EyeRegularIcon";
+import { EyeglassesRegularIcon } from "alouette-icons/phosphor-icons/EyeglassesRegularIcon";
 import { WarningRegularIcon } from "alouette-icons/phosphor-icons/WarningRegularIcon";
 import { XCircleRegularIcon } from "alouette-icons/phosphor-icons/XCircleRegularIcon";
 import type { ReactNode } from "react";
@@ -16,6 +17,7 @@ import type {
 import { Columns } from "#/components/columns.tsx";
 import { ResourceView } from "#/components/resource-view.tsx";
 import { Screen } from "#/components/screen.tsx";
+import { StartReviewButton } from "#/components/start-review-button.tsx";
 import { reviewflowName } from "#/reviewflowName.ts";
 import type { PrBucketResource } from "./PrBucketSection.tsx";
 import { PrBucketSection, hasBucketContent } from "./PrBucketSection.tsx";
@@ -35,6 +37,8 @@ interface PrsScreenProps {
   pending: boolean;
   onSelectAccountLogin: (accountLogin: string | undefined) => void;
   onSelectPr: (pr: PrSummary) => void;
+  /** must reject on failure: the row's button renders the message itself */
+  onStartReview: (pr: PrSummary) => Promise<void>;
 }
 
 export function PrsScreen({
@@ -45,7 +49,9 @@ export function PrsScreen({
   pending,
   onSelectAccountLogin,
   onSelectPr,
+  onStartReview,
 }: PrsScreenProps): ReactNode {
+  const reReviewsRequested = prsByBucket["re-requested-reviews"];
   const requestedReviews = prsByBucket["requested-reviews"];
   const readyToMerge = prsByBucket["ready-to-merge"];
   const changesRequested = prsByBucket["changes-requested"];
@@ -54,6 +60,7 @@ export function PrsScreen({
   const drafts = prsByBucket.drafts;
 
   const hasPrsRequestingAttention =
+    hasBucketContent(reReviewsRequested, pending) ||
     hasBucketContent(requestedReviews, pending) ||
     hasBucketContent(readyToMerge, pending) ||
     hasBucketContent(changesRequested, pending);
@@ -102,6 +109,16 @@ export function PrsScreen({
                       {hasPrsRequestingAttention ? (
                         <PrGroupSection title="PRs requesting your attention">
                           <PrBucketSection
+                            title="Re-Requested reviews"
+                            icon={<EyeglassesRegularIcon />}
+                            prs={reReviewsRequested}
+                            pending={pending}
+                            showReRequests={false}
+                            reviewRequestVerb="requested"
+                            currentUserLogin={user?.login}
+                            onSelectPr={onSelectPr}
+                          />
+                          <PrBucketSection
                             title="Requested reviews"
                             icon={<EyeRegularIcon />}
                             prs={requestedReviews}
@@ -109,6 +126,11 @@ export function PrsScreen({
                             reviewRequestVerb="requested"
                             currentUserLogin={user?.login}
                             onSelectPr={onSelectPr}
+                            renderAction={(pr) => (
+                              <StartReviewButton
+                                onStartReview={() => onStartReview(pr)}
+                              />
+                            )}
                           />
                           <PrBucketSection
                             title="Ready to merge"

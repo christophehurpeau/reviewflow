@@ -15,7 +15,7 @@ export default function PrsPage(): ReactNode {
   const { account: accountLogin } = useLocalSearchParams<{
     account?: string;
   }>();
-  const { orgsService, usersService } = useReviewflowServices();
+  const { orgsService, prsService, usersService } = useReviewflowServices();
 
   const me = useResource(usersService.queries.queryMe, { subscribe: true }, []);
   const orgs = useResource(
@@ -53,6 +53,13 @@ export default function PrsPage(): ReactNode {
       }}
       onSelectPr={(pr) => {
         openPr(pr.url);
+      }}
+      onStartReview={async (pr) => {
+        // opened first, and synchronously: the review is done on github, and a
+        // tab opened after awaiting is no longer part of the press the browser
+        // is willing to open one for
+        openPr(pr.url);
+        await prsService.operations.startReview({ prId: pr._id });
       }}
     />
   );

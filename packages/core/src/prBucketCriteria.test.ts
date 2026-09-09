@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { Query } from "mingo";
 import { buildPrBucketQuery } from "./prBucketCriteria.ts";
 
 // mongo criteria are typed as a partial model, dotted paths and $or are not in it
@@ -24,6 +25,7 @@ const withoutAccount = { userId: 42, accounts: [] };
 
 const buckets = [
   "requested-reviews",
+  "re-requested-reviews",
   "ready-to-merge",
   "changes-requested",
   "drafts",
@@ -36,9 +38,10 @@ describe("buildPrBucketQuery", () => {
     for (const bucket of buckets) {
       const criteria = criteriaOf(bucket, withTeams);
       expect(criteria.isClosed).toBe(false);
-      expect(criteria["account.id"]).toEqual(
-        bucket === "requested-reviews" ? 1 : { $in: [1] },
-      );
+      // the review buckets match teams per account, the assigned ones span them
+      const perAccount =
+        bucket === "requested-reviews" || bucket === "re-requested-reviews";
+      expect(criteria["account.id"]).toEqual(perAccount ? 1 : { $in: [1] });
     }
   });
 
@@ -123,6 +126,112 @@ describe("buildPrBucketQuery", () => {
     });
   });
 
+  it("asks for a pending request on a pull request reviewed before", () => {
+    const criteria = criteriaOf("re-requested-reviews", withTeams);
+
+    expect(criteria).toMatchObject({
+      "account.id": 1,
+      "reviews.reviewed.id": 42,
+      isClosed: false,
+      isDraft: false,
+    });
+  });
+
+  it("keeps a first review apart from one asked again", () => {
+    for (const context of [withTeams, withoutTeams, acrossOrgs]) {
+      expect(criteriaOf("requested-reviews", context)["reviews.reviewed.id"]) //
+        .toEqual({ $ne: 42 });
+      expect(
+        criteriaOf("re-requested-reviews", context)["reviews.reviewed.id"],
+      ).toBe(42);
+    }
+  });
+
+  /**
+   * The one failure shape shape assertions cannot catch: a pull request listed
+   * under both sections at once, or under neither, over every combination of
+   * what github can say. Evaluated rather than compared.
+   */
+  describe("the two review buckets partition the requested reviews", () => {
+    interface PrState {
+      reviewRequested: boolean;
+      teamReviewRequested: boolean;
+      reviewedBefore: boolean;
+    }
+
+    /** the fields of a `ReviewflowPr` the two criteria read, as mingo wants it */
+    type PrDocument = Record<string, unknown>;
+
+    const buildPr = ({
+      reviewRequested,
+      teamReviewRequested,
+      reviewedBefore,
+    }: PrState): PrDocument => ({
+      account: { id: 1, login: "elax", type: "Organization" },
+      isClosed: false,
+      isDraft: false,
+      reviews: {
+        reviewRequested: reviewRequested ? [{ id: 42, login: "chris" }] : [],
+        teamReviewRequested: teamReviewRequested
+          ? [{ id: 9, name: "dev" }]
+          : [],
+        approved: [],
+        changesRequested: [],
+        dismissed: [],
+        commented: [],
+        reviewed: reviewedBefore ? [{ id: 42, login: "chris" }] : [],
+      },
+    });
+
+    const matches = (
+      bucket: "re-requested-reviews" | "requested-reviews",
+      pr: PrDocument,
+    ) => new Query(criteriaOf(bucket, withTeams)).test(pr);
+
+    const booleans = [false, true];
+
+    for (const reviewRequested of booleans) {
+      for (const teamReviewRequested of booleans) {
+        for (const reviewedBefore of booleans) {
+          const state = {
+            reviewRequested,
+            teamReviewRequested,
+            reviewedBefore,
+          };
+          const requested = reviewRequested || teamReviewRequested;
+
+          it(`requested=${reviewRequested} team=${teamReviewRequested} reviewedBefore=${reviewedBefore}`, () => {
+            const pr = buildPr(state);
+
+            expect(matches("requested-reviews", pr)).toBe(
+              requested && !reviewedBefore,
+            );
+            expect(matches("re-requested-reviews", pr)).toBe(
+              requested && reviewedBefore,
+            );
+          });
+        }
+      }
+    }
+  });
+
+  /** documents written before the field existed carry no `reviewed` at all */
+  it("treats a pull request without the field as never reviewed", () => {
+    const pr = {
+      account: { id: 1 },
+      isClosed: false,
+      isDraft: false,
+      reviews: { reviewRequested: [{ id: 42 }], teamReviewRequested: [] },
+    };
+
+    expect(new Query(criteriaOf("requested-reviews", withTeams)).test(pr)).toBe(
+      true,
+    );
+    expect(
+      new Query(criteriaOf("re-requested-reviews", withTeams)).test(pr),
+    ).toBe(false);
+  });
+
   it("only returns drafts assigned to the user", () => {
     const criteria = criteriaOf("drafts", withTeams);
 
@@ -132,6 +241,7 @@ describe("buildPrBucketQuery", () => {
   it("excludes drafts from the buckets about open pull requests", () => {
     for (const bucket of [
       "requested-reviews",
+      "re-requested-reviews",
       "opened-missing-review-request",
       "waiting-for-review",
     ] as const) {

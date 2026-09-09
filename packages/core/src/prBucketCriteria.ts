@@ -57,13 +57,22 @@ const buildAccountRequestedReviewsCriteria = (
       }
     : { "account.id": accountId, "reviews.reviewRequested.id": userId };
 
-/** teams are per org, so review requests cannot be matched with a single `$in` */
-const buildRequestedReviewsCriteria = ({
-  accounts,
-  userId,
-}: PrBucketContext): Criteria<ReviewflowPr> => ({
+/**
+ * teams are per org, so review requests cannot be matched with a single `$in`.
+ *
+ * Both review buckets ask for a pending request and differ only on whether the
+ * user has reviewed this pull request before, so together they cover every
+ * requested review exactly once. Reviewing again is a request like any other:
+ * pressing "start review" comments and asks for the review again, which is what
+ * moves the pull request from one bucket to the other.
+ */
+const buildRequestedReviewsCriteria = (
+  { accounts, userId }: PrBucketContext,
+  reviewedBefore: boolean,
+): Criteria<ReviewflowPr> => ({
   isClosed: false,
   isDraft: false,
+  "reviews.reviewed.id": reviewedBefore ? userId : { $ne: userId },
   ...anyOf(
     accounts.map((account) =>
       buildAccountRequestedReviewsCriteria(account, userId),
@@ -91,7 +100,13 @@ export const buildPrBucketQuery = (
   switch (bucket) {
     case "requested-reviews":
       return {
-        criteria: buildRequestedReviewsCriteria(context),
+        criteria: buildRequestedReviewsCriteria(context, false),
+        sort: { "flowDates.opened": -1, created: -1 },
+      };
+
+    case "re-requested-reviews":
+      return {
+        criteria: buildRequestedReviewsCriteria(context, true),
         sort: { "flowDates.opened": -1, created: -1 },
       };
 

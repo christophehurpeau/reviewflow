@@ -242,4 +242,89 @@ describe("createSlackHomeWorker", () => {
       ),
     ).toBe(true);
   });
+
+  /**
+   * github drops a pull request from the review-requested search as soon as the
+   * review is submitted, so this section is the only thing keeping a review
+   * under way on the home.
+   */
+  describe("reviews asked of the member again", () => {
+    const publishedTitles = async (
+      startedPrs: unknown[],
+    ): Promise<string[]> => {
+      const publish = vi.fn().mockResolvedValue({});
+
+      const mongoStores: any = {
+        prs: {
+          // the re-requested bucket asks for the id itself, every other
+          // bucket either excludes it (`$ne`) or does not mention it
+          findAll: vi.fn((criteria: Record<string, unknown>) => {
+            const reviewedId = criteria["reviews.reviewed.id"];
+            const asksForReviewedBefore =
+              reviewedId !== undefined && typeof reviewedId !== "object";
+            return Promise.resolve(asksForReviewedBefore ? startedPrs : []);
+          }),
+        },
+        slackTeams: { findByKey: vi.fn() },
+        orgMembers: { cursor: vi.fn() },
+        orgs: { cursor: vi.fn() },
+      };
+
+      const worker = createSlackHomeWorker(mongoStores, {
+        error: vi.fn(),
+        info: vi.fn(),
+      } as any);
+
+      await worker.updateMember(
+        {
+          search: {
+            issuesAndPullRequests: vi
+              .fn()
+              .mockResolvedValue({ data: { total_count: 0, items: [] } }),
+          },
+        } as any,
+        { views: { publish } } as any,
+        {
+          slack: { id: "U123" },
+          org: { id: "1", login: "org" },
+          user: { id: "2", login: "user" },
+        } as any,
+      );
+
+      return publish.mock.calls[0]![0].view.blocks.filter(
+        (block: any) =>
+          block.type === "section" && block.text?.type === "mrkdwn",
+      ).map((block: any) => block.text.text as string);
+    };
+
+    const startedPr = {
+      account: { login: "org" },
+      repo: { name: "repo" },
+      pr: { number: 7 },
+      title: "My PR",
+      isDraft: false,
+      assignees: [],
+      reviews: {
+        reviewRequested: [{ id: 2, login: "user" }],
+        teamReviewRequested: [],
+        approved: [],
+        reviewed: [{ id: 2, login: "user" }],
+      },
+    };
+
+    it("titles a section for them", async () => {
+      const titles = await publishedTitles([startedPr]);
+
+      expect(titles).toContain("*:eyeglasses: Re-Requested reviews*");
+    });
+
+    it("says nothing when none was asked again", async () => {
+      const titles = await publishedTitles([]);
+
+      expect(titles).not.toContain("*:eyeglasses: Re-Requested reviews*");
+      expect(titles).toContain(
+        ":tada: It looks like you don't have any PR to review!",
+      );
+    });
+  });
 });

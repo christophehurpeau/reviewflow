@@ -37,7 +37,7 @@ const createRepositoriesServiceClient =
 
 const createPrsServiceClient = createResourceClientService<PrsService>("prs", {
   queries: { queryMyPrs: null },
-  operations: {},
+  operations: { startReview: null },
 });
 
 interface ReviewflowServices {

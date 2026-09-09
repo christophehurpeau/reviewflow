@@ -87,6 +87,21 @@ const toUserSummaries = (
   users: { id: number; login: string }[] | undefined,
 ): PrUserSummary[] => users?.map(({ id, login }) => ({ id, login })) ?? [];
 
+/**
+ * A review asked of someone who already reviewed this pull request is a
+ * different thing to ask than a first review, and the reviews groups only hold
+ * the state each person is in now: `reviewed` is what remembers the rest.
+ */
+const selectRequestedReviewers = (
+  { reviews }: ReviewflowPr,
+  reviewedBefore: boolean,
+): { id: number; login: string }[] =>
+  (reviews?.reviewRequested ?? []).filter(
+    ({ id }) =>
+      (reviews?.reviewed?.some((review) => review.id === id) ?? false) ===
+      reviewedBefore,
+  );
+
 export const toPrSummary = (pr: ReviewflowPr): PrSummary => ({
   _id: pr._id,
   orgLogin: pr.account.login,
@@ -100,7 +115,8 @@ export const toPrSummary = (pr: ReviewflowPr): PrSummary => ({
   statusLinks: toStatusLinks(pr),
   approvedBy: toUserSummaries(pr.reviews?.approved),
   changesRequestedBy: toUserSummaries(pr.reviews?.changesRequested),
-  requestedReviewers: toUserSummaries(pr.reviews?.reviewRequested),
+  requestedReviewers: toUserSummaries(selectRequestedReviewers(pr, false)),
+  reRequestedReviewers: toUserSummaries(selectRequestedReviewers(pr, true)),
   requestedTeams:
     pr.reviews?.teamReviewRequested?.map(({ name }) => name) ?? [],
   assignees:
