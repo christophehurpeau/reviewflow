@@ -2,9 +2,12 @@ import { PressableListItem, VStack } from "alouette";
 import type { Accent, SVGIconElement } from "alouette";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
-import type { PrSummary, QueryMyPrsParams } from "reviewflow-modules";
+import type {
+  PrSummary,
+  QueryMyPrsParams,
+  ReviewRequestVerb,
+} from "reviewflow-modules";
 import { ListSection } from "#/components/list-section.tsx";
-import type { ReviewRequestVerb } from "#/components/pr-row.tsx";
 import { PrRow } from "#/components/pr-row.tsx";
 import { ResourceView } from "#/components/resource-view.tsx";
 import { SkeletonList } from "#/components/skeleton.tsx";
@@ -34,7 +37,10 @@ interface PrBucketSectionProps {
   showDraft?: boolean;
   /** off where the section is about something other than the checks */
   showPassedChecks?: boolean;
-  /** off where the section title already says the review was asked again */
+  /**
+   * Whether the reviewers asked again join the ones awaited; off where the
+   * section title already says every row in it was asked again.
+   */
   showReRequests?: boolean;
   reviewRequestVerb?: ReviewRequestVerb;
   currentUserLogin?: string;

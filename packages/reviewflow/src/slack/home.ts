@@ -12,8 +12,10 @@ import type { PrBucket } from "reviewflow-modules";
 import type { OctokitRestCompat } from "../octokit.ts";
 import { orgSettingsUrl } from "../webappUrl.ts";
 import {
+  allocateRowBudget,
   buildBlocksForDataFromGithubAndMongo,
   buildBlocksForDataFromMongo,
+  maxHomeBlocks,
 } from "./homeHelpers.ts";
 import { createLink } from "./utils.ts";
 
@@ -87,6 +89,15 @@ export const createSlackHomeWorker = (
       findPrsInBucket("waiting-for-review"),
     ]);
 
+    const requestedReviewsFromGithub =
+      prsWithRequestedReviewsFromGithub?.data.items ?? [];
+    const githubSearchFailed = !prsWithRequestedReviewsFromGithub;
+
+    const hasPrsInProgress =
+      prsInDraft.length > 0 ||
+      openedPrsWithNoActionPlanned.length > 0 ||
+      myOpenedPrsWaitingForRequestedReview.length > 0;
+
     const baseBlocks: KnownBlock[] = [
       {
         type: "section",
@@ -107,43 +118,70 @@ export const createSlackHomeWorker = (
       },
     ];
 
+    // a github failure still spends a title, a divider and its error line
+    const blocksOutsideSections =
+      baseBlocks.length +
+      (hasPrsInProgress ? 1 : 0) +
+      (githubSearchFailed ? 3 : 0);
+
+    const [
+      reRequestedReviewsLimit,
+      requestedReviewsLimit,
+      readyToMergeLimit,
+      changesRequestedLimit,
+      missingReviewRequestLimit,
+      draftsLimit,
+      waitingForReviewLimit,
+    ] = allocateRowBudget(
+      [
+        prsWithReRequestedReviews.length,
+        requestedReviewsFromGithub.length,
+        prsToMerge.length,
+        prsWithRequestedChanges.length,
+        openedPrsWithNoActionPlanned.length,
+        prsInDraft.length,
+        myOpenedPrsWaitingForRequestedReview.length,
+      ],
+      maxHomeBlocks - blocksOutsideSections,
+    );
+
     let blocks: KnownBlock[] = [
       ...baseBlocks,
       // above the requested reviews: a review asked again is one the member has
       // already been through, so it comes before the ones they have not seen
-      ...buildBlocksForDataFromMongo(
-        member.user.login,
-        ":eyeglasses: Re-Requested reviews",
-        prsWithReRequestedReviews,
+      ...buildBlocksForDataFromMongo({
+        userLogin: member.user.login,
+        title: ":eyeglasses: Re-Requested reviews",
+        results: prsWithReRequestedReviews,
+        limit: reRequestedReviewsLimit,
         // the review is under way there, so there is nothing left to start
-        { showReRequests: false, reviewRequestVerb: "requested" },
-      ),
-      ...buildBlocksForDataFromGithubAndMongo(
-        member.user.login,
-        ":eyes: Requested reviews",
-        prsWithRequestedReviewsFromGithub,
-        prsWithRequestedReviewsFromMongo,
-        { reviewRequestVerb: "requested", showStartReview: true },
-      ),
-      ...buildBlocksForDataFromMongo(
-        member.user.login,
-        ":white_check_mark: Ready to merge",
-        prsToMerge,
-        { reviewRequestVerb: "requested" },
-      ),
-      ...buildBlocksForDataFromMongo(
-        member.user.login,
-        ":x: Changes requested",
-        prsWithRequestedChanges,
-        { showPassedChecks: false, reviewRequestVerb: "requested" },
-      ),
+        rowOptions: { showReRequests: false, reviewRequestVerb: "requested" },
+      }),
+      ...buildBlocksForDataFromGithubAndMongo({
+        userLogin: member.user.login,
+        title: ":eyes: Requested reviews",
+        response: prsWithRequestedReviewsFromGithub,
+        mongoResults: prsWithRequestedReviewsFromMongo,
+        limit: requestedReviewsLimit,
+        rowOptions: { reviewRequestVerb: "requested", showStartReview: true },
+      }),
+      ...buildBlocksForDataFromMongo({
+        userLogin: member.user.login,
+        title: ":white_check_mark: Ready to merge",
+        results: prsToMerge,
+        limit: readyToMergeLimit,
+        rowOptions: { reviewRequestVerb: "requested" },
+      }),
+      ...buildBlocksForDataFromMongo({
+        userLogin: member.user.login,
+        title: ":x: Changes requested",
+        results: prsWithRequestedChanges,
+        limit: changesRequestedLimit,
+        rowOptions: { showPassedChecks: false, reviewRequestVerb: "requested" },
+      }),
     ];
 
-    if (
-      prsInDraft.length > 0 ||
-      openedPrsWithNoActionPlanned.length > 0 ||
-      myOpenedPrsWaitingForRequestedReview.length > 0
-    ) {
+    if (hasPrsInProgress) {
       blocks = [
         ...blocks,
         {
@@ -153,44 +191,30 @@ export const createSlackHomeWorker = (
             text: "Your PRs in progress",
           },
         },
+        ...buildBlocksForDataFromMongo({
+          userLogin: member.user.login,
+          title: ":warning: Missing request for review",
+          results: openedPrsWithNoActionPlanned,
+          limit: missingReviewRequestLimit,
+        }),
+        ...buildBlocksForDataFromMongo({
+          userLogin: member.user.login,
+          title: ":construction: Drafts",
+          results: prsInDraft,
+          limit: draftsLimit,
+          rowOptions: { showDraft: false, showPassedChecks: false },
+        }),
+        ...buildBlocksForDataFromMongo({
+          userLogin: member.user.login,
+          title: ":clock1: Waiting for review",
+          results: myOpenedPrsWaitingForRequestedReview,
+          limit: waitingForReviewLimit,
+        }),
       ];
     }
 
-    if (openedPrsWithNoActionPlanned.length > 0) {
-      blocks = [
-        ...blocks,
-        ...buildBlocksForDataFromMongo(
-          member.user.login,
-          ":warning: Your opened PRs missing a request for review",
-          openedPrsWithNoActionPlanned,
-        ),
-      ];
-    }
-
-    if (prsInDraft.length > 0) {
-      blocks = [
-        ...blocks,
-        ...buildBlocksForDataFromMongo(
-          member.user.login,
-          ":construction: Your drafts PRs",
-          prsInDraft,
-          { showDraft: false, showPassedChecks: false },
-        ),
-      ];
-    }
-
-    if (myOpenedPrsWaitingForRequestedReview.length > 0) {
-      blocks = [
-        ...blocks,
-        ...buildBlocksForDataFromMongo(
-          member.user.login,
-          ":clock1: Your opened PRs waiting for a review",
-          myOpenedPrsWaitingForRequestedReview,
-        ),
-      ];
-    }
-
-    if (blocks.length === 2) {
+    // a github outage is worth reading even when nothing else is on the home
+    if (blocks.length === baseBlocks.length) {
       blocks = [
         ...blocks,
         {
@@ -201,6 +225,18 @@ export const createSlackHomeWorker = (
           },
         },
       ];
+    }
+
+    if (blocks.length > maxHomeBlocks) {
+      log.error(
+        {
+          memberLogin: member.user.login,
+          orgLogin: member.org.login,
+          blocksLength: blocks.length,
+        },
+        "Slack home exceeded the block limit, truncating",
+      );
+      blocks = blocks.slice(0, maxHomeBlocks);
     }
 
     slackClient.views
@@ -217,6 +253,7 @@ export const createSlackHomeWorker = (
             error,
             memberLogin: member.user.login,
             orgLogin: member.org.login,
+            blocksLength: blocks.length,
             blocks,
           },
           `Error updating home: ${(error as any)?.message}`,

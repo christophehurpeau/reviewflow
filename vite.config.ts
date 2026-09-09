@@ -24,6 +24,16 @@ export default defineConfig({
       },
       {
         test: {
+          name: "modules",
+          root: "packages/modules",
+          testTimeout,
+          // the row formatters date with toLocaleDateString
+          env: { TZ: "UTC" },
+          include: ["src/**/*.test.ts?(x)"],
+        },
+      },
+      {
+        test: {
           name: "reviewflow",
           root: "packages/reviewflow",
           testTimeout,

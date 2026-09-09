@@ -2,9 +2,11 @@ import { describe, expect, it, vi } from "vitest";
 import type { ReviewflowPr } from "reviewflow-core";
 import {
   type GithubSearchResponse,
+  allocateRowBudget,
   buildBlocksForDataFromGithubAndMongo,
   buildBlocksForDataFromMongo,
   createBlocksForDataFromMongoPr,
+  maxHomeBlocks,
 } from "./homeHelpers.ts";
 
 const createMockPr = (overrides: Partial<ReviewflowPr> = {}): ReviewflowPr => ({
@@ -46,7 +48,7 @@ describe("homeHelpers", () => {
     const mockPr = createMockPr();
 
     const blocks = createBlocksForDataFromMongoPr(mockPr, "bob");
-    expect(blocks.length).toBeGreaterThanOrEqual(2);
+    expect(blocks).toHaveLength(2);
     const section = blocks[0]!;
     if (section.type !== "section") throw new Error("expected section block");
 
@@ -85,11 +87,11 @@ describe("homeHelpers", () => {
                 "type": "image",
               },
               {
-                "text": "by @alice · assigned to _YOU_",
+                "text": "by @alice · assigned to _you_",
                 "type": "mrkdwn",
               },
               {
-                "text": "Opened Jan 1, 2020, 12:00 AM",
+                "text": "opened Jan 1, 2020, 12:00 AM",
                 "type": "mrkdwn",
               },
             ],
@@ -151,7 +153,7 @@ describe("homeHelpers", () => {
         [
           {
             "text": {
-              "text": ":red_circle: <https://github.com/org/repo/pull/1|repo#1> · _Draft_ · <https://www.notion.so/elaxenergie/GEN-1234|GEN-1234> · *<https://github.com/org/repo/pull/1|Fix flaky worker retry loop>*",
+              "text": "<https://github.com/org/repo/pull/1|repo#1> · <https://www.notion.so/elaxenergie/GEN-1234|GEN-1234> · *<https://github.com/org/repo/pull/1|Fix flaky worker retry loop>* · <https://github.com/org/repo/pull/1/files|5 files (+120 −8)>",
               "type": "mrkdwn",
             },
             "type": "section",
@@ -169,15 +171,15 @@ describe("homeHelpers", () => {
                 "type": "image",
               },
               {
-                "text": "by @alice · assigned to _YOU_",
+                "text": "by @alice · assigned to _you_",
                 "type": "mrkdwn",
               },
               {
-                "text": "<https://github.com/org/repo/pull/1/files|5 files changed (+120 -8)> · checks failed: \`ci/build\`, \`lint\` · pr lint failed · changes requested by @erin · approved by @dan · awaiting _YOU_, #core · asked again of @carol",
+                "text": "*checks failed: \`ci/build\`, \`lint\` · pr lint failed* · changes requested by @erin · _draft_ · approved by @dan · awaiting _you_, @carol, #core",
                 "type": "mrkdwn",
               },
               {
-                "text": "Approved Jan 2, 2020, 9:12 AM",
+                "text": "approved Jan 2, 2020, 9:12 AM",
                 "type": "mrkdwn",
               },
             ],
@@ -258,11 +260,11 @@ describe("homeHelpers", () => {
               "type": "image",
             },
             {
-              "text": "by @alice · assigned to _YOU_",
+              "text": "by @alice · assigned to _you_",
               "type": "mrkdwn",
             },
             {
-              "text": "Opened Jan 1, 2020, 12:00 AM",
+              "text": "opened Jan 1, 2020, 12:00 AM",
               "type": "mrkdwn",
             },
           ],
@@ -291,7 +293,7 @@ describe("homeHelpers", () => {
     expect(context.elements).toMatchInlineSnapshot(`
       [
         {
-          "text": "Opened Jan 1, 2020, 12:00 AM",
+          "text": "opened Jan 1, 2020, 12:00 AM",
           "type": "mrkdwn",
         },
       ]
@@ -310,16 +312,21 @@ describe("homeHelpers", () => {
 
     const [, context] = createBlocksForDataFromMongoPr(mockPr, "bob");
     if (context?.type !== "context") throw new Error("expected context block");
+    // the two avatars and the owners label come first
     expect(
-      (context.elements[2] as { text: string }).text,
-    ).toMatchInlineSnapshot(`"by @alice · assigned to _YOU_"`);
+      (context.elements[3] as { text: string }).text,
+    ).toMatchInlineSnapshot(
+      `"*checks failed: \`check-0\`, \`check-1\`, \`check-2\`, \`check-3\`, \`check-4\`, \`check-5\`, \`check-6\`, \`check-7\`, \`check-8\` +3*"`,
+    );
   });
 
   it("buildBlocksForDataFromMongo wraps rows in a titled section", () => {
     expect(
-      buildBlocksForDataFromMongo("bob", ":eyes: Requested reviews", [
-        createMockPr(),
-      ]),
+      buildBlocksForDataFromMongo({
+        userLogin: "bob",
+        title: ":eyes: Requested reviews",
+        results: [createMockPr()],
+      }),
     ).toMatchInlineSnapshot(`
       [
         {
@@ -352,11 +359,11 @@ describe("homeHelpers", () => {
               "type": "image",
             },
             {
-              "text": "by @alice · assigned to _YOU_",
+              "text": "by @alice · assigned to _you_",
               "type": "mrkdwn",
             },
             {
-              "text": "Opened Jan 1, 2020, 12:00 AM",
+              "text": "opened Jan 1, 2020, 12:00 AM",
               "type": "mrkdwn",
             },
           ],
@@ -400,12 +407,11 @@ describe("homeHelpers", () => {
       },
     ]);
 
-    const blocks = buildBlocksForDataFromGithubAndMongo(
-      "bob",
-      ":eyes:",
-      githubResponse,
-      [],
-    );
+    const blocks = buildBlocksForDataFromGithubAndMongo({
+      userLogin: "bob",
+      title: ":eyes:",
+      response: githubResponse,
+    });
     // should include section for the PR and a context block with user
     const hasPrSection = blocks.some(
       (b) =>
@@ -424,5 +430,149 @@ describe("homeHelpers", () => {
         false,
     );
     expect(hasContextWithImage).toBe(true);
+  });
+
+  it("buildBlocksForDataFromGithubAndMongo reports a github outage", () => {
+    expect(
+      buildBlocksForDataFromGithubAndMongo({
+        userLogin: "bob",
+        title: ":eyes: Requested reviews",
+        response: undefined,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        {
+          "text": {
+            "text": "*:eyes: Requested reviews*",
+            "type": "mrkdwn",
+          },
+          "type": "section",
+        },
+        {
+          "type": "divider",
+        },
+        {
+          "text": {
+            "text": "No response from GitHub",
+            "type": "plain_text",
+          },
+          "type": "section",
+        },
+      ]
+    `);
+  });
+
+  it("buildBlocksForDataFromGithubAndMongo reports a github error shape", () => {
+    expect(
+      buildBlocksForDataFromGithubAndMongo({
+        userLogin: "bob",
+        title: ":eyes: Requested reviews",
+        response: { error: "boom" } as unknown as GithubSearchResponse,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        {
+          "text": {
+            "text": "*:eyes: Requested reviews*",
+            "type": "mrkdwn",
+          },
+          "type": "section",
+        },
+        {
+          "type": "divider",
+        },
+        {
+          "text": {
+            "text": "Error from GitHub",
+            "type": "plain_text",
+          },
+          "type": "section",
+        },
+      ]
+    `);
+  });
+
+  /** the rows the budget cut still have to be reachable from the home */
+  it("buildBlocksForDataFromMongo links to the webapp for the rows it drops", () => {
+    vi.stubEnv("REVIEWFLOW_APP_URL", "https://reviewflow.example");
+
+    const blocks = buildBlocksForDataFromMongo({
+      userLogin: "bob",
+      title: ":eyes: Requested reviews",
+      results: [createMockPr(), createMockPr(), createMockPr()],
+      limit: 1,
+    });
+
+    // the last block is the spacer closing the section
+    expect(blocks.at(-2)).toMatchInlineSnapshot(`
+      {
+        "elements": [
+          {
+            "text": "<https://reviewflow.example/prs|+2 more>",
+            "type": "mrkdwn",
+          },
+        ],
+        "type": "context",
+      }
+    `);
+  });
+
+  it("buildBlocksForDataFromMongo says nothing more when every row fits", () => {
+    const blocks = buildBlocksForDataFromMongo({
+      userLogin: "bob",
+      title: ":eyes: Requested reviews",
+      results: [createMockPr()],
+      limit: 1,
+    });
+
+    expect(JSON.stringify(blocks)).not.toContain("more");
+  });
+
+  describe("allocateRowBudget", () => {
+    /** title, divider, trailing spacer, and the `+X more` truncation may need */
+    const blocksPerSection = 4;
+    const blocksPerRow = 2;
+
+    const blocksSpent = (counts: number[], allocated: number[]): number => {
+      let total = 0;
+      for (const [index, count] of counts.entries()) {
+        if (count === 0) continue;
+        total += blocksPerSection + blocksPerRow * allocated[index]!;
+      }
+      return total;
+    };
+
+    it("gives every section all of its rows when they fit", () => {
+      const counts = [2, 3, 1];
+
+      expect(allocateRowBudget(counts, maxHomeBlocks)).toEqual(counts);
+    });
+
+    it("ignores the sections that hold nothing", () => {
+      expect(allocateRowBudget([0, 2, 0], maxHomeBlocks)).toEqual([0, 2, 0]);
+    });
+
+    it("stays under the budget it is given", () => {
+      const counts = [40, 40, 40, 40, 40, 40, 40];
+      const allocated = allocateRowBudget(counts, maxHomeBlocks - 3);
+
+      expect(blocksSpent(counts, allocated)).toBeLessThanOrEqual(
+        maxHomeBlocks - 3,
+      );
+    });
+
+    /**
+     * The home ranks its sections, so a bucket that alone exceeds the budget
+     * must not push the ones after it off the view entirely.
+     */
+    it("serves the later sections before filling the first one", () => {
+      const allocated = allocateRowBudget([40, 2, 2], 40);
+
+      expect(allocated).toEqual([10, 2, 2]);
+    });
+
+    it("leaves nothing to a budget too small for any row", () => {
+      expect(allocateRowBudget([5, 5], 6)).toEqual([0, 0]);
+    });
   });
 });

@@ -20,5 +20,8 @@ export const checkWebappUrlConfig = (): void => {
 
 export const webappUrl = (path: string): string => `${baseUrl()}${path}`;
 
+/** the screen following the same pull request buckets as the slack home */
+export const prsUrl = (): string => webappUrl("/prs");
+
 export const orgSettingsUrl = (orgLogin: string): string =>
   webappUrl(`/org/${encodeURIComponent(orgLogin)}`);

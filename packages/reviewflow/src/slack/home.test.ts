@@ -109,6 +109,8 @@ describe("createSlackHomeWorker", () => {
     expect(publish).toHaveBeenCalled();
     const arg = (publish as any).mock.calls[0][0];
     const blocks = arg.view.blocks;
+    // the settings link, the first header, and the line below
+    expect(blocks).toHaveLength(3);
     const lastBlock = blocks.at(-1);
     expect(lastBlock.text).toBeDefined();
     expect(lastBlock.text.type).toBe("mrkdwn");
@@ -186,9 +188,12 @@ describe("createSlackHomeWorker", () => {
     expect(prIndex).toBeGreaterThanOrEqual(0);
     const prSection = blocks[prIndex];
     const text = prSection.text.text as string;
-    // should contain link to PR (repo#number) and title link
+    // should contain link to PR (repo#number), title link and the changes
     expect(text).toContain("https://github.com/org/repo/pull/1|repo#1");
     expect(text).toContain("https://github.com/org/repo/pull/1|My PR");
+    expect(text).toContain(
+      "https://github.com/org/repo/pull/1/files|2 files (+5 −1)",
+    );
 
     // context block following the PR section should include assignee image and login
     const context = blocks[prIndex + 1];
@@ -206,16 +211,6 @@ describe("createSlackHomeWorker", () => {
       elements.some(
         (e: any) =>
           e.type === "mrkdwn" && e.text === "by @alice · assigned to @bob",
-      ),
-    ).toBe(true);
-
-    // changes information link to files
-    expect(
-      elements.some(
-        (e: any) =>
-          e.type === "mrkdwn" &&
-          e.text.includes("/pull/1/files") &&
-          e.text.includes("2 file"),
       ),
     ).toBe(true);
 

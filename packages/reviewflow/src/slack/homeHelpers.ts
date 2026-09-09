@@ -1,15 +1,22 @@
 import type { KnownBlock } from "@slack/web-api";
 import type { ReviewflowPr } from "reviewflow-core";
 import { toPrSummary } from "reviewflow-core";
-import type { PrOwners, PrSummary, PrUserSummary } from "reviewflow-modules";
-import { selectPrOwners, splitFailedCheckNames } from "reviewflow-modules";
-import type { OctokitRestCompat } from "../octokit.ts";
-import { ExcludesFalsy } from "../utils/Excludes.ts";
-import { webappUrl } from "../webappUrl.ts";
+import type {
+  PrOwners,
+  PrRowDisplayOptions,
+  PrRowStatus,
+  PrSummary,
+} from "reviewflow-modules";
 import {
-  createLink,
-  createPrChangesInformationFromReviewflowPr,
-} from "./utils.ts";
+  formatPrChanges,
+  formatPrFlowDate,
+  joinSegments,
+  selectPrOwners,
+  selectPrRowStatus,
+} from "reviewflow-modules";
+import type { OctokitRestCompat } from "../octokit.ts";
+import { prsUrl, webappUrl } from "../webappUrl.ts";
+import { createLink } from "./utils.ts";
 
 export type GithubSearchResponse = Awaited<
   ReturnType<OctokitRestCompat["search"]["issuesAndPullRequests"]>
@@ -20,21 +27,32 @@ export type GithubSearchResponse = Awaited<
  * repeats neither the draft state nor a green build where that is the point of
  * the section.
  */
-export interface PrRowOptions {
-  showDraft?: boolean;
-  showPassedChecks?: boolean;
-  /** off where the section title already says the review was asked again */
-  showReRequests?: boolean;
+export interface PrRowOptions extends Pick<
+  PrRowDisplayOptions,
+  "reviewRequestVerb" | "showDraft" | "showPassedChecks" | "showReRequests"
+> {
   /** on where the viewer is the one being asked for the review */
   showStartReview?: boolean;
-  /**
-   * Someone else's pull request requests a review, your own waits for one, so
-   * the section the row sits in decides the verb.
-   */
-  reviewRequestVerb?: "awaiting" | "requested";
 }
 
-export const createTitleBlock = (title: string): KnownBlock => ({
+/** slack rejects a home view above this, publishing nothing at all */
+export const maxHomeBlocks = 100;
+
+/** the title, the divider, the trailing spacer and a possible `+X more` line */
+const blocksPerSection = 4;
+
+/** the title line and the context line under it */
+const blocksPerRow = 2;
+
+/** a context block above it, and slack drops the ones beyond */
+const maxContextElements = 10;
+
+/** the viewer reads as themselves where naming them is the point of the segment */
+const slackSelfLabel = "_you_";
+
+const wrapCheckName = (name: string): string => `\`${name}\``;
+
+const createTitleBlock = (title: string): KnownBlock => ({
   type: "section",
   text: {
     type: "mrkdwn",
@@ -42,9 +60,9 @@ export const createTitleBlock = (title: string): KnownBlock => ({
   },
 });
 
-export const createDividerBlock = (): KnownBlock => ({ type: "divider" });
+const createDividerBlock = (): KnownBlock => ({ type: "divider" });
 
-export const createErrorBlock = (errorMessage: string): KnownBlock => ({
+const createErrorBlock = (errorMessage: string): KnownBlock => ({
   type: "section",
   text: {
     type: "plain_text",
@@ -52,7 +70,8 @@ export const createErrorBlock = (errorMessage: string): KnownBlock => ({
   },
 });
 
-export const createPlaceholderImageBlock = (): KnownBlock => ({
+/** a transparent image is the only vertical space block kit offers */
+const createSpacerBlock = (): KnownBlock => ({
   type: "context",
   elements: [
     {
@@ -60,6 +79,17 @@ export const createPlaceholderImageBlock = (): KnownBlock => ({
       image_url:
         "https://api.slack.com/img/blocks/bkb_template_images/placeholder.png",
       alt_text: "placeholder",
+    },
+  ],
+});
+
+/** a context block, so it does not read as a section title of its own */
+const createMoreBlock = (remaining: number): KnownBlock => ({
+  type: "context",
+  elements: [
+    {
+      type: "mrkdwn",
+      text: createLink(prsUrl(), `+${remaining} more`),
     },
   ],
 });
@@ -74,55 +104,6 @@ interface MrkdwnElement {
   text: string;
 }
 
-const pluralize = (count: number, word: string): string =>
-  `${count} ${word}${count > 1 ? "s" : ""}`;
-
-const joinSegments = (segments: (string | undefined)[]): string =>
-  segments.filter((segment) => segment !== undefined).join(" · ");
-
-const formatFailedNames = (failedNames: string[]): string => {
-  const { names, remaining } = splitFailedCheckNames(failedNames);
-  const listed = names.map((name) => `\`${name}\``).join(", ");
-  return `${failedNames.length > 1 ? "checks" : "check"} failed: ${listed}${
-    remaining > 0 ? ` +${remaining}` : ""
-  }`;
-};
-
-const formatChecks = (
-  { conclusion, runningCount }: PrSummary["checks"],
-  showPassedChecks: boolean,
-): string | undefined => {
-  if (conclusion === "in-progress") {
-    return `${pluralize(runningCount, "check")} running`;
-  }
-  if (conclusion === "passed" && showPassedChecks) return "checks passed";
-  return undefined;
-};
-
-const formatLogins = (users: PrUserSummary[]): string =>
-  users.map(({ login }) => `@${login}`).join(", ");
-
-/** the viewer reads as themselves where naming them is the point of the segment */
-const formatLoginsWithSelf = (
-  users: PrUserSummary[],
-  userLogin: string,
-): string[] =>
-  users.map(({ login }) => (login === userLogin ? "_YOU_" : `@${login}`));
-
-const formatReviewRequests = (
-  { requestedReviewers, requestedTeams }: PrSummary,
-  verb: NonNullable<PrRowOptions["reviewRequestVerb"]>,
-  userLogin: string,
-): string | undefined => {
-  if (requestedReviewers.length === 0 && requestedTeams.length === 0) {
-    return undefined;
-  }
-  return `${verb} ${[
-    ...formatLoginsWithSelf(requestedReviewers, userLogin),
-    ...requestedTeams.map((team) => `#${team}`),
-  ].join(", ")}`;
-};
-
 /**
  * Slack cannot submit the review itself: it would have to act as the reviewer,
  * whose github token only ever exists in the webapp's session. The link opens
@@ -134,114 +115,92 @@ const startReviewLink = (prId: string): string =>
     "Start the review",
   );
 
-const formatReReviewRequests = (
-  { reRequestedReviewers }: PrSummary,
-  userLogin: string,
-): string | undefined =>
-  reRequestedReviewers.length === 0
-    ? undefined
-    : `asked again of ${formatLoginsWithSelf(reRequestedReviewers, userLogin).join(", ")}`;
+/** what broke leads the line and is the one thing mrkdwn can emphasise */
+const formatRowStatus = ({
+  failed,
+  changesRequested,
+  isDraft,
+  rest,
+}: PrRowStatus): string | undefined =>
+  joinSegments([
+    failed ? `*${failed}*` : undefined,
+    changesRequested,
+    isDraft ? "_draft_" : undefined,
+    rest || undefined,
+  ]) || undefined;
 
-/** the faces of everyone the owners label names, then the label itself */
-const createOwnerElements = (
+/**
+ * The faces of everyone the owners label names, then the label itself, then
+ * everything else the row states, all within the ten elements a context block
+ * takes: a pull request with a dozen assignees would otherwise take the whole
+ * home view down with it.
+ */
+const createRowContextBlock = (
   owners: PrOwners | undefined,
-): (ImageElement | MrkdwnElement)[] => {
-  if (!owners) return [];
+  texts: (string | undefined)[],
+): KnownBlock | undefined => {
+  const textElements = texts
+    .filter((text) => text !== undefined)
+    .map((text): MrkdwnElement => ({ type: "mrkdwn", text }));
 
-  return [
-    ...owners.users.flatMap((user): ImageElement[] =>
+  const avatars = (owners?.users ?? [])
+    .flatMap((user): ImageElement[] =>
       user.avatarUrl
         ? [{ type: "image", image_url: user.avatarUrl, alt_text: user.login }]
         : [],
-    ),
-    { type: "mrkdwn", text: owners.label },
-  ];
+    )
+    .slice(0, maxContextElements - textElements.length);
+
+  const elements = [...avatars, ...textElements];
+  if (elements.length === 0) return undefined;
+
+  return { type: "context", elements };
 };
 
-const formatDate = (date: Date): string =>
-  date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-  });
-
-export const createBlocksForPrSummary = (
+const createBlocksForPrSummary = (
   pr: PrSummary,
   userLogin: string,
-  changesInformation: string | null,
   {
-    showDraft = true,
-    showPassedChecks = true,
-    showReRequests = true,
     showStartReview = false,
-    reviewRequestVerb = "awaiting",
-  }: PrRowOptions = {},
+    ...displayOptions
+  }: PrRowDisplayOptions & PrRowOptions = {},
 ): KnownBlock[] => {
-  const prFullName = `${pr.repoName}#${pr.number}`;
-  const hasFailure = pr.checks.failedNames.length > 0 || pr.lintFailed;
+  const owners = selectPrOwners(pr, {
+    currentUserLogin: userLogin,
+    selfLabel: slackSelfLabel,
+  });
 
   const title = joinSegments([
-    createLink(pr.url, prFullName),
-    showDraft && pr.isDraft ? "_Draft_" : undefined,
+    createLink(pr.url, `${pr.repoName}#${pr.number}`),
     ...pr.statusLinks
       .filter(({ type }) => type === "success")
       .map(({ url, label }) => createLink(url, label)),
     `*${createLink(pr.url, pr.title)}*`,
+    pr.changes
+      ? createLink(`${pr.url}/files`, formatPrChanges(pr.changes))
+      : undefined,
     showStartReview ? startReviewLink(pr._id) : undefined,
   ]);
 
-  // the section title says which bucket a row is in, but not that its build broke
-  const status = joinSegments([
-    changesInformation
-      ? createLink(`${pr.url}/files`, changesInformation)
-      : undefined,
-    pr.checks.failedNames.length > 0
-      ? formatFailedNames(pr.checks.failedNames)
-      : undefined,
-    pr.lintFailed ? "pr lint failed" : undefined,
-    pr.changesRequestedBy.length > 0
-      ? `changes requested by ${formatLogins(pr.changesRequestedBy)}`
-      : undefined,
-    formatChecks(pr.checks, showPassedChecks),
-    pr.approvedBy.length > 0
-      ? `approved by ${formatLogins(pr.approvedBy)}`
-      : undefined,
-    formatReviewRequests(pr, reviewRequestVerb, userLogin),
-    showReRequests ? formatReReviewRequests(pr, userLogin) : undefined,
+  const context = createRowContextBlock(owners, [
+    owners?.label,
+    formatRowStatus(
+      selectPrRowStatus(pr, {
+        ...displayOptions,
+        currentUserLogin: userLogin,
+        selfLabel: slackSelfLabel,
+        wrapCheckName,
+      }),
+    ),
+    formatPrFlowDate(pr),
   ]);
-
-  const date = pr.approvedAt ?? pr.openedAt;
 
   return [
     {
       type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `${hasFailure ? ":red_circle: " : ""}${title}`,
-      },
+      text: { type: "mrkdwn", text: title },
     },
-    {
-      type: "context",
-      elements: [
-        ...createOwnerElements(
-          selectPrOwners(pr, {
-            currentUserLogin: userLogin,
-            selfLabel: "_YOU_",
-          }),
-        ),
-        ...(status ? [{ type: "mrkdwn" as const, text: status }] : []),
-        ...(date
-          ? [
-              {
-                type: "mrkdwn" as const,
-                text: `${pr.approvedAt ? "Approved" : "Opened"} ${formatDate(date)}`,
-              },
-            ]
-          : []),
-      ],
-    },
+    ...(context ? [context] : []),
   ];
 };
 
@@ -250,20 +209,111 @@ export const createBlocksForDataFromMongoPr = (
   userLogin: string,
   options?: PrRowOptions,
 ): KnownBlock[] =>
-  createBlocksForPrSummary(
-    toPrSummary(pr),
-    userLogin,
-    createPrChangesInformationFromReviewflowPr(pr),
-    options,
+  createBlocksForPrSummary(toPrSummary(pr), userLogin, options);
+
+/**
+ * How many rows each section may render to keep the whole view under the block
+ * limit, given a budget already reduced by whatever the home spends outside the
+ * sections. Rows are handed out one section at a time, round by round: spending
+ * the budget in order would let a bucket of forty requested reviews starve the
+ * ones the home deliberately ranks after it.
+ */
+export const allocateRowBudget = (
+  counts: number[],
+  budget: number,
+): number[] => {
+  const allocated = counts.map(() => 0);
+  const sectionCount = counts.filter((count) => count > 0).length;
+  if (sectionCount === 0) return allocated;
+
+  let remaining = Math.max(
+    Math.floor((budget - blocksPerSection * sectionCount) / blocksPerRow),
+    0,
   );
 
-export const buildBlocksForDataFromGithubAndMongo = (
-  userLogin: string,
-  title: string,
-  response: GithubSearchResponse | undefined,
-  mongoResponse: ReviewflowPr[] = [],
-  options?: PrRowOptions,
-): KnownBlock[] => {
+  let served = true;
+  while (remaining > 0 && served) {
+    served = false;
+    for (const [index, count] of counts.entries()) {
+      if (remaining === 0) break;
+      if (allocated[index]! >= count) continue;
+      allocated[index]! += 1;
+      remaining -= 1;
+      served = true;
+    }
+  }
+
+  return allocated;
+};
+
+interface SectionBlocksOptions {
+  title: string;
+  /** what the section holds, before the budget truncates it */
+  totalCount: number;
+  rows: KnownBlock[][];
+}
+
+const createSectionBlocks = ({
+  title,
+  totalCount,
+  rows,
+}: SectionBlocksOptions): KnownBlock[] => {
+  const remaining = totalCount - rows.length;
+
+  return [
+    createTitleBlock(title),
+    createDividerBlock(),
+    ...rows.flat(),
+    ...(remaining > 0 ? [createMoreBlock(remaining)] : []),
+    createSpacerBlock(),
+  ];
+};
+
+export interface BuildBlocksFromMongoOptions {
+  userLogin: string;
+  title: string;
+  results: ReviewflowPr[];
+  /** how many rows the block budget leaves this section */
+  limit?: number;
+  rowOptions?: PrRowOptions;
+}
+
+export const buildBlocksForDataFromMongo = ({
+  userLogin,
+  title,
+  results,
+  limit = results.length,
+  rowOptions,
+}: BuildBlocksFromMongoOptions): KnownBlock[] => {
+  if (results.length === 0) return [];
+
+  return createSectionBlocks({
+    title,
+    totalCount: results.length,
+    rows: results
+      .slice(0, limit)
+      .map((pr) => createBlocksForDataFromMongoPr(pr, userLogin, rowOptions)),
+  });
+};
+
+export interface BuildBlocksFromGithubAndMongoOptions {
+  userLogin: string;
+  title: string;
+  response: GithubSearchResponse | undefined;
+  mongoResults?: ReviewflowPr[];
+  /** how many rows the block budget leaves this section */
+  limit?: number;
+  rowOptions?: PrRowOptions;
+}
+
+export const buildBlocksForDataFromGithubAndMongo = ({
+  userLogin,
+  title,
+  response,
+  mongoResults = [],
+  limit,
+  rowOptions,
+}: BuildBlocksFromGithubAndMongoOptions): KnownBlock[] => {
   if (!response) {
     return [
       createTitleBlock(title),
@@ -285,74 +335,63 @@ export const buildBlocksForDataFromGithubAndMongo = (
 
   if (!results.total_count) return [];
 
-  return [
-    createTitleBlock(title),
-    createDividerBlock(),
-    ...results.items.flatMap((prFromGithub): KnownBlock[] => {
-      const prFromMongo = mongoResponse.find(
-        (prfm) =>
-          prFromGithub.number === prfm.pr.number &&
-          prFromGithub.repository_url ===
-            `https://api.github.com/repos/${prfm.account.login}/${prfm.repo.name}`,
-      );
+  return createSectionBlocks({
+    title,
+    // github caps its search page, so the count it reports outlives the items
+    totalCount: Math.max(results.total_count, results.items.length),
+    rows: results.items
+      .slice(0, limit ?? results.items.length)
+      .map((prFromGithub): KnownBlock[] => {
+        const prFromMongo = mongoResults.find(
+          (prfm) =>
+            prFromGithub.number === prfm.pr.number &&
+            prFromGithub.repository_url ===
+              `https://api.github.com/repos/${prfm.account.login}/${prfm.repo.name}`,
+        );
 
-      if (prFromMongo) {
-        return createBlocksForDataFromMongoPr(prFromMongo, userLogin, options);
-      }
+        if (prFromMongo) {
+          return createBlocksForDataFromMongoPr(
+            prFromMongo,
+            userLogin,
+            rowOptions,
+          );
+        }
 
-      const repoName = prFromGithub.repository_url.slice(
-        "https://api.github.com/repos/".length,
-      );
-      const prFullName = `${repoName}#${prFromGithub.number}`;
+        const repoName = prFromGithub.repository_url.slice(
+          "https://api.github.com/repos/".length,
+        );
 
-      const elements: (ImageElement | MrkdwnElement)[] = [];
-      if (prFromGithub.user?.avatar_url) {
-        elements.push({
-          type: "image",
-          image_url: prFromGithub.user.avatar_url,
-          alt_text: prFromGithub.user.login,
-        });
-      }
-      if (prFromGithub.user) {
-        elements.push({ type: "mrkdwn", text: prFromGithub.user.login });
-      }
+        const elements: (ImageElement | MrkdwnElement)[] = [];
+        if (prFromGithub.user?.avatar_url) {
+          elements.push({
+            type: "image",
+            image_url: prFromGithub.user.avatar_url,
+            alt_text: prFromGithub.user.login,
+          });
+        }
+        if (prFromGithub.user) {
+          elements.push({ type: "mrkdwn", text: prFromGithub.user.login });
+        }
 
-      return [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: joinSegments([
-              createLink(prFromGithub.html_url, prFullName),
-              prFromGithub.draft ? "_Draft_" : undefined,
-              `*${createLink(prFromGithub.html_url, prFromGithub.title)}*`,
-            ]),
+        return [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: joinSegments([
+                createLink(
+                  prFromGithub.html_url,
+                  `${repoName}#${prFromGithub.number}`,
+                ),
+                `*${createLink(prFromGithub.html_url, prFromGithub.title)}*`,
+                prFromGithub.draft ? "_draft_" : undefined,
+              ]),
+            },
           },
-        },
-        {
-          type: "context",
-          elements: elements.filter(ExcludesFalsy),
-        },
-      ];
-    }),
-    createPlaceholderImageBlock(),
-  ];
-};
-
-export const buildBlocksForDataFromMongo = (
-  userLogin: string,
-  title: string,
-  results: ReviewflowPr[],
-  options?: PrRowOptions,
-): KnownBlock[] => {
-  if (results.length === 0) return [];
-
-  return [
-    createTitleBlock(title),
-    createDividerBlock(),
-    ...results.flatMap((pr) =>
-      createBlocksForDataFromMongoPr(pr, userLogin, options),
-    ),
-    createPlaceholderImageBlock(),
-  ];
+          ...(elements.length > 0
+            ? [{ type: "context" as const, elements }]
+            : []),
+        ];
+      }),
+  });
 };

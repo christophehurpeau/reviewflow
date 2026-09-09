@@ -11,94 +11,16 @@ import type { ExternalOpenLinkBehavior } from "alouette";
 import { Fragment } from "react";
 import type { ReactNode } from "react";
 import type {
-  PrChangesSummary,
-  PrChecksSummary,
+  PrRowStatus,
   PrSummary,
-  PrUserSummary,
+  ReviewRequestVerb,
 } from "reviewflow-modules";
-import { selectPrOwners, splitFailedCheckNames } from "reviewflow-modules";
-
-const pluralize = (count: number, word: string): string =>
-  `${count} ${word}${count > 1 ? "s" : ""}`;
-
-const joinSegments = (segments: (string | undefined)[]): string =>
-  segments.filter((segment) => segment !== undefined).join(" · ");
-
-const formatChanges = ({
-  changedFiles,
-  additions,
-  deletions,
-}: PrChangesSummary): string =>
-  `${pluralize(changedFiles, "file")} · +${additions} −${deletions}`;
-
-const formatFailedNames = (failedNames: string[]): string => {
-  const { names, remaining } = splitFailedCheckNames(failedNames);
-  const listed = `${names.join(", ")}${remaining > 0 ? ` +${remaining}` : ""}`;
-  return `${failedNames.length > 1 ? "checks" : "check"} failed: ${listed}`;
-};
-
-/**
- * A pull request without any check reports nothing, and a green one only where
- * the section it sits under does not already imply it.
- */
-const formatChecks = (
-  { conclusion, runningCount }: PrChecksSummary,
-  showPassedChecks: boolean,
-): string | undefined => {
-  if (conclusion === "in-progress") {
-    return `${pluralize(runningCount, "check")} running`;
-  }
-  if (conclusion === "passed" && showPassedChecks) return "checks passed";
-  return undefined;
-};
-
-const formatLogins = (
-  users: PrUserSummary[],
-  currentUserLogin: string | undefined,
-): string =>
-  users
-    .map(({ login }) => (login === currentUserLogin ? "you" : `@${login}`))
-    .join(", ");
-
-/**
- * Someone else's pull request requests a review, your own waits for one, so the
- * section the row sits in decides the verb.
- */
-export type ReviewRequestVerb = "awaiting" | "requested";
-
-const formatReviewRequests = (
-  { requestedReviewers, requestedTeams }: PrSummary,
-  verb: ReviewRequestVerb,
-  currentUserLogin: string | undefined,
-): string | undefined => {
-  const awaited = [
-    ...requestedReviewers.map(({ login }) =>
-      login === currentUserLogin ? "you" : `@${login}`,
-    ),
-    ...requestedTeams.map((team) => `#${team}`),
-  ];
-  return awaited.length === 0 ? undefined : `${verb} ${awaited.join(", ")}`;
-};
-
-/** the same wording the slack home uses, so both surfaces read alike */
-const formatFlowDate = ({
-  approvedAt,
-  openedAt,
-}: PrSummary): string | undefined => {
-  const date = approvedAt ?? openedAt;
-  if (!date) return undefined;
-
-  return `${approvedAt ? "approved" : "opened"} ${date.toLocaleDateString(
-    "en-US",
-    {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-    },
-  )}`;
-};
+import {
+  formatPrChanges,
+  formatPrFlowDate,
+  selectPrOwners,
+  selectPrRowStatus,
+} from "reviewflow-modules";
 
 /** matches what ExternalLinkText does on its own */
 const openLinkBehavior: ExternalOpenLinkBehavior = {
@@ -110,22 +32,13 @@ const separator = <Text className="font-body text-muted text-sm">·</Text>;
 
 const metaSeparator = <Text className="text-muted text-xs">·</Text>;
 
-interface PrRowStatusProps {
-  /** what broke, in the danger accent */
-  failed: string;
-  /** who is blocking, in the warning accent */
-  changesRequested: string | undefined;
-  isDraft: boolean;
-  /** everything the row states without raising an alarm */
-  rest: string;
-}
-
-function PrRowStatus({
+/** `failed` in the danger accent, `changesRequested` in the warning one */
+function PrStatusLine({
   failed,
   changesRequested,
   isDraft,
   rest,
-}: PrRowStatusProps): ReactNode {
+}: PrRowStatus): ReactNode {
   if (!failed && !changesRequested && !isDraft && !rest) return null;
 
   const hasAlert = Boolean(failed || changesRequested);
@@ -169,7 +82,10 @@ interface PrRowProps {
   showDraft?: boolean;
   /** irrelevant where the section is about something other than the checks */
   showPassedChecks?: boolean;
-  /** off where the section title already says the review was asked again */
+  /**
+   * Whether the reviewers asked again join the ones awaited; off where the
+   * section title already says every row in it was asked again.
+   */
   showReRequests?: boolean;
   reviewRequestVerb?: ReviewRequestVerb;
   /** rendered as `you` rather than as one more login */
@@ -187,31 +103,16 @@ export function PrRow({
   currentUserLogin,
   action,
 }: PrRowProps): ReactNode {
-  const failed = joinSegments([
-    pr.checks.failedNames.length > 0
-      ? formatFailedNames(pr.checks.failedNames)
-      : undefined,
-    pr.lintFailed ? "pr lint failed" : undefined,
-  ]);
-
-  const changesRequested =
-    pr.changesRequestedBy.length > 0
-      ? `changes requested by ${formatLogins(pr.changesRequestedBy, currentUserLogin)}`
-      : undefined;
-
-  const rest = joinSegments([
-    formatChecks(pr.checks, showPassedChecks),
-    pr.approvedBy.length > 0
-      ? `approved by ${formatLogins(pr.approvedBy, currentUserLogin)}`
-      : undefined,
-    formatReviewRequests(pr, reviewRequestVerb, currentUserLogin),
-    showReRequests && pr.reRequestedReviewers.length > 0
-      ? `asked again of ${formatLogins(pr.reRequestedReviewers, currentUserLogin)}`
-      : undefined,
-  ]);
+  const status = selectPrRowStatus(pr, {
+    currentUserLogin,
+    showDraft,
+    showPassedChecks,
+    showReRequests,
+    reviewRequestVerb,
+  });
 
   const links = pr.statusLinks.filter(({ type }) => type === "success");
-  const flowDate = formatFlowDate(pr);
+  const flowDate = formatPrFlowDate(pr);
   const owners = selectPrOwners(pr, { currentUserLogin });
 
   return (
@@ -251,7 +152,7 @@ export function PrRow({
                 }}
               >
                 <Text className="text-xs text-muted italic underline">
-                  {formatChanges(pr.changes)}
+                  {formatPrChanges(pr.changes)}
                 </Text>
               </ExternalLink>
             </>
@@ -272,12 +173,7 @@ export function PrRow({
           ) : null}
         </HStack>
 
-        <PrRowStatus
-          failed={failed}
-          changesRequested={changesRequested}
-          isDraft={showDraft && pr.isDraft}
-          rest={rest}
-        />
+        <PrStatusLine {...status} />
       </VStack>
 
       {action}
