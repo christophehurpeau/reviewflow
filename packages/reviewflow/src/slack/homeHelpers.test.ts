@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import type { KnownBlock } from "@slack/web-api";
 import type { ReviewflowPr } from "reviewflow-core";
 import {
   type GithubSearchResponse,
@@ -42,6 +43,18 @@ const createMockPr = (overrides: Partial<ReviewflowPr> = {}): ReviewflowPr => ({
   updated: new Date("2020-01-01T00:00:00Z"),
   ...overrides,
 });
+
+const createGithubResponse = (items: unknown[]): GithubSearchResponse =>
+  ({
+    headers: {},
+    status: 200,
+    url: "https://api.github.com/search/issues",
+    data: {
+      total_count: items.length,
+      incomplete_results: false,
+      items,
+    },
+  }) as unknown as GithubSearchResponse;
 
 describe("homeHelpers", () => {
   it("createBlocksForDataFromMongoPr returns section and context for a PR with assignee", () => {
@@ -384,19 +397,7 @@ describe("homeHelpers", () => {
   });
 
   it("buildBlocksForDataFromGithubAndMongo uses github items when mongo empty", () => {
-    const makeGithubResponse = (items: unknown[]): GithubSearchResponse =>
-      ({
-        headers: {},
-        status: 200,
-        url: "https://api.github.com/search/issues",
-        data: {
-          total_count: items.length,
-          incomplete_results: false,
-          items,
-        },
-      }) as unknown as GithubSearchResponse;
-
-    const githubResponse = makeGithubResponse([
+    const githubResponse = createGithubResponse([
       {
         number: 2,
         repository_url: "https://api.github.com/repos/org/repo",
@@ -430,6 +431,69 @@ describe("homeHelpers", () => {
         false,
     );
     expect(hasContextWithImage).toBe(true);
+  });
+
+  describe("a pull request only github knows about", () => {
+    const githubOnlyResponse = createGithubResponse([
+      {
+        number: 2,
+        repository_url: "https://api.github.com/repos/org/repo",
+        html_url: "https://github.com/org/repo/pull/2",
+        draft: false,
+        title: "Other PR",
+        user: { login: "carol" },
+      },
+    ]);
+
+    const hasUntrackedRow = (blocks: KnownBlock[]): boolean =>
+      blocks.some(
+        (block) =>
+          block.type === "section" &&
+          block.text?.type === "mrkdwn" &&
+          block.text.text.includes("_not tracked by reviewflow_"),
+      );
+
+    it("marks the row as untracked", () => {
+      const blocks = buildBlocksForDataFromGithubAndMongo({
+        userLogin: "bob",
+        title: ":eyes:",
+        response: githubOnlyResponse,
+      });
+
+      expect(hasUntrackedRow(blocks)).toBe(true);
+    });
+
+    it("reports it to the caller", () => {
+      const onUntrackedPr = vi.fn();
+
+      buildBlocksForDataFromGithubAndMongo({
+        userLogin: "bob",
+        title: ":eyes:",
+        response: githubOnlyResponse,
+        onUntrackedPr,
+      });
+
+      expect(onUntrackedPr).toHaveBeenCalledWith({
+        repoFullName: "org/repo",
+        number: 2,
+        url: "https://github.com/org/repo/pull/2",
+      });
+    });
+
+    it("says nothing when mongo has the pull request", () => {
+      const onUntrackedPr = vi.fn();
+
+      const blocks = buildBlocksForDataFromGithubAndMongo({
+        userLogin: "bob",
+        title: ":eyes:",
+        response: githubOnlyResponse,
+        mongoResults: [createMockPr({ pr: { number: 2 }, title: "Other PR" })],
+        onUntrackedPr,
+      });
+
+      expect(onUntrackedPr).not.toHaveBeenCalled();
+      expect(hasUntrackedRow(blocks)).toBe(false);
+    });
   });
 
   it("buildBlocksForDataFromGithubAndMongo reports a github outage", () => {

@@ -101,13 +101,13 @@ export const buildPrBucketQuery = (
     case "requested-reviews":
       return {
         criteria: buildRequestedReviewsCriteria(context, false),
-        sort: { "flowDates.opened": -1, created: -1 },
+        sort: { "flowDates.openedAt": -1, created: -1 },
       };
 
     case "re-requested-reviews":
       return {
         criteria: buildRequestedReviewsCriteria(context, true),
-        sort: { "flowDates.opened": -1, created: -1 },
+        sort: { "flowDates.openedAt": -1, created: -1 },
       };
 
     case "ready-to-merge":

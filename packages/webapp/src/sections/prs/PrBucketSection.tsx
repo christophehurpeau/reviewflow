@@ -1,4 +1,4 @@
-import { PressableListItem, VStack } from "alouette";
+import { PressableListItem, Text, VStack } from "alouette";
 import type { Accent, SVGIconElement } from "alouette";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
@@ -49,6 +49,24 @@ interface PrBucketSectionProps {
   renderAction?: (pr: PrSummary) => ReactNode;
 }
 
+interface TruncatedCountProps {
+  prs: PrBucketResource;
+  shown: number;
+}
+
+/** the query caps its rows: without the total, a capped bucket reads as complete */
+function TruncatedCount({ prs, shown }: TruncatedCountProps): ReactNode {
+  if (!prs.fetched) return null;
+  const total = prs.meta.total;
+  if (total <= shown) return null;
+
+  return (
+    <Text className="mx-xs mt-xs text-muted text-sm">
+      {`Showing ${shown} of ${total}`}
+    </Text>
+  );
+}
+
 export function PrBucketSection({
   title,
   icon,
@@ -92,6 +110,7 @@ export function PrBucketSection({
                 />
               </PressableListItem>
             ))}
+            <TruncatedCount prs={prs} shown={prList.length} />
           </VStack>
         )}
       </ResourceView>

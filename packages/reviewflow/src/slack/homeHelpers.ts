@@ -296,6 +296,13 @@ export const buildBlocksForDataFromMongo = ({
   });
 };
 
+/** a pull request the github search returned that reviewflow has no document for */
+export interface UntrackedPr {
+  repoFullName: string;
+  number: number;
+  url: string;
+}
+
 export interface BuildBlocksFromGithubAndMongoOptions {
   userLogin: string;
   title: string;
@@ -304,6 +311,8 @@ export interface BuildBlocksFromGithubAndMongoOptions {
   /** how many rows the block budget leaves this section */
   limit?: number;
   rowOptions?: PrRowOptions;
+  /** reports the rows only github knows about; the caller owns the logger */
+  onUntrackedPr?: (pr: UntrackedPr) => void;
 }
 
 export const buildBlocksForDataFromGithubAndMongo = ({
@@ -313,6 +322,7 @@ export const buildBlocksForDataFromGithubAndMongo = ({
   mongoResults = [],
   limit,
   rowOptions,
+  onUntrackedPr,
 }: BuildBlocksFromGithubAndMongoOptions): KnownBlock[] => {
   if (!response) {
     return [
@@ -361,6 +371,12 @@ export const buildBlocksForDataFromGithubAndMongo = ({
           "https://api.github.com/repos/".length,
         );
 
+        onUntrackedPr?.({
+          repoFullName: repoName,
+          number: prFromGithub.number,
+          url: prFromGithub.html_url,
+        });
+
         const elements: (ImageElement | MrkdwnElement)[] = [];
         if (prFromGithub.user?.avatar_url) {
           elements.push({
@@ -385,6 +401,7 @@ export const buildBlocksForDataFromGithubAndMongo = ({
                 ),
                 `*${createLink(prFromGithub.html_url, prFromGithub.title)}*`,
                 prFromGithub.draft ? "_draft_" : undefined,
+                "_not tracked by reviewflow_",
               ]),
             },
           },

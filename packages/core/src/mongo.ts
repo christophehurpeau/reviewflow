@@ -325,9 +325,16 @@ export default function init(): MongoStores {
       "account.id": 1,
       "assignees.id": 1,
     });
+    // one index per branch of the review-request `$or`: both paths are arrays,
+    // so a compound index over the two would be a parallel-array index, and
+    // mongo only unions index scans when every branch has one of its own
     coll.createIndex({
       "account.id": 1,
       "reviews.reviewRequested.id": 1,
+    });
+    coll.createIndex({
+      "account.id": 1,
+      "reviews.teamReviewRequested.id": 1,
     });
     // remove with no activity for 12 * 30 days
     coll.deleteMany({

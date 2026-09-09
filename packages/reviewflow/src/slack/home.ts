@@ -164,6 +164,21 @@ export const createSlackHomeWorker = (
         mongoResults: prsWithRequestedReviewsFromMongo,
         limit: requestedReviewsLimit,
         rowOptions: { reviewRequestVerb: "requested", showStartReview: true },
+        // reviewflow writes a document only once it has handled an event for
+        // the pull request, never for an ignored repo, and prunes it after 12
+        // months: the github search reaches those, mongo does not
+        onUntrackedPr: (untrackedPr) => {
+          log.error(
+            {
+              orgLogin: member.org.login,
+              memberLogin: member.user.login,
+              repoFullName: untrackedPr.repoFullName,
+              prNumber: untrackedPr.number,
+              prUrl: untrackedPr.url,
+            },
+            "Pull request requesting a review is not tracked by reviewflow",
+          );
+        },
       }),
       ...buildBlocksForDataFromMongo({
         userLogin: member.user.login,
@@ -321,21 +336,25 @@ export const createSlackHomeWorker = (
     }
   };
 
+  const createSlackClient = async (
+    org: Org,
+  ): Promise<WebClient | undefined> => {
+    if (org.slackToken) return new WebClient(org.slackToken);
+    if (!org.slackTeamId) return undefined;
+    const slackTeam = await mongoStores.slackTeams.findByKey(org.slackTeamId);
+    if (!slackTeam?.botAccessToken) return undefined;
+    return new WebClient(slackTeam.botAccessToken);
+  };
+
   const scheduleUpdateOrg = async (
     octokitRest: OctokitRestCompat,
     org: Org,
   ): Promise<void> => {
-    if (!org.slackTeamId || !org.slackToken) return;
     const [slackClient, cursor] = await Promise.all([
-      org.slackToken
-        ? new WebClient(org.slackToken)
-        : mongoStores.slackTeams
-            .findByKey(org.slackTeamId)
-            .then((slackTeam) => {
-              if (!slackTeam?.botAccessToken) return undefined;
-              return new WebClient(slackTeam.botAccessToken);
-            }),
-      mongoStores.orgMembers.cursor(),
+      createSlackClient(org),
+      // the slack client and the octokit are this org's, so a member of another
+      // org scheduled here would be published through the wrong bot token
+      mongoStores.orgMembers.cursor({ "org.id": org._id }),
     ]);
 
     if (!slackClient) return;

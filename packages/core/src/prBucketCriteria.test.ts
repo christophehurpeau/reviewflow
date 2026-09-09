@@ -250,4 +250,41 @@ describe("buildPrBucketQuery", () => {
       );
     }
   });
+
+  /**
+   * `Sort` is a `Record<string, -1 | 1>`, so a mistyped path typechecks and
+   * then sorts on nothing at all. The dated fields `ReviewflowPr` declares,
+   * kept in step with it by hand.
+   */
+  it("sorts every bucket on a field the model declares", () => {
+    const modelDatedPaths = new Set([
+      "created",
+      "updated",
+      "flowDates.createdAt",
+      "flowDates.openedAt",
+      "flowDates.readyAt",
+      "flowDates.reviewStartedAt",
+      "flowDates.approvedAt",
+      "flowDates.closedAt",
+    ]);
+
+    for (const bucket of buckets) {
+      const { sort } = buildPrBucketQuery(bucket, withTeams);
+      for (const path of Object.keys(sort)) {
+        expect(modelDatedPaths).toContain(path);
+      }
+    }
+  });
+
+  it("sorts the review buckets by when the pull request opened", () => {
+    for (const bucket of [
+      "requested-reviews",
+      "re-requested-reviews",
+    ] as const) {
+      expect(buildPrBucketQuery(bucket, withTeams).sort).toEqual({
+        "flowDates.openedAt": -1,
+        created: -1,
+      });
+    }
+  });
 });

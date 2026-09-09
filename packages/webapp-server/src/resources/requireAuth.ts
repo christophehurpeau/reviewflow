@@ -82,6 +82,52 @@ const ownAccount = (user: AuthenticatedWsUser): PrBucketAccount => ({
 });
 
 /**
+ * One screen opens a query per pull request bucket at once, and they all resolve
+ * the same memberships. The window is deliberately short: this gates
+ * authorization, so a membership revoked in mongo has to stop the next screen.
+ */
+const membershipsTtlMs = 5000;
+
+/** the account the query selected, `every` for the unscoped read spanning them all */
+type AccountsCacheKey = number | "every";
+
+/** the pending lookup, not its result: the bucket queries all arrive before any resolves */
+interface CachedAccounts {
+  accounts: Promise<PrBucketAccount[]>;
+  expiresAt: number;
+}
+
+/**
+ * Keyed by the user object the websocket resolved once at the upgrade, so an
+ * entry cannot outlive the connection it was read for, nor reach another one.
+ */
+const accountsByUser = new WeakMap<
+  AuthenticatedWsUser,
+  Map<AccountsCacheKey, CachedAccounts>
+>();
+
+/** a rejected lookup is dropped rather than held, so a failure is retried at once */
+const cachedAccounts = (
+  user: AuthenticatedWsUser,
+  key: AccountsCacheKey,
+  lookup: () => Promise<PrBucketAccount[]>,
+): Promise<PrBucketAccount[]> => {
+  const byKey =
+    accountsByUser.get(user) ?? new Map<AccountsCacheKey, CachedAccounts>();
+  accountsByUser.set(user, byKey);
+
+  const cached = byKey.get(key);
+  if (cached && cached.expiresAt > Date.now()) return cached.accounts;
+
+  const accounts = lookup().catch((error: unknown) => {
+    byKey.delete(key);
+    throw error;
+  });
+  byKey.set(key, { accounts, expiresAt: Date.now() + membershipsTtlMs });
+  return accounts;
+};
+
+/**
  * `accountId: null` spans the user's own account and every org they belong to.
  * Identity and memberships stay the only things bounding the query, so an
  * unscoped read can never widen past them.
@@ -98,16 +144,26 @@ export const requireAccounts = async (
   }
 
   if (accountId !== null) {
-    const { orgMember } = await requireOrgMember(mongoStores, accountId, user);
-    return { user, accounts: [toPrBucketAccount(orgMember)] };
+    return {
+      user,
+      accounts: await cachedAccounts(user, accountId, async () => {
+        const { orgMember } = await requireOrgMember(
+          mongoStores,
+          accountId,
+          user,
+        );
+        return [toPrBucketAccount(orgMember)];
+      }),
+    };
   }
-
-  const orgMembers = await mongoStores.orgMembers.findAll({
-    "user.id": user.id,
-  });
 
   return {
     user,
-    accounts: [ownAccount(user), ...orgMembers.map(toPrBucketAccount)],
+    accounts: await cachedAccounts(user, "every", async () => {
+      const orgMembers = await mongoStores.orgMembers.findAll({
+        "user.id": user.id,
+      });
+      return [ownAccount(user), ...orgMembers.map(toPrBucketAccount)];
+    }),
   };
 };
