@@ -1,3 +1,4 @@
+import { setTimeout as delay } from "node:timers/promises";
 import { Octokit } from "@octokit/rest";
 import { ResourcesServerError } from "liwi-resources-server";
 import type { ReviewflowPr } from "reviewflow-core";
@@ -95,6 +96,13 @@ export const createReviewAsUser = async (
 };
 
 /**
+ * Github retires the pending review request as a side effect of the review
+ * submission, not as part of answering it: asking again in the same breath is
+ * undone by that side effect landing afterwards, so it is given time to.
+ */
+const retireRequestSettleMs = 100;
+
+/**
  * A comment review leaves a standing approval standing: github keeps the last
  * decision a reviewer made, so a pull request they had approved stays approved
  * while they are reviewing it again. Asking for their review again is what puts
@@ -111,6 +119,8 @@ export const requestOwnReviewAgain = async (
   pr: ReviewflowPr,
   login: string,
 ): Promise<boolean> => {
+  await delay(retireRequestSettleMs);
+
   try {
     await createApi(accessToken).pulls.requestReviewers({
       ...prTarget(pr),
