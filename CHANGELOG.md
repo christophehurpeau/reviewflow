@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.8.4](https://github.com/christophehurpeau/reviewflow/compare/v6.8.3...v6.8.4) (2026-09-11)
+
+### Bug Fixes
+
+* do not start a review twice from one click
+* missing creator and add tests
+* tracked prs in re-requested section should not appear as untracked in requested section
+
 ## [6.8.3](https://github.com/christophehurpeau/reviewflow/compare/v6.8.2...v6.8.3) (2026-09-11)
 
 ### Bug Fixes
