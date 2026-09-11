@@ -1,13 +1,18 @@
 "use strict";
 
 const path = require("node:path");
-const { generate } = require("@storybook/react-native/scripts/generate");
 const { withAlouetteConfig } = require("alouette/metro.cjs");
 const { getDefaultConfig } = require("expo/metro-config.js");
 
-// refreshes .storybook/storybook.requires.ts from the globs in main.ts, so a
-// new story is picked up by any `expo start` / `expo export`
-generate({ configPath: path.resolve(__dirname, "./.storybook") });
+// refreshes .storybook/storybook.requires.ts (committed) from the globs in
+// main.ts, so a new story is picked up by `expo start`. Skipped in production,
+// where storybook is stubbed out anyway: it is required lazily so a production
+// build never loads the storybook toolchain, which lives in devDependencies.
+if (process.env.NODE_ENV !== "production") {
+  const { generate } = require("@storybook/react-native/scripts/generate");
+
+  generate({ configPath: path.resolve(__dirname, "./.storybook") });
+}
 
 const config = withAlouetteConfig(getDefaultConfig(__dirname));
 
