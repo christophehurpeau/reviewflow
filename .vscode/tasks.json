@@ -88,6 +88,17 @@
       }
     },
     {
+      "label": "clean",
+      "problemMatcher": [],
+      "type": "npm",
+      "script": "clean",
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true,
+        "isBackground": false
+      }
+    },
+    {
       "label": "dev",
       "problemMatcher": [],
       "type": "npm",

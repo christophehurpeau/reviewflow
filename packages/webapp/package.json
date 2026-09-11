@@ -19,6 +19,7 @@
   "scripts": {
     "build": "expo export --platform web --output-dir dist",
     "build:theme": "node build-theme.ts",
+    "clean": "rm -rf dist",
     "lint": "pnpm run lint:eslint",
     "lint:eslint": "pnpm run --dir '../..' eslint --quiet 'packages/webapp'",
     "serve": "npx serve dist",
