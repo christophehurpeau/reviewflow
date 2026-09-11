@@ -62,7 +62,7 @@
   "devDependencies": {
     "@babel/core": "7.29.7",
     "@react-native-community/datetimepicker": "9.1.0",
-    "@react-native-community/slider": "5.2.0",
+    "@react-native-community/slider": "5.2.1",
     "@react-native/metro-config": "0.86.2",
     "@storybook/addon-ondevice-actions": "10.5.4",
     "@storybook/addon-ondevice-controls": "10.5.4",
