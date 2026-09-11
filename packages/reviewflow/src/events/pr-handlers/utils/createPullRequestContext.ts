@@ -56,6 +56,13 @@ export const getInitialFlowDatesFromPullRequest = (
   return undefined;
 };
 
+const getCreatorFromPullRequest = (
+  pullRequest: PullRequestDataMinimumData | PullRequestWithDecentData,
+): ReviewflowPr["creator"] =>
+  "user" in pullRequest && pullRequest.user
+    ? toBasicUser(pullRequest.user)
+    : undefined;
+
 export const getReviewflowPrContext = async <T extends EventsWithRepository>(
   pullRequest: PullRequestDataMinimumData | PullRequestWithDecentData,
   context: ProbotEvent<T>,
@@ -78,6 +85,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
       isClosed: "closed_at" in pullRequest ? !!pullRequest.closed_at : false,
       isDraft: "draft" in pullRequest && pullRequest.draft === true,
       reviews: createEmptyReviews(),
+      creator: getCreatorFromPullRequest(pullRequest),
       assignees:
         "assignees" in pullRequest && pullRequest.assignees
           ? pullRequest.assignees.filter(ExcludesFalsy).map(toBasicUser)
@@ -143,6 +151,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
         : undefined,
     commentId,
     reviews: groupReviewsState(reviewsState!),
+    creator: getCreatorFromPullRequest(pullRequest),
     assignees:
       "assignees" in pullRequest && pullRequest.assignees
         ? pullRequest.assignees.filter(ExcludesFalsy).map(toBasicUser)

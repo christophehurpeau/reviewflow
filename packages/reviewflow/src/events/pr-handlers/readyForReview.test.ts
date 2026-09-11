@@ -132,6 +132,12 @@ describe("edited", (): void => {
           readyAt: new Date("2021-11-10T16:18:08Z"),
         },
         title: "feat: test draft",
+        creator: {
+          avatar_url: "https://avatars.githubusercontent.com/u/302891?v=4",
+          id: 302_891,
+          login: "christophehurpeau",
+          type: "User",
+        },
         assignees: [
           {
             avatar_url: "https://avatars.githubusercontent.com/u/302891?v=4",

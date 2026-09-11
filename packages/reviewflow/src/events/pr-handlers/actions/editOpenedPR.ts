@@ -305,6 +305,10 @@ export const editOpenedPR = async <
     }
   }
 
+  if (pullRequest.user) {
+    partialUpdateReviewflowPr.creator = toBasicUser(pullRequest.user);
+  }
+
   if (
     fromOpenedEvent &&
     repoContext.config.autoAssignToCreator &&
