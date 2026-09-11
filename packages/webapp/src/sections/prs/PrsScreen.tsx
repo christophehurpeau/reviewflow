@@ -111,6 +111,7 @@ export function PrsScreen({
                           <PrBucketSection
                             title="Re-Requested reviews"
                             icon={<EyeglassesRegularIcon />}
+                            iconAccent="brand"
                             prs={reReviewsRequested}
                             pending={pending}
                             showReRequests={false}
@@ -121,6 +122,7 @@ export function PrsScreen({
                           <PrBucketSection
                             title="Requested reviews"
                             icon={<EyeRegularIcon />}
+                            iconAccent="brand"
                             prs={requestedReviews}
                             pending={pending}
                             reviewRequestVerb="requested"
