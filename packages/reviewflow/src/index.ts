@@ -31,6 +31,10 @@ const probot = createProbot({
   env: process.env,
 });
 
+// probot builds its logger asynchronously: `probot.log` is typed as a Logger but
+// is null until initialization resolves
+await probot.ready();
+
 const slackHome = createSlackHomeWorker(mongoStores, probot.log);
 const appContext: AppContext = { mongoStores, slackHome };
 
