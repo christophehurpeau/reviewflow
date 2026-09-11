@@ -276,6 +276,41 @@ describe("startReview", () => {
     expect(partialUpdateOne).not.toHaveBeenCalled();
   });
 
+  /**
+   * The document deciding whether there is anything to start is written back
+   * only once github answered, so a second send inside that window would read
+   * the same pre-write document and comment again.
+   */
+  it("answers a send arriving while an earlier one is still in flight with it", async () => {
+    const { mongoStores, partialUpdateOne } = createStores(
+      buildPr(buildReviews()),
+    );
+    const service = createPrsService({ mongoStores });
+
+    const results = await Promise.all([
+      service.operations.startReview({ prId: "pr-id" }, loggedInUser),
+      service.operations.startReview({ prId: "pr-id" }, loggedInUser),
+    ]);
+
+    expect(results).toEqual([
+      { prUrl: "https://github.com/org/repo/pull/412" },
+      { prUrl: "https://github.com/org/repo/pull/412" },
+    ]);
+    expect(createReviewAsUser).toHaveBeenCalledTimes(1);
+    expect(partialUpdateOne).toHaveBeenCalledTimes(1);
+  });
+
+  /** deduplicating is for one send in two, never for the next press */
+  it("starts again once the earlier send answered", async () => {
+    const { mongoStores } = createStores(buildPr(buildReviews()));
+    const service = createPrsService({ mongoStores });
+
+    await service.operations.startReview({ prId: "pr-id" }, loggedInUser);
+    await service.operations.startReview({ prId: "pr-id" }, loggedInUser);
+
+    expect(createReviewAsUser).toHaveBeenCalledTimes(2);
+  });
+
   it("refuses an unauthenticated caller", async () => {
     const { mongoStores } = createStores(buildPr());
 
