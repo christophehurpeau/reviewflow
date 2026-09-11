@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.8.2](https://github.com/christophehurpeau/reviewflow/compare/v6.8.1...v6.8.2) (2026-09-11)
+
+### Bug Fixes
+
+* **slack:** pass the rest client to the slack home worker
+
 ## [6.8.0](https://github.com/christophehurpeau/reviewflow/compare/v6.7.0...v6.8.0) (2026-09-11)
 
 ### Features
