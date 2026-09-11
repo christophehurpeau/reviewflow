@@ -3,6 +3,30 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.8.0](https://github.com/christophehurpeau/reviewflow/compare/v6.7.0...v6.8.0) (2026-09-11)
+
+### Features
+
+* add comment when automerge not enabled
+* add module start task and update dev script to include modules
+* add script for redelivering failed GitHub App webhook deliveries
+* align and improve dashboard slack and webapp
+* enhance PR bucket functionality with new sorting, indexing, and UI improvements
+* implement ColorModeProvider and integrate into layout and header components
+* improve slack blocks by reverting some changes and improving others
+* start review button to avoid multiple review starting on the same team
+* update alouette
+* visual improvements
+
+### Bug Fixes
+
+* enhance error handling for already merged pull requests in auto merge logic
+* fixes on urls and missing dates and missing authors/assignees with better harmonized format
+* replace deleteByKey with deleteMany for repository operations
+* title missing when no drafts
+* update regex to handle missing closing quote in revert titles
+* **webapp:** ignore pending checks excluded by configuration
+
 ## [6.7.0](https://github.com/christophehurpeau/reviewflow/compare/v6.6.0...v6.7.0) (2026-08-16)
 
 ### Features
