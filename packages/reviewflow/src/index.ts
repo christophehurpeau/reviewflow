@@ -51,7 +51,9 @@ internalApiApp.use("/api/internal", internalApiRouter(probot, appContext));
 
 const server = expressApp.listen(port, () => {
   console.log(`Webhook server is running at http://localhost:${port}`);
-  slackHome.scheduleUpdateAllOrgs((id) => probot.auth(id) as any);
+  slackHome.scheduleUpdateAllOrgs((id) =>
+    probot.auth(id).then((octokit) => octokit.rest),
+  );
 });
 
 const internalApiServer = internalApiApp.listen(

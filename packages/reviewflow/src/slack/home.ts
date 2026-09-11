@@ -310,7 +310,19 @@ export const createSlackHomeWorker = (
         lastMemberId = undefined;
       } else {
         lastMemberId = key;
-        updateMember(octokitRest, slackClient, member);
+        // an unhandled rejection here would take the whole process down
+        updateMember(octokitRest, slackClient, member).catch(
+          (error: unknown) => {
+            log.error(
+              {
+                error,
+                memberLogin: member.user.login,
+                orgLogin: member.org.login,
+              },
+              `Error updating slack home: ${(error as any)?.message}`,
+            );
+          },
+        );
       }
     }, 10_000); // 7/min 60s 1min = 1 ttes les 8.5s max (with 9s we have rate limit errors)
   };
