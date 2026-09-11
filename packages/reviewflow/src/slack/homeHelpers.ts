@@ -22,6 +22,8 @@ export type GithubSearchResponse = Awaited<
   ReturnType<OctokitRestCompat["search"]["issuesAndPullRequests"]>
 >;
 
+type GithubSearchItem = GithubSearchResponse["data"]["items"][number];
+
 /**
  * A section title already states the bucket every row in it belongs to, so a row
  * repeats neither the draft state nor a green build where that is the point of
@@ -296,6 +298,33 @@ export const buildBlocksForDataFromMongo = ({
   });
 };
 
+const isSameGithubPr = (
+  prFromGithub: GithubSearchItem,
+  prFromMongo: ReviewflowPr,
+): boolean =>
+  prFromGithub.number === prFromMongo.pr.number &&
+  prFromGithub.repository_url ===
+    `https://api.github.com/repos/${prFromMongo.account.login}/${prFromMongo.repo.name}`;
+
+/**
+ * The github search returns every pending review request, including the ones a
+ * previous review moved to another bucket. That bucket has its own section and
+ * is not part of this one's mongo results, so its rows would otherwise appear a
+ * second time here, marked as untracked.
+ */
+export const excludeGithubPrsInMongoResults = (
+  items: GithubSearchItem[],
+  excludedResults: ReviewflowPr[],
+): GithubSearchItem[] =>
+  excludedResults.length === 0
+    ? items
+    : items.filter(
+        (item) =>
+          !excludedResults.some((prFromMongo) =>
+            isSameGithubPr(item, prFromMongo),
+          ),
+      );
+
 /** a pull request the github search returned that reviewflow has no document for */
 export interface UntrackedPr {
   repoFullName: string;
@@ -308,6 +337,8 @@ export interface BuildBlocksFromGithubAndMongoOptions {
   title: string;
   response: GithubSearchResponse | undefined;
   mongoResults?: ReviewflowPr[];
+  /** rows another section already renders, dropped from this one */
+  excludedResults?: ReviewflowPr[];
   /** how many rows the block budget leaves this section */
   limit?: number;
   rowOptions?: PrRowOptions;
@@ -320,6 +351,7 @@ export const buildBlocksForDataFromGithubAndMongo = ({
   title,
   response,
   mongoResults = [],
+  excludedResults = [],
   limit,
   rowOptions,
   onUntrackedPr,
@@ -345,18 +377,22 @@ export const buildBlocksForDataFromGithubAndMongo = ({
 
   if (!results.total_count) return [];
 
+  const items = excludeGithubPrsInMongoResults(results.items, excludedResults);
+
+  if (items.length === 0) return [];
+
   return createSectionBlocks({
     title,
     // github caps its search page, so the count it reports outlives the items
-    totalCount: Math.max(results.total_count, results.items.length),
-    rows: results.items
-      .slice(0, limit ?? results.items.length)
+    totalCount: Math.max(
+      results.total_count - (results.items.length - items.length),
+      items.length,
+    ),
+    rows: items
+      .slice(0, limit ?? items.length)
       .map((prFromGithub): KnownBlock[] => {
-        const prFromMongo = mongoResults.find(
-          (prfm) =>
-            prFromGithub.number === prfm.pr.number &&
-            prFromGithub.repository_url ===
-              `https://api.github.com/repos/${prfm.account.login}/${prfm.repo.name}`,
+        const prFromMongo = mongoResults.find((trackedPr) =>
+          isSameGithubPr(prFromGithub, trackedPr),
         );
 
         if (prFromMongo) {

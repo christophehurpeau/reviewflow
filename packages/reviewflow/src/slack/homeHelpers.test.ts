@@ -496,6 +496,78 @@ describe("homeHelpers", () => {
     });
   });
 
+  describe("a pull request another section already renders", () => {
+    const createItem = (number: number): unknown => ({
+      number,
+      repository_url: "https://api.github.com/repos/org/repo",
+      html_url: `https://github.com/org/repo/pull/${number}`,
+      draft: false,
+      title: `PR ${number}`,
+      user: { login: "carol" },
+    });
+
+    const excludedResults = [createMockPr({ _id: "2", pr: { number: 2 } })];
+
+    const sectionTexts = (blocks: KnownBlock[]): string[] =>
+      blocks.flatMap((block) =>
+        block.type === "section" && block.text?.type === "mrkdwn"
+          ? [block.text.text]
+          : [],
+      );
+
+    it("drops its row instead of reporting it as untracked", () => {
+      const onUntrackedPr = vi.fn();
+
+      const texts = sectionTexts(
+        buildBlocksForDataFromGithubAndMongo({
+          userLogin: "bob",
+          title: ":eyes:",
+          response: createGithubResponse([createItem(2), createItem(3)]),
+          excludedResults,
+          onUntrackedPr,
+        }),
+      );
+
+      expect(texts.some((text) => text.includes("repo#2"))).toBe(false);
+      expect(texts.some((text) => text.includes("repo#3"))).toBe(true);
+      expect(onUntrackedPr).toHaveBeenCalledTimes(1);
+      expect(onUntrackedPr).toHaveBeenCalledWith(
+        expect.objectContaining({ number: 3 }),
+      );
+    });
+
+    it("does not count it in the rows left over", () => {
+      const blocks = buildBlocksForDataFromGithubAndMongo({
+        userLogin: "bob",
+        title: ":eyes:",
+        response: createGithubResponse([createItem(2), createItem(3)]),
+        excludedResults,
+      });
+
+      expect(
+        blocks.some(
+          (block) =>
+            block.type === "context" &&
+            block.elements.some(
+              (element: any) =>
+                element.type === "mrkdwn" && element.text.includes("more"),
+            ),
+        ),
+      ).toBe(false);
+    });
+
+    it("renders no section when it is the only result", () => {
+      expect(
+        buildBlocksForDataFromGithubAndMongo({
+          userLogin: "bob",
+          title: ":eyes:",
+          response: createGithubResponse([createItem(2)]),
+          excludedResults,
+        }),
+      ).toEqual([]);
+    });
+  });
+
   it("buildBlocksForDataFromGithubAndMongo reports a github outage", () => {
     expect(
       buildBlocksForDataFromGithubAndMongo({

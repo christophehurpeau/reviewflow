@@ -15,6 +15,7 @@ import {
   allocateRowBudget,
   buildBlocksForDataFromGithubAndMongo,
   buildBlocksForDataFromMongo,
+  excludeGithubPrsInMongoResults,
   maxHomeBlocks,
 } from "./homeHelpers.ts";
 import { createLink } from "./utils.ts";
@@ -89,8 +90,10 @@ export const createSlackHomeWorker = (
       findPrsInBucket("waiting-for-review"),
     ]);
 
-    const requestedReviewsFromGithub =
-      prsWithRequestedReviewsFromGithub?.data.items ?? [];
+    const requestedReviewsFromGithub = excludeGithubPrsInMongoResults(
+      prsWithRequestedReviewsFromGithub?.data.items ?? [],
+      prsWithReRequestedReviews,
+    );
     const githubSearchFailed = !prsWithRequestedReviewsFromGithub;
 
     const hasPrsInProgress =
@@ -162,6 +165,8 @@ export const createSlackHomeWorker = (
         title: ":eyes: Requested reviews",
         response: prsWithRequestedReviewsFromGithub,
         mongoResults: prsWithRequestedReviewsFromMongo,
+        // the section above already renders them, and they are tracked
+        excludedResults: prsWithReRequestedReviews,
         limit: requestedReviewsLimit,
         rowOptions: { reviewRequestVerb: "requested", showStartReview: true },
         // reviewflow writes a document only once it has handled an event for

@@ -246,6 +246,7 @@ describe("createSlackHomeWorker", () => {
   describe("reviews asked of the member again", () => {
     const publishedTitles = async (
       startedPrs: unknown[],
+      githubItems: unknown[] = [],
     ): Promise<string[]> => {
       const publish = vi.fn().mockResolvedValue({});
 
@@ -273,9 +274,9 @@ describe("createSlackHomeWorker", () => {
       await worker.updateMember(
         {
           search: {
-            issuesAndPullRequests: vi
-              .fn()
-              .mockResolvedValue({ data: { total_count: 0, items: [] } }),
+            issuesAndPullRequests: vi.fn().mockResolvedValue({
+              data: { total_count: githubItems.length, items: githubItems },
+            }),
           },
         } as any,
         { views: { publish } } as any,
@@ -311,6 +312,29 @@ describe("createSlackHomeWorker", () => {
       const titles = await publishedTitles([startedPr]);
 
       expect(titles).toContain("*:eyeglasses: Re-Requested reviews*");
+    });
+
+    it("renders them once, github listing them as requested reviews too", async () => {
+      const texts = await publishedTitles(
+        [startedPr],
+        [
+          {
+            number: 7,
+            repository_url: "https://api.github.com/repos/org/repo",
+            html_url: "https://github.com/org/repo/pull/7",
+            draft: false,
+            title: "My PR",
+            user: { login: "alice" },
+          },
+        ],
+      );
+
+      expect(texts).toContain("*:eyeglasses: Re-Requested reviews*");
+      expect(texts).not.toContain("*:eyes: Requested reviews*");
+      expect(texts.filter((text) => text.includes("repo#7"))).toHaveLength(1);
+      expect(
+        texts.some((text) => text.includes("_not tracked by reviewflow_")),
+      ).toBe(false);
     });
 
     it("says nothing when none was asked again", async () => {
