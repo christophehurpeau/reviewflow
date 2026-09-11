@@ -116,6 +116,11 @@ export default function readyForReview(
           slackUtils.createPrChangesInformationFromPullRequestRest(
             updatedPullRequest,
           );
+        const startReviewLink =
+          reviewflowPrContext &&
+          slackUtils.createStartReviewLink(
+            reviewflowPrContext.reviewflowPr._id,
+          );
         const createText = ({
           requestedTeam,
         }: {
@@ -129,6 +134,8 @@ export default function readyForReview(
             !requestedTeam ? "your" : `your team _${requestedTeam.name}_`
           } review on ${slackUtils.createPrLink(pullRequest, repoContext)}${
             prChangesInformation ? ` · ${prChangesInformation}` : ""
+          }${
+            startReviewLink ? ` · ${startReviewLink}` : ""
           }\n> ${pullRequest.title}`;
 
         const messageRequestedReviewers = {

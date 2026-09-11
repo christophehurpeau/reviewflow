@@ -15,8 +15,8 @@ import {
   selectPrRowStatus,
 } from "reviewflow-modules";
 import type { OctokitRestCompat } from "../octokit.ts";
-import { prsUrl, webappUrl } from "../webappUrl.ts";
-import { createLink } from "./utils.ts";
+import { prsUrl } from "../webappUrl.ts";
+import { createLink, createStartReviewLink } from "./utils.ts";
 
 export type GithubSearchResponse = Awaited<
   ReturnType<OctokitRestCompat["search"]["issuesAndPullRequests"]>
@@ -106,17 +106,6 @@ interface MrkdwnElement {
   text: string;
 }
 
-/**
- * Slack cannot submit the review itself: it would have to act as the reviewer,
- * whose github token only ever exists in the webapp's session. The link opens
- * the webapp, which starts the review and forwards to the pull request.
- */
-const startReviewLink = (prId: string): string =>
-  createLink(
-    webappUrl(`/start-review?prId=${encodeURIComponent(prId)}`),
-    "Start the review",
-  );
-
 /** what broke leads the line and is the one thing mrkdwn can emphasise */
 const formatRowStatus = ({
   failed,
@@ -181,7 +170,7 @@ const createBlocksForPrSummary = (
     pr.changes
       ? createLink(`${pr.url}/files`, formatPrChanges(pr.changes))
       : undefined,
-    showStartReview ? startReviewLink(pr._id) : undefined,
+    showStartReview ? createStartReviewLink(pr._id) : undefined,
   ]);
 
   const context = createRowContextBlock(owners, [

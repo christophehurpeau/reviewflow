@@ -4,6 +4,7 @@ import type {
   PullRequestFromRestEndpoint,
   PullRequestWithDecentData,
 } from "../events/pr-handlers/utils/PullRequestData";
+import { webappUrl } from "../webappUrl.ts";
 
 // https://api.slack.com/reference/surfaces/formatting#escaping
 export const escapeText = (text: string): string => {
@@ -28,6 +29,17 @@ export const createPrLink = (
     }#${pr.number}`,
   );
 };
+
+/**
+ * Slack cannot submit the review itself: it would have to act as the reviewer,
+ * whose github token only ever exists in the webapp's session. The link opens
+ * the webapp, which starts the review and forwards to the pull request.
+ */
+export const createStartReviewLink = (prId: string): string =>
+  createLink(
+    webappUrl(`/start-review?prId=${encodeURIComponent(prId)}`),
+    "Start the review",
+  );
 
 export const createPrChangesInformationFromPullRequestRest = (
   pr: PullRequestFromRestEndpoint,

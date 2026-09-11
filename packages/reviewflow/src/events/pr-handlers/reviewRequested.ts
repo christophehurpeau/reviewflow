@@ -91,6 +91,12 @@ export default function reviewRequested(
                 updatedPullRequest,
               )}`
             : ""
+        }${
+          reviewflowPrContext
+            ? ` · ${slackUtils.createStartReviewLink(
+                reviewflowPrContext.reviewflowPr._id,
+              )}`
+            : ""
         }\n> ${pullRequest.title}`;
 
         const message = { text };
