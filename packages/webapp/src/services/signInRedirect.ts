@@ -8,7 +8,13 @@ import type { Href } from "expo-router";
  */
 const storageKey = "reviewflow:sign-in-redirect";
 
-const isInternalPath = (path: string): boolean =>
+/**
+ * `Href` is the set of routes typed routes knows statically, and degrades to
+ * `string` when they are not generated; a path read back from the location or
+ * the session storage is only known at runtime, so this guard is what vouches
+ * for it either way.
+ */
+const isInternalPath = (path: string): path is Extract<Href, string> =>
   path.startsWith("/") && !path.startsWith("//") && path !== "/";
 
 /* eslint-disable n/no-unsupported-features/node-builtins -- the browser session storage, not the experimental node one */
@@ -37,14 +43,9 @@ export const rememberSignInRedirect = (path: string | undefined): void => {
   if (path) getSessionStorage()?.setItem(storageKey, path);
 };
 
-/**
- * `Href` is the set of routes typed routes knows statically; a path read back
- * from the session storage is only known at runtime, so `isInternalPath` is
- * what vouches for it.
- */
 export const takeSignInRedirect = (): Href | undefined => {
   const sessionStorage = getSessionStorage();
   const path = sessionStorage?.getItem(storageKey);
   sessionStorage?.removeItem(storageKey);
-  return path && isInternalPath(path) ? (path as Href) : undefined;
+  return path && isInternalPath(path) ? path : undefined;
 };
