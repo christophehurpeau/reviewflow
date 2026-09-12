@@ -69,7 +69,7 @@ export function RepositoryScreen({
                   <ExternalLinkButton
                     href={`https://github.com/${repositoryData.fullName}`}
                     text="Open on github"
-                    variant="outlined"
+                    accent="neutral"
                   />
                 </HStack>
               </VStack>

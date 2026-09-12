@@ -26,15 +26,23 @@
   --color-enabled: #545f6b;
   --color-highlight-accent: #d8dbdf;
   --color-lowered: #d8dbdf;
+  --color-emphasis: #ffffff;
   --color-screen-gradient-start: #d8dbdf;
   --color-screen-gradient-middle: #c9ced4;
   --color-screen-gradient-end: #b3bcc4;
   --color-border-muted: #c9ced4;
   --color-border-sharp: #545f6b;
-  --color-interactive-contained-pressable: #ffffff;
-  --color-interactive-contained-hover: #f8f8f9;
-  --color-interactive-contained-focus: #f8f8f9;
-  --color-interactive-contained-active: #eceeef;
+  --color-interactive-contained-pressable: #545f6b;
+  --color-interactive-contained-hover: #63707e;
+  --color-interactive-contained-focus: #63707e;
+  --color-interactive-contained-active: #778594;
+  --color-interactive-list-pressable: #ffffff;
+  --color-interactive-list-hover: #f8f8f9;
+  --color-interactive-list-focus: #f8f8f9;
+  --color-interactive-list-active: #eceeef;
+  --color-interactive-soft-hover: #eceeef;
+  --color-interactive-soft-focus: #eceeef;
+  --color-interactive-soft-active: #d8dbdf;
   --color-interactive-outlined-pressable: #545f6b;
   --color-interactive-outlined-hover: #778594;
   --color-interactive-outlined-focus: #778594;
@@ -44,8 +52,10 @@
   --color-interactive-pressable: #454e58;
   --color-interactive-hover: #22272d;
   --color-accent: #22272d;
-  --color-on-accent: #22272d;
-  --color-on-accent-muted: #545f6b;
+  --color-on-accent: #ffffff;
+  --color-on-accent-muted: #d8dbdf;
+  --color-on-emphasis: #22272d;
+  --color-on-list: #22272d;
   --color-selection: #454e5840;
 }
 
@@ -71,15 +81,23 @@
       --color-enabled: #545f6b;
       --color-highlight-accent: #d8dbdf;
       --color-lowered: #d8dbdf;
+      --color-emphasis: #ffffff;
       --color-screen-gradient-start: #d8dbdf;
       --color-screen-gradient-middle: #c9ced4;
       --color-screen-gradient-end: #b3bcc4;
       --color-border-muted: #c9ced4;
       --color-border-sharp: #545f6b;
-      --color-interactive-contained-pressable: #ffffff;
-      --color-interactive-contained-hover: #f8f8f9;
-      --color-interactive-contained-focus: #f8f8f9;
-      --color-interactive-contained-active: #eceeef;
+      --color-interactive-contained-pressable: #545f6b;
+      --color-interactive-contained-hover: #63707e;
+      --color-interactive-contained-focus: #63707e;
+      --color-interactive-contained-active: #778594;
+      --color-interactive-list-pressable: #ffffff;
+      --color-interactive-list-hover: #f8f8f9;
+      --color-interactive-list-focus: #f8f8f9;
+      --color-interactive-list-active: #eceeef;
+      --color-interactive-soft-hover: #eceeef;
+      --color-interactive-soft-focus: #eceeef;
+      --color-interactive-soft-active: #d8dbdf;
       --color-interactive-outlined-pressable: #545f6b;
       --color-interactive-outlined-hover: #778594;
       --color-interactive-outlined-focus: #778594;
@@ -89,8 +107,10 @@
       --color-interactive-pressable: #454e58;
       --color-interactive-hover: #22272d;
       --color-accent: #22272d;
-      --color-on-accent: #22272d;
-      --color-on-accent-muted: #545f6b;
+      --color-on-accent: #ffffff;
+      --color-on-accent-muted: #d8dbdf;
+      --color-on-emphasis: #22272d;
+      --color-on-list: #22272d;
       --color-selection: #454e5840;
     }
 
@@ -114,6 +134,7 @@
       --color-enabled: #4d5660;
       --color-highlight-accent: #2e3339;
       --color-lowered: #101214;
+      --color-emphasis: #414951;
       --color-screen-gradient-start: #25292e;
       --color-screen-gradient-middle: #1c2023;
       --color-screen-gradient-end: #101214;
@@ -123,6 +144,13 @@
       --color-interactive-contained-hover: #4d5660;
       --color-interactive-contained-focus: #4d5660;
       --color-interactive-contained-active: #4d5660;
+      --color-interactive-list-pressable: #414951;
+      --color-interactive-list-hover: #4d5660;
+      --color-interactive-list-focus: #4d5660;
+      --color-interactive-list-active: #4d5660;
+      --color-interactive-soft-hover: #383e45;
+      --color-interactive-soft-focus: #383e45;
+      --color-interactive-soft-active: #414951;
       --color-interactive-outlined-pressable: #4d5660;
       --color-interactive-outlined-hover: #b4bdc7;
       --color-interactive-outlined-focus: #b4bdc7;
@@ -134,6 +162,8 @@
       --color-accent: #ffffff;
       --color-on-accent: #ffffff;
       --color-on-accent-muted: #f0f2f4;
+      --color-on-emphasis: #ffffff;
+      --color-on-list: #f0f2f4;
       --color-selection: #f0f2f440;
     }
 
@@ -142,6 +172,7 @@
       --color-enabled: #0a7133;
       --color-highlight-accent: #9df2b3;
       --color-lowered: #9df2b3;
+      --color-emphasis: #0a7133;
       --color-screen-gradient-start: #9df2b3;
       --color-screen-gradient-middle: #6bed94;
       --color-screen-gradient-end: #5ad882;
@@ -151,6 +182,13 @@
       --color-interactive-contained-hover: #0e853e;
       --color-interactive-contained-focus: #0e853e;
       --color-interactive-contained-active: #249f51;
+      --color-interactive-list-pressable: #e8faec;
+      --color-interactive-list-hover: #d8f7df;
+      --color-interactive-list-focus: #d8f7df;
+      --color-interactive-list-active: #9df2b3;
+      --color-interactive-soft-hover: #d8f7df;
+      --color-interactive-soft-focus: #d8f7df;
+      --color-interactive-soft-active: #9df2b3;
       --color-interactive-outlined-pressable: #0a7133;
       --color-interactive-outlined-hover: #249f51;
       --color-interactive-outlined-focus: #249f51;
@@ -162,6 +200,8 @@
       --color-accent: #075d28;
       --color-on-accent: #ffffff;
       --color-on-accent-muted: #9df2b3;
+      --color-on-emphasis: #ffffff;
+      --color-on-list: #075d28;
       --color-selection: #075d2840;
     }
 
@@ -170,6 +210,7 @@
       --color-enabled: #095fa7;
       --color-highlight-accent: #c8def1;
       --color-lowered: #c8def1;
+      --color-emphasis: #095fa7;
       --color-screen-gradient-start: #c8def1;
       --color-screen-gradient-middle: #aed3f3;
       --color-screen-gradient-end: #8bc1f0;
@@ -179,6 +220,13 @@
       --color-interactive-contained-hover: #0c71c1;
       --color-interactive-contained-focus: #0c71c1;
       --color-interactive-contained-active: #228adf;
+      --color-interactive-list-pressable: #f0f5fa;
+      --color-interactive-list-hover: #e6eff7;
+      --color-interactive-list-focus: #e6eff7;
+      --color-interactive-list-active: #c8def1;
+      --color-interactive-soft-hover: #e6eff7;
+      --color-interactive-soft-focus: #e6eff7;
+      --color-interactive-soft-active: #c8def1;
       --color-interactive-outlined-pressable: #095fa7;
       --color-interactive-outlined-hover: #228adf;
       --color-interactive-outlined-focus: #228adf;
@@ -190,6 +238,8 @@
       --color-accent: #064d8e;
       --color-on-accent: #ffffff;
       --color-on-accent-muted: #c8def1;
+      --color-on-emphasis: #ffffff;
+      --color-on-list: #064d8e;
       --color-selection: #064d8e40;
     }
 
@@ -198,6 +248,7 @@
       --color-enabled: #0a7133;
       --color-highlight-accent: #9df2b3;
       --color-lowered: #9df2b3;
+      --color-emphasis: #0a7133;
       --color-screen-gradient-start: #9df2b3;
       --color-screen-gradient-middle: #6bed94;
       --color-screen-gradient-end: #5ad882;
@@ -207,6 +258,13 @@
       --color-interactive-contained-hover: #0e853e;
       --color-interactive-contained-focus: #0e853e;
       --color-interactive-contained-active: #249f51;
+      --color-interactive-list-pressable: #e8faec;
+      --color-interactive-list-hover: #d8f7df;
+      --color-interactive-list-focus: #d8f7df;
+      --color-interactive-list-active: #9df2b3;
+      --color-interactive-soft-hover: #d8f7df;
+      --color-interactive-soft-focus: #d8f7df;
+      --color-interactive-soft-active: #9df2b3;
       --color-interactive-outlined-pressable: #0a7133;
       --color-interactive-outlined-hover: #249f51;
       --color-interactive-outlined-focus: #249f51;
@@ -218,6 +276,8 @@
       --color-accent: #075d28;
       --color-on-accent: #ffffff;
       --color-on-accent-muted: #9df2b3;
+      --color-on-emphasis: #ffffff;
+      --color-on-list: #075d28;
       --color-selection: #075d2840;
     }
 
@@ -226,6 +286,7 @@
       --color-enabled: #986b0c;
       --color-highlight-accent: #f5e8b2;
       --color-lowered: #f5e8b2;
+      --color-emphasis: #986b0c;
       --color-screen-gradient-start: #f5e8b2;
       --color-screen-gradient-middle: #f6d975;
       --color-screen-gradient-end: #e4c056;
@@ -235,6 +296,13 @@
       --color-interactive-contained-hover: #a5770f;
       --color-interactive-contained-focus: #a5770f;
       --color-interactive-contained-active: #e4b830;
+      --color-interactive-list-pressable: #faf5de;
+      --color-interactive-list-hover: #f7efc9;
+      --color-interactive-list-focus: #f7efc9;
+      --color-interactive-list-active: #f5e8b2;
+      --color-interactive-soft-hover: #f7efc9;
+      --color-interactive-soft-focus: #f7efc9;
+      --color-interactive-soft-active: #f5e8b2;
       --color-interactive-outlined-pressable: #986b0c;
       --color-interactive-outlined-hover: #e4b830;
       --color-interactive-outlined-focus: #e4b830;
@@ -246,6 +314,8 @@
       --color-accent: #714906;
       --color-on-accent: #ffffff;
       --color-on-accent-muted: #f5e8b2;
+      --color-on-emphasis: #ffffff;
+      --color-on-list: #714906;
       --color-selection: #71490640;
     }
 
@@ -254,6 +324,7 @@
       --color-enabled: #af0d24;
       --color-highlight-accent: #f1d3cf;
       --color-lowered: #f1d3cf;
+      --color-emphasis: #af0d24;
       --color-screen-gradient-start: #f1d3cf;
       --color-screen-gradient-middle: #f4bfba;
       --color-screen-gradient-end: #f1a39c;
@@ -263,6 +334,13 @@
       --color-interactive-contained-hover: #cd112a;
       --color-interactive-contained-focus: #cd112a;
       --color-interactive-contained-active: #f22939;
+      --color-interactive-list-pressable: #faf2f2;
+      --color-interactive-list-hover: #f7eae9;
+      --color-interactive-list-focus: #f7eae9;
+      --color-interactive-list-active: #f1d3cf;
+      --color-interactive-soft-hover: #f7eae9;
+      --color-interactive-soft-focus: #f7eae9;
+      --color-interactive-soft-active: #f1d3cf;
       --color-interactive-outlined-pressable: #af0d24;
       --color-interactive-outlined-hover: #f22939;
       --color-interactive-outlined-focus: #f22939;
@@ -274,6 +352,8 @@
       --color-accent: #92091d;
       --color-on-accent: #ffffff;
       --color-on-accent-muted: #f1d3cf;
+      --color-on-emphasis: #ffffff;
+      --color-on-list: #92091d;
       --color-selection: #92091d40;
     }
 
@@ -282,6 +362,7 @@
       --color-enabled: #20763c;
       --color-highlight-accent: #12361b;
       --color-lowered: #07150a;
+      --color-emphasis: #19552b;
       --color-screen-gradient-start: #0f2b15;
       --color-screen-gradient-middle: #0b200f;
       --color-screen-gradient-end: #07150a;
@@ -291,6 +372,13 @@
       --color-interactive-contained-hover: #20763c;
       --color-interactive-contained-focus: #20763c;
       --color-interactive-contained-active: #20763c;
+      --color-interactive-list-pressable: #19552b;
+      --color-interactive-list-hover: #20763c;
+      --color-interactive-list-focus: #20763c;
+      --color-interactive-list-active: #20763c;
+      --color-interactive-soft-hover: #164222;
+      --color-interactive-soft-focus: #164222;
+      --color-interactive-soft-active: #19552b;
       --color-interactive-outlined-pressable: #20763c;
       --color-interactive-outlined-hover: #38ba65;
       --color-interactive-outlined-focus: #38ba65;
@@ -302,6 +390,8 @@
       --color-accent: #5ef591;
       --color-on-accent: #ffffff;
       --color-on-accent-muted: #5ef591;
+      --color-on-emphasis: #ffffff;
+      --color-on-list: #f0f2f4;
       --color-selection: #5ef59140;
     }
 
@@ -310,6 +400,7 @@
       --color-enabled: #1d65a9;
       --color-highlight-accent: #102e52;
       --color-lowered: #061222;
+      --color-emphasis: #16497d;
       --color-screen-gradient-start: #0d2441;
       --color-screen-gradient-middle: #091b32;
       --color-screen-gradient-end: #061222;
@@ -319,6 +410,13 @@
       --color-interactive-contained-hover: #1d65a9;
       --color-interactive-contained-focus: #1d65a9;
       --color-interactive-contained-active: #1d65a9;
+      --color-interactive-list-pressable: #16497d;
+      --color-interactive-list-hover: #1d65a9;
+      --color-interactive-list-focus: #1d65a9;
+      --color-interactive-list-active: #1d65a9;
+      --color-interactive-soft-hover: #143962;
+      --color-interactive-soft-focus: #143962;
+      --color-interactive-soft-active: #16497d;
       --color-interactive-outlined-pressable: #1d65a9;
       --color-interactive-outlined-hover: #47a5f4;
       --color-interactive-outlined-focus: #47a5f4;
@@ -330,6 +428,8 @@
       --color-accent: #b3d8f7;
       --color-on-accent: #ffffff;
       --color-on-accent-muted: #b3d8f7;
+      --color-on-emphasis: #ffffff;
+      --color-on-list: #f0f2f4;
       --color-selection: #b3d8f740;
     }
 
@@ -338,6 +438,7 @@
       --color-enabled: #20763c;
       --color-highlight-accent: #12361b;
       --color-lowered: #07150a;
+      --color-emphasis: #19552b;
       --color-screen-gradient-start: #0f2b15;
       --color-screen-gradient-middle: #0b200f;
       --color-screen-gradient-end: #07150a;
@@ -347,6 +448,13 @@
       --color-interactive-contained-hover: #20763c;
       --color-interactive-contained-focus: #20763c;
       --color-interactive-contained-active: #20763c;
+      --color-interactive-list-pressable: #19552b;
+      --color-interactive-list-hover: #20763c;
+      --color-interactive-list-focus: #20763c;
+      --color-interactive-list-active: #20763c;
+      --color-interactive-soft-hover: #164222;
+      --color-interactive-soft-focus: #164222;
+      --color-interactive-soft-active: #19552b;
       --color-interactive-outlined-pressable: #20763c;
       --color-interactive-outlined-hover: #38ba65;
       --color-interactive-outlined-focus: #38ba65;
@@ -358,6 +466,8 @@
       --color-accent: #5ef591;
       --color-on-accent: #ffffff;
       --color-on-accent-muted: #5ef591;
+      --color-on-emphasis: #ffffff;
+      --color-on-list: #f0f2f4;
       --color-selection: #5ef59140;
     }
 
@@ -366,6 +476,7 @@
       --color-enabled: #956c21;
       --color-highlight-accent: #6e4e23;
       --color-lowered: #362514;
+      --color-emphasis: #8a6424;
       --color-screen-gradient-start: #5d421f;
       --color-screen-gradient-middle: #432e16;
       --color-screen-gradient-end: #362514;
@@ -375,6 +486,13 @@
       --color-interactive-contained-hover: #956c21;
       --color-interactive-contained-focus: #956c21;
       --color-interactive-contained-active: #956c21;
+      --color-interactive-list-pressable: #8a6424;
+      --color-interactive-list-hover: #956c21;
+      --color-interactive-list-focus: #956c21;
+      --color-interactive-list-active: #956c21;
+      --color-interactive-soft-hover: #7e5c28;
+      --color-interactive-soft-focus: #7e5c28;
+      --color-interactive-soft-active: #8a6424;
       --color-interactive-outlined-pressable: #956c21;
       --color-interactive-outlined-hover: #e2b83c;
       --color-interactive-outlined-focus: #e2b83c;
@@ -386,6 +504,8 @@
       --color-accent: #f9dd77;
       --color-on-accent: #ffffff;
       --color-on-accent-muted: #f9dd77;
+      --color-on-emphasis: #ffffff;
+      --color-on-list: #f0f2f4;
       --color-selection: #f9dd7740;
     }
 
@@ -394,6 +514,7 @@
       --color-enabled: #b2242d;
       --color-highlight-accent: #531517;
       --color-lowered: #220809;
+      --color-emphasis: #811c22;
       --color-screen-gradient-start: #411112;
       --color-screen-gradient-middle: #310c0d;
       --color-screen-gradient-end: #220809;
@@ -403,6 +524,13 @@
       --color-interactive-contained-hover: #b2242d;
       --color-interactive-contained-focus: #b2242d;
       --color-interactive-contained-active: #b2242d;
+      --color-interactive-list-pressable: #811c22;
+      --color-interactive-list-hover: #b2242d;
+      --color-interactive-list-focus: #b2242d;
+      --color-interactive-list-active: #b2242d;
+      --color-interactive-soft-hover: #64191c;
+      --color-interactive-soft-focus: #64191c;
+      --color-interactive-soft-active: #811c22;
       --color-interactive-outlined-pressable: #b2242d;
       --color-interactive-outlined-hover: #f56d68;
       --color-interactive-outlined-focus: #f56d68;
@@ -414,6 +542,8 @@
       --color-accent: #f8c4bf;
       --color-on-accent: #ffffff;
       --color-on-accent-muted: #f8c4bf;
+      --color-on-emphasis: #ffffff;
+      --color-on-list: #f0f2f4;
       --color-selection: #f8c4bf40;
     }
   }

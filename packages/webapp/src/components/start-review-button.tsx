@@ -14,7 +14,6 @@ export function StartReviewButton({
     <ActionButton
       text="Start review"
       size="sm"
-      variant="contained"
       // the whole row opens github, so the button must keep the press
       onPress={(event) => {
         event.stopPropagation();

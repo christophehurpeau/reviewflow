@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/react-native";
-import { Button } from "alouette";
 import type { PrSummary } from "reviewflow-modules";
 import { PrRow } from "#/components/pr-row.tsx";
 import { Story } from "#storybook/Story.tsx";
@@ -299,22 +298,6 @@ export const VariantsStory: StoryObj<typeof PrRow> = {
         />
       </Story.Section>
 
-      <Story.Section title="with an action">
-        <PrRow pr={basePr} action={<Button size="sm" text="Start review" />} />
-      </Story.Section>
-
-      <Story.Section title="an action alongside a long title">
-        <PrRow
-          pr={buildPr({
-            title:
-              "refactor: move the pull request summary derivation into core so the slack home and the webapp stop drifting",
-            requestedReviewers: [{ id: 2, login: "alice" }],
-            requestedTeams: ["core", "platform"],
-          })}
-          action={<Button size="sm" text="Start review" />}
-        />
-      </Story.Section>
-
       <Story.Section title="one status link">
         <PrRow
           pr={buildPr({
@@ -381,7 +364,6 @@ export const VariantsStory: StoryObj<typeof PrRow> = {
             requestedTeams: ["core"],
             reRequestedReviewers: [{ id: 5, login: "erin" }],
           })}
-          action={<Button size="sm" text="Start review" />}
         />
       </Story.Section>
 

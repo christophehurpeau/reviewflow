@@ -90,8 +90,6 @@ interface PrRowProps {
   reviewRequestVerb?: ReviewRequestVerb;
   /** rendered as `you` rather than as one more login */
   currentUserLogin?: string;
-  /** the section's own control, pressed without opening the row */
-  action?: ReactNode;
 }
 
 export function PrRow({
@@ -101,7 +99,6 @@ export function PrRow({
   showReRequests = true,
   reviewRequestVerb = "awaiting",
   currentUserLogin,
-  action,
 }: PrRowProps): ReactNode {
   const status = selectPrRowStatus(pr, {
     currentUserLogin,
@@ -173,7 +170,6 @@ export function PrRow({
       </HStack>
 
       <PrStatusLine {...status} />
-      {action}
     </VStack>
   );
 }

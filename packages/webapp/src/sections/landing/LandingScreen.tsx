@@ -4,7 +4,7 @@ import {
   Button,
   ConfirmationMessage,
   ErrorMessage,
-  ExternalLinkButton,
+  ExternalLinkText,
   GradientBackground,
   HStack,
   Icon,
@@ -138,8 +138,7 @@ export function LandingScreen({
           </Box>
 
           <HStack>
-            <ExternalLinkButton
-              variant="ghost"
+            <ExternalLinkText
               size="sm"
               href={sourceUrl}
               text="Source on GitHub"

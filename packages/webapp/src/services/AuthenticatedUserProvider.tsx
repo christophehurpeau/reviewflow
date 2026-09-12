@@ -87,7 +87,7 @@ export function AuthenticatedUserProvider({
             <>
               <ErrorMessage>{errorToMessage(error)}</ErrorMessage>
               <Button
-                variant="outlined"
+                accent="neutral"
                 text="Retry"
                 onPress={() => {
                   setError(undefined);

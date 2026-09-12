@@ -17,7 +17,7 @@ export function OrgNotFoundScreen({
         <WarningMessage>
           {`You have no access to ${orgLogin}, or reviewflow is not installed on it.`}
         </WarningMessage>
-        <Button variant="outlined" text="Back to settings" onPress={onBack} />
+        <Button accent="neutral" text="Back to settings" onPress={onBack} />
       </VStack>
     </Screen>
   );

@@ -25,7 +25,6 @@ export function Screen({
           {onBack ? (
             <IconButton
               icon={<ArrowLeftRegularIcon />}
-              variant="contained"
               size="sm"
               aria-label={backLabel}
               onPress={onBack}

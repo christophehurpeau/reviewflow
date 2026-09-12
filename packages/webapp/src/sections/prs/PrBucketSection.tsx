@@ -95,6 +95,8 @@ export function PrBucketSection({
             {prList.map((pr) => (
               <PressableListItem
                 key={pr._id}
+                aria-label={`Open ${pr.orgLogin}/${pr.repoName}#${pr.number} ${pr.title}`}
+                actions={renderAction?.(pr)}
                 onPress={() => {
                   onSelectPr(pr);
                 }}
@@ -106,7 +108,6 @@ export function PrBucketSection({
                   showReRequests={showReRequests}
                   reviewRequestVerb={reviewRequestVerb}
                   currentUserLogin={currentUserLogin}
-                  action={renderAction?.(pr)}
                 />
               </PressableListItem>
             ))}
