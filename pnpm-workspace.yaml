@@ -12,8 +12,11 @@ minimumReleaseAgeExclude:
   - check-package-dependencies
   - alouette
   - alouette-icons
+  - extended-json
+  - liwi-*
   - nightingale
   - nightingale-logger
+  - react-liwi
 nodeLinker: hoisted
 packages:
   - packages/*

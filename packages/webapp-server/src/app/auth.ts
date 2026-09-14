@@ -9,6 +9,13 @@ import {
 } from "../auth/authCookie.ts";
 import * as githubAuth from "../auth/github.ts";
 import { webappUrl } from "../webappUrl.ts";
+import {
+  buildVscodeAuthState,
+  buildVscodeErrorRedirect,
+  createVscodeRedirect,
+  parseVscodeAuthState,
+  renderEditorHandoffPage,
+} from "./vscode-auth.ts";
 
 const createRedirectUri = (req: Request): string => {
   const host = `http${secureCookie ? "s" : ""}://${req.hostname}${
@@ -61,7 +68,14 @@ export const getUser = async (
 export default function auth(router: Router): void {
   router.get("/login", async (req: Request, res: Response, next) => {
     try {
-      if (await getAuthInfoFromCookie(req, res)) {
+      // the editor holds no cookie, so a session this browser happens to have
+      // is not the one being asked for: it always goes through github
+      const vscodeState =
+        req.query.client === "vscode" && typeof req.query.state === "string"
+          ? req.query.state
+          : undefined;
+
+      if (!vscodeState && (await getAuthInfoFromCookie(req, res))) {
         res.redirect(webappUrl("/"));
         return;
       }
@@ -70,6 +84,17 @@ export default function auth(router: Router): void {
         githubAuth.oauth2.authorizeURL({
           redirect_uri: createRedirectUri(req),
           scope: "read:user,repo",
+          ...(vscodeState
+            ? {
+                state: buildVscodeAuthState(
+                  vscodeState,
+                  // a build other than vscode stable answers to its own scheme
+                  typeof req.query.scheme === "string"
+                    ? req.query.scheme
+                    : "vscode",
+                ),
+              }
+            : undefined),
         }),
       );
     } catch (error) {
@@ -92,15 +117,22 @@ export default function auth(router: Router): void {
 
   router.get("/login-response", async (req, res, next) => {
     try {
+      const vscodeState = parseVscodeAuthState(req.query.state);
+
       if (req.query.error) {
-        res.redirect(
-          webappUrl("/", {
-            error:
-              typeof req.query.error_description === "string"
-                ? req.query.error_description
-                : "Authentication failed",
-          }),
-        );
+        const error =
+          typeof req.query.error_description === "string"
+            ? req.query.error_description
+            : "Authentication failed";
+        if (vscodeState) {
+          res.send(
+            renderEditorHandoffPage(
+              buildVscodeErrorRedirect(vscodeState, error),
+            ),
+          );
+          return;
+        }
+        res.redirect(webappUrl("/", { error }));
         return;
       }
 
@@ -110,22 +142,40 @@ export default function auth(router: Router): void {
       });
 
       if (!accessToken) {
-        res.redirect(webappUrl("/", { error: "Could not get access token" }));
+        const error = "Could not get access token";
+        if (vscodeState) {
+          res.send(
+            renderEditorHandoffPage(
+              buildVscodeErrorRedirect(vscodeState, error),
+            ),
+          );
+          return;
+        }
+        res.redirect(webappUrl("/", { error }));
         return;
       }
 
       const api = createApi(accessToken.token.access_token as string);
       const user = await api.users.getAuthenticated({});
 
-      const token = await signAuthCookie(
-        {
-          id: user.data.id,
-          login: user.data.login,
-          accessToken: accessToken.token.access_token as string,
-          time: Date.now(),
-        },
-        req.headers["user-agent"],
-      );
+      const authInfo = {
+        id: user.data.id,
+        login: user.data.login,
+        accessToken: accessToken.token.access_token as string,
+        time: Date.now(),
+      };
+
+      // the editor cannot read a cookie, and gets a token of its own instead
+      if (vscodeState) {
+        res.send(
+          renderEditorHandoffPage(
+            await createVscodeRedirect(authInfo, vscodeState),
+          ),
+        );
+        return;
+      }
+
+      const token = await signAuthCookie(authInfo, req.headers["user-agent"]);
 
       res.cookie(authCookieName, token, {
         httpOnly: true,

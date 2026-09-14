@@ -3,6 +3,7 @@ import type { ResourcesContext } from "./ResourcesContext.ts";
 import auth from "./app/auth.ts";
 import legacyRedirects from "./app/legacy-redirects.ts";
 import slackConnect from "./app/slack-connect.ts";
+import vscodeAuth from "./app/vscode-auth.ts";
 
 /**
  * Only the oauth redirect flows are served here, plus the redirects from the
@@ -12,6 +13,7 @@ import slackConnect from "./app/slack-connect.ts";
 export default function appRouter({ mongoStores }: ResourcesContext): Router {
   const router = Router();
   auth(router);
+  vscodeAuth(router);
   slackConnect(router, mongoStores);
   legacyRedirects(router);
   return router;

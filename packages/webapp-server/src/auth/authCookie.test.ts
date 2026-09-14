@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { AuthInfo } from "./authCookie.ts";
-import { signAuthCookie, verifyAuthCookie } from "./authCookie.ts";
+import {
+  signAuthCookie,
+  signAuthToken,
+  verifyAuthCookie,
+  vscodeUserAgent,
+} from "./authCookie.ts";
 
 const authInfo: AuthInfo = {
   id: 42,
@@ -33,5 +38,23 @@ describe("verifyAuthCookie", () => {
     await expect(verifyAuthCookie(token, undefined)).resolves.toMatchObject({
       id: 42,
     });
+  });
+});
+
+describe("signAuthToken", () => {
+  it("verifies against the editor's own user agent, which is the audience", async () => {
+    const token = await signAuthToken(authInfo, vscodeUserAgent);
+
+    await expect(
+      verifyAuthCookie(token, vscodeUserAgent),
+    ).resolves.toMatchObject({ id: 42, login: "someone" });
+  });
+
+  it("does not accept an editor token sent from a browser", async () => {
+    const token = await signAuthToken(authInfo, vscodeUserAgent);
+
+    await expect(
+      verifyAuthCookie(token, "Mozilla/5.0"),
+    ).resolves.toBeUndefined();
   });
 });

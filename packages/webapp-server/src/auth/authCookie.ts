@@ -30,15 +30,29 @@ export interface AuthInfo {
 const audienceFor = (userAgent: string | undefined): string =>
   userAgent || "reviewflow:no-user-agent";
 
-export const signAuthCookie = (
+/**
+ * The user agent an editor extension sends on the websocket handshake, and the
+ * audience its token is signed for. A non-browser client has no user agent of
+ * its own to be pinned to, so the pinning is a constant here — which it already
+ * effectively was: anyone replaying a stolen token sends whichever user agent
+ * they like.
+ */
+export const vscodeUserAgent = "reviewflow:vscode";
+
+export const signAuthToken = (
   authInfo: AuthInfo,
-  userAgent: string | undefined,
+  audience: string,
 ): Promise<string> =>
   signPromisified(authInfo, authSecretKey, {
     algorithm: "HS512",
-    audience: audienceFor(userAgent),
+    audience,
     expiresIn: "10 days",
   });
+
+export const signAuthCookie = (
+  authInfo: AuthInfo,
+  userAgent: string | undefined,
+): Promise<string> => signAuthToken(authInfo, audienceFor(userAgent));
 
 export const verifyAuthCookie = async (
   token: string,

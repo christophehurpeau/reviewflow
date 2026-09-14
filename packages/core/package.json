@@ -38,8 +38,8 @@
   "dependencies": {
     "emoji-regex": "10.6.0",
     "gemoji": "8.1.0",
-    "liwi-mongo": "13.1.1",
-    "liwi-store": "13.1.1",
+    "liwi-mongo": "13.3.0",
+    "liwi-store": "13.2.0",
     "reviewflow-modules": "workspace:*"
   },
   "devDependencies": {
