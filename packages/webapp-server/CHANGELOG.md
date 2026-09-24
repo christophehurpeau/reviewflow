@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.11.0](https://github.com/christophehurpeau/reviewflow/compare/v6.10.0...v6.11.0) (2026-09-24)
+
+### Bug Fixes
+
+* sync org throwed error because of unsupported case in liwi dependency
+
+Version bump for dependency: reviewflow-core
+Version bump for dependency: reviewflow-modules
+
+
 ## [6.10.0](https://github.com/christophehurpeau/reviewflow/compare/v6.9.0...v6.10.0) (2026-09-14)
 
 ### Features
