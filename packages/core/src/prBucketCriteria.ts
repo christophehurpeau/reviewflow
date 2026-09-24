@@ -65,6 +65,10 @@ const buildAccountRequestedReviewsCriteria = (
  * requested review exactly once. Reviewing again is a request like any other:
  * pressing "start review" comments and asks for the review again, which is what
  * moves the pull request from one bucket to the other.
+ *
+ * The author is left out: a team they belong to can be requested on their own
+ * pull request, and replying in a review thread records them as a reviewer.
+ * Documents written before `creator` existed still match.
  */
 const buildRequestedReviewsCriteria = (
   { accounts, userId }: PrBucketContext,
@@ -72,6 +76,7 @@ const buildRequestedReviewsCriteria = (
 ): Criteria<ReviewflowPr> => ({
   isClosed: false,
   isDraft: false,
+  "creator.id": { $ne: userId },
   "reviews.reviewed.id": reviewedBefore ? userId : { $ne: userId },
   ...anyOf(
     accounts.map((account) =>

@@ -232,6 +232,44 @@ describe("buildPrBucketQuery", () => {
     ).toBe(false);
   });
 
+  /**
+   * github lets a team the author belongs to be requested on their own pull
+   * request, and a reply in a review thread lists the author as a reviewer
+   */
+  describe("leaves the author out of the review buckets", () => {
+    const buildTeamRequestedPr = (
+      creatorId: number,
+      reviewedBefore: boolean,
+    ) => ({
+      account: { id: 1 },
+      isClosed: false,
+      isDraft: false,
+      creator: { id: creatorId, login: "author" },
+      reviews: {
+        reviewRequested: [],
+        teamReviewRequested: [{ id: 9, name: "dev" }],
+        reviewed: reviewedBefore ? [{ id: 42, login: "chris" }] : [],
+      },
+    });
+
+    for (const reviewedBefore of [false, true]) {
+      it(`reviewedBefore=${reviewedBefore}`, () => {
+        const ownPr = buildTeamRequestedPr(42, reviewedBefore);
+        const someoneElsesPr = buildTeamRequestedPr(7, reviewedBefore);
+        const bucket = reviewedBefore
+          ? "re-requested-reviews"
+          : "requested-reviews";
+
+        expect(new Query(criteriaOf(bucket, withTeams)).test(ownPr)).toBe(
+          false,
+        );
+        expect(
+          new Query(criteriaOf(bucket, withTeams)).test(someoneElsesPr),
+        ).toBe(true);
+      });
+    }
+  });
+
   it("only returns drafts assigned to the user", () => {
     const criteria = criteriaOf("drafts", withTeams);
 
