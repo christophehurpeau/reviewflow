@@ -40,8 +40,8 @@
     "watch": "pnpm run clean:build && rollup --config rollup.config.mjs --watch"
   },
   "dependencies": {
-    "liwi-mongo": "13.3.0",
-    "liwi-resources-client": "13.2.0"
+    "liwi-mongo": "13.3.3",
+    "liwi-resources-client": "13.3.3"
   },
   "devDependencies": {
     "@pob/rollup-esbuild": "10.0.0",
