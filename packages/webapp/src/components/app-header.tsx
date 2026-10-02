@@ -6,14 +6,14 @@ import {
   BrandLogo,
   ColorModePicker,
   ExternalLink,
+  HeaderNav,
+  HeaderNavItem,
   MenuItem,
-  NavBar,
-  NavBarItem,
   Text,
 } from "alouette";
 import { ChecksRegularIcon } from "alouette-icons/phosphor-icons/ChecksRegularIcon";
 import { SignOutRegularIcon } from "alouette-icons/phosphor-icons/SignOutRegularIcon";
-import { usePathname, useRouter } from "expo-router";
+import { Link, usePathname, useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useAuthenticatedUser } from "#/services/AuthenticatedUserProvider.tsx";
 import { useColorModePreference } from "#/services/ColorModeProvider.tsx";
@@ -71,24 +71,14 @@ export function ReviewflowHeader(): ReactNode {
         </AppHeaderActions>
       }
     >
-      <NavBar stretch aria-label="Sections" value={sectionOf(pathname)}>
-        <NavBarItem
-          href={prsHref}
-          label="Pull requests"
-          onPress={(event) => {
-            event.preventDefault();
-            router.navigate(prsHref);
-          }}
-        />
-        <NavBarItem
-          href={settingsHref}
-          label="Settings"
-          onPress={(event) => {
-            event.preventDefault();
-            router.navigate(settingsHref);
-          }}
-        />
-      </NavBar>
+      <HeaderNav aria-label="Sections" value={sectionOf(pathname)}>
+        <Link href={prsHref} asChild>
+          <HeaderNavItem label="Pull requests" />
+        </Link>
+        <Link href={settingsHref} asChild>
+          <HeaderNavItem label="Settings" />
+        </Link>
+      </HeaderNav>
     </AppHeader>
   );
 }
