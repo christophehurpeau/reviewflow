@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-native";
-import { PressableListItem, Text } from "alouette";
+import { PressableListItem, Text, View } from "alouette";
 import { fn } from "storybook/test";
 import { StartReviewButton } from "#/components/start-review-button.tsx";
 import { Story } from "#storybook/Story.tsx";
@@ -39,12 +39,15 @@ export const VariantsStory: StoryObj<typeof StartReviewButton> = {
 
       {/* the row press must not fire, and the failure message stays flat */}
       <Story.Section title="inside the row it acts on">
-        <PressableListItem
-          actions={<StartReviewButton onStartReview={fails} />}
-          onPress={fn()}
-        >
-          <Text className="font-body-bold">Fix flaky worker retry loop</Text>
-        </PressableListItem>
+        <View role="list">
+          <PressableListItem
+            role="listitem"
+            actions={<StartReviewButton onStartReview={fails} />}
+            onPress={fn()}
+          >
+            <Text className="font-body-bold">Fix flaky worker retry loop</Text>
+          </PressableListItem>
+        </View>
       </Story.Section>
     </Story>
   ),

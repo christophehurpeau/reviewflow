@@ -92,25 +92,29 @@ export function PrBucketSection({
       >
         {(prList) => (
           <View>
-            {prList.map((pr) => (
-              <PressableListItem
-                key={pr._id}
-                aria-label={`Open ${pr.orgLogin}/${pr.repoName}#${pr.number} ${pr.title}`}
-                actions={renderAction?.(pr)}
-                onPress={() => {
-                  onSelectPr(pr);
-                }}
-              >
-                <PrRow
-                  pr={pr}
-                  showDraft={showDraft}
-                  showPassedChecks={showPassedChecks}
-                  showReRequests={showReRequests}
-                  reviewRequestVerb={reviewRequestVerb}
-                  currentUserLogin={currentUserLogin}
-                />
-              </PressableListItem>
-            ))}
+            <View role="list">
+              {prList.map((pr) => (
+                <PressableListItem
+                  key={pr._id}
+                  // a button row would nest the action's button inside it
+                  role="listitem"
+                  aria-label={`Open ${pr.orgLogin}/${pr.repoName}#${pr.number} ${pr.title}`}
+                  actions={renderAction?.(pr)}
+                  onPress={() => {
+                    onSelectPr(pr);
+                  }}
+                >
+                  <PrRow
+                    pr={pr}
+                    showDraft={showDraft}
+                    showPassedChecks={showPassedChecks}
+                    showReRequests={showReRequests}
+                    reviewRequestVerb={reviewRequestVerb}
+                    currentUserLogin={currentUserLogin}
+                  />
+                </PressableListItem>
+              ))}
+            </View>
             <TruncatedCount prs={prs} shown={prList.length} />
           </View>
         )}
