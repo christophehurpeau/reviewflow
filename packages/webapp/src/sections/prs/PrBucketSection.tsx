@@ -30,7 +30,7 @@ export const hasBucketContent = (
 interface PrBucketSectionProps {
   title: string;
   icon: SVGIconElement;
-  iconAccent?: Accent;
+  accent?: Accent;
   prs: PrBucketResource;
   pending?: boolean;
   /** off where the section title already states it */
@@ -70,7 +70,7 @@ function TruncatedCount({ prs, shown }: TruncatedCountProps): ReactNode {
 export function PrBucketSection({
   title,
   icon,
-  iconAccent,
+  accent,
   prs,
   pending = false,
   showDraft,
@@ -84,7 +84,7 @@ export function PrBucketSection({
   if (!hasBucketContent(prs, pending)) return null;
 
   return (
-    <ListSection title={title} icon={icon} iconAccent={iconAccent}>
+    <ListSection title={title} icon={icon} accent={accent}>
       <ResourceView
         resource={prs}
         pending={pending}

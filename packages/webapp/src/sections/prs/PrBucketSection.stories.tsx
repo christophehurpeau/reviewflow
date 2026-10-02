@@ -125,11 +125,11 @@ export const VariantsStory: StoryObj<typeof PrBucketSection> = {
           onSelectPr={fn()}
         />
       </Story.Section>
-      <Story.Section title="iconAccent">
+      <Story.Section title="accent">
         <PrBucketSection
           title="Changes requested"
           icon={<EyeRegularIcon />}
-          iconAccent="danger"
+          accent="danger"
           prs={loaded(prs)}
           onSelectPr={fn()}
         />

@@ -51,12 +51,8 @@ export const VariantsStory: StoryObj<typeof ListSection> = {
           {rows(["Add storybook"])}
         </ListSection>
       </Story.Section>
-      <Story.Section title="iconAccent">
-        <ListSection
-          title="To review"
-          icon={<EyeRegularIcon />}
-          iconAccent="info"
-        >
+      <Story.Section title="accent">
+        <ListSection title="To review" icon={<EyeRegularIcon />} accent="info">
           {rows(["Add storybook"])}
         </ListSection>
       </Story.Section>
@@ -64,7 +60,7 @@ export const VariantsStory: StoryObj<typeof ListSection> = {
         <ListSection
           title="Pull requests waiting on a review from one of your teams"
           icon={<WarningRegularIcon />}
-          iconAccent="warning"
+          accent="warning"
         >
           {rows(["Add storybook"])}
         </ListSection>

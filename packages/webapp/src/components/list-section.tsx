@@ -5,8 +5,8 @@ import type { ReactNode } from "react";
 interface ListSectionProps {
   title: string;
   icon?: SVGIconElement;
-  /** tints the icon only, the way the slack home colors its section emojis */
-  iconAccent?: Accent;
+  /** tints the icon and the title, the way the slack home colors its section emojis */
+  accent?: Accent;
   children: ReactNode;
 }
 
@@ -17,23 +17,31 @@ interface ListSectionProps {
 export function ListSection({
   title,
   icon,
-  iconAccent,
+  accent,
   children,
 }: ListSectionProps): ReactNode {
   return (
     <View className="gap-xs">
-      <View className="flex-row mx-xs items-center gap-xs">
-        {icon ? (
-          <AccentScope accent={iconAccent}>
+      <AccentScope accent={accent}>
+        <View className="flex-row mx-xs items-center gap-xs">
+          {icon ? (
             <Icon
               icon={icon}
               size={20}
-              className={iconAccent ? "text-accent" : "text-muted"}
+              className={accent ? "text-accent" : "text-muted"}
             />
-          </AccentScope>
-        ) : null}
-        <Text className="font-heading-bold text-lg">{title}</Text>
-      </View>
+          ) : null}
+          <Text
+            className={
+              accent
+                ? "font-heading-bold text-lg text-accent"
+                : "font-heading-bold text-lg"
+            }
+          >
+            {title}
+          </Text>
+        </View>
+      </AccentScope>
       {children}
     </View>
   );

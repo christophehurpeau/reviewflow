@@ -111,7 +111,7 @@ export function PrsScreen({
                           <PrBucketSection
                             title="Re-Requested reviews"
                             icon={<EyeglassesRegularIcon />}
-                            iconAccent="brand"
+                            accent="brand"
                             prs={reReviewsRequested}
                             pending={pending}
                             showReRequests={false}
@@ -122,7 +122,7 @@ export function PrsScreen({
                           <PrBucketSection
                             title="Requested reviews"
                             icon={<EyeRegularIcon />}
-                            iconAccent="brand"
+                            accent="brand"
                             prs={requestedReviews}
                             pending={pending}
                             reviewRequestVerb="requested"
@@ -137,7 +137,7 @@ export function PrsScreen({
                           <PrBucketSection
                             title="Ready to merge"
                             icon={<CheckCircleRegularIcon />}
-                            iconAccent="success"
+                            accent="success"
                             prs={readyToMerge}
                             pending={pending}
                             reviewRequestVerb="requested"
@@ -147,7 +147,7 @@ export function PrsScreen({
                           <PrBucketSection
                             title="Changes requested"
                             icon={<XCircleRegularIcon />}
-                            iconAccent="danger"
+                            accent="danger"
                             prs={changesRequested}
                             pending={pending}
                             showPassedChecks={false}
@@ -163,7 +163,7 @@ export function PrsScreen({
                           <PrBucketSection
                             title="Missing request for review"
                             icon={<WarningRegularIcon />}
-                            iconAccent="warning"
+                            accent="warning"
                             prs={missingReviewRequest}
                             pending={pending}
                             currentUserLogin={user?.login}
