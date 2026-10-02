@@ -202,7 +202,7 @@ importers:
         version: 10.5.4(17b4c6026f9323baf0b23de05723e5c0)
       alouette:
         specifier: 23.0.0
-        version: 23.0.0(1f1a1336fcb6f9e57ea7c090f082bf12)
+        version: 23.0.0(86dcb31b7a9f081fb80cef71978202aa)
       alouette-icons:
         specifier: 11.1.0
         version: 11.1.0(react-native-svg@15.15.5(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8))(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
@@ -234,8 +234,8 @@ importers:
         specifier: 13.3.3
         version: 13.3.3
       nativewind:
-        specifier: 5.0.0-preview.4
-        version: 5.0.0-preview.4(react-native-css@3.0.7(@expo/metro-config@57.0.8(@typescript/typescript6@6.0.2)(bufferutil@4.1.0)(expo@57.0.12)(supports-color@8.1.1)(utf-8-validate@6.0.6))(lightningcss@1.33.0)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@8.1.1))(tailwindcss@4.3.3)
+        specifier: 5.0.0-rc.0
+        version: 5.0.0-rc.0(react-native-css@3.1.0-rc.0(@expo/metro-config@57.0.8(@typescript/typescript6@6.0.2)(bufferutil@4.1.0)(expo@57.0.12)(supports-color@8.1.1)(utf-8-validate@6.0.6))(lightningcss@1.33.0)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@8.1.1))(tailwindcss@4.3.3)
       react:
         specifier: 19.2.8
         version: 19.2.8
@@ -249,8 +249,8 @@ importers:
         specifier: 0.86.2
         version: 0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6)
       react-native-css:
-        specifier: 3.0.7
-        version: 3.0.7(@expo/metro-config@57.0.8(@typescript/typescript6@6.0.2)(bufferutil@4.1.0)(expo@57.0.12)(supports-color@8.1.1)(utf-8-validate@6.0.6))(lightningcss@1.33.0)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@8.1.1)
+        specifier: 3.1.0-rc.0
+        version: 3.1.0-rc.0(@expo/metro-config@57.0.8(@typescript/typescript6@6.0.2)(bufferutil@4.1.0)(expo@57.0.12)(supports-color@8.1.1)(utf-8-validate@6.0.6))(lightningcss@1.33.0)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@8.1.1)
       react-native-gesture-handler:
         specifier: 2.32.0
         version: 2.32.0(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
@@ -4012,6 +4012,9 @@ packages:
   colorjs.io@0.6.0-alpha.1:
     resolution: {integrity: sha512-c/h/8uAmPydQcriRdX8UTAFHj6SpSHFHBA8LvMikvYWAVApPTwg/pyOXNsGmaCBd6L/EeDlRHSNhTtnIFp/qsg==}
 
+  colorjs.io@0.7.0:
+    resolution: {integrity: sha512-JfLy3aZW1Xp2iwSFzGlLn0XSMnIdItH3BmzsXtwHVFEWwVUJIwKBWNzjQq2Tgf3998OY7qW2R6klrlYo8vmEGg==}
+
   commander@12.1.0:
     resolution: {integrity: sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==}
     engines: {node: '>=18'}
@@ -4337,10 +4340,6 @@ packages:
 
   end-of-stream@1.4.5:
     resolution: {integrity: sha512-ooEGc6HP26xXq/N+GCGOT0JKCLDGrq2bQUZrQ7gyrJiZANJ/8YDTxTpQBXGMn+WbIQXNVpyWymm7KYVICQnyOg==}
-
-  enhanced-resolve@5.24.5:
-    resolution: {integrity: sha512-L1l8TNvomm6UVW5B253AGxQagSQr+vGwhMlrrfRS2qmhx46AMpMVJKQYLvWYbysTMY8VoicOvzHzoHMbyzB+4A==}
-    engines: {node: '>=10.13.0'}
 
   enhanced-resolve@5.26.0:
     resolution: {integrity: sha512-9vhedylFonb2YGogzUKX6+Ja72gOJbN1QHAqdrvqLwhdl/QWbKopzoUC9EbQNVsAns/bx/4uyqalrQAoy1IByw==}
@@ -5973,11 +5972,11 @@ packages:
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
     hasBin: true
 
-  nativewind@5.0.0-preview.4:
-    resolution: {integrity: sha512-eLsFGczxIsWADoD18EbEyt01aWgw4uP1/t/O7JIsp/OEbSgVYVobW97e2DDTOxxiiqSu0RexC1KSo5d7tes9uQ==}
+  nativewind@5.0.0-rc.0:
+    resolution: {integrity: sha512-CrESAPb428+EVNvGhUaMfbNllyk6lOnX1ZlVlNktCeae/4mIbb6x4SxN62Rg3cLHNRrRLYZEPYGmqkZ8fVIRZQ==}
     engines: {node: '>=20'}
     peerDependencies:
-      react-native-css: ^3.0.1
+      react-native-css: 3.1.0-rc.0
       tailwindcss: '>4.1.11'
 
   natural-compare@1.4.0:
@@ -6440,8 +6439,8 @@ packages:
     peerDependencies:
       react: ^19.0.0
 
-  react-native-css@3.0.7:
-    resolution: {integrity: sha512-xsU9T5MleHI/DDmY72A7ZikbkDfDNkMrAEichOJW2bBUMxPzAJPrFk9ys4cXYk4gLFaR11y23EccOJ+JT6Iusw==}
+  react-native-css@3.1.0-rc.0:
+    resolution: {integrity: sha512-/wfPJ8pXiPxvHUs0QcocN3ViV4QJdnXpKukNirZJcJ/MeZKrStSEHm2rBq+KuZm8/2XDl4GfeuaVvJctYGtdgA==}
     peerDependencies:
       '@expo/metro-config': '>=54'
       lightningcss: '>=1.27.0'
@@ -10998,13 +10997,13 @@ snapshots:
       react-native: 0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6)
       react-native-svg: 15.15.5(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
 
-  alouette@23.0.0(1f1a1336fcb6f9e57ea7c090f082bf12):
+  alouette@23.0.0(86dcb31b7a9f081fb80cef71978202aa):
     dependencies:
       '@tailwindcss/postcss': 4.3.3
       alouette-icons: 11.1.0(react-native-svg@15.15.5(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8))(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
       colorjs.io: 0.6.0-alpha.1
       downshift: 9.4.0(react@19.2.8)
-      nativewind: 5.0.0-preview.4(react-native-css@3.0.7(@expo/metro-config@57.0.8(@typescript/typescript6@6.0.2)(bufferutil@4.1.0)(expo@57.0.12)(supports-color@8.1.1)(utf-8-validate@6.0.6))(lightningcss@1.33.0)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@8.1.1))(tailwindcss@4.3.3)
+      nativewind: 5.0.0-rc.0(react-native-css@3.1.0-rc.0(@expo/metro-config@57.0.8(@typescript/typescript6@6.0.2)(bufferutil@4.1.0)(expo@57.0.12)(supports-color@8.1.1)(utf-8-validate@6.0.6))(lightningcss@1.33.0)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@8.1.1))(tailwindcss@4.3.3)
       react: 19.2.8
       react-hook-form: 7.81.0(react@19.2.8)
       react-native: 0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6)
@@ -11460,6 +11459,8 @@ snapshots:
 
   colorjs.io@0.6.0-alpha.1: {}
 
+  colorjs.io@0.7.0: {}
+
   commander@12.1.0: {}
 
   commander@14.0.3: {}
@@ -11765,11 +11766,6 @@ snapshots:
     dependencies:
       once: 1.4.0
 
-  enhanced-resolve@5.24.5:
-    dependencies:
-      graceful-fs: 4.2.11
-      tapable: 2.3.3
-
   enhanced-resolve@5.26.0:
     dependencies:
       graceful-fs: 4.2.11
@@ -11983,7 +11979,7 @@ snapshots:
   eslint-plugin-n@17.24.0(@typescript/typescript6@6.0.2)(eslint@10.8.1(jiti@2.7.0)(supports-color@8.1.1)):
     dependencies:
       '@eslint-community/eslint-utils': 4.10.1(eslint@10.8.1(jiti@2.7.0)(supports-color@8.1.1))
-      enhanced-resolve: 5.24.5
+      enhanced-resolve: 5.26.0
       eslint: 10.8.1(jiti@2.7.0)(supports-color@8.1.1)
       eslint-plugin-es-x: 7.8.0(eslint@10.8.1(jiti@2.7.0)(supports-color@8.1.1))
       get-tsconfig: 4.14.0
@@ -13814,9 +13810,9 @@ snapshots:
 
   napi-postinstall@0.3.4: {}
 
-  nativewind@5.0.0-preview.4(react-native-css@3.0.7(@expo/metro-config@57.0.8(@typescript/typescript6@6.0.2)(bufferutil@4.1.0)(expo@57.0.12)(supports-color@8.1.1)(utf-8-validate@6.0.6))(lightningcss@1.33.0)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@8.1.1))(tailwindcss@4.3.3):
+  nativewind@5.0.0-rc.0(react-native-css@3.1.0-rc.0(@expo/metro-config@57.0.8(@typescript/typescript6@6.0.2)(bufferutil@4.1.0)(expo@57.0.12)(supports-color@8.1.1)(utf-8-validate@6.0.6))(lightningcss@1.33.0)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@8.1.1))(tailwindcss@4.3.3):
     dependencies:
-      react-native-css: 3.0.7(@expo/metro-config@57.0.8(@typescript/typescript6@6.0.2)(bufferutil@4.1.0)(expo@57.0.12)(supports-color@8.1.1)(utf-8-validate@6.0.6))(lightningcss@1.33.0)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@8.1.1)
+      react-native-css: 3.1.0-rc.0(@expo/metro-config@57.0.8(@typescript/typescript6@6.0.2)(bufferutil@4.1.0)(expo@57.0.12)(supports-color@8.1.1)(utf-8-validate@6.0.6))(lightningcss@1.33.0)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@8.1.1)
       tailwindcss: 4.3.3
       tailwindcss-safe-area: 1.3.0(tailwindcss@4.3.3)
 
@@ -14377,12 +14373,12 @@ snapshots:
       nightingale-logger: 18.2.0
       react: 19.2.8
 
-  react-native-css@3.0.7(@expo/metro-config@57.0.8(@typescript/typescript6@6.0.2)(bufferutil@4.1.0)(expo@57.0.12)(supports-color@8.1.1)(utf-8-validate@6.0.6))(lightningcss@1.33.0)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@8.1.1):
+  react-native-css@3.1.0-rc.0(@expo/metro-config@57.0.8(@typescript/typescript6@6.0.2)(bufferutil@4.1.0)(expo@57.0.12)(supports-color@8.1.1)(utf-8-validate@6.0.6))(lightningcss@1.33.0)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@8.1.1):
     dependencies:
       '@expo/metro-config': 57.0.8(@typescript/typescript6@6.0.2)(bufferutil@4.1.0)(expo@57.0.12)(supports-color@8.1.1)(utf-8-validate@6.0.6)
       '@types/debug': 4.1.13
       babel-plugin-react-compiler: 19.1.0-rc.3
-      colorjs.io: 0.6.0-alpha.1
+      colorjs.io: 0.7.0
       comment-json: 4.6.2
       debug: 4.4.3(supports-color@8.1.1)
       lightningcss: 1.33.0
