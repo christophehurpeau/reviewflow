@@ -1,5 +1,6 @@
 /**
- * Regenerate the bot logos in packages/reviewflow/logos.
+ * Regenerate the bot logos in packages/reviewflow/logos, and the webapp
+ * favicon in packages/webapp/assets.
  *
  * Usage: pnpm --filter webapp run build:logos
  *
@@ -22,12 +23,13 @@
 
 /* eslint-disable no-console -- this is a cli script, its output is the point */
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
 const iconName = "ChecksRegularIcon";
 const logosDir = new URL("../reviewflow/logos/", import.meta.url);
+const webappAssetsDir = new URL("./assets/", import.meta.url);
 const paletteCssUrl = new URL("./src/palette.css", import.meta.url);
 
 interface BrandColors {
@@ -55,7 +57,8 @@ function readBrandColors(): BrandColors {
     if (!value) {
       throw new Error(`no --color-${name} in the .light_brand palette block`);
     }
-    return value.trim();
+    // The generator writes uppercase hex, oxfmt lowercases it once committed.
+    return value.trim().toLowerCase();
   };
 
   return { green: readVariable("enabled"), onGreen: readVariable("on-accent") };
@@ -136,6 +139,8 @@ function buildSvg({
 
 interface LogoSpec extends Omit<BuildSvgParams, "colors" | "icon"> {
   fileName: string;
+  /** Where the file is written, the bot logos folder unless set. */
+  outputDir?: URL;
 }
 
 // Matching the mark the previous logos drew: it spanned all but a couple of
@@ -205,6 +210,16 @@ const logos: LogoSpec[] = [
     background: undefined,
     iconRatio: discIconRatio,
   },
+  // The webapp favicon (`web.favicon` in app.json), which expo export turns
+  // into favicon.ico. A browser tab is light or dark, so it takes the disc.
+  {
+    fileName: "favicon.png",
+    outputDir: webappAssetsDir,
+    treatment: "disc",
+    size: 512,
+    background: undefined,
+    iconRatio: discIconRatio,
+  },
 ];
 
 const colors = readBrandColors();
@@ -216,9 +231,10 @@ console.log(
 const browser = await chromium.launch();
 
 try {
-  for (const { fileName, ...svgParams } of logos) {
+  for (const { fileName, outputDir = logosDir, ...svgParams } of logos) {
     const svg = buildSvg({ ...svgParams, icon, colors });
-    const outputUrl = new URL(fileName, logosDir);
+    const outputUrl = new URL(fileName, outputDir);
+    mkdirSync(outputDir, { recursive: true });
 
     if (fileName.endsWith(".svg")) {
       writeFileSync(outputUrl, `${svg}\n`);

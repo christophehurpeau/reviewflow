@@ -19,7 +19,7 @@
   "scripts": {
     "build": "expo export --platform web --output-dir dist",
     "build:logos": "node build-logos.ts",
-    "build:theme": "node build-theme.ts",
+    "build:theme": "node build-theme.ts && pnpm run build:logos",
     "clean": "rm -rf dist",
     "lint": "pnpm run lint:eslint",
     "lint:eslint": "pnpm run --dir '../..' eslint --quiet 'packages/webapp'",
