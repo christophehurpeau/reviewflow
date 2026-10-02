@@ -11,7 +11,7 @@ import {
   NavBarItem,
   Text,
 } from "alouette";
-import { GitPullRequestRegularIcon } from "alouette-icons/phosphor-icons/GitPullRequestRegularIcon";
+import { ChecksRegularIcon } from "alouette-icons/phosphor-icons/ChecksRegularIcon";
 import { SignOutRegularIcon } from "alouette-icons/phosphor-icons/SignOutRegularIcon";
 import { usePathname, useRouter } from "expo-router";
 import type { ReactNode } from "react";
@@ -40,7 +40,7 @@ export function ReviewflowHeader(): ReactNode {
       brand={
         <AppHeaderBrand
           title="reviewflow"
-          brandLogo={<BrandLogo icon={<GitPullRequestRegularIcon />} />}
+          brandLogo={<BrandLogo icon={<ChecksRegularIcon />} />}
           href="/"
           onPress={(event) => {
             event.preventDefault();
