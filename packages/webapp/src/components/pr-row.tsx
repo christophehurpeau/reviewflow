@@ -2,10 +2,9 @@ import {
   AccentScope,
   ExternalLink,
   ExternalLinkText,
-  HStack,
   InteractiveBox,
   Text,
-  VStack,
+  View,
 } from "alouette";
 import type { ExternalOpenLinkBehavior } from "alouette";
 import { Fragment } from "react";
@@ -44,7 +43,7 @@ function PrStatusLine({
   const hasAlert = Boolean(failed || changesRequested);
 
   return (
-    <HStack className="flex-wrap items-baseline gap-xs">
+    <View className="flex-row flex-wrap items-baseline gap-xs">
       {failed ? (
         <AccentScope accent="danger">
           <Text className="font-body-bold text-accent text-sm">{failed}</Text>
@@ -72,7 +71,7 @@ function PrStatusLine({
       {rest ? (
         <Text className="font-body text-muted text-sm">{rest}</Text>
       ) : null}
-    </HStack>
+    </View>
   );
 }
 
@@ -113,8 +112,8 @@ export function PrRow({
   const owners = selectPrOwners(pr, { currentUserLogin });
 
   return (
-    <VStack className="flex-1 gap-xxs">
-      <HStack className="flex-wrap items-center gap-xs">
+    <View className="flex-1 gap-xxs">
+      <View className="flex-row flex-wrap items-center gap-xs">
         <Text className="font-mono text-xs text-muted">
           {`${pr.orgLogin}/${pr.repoName}#${pr.number}`}
         </Text>
@@ -160,16 +159,16 @@ export function PrRow({
             <Text className="text-xs text-muted">{flowDate}</Text>
           </>
         ) : null}
-      </HStack>
+      </View>
 
-      <HStack className="flex-wrap items-baseline gap-xs">
+      <View className="flex-row flex-wrap items-baseline gap-xs">
         <Text className="font-body-bold">{pr.title}</Text>
         {owners ? (
           <Text className="text-muted text-sm">{owners.label}</Text>
         ) : null}
-      </HStack>
+      </View>
 
       <PrStatusLine {...status} />
-    </VStack>
+    </View>
   );
 }

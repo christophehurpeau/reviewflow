@@ -1,4 +1,4 @@
-import { ErrorMessage, Text, VStack, View } from "alouette";
+import { ErrorMessage, Text, View } from "alouette";
 import type { ReactNode } from "react";
 import { errorToMessage } from "#/errorToMessage.ts";
 
@@ -16,9 +16,9 @@ export function StartReviewScreen({
   error,
 }: StartReviewScreenProps): ReactNode {
   return (
-    <VStack className="min-h-screen items-center justify-center bg-screen p-l">
+    <View className="min-h-screen items-center justify-center bg-screen p-l">
       {error === undefined ? (
-        <VStack
+        <View
           className="items-center gap-m"
           role="status"
           aria-label="Redirecting to the pull request"
@@ -27,15 +27,15 @@ export function StartReviewScreen({
           <Text className="font-body text-muted">
             Redirecting to the pull request…
           </Text>
-        </VStack>
+        </View>
       ) : (
-        <VStack className="w-full max-w-[480px] gap-m">
+        <View className="w-full max-w-[480px] gap-m">
           <Text className="font-heading-extrabold text-2xl">
             Could not start the review
           </Text>
           <ErrorMessage>{errorToMessage(error)}</ErrorMessage>
-        </VStack>
+        </View>
       )}
-    </VStack>
+    </View>
   );
 }

@@ -1,4 +1,4 @@
-import { VStack } from "alouette";
+import { View } from "alouette";
 import type { ReactNode } from "react";
 
 /**
@@ -18,8 +18,8 @@ export function PageContainer({
   children,
 }: PageContainerProps): ReactNode {
   return (
-    <VStack className={[pageContainerClassName, className].join(" ")}>
+    <View className={[pageContainerClassName, className].join(" ")}>
       {children}
-    </VStack>
+    </View>
   );
 }

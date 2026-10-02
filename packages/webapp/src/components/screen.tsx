@@ -1,4 +1,4 @@
-import { HStack, IconButton, Text, VStack } from "alouette";
+import { IconButton, Text, View } from "alouette";
 import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeftRegularIcon";
 import type { ReactNode } from "react";
 import { PageContainer } from "#/components/page-container.tsx";
@@ -20,8 +20,8 @@ export function Screen({
 }: ScreenProps): ReactNode {
   return (
     <PageContainer className="gap-l py-l">
-      <VStack className="gap-xs">
-        <HStack className="gap-m items-center">
+      <View className="gap-xs">
+        <View className="flex-row gap-m items-center">
           {onBack ? (
             <IconButton
               icon={<ArrowLeftRegularIcon />}
@@ -35,9 +35,9 @@ export function Screen({
               {title}
             </Text>
           ) : null}
-        </HStack>
+        </View>
         {actions}
-      </VStack>
+      </View>
       {children}
     </PageContainer>
   );

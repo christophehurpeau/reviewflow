@@ -1,4 +1,4 @@
-import { AccentScope, HStack, Icon, Text, VStack } from "alouette";
+import { AccentScope, Icon, Text, View } from "alouette";
 import type { Accent, SVGIconElement } from "alouette";
 import type { ReactNode } from "react";
 
@@ -12,7 +12,7 @@ interface ListSectionProps {
 
 /**
  * Heading above a list of pressable rows. Rows are raised on their own, so the
- * section stays on the screen background rather than in a Surface.
+ * section stays on the screen background rather than in a surface.
  */
 export function ListSection({
   title,
@@ -21,8 +21,8 @@ export function ListSection({
   children,
 }: ListSectionProps): ReactNode {
   return (
-    <VStack className="gap-xs">
-      <HStack className="mx-xs items-center gap-xs">
+    <View className="gap-xs">
+      <View className="flex-row mx-xs items-center gap-xs">
         {icon ? (
           <AccentScope accent={iconAccent}>
             <Icon
@@ -33,8 +33,8 @@ export function ListSection({
           </AccentScope>
         ) : null}
         <Text className="font-heading-bold text-lg">{title}</Text>
-      </HStack>
+      </View>
       {children}
-    </VStack>
+    </View>
   );
 }

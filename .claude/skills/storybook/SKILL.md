@@ -49,8 +49,8 @@ session.
 - Stories render fullscreen (`preview.tsx` sets `parameters.layout`), so a story
   gets exactly the frame the app would: don't set `layout` per story, and don't
   wrap a screen story in a fixed-size frame. `<Story>` supplies its own padding.
-- The alouette nesting rules still apply inside a story: never put a `Surface`
-  or a `PressableListItem` inside another raised surface.
+- The alouette nesting rules still apply inside a story: never put a
+  `surface` box or a `PressableListItem` inside another raised surface.
 
 ## Components
 

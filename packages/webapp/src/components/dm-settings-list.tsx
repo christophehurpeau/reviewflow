@@ -1,4 +1,4 @@
-import { ErrorMessage, HStack, Switch, Text, VStack } from "alouette";
+import { ErrorMessage, Switch, Text, View } from "alouette";
 import type { ReactNode } from "react";
 import { useOperation } from "react-liwi";
 import type { MessageCategory, OrgSettings } from "reviewflow-modules";
@@ -22,12 +22,12 @@ export function DmSettingsList({
   );
 
   return (
-    <VStack className="gap-xs">
+    <View className="gap-xs">
       {error ? <ErrorMessage>{error.message}</ErrorMessage> : null}
       {dmMessageCategories.map((key) => {
         const labelId = `dm-setting-${key}`;
         return (
-          <HStack key={key} className="items-center gap-m">
+          <View key={key} className="flex-row items-center gap-m">
             <Switch
               checked={settings[key] ?? defaultDmSettings[key]}
               aria-labelledby={labelId}
@@ -38,9 +38,9 @@ export function DmSettingsList({
             <Text nativeID={labelId} className="flex-1 font-body">
               {dmMessageLabels[key]}
             </Text>
-          </HStack>
+          </View>
         );
       })}
-    </VStack>
+    </View>
   );
 }

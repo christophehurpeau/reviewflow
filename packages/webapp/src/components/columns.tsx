@@ -1,9 +1,4 @@
-import {
-  BreakpointNameEnum,
-  HStack,
-  VStack,
-  useCurrentBreakpointName,
-} from "alouette";
+import { BreakpointNameEnum, View, useCurrentBreakpointName } from "alouette";
 import { Children, type ReactNode } from "react";
 
 const distributeRoundRobin = (
@@ -36,12 +31,12 @@ export function Columns({
       : [items];
 
   return (
-    <HStack className="items-start gap-l">
+    <View className="flex-row items-start gap-l">
       {columns.map((columnItems, index) => (
-        <VStack key={`column-${index}`} className="flex-1 gap-l">
+        <View key={`column-${index}`} className="flex-1 gap-l">
           {columnItems}
-        </VStack>
+        </View>
       ))}
-    </HStack>
+    </View>
   );
 }

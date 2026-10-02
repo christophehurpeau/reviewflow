@@ -1,4 +1,4 @@
-import { Button, ErrorMessage, VStack } from "alouette";
+import { Button, ErrorMessage, View } from "alouette";
 import { ResourcesServerError } from "liwi-resources-client";
 import type { ReactNode } from "react";
 import { createContext, use, useEffect, useMemo, useState } from "react";
@@ -81,8 +81,8 @@ export function AuthenticatedUserProvider({
 
   if (!contextValue) {
     return (
-      <VStack className="min-h-screen bg-screen">
-        <VStack className="mx-auto w-full max-w-[960px] gap-l p-l">
+      <View className="min-h-screen bg-screen">
+        <View className="mx-auto w-full max-w-[960px] gap-l p-l">
           {error ? (
             <>
               <ErrorMessage>{errorToMessage(error)}</ErrorMessage>
@@ -98,8 +98,8 @@ export function AuthenticatedUserProvider({
           ) : (
             <SkeletonSections sections={2} />
           )}
-        </VStack>
-      </VStack>
+        </View>
+      </View>
     );
   }
 

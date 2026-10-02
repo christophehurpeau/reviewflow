@@ -1,4 +1,4 @@
-import { PressableListItem, Text, VStack } from "alouette";
+import { PressableListItem, Text, View } from "alouette";
 import type { Accent, SVGIconElement } from "alouette";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
@@ -91,7 +91,7 @@ export function PrBucketSection({
         loading={<SkeletonList rows={2} />}
       >
         {(prList) => (
-          <VStack>
+          <View>
             {prList.map((pr) => (
               <PressableListItem
                 key={pr._id}
@@ -112,7 +112,7 @@ export function PrBucketSection({
               </PressableListItem>
             ))}
             <TruncatedCount prs={prs} shown={prList.length} />
-          </VStack>
+          </View>
         )}
       </ResourceView>
     </ListSection>

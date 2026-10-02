@@ -1,4 +1,4 @@
-import { Button, VStack, WarningMessage } from "alouette";
+import { Button, View, WarningMessage } from "alouette";
 import type { ReactNode } from "react";
 import { Screen } from "#/components/screen.tsx";
 
@@ -13,12 +13,12 @@ export function OrgNotFoundScreen({
 }: OrgNotFoundScreenProps): ReactNode {
   return (
     <Screen title={orgLogin}>
-      <VStack className="gap-m">
+      <View className="gap-m">
         <WarningMessage>
           {`You have no access to ${orgLogin}, or reviewflow is not installed on it.`}
         </WarningMessage>
         <Button accent="neutral" text="Back to settings" onPress={onBack} />
-      </VStack>
+      </View>
     </Screen>
   );
 }

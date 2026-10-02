@@ -1,4 +1,4 @@
-import { Surface, Text, VStack } from "alouette";
+import { Box, Text, View } from "alouette";
 import type { ReactNode } from "react";
 
 interface SettingsSectionProps {
@@ -11,9 +11,9 @@ export function SettingsSection({
   children,
 }: SettingsSectionProps): ReactNode {
   return (
-    <Surface size="md" className="gap-m">
+    <Box className="surface surface-md gap-m">
       <Text className="font-heading-bold text-lg">{title}</Text>
-      <VStack className="gap-sm">{children}</VStack>
-    </Surface>
+      <View className="gap-sm">{children}</View>
+    </Box>
   );
 }

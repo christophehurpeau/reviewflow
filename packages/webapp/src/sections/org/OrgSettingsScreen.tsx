@@ -1,4 +1,4 @@
-import { ActionButton, Badge, Code, InfoMessage, Text, VStack } from "alouette";
+import { ActionButton, Badge, Code, InfoMessage, Text, View } from "alouette";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
 import type {
@@ -82,7 +82,7 @@ function OrgSettingsContent({
   onForceSync,
 }: OrgSettingsContentProps): ReactNode {
   return (
-    <VStack className="gap-l">
+    <View className="gap-l">
       <Columns>
         <SettingsSection title="Account config">
           <Badge variant="solid.enabled">
@@ -124,7 +124,7 @@ function OrgSettingsContent({
       </Columns>
 
       <DmSettingsSections orgSettings={orgSettings} dmSettings={dmSettings} />
-    </VStack>
+    </View>
   );
 }
 

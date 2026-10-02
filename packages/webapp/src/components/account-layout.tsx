@@ -2,10 +2,10 @@ import {
   Avatar,
   BreadcrumbItem,
   Breadcrumbs,
-  HStack,
   NavBar,
   NavBarItem,
   Text,
+  View,
 } from "alouette";
 import { GearRegularIcon } from "alouette-icons/phosphor-icons/GearRegularIcon";
 import type { Href } from "expo-router";
@@ -54,13 +54,13 @@ export function AccountLayout({
           />
           <BreadcrumbItem href={sections[0]?.href} label={title} />
         </Breadcrumbs>
-        <HStack className="gap-m items-center">
+        <View className="flex-row gap-m items-center">
           <Avatar name={title} size="lg" />
           <Text className="font-heading-extrabold text-3xl xl:text-4xl">
             {title}
           </Text>
-        </HStack>
-        <HStack className="flex-center">
+        </View>
+        <View className="flex-row flex-center">
           <NavBar aria-label="Account sections" value={pathname}>
             {sections.map((section) => (
               <NavBarItem
@@ -74,7 +74,7 @@ export function AccountLayout({
               />
             ))}
           </NavBar>
-        </HStack>
+        </View>
       </PageContainer>
       {children}
     </>

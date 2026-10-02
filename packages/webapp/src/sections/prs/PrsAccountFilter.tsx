@@ -1,5 +1,5 @@
 import type { SelectOption } from "alouette";
-import { Select, Text, VStack } from "alouette";
+import { Select, Text, View } from "alouette";
 import type { ReactNode } from "react";
 import type { PrAccount } from "./prAccounts.ts";
 
@@ -30,7 +30,7 @@ export function PrsAccountFilter({
   ];
 
   return (
-    <VStack className="gap-xs md:max-w-[320px]">
+    <View className="gap-xs md:max-w-[320px]">
       <Text id={labelId} className="font-body text-sm text-muted">
         Account
       </Text>
@@ -42,6 +42,6 @@ export function PrsAccountFilter({
           onSelectAccountLogin(value === allAccountsValue ? undefined : value);
         }}
       />
-    </VStack>
+    </View>
   );
 }

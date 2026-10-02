@@ -59,14 +59,14 @@ pnpm lint                         # oxfmt + eslint
 
 ## Webapp UI (alouette)
 
-Never nest raised surfaces. `Surface` (and `SettingsSection`, which wraps it) and
-`PressableListItem` / `PressableBox variant="contained"` each carry their own
-`shadow-s`, background and radius, so one inside the other reads as a double
-elevation.
+Never nest raised surfaces. `<Box className="surface">` (and `SettingsSection`,
+which wraps it) and `PressableListItem` / `PressableBox` (default `tonal`
+variant) each carry their own `shadow-s`, background and radius, so one inside
+the other reads as a double elevation.
 
 - A list of pressable rows goes on the screen background, wrapped in
   `ListSection` for its heading.
-- `Surface` / `SettingsSection` is for static content only.
+- The `surface` class / `SettingsSection` is for static content only.
 
 The webapp ships its own palette instead of alouette's default: GitHub-Primer
 hues (green `brand` and `success`, Primer blue, red, amber, cool grays) declared

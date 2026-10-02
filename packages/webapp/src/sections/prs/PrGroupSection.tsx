@@ -1,4 +1,4 @@
-import { Text, VStack } from "alouette";
+import { Text, View } from "alouette";
 import type { ReactNode } from "react";
 
 interface PrGroupSectionProps {
@@ -15,9 +15,9 @@ export function PrGroupSection({
   children,
 }: PrGroupSectionProps): ReactNode {
   return (
-    <VStack className="gap-m">
+    <View className="gap-m">
       <Text className="mx-xs font-heading-extrabold text-xl">{title}</Text>
-      <VStack className="gap-l">{children}</VStack>
-    </VStack>
+      <View className="gap-l">{children}</View>
+    </View>
   );
 }

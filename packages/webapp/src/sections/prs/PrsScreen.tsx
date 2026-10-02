@@ -1,4 +1,4 @@
-import { ExternalLinkButton, HStack, InfoMessage, VStack } from "alouette";
+import { ExternalLinkButton, InfoMessage, View } from "alouette";
 import { BarricadeRegularIcon } from "alouette-icons/phosphor-icons/BarricadeRegularIcon";
 import { CheckCircleRegularIcon } from "alouette-icons/phosphor-icons/CheckCircleRegularIcon";
 import { ClockRegularIcon } from "alouette-icons/phosphor-icons/ClockRegularIcon";
@@ -79,23 +79,23 @@ export function PrsScreen({
 
               if (accounts.length === 0) {
                 return (
-                  <VStack className="gap-m md:max-w-[560px]">
+                  <View className="gap-m md:max-w-[560px]">
                     <InfoMessage>
                       Nothing installed yet. Install reviewflow on your github
                       account or organization to see your pull requests here.
                     </InfoMessage>
-                    <HStack>
+                    <View className="flex-row">
                       <ExternalLinkButton
                         href={installUrl}
                         text={`Install ${reviewflowName}`}
                       />
-                    </HStack>
-                  </VStack>
+                    </View>
+                  </View>
                 );
               }
 
               return (
-                <VStack className="gap-l">
+                <View className="gap-l">
                   <PrsAccountFilter
                     accounts={accounts}
                     selectedAccountLogin={selectedAccountLogin}
@@ -191,7 +191,7 @@ export function PrsScreen({
                       ) : null}
                     </Columns>
                   )}
-                </VStack>
+                </View>
               );
             }}
           </ResourceView>

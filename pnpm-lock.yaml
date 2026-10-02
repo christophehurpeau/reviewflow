@@ -201,8 +201,8 @@ importers:
         specifier: 10.5.4
         version: 10.5.4(17b4c6026f9323baf0b23de05723e5c0)
       alouette:
-        specifier: 22.13.0
-        version: 22.13.0(1f1a1336fcb6f9e57ea7c090f082bf12)
+        specifier: 23.0.0
+        version: 23.0.0(1f1a1336fcb6f9e57ea7c090f082bf12)
       alouette-icons:
         specifier: 11.1.0
         version: 11.1.0(react-native-svg@15.15.5(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8))(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
@@ -3611,14 +3611,14 @@ packages:
       react-native: '*'
       react-native-svg: '*'
 
-  alouette@22.13.0:
-    resolution: {integrity: sha512-pmjm9GZyA/Y/Erhua+yzb3LxxnLbIpO9zOMEyCBK8wXYopIxtB1mgRnk8AqK7q2pFhI9xSQJ3D3CkzHNZ+Vycg==}
+  alouette@23.0.0:
+    resolution: {integrity: sha512-t22r1ELDtHsRPRPFnlE6cSsdeqifvaaHiWHMWktUxB2yQtM4sJj9487U+ApvVuthQhW1j10vFiJaC0b7HMdTpQ==}
     engines: {node: '>=22.18.0'}
     hasBin: true
     peerDependencies:
       alouette-icons: 11.1.0
       expo-web-browser: '*'
-      nativewind: 5.0.0-preview.4
+      nativewind: 5.0.0-rc.0
       react: ^19.2.3
       react-dom: ^19.2.3
       react-native: '*'
@@ -4340,6 +4340,10 @@ packages:
 
   enhanced-resolve@5.24.5:
     resolution: {integrity: sha512-L1l8TNvomm6UVW5B253AGxQagSQr+vGwhMlrrfRS2qmhx46AMpMVJKQYLvWYbysTMY8VoicOvzHzoHMbyzB+4A==}
+    engines: {node: '>=10.13.0'}
+
+  enhanced-resolve@5.26.0:
+    resolution: {integrity: sha512-9vhedylFonb2YGogzUKX6+Ja72gOJbN1QHAqdrvqLwhdl/QWbKopzoUC9EbQNVsAns/bx/4uyqalrQAoy1IByw==}
     engines: {node: '>=10.13.0'}
 
   entities@4.5.0:
@@ -10230,7 +10234,7 @@ snapshots:
   '@tailwindcss/node@4.3.3':
     dependencies:
       '@jridgewell/remapping': 2.3.5
-      enhanced-resolve: 5.24.5
+      enhanced-resolve: 5.26.0
       jiti: 2.7.0
       lightningcss: 1.32.0
       magic-string: 0.30.21
@@ -10994,7 +10998,7 @@ snapshots:
       react-native: 0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6)
       react-native-svg: 15.15.5(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
 
-  alouette@22.13.0(1f1a1336fcb6f9e57ea7c090f082bf12):
+  alouette@23.0.0(1f1a1336fcb6f9e57ea7c090f082bf12):
     dependencies:
       '@tailwindcss/postcss': 4.3.3
       alouette-icons: 11.1.0(react-native-svg@15.15.5(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8))(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
@@ -11762,6 +11766,11 @@ snapshots:
       once: 1.4.0
 
   enhanced-resolve@5.24.5:
+    dependencies:
+      graceful-fs: 4.2.11
+      tapable: 2.3.3
+
+  enhanced-resolve@5.26.0:
     dependencies:
       graceful-fs: 4.2.11
       tapable: 2.3.3

@@ -1,4 +1,4 @@
-import { InfoMessage, PressableListItem, Text, VStack } from "alouette";
+import { InfoMessage, PressableListItem, Text, View } from "alouette";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
 import type {
@@ -19,7 +19,7 @@ function RepositoryList({
   onSelectRepository,
 }: RepositoryListProps): ReactNode {
   return (
-    <VStack>
+    <View>
       {repositories.map((repository) => (
         <PressableListItem
           key={repository._id}
@@ -32,7 +32,7 @@ function RepositoryList({
           </Text>
         </PressableListItem>
       ))}
-    </VStack>
+    </View>
   );
 }
 
@@ -69,7 +69,7 @@ export function RepositoriesScreen({
           );
 
           return (
-            <VStack className="gap-l">
+            <View className="gap-l">
               <RepositoryList
                 repositories={activeRepositories}
                 onSelectRepository={onSelectRepository}
@@ -82,7 +82,7 @@ export function RepositoriesScreen({
                   />
                 </ListSection>
               )}
-            </VStack>
+            </View>
           );
         }}
       </ResourceView>

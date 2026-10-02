@@ -4,7 +4,7 @@ import {
   ExternalLinkButton,
   InfoMessage,
   Paragraph,
-  VStack,
+  View,
   WarningMessage,
 } from "alouette";
 import type { ReactNode } from "react";
@@ -25,7 +25,7 @@ export function SlackConnectionCard({
   const query = `orgId=${encodeURIComponent(orgId)}&orgLogin=${encodeURIComponent(orgLogin)}`;
 
   return (
-    <VStack className="gap-m">
+    <View className="gap-m">
       {slack.usesDeprecatedCustomApp ? (
         <WarningMessage variant="flat">
           This account uses a custom slack application.
@@ -67,6 +67,6 @@ export function SlackConnectionCard({
           </Paragraph>
         </>
       ) : null}
-    </VStack>
+    </View>
   );
 }

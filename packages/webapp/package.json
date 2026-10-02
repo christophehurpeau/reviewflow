@@ -33,7 +33,7 @@
     "@gorhom/bottom-sheet": "5.2.14",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@storybook/react-native": "10.5.4",
-    "alouette": "22.13.0",
+    "alouette": "23.0.0",
     "alouette-icons": "11.1.0",
     "expo": "57.0.12",
     "expo-constants": "57.0.10",

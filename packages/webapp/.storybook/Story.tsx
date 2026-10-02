@@ -1,4 +1,4 @@
-import { ScreenScrollView, Text, VStack } from "alouette";
+import { ScreenScrollView, Text, View } from "alouette";
 import type { ReactNode } from "react";
 
 interface StoryProps {
@@ -12,10 +12,10 @@ interface StorySectionProps {
 
 function StorySection({ title, children }: StorySectionProps): ReactNode {
   return (
-    <VStack className="gap-xs">
+    <View className="gap-xs">
       <Text className="mx-xs font-mono text-muted text-sm">{title}</Text>
       {children}
-    </VStack>
+    </View>
   );
 }
 

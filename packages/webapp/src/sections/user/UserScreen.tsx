@@ -2,8 +2,7 @@ import {
   ActionButton,
   ConfirmationMessage,
   ExternalLinkButton,
-  HStack,
-  VStack,
+  View,
   WarningMessage,
 } from "alouette";
 import type { ReactNode } from "react";
@@ -28,30 +27,30 @@ export function UserScreen({ me, onForceSync }: UserScreenProps): ReactNode {
       <ResourceView resource={me} loading={<SkeletonBlock />}>
         {(user) =>
           user?.installed ? (
-            <VStack className="gap-m">
+            <View className="gap-m">
               <ConfirmationMessage>
                 {`${reviewflowName} is installed for this user.`}
               </ConfirmationMessage>
-              <HStack>
+              <View className="flex-row">
                 <ActionButton
                   text="Force sync"
                   onPress={onForceSync}
                   errorToMessage={errorToMessage}
                 />
-              </HStack>
-            </VStack>
+              </View>
+            </View>
           ) : (
-            <VStack className="gap-m">
+            <View className="gap-m">
               <WarningMessage>
                 {`${reviewflowName} is not installed for this user.`}
               </WarningMessage>
-              <HStack>
+              <View className="flex-row">
                 <ExternalLinkButton
                   href={userInstallUrl}
                   text="Open github configuration"
                 />
-              </HStack>
-            </VStack>
+              </View>
+            </View>
           )
         }
       </ResourceView>

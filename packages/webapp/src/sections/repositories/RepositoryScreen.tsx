@@ -1,10 +1,9 @@
 import {
   ActionButton,
   ExternalLinkButton,
-  HStack,
   InfoMessage,
   Text,
-  VStack,
+  View,
   WarningMessage,
 } from "alouette";
 import type { ReactNode } from "react";
@@ -43,7 +42,7 @@ export function RepositoryScreen({
       <ResourceView resource={repository} loading={<SkeletonBlock />}>
         {(repositoryData) =>
           repositoryData ? (
-            <VStack className="gap-m">
+            <View className="gap-m">
               {repositoryData.archived && (
                 <WarningMessage>
                   This repository is archived on github. Its pull requests are
@@ -53,14 +52,14 @@ export function RepositoryScreen({
               <InfoMessage>
                 Per repository settings are not editable here yet.
               </InfoMessage>
-              <VStack className="gap-xs">
+              <View className="gap-xs">
                 <Text className="font-body text-muted">
                   Resyncing reads the repository again from github: its name,
                   its settings and its labels. An archived repository is kept
                   without its pull requests. One that is deleted or no longer
                   part of the installation is removed from reviewflow.
                 </Text>
-                <HStack className="gap-sm">
+                <View className="flex-row gap-sm">
                   <ActionButton
                     text="Resync"
                     onPress={() => onSync(repositoryData._id)}
@@ -70,10 +69,11 @@ export function RepositoryScreen({
                     href={`https://github.com/${repositoryData.fullName}`}
                     text="Open on github"
                     accent="neutral"
+                    variant="soft"
                   />
-                </HStack>
-              </VStack>
-            </VStack>
+                </View>
+              </View>
+            </View>
           ) : (
             <WarningMessage>
               This repository is not known to reviewflow.

@@ -1,5 +1,5 @@
 import type { Preview } from "@storybook/react-native";
-import { AlouetteProvider, SafeAreaProvider, VStack } from "alouette";
+import { AlouetteProvider, SafeAreaProvider, View } from "alouette";
 import { themeVariables } from "#/themeVariables.ts";
 
 /**
@@ -11,9 +11,9 @@ const preview: Preview = {
     (Story) => (
       <SafeAreaProvider>
         <AlouetteProvider themeVariables={themeVariables}>
-          <VStack className="flex-1 bg-screen">
+          <View className="flex-1 bg-screen">
             <Story />
-          </VStack>
+          </View>
         </AlouetteProvider>
       </SafeAreaProvider>
     ),

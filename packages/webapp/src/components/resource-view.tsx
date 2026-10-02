@@ -1,4 +1,4 @@
-import { ErrorMessage, VStack } from "alouette";
+import { ErrorMessage, View } from "alouette";
 import type { QueryParams } from "liwi-resources-client";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
@@ -32,9 +32,9 @@ export function ResourceView<Data, Params extends QueryParams<Params>>({
   if (!resource.error) return children(resource.data);
 
   return (
-    <VStack className="gap-m">
+    <View className="gap-m">
       <ErrorMessage>{resource.error.message}</ErrorMessage>
       {children(resource.data)}
-    </VStack>
+    </View>
   );
 }

@@ -1,11 +1,4 @@
-import {
-  ErrorMessage,
-  HStack,
-  Paragraph,
-  Switch,
-  Text,
-  VStack,
-} from "alouette";
+import { ErrorMessage, Paragraph, Switch, Text, View } from "alouette";
 import type { ReactNode } from "react";
 import { useOperation } from "react-liwi";
 import type { OrgTeamSummary } from "reviewflow-modules";
@@ -30,7 +23,7 @@ export function TeamSilenceList({
   if (teams.length === 0) return null;
 
   return (
-    <VStack className="gap-xs">
+    <View className="gap-xs">
       {error ? <ErrorMessage>{error.message}</ErrorMessage> : null}
       <Paragraph className="font-body text-sm text-muted">
         Untick to disable notifications for teams you belong to.
@@ -38,7 +31,7 @@ export function TeamSilenceList({
       {teams.map((team) => {
         const labelId = `team-${team.id}`;
         return (
-          <HStack key={team.id} className="items-center gap-m">
+          <View key={team.id} className="flex-row items-center gap-m">
             <Switch
               checked={!silentTeamIds.includes(team.id)}
               aria-labelledby={labelId}
@@ -53,9 +46,9 @@ export function TeamSilenceList({
             <Text nativeID={labelId} className="flex-1 font-body">
               {team.name}
             </Text>
-          </HStack>
+          </View>
         );
       })}
-    </VStack>
+    </View>
   );
 }

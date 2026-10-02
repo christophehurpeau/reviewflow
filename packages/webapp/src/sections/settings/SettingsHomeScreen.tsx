@@ -1,11 +1,10 @@
 import {
   Avatar,
   ExternalLinkButton,
-  HStack,
   InfoMessage,
   PressableListItem,
   Text,
-  VStack,
+  View,
 } from "alouette";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
@@ -33,13 +32,13 @@ export function SettingsHomeScreen({
 }: SettingsHomeScreenProps): ReactNode {
   return (
     <Screen title="Settings">
-      <VStack className="gap-l">
+      <View className="gap-l">
         <ListSection title="Your account">
           <PressableListItem onPress={onSelectUser}>
-            <HStack className="items-center gap-m">
+            <View className="flex-row items-center gap-m">
               <Avatar name={userLogin} size="sm" />
               <Text className="font-body-bold">{userLogin}</Text>
-            </HStack>
+            </View>
           </PressableListItem>
         </ListSection>
 
@@ -47,20 +46,20 @@ export function SettingsHomeScreen({
           <ResourceView resource={orgs} loading={<SkeletonList rows={2} />}>
             {(orgList) =>
               orgList.length === 0 ? (
-                <VStack className="gap-m md:max-w-[560px]">
+                <View className="gap-m md:max-w-[560px]">
                   <InfoMessage>
                     No organization yet. Install reviewflow on a github
                     organization to get started.
                   </InfoMessage>
-                  <HStack>
+                  <View className="flex-row">
                     <ExternalLinkButton
                       href={installUrl}
                       text={`Install ${reviewflowName}`}
                     />
-                  </HStack>
-                </VStack>
+                  </View>
+                </View>
               ) : (
-                <VStack>
+                <View>
                   {orgList.map((org) => (
                     <PressableListItem
                       key={org._id}
@@ -68,18 +67,18 @@ export function SettingsHomeScreen({
                         onSelectOrg(org);
                       }}
                     >
-                      <HStack className="items-center gap-m">
+                      <View className="flex-row items-center gap-m">
                         <Avatar name={org.login} size="sm" />
                         <Text className="font-body-bold">{org.login}</Text>
-                      </HStack>
+                      </View>
                     </PressableListItem>
                   ))}
-                </VStack>
+                </View>
               )
             }
           </ResourceView>
         </ListSection>
-      </VStack>
+      </View>
     </Screen>
   );
 }
