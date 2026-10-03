@@ -14,7 +14,7 @@ export function SkeletonList({ rows = 3 }: SkeletonListProps): ReactNode {
   return (
     <View className="gap-xs" role="status" aria-label="Loading">
       {range(rows).map((row) => (
-        <View key={row} className={`${skeletonBar} mx-xs my-xxs h-[54px]`} />
+        <View key={row} className={`${skeletonBar} h-[54px]`} />
       ))}
     </View>
   );

@@ -16,7 +16,7 @@ export function PrGroupSection({
 }: PrGroupSectionProps): ReactNode {
   return (
     <View className="gap-m">
-      <Text className="mx-xs font-heading-extrabold text-xl">{title}</Text>
+      <Text className="font-heading-extrabold text-xl">{title}</Text>
       <View className="gap-l">{children}</View>
     </View>
   );

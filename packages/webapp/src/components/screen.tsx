@@ -1,5 +1,5 @@
 import { IconButton, Text, View } from "alouette";
-import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeftRegularIcon";
+import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeft";
 import type { ReactNode } from "react";
 import { PageContainer } from "#/components/page-container.tsx";
 

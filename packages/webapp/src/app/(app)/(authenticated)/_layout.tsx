@@ -1,4 +1,3 @@
-import { AppShellMain } from "alouette";
 import { Slot } from "expo-router";
 import type { ReactNode } from "react";
 import { ReviewflowShell } from "#/components/app-shell.tsx";
@@ -13,9 +12,7 @@ export default function AuthenticatedLayout(): ReactNode {
 
   return (
     <ReviewflowShell>
-      <AppShellMain>
-        <Slot />
-      </AppShellMain>
+      <Slot />
     </ReviewflowShell>
   );
 }

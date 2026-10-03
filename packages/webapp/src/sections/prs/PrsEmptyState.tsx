@@ -1,5 +1,5 @@
 import { Icon, Text, View } from "alouette";
-import { ConfettiRegularIcon } from "alouette-icons/phosphor-icons/ConfettiRegularIcon";
+import { ConfettiRegularIcon } from "alouette-icons/phosphor-icons/Confetti";
 import type { ReactNode } from "react";
 
 export function PrsEmptyState(): ReactNode {

@@ -23,7 +23,7 @@ export function ListSection({
   return (
     <View className="gap-xs">
       <AccentScope accent={accent}>
-        <View className="flex-row mx-xs items-center gap-xs">
+        <View className="flex-row items-center gap-xs">
           {icon ? (
             <Icon
               icon={icon}

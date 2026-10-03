@@ -1,11 +1,11 @@
 import { ExternalLinkButton, InfoMessage, View } from "alouette";
-import { BarricadeRegularIcon } from "alouette-icons/phosphor-icons/BarricadeRegularIcon";
-import { CheckCircleRegularIcon } from "alouette-icons/phosphor-icons/CheckCircleRegularIcon";
-import { ClockRegularIcon } from "alouette-icons/phosphor-icons/ClockRegularIcon";
-import { EyeRegularIcon } from "alouette-icons/phosphor-icons/EyeRegularIcon";
-import { EyeglassesRegularIcon } from "alouette-icons/phosphor-icons/EyeglassesRegularIcon";
-import { WarningRegularIcon } from "alouette-icons/phosphor-icons/WarningRegularIcon";
-import { XCircleRegularIcon } from "alouette-icons/phosphor-icons/XCircleRegularIcon";
+import { BarricadeRegularIcon } from "alouette-icons/phosphor-icons/Barricade";
+import { CheckCircleRegularIcon } from "alouette-icons/phosphor-icons/CheckCircle";
+import { ClockRegularIcon } from "alouette-icons/phosphor-icons/Clock";
+import { EyeRegularIcon } from "alouette-icons/phosphor-icons/Eye";
+import { EyeglassesRegularIcon } from "alouette-icons/phosphor-icons/Eyeglasses";
+import { WarningRegularIcon } from "alouette-icons/phosphor-icons/Warning";
+import { XCircleRegularIcon } from "alouette-icons/phosphor-icons/XCircle";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
 import type {

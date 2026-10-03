@@ -11,13 +11,13 @@ import {
   Text,
   View,
 } from "alouette";
-import { CheckCircleRegularIcon } from "alouette-icons/phosphor-icons/CheckCircleRegularIcon";
-import { GitMergeRegularIcon } from "alouette-icons/phosphor-icons/GitMergeRegularIcon";
-import { GithubLogoRegularIcon } from "alouette-icons/phosphor-icons/GithubLogoRegularIcon";
-import { ListChecksRegularIcon } from "alouette-icons/phosphor-icons/ListChecksRegularIcon";
-import { SlackLogoRegularIcon } from "alouette-icons/phosphor-icons/SlackLogoRegularIcon";
-import { SquaresFourRegularIcon } from "alouette-icons/phosphor-icons/SquaresFourRegularIcon";
-import { TagRegularIcon } from "alouette-icons/phosphor-icons/TagRegularIcon";
+import { CheckCircleRegularIcon } from "alouette-icons/phosphor-icons/CheckCircle";
+import { GitMergeRegularIcon } from "alouette-icons/phosphor-icons/GitMerge";
+import { GithubLogoRegularIcon } from "alouette-icons/phosphor-icons/GithubLogo";
+import { ListChecksRegularIcon } from "alouette-icons/phosphor-icons/ListChecks";
+import { SlackLogoRegularIcon } from "alouette-icons/phosphor-icons/SlackLogo";
+import { SquaresFourRegularIcon } from "alouette-icons/phosphor-icons/SquaresFour";
+import { TagRegularIcon } from "alouette-icons/phosphor-icons/Tag";
 import type { ReactNode } from "react";
 import { PageContainer } from "#/components/page-container.tsx";
 

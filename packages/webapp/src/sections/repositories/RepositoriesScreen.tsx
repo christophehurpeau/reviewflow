@@ -19,7 +19,7 @@ function RepositoryList({
   onSelectRepository,
 }: RepositoryListProps): ReactNode {
   return (
-    <View>
+    <View className="gap-xs">
       {repositories.map((repository) => (
         <PressableListItem
           key={repository._id}

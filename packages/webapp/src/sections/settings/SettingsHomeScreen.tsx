@@ -59,7 +59,7 @@ export function SettingsHomeScreen({
                   </View>
                 </View>
               ) : (
-                <View>
+                <View className="gap-xs">
                   {orgList.map((org) => (
                     <PressableListItem
                       key={org._id}

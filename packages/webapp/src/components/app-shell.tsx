@@ -1,21 +1,25 @@
-import { AppShell } from "alouette";
+import { AppSidebarLayout, View } from "alouette";
 import type { ReactNode } from "react";
 import { ReviewflowHeader } from "#/components/app-header.tsx";
+import { ReviewflowSidebar } from "#/components/app-sidebar.tsx";
 
 interface ReviewflowShellProps {
   children: ReactNode;
 }
 
 /**
- * Signed in chrome: the header and the page every screen scrolls with. It
- * renders no landmark itself — the route composes the body and brings its own
- * `AppShellMain`, which is what leaves room for a section to put an
- * `AppShellSidebar` beside its own screen later.
+ * Signed in chrome: from `md` the sidebar beside the screen, which scrolls on
+ * its own; below it, the header scrolling with the screen. The layout is the
+ * scroll container and the `main` landmark, so the screen brings neither.
  */
 export function ReviewflowShell({ children }: ReviewflowShellProps): ReactNode {
   return (
-    <AppShell header={<ReviewflowHeader />} contentContainerClassName="pb-xl">
-      {children}
-    </AppShell>
+    <AppSidebarLayout
+      sidebarBreakpoint="xl"
+      sidebar={<ReviewflowSidebar />}
+      header={<ReviewflowHeader />}
+    >
+      <View className="pb-xl">{children}</View>
+    </AppSidebarLayout>
   );
 }

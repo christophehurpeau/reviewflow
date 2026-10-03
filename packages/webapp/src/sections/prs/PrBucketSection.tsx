@@ -61,7 +61,7 @@ function TruncatedCount({ prs, shown }: TruncatedCountProps): ReactNode {
   if (total <= shown) return null;
 
   return (
-    <Text className="mx-xs mt-xs text-muted text-sm">
+    <Text className="mt-xs text-muted text-sm">
       {`Showing ${shown} of ${total}`}
     </Text>
   );
@@ -92,7 +92,7 @@ export function PrBucketSection({
       >
         {(prList) => (
           <View>
-            <View role="list">
+            <View role="list" className="gap-xs">
               {prList.map((pr) => (
                 <PressableListItem
                   key={pr._id}

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-native";
-import { EyeRegularIcon } from "alouette-icons/phosphor-icons/EyeRegularIcon";
+import { EyeRegularIcon } from "alouette-icons/phosphor-icons/Eye";
 import { ResourcesServerError } from "liwi-resources-client";
 import type { PrSummary } from "reviewflow-modules";
 import { fn } from "storybook/test";

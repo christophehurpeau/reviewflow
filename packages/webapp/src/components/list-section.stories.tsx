@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-native";
 import { PressableListItem, Text } from "alouette";
-import { EyeRegularIcon } from "alouette-icons/phosphor-icons/EyeRegularIcon";
-import { GitPullRequestRegularIcon } from "alouette-icons/phosphor-icons/GitPullRequestRegularIcon";
-import { WarningRegularIcon } from "alouette-icons/phosphor-icons/WarningRegularIcon";
+import { EyeRegularIcon } from "alouette-icons/phosphor-icons/Eye";
+import { GitPullRequestRegularIcon } from "alouette-icons/phosphor-icons/GitPullRequest";
+import { WarningRegularIcon } from "alouette-icons/phosphor-icons/Warning";
 import type { ReactNode } from "react";
 import { fn } from "storybook/test";
 import { ListSection } from "#/components/list-section.tsx";

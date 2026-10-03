@@ -7,7 +7,7 @@ import {
   Text,
   View,
 } from "alouette";
-import { GearRegularIcon } from "alouette-icons/phosphor-icons/GearRegularIcon";
+import { GearRegularIcon } from "alouette-icons/phosphor-icons/Gear";
 import type { Href } from "expo-router";
 import { usePathname, useRouter } from "expo-router";
 import type { ReactNode } from "react";

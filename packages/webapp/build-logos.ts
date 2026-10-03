@@ -27,7 +27,8 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
-const iconName = "ChecksRegularIcon";
+const glyphName = "Checks";
+const iconName = `${glyphName}RegularIcon`;
 const logosDir = new URL("../reviewflow/logos/", import.meta.url);
 const webappAssetsDir = new URL("./assets/", import.meta.url);
 const paletteCssUrl = new URL("./src/palette.css", import.meta.url);
@@ -69,24 +70,31 @@ interface IconSource {
   paths: string[];
 }
 
+/** alouette-icons' `createIcon` draws every phosphor glyph in this box. */
+const phosphorViewBox = "0 0 256 256";
+
 /**
- * alouette-icons ships each phosphor icon as a generated module wrapping plain
- * svg paths, so the geometry is read out of the source instead of rendering the
- * react component, which would drag react-dom into a script that draws no ui.
+ * alouette-icons ships each phosphor glyph as a generated module exporting one
+ * `createIcon(...paths)` call per weight, so the geometry is read out of the
+ * source instead of rendering the react component, which would drag react-dom
+ * into a script that draws no ui. Svg path data holds no parenthesis, so the
+ * call's arguments end at the first one.
  */
-function readIconSource(name: string): IconSource {
+function readIconSource(glyph: string, exportName: string): IconSource {
   const modulePath = fileURLToPath(
-    import.meta.resolve(`alouette-icons/phosphor-icons/${name}`),
+    import.meta.resolve(`alouette-icons/phosphor-icons/${glyph}`),
   );
   const source = readFileSync(modulePath, "utf8");
-  const viewBox = /viewBox:\s*"([^"]+)"/.exec(source)?.[1];
-  const paths = [...source.matchAll(/\bd:\s*"([^"]+)"/g)].flatMap(
+  const callArguments = new RegExp(
+    String.raw`export const ${exportName}\b[^=]*=[^(]*\bcreateIcon\(([^)]*)\)`,
+  ).exec(source)?.[1];
+  const paths = [...(callArguments ?? "").matchAll(/"([^"]+)"/g)].flatMap(
     ([, pathData]) => pathData ?? [],
   );
-  if (!viewBox || paths.length === 0) {
-    throw new Error(`no svg path found in ${modulePath}`);
+  if (paths.length === 0) {
+    throw new Error(`no svg path found for ${exportName} in ${modulePath}`);
   }
-  return { viewBox, paths };
+  return { viewBox: phosphorViewBox, paths };
 }
 
 type Treatment = "disc" | "flat";
@@ -223,7 +231,7 @@ const logos: LogoSpec[] = [
 ];
 
 const colors = readBrandColors();
-const icon = readIconSource(iconName);
+const icon = readIconSource(glyphName, iconName);
 console.log(
   `${iconName}, green ${colors.green} on ${colors.onGreen}, from the webapp brand palette`,
 );

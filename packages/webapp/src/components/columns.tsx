@@ -10,7 +10,7 @@ const distributeRoundRobin = (
   );
 
 interface ColumnsProps {
-  /** Columns used from the wide breakpoint (1280px) up; one column below it. */
+  /** Columns used from the large breakpoint (1024px) up; one column below it. */
   columnCount?: number;
   children: ReactNode;
 }
@@ -26,7 +26,9 @@ export function Columns({
   const breakpoint = useCurrentBreakpointName();
   const items = Children.toArray(children);
   const columns =
-    breakpoint === BreakpointNameEnum.WIDE && items.length > 1
+    (breakpoint === BreakpointNameEnum.WIDE ||
+      breakpoint === BreakpointNameEnum.LARGE) &&
+    items.length > 1
       ? distributeRoundRobin(items, Math.min(columnCount, items.length))
       : [items];
 

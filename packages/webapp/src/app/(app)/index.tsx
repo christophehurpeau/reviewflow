@@ -1,4 +1,3 @@
-import { AppShellMain } from "alouette";
 import { Redirect, useLocalSearchParams } from "expo-router";
 import type { ReactNode } from "react";
 import { useState } from "react";
@@ -16,11 +15,9 @@ import { takeSignInRedirect } from "#/services/signInRedirect.ts";
 
 const redirectingScreen = (
   <ReviewflowShell>
-    <AppShellMain>
-      <Screen title="reviewflow">
-        <SkeletonSections sections={2} />
-      </Screen>
-    </AppShellMain>
+    <Screen title="reviewflow">
+      <SkeletonSections sections={2} />
+    </Screen>
   </ReviewflowShell>
 );
 
