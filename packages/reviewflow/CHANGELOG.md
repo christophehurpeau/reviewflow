@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.12.0](https://github.com/christophehurpeau/reviewflow/compare/v6.11.0...v6.12.0) (2026-10-03)
+
+### Features
+
+* **webapp:** add favicon and regenerate logos with the palette on build:theme
+
 ## [6.11.0](https://github.com/christophehurpeau/reviewflow/compare/v6.10.0...v6.11.0) (2026-09-24)
 
 ### Features

@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.12.0](https://github.com/christophehurpeau/reviewflow/compare/v6.11.0...v6.12.0) (2026-10-03)
+
+### Features
+
+* **webapp:** add favicon and regenerate logos with the palette on build:theme
+* **webapp:** migrate to alouette 24 and the sidebar app layout
+* **webapp:** redesign landing page
+* **webapp:** tint list section titles with the accent, not only the icon
+* **webapp:** update alouette to 23.0.0
+* **webapp:** use the checks mark as header brand logo
+
+### Bug Fixes
+
+* **deps:** update storybook react-native to 10.6.0 for valibot alert ([#1217](https://github.com/christophehurpeau/reviewflow/issues/1217))
+* **webapp:** give pr rows with actions a listitem role
+* **webapp:** show connection banner only on signed in connection drops
+
 ## [6.11.0](https://github.com/christophehurpeau/reviewflow/compare/v6.10.0...v6.11.0) (2026-09-24)
 
 ### Features
