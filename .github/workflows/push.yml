@@ -52,6 +52,14 @@ jobs:
       - name: Install Playwright chromium
         run: pnpm --filter webapp exec playwright install --with-deps chromium
 
+      # tests start a real mongod through mongodb-memory-server, which downloads
+      # the binary on first use (version pinned in scripts/vitestMongoGlobalSetup.ts)
+      - name: Cache mongod binary
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongod-${{ runner.os }}-7.0.37
+
       - name: Test
         run: pnpm run test
         env:

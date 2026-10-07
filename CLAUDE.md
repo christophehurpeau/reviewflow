@@ -43,7 +43,7 @@ anything the webapp needs must live there and not in `core`.
 - **Webapp UI**: Expo (Router, react-native-web) so the same code runs on web and
   native, styled with the `alouette` design system on nativewind/tailwind, icons
   from `alouette-icons` (Phosphor).
-- **Tooling**: vitest (root-level, run per package with a path filter), eslint,
+- **Tooling**: vitest (root-level, run per package with a path filter; the `core` and `reviewflow` projects start a real standalone mongod through `mongodb-memory-server`, see `createTestMongoStores` in `packages/core/src/tests`), eslint,
   oxfmt for formatting, renovate for dependency updates, conventional commits.
 
 Prefer the `alouette-*` skills over reading its source when working in the webapp.

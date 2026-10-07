@@ -1,7 +1,12 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 // projects do not inherit the root test options, each one repeats what it needs
 const testTimeout = 30000;
+// globalSetup paths resolve from each project root
+const mongoGlobalSetup = fileURLToPath(
+  new URL("scripts/vitestMongoGlobalSetup.ts", import.meta.url),
+);
 
 export default defineConfig({
   test: {
@@ -19,6 +24,8 @@ export default defineConfig({
           name: "core",
           root: "packages/core",
           testTimeout,
+          // real mongod, see src/tests/testMongoStores.ts
+          globalSetup: [mongoGlobalSetup],
           include: ["src/**/*.test.ts?(x)"],
         },
       },
@@ -39,6 +46,8 @@ export default defineConfig({
           testTimeout,
           // slack blocks format dates with toLocaleDateString
           env: { TZ: "UTC" },
+          // real mongod, see packages/core/src/tests/testMongoStores.ts
+          globalSetup: [mongoGlobalSetup],
           // builds a probot instance and mocks github with nock
           setupFiles: ["src/tests/setup.ts"],
           include: ["src/**/__tests__/**/*.ts?(x)", "src/**/*.test.ts?(x)"],
