@@ -51,7 +51,7 @@ export function calcCodeReviewStep<TeamNames extends string>({
     !pullRequest.draft &&
     !pullRequest.closed_at &&
     (hasRequestedReviewers ||
-      hasRequestedReviewers ||
+      hasRequestedTeams ||
       !!(isMissingApprobation && repoContext.config.requiresReviewRequest));
 
   const isApproved =
