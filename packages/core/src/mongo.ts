@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
 import type { MongoBaseModel } from "liwi-mongo";
 import {
   MongoConnection,
@@ -229,7 +228,24 @@ export interface MongoStores {
   // prEvents: MongoStore<PrEventsModel>;
 }
 
-export default function init(): MongoStores {
+export interface InitializedMongoStores extends MongoStores {
+  /**
+   * Settles once every index is created and every startup cleanup has run;
+   * rejects on the first failure. The stores are usable before then.
+   */
+  ready: Promise<void>;
+}
+
+function isNamespaceNotFound(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "codeName" in error &&
+    error.codeName === "NamespaceNotFound"
+  );
+}
+
+export default function init(): InitializedMongoStores {
   if (!process.env.MONGO_DB) {
     throw new Error("MONGO_DB is missing in process.env");
   }
@@ -251,64 +267,72 @@ export default function init(): MongoStores {
     connection,
     "userDmSettings",
   );
-  userDmSettings.collection.then((coll) => {
-    coll.createIndex({ userId: 1, orgId: 1 }, { unique: true });
+  const userDmSettingsReady = userDmSettings.collection.then(async (coll) => {
+    await coll.createIndex({ userId: 1, orgId: 1 }, { unique: true });
   });
 
   const users = new MongoStore<User>(connection, "users");
-  users.collection.then((coll) => {
-    coll.createIndex({ login: 1 }, { unique: true });
+  const usersReady = users.collection.then(async (coll) => {
+    await coll.createIndex({ login: 1 }, { unique: true });
   });
 
   const orgs = new MongoStore<Org>(connection, "orgs");
-  orgs.collection.then((coll) => {
-    coll.createIndex({ login: 1 }, { unique: true });
-    coll.createIndex({ installationId: 1 }, { unique: true, sparse: true });
+  const orgsReady = orgs.collection.then(async (coll) => {
+    await coll.createIndex({ login: 1 }, { unique: true });
+    await coll.createIndex(
+      { installationId: 1 },
+      { unique: true, sparse: true },
+    );
   });
 
   const orgMembers = new MongoStore<OrgMember>(connection, "orgMembers");
-  orgMembers.collection.then((coll) => {
-    coll.createIndex({ "user.id": 1, "org.id": 1 }, { unique: true });
-    coll.createIndex(
+  const orgMembersReady = orgMembers.collection.then(async (coll) => {
+    await coll.createIndex({ "user.id": 1, "org.id": 1 }, { unique: true });
+    await coll.createIndex(
       { "org.id": 1, "user.id": 1, "teams.id": 1 },
       { unique: true },
     );
-    coll.createIndex({ "org.id": 1, "teams.id": 1 });
+    await coll.createIndex({ "org.id": 1, "teams.id": 1 });
   });
 
   const orgTeams = new MongoStore<OrgTeam>(connection, "orgTeams");
-  orgTeams.collection.then((coll) => {
-    coll.createIndex({ "org.id": 1 });
+  const orgTeamsReady = orgTeams.collection.then(async (coll) => {
+    await coll.createIndex({ "org.id": 1 });
   });
 
   const slackSentMessages = new MongoStore<SlackSentMessage>(
     connection,
     "slackSentMessages",
   );
-  slackSentMessages.collection.then((coll) => {
-    coll
-      .indexExists("account.id_1_account.type_1_type_1_typeId_1")
-      .then((exists) => {
-        if (exists) {
-          coll.dropIndex("account.id_1_account.type_1_type_1_typeId_1");
-        }
+  const slackSentMessagesReady = slackSentMessages.collection.then(
+    async (coll) => {
+      const legacyIndexName = "account.id_1_account.type_1_type_1_typeId_1";
+      // `indexExists` rejects when the collection does not exist yet (fresh
+      // database), and there is no legacy index to drop then
+      const hasLegacyIndex = await coll
+        .indexExists(legacyIndexName)
+        .catch((error: unknown) => {
+          if (isNamespaceNotFound(error)) return false;
+          throw error;
+        });
+      if (hasLegacyIndex) await coll.dropIndex(legacyIndexName);
+      await coll.createIndex({
+        "account.id": 1,
+        "account.type": 1,
+        type: 1,
+        typeId: 1,
+        messageId: 1,
       });
-    coll.createIndex({
-      "account.id": 1,
-      "account.type": 1,
-      type: 1,
-      typeId: 1,
-      messageId: 1,
-    });
-    // remove older than 14 days
-    coll.deleteMany({
-      created: { $lt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) },
-    });
-  });
+      // remove older than 14 days
+      await coll.deleteMany({
+        created: { $lt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) },
+      });
+    },
+  );
 
   const prs = new MongoStore<ReviewflowPr>(connection, "prs");
-  prs.collection.then((coll) => {
-    coll.createIndex(
+  const prsReady = prs.collection.then(async (coll) => {
+    await coll.createIndex(
       {
         "account.id": 1,
         "repo.id": 1,
@@ -316,33 +340,33 @@ export default function init(): MongoStores {
       },
       { unique: true },
     );
-    coll.createIndex({
+    await coll.createIndex({
       "account.id": 1,
       "repo.id": 1,
       headSha: 1,
     });
     // one index per branch of the owned-buckets `$or`, see below
-    coll.createIndex({
+    await coll.createIndex({
       "account.id": 1,
       "assignees.id": 1,
     });
-    coll.createIndex({
+    await coll.createIndex({
       "account.id": 1,
       "creator.id": 1,
     });
     // one index per branch of the review-request `$or`: both paths are arrays,
     // so a compound index over the two would be a parallel-array index, and
     // mongo only unions index scans when every branch has one of its own
-    coll.createIndex({
+    await coll.createIndex({
       "account.id": 1,
       "reviews.reviewRequested.id": 1,
     });
-    coll.createIndex({
+    await coll.createIndex({
       "account.id": 1,
       "reviews.teamReviewRequested.id": 1,
     });
     // remove with no activity for 12 * 30 days
-    coll.deleteMany({
+    await coll.deleteMany({
       updated: { $lt: new Date(Date.now() - 12 * 30 * 24 * 60 * 60 * 1000) },
     });
   });
@@ -353,29 +377,45 @@ export default function init(): MongoStores {
     "slackTeamsInstallations",
   );
   const repositories = new MongoStore<Repository>(connection, "repositories");
-  repositories.collection.then((coll) => {
-    coll.createIndex({
+  const repositoriesReady = repositories.collection.then(async (coll) => {
+    await coll.createIndex({
       "account.id": 1,
     });
   });
 
   const labels = new MongoStore<Label>(connection, "labels");
-  labels.collection.then((coll) => {
-    coll.createIndex({ "repo.id": 1 });
-    coll.createIndex({ "account.id": 1 });
+  const labelsReady = labels.collection.then(async (coll) => {
+    await coll.createIndex({ "repo.id": 1 });
+    await coll.createIndex({ "account.id": 1 });
   });
 
   const installationsEvents = new MongoStore<InstallationEvent>(
     connection,
     "installationsEvents",
   );
-  installationsEvents.collection.then((coll) => {
-    coll.createIndex({ installationId: 1 });
-    coll.createIndex({ "account.login": 1 });
-  });
+  const installationsEventsReady = installationsEvents.collection.then(
+    async (coll) => {
+      await coll.createIndex({ installationId: 1 });
+      await coll.createIndex({ "account.login": 1 });
+    },
+  );
+
+  const ready = Promise.all([
+    userDmSettingsReady,
+    usersReady,
+    orgsReady,
+    orgMembersReady,
+    orgTeamsReady,
+    slackSentMessagesReady,
+    prsReady,
+    repositoriesReady,
+    labelsReady,
+    installationsEventsReady,
+  ]).then(() => undefined);
 
   // return { connection, prEvents };
   return {
+    ready,
     connection,
     userDmSettings: createMongoSubscribeStore(userDmSettings),
     users: createMongoSubscribeStore(users),

@@ -30,6 +30,13 @@ describe("mongo stores on a real mongod", () => {
     expect(found).toMatchObject({ login: "acme", status: "suspended" });
   });
 
+  it("creates the slackSentMessages index on a database without collections", async () => {
+    const indexes = await stores.db.collection("slackSentMessages").indexes();
+    expect(indexes.map(({ name }) => name)).toContain(
+      "account.id_1_account.type_1_type_1_typeId_1_messageId_1",
+    );
+  });
+
   // index created by `init`
   it("enforces the unique index on org login", async () => {
     await expect(

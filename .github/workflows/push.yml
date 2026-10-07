@@ -58,7 +58,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.cache/mongodb-binaries
-          key: mongod-${{ runner.os }}-7.0.37
+          key: mongod-${{ runner.os }}-${{ hashFiles('scripts/vitestMongoGlobalSetup.ts') }}
 
       - name: Test
         run: pnpm run test
