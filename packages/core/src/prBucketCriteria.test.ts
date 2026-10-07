@@ -38,7 +38,7 @@ describe("buildPrBucketQuery", () => {
     for (const bucket of buckets) {
       const criteria = criteriaOf(bucket, withTeams);
       expect(criteria.isClosed).toBe(false);
-      // the review buckets match teams per account, the assigned ones span them
+      // the review buckets match teams per account, the owned ones span them
       const perAccount =
         bucket === "requested-reviews" || bucket === "re-requested-reviews";
       expect(criteria["account.id"]).toEqual(perAccount ? 1 : { $in: [1] });
@@ -83,7 +83,7 @@ describe("buildPrBucketQuery", () => {
     ]);
   });
 
-  it("spans every org of the assigned buckets", () => {
+  it("spans every org of the owned buckets", () => {
     const criteria = criteriaOf("ready-to-merge", acrossOrgs);
 
     expect(criteria["account.id"]).toEqual({ $in: [1, 2] });
@@ -118,7 +118,6 @@ describe("buildPrBucketQuery", () => {
     const criteria = criteriaOf("ready-to-merge", withTeams);
 
     expect(criteria).toMatchObject({
-      "assignees.id": 42,
       "reviews.approved": { $exists: true, $ne: [] },
       "reviews.changesRequested": { $exists: true, $eq: [] },
       "reviews.reviewRequested": { $exists: true, $eq: [] },
@@ -270,10 +269,108 @@ describe("buildPrBucketQuery", () => {
     }
   });
 
-  it("only returns drafts assigned to the user", () => {
+  describe("owned buckets match the author and the assignees", () => {
+    const buildOpenedPr = ({
+      creatorId,
+      assigneeIds,
+      reviewRequested = false,
+    }: {
+      creatorId: number;
+      assigneeIds: number[];
+      reviewRequested?: boolean;
+    }) => ({
+      account: { id: 1 },
+      isClosed: false,
+      isDraft: false,
+      creator: { id: creatorId, login: "author" },
+      assignees: assigneeIds.map((id) => ({ id, login: `user-${id}` })),
+      reviews: {
+        reviewRequested: reviewRequested ? [{ id: 7, login: "reviewer" }] : [],
+        teamReviewRequested: [],
+        approved: [],
+        changesRequested: [],
+      },
+    });
+
+    const matches = (
+      bucket: (typeof buckets)[number],
+      pr: Record<string, unknown>,
+    ) => new Query(criteriaOf(bucket, withTeams)).test(pr);
+
+    it("matches the author when nobody is assigned", () => {
+      expect(
+        matches(
+          "opened-missing-review-request",
+          buildOpenedPr({ creatorId: 42, assigneeIds: [] }),
+        ),
+      ).toBe(true);
+    });
+
+    it("matches the author when someone else is assigned", () => {
+      expect(
+        matches(
+          "opened-missing-review-request",
+          buildOpenedPr({ creatorId: 42, assigneeIds: [5] }),
+        ),
+      ).toBe(true);
+    });
+
+    it("matches an assignee who is not the author", () => {
+      expect(
+        matches(
+          "opened-missing-review-request",
+          buildOpenedPr({ creatorId: 5, assigneeIds: [42] }),
+        ),
+      ).toBe(true);
+    });
+
+    it("leaves out a pull request the user neither authored nor is assigned to", () => {
+      expect(
+        matches(
+          "opened-missing-review-request",
+          buildOpenedPr({ creatorId: 5, assigneeIds: [6] }),
+        ),
+      ).toBe(false);
+    });
+
+    /** the bucket carries its own `$or`, which must not replace the ownership one */
+    it("keeps both conditions of waiting-for-review", () => {
+      expect(
+        matches(
+          "waiting-for-review",
+          buildOpenedPr({
+            creatorId: 42,
+            assigneeIds: [],
+            reviewRequested: true,
+          }),
+        ),
+      ).toBe(true);
+      expect(
+        matches(
+          "waiting-for-review",
+          buildOpenedPr({
+            creatorId: 5,
+            assigneeIds: [6],
+            reviewRequested: true,
+          }),
+        ),
+      ).toBe(false);
+      expect(
+        matches(
+          "waiting-for-review",
+          buildOpenedPr({ creatorId: 42, assigneeIds: [] }),
+        ),
+      ).toBe(false);
+    });
+  });
+
+  it("only returns drafts owned by the user", () => {
     const criteria = criteriaOf("drafts", withTeams);
 
-    expect(criteria).toMatchObject({ "assignees.id": 42, isDraft: true });
+    expect(criteria).toMatchObject({
+      $and: [{ $or: [{ "assignees.id": 42 }, { "creator.id": 42 }] }],
+      isDraft: true,
+    });
   });
 
   it("excludes drafts from the buckets about open pull requests", () => {

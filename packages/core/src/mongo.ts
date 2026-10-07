@@ -321,9 +321,14 @@ export default function init(): MongoStores {
       "repo.id": 1,
       headSha: 1,
     });
+    // one index per branch of the owned-buckets `$or`, see below
     coll.createIndex({
       "account.id": 1,
       "assignees.id": 1,
+    });
+    coll.createIndex({
+      "account.id": 1,
+      "creator.id": 1,
     });
     // one index per branch of the review-request `$or`: both paths are arrays,
     // so a compound index over the two would be a parallel-array index, and

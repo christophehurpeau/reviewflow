@@ -85,12 +85,17 @@ const buildRequestedReviewsCriteria = (
   ),
 });
 
-const buildAssignedCriteria = (
+/**
+ * The author owns their pull request whether or not they are assigned to it,
+ * and an assignee owns it as much: a bot authors pull requests nobody else
+ * would follow. Nested in `$and` because `extra` may carry its own `$or`.
+ */
+const buildOwnedCriteria = (
   { accounts, userId }: PrBucketContext,
   extra: Criteria<ReviewflowPr>,
 ): Criteria<ReviewflowPr> => ({
   ...accountIdsCriteria(accounts),
-  "assignees.id": userId,
+  $and: [{ $or: [{ "assignees.id": userId }, { "creator.id": userId }] }],
   isClosed: false,
   ...extra,
 });
@@ -117,7 +122,7 @@ export const buildPrBucketQuery = (
 
     case "ready-to-merge":
       return {
-        criteria: buildAssignedCriteria(context, {
+        criteria: buildOwnedCriteria(context, {
           "reviews.teamReviewRequested": emptyReviews,
           "reviews.reviewRequested": emptyReviews,
           "reviews.changesRequested": emptyReviews,
@@ -128,7 +133,7 @@ export const buildPrBucketQuery = (
 
     case "changes-requested":
       return {
-        criteria: buildAssignedCriteria(context, {
+        criteria: buildOwnedCriteria(context, {
           "reviews.changesRequested": someReviews,
         }),
         sort: { created: -1 },
@@ -136,13 +141,13 @@ export const buildPrBucketQuery = (
 
     case "drafts":
       return {
-        criteria: buildAssignedCriteria(context, { isDraft: true }),
+        criteria: buildOwnedCriteria(context, { isDraft: true }),
         sort: { created: -1 },
       };
 
     case "opened-missing-review-request":
       return {
-        criteria: buildAssignedCriteria(context, {
+        criteria: buildOwnedCriteria(context, {
           isDraft: false,
           "reviews.teamReviewRequested": noReviews,
           "reviews.reviewRequested": noReviews,
@@ -154,7 +159,7 @@ export const buildPrBucketQuery = (
 
     case "waiting-for-review":
       return {
-        criteria: buildAssignedCriteria(context, {
+        criteria: buildOwnedCriteria(context, {
           isDraft: false,
           $or: [
             { "reviews.teamReviewRequested": someReviews },
