@@ -102,8 +102,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
         pullRequest.requested_teams!.map((team) => team.id),
       );
       updateSlackHomeForPr(repoContext, pullRequest, {
-        user: true,
-        assignees: true,
+        owners: true,
         requestedReviewers: true,
         requestedTeams: true,
         teamMembers,

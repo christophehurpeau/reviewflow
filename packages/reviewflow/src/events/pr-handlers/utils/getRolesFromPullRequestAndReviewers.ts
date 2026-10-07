@@ -39,12 +39,15 @@ export function getRolesFromPullRequestAndReviewers(
   { excludeIds = [] }: GetRolesFromPullRequestAndReviewersOptions = {},
 ): {
   owner: PullRequestWithDecentDataFromWebhook["user"];
+  /** the author is notified as owner whether or not they are assigned */
+  ownerToNotify: PullRequestWithDecentDataFromWebhook["user"] | undefined;
   assigneesNotOwner: PullRequestWithDecentDataFromWebhook["assignees"];
   assignees: PullRequestWithDecentDataFromWebhook["assignees"];
   reviewers: Reviewer[];
   requestedReviewers: RequestedReviewers[];
   followers: AccountInfo[];
 } {
+  const owner = pullRequest.user!;
   const assignees = pullRequest.assignees!.filter(
     (a) => !excludeIds.includes(a!.id),
   );
@@ -52,7 +55,10 @@ export function getRolesFromPullRequestAndReviewers(
   const assigneeIds = assignees?.map((a) => a!.id);
 
   const followers = reviewers.filter(
-    (user) => !assigneeIds.includes(user.id) && !excludeIds.includes(user.id),
+    (user) =>
+      user.id !== owner.id &&
+      !assigneeIds.includes(user.id) &&
+      !excludeIds.includes(user.id),
   );
   const requestedReviewers: RequestedReviewers[] = (
     pullRequest.requested_reviewers || []
@@ -76,14 +82,19 @@ export function getRolesFromPullRequestAndReviewers(
     followers.push(
       ...requestedReviewers.filter((rr) => {
         return (
-          !followers.some((f) => f.id === rr.id) && !assigneeIds.includes(rr.id)
+          rr.id !== owner.id &&
+          !followers.some((f) => f.id === rr.id) &&
+          !assigneeIds.includes(rr.id)
         );
       }),
     );
   }
 
   return {
-    ...getOwnersFromPullRequest(pullRequest),
+    owner,
+    ownerToNotify: excludeIds.includes(owner.id) ? undefined : owner,
+    // @ts-expect-error invalid gravatar_id compat
+    assigneesNotOwner: assignees.filter((a) => a!.id !== owner.id),
     // @ts-expect-error invalid gravatar_id compat
     assignees,
     reviewers,

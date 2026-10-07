@@ -439,7 +439,7 @@ export const editOpenedPR = async <
         : [],
     );
     updateSlackHomeForPr(repoContext, pullRequest, {
-      assignees: true,
+      owners: true,
       requestedReviewers: true,
       requestedTeams: true,
       teamMembers,

@@ -104,8 +104,7 @@ export default function checkrun(app: Probot, appContext: AppContext): void {
           ) !== previousChecksState
         ) {
           updateSlackHomeForPr(repoContext, pullRequest, {
-            user: true,
-            assignees: true,
+            owners: true,
           });
         }
       }

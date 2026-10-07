@@ -85,7 +85,7 @@ export default function convertedToDraft(
       const sender = context.payload.sender;
 
       const { reviewers } = await getReviewersAndReviewStates(context);
-      const { owner, assignees, followers } =
+      const { owner, ownerToNotify, assigneesNotOwner, followers } =
         getRolesFromPullRequestAndReviewers(pullRequest, reviewers, {
           excludeIds: [sender.id],
         });
@@ -96,7 +96,7 @@ export default function convertedToDraft(
           : [],
       );
       updateSlackHomeForPr(repoContext, pullRequest, {
-        assignees: true,
+        owners: true,
         requestedReviewers: true,
         requestedTeams: true,
         teamMembers,
@@ -123,25 +123,20 @@ export default function convertedToDraft(
       const messageToFollower = { text: createMessage(false) };
 
       await Promise.all([
-        ...assignees!
-          .filter((assignee) => assignee!.id === owner!.id)
-          .map((assigneeIsOwner) => {
-            return repoContext.slack.postMessage(
-              "pr-lifecycle",
-              assigneeIsOwner!,
-              messageToOwner,
-            );
-          }),
+        ownerToNotify &&
+          repoContext.slack.postMessage(
+            "pr-lifecycle",
+            ownerToNotify,
+            messageToOwner,
+          ),
 
-        ...assignees!
-          .filter((assignee) => assignee!.id !== owner!.id)
-          .map((assignee) => {
-            return repoContext.slack.postMessage(
-              "pr-lifecycle",
-              assignee!,
-              messageToAssignee,
-            );
-          }),
+        ...assigneesNotOwner!.map((assignee) => {
+          return repoContext.slack.postMessage(
+            "pr-lifecycle",
+            assignee!,
+            messageToAssignee,
+          );
+        }),
 
         ...followers.map((follower) => {
           return repoContext.slack.postMessage(

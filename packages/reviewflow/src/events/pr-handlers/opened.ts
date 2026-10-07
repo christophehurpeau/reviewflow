@@ -111,8 +111,7 @@ export default function opened(app: Probot, appContext: AppContext): void {
       ]);
 
       updateSlackHomeForPr(repoContext, pullRequest, {
-        user: true,
-        assignees: true,
+        owners: true,
       });
     },
     // https://sentry.io/organizations/chrp/issues/3888881569/?project=1243466&query=is%3Aunresolved&referrer=issue-stream

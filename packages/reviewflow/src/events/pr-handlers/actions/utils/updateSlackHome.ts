@@ -3,8 +3,8 @@ import type { RepoContext } from "../../../../context/repoContext";
 import type { PullRequestWithDecentData } from "../../utils/PullRequestData";
 
 interface UpdateSlackHomeForPrOptions {
-  user?: boolean;
-  assignees?: boolean;
+  /** the author and the assignees */
+  owners?: boolean;
   requestedReviewers?: boolean;
   requestedTeams?: boolean;
   teamMembers?: AccountEmbedWithoutType[];
@@ -15,8 +15,7 @@ export function updateSlackHomeForPr(
   repoContext: RepoContext,
   pullRequest: PullRequestWithDecentData,
   {
-    user,
-    assignees,
+    owners,
     requestedReviewers,
     requestedTeams,
     teamMembers,
@@ -26,11 +25,9 @@ export function updateSlackHomeForPr(
   if (repoContext.slack) {
     const logins = new Set<string>(otherLogins);
 
-    if (user && pullRequest.user) {
-      logins.add(pullRequest.user.login);
-    }
-    if (assignees && pullRequest.assignees) {
-      pullRequest.assignees.forEach((assignee) => {
+    if (owners) {
+      if (pullRequest.user) logins.add(pullRequest.user.login);
+      pullRequest.assignees?.forEach((assignee) => {
         if (!assignee) return;
         logins.add(assignee.login);
       });

@@ -103,7 +103,7 @@ export default function readyForReview(
 
       /* update slack home */
       updateSlackHomeForPr(repoContext, pullRequest, {
-        assignees: true,
+        owners: true,
         requestedReviewers: true,
         requestedTeams: true,
         teamMembers: membersForTeams.flatMap(({ members }) => members),

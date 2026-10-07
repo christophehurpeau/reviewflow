@@ -51,8 +51,7 @@ export default function reviewRequestRemoved(
 
       if (repoContext.slack) {
         updateSlackHomeForPr(repoContext, pullRequest, {
-          user: true,
-          assignees: true,
+          owners: true,
           requestedReviewers: true,
         });
 

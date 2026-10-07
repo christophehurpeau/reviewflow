@@ -74,7 +74,7 @@ export default function reviewSubmitted(
           ? []
           : repoContext.getGithubTeamsForMember(reviewer!.id),
       ]);
-      const { owner, assignees, followers } =
+      const { owner, ownerToNotify, assigneesNotOwner, assignees, followers } =
         getRolesFromPullRequestAndReviewers(pullRequest, reviewers, {
           excludeIds: [reviewer!.id],
         });
@@ -135,7 +135,7 @@ export default function reviewSubmitted(
         ]);
 
         updateSlackHomeForPr(repoContext, pullRequest, {
-          assignees: true,
+          owners: true,
           otherLogins: [
             reviewer!.login,
             ...sentMessageRequestedReviewForReviewerTeams.flatMap(
@@ -256,16 +256,15 @@ export default function reviewSubmitted(
 
         await Promise.all([
           Promise.all(
-            assignees!
-              .filter((assignee) => assignee!.id === owner!.id)
-              .map((assigneeIsOwner) => {
-                return repoContext.slack.postMessage(
-                  "pr-review",
-
-                  assigneeIsOwner!,
-                  messageToOwner,
-                );
-              }),
+            ownerToNotify
+              ? [
+                  repoContext.slack.postMessage(
+                    "pr-review",
+                    ownerToNotify,
+                    messageToOwner,
+                  ),
+                ]
+              : [],
           ).then((results) => {
             return saveInDb(
               reviewId,
@@ -276,15 +275,13 @@ export default function reviewSubmitted(
           }),
 
           Promise.all(
-            assignees!
-              .filter((assignee) => assignee!.id !== owner!.id)
-              .map((assignee) => {
-                return repoContext.slack.postMessage(
-                  "pr-review",
-                  assignee!,
-                  messageToAssignee,
-                );
-              }),
+            assigneesNotOwner!.map((assignee) => {
+              return repoContext.slack.postMessage(
+                "pr-review",
+                assignee!,
+                messageToAssignee,
+              );
+            }),
           ).then((results) => {
             return saveInDb(
               reviewId,

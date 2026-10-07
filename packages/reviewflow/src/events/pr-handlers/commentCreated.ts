@@ -157,7 +157,7 @@ export default function prCommentCreated(
             : null,
         ]);
 
-      const { owner, assignees, followers } =
+      const { ownerToNotify, assigneesNotOwner, assignees, followers } =
         getRolesFromPullRequestAndReviewers(pr, reviewers, {
           excludeIds: [comment.user!.id],
         });
@@ -289,16 +289,16 @@ export default function prCommentCreated(
 
       await Promise.all([
         Promise.all(
-          assignees!
-            .filter((a) => a!.id === owner!.id)
-            .map((owner) =>
-              postMessageInReviewThreadOrNewMessage(
-                isBotUser ? "pr-comment-bots" : "pr-comment",
-                owner!,
-                ownerSlackMessage,
-                threadMessage,
-              ),
-            ),
+          ownerToNotify
+            ? [
+                postMessageInReviewThreadOrNewMessage(
+                  isBotUser ? "pr-comment-bots" : "pr-comment",
+                  ownerToNotify,
+                  ownerSlackMessage,
+                  threadMessage,
+                ),
+              ]
+            : [],
         ).then((results) =>
           saveInDb(
             type,
@@ -309,16 +309,14 @@ export default function prCommentCreated(
           ),
         ),
         Promise.all(
-          assignees!
-            .filter((a) => a!.id !== owner!.id)
-            .map((assignee) =>
-              postMessageInReviewThreadOrNewMessage(
-                isBotUser ? "pr-comment-bots" : "pr-comment",
-                assignee!,
-                assignedToSlackMessage,
-                threadMessage,
-              ),
+          assigneesNotOwner!.map((assignee) =>
+            postMessageInReviewThreadOrNewMessage(
+              isBotUser ? "pr-comment-bots" : "pr-comment",
+              assignee!,
+              assignedToSlackMessage,
+              threadMessage,
             ),
+          ),
         ).then((results) =>
           saveInDb(
             type,

@@ -9,6 +9,7 @@ import { updateAfterReviewChange } from "./actions/updateAfterReviewChange.ts";
 import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome.ts";
 import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
 import { fetchPr } from "./utils/fetchPr.ts";
+import { getOwnersFromPullRequest } from "./utils/getRolesFromPullRequestAndReviewers.ts";
 
 export default function reviewDismissed(
   app: Probot,
@@ -62,21 +63,26 @@ export default function reviewDismissed(
 
       if (repoContext.slack) {
         updateSlackHomeForPr(repoContext, pullRequest, {
-          assignees: true,
+          owners: true,
           otherLogins: [reviewer.login],
         });
 
         if (sender.login === reviewer.login) {
-          pullRequest.assignees?.filter(ExcludesFalsy).forEach((assignee) => {
-            repoContext.slack.postMessage("pr-review", assignee, {
-              text: `:recycle: ${repoContext.slack.mention(
-                reviewer.login,
-              )} dismissed his review on ${slackUtils.createPrLink(
-                pullRequest,
-                repoContext,
-              )}`,
+          const { owner, assigneesNotOwner } =
+            getOwnersFromPullRequest(pullRequest);
+          [owner, ...assigneesNotOwner!]
+            .filter(ExcludesFalsy)
+            .forEach((ownerOrAssignee) => {
+              if (ownerOrAssignee.id === reviewer.id) return;
+              repoContext.slack.postMessage("pr-review", ownerOrAssignee, {
+                text: `:recycle: ${repoContext.slack.mention(
+                  reviewer.login,
+                )} dismissed his review on ${slackUtils.createPrLink(
+                  pullRequest,
+                  repoContext,
+                )}`,
+              });
             });
-          });
         } else {
           repoContext.slack.postMessage("pr-review", reviewer, {
             text: `:recycle: ${repoContext.slack.mention(

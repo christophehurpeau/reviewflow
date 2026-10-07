@@ -93,7 +93,7 @@ export default function reopened(app: Probot, appContext: AppContext): void {
           : [],
       );
       updateSlackHomeForPr(repoContext, pullRequest, {
-        assignees: true,
+        owners: true,
         requestedReviewers: true,
         requestedTeams: true,
         teamMembers,

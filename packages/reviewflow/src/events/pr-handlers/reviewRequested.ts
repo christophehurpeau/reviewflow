@@ -59,8 +59,7 @@ export default function reviewRequested(
       /* send slack notification */
       if (repoContext.slack) {
         updateSlackHomeForPr(repoContext, pullRequest, {
-          user: true,
-          assignees: true,
+          owners: true,
           otherLogins: requestedReviewers.map((reviewer) => reviewer.login),
         });
 
