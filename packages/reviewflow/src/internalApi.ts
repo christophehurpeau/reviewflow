@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import type { NextFunction, Request, Response, Router } from "express";
 import express from "express";
 import type { Probot } from "probot";
+import { backfillPrBranches } from "./backfills/backfillPrBranches.ts";
 import type { AppContext } from "./context/AppContext.ts";
 import { getExistingAccountContext } from "./context/accountContext.ts";
 import { syncOrg } from "./events/account-handlers/actions/syncOrg.ts";
@@ -171,6 +172,36 @@ export default function internalApiRouter(
     (async () => {
       await deleteRepositoryData({ mongoStores, repositoryId });
       res.status(204).end();
+    })().catch(next);
+  });
+
+  /**
+   * Operator job, answered once it has run: dry run unless the body says
+   * `"dryRun": false`, all repositories unless it names a `repositoryId`.
+   */
+  router.post("/backfill/pr-branches", (req, res, next) => {
+    const { dryRun = true, repositoryId: rawRepositoryId } = req.body ?? {};
+    const repositoryId = readNumber(rawRepositoryId);
+    if (typeof dryRun !== "boolean") {
+      res.status(400).json({ error: "Invalid dryRun" });
+      return;
+    }
+    if (rawRepositoryId !== undefined && !repositoryId) {
+      res.status(400).json({ error: "Invalid repositoryId" });
+      return;
+    }
+
+    (async () => {
+      const reports = await backfillPrBranches({
+        mongoStores,
+        auth: (installationId) => probot.auth(installationId),
+        dryRun,
+        repositoryId,
+        log: (report) => {
+          probot.log.info(report, "backfill pr branches");
+        },
+      });
+      res.json({ dryRun, reports });
     })().catch(next);
   });
 

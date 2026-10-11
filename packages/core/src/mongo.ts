@@ -71,6 +71,12 @@ export interface Repository extends MongoBaseModel<number> {
   settings: RepositorySettings;
   /** archived on github: kept, without its pull requests */
   archived?: boolean;
+  /**
+   * Set once every `prs` document of the repository has `headRef`, `baseRef`,
+   * `headRepoFullName` and, when closed, `isMerged`. Absent: the backfill has
+   * not finished here, so a missing `headRef` does not mean "no pull request".
+   */
+  prBranchesBackfilledAt?: Date;
 }
 
 interface RepoEmbed {
