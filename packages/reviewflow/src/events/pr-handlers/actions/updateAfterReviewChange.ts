@@ -17,8 +17,13 @@ export async function updateOnlyReviewflowPrReviews(
   appContext: AppContext,
   reviewflowPrContext: ReviewflowPrContext,
   reviewsState: ReviewsState,
+  requestedNow?: { reviewerId: number; at: Date },
 ): Promise<void> {
-  reviewflowPrContext.reviewflowPr.reviews = groupReviewsState(reviewsState);
+  reviewflowPrContext.reviewflowPr.reviews = groupReviewsState(
+    reviewsState,
+    reviewflowPrContext.reviewflowPr.reviews,
+    requestedNow,
+  );
 
   await appContext.mongoStores.prs.partialUpdateOne(
     reviewflowPrContext.reviewflowPr,
@@ -44,12 +49,14 @@ export async function updateAfterReviewChange<
   repoContext: RepoContext<TeamNames>,
   reviewflowPrContext: ReviewflowPrContext,
   reviewsState: ReviewsState,
+  requestedNow?: { reviewerId: number; at: Date },
 ): Promise<UpdateAfterReviewChangeResult> {
   // updates reviewflowPrContext.reviewflowPr.reviews before calling calcStepsState
   const updateReviewflowPrPromise = updateOnlyReviewflowPrReviews(
     appContext,
     reviewflowPrContext,
     reviewsState,
+    requestedNow,
   );
 
   const stepsState = calcStepsState({

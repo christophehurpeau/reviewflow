@@ -157,8 +157,10 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
 
     // update checks and reviews after labels update.
     if (shouldUpdateChecks && checksAndStatuses && reviewsState) {
-      reviewflowPrContext.reviewflowPr.reviews =
-        groupReviewsState(reviewsState);
+      reviewflowPrContext.reviewflowPr.reviews = groupReviewsState(
+        reviewsState,
+        reviewflowPrContext.reviewflowPr.reviews,
+      );
       reviewflowPrContext.reviewflowPr.checksConclusion =
         checksAndStatuses.checksConclusionRecord;
       reviewflowPrContext.reviewflowPr.statusesConclusion =

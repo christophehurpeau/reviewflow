@@ -8,6 +8,7 @@ export type * from "./models/AccountInfo.ts";
 export type * from "./models/BasicUser.ts";
 export type * from "./models/ChecksAndStatuses.ts";
 export type * from "./models/RepositorySettings.ts";
+export type * from "./models/ReviewerRequest.ts";
 export type * from "./models/ReviewerReview.ts";
 export type * from "./models/ReviewersGroupedByState.ts";
 export type * from "./models/ReviewflowStatus.ts";

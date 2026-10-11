@@ -49,7 +49,14 @@ describe("getReviewsState reviewed", () => {
   it("records a reviewer who only commented, with no decision", async () => {
     await expect(
       reviewedOf([review(42, "chris", "COMMENTED", "2026-03-01T09:00:00Z")]),
-    ).resolves.toEqual([{ id: 42, login: "chris", endedAt: undefined }]);
+    ).resolves.toEqual([
+      {
+        id: 42,
+        login: "chris",
+        endedAt: undefined,
+        submittedAt: new Date("2026-03-01T09:00:00Z"),
+      },
+    ]);
   });
 
   it("dates the decision that closed the review", async () => {
@@ -63,6 +70,7 @@ describe("getReviewsState reviewed", () => {
         id: 42,
         login: "chris",
         endedAt: new Date("2026-03-01T11:00:00Z"),
+        submittedAt: new Date("2026-03-01T11:00:00Z"),
       },
     ]);
   });
@@ -74,7 +82,12 @@ describe("getReviewsState reviewed", () => {
         review(42, "chris", "CHANGES_REQUESTED", "2026-03-01T09:00:00Z"),
       ]),
     ).resolves.toEqual([
-      { id: 42, login: "chris", endedAt: new Date("2026-03-01T09:00:00Z") },
+      {
+        id: 42,
+        login: "chris",
+        endedAt: new Date("2026-03-01T09:00:00Z"),
+        submittedAt: new Date("2026-03-01T09:00:00Z"),
+      },
     ]);
   });
 
@@ -86,7 +99,12 @@ describe("getReviewsState reviewed", () => {
         review(42, "chris", "COMMENTED", "2026-03-05T08:00:00Z"),
       ]),
     ).resolves.toEqual([
-      { id: 42, login: "chris", endedAt: new Date("2026-03-01T11:00:00Z") },
+      {
+        id: 42,
+        login: "chris",
+        endedAt: new Date("2026-03-01T11:00:00Z"),
+        submittedAt: new Date("2026-03-05T08:00:00Z"),
+      },
     ]);
   });
 
@@ -97,7 +115,12 @@ describe("getReviewsState reviewed", () => {
         review(42, "chris", "APPROVED", "2026-03-05T08:00:00Z"),
       ]),
     ).resolves.toEqual([
-      { id: 42, login: "chris", endedAt: new Date("2026-03-05T08:00:00Z") },
+      {
+        id: 42,
+        login: "chris",
+        endedAt: new Date("2026-03-05T08:00:00Z"),
+        submittedAt: new Date("2026-03-05T08:00:00Z"),
+      },
     ]);
   });
 
@@ -108,8 +131,18 @@ describe("getReviewsState reviewed", () => {
         review(7, "dan", "APPROVED", "2026-03-02T09:00:00Z"),
       ]),
     ).resolves.toEqual([
-      { id: 42, login: "chris", endedAt: undefined },
-      { id: 7, login: "dan", endedAt: new Date("2026-03-02T09:00:00Z") },
+      {
+        id: 42,
+        login: "chris",
+        endedAt: undefined,
+        submittedAt: new Date("2026-03-01T09:00:00Z"),
+      },
+      {
+        id: 7,
+        login: "dan",
+        endedAt: new Date("2026-03-02T09:00:00Z"),
+        submittedAt: new Date("2026-03-02T09:00:00Z"),
+      },
     ]);
   });
 
@@ -133,7 +166,10 @@ describe("getReviewsState reviewed", () => {
         login: "chris",
         type: undefined,
         state: "REVIEW_REQUESTED",
-        review: { endedAt: new Date("2026-03-01T09:00:00Z") },
+        review: {
+          endedAt: new Date("2026-03-01T09:00:00Z"),
+          submittedAt: new Date("2026-03-01T09:00:00Z"),
+        },
       },
     ]);
   });

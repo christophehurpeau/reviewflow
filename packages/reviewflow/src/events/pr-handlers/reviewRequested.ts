@@ -50,6 +50,9 @@ export default function reviewRequested(
           repoContext,
           reviewflowPrContext,
           reviewsState,
+          requestedReviewer
+            ? { reviewerId: requestedReviewer.id, at: new Date() }
+            : undefined,
         );
       }
 

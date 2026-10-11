@@ -2,10 +2,10 @@ import type { AccountInfo } from "../models/AccountInfo.ts";
 import type { ReviewerReview } from "../models/ReviewerReview.ts";
 import type { ReviewersGroupedByState } from "../models/ReviewersGroupedByState.ts";
 
-const withoutUser = (
-  reviewers: AccountInfo[] | undefined,
+const withoutUser = <Reviewer extends AccountInfo>(
+  reviewers: Reviewer[] | undefined,
   id: number,
-): AccountInfo[] => (reviewers ?? []).filter((reviewer) => reviewer.id !== id);
+): Reviewer[] => (reviewers ?? []).filter((reviewer) => reviewer.id !== id);
 
 /**
  * The reviewer recorded as having reviewed this pull request. The date of the

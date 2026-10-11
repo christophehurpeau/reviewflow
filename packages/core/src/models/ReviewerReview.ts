@@ -12,4 +12,9 @@ export interface ReviewerReview {
    * rather than done.
    */
   endedAt?: Date;
+  /**
+   * When they last submitted a review of any kind, a comment included. A
+   * dismissal does not move it: the review keeps the date it was submitted.
+   */
+  submittedAt?: Date;
 }

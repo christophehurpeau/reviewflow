@@ -58,6 +58,9 @@ export const getReviewsState = async <EventName extends EventsWithRepository>(
         // would omit is not one of these.
         reviewer.review ??= { endedAt: undefined };
         const state = review.state.toUpperCase();
+        if (review.submitted_at) {
+          reviewer.review.submittedAt = new Date(review.submitted_at);
+        }
         if (state !== "COMMENTED") {
           reviewer.state = state as ReviewState;
           reviewer.review.endedAt = new Date(review.submitted_at ?? Date.now());

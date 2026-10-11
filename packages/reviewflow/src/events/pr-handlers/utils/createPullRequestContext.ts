@@ -170,7 +170,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
           }
         : undefined,
     commentId,
-    reviews: groupReviewsState(reviewsState!),
+    reviews: groupReviewsState(reviewsState!, undefined),
     ...getBranchesFromPullRequest(pullRequest),
     creator: getCreatorFromPullRequest(pullRequest),
     assignees:

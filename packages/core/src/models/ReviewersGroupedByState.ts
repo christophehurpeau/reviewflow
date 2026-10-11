@@ -1,10 +1,11 @@
 import type { AccountInfo } from "./AccountInfo.ts";
+import type { ReviewerRequest } from "./ReviewerRequest.ts";
 import type { ReviewerReview } from "./ReviewerReview.ts";
 import type { TeamInfo } from "./TeamInfo.ts";
 
 export interface ReviewersGroupedByState {
   teamReviewRequested: TeamInfo[];
-  reviewRequested: AccountInfo[];
+  reviewRequested: ReviewerRequest[];
   approved: AccountInfo[];
   changesRequested: AccountInfo[];
   dismissed: AccountInfo[];

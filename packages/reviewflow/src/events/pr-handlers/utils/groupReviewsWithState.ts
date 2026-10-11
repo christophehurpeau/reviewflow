@@ -36,13 +36,31 @@ export function createEmptyReviews(): ReviewersGroupedByState {
   };
 }
 
+/**
+ * `previous` carries over what github cannot return: when a pending request
+ * was received. `requestedNow` is the request the event being handled is about.
+ * A request that is no longer pending takes its date with it.
+ */
 export function groupReviewsState(
   reviewsState: ReviewsState,
+  previous: ReviewersGroupedByState | undefined,
+  requestedNow?: { reviewerId: number; at: Date },
 ): ReviewersGroupedByState {
   const reviews: ReviewersGroupedByState = createEmptyReviews();
 
   reviewsState.reviewersWithState.forEach(({ state, review, ...reviewer }) => {
-    reviews[getKeyFromState(state)].push(reviewer);
+    if (state === "REVIEW_REQUESTED") {
+      const requestedAt =
+        requestedNow?.reviewerId === reviewer.id
+          ? requestedNow.at
+          : previous?.reviewRequested?.find(({ id }) => id === reviewer.id)
+              ?.requestedAt;
+      reviews.reviewRequested.push(
+        requestedAt ? { ...reviewer, requestedAt } : reviewer,
+      );
+    } else {
+      reviews[getKeyFromState(state)].push(reviewer);
+    }
     // a request replaces the state a reviewer had reached, so the fact that
     // they reviewed is recorded apart from the group they end up in
     if (review) {
