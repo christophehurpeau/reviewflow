@@ -197,7 +197,6 @@ export interface ReviewflowPr extends MongoBaseModel {
   lintStatuses?: ReviewflowStatus[];
   lastFlowStatusCommit?: string;
   flowStatus?: ReviewflowStatus["status"];
-  automergeStatus?: ReviewflowStatus["status"];
   checksConclusion?: ChecksAndStatuses["checksConclusionRecord"];
   statusesConclusion?: ChecksAndStatuses["statusesConclusionRecord"];
   reviews: ReviewersGroupedByState;
