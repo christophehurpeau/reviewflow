@@ -7,9 +7,10 @@ allowBuilds:
   unrs-resolver: true
   utf-8-validate: false
 dedupePeerDependents: true
-minimumReleaseAge: 4320
+minimumReleaseAge: 3600
 minimumReleaseAgeExclude:
   - "@pob/*"
+  - pob
   - pob-dependencies
   - check-package-dependencies
   - alouette

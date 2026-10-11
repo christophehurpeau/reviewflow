@@ -26,8 +26,9 @@
     "build": "pnpm run clean:build && rollup --config rollup.config.mjs",
     "clean": "pnpm run clean:build",
     "clean:build": "pob-esbuild-clean-out build",
-    "lint": "pnpm run lint:eslint",
-    "lint:eslint": "pnpm run --dir '../..' eslint --quiet 'packages/reviewflow'",
+    "lint": "pnpm run lint:oxlint && pnpm run lint:eslint",
+    "lint:eslint": "pnpm --dir '../..' exec eslint --quiet 'packages/reviewflow'",
+    "lint:oxlint": "pnpm --dir '../..' exec oxlint --quiet 'packages/reviewflow'",
     "start": "pnpm run clean:build && rollup --config rollup.config.mjs --watch",
     "test": "pnpm run --dir '../..' test -- 'packages/reviewflow'",
     "test:coverage:generate": "TZ=UTC POB_VITEST_COVERAGE=json vitest run --coverage",
@@ -57,7 +58,7 @@
     "slackify-markdown": "5.0.0"
   },
   "devDependencies": {
-    "@pob/rollup-esbuild": "10.0.0",
+    "@pob/rollup-esbuild": "10.2.0",
     "@types/express": "5.0.6",
     "@types/issue-parser": "3.0.5",
     "@types/node": "24.12.4",

@@ -2,10 +2,10 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 // projects do not inherit the root test options, each one repeats what it needs
-const testTimeout = 30000;
+const testTimeout = 30_000;
 // globalSetup paths resolve from each project root
 const mongoGlobalSetup = fileURLToPath(
-  new URL("scripts/vitestMongoGlobalSetup.ts", import.meta.url),
+  new URL("./scripts/vitestMongoGlobalSetup.ts", import.meta.url),
 );
 
 export default defineConfig({

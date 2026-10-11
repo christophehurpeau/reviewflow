@@ -139,8 +139,8 @@ export const VariantsStory: StoryObj<typeof PrBucketSection> = {
           title="Requested reviews"
           icon={<EyeRegularIcon />}
           prs={loaded(prs)}
-          onSelectPr={fn()}
           renderAction={() => <StartReviewButton onStartReview={fn()} />}
+          onSelectPr={fn()}
         />
       </Story.Section>
       <Story.Section title="loading">
@@ -153,10 +153,10 @@ export const VariantsStory: StoryObj<typeof PrBucketSection> = {
       </Story.Section>
       <Story.Section title="pending, the account filter is unresolved">
         <PrBucketSection
+          pending
           title="Requested reviews"
           icon={<EyeRegularIcon />}
           prs={loading}
-          pending
           onSelectPr={fn()}
         />
       </Story.Section>

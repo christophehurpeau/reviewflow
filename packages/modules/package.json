@@ -33,8 +33,9 @@
     "build": "pnpm run clean:build && rollup --config rollup.config.mjs",
     "clean": "pnpm run clean:build",
     "clean:build": "pob-esbuild-clean-out build",
-    "lint": "pnpm run lint:eslint",
-    "lint:eslint": "pnpm run --dir '../..' eslint --quiet 'packages/modules'",
+    "lint": "pnpm run lint:oxlint && pnpm run lint:eslint",
+    "lint:eslint": "pnpm --dir '../..' exec eslint --quiet 'packages/modules'",
+    "lint:oxlint": "pnpm --dir '../..' exec oxlint --quiet 'packages/modules'",
     "start": "pnpm run clean:build && rollup --config rollup.config.mjs --watch",
     "tsc": "tsc",
     "watch": "pnpm run clean:build && rollup --config rollup.config.mjs --watch"
@@ -44,7 +45,7 @@
     "liwi-resources-client": "14.0.0"
   },
   "devDependencies": {
-    "@pob/rollup-esbuild": "10.0.0",
+    "@pob/rollup-esbuild": "10.2.0",
     "@typescript/native": "npm:typescript@7.0.2",
     "typescript": "npm:@typescript/typescript6@6.0.2"
   },

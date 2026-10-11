@@ -12,6 +12,7 @@ import {
  */
 export function SignInFirst(): ReactNode {
   // captured before the redirect below navigates away from it
+  // oxlint-disable-next-line react/hook-use-state -- read once, never updated
   const [askedPath] = useState(currentPath);
 
   useEffect(() => {

@@ -14,14 +14,14 @@ export function StartReviewButton({
     <ActionButton
       text="Start review"
       size="sm"
+      errorToMessage={errorToMessage}
+      // the row is already a raised surface, so the failure message is flat
+      errorMessageVariant="flat"
       // the whole row opens github, so the button must keep the press
       onPress={(event) => {
         event.stopPropagation();
         return onStartReview();
       }}
-      errorToMessage={errorToMessage}
-      // the row is already a raised surface, so the failure message is flat
-      errorMessageVariant="flat"
     />
   );
 }

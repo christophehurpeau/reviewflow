@@ -43,10 +43,10 @@ export function ReviewflowHeader(): ReactNode {
       }
     >
       <HeaderNav aria-label="Sections" value={sectionOf(pathname)}>
-        <Link href={prsHref} asChild>
+        <Link asChild href={prsHref}>
           <HeaderNavItem label="Pull requests" />
         </Link>
-        <Link href={settingsHref} asChild>
+        <Link asChild href={settingsHref}>
           <HeaderNavItem label="Settings" />
         </Link>
       </HeaderNav>

@@ -59,14 +59,14 @@ export function ReviewflowSidebar(): ReactNode {
     >
       <SidebarNav aria-label="Sections" value={sectionOf(pathname)}>
         <SidebarNavSection>
-          <Link href={prsHref} asChild>
+          <Link asChild href={prsHref}>
             <SidebarNavItem
               label="Pull requests"
               icon={<GitPullRequestRegularIcon />}
               activeIcon={<GitPullRequestDuotoneIcon />}
             />
           </Link>
-          <Link href={settingsHref} asChild>
+          <Link asChild href={settingsHref}>
             <SidebarNavItem
               label="Settings"
               icon={<GearRegularIcon />}

@@ -131,7 +131,11 @@
         "isBackground": false
       }
     },
-    { "label": "lint", "group": "test", "dependsOn": ["lint:eslint", "tsc"] },
+    {
+      "label": "lint",
+      "group": "test",
+      "dependsOn": ["lint:eslint", "lint:oxlint", "tsc"]
+    },
     {
       "label": "lint:eslint",
       "problemMatcher": ["$eslint-stylish"],
@@ -141,6 +145,19 @@
       "presentation": {
         "close": true,
         "revealProblems": "onProblem",
+        "panel": "dedicated",
+        "group": "test",
+        "clear": true,
+        "isBackground": false
+      }
+    },
+    {
+      "label": "lint:oxlint",
+      "problemMatcher": [],
+      "type": "npm",
+      "script": "lint:oxlint",
+      "group": "test",
+      "presentation": {
         "panel": "dedicated",
         "group": "test",
         "clear": true,

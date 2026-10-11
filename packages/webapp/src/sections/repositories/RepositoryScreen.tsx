@@ -43,12 +43,12 @@ export function RepositoryScreen({
         {(repositoryData) =>
           repositoryData ? (
             <View className="gap-m">
-              {repositoryData.archived && (
+              {repositoryData.archived ? (
                 <WarningMessage>
                   This repository is archived on github. Its pull requests are
                   no longer available. Unarchiving it brings reviewflow back.
                 </WarningMessage>
-              )}
+              ) : null}
               <InfoMessage>
                 Per repository settings are not editable here yet.
               </InfoMessage>
@@ -62,8 +62,8 @@ export function RepositoryScreen({
                 <View className="flex-row gap-sm">
                   <ActionButton
                     text="Resync"
-                    onPress={() => onSync(repositoryData._id)}
                     errorToMessage={errorToMessage}
+                    onPress={() => onSync(repositoryData._id)}
                   />
                   <ExternalLinkButton
                     href={`https://github.com/${repositoryData.fullName}`}

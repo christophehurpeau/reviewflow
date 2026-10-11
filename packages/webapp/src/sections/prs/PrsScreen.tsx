@@ -127,12 +127,12 @@ export function PrsScreen({
                             pending={pending}
                             reviewRequestVerb="requested"
                             currentUserLogin={user?.login}
-                            onSelectPr={onSelectPr}
                             renderAction={(pr) => (
                               <StartReviewButton
                                 onStartReview={() => onStartReview(pr)}
                               />
                             )}
+                            onSelectPr={onSelectPr}
                           />
                           <PrBucketSection
                             title="Ready to merge"
