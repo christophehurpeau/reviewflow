@@ -1,24 +1,20 @@
 allowBuilds:
-  # optional native speedups of ws, the js fallbacks are enough here
   bufferutil: false
   esbuild: true
-  # the mongod binary is downloaded on first use and cached, not at install
   mongodb-memory-server: false
   unrs-resolver: true
   utf-8-validate: false
 dedupePeerDependents: true
-minimumReleaseAge: 4320
+minimumReleaseAge: 3600
 minimumReleaseAgeExclude:
   - "@pob/*"
+  - pob
   - pob-dependencies
   - check-package-dependencies
   - alouette
   - alouette-icons
-  - extended-json
-  - liwi-*
   - nightingale
   - nightingale-logger
-  - react-liwi
 nodeLinker: hoisted
 packages:
   - packages/*
