@@ -278,7 +278,6 @@ export const editOpenedPR = async <
     isDraft: pullRequest.draft === true,
     isClosed: !!pullRequest.closed_at,
     reviewState: toReviewState(stepsState.codeReview),
-    // the base branch can be changed, the head repository can be deleted
     ...getBranchesFromPullRequest(pullRequest),
   };
 

@@ -39,7 +39,6 @@ export function createEmptyReviews(): ReviewersGroupedByState {
 /**
  * `previous` carries over what github cannot return: when a pending request
  * was received. `requestedNow` is the request the event being handled is about.
- * A request that is no longer pending takes its date with it.
  */
 export function groupReviewsState(
   reviewsState: ReviewsState,

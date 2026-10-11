@@ -175,22 +175,19 @@ export interface ReviewflowPr extends MongoBaseModel {
   pr: PrEmbed;
   commentId: number;
   headSha?: string;
-  /** branch the PR comes from; absent on documents not written since it was added */
   headRef?: string;
-  /** branch the PR targets */
   baseRef?: string;
   /**
-   * `owner/repo` the head branch lives in (a fork for fork PRs, the base
-   * repository otherwise); `null` when the head repository was deleted.
-   * Written with `headRef`/`baseRef`.
+   * `owner/repo` of the head branch (a fork for fork PRs); `null` when the
+   * head repository was deleted, absent = unknown.
    */
   headRepoFullName?: string | null;
   title: string;
   isDraft: boolean;
   isClosed: boolean;
-  /** absent on closed documents written before it was added: unknown, not `false` */
+  /** absent = unknown, not `false` */
   isMerged?: boolean;
-  /** absent until the document is next recomputed: unknown, not `none` */
+  /** absent = unknown, not `none` */
   reviewState?: ReviewState;
   changesInformation?: ReviewflowPrChangesInformation;
   lastLintStatusesCommit?: string;
@@ -210,7 +207,7 @@ export interface ReviewflowPr extends MongoBaseModel {
     reviewStartedAt?: Date;
     approvedAt?: Date;
     closedAt?: Date;
-    /** receipt time; absent until the next push or review after it was added */
+    /** time reviewflow received the event; absent = unknown */
     lastPushedAt?: Date;
     lastReviewSubmittedAt?: Date;
   };
@@ -367,10 +364,9 @@ export default function init(): InitializedMongoStores {
       "repo.id": 1,
       headSha: 1,
     });
-    // branch lookup. `account.id` / `repo.id`, not the logins: an account
-    // rename is not handled anywhere, so `account.login` goes stale (only repo
-    // rename and transfer rewrite it), while ids never change. `headRepoFullName`
-    // is matched in the query, not indexed: few PRs share a head branch name.
+    // branch lookup, on ids: `account.login` goes stale on an account rename.
+    // `headRepoFullName` is matched in the query, not indexed: few PRs share a
+    // head branch name.
     await coll.createIndex({
       "account.id": 1,
       "repo.id": 1,

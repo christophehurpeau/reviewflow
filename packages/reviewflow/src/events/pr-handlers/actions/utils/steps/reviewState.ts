@@ -1,11 +1,7 @@
 import type { ReviewState } from "reviewflow-core";
 import type { CodeReviewStepState } from "./codeReviewStep.ts";
 
-/**
- * Changes requested wins over a pending request. Approvals that do not satisfy
- * the repo rules (`restrictAutoMergeTo`) still leave a review to obtain:
- * `requested`.
- */
+/** Approvals that do not satisfy the repo rules (`restrictAutoMergeTo`) still leave a review to obtain. */
 export function toReviewState({
   hasChangesRequested,
   hasRequestedReviewers,
