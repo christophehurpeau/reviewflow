@@ -119,7 +119,12 @@ describe("opened", (): void => {
     });
 
     expect(insertOnePr).toHaveBeenCalledWith(
-      expect.objectContaining({ labels: [] }),
+      expect.objectContaining({
+        labels: [],
+        headRef: "christophehurpeau-patch-2",
+        baseRef: "master",
+        headRepoFullName: "reviewflow/reviewflow-test",
+      }),
     );
     expect(partialUpdateOnePr).toHaveBeenCalled();
     expect(scope.pendingMocks()).toEqual([]);

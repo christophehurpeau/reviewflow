@@ -56,6 +56,25 @@ export const getInitialFlowDatesFromPullRequest = (
   return undefined;
 };
 
+export const getBranchesFromPullRequest = (
+  pullRequest: PullRequestDataMinimumData | PullRequestWithDecentData,
+):
+  | Pick<ReviewflowPr, "baseRef" | "headRef" | "headRepoFullName">
+  | undefined => {
+  if (!("head" in pullRequest) || !("base" in pullRequest)) return undefined;
+  const headRepo: { full_name?: string } | null | undefined =
+    pullRequest.head.repo;
+  const branches: NonNullable<ReturnType<typeof getBranchesFromPullRequest>> = {
+    headRef: pullRequest.head.ref,
+    baseRef: pullRequest.base.ref,
+  };
+  // `null`: the head repository was deleted. The minimal pull requests of
+  // `check_run` payloads have a repo without `full_name`: unknown, left absent.
+  if (headRepo === null) branches.headRepoFullName = null;
+  else if (headRepo?.full_name) branches.headRepoFullName = headRepo.full_name;
+  return branches;
+};
+
 const getCreatorFromPullRequest = (
   pullRequest: PullRequestDataMinimumData | PullRequestWithDecentData,
 ): ReviewflowPr["creator"] =>
@@ -85,6 +104,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
       isClosed: "closed_at" in pullRequest ? !!pullRequest.closed_at : false,
       isDraft: "draft" in pullRequest && pullRequest.draft === true,
       reviews: createEmptyReviews(),
+      ...getBranchesFromPullRequest(pullRequest),
       creator: getCreatorFromPullRequest(pullRequest),
       assignees:
         "assignees" in pullRequest && pullRequest.assignees
@@ -151,6 +171,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
         : undefined,
     commentId,
     reviews: groupReviewsState(reviewsState!),
+    ...getBranchesFromPullRequest(pullRequest),
     creator: getCreatorFromPullRequest(pullRequest),
     assignees:
       "assignees" in pullRequest && pullRequest.assignees

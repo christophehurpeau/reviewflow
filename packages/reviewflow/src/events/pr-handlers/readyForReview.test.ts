@@ -120,6 +120,9 @@ describe("edited", (): void => {
       $set: {
         isClosed: false,
         isDraft: false,
+        headRef: "test-drft",
+        baseRef: "master",
+        headRepoFullName: "reviewflow/reviewflow-test",
         changesInformation: {
           additions: 2,
           changedFiles: 1,

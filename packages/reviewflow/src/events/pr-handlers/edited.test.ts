@@ -77,7 +77,13 @@ describe("edited", (): void => {
       payload: pullRequestEdited.payload,
     });
 
-    expect(partialUpdateOnePr).toHaveBeenCalled();
+    expect(partialUpdateOnePr).toHaveBeenCalledWith(expect.anything(), {
+      $set: expect.objectContaining({
+        headRef: "christophehurpeau-patch-2",
+        baseRef: "master",
+        headRepoFullName: "reviewflow/reviewflow-test",
+      }),
+    });
     expect(scope.pendingMocks()).toEqual([]);
     expect(scope.activeMocks()).toEqual([]);
   });

@@ -169,6 +169,16 @@ export interface ReviewflowPr extends MongoBaseModel {
   pr: PrEmbed;
   commentId: number;
   headSha?: string;
+  /** branch the PR comes from; absent on documents not written since it was added */
+  headRef?: string;
+  /** branch the PR targets */
+  baseRef?: string;
+  /**
+   * `owner/repo` the head branch lives in (a fork for fork PRs, the base
+   * repository otherwise); `null` when the head repository was deleted.
+   * Written with `headRef`/`baseRef`.
+   */
+  headRepoFullName?: string | null;
   title: string;
   isDraft: boolean;
   isClosed: boolean;
@@ -344,6 +354,15 @@ export default function init(): InitializedMongoStores {
       "account.id": 1,
       "repo.id": 1,
       headSha: 1,
+    });
+    // branch lookup. `account.id` / `repo.id`, not the logins: an account
+    // rename is not handled anywhere, so `account.login` goes stale (only repo
+    // rename and transfer rewrite it), while ids never change. `headRepoFullName`
+    // is matched in the query, not indexed: few PRs share a head branch name.
+    await coll.createIndex({
+      "account.id": 1,
+      "repo.id": 1,
+      headRef: 1,
     });
     // one index per branch of the owned-buckets `$or`, see below
     await coll.createIndex({

@@ -23,6 +23,7 @@ import type {
 import { toBasicUser } from "../utils/PullRequestData.ts";
 import {
   type ReviewflowPrContext,
+  getBranchesFromPullRequest,
   getInitialFlowDatesFromPullRequest,
 } from "../utils/createPullRequestContext.ts";
 import { readCommitsAndUpdateInfos } from "./readCommitsAndUpdateInfos.ts";
@@ -273,6 +274,8 @@ export const editOpenedPR = async <
     title,
     isDraft: pullRequest.draft === true,
     isClosed: !!pullRequest.closed_at,
+    // the base branch can be changed, the head repository can be deleted
+    ...getBranchesFromPullRequest(pullRequest),
   };
 
   if ("changed_files" in pullRequest) {

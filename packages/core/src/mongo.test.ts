@@ -37,6 +37,13 @@ describe("mongo stores on a real mongod", () => {
     );
   });
 
+  it("indexes prs on account id, repo id and head branch", async () => {
+    const indexes = await stores.db.collection("prs").indexes();
+    expect(indexes.map(({ name }) => name)).toContain(
+      "account.id_1_repo.id_1_headRef_1",
+    );
+  });
+
   // index created by `init`
   it("enforces the unique index on org login", async () => {
     await expect(
