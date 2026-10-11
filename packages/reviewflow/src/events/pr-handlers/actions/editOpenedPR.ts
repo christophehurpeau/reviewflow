@@ -58,6 +58,7 @@ export interface EditOpenedPullRequestOptions<
   shouldUpdateCommentBodyProgress: boolean;
   stepsState: StepsState;
   previousSha?: string;
+  pushedAt?: Date;
   checksAndStatuses?: ChecksAndStatuses;
   reviews?: ReviewflowPr["reviews"];
 }
@@ -77,6 +78,7 @@ export const editOpenedPR = async <
   shouldUpdateCommentBodyProgress,
   stepsState,
   previousSha,
+  pushedAt,
   checksAndStatuses,
   reviews,
 }: EditOpenedPullRequestOptions<EventName, TeamNames>): Promise<void> => {
@@ -287,10 +289,16 @@ export const editOpenedPR = async <
   }
 
   if (!reviewflowPrContext.reviewflowPr.flowDates) {
+    const initialFlowDates = getInitialFlowDatesFromPullRequest(pullRequest);
     partialUpdateReviewflowPr.flowDates =
-      getInitialFlowDatesFromPullRequest(pullRequest);
+      initialFlowDates && pushedAt
+        ? { ...initialFlowDates, lastPushedAt: pushedAt }
+        : initialFlowDates;
   } else {
     const flowDates = reviewflowPrContext.reviewflowPr.flowDates;
+    if (pushedAt) {
+      partialUpdateReviewflowPr["flowDates.lastPushedAt"] = pushedAt;
+    }
     if (pullRequest.closed_at && !flowDates.closedAt) {
       partialUpdateReviewflowPr["flowDates.closedAt"] = new Date(
         pullRequest.closed_at,

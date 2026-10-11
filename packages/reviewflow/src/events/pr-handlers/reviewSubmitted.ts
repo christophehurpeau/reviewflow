@@ -89,14 +89,21 @@ export default function reviewSubmitted(
             getReviewsState(context, pullRequest),
           ]);
 
-          await updateAfterReviewChange(
-            updatedPr,
-            context,
-            appContext,
-            repoContext,
-            reviewflowPrContext,
-            reviewsState,
-          );
+          await Promise.all([
+            reviewflowPrContext.reviewflowPr.flowDates &&
+              appContext.mongoStores.prs.partialUpdateOne(
+                reviewflowPrContext.reviewflowPr,
+                { $set: { "flowDates.lastReviewSubmittedAt": new Date() } },
+              ),
+            updateAfterReviewChange(
+              updatedPr,
+              context,
+              appContext,
+              repoContext,
+              reviewflowPrContext,
+              reviewsState,
+            ),
+          ]);
         }
 
         const createTeamsRegex = () => {

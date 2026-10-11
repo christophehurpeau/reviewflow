@@ -70,6 +70,7 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
           shouldUpdateCommentBodyInfos: true,
           shouldUpdateCommentBodyProgress: true, // CI
           previousSha,
+          pushedAt: new Date(),
           checksAndStatuses,
         }),
         // update status check if new commit is pushed

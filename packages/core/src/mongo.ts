@@ -203,6 +203,9 @@ export interface ReviewflowPr extends MongoBaseModel {
     reviewStartedAt?: Date;
     approvedAt?: Date;
     closedAt?: Date;
+    /** receipt time; absent until the next push or review after it was added */
+    lastPushedAt?: Date;
+    lastReviewSubmittedAt?: Date;
   };
   // flowHistory: FlowHistory[];
 }

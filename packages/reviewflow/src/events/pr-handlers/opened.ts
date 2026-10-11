@@ -105,6 +105,7 @@ export default function opened(app: Probot, appContext: AppContext): void {
                 shouldUpdateCommentBodyInfos: true,
                 shouldUpdateCommentBodyProgress: true,
                 checksAndStatuses,
+                pushedAt: new Date(),
               }),
             ]);
           }),

@@ -126,7 +126,11 @@ describe("opened", (): void => {
         headRepoFullName: "reviewflow/reviewflow-test",
       }),
     );
-    expect(partialUpdateOnePr).toHaveBeenCalled();
+    expect(partialUpdateOnePr).toHaveBeenCalledWith(expect.anything(), {
+      $set: expect.objectContaining({
+        flowDates: expect.objectContaining({ lastPushedAt: expect.any(Date) }),
+      }),
+    });
     expect(scope.pendingMocks()).toEqual([]);
     expect(scope.activeMocks()).toEqual([]);
   });

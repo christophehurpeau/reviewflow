@@ -19,6 +19,7 @@ export const initializeProbotApp = async ({
   labels,
   repositories,
   installationsEvents,
+  slackSentMessages,
 }: Partial<any> = {}): Promise<Probot> => {
   const probot = new Probot({
     appId: APP_ID,
@@ -94,6 +95,13 @@ export const initializeProbotApp = async ({
     installationsEvents: {
       insertOne: () => Promise.resolve(),
       ...installationsEvents,
+    },
+    slackSentMessages: {
+      findOne: () => Promise.resolve(undefined),
+      findAll: () => Promise.resolve([]),
+      insertOne: () => Promise.resolve(),
+      deleteOne: () => Promise.resolve(),
+      ...slackSentMessages,
     },
   };
 
