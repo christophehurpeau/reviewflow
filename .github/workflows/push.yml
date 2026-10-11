@@ -50,6 +50,18 @@ jobs:
         if: startsWith(matrix.node-version, '24.')
         run: pnpm exec repository-check-dirty
 
+      # the webapp storybook project renders its stories in a real browser
+      - name: Install Playwright chromium
+        run: pnpm --filter webapp exec playwright install --with-deps chromium
+
+      # tests start a real mongod through mongodb-memory-server, which downloads
+      # the binary on first use (version pinned in scripts/vitestMongoGlobalSetup.ts)
+      - name: Cache mongod binary
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongod-${{ runner.os }}-${{ hashFiles('scripts/vitestMongoGlobalSetup.ts') }}
+
       - name: Test
         run: pnpm run test
         env:

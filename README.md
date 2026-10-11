@@ -11,7 +11,7 @@ This repository is a monorepo using workspaces.
 | [reviewflow-core](packages/core)                   |         | mongo stores, models and account configs shared by the reviewflow servers       |
 | [reviewflow-modules](packages/modules)             |         | shared types and service contracts between the reviewflow server and the webapp |
 | [reviewflow](packages/reviewflow)                  |         | 🚦 Open Source GitHub bot that improves PR flow from opening to merging.        |
-| [webapp](packages/webapp)                          |         |
+| [webapp](packages/webapp)                          |         | Expo Router app to configure reviewflow and follow your pull requests.          |
 | [reviewflow-webapp-server](packages/webapp-server) |         | serves the reviewflow webapp, its oauth flows and its resources websocket       |
 
 <h3>🏗 Architecture</h3>

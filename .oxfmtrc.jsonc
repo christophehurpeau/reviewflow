@@ -9,6 +9,7 @@
     "/packages/*/android/",
     "/packages/*/ios/",
     "/packages/*/dist/",
+    "/packages/*/.storybook/storybook.requires.ts",
     "/packages/*/dist-native/",
     "*.jks",
     "*.p8",
