@@ -98,6 +98,7 @@ describe("review requested", (): void => {
             }),
           ],
         }),
+        reviewState: "requested",
       },
     });
   });

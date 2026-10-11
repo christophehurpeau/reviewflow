@@ -12,28 +12,7 @@ import { updateCommentBodyProgressFromStepsState } from "./updateCommentBodyProg
 import { updateReviewStatus } from "./updateReviewStatus.ts";
 import { updateStatusCheckFromStepsState } from "./updateStatusCheckFromStepsState.ts";
 import { calcStepsState } from "./utils/steps/calcStepsState.ts";
-
-export async function updateOnlyReviewflowPrReviews(
-  appContext: AppContext,
-  reviewflowPrContext: ReviewflowPrContext,
-  reviewsState: ReviewsState,
-  requestedNow?: { reviewerId: number; at: Date },
-): Promise<void> {
-  reviewflowPrContext.reviewflowPr.reviews = groupReviewsState(
-    reviewsState,
-    reviewflowPrContext.reviewflowPr.reviews,
-    requestedNow,
-  );
-
-  await appContext.mongoStores.prs.partialUpdateOne(
-    reviewflowPrContext.reviewflowPr,
-    {
-      $set: {
-        reviews: reviewflowPrContext.reviewflowPr.reviews,
-      },
-    },
-  );
-}
+import { toReviewState } from "./utils/steps/reviewState.ts";
 
 export interface UpdateAfterReviewChangeResult {
   wasMerged: boolean;
@@ -51,11 +30,10 @@ export async function updateAfterReviewChange<
   reviewsState: ReviewsState,
   requestedNow?: { reviewerId: number; at: Date },
 ): Promise<UpdateAfterReviewChangeResult> {
-  // updates reviewflowPrContext.reviewflowPr.reviews before calling calcStepsState
-  const updateReviewflowPrPromise = updateOnlyReviewflowPrReviews(
-    appContext,
-    reviewflowPrContext,
+  // calcStepsState reads the reviews from the context
+  reviewflowPrContext.reviewflowPr.reviews = groupReviewsState(
     reviewsState,
+    reviewflowPrContext.reviewflowPr.reviews,
     requestedNow,
   );
 
@@ -64,6 +42,16 @@ export async function updateAfterReviewChange<
     repoContext,
     reviewflowPrContext,
   });
+
+  const updateReviewflowPrPromise = appContext.mongoStores.prs.partialUpdateOne(
+    reviewflowPrContext.reviewflowPr,
+    {
+      $set: {
+        reviews: reviewflowPrContext.reviewflowPr.reviews,
+        reviewState: toReviewState(stepsState.codeReview),
+      },
+    },
+  );
 
   await Promise.all([
     updateReviewflowPrPromise,

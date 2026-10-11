@@ -41,6 +41,7 @@ import { lintCommitMessage } from "./utils/commitMessages.ts";
 import createStatus, { isSameStatus } from "./utils/createStatus.ts";
 import { cleanTitle } from "./utils/prTitle.ts";
 import type { StepsState } from "./utils/steps/calcStepsState.ts";
+import { toReviewState } from "./utils/steps/reviewState.ts";
 import { updateSlackHomeForPr } from "./utils/updateSlackHome.ts";
 
 export interface EditOpenedPullRequestOptions<
@@ -276,6 +277,7 @@ export const editOpenedPR = async <
     title,
     isDraft: pullRequest.draft === true,
     isClosed: !!pullRequest.closed_at,
+    reviewState: toReviewState(stepsState.codeReview),
     // the base branch can be changed, the head repository can be deleted
     ...getBranchesFromPullRequest(pullRequest),
   };

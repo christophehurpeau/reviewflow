@@ -7,6 +7,7 @@ import { updateReviewStatus } from "./actions/updateReviewStatus.ts";
 import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState.ts";
 import { parseOptions } from "./actions/utils/body/parseBody.ts";
 import { calcStepsState } from "./actions/utils/steps/calcStepsState.ts";
+import { toReviewState } from "./actions/utils/steps/reviewState.ts";
 import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome.ts";
 import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
 import { getReviewersAndReviewStates } from "./utils/getReviewersAndReviewStates.ts";
@@ -38,6 +39,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
             $set: {
               isClosed: true,
               isMerged,
+              reviewState: toReviewState(stepsState.codeReview),
               ...(reviewflowPrContext.reviewflowPr.flowDates
                 ? { "flowDates.closedAt": new Date(pullRequest.closed_at!) }
                 : {

@@ -61,7 +61,11 @@ describe("closed and reopened", (): void => {
     });
 
     expect(partialUpdateOnePr).toHaveBeenCalledWith(expect.anything(), {
-      $set: expect.objectContaining({ isClosed: true, isMerged: merged }),
+      $set: expect.objectContaining({
+        isClosed: true,
+        isMerged: merged,
+        reviewState: "none",
+      }),
     });
   });
 

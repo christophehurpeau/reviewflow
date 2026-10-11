@@ -157,6 +157,12 @@ export interface SlackSentMessage extends MongoBaseModel {
   }[];
 }
 
+export type ReviewState =
+  | "approved"
+  | "changesRequested"
+  | "none"
+  | "requested";
+
 interface ReviewflowPrChangesInformation {
   changedFiles: number;
   additions: number;
@@ -184,6 +190,8 @@ export interface ReviewflowPr extends MongoBaseModel {
   isClosed: boolean;
   /** absent on closed documents written before it was added: unknown, not `false` */
   isMerged?: boolean;
+  /** absent until the document is next recomputed: unknown, not `none` */
+  reviewState?: ReviewState;
   changesInformation?: ReviewflowPrChangesInformation;
   lastLintStatusesCommit?: string;
   lintStatuses?: ReviewflowStatus[];
