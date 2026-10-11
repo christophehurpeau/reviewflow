@@ -49,6 +49,7 @@ export const syncTeams = async (
         "org.id": org.id,
       },
       { $pull: { teams: { id: { $not: { $in: teamIds } } } } },
+      { touchUpdated: false },
     ),
   ]);
 

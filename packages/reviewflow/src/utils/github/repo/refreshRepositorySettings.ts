@@ -22,6 +22,8 @@ export const refreshRepositorySettings = async <
   await repoContext.appContext.mongoStores.repositories.partialUpdateByKey(
     repoContext.repoEmbed.id,
     { $set: { settings: repoContext.settings } },
+    undefined,
+    { touchUpdated: false },
   );
 
   return repoContext.settings;

@@ -1,5 +1,6 @@
 import { ResourcesServerError } from "liwi-resources-server";
 import type { ServiceResource } from "liwi-resources-server";
+import { NotFoundError } from "liwi-store";
 import {
   buildPrBucketQuery,
   buildPullRequestUrl,
@@ -73,25 +74,31 @@ const startReviewForUser = async (
     user.login,
   );
 
-  await mongoStores.prs.partialUpdateOne(
-    pr,
-    requestedAgain
-      ? {
-          $set: {
-            reviews: reviewsAfterRequestingAgain(pr.reviews, reviewer),
+  try {
+    await mongoStores.prs.partialUpdateOne(
+      pr,
+      requestedAgain
+        ? {
+            $set: {
+              reviews: reviewsAfterRequestingAgain(pr.reviews, reviewer),
+            },
+          }
+        : // github would not ask again, so only the review itself happened:
+          // recording no more than that leaves the next webhook to reconcile
+          {
+            $set: {
+              "reviews.reviewed": reviewedWithReviewer(
+                pr.reviews?.reviewed,
+                reviewer,
+              ),
+            },
           },
-        }
-      : // github would not ask again, so only the review itself happened:
-        // recording no more than that leaves the next webhook to reconcile
-        {
-          $set: {
-            "reviews.reviewed": reviewedWithReviewer(
-              pr.reviews?.reviewed,
-              reviewer,
-            ),
-          },
-        },
-  );
+    );
+  } catch (error) {
+    // the review is on github already: the document went away in between
+    // (archive, repository or installation removal), nothing left to record
+    if (!(error instanceof NotFoundError)) throw error;
+  }
 
   return { prUrl };
 };

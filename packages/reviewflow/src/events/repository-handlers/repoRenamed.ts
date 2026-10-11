@@ -33,6 +33,8 @@ export default function repoRenamed(app: Probot, appContext: AppContext): void {
               "repo.name": repo.name,
             },
           },
+          // a rename is not activity: it must not postpone retention
+          { touchUpdated: false },
         ),
         appContext.mongoStores.labels.partialUpdateMany(
           {
@@ -43,6 +45,7 @@ export default function repoRenamed(app: Probot, appContext: AppContext): void {
               "repo.name": repo.name,
             },
           },
+          { touchUpdated: false },
         ),
       ]);
     },

@@ -98,15 +98,20 @@ export const syncRepository = async ({
     repo: name,
   });
 
-  await mongoStores.repositories.partialUpdateByKey(repository._id, {
-    $set: {
-      account,
-      fullName,
-      emoji: getEmojiFromRepoDescription(description),
-      settings: createRepositorySettings(settingsResult),
-      archived: false,
+  await mongoStores.repositories.partialUpdateByKey(
+    repository._id,
+    {
+      $set: {
+        account,
+        fullName,
+        emoji: getEmojiFromRepoDescription(description),
+        settings: createRepositorySettings(settingsResult),
+        archived: false,
+      },
     },
-  });
+    undefined,
+    { touchUpdated: false },
+  );
 
   const config = accountConfigs[owner.login] || defaultConfig;
 

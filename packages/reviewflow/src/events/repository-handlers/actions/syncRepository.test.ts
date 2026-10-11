@@ -112,13 +112,18 @@ describe("syncRepository", () => {
 
     expect(result).toBe("synced");
     expect(deleteRepositoryData).not.toHaveBeenCalled();
-    expect(partialUpdateByKey).toHaveBeenCalledWith(42, {
-      $set: expect.objectContaining({
-        account: { id: 1, login: "christophehurpeau", type: "User" },
-        fullName: "christophehurpeau/reviewflow",
-        emoji: ":tada:",
-      }),
-    });
+    expect(partialUpdateByKey).toHaveBeenCalledWith(
+      42,
+      {
+        $set: expect.objectContaining({
+          account: { id: 1, login: "christophehurpeau", type: "User" },
+          fullName: "christophehurpeau/reviewflow",
+          emoji: ":tada:",
+        }),
+      },
+      undefined,
+      { touchUpdated: false },
+    );
     expect(deleteRepoContext).toHaveBeenCalledWith(42);
   });
 

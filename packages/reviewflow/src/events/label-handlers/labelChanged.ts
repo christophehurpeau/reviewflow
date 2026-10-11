@@ -36,6 +36,8 @@ export default function labelChanged(
         await appContext.mongoStores.prs.partialUpdateMany(
           { "repo.id": repo.id, "labels.id": label.id },
           { $set: { "labels.$.name": label.name } },
+          // a label rename is not pull request activity
+          { touchUpdated: false },
         );
       }
     },
@@ -53,6 +55,7 @@ export default function labelChanged(
         appContext.mongoStores.prs.partialUpdateMany(
           { "repo.id": repo.id, "labels.id": label.id },
           { $pull: { labels: { id: label.id } } },
+          { touchUpdated: false },
         ),
       ]);
     },

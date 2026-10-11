@@ -101,12 +101,17 @@ describe("repository transferred without receiving the webhook", (): void => {
     });
 
     expect(partialUpdateByKeyRepository).toHaveBeenCalledTimes(1);
-    expect(partialUpdateByKeyRepository).toHaveBeenCalledWith(167_861_157, {
-      $set: {
-        account: currentAccount,
-        fullName: "reviewflow/reviewflow-test",
+    expect(partialUpdateByKeyRepository).toHaveBeenCalledWith(
+      167_861_157,
+      {
+        $set: {
+          account: currentAccount,
+          fullName: "reviewflow/reviewflow-test",
+        },
       },
-    });
+      undefined,
+      { touchUpdated: false },
+    );
     expect(findAllPrs).toHaveBeenCalledWith({
       "repo.id": 167_861_157,
       "account.id": { $ne: 64_312_233 },

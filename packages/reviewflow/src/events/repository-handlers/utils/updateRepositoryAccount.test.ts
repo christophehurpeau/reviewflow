@@ -1,4 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
+import { NotFoundError } from "liwi-store";
 import type { AccountEmbed, MongoStores, ReviewflowPr } from "reviewflow-core";
 import { updateRepositoryAccount } from "./updateRepositoryAccount.ts";
 
@@ -51,9 +52,49 @@ describe("updateRepositoryAccount", () => {
       fullName: "new-owner/new-name",
     });
 
-    expect(partialUpdateByKeyRepository).toHaveBeenCalledWith(42, {
-      $set: { account, fullName: "new-owner/new-name" },
+    expect(partialUpdateByKeyRepository).toHaveBeenCalledWith(
+      42,
+      { $set: { account, fullName: "new-owner/new-name" } },
+      undefined,
+      { touchUpdated: false },
+    );
+  });
+
+  test("still moves labels and pull requests when the repository is not stored", async () => {
+    const stalePr = createStalePr(1);
+    const {
+      mongoStores,
+      partialUpdateByKeyRepository,
+      partialUpdateManyLabels,
+      partialUpdateOnePr,
+    } = createMongoStores([stalePr]);
+    partialUpdateByKeyRepository.mockRejectedValue(new NotFoundError());
+
+    await updateRepositoryAccount({
+      mongoStores,
+      ...options,
+      fullName: "new-owner/new-name",
     });
+
+    expect(partialUpdateManyLabels).toHaveBeenCalledTimes(1);
+    expect(partialUpdateOnePr).toHaveBeenCalledTimes(1);
+  });
+
+  test("skips a pull request deleted since it was listed", async () => {
+    const { mongoStores, partialUpdateOnePr, deleteOnePr } = createMongoStores([
+      createStalePr(1),
+      createStalePr(2),
+    ]);
+    partialUpdateOnePr.mockRejectedValueOnce(new NotFoundError());
+
+    await updateRepositoryAccount({
+      mongoStores,
+      ...options,
+      fullName: "new-owner/new-name",
+    });
+
+    expect(partialUpdateOnePr).toHaveBeenCalledTimes(2);
+    expect(deleteOnePr).not.toHaveBeenCalled();
   });
 
   test("moves the labels of the repository", async () => {
@@ -68,6 +109,7 @@ describe("updateRepositoryAccount", () => {
     expect(partialUpdateManyLabels).toHaveBeenCalledWith(
       { "repo.id": 42 },
       { $set: { account, "repo.name": "new-name" } },
+      { touchUpdated: false },
     );
   });
 
@@ -87,9 +129,11 @@ describe("updateRepositoryAccount", () => {
       "repo.id": 42,
       "account.id": { $ne: 2 },
     });
-    expect(partialUpdateOnePr).toHaveBeenCalledWith(stalePr, {
-      $set: { account, "repo.name": "new-name" },
-    });
+    expect(partialUpdateOnePr).toHaveBeenCalledWith(
+      stalePr,
+      { $set: { account, "repo.name": "new-name" } },
+      { touchUpdated: false },
+    );
     expect(deleteOnePr).not.toHaveBeenCalled();
   });
 

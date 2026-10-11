@@ -12,8 +12,6 @@ import type { RepositorySettings } from "./models/RepositorySettings.ts";
 import type { ReviewersGroupedByState } from "./models/ReviewersGroupedByState.ts";
 import type { ReviewflowStatus } from "./models/ReviewflowStatus.ts";
 import type { SlackMessage } from "./models/SlackMessage.ts";
-import type { PrsWriter } from "./prs/prsWriter.ts";
-import { createPrsWriter } from "./prs/prsWriter.ts";
 
 // export interface PrEventsModel extends MongoModel {
 //   owner: string;
@@ -171,8 +169,6 @@ export interface ReviewflowPr extends MongoBaseModel {
   pr: PrEmbed;
   commentId: number;
   headSha?: string;
-  /** Incremented by every write through `prsWriter`; absent on old documents (0). */
-  revision?: number;
   title: string;
   isDraft: boolean;
   isClosed: boolean;
@@ -228,8 +224,6 @@ export interface MongoStores {
   slackTeamInstallations: MongoStore<SlackTeamInstallation>;
   slackSentMessages: MongoStore<SlackSentMessage>;
   prs: MongoSubscribeStore<ReviewflowPr>;
-  /** Writes to `prs` go through it, not through `prs` directly. */
-  prsWriter: PrsWriter;
   installationsEvents: MongoStore<InstallationEvent>;
   // prEvents: MongoStore<PrEventsModel>;
 }
@@ -419,8 +413,6 @@ export default function init(): InitializedMongoStores {
     installationsEventsReady,
   ]).then(() => undefined);
 
-  const subscribedPrs = createMongoSubscribeStore(prs);
-
   // return { connection, prEvents };
   return {
     ready,
@@ -435,8 +427,7 @@ export default function init(): InitializedMongoStores {
     slackSentMessages,
     repositories: createMongoSubscribeStore(repositories),
     labels,
-    prs: subscribedPrs,
-    prsWriter: createPrsWriter(prs, subscribedPrs),
+    prs: createMongoSubscribeStore(prs),
     installationsEvents,
   };
 }

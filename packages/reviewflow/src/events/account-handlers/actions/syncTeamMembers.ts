@@ -34,6 +34,7 @@ export const syncTeamMembers = async (
         "teams.id": { $ne: team.id },
       },
       { $push: { teams: team } },
+      { touchUpdated: false },
     );
   }
 
@@ -43,6 +44,7 @@ export const syncTeamMembers = async (
       "user.id": { $not: { $in: memberIds } },
     },
     { $pull: { teams: { id: team.id } } },
+    { touchUpdated: false },
   );
 };
 

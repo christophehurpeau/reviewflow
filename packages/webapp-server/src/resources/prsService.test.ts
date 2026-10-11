@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ResourcesServerError } from "liwi-resources-server";
+import { NotFoundError } from "liwi-store";
 import type { MongoStores, ReviewflowPr } from "reviewflow-core";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
 import { createPrsService } from "./prsService.ts";
@@ -111,6 +112,18 @@ describe("startReview", () => {
     expect(update.$set.reviews.reviewRequested).toEqual([
       { id: 42, login: "christophehurpeau" },
     ]);
+  });
+
+  it("answers normally when the document was deleted while github was called", async () => {
+    const { mongoStores, partialUpdateOne } = createStores(
+      buildPr(buildReviews()),
+    );
+    partialUpdateOne.mockRejectedValue(new NotFoundError());
+
+    await expect(startReview(mongoStores)).resolves.toEqual({
+      prUrl: "https://github.com/org/repo/pull/412",
+    });
+    expect(createReviewAsUser).toHaveBeenCalledTimes(1);
   });
 
   it("asks only once the review comment landed", async () => {

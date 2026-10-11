@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { NotFoundError } from "liwi-store";
 import type { Probot } from "probot";
 import { initializeProbotApp, nock } from "../../tests/setup.ts";
 import type { ProbotEvent } from "../probot-types.ts";
@@ -51,6 +52,18 @@ describe("repository archived or unarchived", (): void => {
     expect(deleteManyPrs).toHaveBeenCalledWith({ "repo.id": 42 });
     expect(deleteManyLabels).not.toHaveBeenCalled();
     expect(deleteManyRepositories).not.toHaveBeenCalled();
+  });
+
+  test("still drops the pull requests when the repository is not stored", async (): Promise<void> => {
+    partialUpdateByKeyRepository.mockRejectedValueOnce(new NotFoundError());
+
+    await probot.receive({
+      id: "1",
+      name: "repository",
+      payload: buildPayload("archived"),
+    });
+
+    expect(deleteManyPrs).toHaveBeenCalledWith({ "repo.id": 42 });
   });
 
   test("clears the flag when unarchived", async (): Promise<void> => {

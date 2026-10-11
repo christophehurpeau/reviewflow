@@ -1,3 +1,4 @@
+import { NotFoundError } from "liwi-store";
 import type { MongoStores } from "reviewflow-core";
 import { deleteRepoContext } from "../../../context/repoContext.ts";
 
@@ -21,9 +22,15 @@ export const setRepositoryArchived = async ({
   // documents back after the update below
   await deleteRepoContext(repositoryId);
 
-  await mongoStores.repositories.partialUpdateByKey(repositoryId, {
-    $set: { archived },
-  });
+  // the event can concern a repository the bot never stored: nothing to flag,
+  // and its pull requests are still dropped below
+  try {
+    await mongoStores.repositories.partialUpdateByKey(repositoryId, {
+      $set: { archived },
+    });
+  } catch (error) {
+    if (!(error instanceof NotFoundError)) throw error;
+  }
 
   if (archived) {
     await mongoStores.prs.deleteMany({ "repo.id": repositoryId });

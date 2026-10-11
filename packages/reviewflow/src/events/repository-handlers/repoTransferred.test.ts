@@ -45,9 +45,12 @@ describe("repository transferred", (): void => {
       payload: transferredPayload,
     });
 
-    expect(partialUpdateByKeyRepository).toHaveBeenCalledWith(42, {
-      $set: { account: newAccount, fullName: "new-org/reviewflow-test" },
-    });
+    expect(partialUpdateByKeyRepository).toHaveBeenCalledWith(
+      42,
+      { $set: { account: newAccount, fullName: "new-org/reviewflow-test" } },
+      undefined,
+      { touchUpdated: false },
+    );
     expect(findAllPrs).toHaveBeenCalledWith({
       "repo.id": 42,
       "account.id": { $ne: 999 },

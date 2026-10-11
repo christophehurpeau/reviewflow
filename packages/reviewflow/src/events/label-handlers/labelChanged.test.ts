@@ -97,6 +97,7 @@ describe("label changed", (): void => {
     expect(partialUpdateManyPrs).toHaveBeenCalledWith(
       { "repo.id": 42, "labels.id": label.id },
       { $set: { "labels.$.name": label.name } },
+      { touchUpdated: false },
     );
   });
 
@@ -111,6 +112,7 @@ describe("label changed", (): void => {
     expect(partialUpdateManyPrs).toHaveBeenCalledWith(
       { "repo.id": 42, "labels.id": label.id },
       { $pull: { labels: { id: label.id } } },
+      { touchUpdated: false },
     );
   });
 });
