@@ -30,11 +30,14 @@ export default function closed(app: Probot, appContext: AppContext): void {
           reviewflowPrContext,
         });
 
+        const isMerged = (pullRequest as any).merged === true;
+
         const updateClosedPromise = appContext.mongoStores.prs.partialUpdateOne(
           reviewflowPrContext.reviewflowPr,
           {
             $set: {
               isClosed: true,
+              isMerged,
               ...(reviewflowPrContext.reviewflowPr.flowDates
                 ? { "flowDates.closedAt": new Date(pullRequest.closed_at!) }
                 : {
@@ -48,7 +51,7 @@ export default function closed(app: Probot, appContext: AppContext): void {
           },
         );
 
-        if ((pullRequest as any).merged) {
+        if (isMerged) {
           const isNotFork = pullRequest.head.repo?.id === repo.id;
           const options = parseOptions(
             reviewflowPrContext.commentBody,

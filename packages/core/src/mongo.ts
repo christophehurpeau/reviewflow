@@ -182,6 +182,8 @@ export interface ReviewflowPr extends MongoBaseModel {
   title: string;
   isDraft: boolean;
   isClosed: boolean;
+  /** absent on closed documents written before it was added: unknown, not `false` */
+  isMerged?: boolean;
   changesInformation?: ReviewflowPrChangesInformation;
   lastLintStatusesCommit?: string;
   lintStatuses?: ReviewflowStatus[];

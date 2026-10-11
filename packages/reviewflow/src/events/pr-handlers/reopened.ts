@@ -39,6 +39,7 @@ export default function reopened(app: Probot, appContext: AppContext): void {
             {
               $set: {
                 isDraft: pullRequest.draft === true,
+                isMerged: false,
                 ...(reviewflowPrContext.reviewflowPr.flowDates
                   ? {
                       "flowDates.readyAt": new Date(),
