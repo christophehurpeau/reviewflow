@@ -34,8 +34,8 @@ export function UserScreen({ me, onForceSync }: UserScreenProps): ReactNode {
               <View className="flex-row">
                 <ActionButton
                   text="Force sync"
-                  onPress={onForceSync}
                   errorToMessage={errorToMessage}
+                  onPress={onForceSync}
                 />
               </View>
             </View>

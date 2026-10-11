@@ -96,8 +96,8 @@ function OrgSettingsContent({
           <ActionButton
             text="Force sync"
             size="sm"
-            onPress={onForceSync}
             errorToMessage={errorToMessage}
+            onPress={onForceSync}
           />
         </SettingsSection>
 

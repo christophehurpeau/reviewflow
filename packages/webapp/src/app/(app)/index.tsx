@@ -28,6 +28,7 @@ const redirectingScreen = (
 function SignedInRedirect(): ReactNode {
   const { orgsService, usersService } = useReviewflowServices();
   // where signing in was asked from, the oauth flow always coming back here
+  // oxlint-disable-next-line react/hook-use-state -- read once, never updated
   const [askedPath] = useState(takeSignInRedirect);
 
   const me = useResource(usersService.queries.queryMe, { subscribe: true }, []);

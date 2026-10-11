@@ -1,9 +1,41 @@
 {
+  "overrides": [
+    {
+      "files": ["**/*"],
+      "rules": {
+        "unicorn/require-post-message-target-origin": "off"
+      }
+    },
+    {
+      "files": ["**/*.{ts,cts,mts,tsx}"],
+      "rules": {
+        "eslint-js/camelcase": "off",
+        "import/extensions": ["error", "ignorePackages"],
+        "typescript/no-deprecated": "warn",
+        "typescript/no-floating-promises": "warn",
+        "typescript/restrict-template-expressions": "warn"
+      }
+    },
+    {
+      "files": ["packages/webapp/.storybook/storybook.requires.ts"],
+      "rules": {
+        "import/extensions": "off",
+        "import/no-commonjs": "off",
+        "regexp/no-contradiction-with-assertion": "off",
+        "regexp/no-useless-assertions": "off",
+        "regexp/no-useless-non-capturing-group": "off",
+        "sort-imports": "off",
+        "unicorn/prefer-module": "off"
+      }
+    }
+  ],
   "extends": [
     "./node_modules/@pob/eslint-config/oxlint/base.json",
     "./node_modules/@pob/eslint-config/oxlint/module.json",
     "./node_modules/@pob/eslint-config/oxlint/node.json",
     "./node_modules/@pob/eslint-config/oxlint/typescript.json",
+    "./node_modules/@pob/eslint-config/oxlint/app.json",
+    "./node_modules/@pob/eslint-config/oxlint/allow-unsafe-as-warn.json",
     "./node_modules/@pob/eslint-config-typescript-react/oxlint/react.json"
   ],
   "ignorePatterns": [

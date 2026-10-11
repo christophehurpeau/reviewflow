@@ -67,6 +67,7 @@ export function ReviewflowServicesProvider({
   children,
 }: ReviewflowServicesProviderProps): ReactNode {
   const transportClient = use(TransportClientContext);
+  // oxlint-disable-next-line react/hook-use-state -- created once, never replaced
   const [services] = useState<ReviewflowServices>(() => ({
     usersService: createUsersServiceClient(transportClient),
     orgsService: createOrgsServiceClient(transportClient),

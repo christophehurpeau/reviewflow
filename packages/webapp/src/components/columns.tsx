@@ -35,6 +35,7 @@ export function Columns({
   return (
     <View className="flex-row items-start gap-l">
       {columns.map((columnItems, index) => (
+        // oxlint-disable-next-line react/no-array-index-key -- columns are positional
         <View key={`column-${index}`} className="flex-1 gap-l">
           {columnItems}
         </View>

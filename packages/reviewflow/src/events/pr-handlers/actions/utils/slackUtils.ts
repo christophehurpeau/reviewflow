@@ -135,14 +135,12 @@ const internalUpdateSlackSentMessages = async (
       );
     }),
     appContext.mongoStores.slackSentMessages.partialUpdateMany(criteria, {
-      $set: {
-        ...(Object.fromEntries(
-          Object.entries(partialMessage).map(([key, value]) => [
-            `message.${key}`,
-            value,
-          ]),
-        ) as any),
-      },
+      $set: Object.fromEntries(
+        Object.entries(partialMessage).map(([key, value]) => [
+          `message.${key}`,
+          value,
+        ]),
+      ) as any,
     }),
   ]);
 };

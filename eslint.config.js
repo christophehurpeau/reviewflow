@@ -1,46 +1,14 @@
-import pobConfig, { apply, applyTs } from "@pob/eslint-config";
-
-const configs = pobConfig.configs;
+import pobConfig, { apply } from "@pob/eslint-config";
 
 export default [
   {
     ignores: [
-      "vite.config.ts",
       "packages/webapp/src/themeVariables.ts",
       "packages/webapp/.storybook/storybook.requires.ts",
     ],
   },
-  ...configs.node,
-  ...configs.monorepo,
-  ...configs.app,
-  ...configs.allowUnsafeAsWarn,
-  ...apply({
-    configs: [
-      { rules: { "unicorn/require-post-message-target-origin": "off" } },
-    ],
-  }),
-  ...applyTs({
-    configs: [
-      {
-        rules: {
-          camelcase: "off",
-          "@typescript-eslint/restrict-template-expressions": "warn",
-          "@typescript-eslint/no-floating-promises": "warn",
-          "@typescript-eslint/no-deprecated": "warn",
-          "unicorn/require-post-message-target-origin": "off",
-        },
-      },
-    ],
-  }),
-  ...apply({
-    // @pob/eslint-config only maps root config files to the tools project
-    files: ["packages/*/*.config.{ts,mts,cts}"],
-    configs: [
-      {
-        languageOptions: { parserOptions: { project: "tsconfig.tools.json" } },
-      },
-    ],
-  }),
+  ...pobConfig.configs.node,
+  ...pobConfig.configs.toolsProject,
   ...apply({
     files: ["**/*.test.{js,ts}", "vitest.config.js"],
     configs: [
