@@ -6,28 +6,47 @@ import type {
 } from "reviewflow-modules";
 import { accountConfigs } from "../accountConfigs/index.ts";
 import { buildPullRequestUrl } from "../buildPullRequestUrl.ts";
+import type { FailedOrWaitingChecksAndStatuses } from "../checksAndStatuses/getFailedOrWaitingChecksAndStatuses.ts";
 import { getFailedOrWaitingChecksAndStatuses } from "../checksAndStatuses/getFailedOrWaitingChecksAndStatuses.ts";
+import type { ChecksAndStatuses } from "../models/ChecksAndStatuses.ts";
 import type { ReviewflowStatus } from "../models/ReviewflowStatus.ts";
 import type { ReviewflowPr } from "../mongo.ts";
 
-const toChecksSummary = ({
+export interface PrChecksAndStatuses extends ChecksAndStatuses {
+  result: FailedOrWaitingChecksAndStatuses;
+}
+
+/** the stored records, read with the account's checks allowed to fail */
+export const readPrChecksAndStatuses = ({
   account,
   checksConclusion,
   statusesConclusion,
-}: ReviewflowPr): PrChecksSummary => {
+}: ReviewflowPr): PrChecksAndStatuses => {
   const checksConclusionRecord = checksConclusion ?? {};
   const statusesConclusionRecord = statusesConclusion ?? {};
 
+  return {
+    checksConclusionRecord,
+    statusesConclusionRecord,
+    result: getFailedOrWaitingChecksAndStatuses(
+      { checksConclusionRecord, statusesConclusionRecord },
+      accountConfigs[account.login]?.checksAllowedToFail,
+    ),
+  };
+};
+
+export const toChecksSummary = ({
+  checksConclusionRecord,
+  statusesConclusionRecord,
+  result,
+}: PrChecksAndStatuses): PrChecksSummary => {
   const {
     failedChecks,
     failedStatuses,
     pendingChecks,
     pendingStatuses,
     state,
-  } = getFailedOrWaitingChecksAndStatuses(
-    { checksConclusionRecord, statusesConclusionRecord },
-    accountConfigs[account.login]?.checksAllowedToFail,
-  );
+  } = result;
 
   const failedNames = [...failedChecks, ...failedStatuses];
   const runningCount = pendingChecks.length + pendingStatuses.length;
@@ -110,7 +129,7 @@ export const toPrSummary = (pr: ReviewflowPr): PrSummary => ({
   title: pr.title,
   url: buildPullRequestUrl(pr),
   isDraft: pr.isDraft,
-  checks: toChecksSummary(pr),
+  checks: toChecksSummary(readPrChecksAndStatuses(pr)),
   lintFailed: hasLintFailure(pr),
   statusLinks: toStatusLinks(pr),
   approvedBy: toUserSummaries(pr.reviews?.approved),

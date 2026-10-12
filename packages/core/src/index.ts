@@ -17,6 +17,7 @@ export type * from "./models/TeamInfo.ts";
 export * from "./mongo.ts";
 export * from "./prBucketCriteria.ts";
 export * from "./prs/reviewsAfterRequestingAgain.ts";
+export * from "./prs/toPrDetail.ts";
 export * from "./prs/toPrSummary.ts";
 export { default as mongoInit } from "./mongo.ts";
 export * from "./prOptions.ts";

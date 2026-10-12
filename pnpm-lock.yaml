@@ -53,6 +53,9 @@ importers:
       liwi-store:
         specifier: 14.0.0
         version: 14.0.0
+      mingo:
+        specifier: 6.2.7
+        version: 6.2.7
       reviewflow-modules:
         specifier: workspace:*
         version: link:../modules
@@ -72,9 +75,6 @@ importers:
       '@typescript/native':
         specifier: npm:typescript@7.0.2
         version: typescript@7.0.2
-      mingo:
-        specifier: 6.2.7
-        version: 6.2.7
       typescript:
         specifier: npm:@typescript/typescript6@6.0.2
         version: '@typescript/typescript6@6.0.2'

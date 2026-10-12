@@ -41,6 +41,7 @@
     "gemoji": "8.1.0",
     "liwi-mongo": "14.0.0",
     "liwi-store": "14.0.0",
+    "mingo": "6.2.7",
     "reviewflow-modules": "workspace:*"
   },
   "devDependencies": {
@@ -49,7 +50,6 @@
     "@slack/web-api": "8.0.0",
     "@types/node": "24.12.4",
     "@typescript/native": "npm:typescript@7.0.2",
-    "mingo": "6.2.7",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vitest": "4.1.11"
   },

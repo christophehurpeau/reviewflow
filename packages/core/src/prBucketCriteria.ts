@@ -11,7 +11,7 @@ export interface PrBucketAccount {
   teams: OrgTeamEmbed[] | undefined;
 }
 
-interface PrBucketContext {
+export interface PrBucketContext {
   userId: number;
   /** every account the query spans, one entry when a single one is selected */
   accounts: PrBucketAccount[];
