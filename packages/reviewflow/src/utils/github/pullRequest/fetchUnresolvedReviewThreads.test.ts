@@ -10,6 +10,7 @@ const node = (id: number | null, isResolved: boolean, login?: string) => ({
         url: `https://github.com/o/r/pull/1#discussion_r${id}`,
         path: "src/a.ts",
         author: login ? { login } : null,
+        pullRequestReview: login ? { databaseId: 10 } : null,
       },
     ],
   },
@@ -48,12 +49,14 @@ describe("fetchUnresolvedReviewThreads", () => {
         url: "https://github.com/o/r/pull/1#discussion_r1",
         path: "src/a.ts",
         authorLogin: "alice",
+        reviewId: 10,
       },
       {
         rootCommentId: 3,
         url: "https://github.com/o/r/pull/1#discussion_r3",
         path: "src/a.ts",
         authorLogin: null,
+        reviewId: null,
       },
     ]);
     expect(graphql).toHaveBeenCalledTimes(2);

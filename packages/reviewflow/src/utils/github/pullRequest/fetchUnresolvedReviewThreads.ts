@@ -20,6 +20,7 @@ interface ReviewThreadsQueryResult {
               url: string;
               path: string;
               author: { login: string } | null;
+              pullRequestReview: { databaseId: number | null } | null;
             }[];
           };
         }[];
@@ -46,6 +47,9 @@ query reviewThreads($owner: String!, $repo: String!, $number: Int!, $after: Stri
               path
               author {
                 login
+              }
+              pullRequestReview {
+                databaseId
               }
             }
           }
@@ -91,6 +95,7 @@ export const fetchUnresolvedReviewThreads = async (
         url: root.url,
         path: root.path,
         authorLogin: root.author?.login ?? null,
+        reviewId: root.pullRequestReview?.databaseId ?? null,
       });
     }
 

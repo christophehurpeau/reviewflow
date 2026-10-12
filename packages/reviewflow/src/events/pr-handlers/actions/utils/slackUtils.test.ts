@@ -63,7 +63,7 @@ describe("markAsDoneSlackSentMessages and unmarkAsDoneSlackSentMessages", () => 
     const divider = { type: "divider" } as const;
     const { appContext, repoContext, options, updateMessage } = setup({
       message: {
-        text: "line one\n\nline two",
+        text: "line one\n\n> quoted",
         blocks: [section("<url|path>"), divider],
         secondaryBlocks: [section("body")],
       },
@@ -72,7 +72,7 @@ describe("markAsDoneSlackSentMessages and unmarkAsDoneSlackSentMessages", () => 
     await markAsDoneSlackSentMessages(appContext, repoContext, options);
 
     expect(updateMessage).toHaveBeenCalledWith({ id: "U1" }, "ts1", "C1", {
-      text: "~line one~\n\n~line two~",
+      text: "~line one~\n\n> ~quoted~",
       blocks: [section("~<url|path>~"), divider],
       secondaryBlocks: [section("body")],
     });

@@ -208,6 +208,7 @@ describe("homeHelpers", () => {
       url: `https://github.com/org/repo/pull/1#discussion_r${rootCommentId}`,
       path: "src/a.ts",
       authorLogin: "carol",
+      reviewId: 1,
     });
     const blocks = createBlocksForDataFromMongoPr(
       createMockPr({ unresolvedThreads: [thread(1), thread(2)] }),

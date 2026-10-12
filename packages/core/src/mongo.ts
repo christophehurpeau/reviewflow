@@ -179,6 +179,8 @@ export interface UnresolvedReviewThread {
   url: string;
   path: string;
   authorLogin: string | null;
+  /** review the root comment was submitted with */
+  reviewId: number | null;
 }
 
 export interface ReviewflowPr extends MongoBaseModel {

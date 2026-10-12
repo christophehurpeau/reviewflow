@@ -23,6 +23,7 @@ const thread = (id: number) => ({
   url: `${prUrl}#discussion_r${id}`,
   path: "src/index.ts",
   authorLogin: "reviewer",
+  reviewId: 7,
 });
 
 describe("review threads and conversation resolution", (): void => {

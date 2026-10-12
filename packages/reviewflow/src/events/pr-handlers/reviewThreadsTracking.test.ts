@@ -20,6 +20,7 @@ const thread = (id: number, authorLogin: string | null = "reviewer") => ({
   url: `${prUrl}#discussion_r${id}`,
   path: "src/index.ts",
   authorLogin,
+  reviewId: 7,
 });
 
 const graphqlNode = (id: number, isResolved: boolean) => ({
@@ -31,6 +32,7 @@ const graphqlNode = (id: number, isResolved: boolean) => ({
         url: `${prUrl}#discussion_r${id}`,
         path: "src/index.ts",
         author: { login: "reviewer" },
+        pullRequestReview: { databaseId: 7 },
       },
     ],
   },
@@ -45,6 +47,7 @@ describe("review threads tracking", (): void => {
   const findAllSlackSentMessages = vi.fn();
   const partialUpdateManySlackSentMessages = vi.fn();
   let seededThreads: ReturnType<typeof graphqlNode>[] = [];
+  let reviewState = "COMMENTED";
 
   const storedPr = (unresolvedThreads?: ReturnType<typeof thread>[]) => ({
     commentId: 1,
@@ -88,6 +91,7 @@ describe("review threads tracking", (): void => {
     findAllSlackSentMessages.mockResolvedValue([]);
     partialUpdateManySlackSentMessages.mockReset();
     seededThreads = [];
+    reviewState = "COMMENTED";
     nock.cleanAll();
     probot = await initializeProbotApp({
       prs: { findOne: findOnePr, partialUpdateOne: partialUpdateOnePr },
@@ -127,6 +131,11 @@ describe("review threads tracking", (): void => {
         statusCreated();
         return {};
       });
+    // before the generic reviews below
+    nock("https://api.github.com")
+      .persist()
+      .get(/\/pulls\/30\/reviews\/7$/)
+      .reply(200, () => ({ id: 7, state: reviewState }));
     nock("https://api.github.com")
       .persist()
       .get(/\/issues\/comments\/1/)
@@ -310,6 +319,79 @@ describe("review threads tracking", (): void => {
         expect.objectContaining({ typeId: 101 }),
         { $set: { isMarkedAsDone: true } },
       );
+    });
+  });
+
+  describe("slack message of the review", () => {
+    const reviewMessage = (isMarkedAsDone: boolean) => ({
+      type: "review-submitted",
+      typeId: 7,
+      isMarkedAsDone,
+      message: { text: "commented on your PR" },
+      sentTo: [{ user: { id: "U1" }, ts: "ts7", channel: "C1" }],
+    });
+
+    const reviewMessageStored = (isMarkedAsDone: boolean) =>
+      findAllSlackSentMessages.mockImplementation((criteria) =>
+        Promise.resolve(
+          criteria.type === "review-submitted" && criteria.typeId === 7
+            ? [reviewMessage(isMarkedAsDone)]
+            : [],
+        ),
+      );
+
+    const reviewMessageWrites = () =>
+      partialUpdateManySlackSentMessages.mock.calls.filter(
+        ([criteria]) => criteria.type === "review-submitted",
+      );
+
+    test("resolving the last thread of a commented review strikes it", async () => {
+      findOnePr.mockResolvedValue(storedPr([thread(101)]));
+      reviewMessageStored(false);
+
+      await receiveThread("resolved");
+
+      expect(reviewMessageWrites()).toEqual([
+        [
+          expect.objectContaining({ typeId: 7 }),
+          { $set: { isMarkedAsDone: true } },
+        ],
+      ]);
+    });
+
+    test("a thread of the same review still open keeps it", async () => {
+      findOnePr.mockResolvedValue(
+        storedPr([thread(101), { ...thread(200), reviewId: 7 }]),
+      );
+      reviewMessageStored(false);
+
+      await receiveThread("resolved");
+
+      expect(reviewMessageWrites()).toHaveLength(0);
+    });
+
+    test("an approval is not struck", async () => {
+      findOnePr.mockResolvedValue(storedPr([thread(101)]));
+      reviewMessageStored(false);
+      reviewState = "APPROVED";
+
+      await receiveThread("resolved");
+
+      expect(reviewMessageWrites()).toHaveLength(0);
+    });
+
+    test("unresolved restores a struck review message", async () => {
+      findOnePr.mockResolvedValue(storedPr([]));
+      reviewMessageStored(true);
+
+      await receiveThread("unresolved");
+
+      expect(reviewMessageWrites()).toEqual([
+        [
+          expect.objectContaining({ typeId: 7 }),
+          { $set: { isMarkedAsDone: false } },
+        ],
+      ]);
     });
   });
 

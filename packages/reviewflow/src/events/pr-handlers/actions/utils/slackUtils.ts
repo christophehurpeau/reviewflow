@@ -242,12 +242,20 @@ export const deleteSlackSentMessages = async (
   ]);
 };
 
+const quotePrefix = "> ";
+
+const strikeLine = (line: string): string => {
+  if (!line) return line;
+  // a quote marker inside the tildes would no longer start the line
+  if (line.startsWith(quotePrefix)) {
+    return `${quotePrefix}~${line.slice(quotePrefix.length)}~`;
+  }
+  return `~${line}~`;
+};
+
 // slack strike-through does not span lines
 const strike = (text: string): string =>
-  text
-    .split("\n")
-    .map((line) => (line ? `~${line}~` : line))
-    .join("\n");
+  text.split("\n").map(strikeLine).join("\n");
 
 // slack renders blocks instead of text when a message has both
 const strikeSlackMessage = (message: SlackMessage): SlackMessage => ({

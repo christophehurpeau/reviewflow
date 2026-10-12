@@ -384,6 +384,7 @@ describe("toPrSummary unresolvedThreads", () => {
     url: "https://github.com/org/repo/pull/42#discussion_r1",
     path: "src/a.ts",
     authorLogin: null,
+    reviewId: null,
   };
 
   it("is null while the threads are unknown", () => {

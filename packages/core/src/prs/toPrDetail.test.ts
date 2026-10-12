@@ -128,6 +128,7 @@ describe("unresolvedThreads", () => {
     url: "https://github.com/acme/api/pull/412#discussion_r1",
     path: "src/a.ts",
     authorLogin: "reviewer",
+    reviewId: 1,
   };
 
   it("is null until the threads were read", () => {
