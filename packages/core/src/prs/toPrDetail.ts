@@ -129,7 +129,7 @@ export const createToPrDetail = (
       headRepoFullName: pr.headRepoFullName ?? null,
 
       state: toState(pr),
-      mergeable: "unknown",
+      mergeable: pr.mergeable ?? "unknown",
 
       flowDates: {
         createdAt: toIso(pr.flowDates?.createdAt),

@@ -124,6 +124,7 @@ describe("edited", (): void => {
         headRef: "test-drft",
         baseRef: "master",
         headRepoFullName: "reviewflow/reviewflow-test",
+        mergeable: "mergeable",
         changesInformation: {
           additions: 2,
           changedFiles: 1,

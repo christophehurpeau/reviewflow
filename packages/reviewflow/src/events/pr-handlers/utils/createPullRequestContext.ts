@@ -75,6 +75,19 @@ export const getBranchesFromPullRequest = (
   return branches;
 };
 
+/**
+ * github fills `mergeable` asynchronously: `null` right after a push means it
+ * is still computing, stored as `unknown`. Payloads without the field (the
+ * minimal pull requests of `check_run`) leave the stored value alone.
+ */
+export const getMergeableFromPullRequest = (
+  pullRequest: PullRequestDataMinimumData | PullRequestWithDecentData,
+): Pick<ReviewflowPr, "mergeable"> | undefined => {
+  if (!("mergeable" in pullRequest)) return undefined;
+  if (pullRequest.mergeable == null) return { mergeable: "unknown" };
+  return { mergeable: pullRequest.mergeable ? "mergeable" : "conflicting" };
+};
+
 const getCreatorFromPullRequest = (
   pullRequest: PullRequestDataMinimumData | PullRequestWithDecentData,
 ): ReviewflowPr["creator"] =>
@@ -105,6 +118,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
       isDraft: "draft" in pullRequest && pullRequest.draft === true,
       reviews: createEmptyReviews(),
       ...getBranchesFromPullRequest(pullRequest),
+      ...getMergeableFromPullRequest(pullRequest),
       creator: getCreatorFromPullRequest(pullRequest),
       assignees:
         "assignees" in pullRequest && pullRequest.assignees
@@ -172,6 +186,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
     commentId,
     reviews: groupReviewsState(reviewsState!, undefined),
     ...getBranchesFromPullRequest(pullRequest),
+    ...getMergeableFromPullRequest(pullRequest),
     creator: getCreatorFromPullRequest(pullRequest),
     assignees:
       "assignees" in pullRequest && pullRequest.assignees

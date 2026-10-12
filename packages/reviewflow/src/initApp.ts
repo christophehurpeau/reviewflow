@@ -20,6 +20,7 @@ import editedHandler from "./events/pr-handlers/edited.ts";
 import labelsChanged from "./events/pr-handlers/labelsChanged.ts";
 import openedHandler from "./events/pr-handlers/opened.ts";
 import pushHandler from "./events/pr-handlers/push.ts";
+import pushInvalidatesMergeable from "./events/pr-handlers/pushInvalidatesMergeable.ts";
 import readyForReview from "./events/pr-handlers/readyForReview.ts";
 import reopenedHandler from "./events/pr-handlers/reopened.ts";
 import reviewDismissedHandler from "./events/pr-handlers/reviewDismissed.ts";
@@ -64,6 +65,7 @@ export default function initApp(app: Probot, appContext: AppContext): void {
   // Push
   /* https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#push */
   pushHandler(app, appContext);
+  pushInvalidatesMergeable(app, appContext);
 
   // Commit
   /* https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#commit_comment */

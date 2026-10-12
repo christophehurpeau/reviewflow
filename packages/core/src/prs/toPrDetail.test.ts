@@ -123,6 +123,14 @@ describe("identity and branches", () => {
   });
 });
 
+describe("mergeable", () => {
+  it("reads the stored value", () => {
+    expect(toPrDetail(buildPr({ mergeable: "conflicting" })).mergeable).toBe(
+      "conflicting",
+    );
+  });
+});
+
 describe("state", () => {
   it.each([
     [{ isClosed: false, isDraft: false }, "open"],

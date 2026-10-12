@@ -4,7 +4,7 @@ import {
   MongoStore,
   createMongoSubscribeStore,
 } from "liwi-mongo";
-import type { MessageCategory } from "reviewflow-modules";
+import type { MessageCategory, PrMergeable } from "reviewflow-modules";
 import type { AccountInfo } from "./models/AccountInfo.ts";
 import type { BasicUser } from "./models/BasicUser.ts";
 import type { ChecksAndStatuses } from "./models/ChecksAndStatuses.ts";
@@ -192,6 +192,8 @@ export interface ReviewflowPr extends MongoBaseModel {
   isMerged?: boolean;
   /** absent = unknown, not `none` */
   reviewState?: ReviewState;
+  /** from the last `pull_request` payload; `unknown` again when the base branch moves */
+  mergeable?: PrMergeable;
   changesInformation?: ReviewflowPrChangesInformation;
   lastLintStatusesCommit?: string;
   lintStatuses?: ReviewflowStatus[];

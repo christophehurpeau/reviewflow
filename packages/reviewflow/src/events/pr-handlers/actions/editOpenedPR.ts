@@ -25,6 +25,7 @@ import {
   type ReviewflowPrContext,
   getBranchesFromPullRequest,
   getInitialFlowDatesFromPullRequest,
+  getMergeableFromPullRequest,
 } from "../utils/createPullRequestContext.ts";
 import { readCommitsAndUpdateInfos } from "./readCommitsAndUpdateInfos.ts";
 import { updatePrIfNeeded } from "./updatePr.ts";
@@ -279,6 +280,7 @@ export const editOpenedPR = async <
     isClosed: !!pullRequest.closed_at,
     reviewState: toReviewState(stepsState.codeReview),
     ...getBranchesFromPullRequest(pullRequest),
+    ...getMergeableFromPullRequest(pullRequest),
   };
 
   if ("changed_files" in pullRequest) {

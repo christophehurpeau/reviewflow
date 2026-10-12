@@ -3,6 +3,9 @@ import type { PrBucket, PrChecksSummary, PrSummary } from "./Pr.ts";
 /** `null` when reviewflow cannot know it, never a guess */
 export type PrState = "closed" | "draft" | "merged" | "open";
 
+/** github computes it after each push: `unknown` until it has, or once the base moved */
+export type PrMergeable = "conflicting" | "mergeable" | "unknown";
+
 export type PrReviewState =
   | "approved"
   | "changesRequested"
@@ -56,7 +59,7 @@ export interface PrDetail extends Omit<
   headRepoFullName: string | null;
 
   state: PrState | null;
-  mergeable: "conflicting" | "mergeable" | "unknown";
+  mergeable: PrMergeable;
 
   flowDates: {
     createdAt: string | null;
