@@ -242,6 +242,26 @@ export const deleteSlackSentMessages = async (
   ]);
 };
 
+// slack strike-through does not span lines
+const strike = (text: string): string =>
+  text
+    .split("\n")
+    .map((line) => (line ? `~${line}~` : line))
+    .join("\n");
+
+// slack renders blocks instead of text when a message has both
+const strikeSlackMessage = (message: SlackMessage): SlackMessage => ({
+  ...message,
+  text: strike(message.text),
+  ...(message.blocks && {
+    blocks: message.blocks.map((block) =>
+      block.type === "section" && block.text?.type === "mrkdwn"
+        ? { ...block, text: { ...block.text, text: strike(block.text.text) } }
+        : block,
+    ),
+  }),
+});
+
 export const markAsDoneSlackSentMessages = async (
   appContext: AppContext,
   repoContext: RepoContext,
@@ -269,10 +289,7 @@ export const markAsDoneSlackSentMessages = async (
               sentTo.user,
               sentTo.ts,
               sentTo.channel,
-              {
-                ...sentMessage.message,
-                text: `~${sentMessage.message.text}~`,
-              },
+              strikeSlackMessage(sentMessage.message),
             ),
         ),
       ),

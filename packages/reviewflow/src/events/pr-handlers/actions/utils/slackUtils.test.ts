@@ -7,7 +7,10 @@ import {
   unmarkAsDoneSlackSentMessages,
 } from "./slackUtils.ts";
 
-const setup = (initial: { isMarkedAsDone?: boolean }) => {
+const setup = (initial: {
+  isMarkedAsDone?: boolean;
+  message?: SlackSentMessage["message"];
+}) => {
   const stored = {
     type: "review-comment",
     typeId: 101,
@@ -51,6 +54,27 @@ describe("markAsDoneSlackSentMessages and unmarkAsDoneSlackSentMessages", () => 
     });
     expect(partialUpdateMany).toHaveBeenCalledWith(expect.anything(), {
       $set: { isMarkedAsDone: true },
+    });
+  });
+
+  test("mark strikes each line and the mrkdwn section blocks", async () => {
+    const section = (text: string) =>
+      ({ type: "section", text: { type: "mrkdwn", text } }) as const;
+    const divider = { type: "divider" } as const;
+    const { appContext, repoContext, options, updateMessage } = setup({
+      message: {
+        text: "line one\n\nline two",
+        blocks: [section("<url|path>"), divider],
+        secondaryBlocks: [section("body")],
+      },
+    });
+
+    await markAsDoneSlackSentMessages(appContext, repoContext, options);
+
+    expect(updateMessage).toHaveBeenCalledWith({ id: "U1" }, "ts1", "C1", {
+      text: "~line one~\n\n~line two~",
+      blocks: [section("~<url|path>~"), divider],
+      secondaryBlocks: [section("body")],
     });
   });
 
