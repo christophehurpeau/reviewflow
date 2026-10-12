@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import express from "express";
 import type { Probot } from "probot";
-import { backfillPrBranches } from "./backfills/backfillPrBranches.ts";
 import type { AppContext } from "./context/AppContext.ts";
 import { getExistingAccountContext } from "./context/accountContext.ts";
 import { syncOrg } from "./events/account-handlers/actions/syncOrg.ts";
@@ -12,9 +11,6 @@ import { deleteRepositoryData } from "./events/repository-handlers/utils/deleteR
 import internalApiRouter from "./internalApi.ts";
 import { callApp } from "./tests/callRouter.ts";
 
-vi.mock("./backfills/backfillPrBranches.ts", () => ({
-  backfillPrBranches: vi.fn(() => Promise.resolve([])),
-}));
 vi.mock("./context/accountContext.ts", () => ({
   getExistingAccountContext: vi.fn(() => null),
 }));
@@ -69,10 +65,7 @@ const createApp = ({
   const app = express();
   app.use(
     "/api/internal",
-    internalApiRouter(
-      { auth, log: { info: vi.fn() } } as unknown as Probot,
-      appContext,
-    ),
+    internalApiRouter({ auth } as unknown as Probot, appContext),
   );
 
   return { app, auth };
@@ -480,68 +473,5 @@ describe("POST /slack/member-linked", () => {
     });
 
     expect(response.status).toBe(400);
-  });
-});
-
-describe("POST /backfill/pr-branches", () => {
-  const post = (app: express.Express, body: unknown) =>
-    callApp(app, {
-      method: "POST",
-      url: "/api/internal/backfill/pr-branches",
-      headers: authorized,
-      body,
-    });
-
-  it("runs as a dry run on every repository by default", async () => {
-    const { app } = createApp();
-
-    const response = await post(app, {});
-
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual({ dryRun: true, reports: [] });
-    expect(backfillPrBranches).toHaveBeenCalledWith(
-      expect.objectContaining({ dryRun: true, repositoryId: undefined }),
-    );
-  });
-
-  it("writes only when dryRun is explicitly false, authenticating per installation", async () => {
-    const { app, auth } = createApp();
-
-    await post(app, { dryRun: false, repositoryId: 5 });
-
-    const options = vi.mocked(backfillPrBranches).mock.calls[0]![0];
-    expect(options).toMatchObject({ dryRun: false, repositoryId: 5 });
-    await options.auth(77);
-    expect(auth).toHaveBeenCalledWith(77);
-  });
-
-  it("rejects a dryRun that is not a boolean", async () => {
-    const { app } = createApp();
-
-    const response = await post(app, { dryRun: "false" });
-
-    expect(response.status).toBe(400);
-    expect(backfillPrBranches).not.toHaveBeenCalled();
-  });
-
-  it("rejects an invalid repositoryId", async () => {
-    const { app } = createApp();
-
-    const response = await post(app, { repositoryId: "abc" });
-
-    expect(response.status).toBe(400);
-    expect(backfillPrBranches).not.toHaveBeenCalled();
-  });
-
-  it("rejects a request without the secret", async () => {
-    const { app } = createApp();
-
-    const response = await callApp(app, {
-      method: "POST",
-      url: "/api/internal/backfill/pr-branches",
-      body: {},
-    });
-
-    expect(response.status).toBe(401);
   });
 });
