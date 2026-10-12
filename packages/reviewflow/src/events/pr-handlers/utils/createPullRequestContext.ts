@@ -1,5 +1,6 @@
 import type { MongoInsertType } from "liwi-mongo";
 import type { ReviewflowPr } from "reviewflow-core";
+import type { PrMergeable } from "reviewflow-modules";
 import type {
   EventsWithRepository,
   RepoContext,
@@ -82,7 +83,7 @@ export const getBranchesFromPullRequest = (
  */
 export const getMergeableFromPullRequest = (
   pullRequest: PullRequestDataMinimumData | PullRequestWithDecentData,
-): Pick<ReviewflowPr, "mergeable"> | undefined => {
+): { mergeable: PrMergeable } | undefined => {
   if (!("mergeable" in pullRequest)) return undefined;
   if (pullRequest.mergeable == null) return { mergeable: "unknown" };
   return { mergeable: pullRequest.mergeable ? "mergeable" : "conflicting" };

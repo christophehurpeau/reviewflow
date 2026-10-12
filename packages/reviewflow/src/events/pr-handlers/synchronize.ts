@@ -8,6 +8,7 @@ import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFrom
 import { calcStepsState } from "./actions/utils/steps/calcStepsState.ts";
 import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
 import { fetchPr } from "./utils/fetchPr.ts";
+import { scheduleMergeableRefresh } from "./utils/refreshMergeable.ts";
 
 export default function synchronize(app: Probot, appContext: AppContext): void {
   createPullRequestHandler(
@@ -35,6 +36,13 @@ export default function synchronize(app: Probot, appContext: AppContext): void {
       // old and new sha
       // const { before, after } = context.payload;
       const previousSha = (context.payload as any).before as string;
+
+      if (updatedPr.mergeable === null) {
+        scheduleMergeableRefresh(
+          { context, appContext, repoContext },
+          { prNumber: updatedPr.number },
+        );
+      }
 
       // update reviewflowPrContext for calcAndUpdateChecksAndStatuses
       reviewflowPrContext.reviewflowPr.checksConclusion =

@@ -2,6 +2,7 @@ import type { Probot } from "probot";
 import type { AppContext } from "../../context/AppContext.ts";
 import * as slackUtils from "../../slack/utils.ts";
 import type { CreateOwnerPartOptions } from "../../slack/utils.ts";
+import { markMergeConflictAsDone } from "./actions/mergeConflictSlackMessage.ts";
 import { updateCommentBodyProgressFromStepsState } from "./actions/updateCommentBodyProgressFromStepsState.ts";
 import { updateReviewStatus } from "./actions/updateReviewStatus.ts";
 import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState.ts";
@@ -101,6 +102,8 @@ export default function closed(app: Probot, appContext: AppContext): void {
           ]);
         }
       }
+
+      await markMergeConflictAsDone(appContext, repoContext, pullRequest.id);
 
       /* update slack home */
       const teamMembers = await repoContext.getMembersForTeams(

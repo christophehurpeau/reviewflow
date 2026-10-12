@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import type { MongoStores } from "reviewflow-core";
-import { invalidateMergeableOnBasePush } from "./pushInvalidatesMergeable.ts";
+import {
+  hasOpenPullRequestsOnBase,
+  invalidateMergeableOnBasePush,
+} from "./pushInvalidatesMergeable.ts";
 import type { PullRequestWithDecentData } from "./utils/PullRequestData.ts";
 import { getMergeableFromPullRequest } from "./utils/createPullRequestContext.ts";
 
@@ -57,6 +60,57 @@ describe("invalidateMergeableOnBasePush", () => {
     });
 
     expect(partialUpdateMany).not.toHaveBeenCalled();
+  });
+});
+
+describe("hasOpenPullRequestsOnBase", () => {
+  const createFindOneStores = (pr: unknown) => {
+    const findOne = vi.fn(() => Promise.resolve(pr));
+    const mongoStores = { prs: { findOne } } as unknown as MongoStores;
+    return { mongoStores, findOne };
+  };
+
+  it("looks for an open pull request based on the pushed branch", async () => {
+    const { mongoStores, findOne } = createFindOneStores({ _id: "pr" });
+
+    await expect(
+      hasOpenPullRequestsOnBase(mongoStores, {
+        accountId: 1,
+        repositoryId: 2,
+        ref: "refs/heads/main",
+      }),
+    ).resolves.toBe(true);
+    expect(findOne).toHaveBeenCalledWith({
+      "account.id": 1,
+      "repo.id": 2,
+      baseRef: "main",
+      isClosed: false,
+    });
+  });
+
+  it("is false when no open pull request is based on it", async () => {
+    const { mongoStores } = createFindOneStores(undefined);
+
+    await expect(
+      hasOpenPullRequestsOnBase(mongoStores, {
+        accountId: 1,
+        repositoryId: 2,
+        ref: "refs/heads/feat/x",
+      }),
+    ).resolves.toBe(false);
+  });
+
+  it("is false for a pushed tag", async () => {
+    const { mongoStores, findOne } = createFindOneStores({ _id: "pr" });
+
+    await expect(
+      hasOpenPullRequestsOnBase(mongoStores, {
+        accountId: 1,
+        repositoryId: 2,
+        ref: "refs/tags/v1.0.0",
+      }),
+    ).resolves.toBe(false);
+    expect(findOne).not.toHaveBeenCalled();
   });
 });
 

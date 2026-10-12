@@ -27,6 +27,7 @@ import {
   getInitialFlowDatesFromPullRequest,
   getMergeableFromPullRequest,
 } from "../utils/createPullRequestContext.ts";
+import { syncMergeConflictSlackMessage } from "./mergeConflictSlackMessage.ts";
 import { readCommitsAndUpdateInfos } from "./readCommitsAndUpdateInfos.ts";
 import { updatePrIfNeeded } from "./updatePr.ts";
 import { updatePrCommentBodyIfNeeded } from "./updatePrCommentBody.ts";
@@ -273,6 +274,7 @@ export const editOpenedPR = async <
   ].filter(ExcludesFalsy);
 
   const body = removeDeprecatedReviewflowInPrBody(pullRequest.body);
+  const mergeableUpdate = getMergeableFromPullRequest(pullRequest);
 
   const partialUpdateReviewflowPr: Update<ReviewflowPr>["$set"] = {
     title,
@@ -280,7 +282,7 @@ export const editOpenedPR = async <
     isClosed: !!pullRequest.closed_at,
     reviewState: toReviewState(stepsState.codeReview),
     ...getBranchesFromPullRequest(pullRequest),
-    ...getMergeableFromPullRequest(pullRequest),
+    ...mergeableUpdate,
   };
 
   if ("changed_files" in pullRequest) {
@@ -379,6 +381,11 @@ export const editOpenedPR = async <
             },
           },
         ),
+    mergeableUpdate &&
+      syncMergeConflictSlackMessage(appContext, repoContext, {
+        pullRequest,
+        mergeable: mergeableUpdate.mergeable,
+      }),
   ];
 
   const commentBodyInfos: StatusInfo[] = statuses

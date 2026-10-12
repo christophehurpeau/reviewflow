@@ -13,7 +13,7 @@ export const dmMessageLabels: Record<MessageCategory, string> = {
   "pr-comment-follow-bots": "A bot commented on a PR you're reviewing",
   "pr-comment-mention": "Someone mentioned you in a PR",
   "pr-comment-thread": "Someone replied to a discussion you're in",
-  "pr-merge-conflicts": "Your PR has a merge conflict (not implemented)",
+  "pr-merge-conflicts": "Your PR has a merge conflict",
   "commit-comment": "Someone commented on your commit",
   "commit-comment-bots": "A bot commented on your commit",
   "commit-comment-follow": "Someone commented on a commit you also commented",

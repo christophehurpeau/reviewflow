@@ -140,6 +140,7 @@ export type SlackMessageType =
   | "commit-comment"
   | "issue-comment"
   | "pr-checksAndStatuses"
+  | "pr-merge-conflicts"
   | "review-comment"
   | "review-requested"
   | "review-submitted";
@@ -390,6 +391,11 @@ export default function init(): InitializedMongoStores {
       "account.id": 1,
       "repo.id": 1,
       headRef: 1,
+    });
+    await coll.createIndex({
+      "account.id": 1,
+      "repo.id": 1,
+      baseRef: 1,
     });
     // one index per branch of the owned-buckets `$or`, see below
     await coll.createIndex({
