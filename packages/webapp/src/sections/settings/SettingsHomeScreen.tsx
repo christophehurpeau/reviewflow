@@ -1,11 +1,13 @@
 import {
   Avatar,
   ExternalLinkButton,
+  Icon,
   InfoMessage,
   PressableListItem,
   Text,
   View,
 } from "alouette";
+import { KeyRegularIcon } from "alouette-icons/phosphor-icons/Key";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
 import type { OrgSummary } from "reviewflow-modules";
@@ -22,6 +24,7 @@ interface SettingsHomeScreenProps {
   orgs: ResourceResult<OrgSummary[], Record<string, never>>;
   onSelectUser: () => void;
   onSelectOrg: (org: OrgSummary) => void;
+  onSelectApiTokens: () => void;
 }
 
 export function SettingsHomeScreen({
@@ -29,6 +32,7 @@ export function SettingsHomeScreen({
   orgs,
   onSelectUser,
   onSelectOrg,
+  onSelectApiTokens,
 }: SettingsHomeScreenProps): ReactNode {
   return (
     <Screen title="Settings">
@@ -77,6 +81,19 @@ export function SettingsHomeScreen({
               )
             }
           </ResourceView>
+        </ListSection>
+
+        <ListSection title="Developer">
+          <PressableListItem onPress={onSelectApiTokens}>
+            <View className="flex-row items-center gap-m">
+              <Icon
+                icon={<KeyRegularIcon />}
+                size={20}
+                className="text-muted"
+              />
+              <Text className="font-body-bold">API tokens</Text>
+            </View>
+          </PressableListItem>
         </ListSection>
       </View>
     </Screen>

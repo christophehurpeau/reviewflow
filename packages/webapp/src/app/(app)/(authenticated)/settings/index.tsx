@@ -26,6 +26,9 @@ export default function SettingsPage(): ReactNode {
       onSelectOrg={(org) => {
         router.navigate(`/org/${org.login}`);
       }}
+      onSelectApiTokens={() => {
+        router.navigate("/settings/tokens");
+      }}
     />
   );
 }

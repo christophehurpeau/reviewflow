@@ -23,7 +23,6 @@ import type {
   CreatedPersonalToken,
   PersonalTokenSummary,
 } from "reviewflow-modules";
-import { SettingsSection } from "#/components/settings-section.tsx";
 import { errorToMessage } from "#/errorToMessage.ts";
 import { RevealedTokenModal } from "./RevealedTokenModal.tsx";
 
@@ -161,19 +160,19 @@ interface PendingAction {
   token: PersonalTokenSummary;
 }
 
-interface PersonalTokensSectionProps {
+interface PersonalTokensListProps {
   tokens: PersonalTokenSummary[];
   onCreate: (name: string) => Promise<CreatedPersonalToken>;
   onRegenerate: (tokenId: string) => Promise<CreatedPersonalToken>;
   onRevoke: (tokenId: string) => Promise<void>;
 }
 
-export function PersonalTokensSection({
+export function PersonalTokensList({
   tokens,
   onCreate,
   onRegenerate,
   onRevoke,
-}: PersonalTokensSectionProps): ReactNode {
+}: PersonalTokensListProps): ReactNode {
   const [isCreating, setIsCreating] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction>();
   const [revealedToken, setRevealedToken] = useState<string>();
@@ -183,38 +182,43 @@ export function PersonalTokensSection({
   };
 
   return (
-    <SettingsSection title="Personal access tokens">
-      <Text className="text-muted">
-        Read-only access to your pull requests for tools like vigie. A token
-        only reaches the organizations that allow personal tokens.
-      </Text>
+    <View className="gap-l">
+      <View className="gap-m">
+        <Text className="text-muted">
+          Read-only access for tools like vigie. A token reads what you can
+          read: your account, and the organizations you belong to that allow
+          personal tokens.
+        </Text>
+        <View className="flex-row">
+          <Button
+            text="New token"
+            icon={<PlusRegularIcon />}
+            onPress={() => {
+              setIsCreating(true);
+            }}
+          />
+        </View>
+      </View>
       {tokens.length === 0 ? (
         <Text>No token yet.</Text>
       ) : (
-        tokens.map((token, index) => (
-          <Fragment key={token._id}>
-            {index > 0 && <Separator />}
-            <PersonalTokenRow
-              token={token}
-              onRegenerate={() => {
-                setPendingAction({ type: "regenerate", token });
-              }}
-              onRevoke={() => {
-                setPendingAction({ type: "revoke", token });
-              }}
-            />
-          </Fragment>
-        ))
+        <View className="gap-m">
+          {tokens.map((token, index) => (
+            <Fragment key={token._id}>
+              {index > 0 && <Separator />}
+              <PersonalTokenRow
+                token={token}
+                onRegenerate={() => {
+                  setPendingAction({ type: "regenerate", token });
+                }}
+                onRevoke={() => {
+                  setPendingAction({ type: "revoke", token });
+                }}
+              />
+            </Fragment>
+          ))}
+        </View>
       )}
-      <View className="flex-row">
-        <Button
-          text="New token"
-          icon={<PlusRegularIcon />}
-          onPress={() => {
-            setIsCreating(true);
-          }}
-        />
-      </View>
 
       <CreateTokenModal
         visible={isCreating}
@@ -264,6 +268,6 @@ export function PersonalTokensSection({
           setRevealedToken(undefined);
         }}
       />
-    </SettingsSection>
+    </View>
   );
 }

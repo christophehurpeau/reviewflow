@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-native";
 import type { PersonalTokenSummary } from "reviewflow-modules";
 import { fn } from "storybook/test";
 import { Story } from "#storybook/Story.tsx";
-import { PersonalTokensSection } from "./PersonalTokensSection.tsx";
+import { PersonalTokensList } from "./PersonalTokensList.tsx";
 
 const createdToken = { _id: "new-token", token: "rfp_new" };
 
@@ -45,40 +45,40 @@ const callbacks = {
 
 // tokens hold dates: kept out of `args`, which storybook walks to infer argTypes
 const meta = {
-  component: PersonalTokensSection,
+  component: PersonalTokensList,
   parameters: {
     componentSubtitle: "Lists, creates, regenerates and revokes API tokens",
   },
   args: callbacks,
   render: (args) => (
-    <PersonalTokensSection {...args} tokens={[neverUsedToken, usedToken]} />
+    <PersonalTokensList {...args} tokens={[neverUsedToken, usedToken]} />
   ),
-} satisfies Meta<typeof PersonalTokensSection>;
+} satisfies Meta<typeof PersonalTokensList>;
 
 export default meta;
 
-export const PreviewStory: StoryObj<typeof PersonalTokensSection> = {
-  name: "PersonalTokensSection Preview",
+export const PreviewStory: StoryObj<typeof PersonalTokensList> = {
+  name: "PersonalTokensList Preview",
 };
 
-export const VariantsStory: StoryObj<typeof PersonalTokensSection> = {
-  name: "PersonalTokensSection Variants",
+export const VariantsStory: StoryObj<typeof PersonalTokensList> = {
+  name: "PersonalTokensList Variants",
   render: () => (
     <Story>
       <Story.Section title="no token">
-        <PersonalTokensSection {...callbacks} tokens={[]} />
+        <PersonalTokensList {...callbacks} tokens={[]} />
       </Story.Section>
       <Story.Section title="never used">
-        <PersonalTokensSection {...callbacks} tokens={[neverUsedToken]} />
+        <PersonalTokensList {...callbacks} tokens={[neverUsedToken]} />
       </Story.Section>
       <Story.Section title="used, with and without the ip">
-        <PersonalTokensSection
+        <PersonalTokensList
           {...callbacks}
           tokens={[usedToken, usedWithoutIpToken]}
         />
       </Story.Section>
       <Story.Section title="name long enough to wrap">
-        <PersonalTokensSection {...callbacks} tokens={[longNameToken]} />
+        <PersonalTokensList {...callbacks} tokens={[longNameToken]} />
       </Story.Section>
     </Story>
   ),
