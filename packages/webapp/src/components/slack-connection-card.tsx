@@ -57,6 +57,18 @@ export function SlackConnectionCard({
         </>
       ) : null}
 
+      {slack.state === "token-revoked" ? (
+        <>
+          <WarningMessage variant="flat">
+            {`Your sign-in to slack team ${slack.teamName ?? slack.teamId ?? ""} was revoked. Notifications still reach you; sign in again to renew it.`}
+          </WarningMessage>
+          <ExternalLinkButton
+            href={serverUrl(`/app/slack-connect?${query}`)}
+            text="Sign in with Slack"
+          />
+        </>
+      ) : null}
+
       {slack.state === "linked" ? (
         <>
           <ConfirmationMessage variant="flat">

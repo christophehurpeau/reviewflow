@@ -10,6 +10,7 @@ import apiRouter from "./api/apiRouter.ts";
 import appRouter from "./appRouter.ts";
 import { getAuthenticatedUser } from "./resources/getAuthenticatedUser.ts";
 import { createResourcesServerService } from "./resources/index.ts";
+import { createSlackUserTokensCheck } from "./resources/slackUserToken.ts";
 
 if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = "reviewflow";
 
@@ -50,11 +51,22 @@ const server = expressApp.listen(port, () => {
   console.log(`Webapp server is running at http://localhost:${port}`);
 });
 
+const checkSlackUserTokens = createSlackUserTokensCheck(mongoStores);
+
 const wsServer = createWsServer(
   server,
   "/ws",
   createResourcesServerService(resourcesContext),
-  getAuthenticatedUser,
+  async (request) => {
+    const user = await getAuthenticatedUser(request);
+    // when the user opens the app, so a revoked slack sign-in asks to sign in again
+    if (user) {
+      checkSlackUserTokens(user.id).catch((error: unknown) => {
+        console.error("Could not check the slack user tokens", error);
+      });
+    }
+    return user;
+  },
 );
 
 const gracefulExit = function gracefulExit(): void {

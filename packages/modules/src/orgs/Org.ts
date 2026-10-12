@@ -20,7 +20,11 @@ export interface OrgTeamSummary {
   slug: string;
 }
 
-export type OrgSlackState = "app-not-installed" | "linked" | "user-not-linked";
+export type OrgSlackState =
+  | "app-not-installed"
+  | "linked"
+  | "token-revoked"
+  | "user-not-linked";
 
 export interface OrgSlackStatus {
   state: OrgSlackState;

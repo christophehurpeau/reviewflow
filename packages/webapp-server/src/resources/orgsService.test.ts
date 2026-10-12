@@ -150,6 +150,53 @@ describe("queryOrgPersonalTokensPolicy", () => {
   });
 });
 
+describe("queryOrgSettings", () => {
+  it("asks to sign in to slack again once the user token was revoked", async () => {
+    const createQuerySingleItem = vi.fn(() => "query");
+    const settingsStores = {
+      orgs: {
+        findOne: () =>
+          Promise.resolve({ _id: 1, login: "acme", slackTeamId: "T1" }),
+      },
+      slackTeams: { findByKey: () => Promise.resolve({ teamName: "acme" }) },
+      orgMembers: {
+        findOne: () =>
+          Promise.resolve({
+            _id: "1_42",
+            org: { id: 1, login: "acme" },
+            user: { id: 42 },
+          }),
+        createQuerySingleItem,
+      },
+    } as unknown as MongoStores;
+
+    await createOrgsService({
+      mongoStores: settingsStores,
+    }).queries.queryOrgSettings({ orgLogin: "acme" }, loggedInUser);
+    const transformer = transformerOf(createQuerySingleItem) as (
+      orgMember: unknown,
+    ) => { slack: unknown };
+    const orgMember = (slack: Record<string, unknown>) => ({
+      _id: "1_42",
+      teams: [],
+      slack: { id: "U1", teamId: "T1", ...slack },
+    });
+
+    expect(
+      transformer(orgMember({ tokenRevokedAt: new Date() })).slack,
+    ).toEqual({
+      state: "token-revoked",
+      teamName: "acme",
+      teamId: "T1",
+      userId: "U1",
+      usesDeprecatedCustomApp: false,
+    });
+    expect(transformer(orgMember({})).slack).toMatchObject({
+      state: "linked",
+    });
+  });
+});
+
 describe("queryMyOrgs", () => {
   it("tells whether each org allows personal tokens", async () => {
     const { mongoStores, createQueryCollection } = createStores();

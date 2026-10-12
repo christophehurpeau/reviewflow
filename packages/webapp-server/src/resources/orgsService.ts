@@ -48,7 +48,7 @@ const buildSlackStatus = (
   }
 
   return {
-    state: "linked",
+    state: orgMember.slack.tokenRevokedAt ? "token-revoked" : "linked",
     teamName: slackTeamName,
     teamId: orgMember.slack.teamId || org.slackTeamId,
     userId: orgMember.slack.id,

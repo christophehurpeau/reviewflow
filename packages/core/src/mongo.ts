@@ -113,6 +113,8 @@ interface OrgMemberSlack {
   accessToken?: string;
   scope?: string[];
   teamId?: string;
+  /** slack refused `accessToken`; cleared when the user signs in again */
+  tokenRevokedAt?: Date;
 }
 
 export interface OrgMember extends MongoBaseModel {
