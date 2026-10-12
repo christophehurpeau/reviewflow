@@ -1,5 +1,6 @@
 import {
   Button,
+  ExternalLinkText,
   FormField,
   FormValidationError,
   IconButton,
@@ -27,6 +28,9 @@ import { errorToMessage } from "#/errorToMessage.ts";
 import { RevealedTokenModal } from "./RevealedTokenModal.tsx";
 
 const maxNameLength = 100;
+
+const apiDocUrl =
+  "https://github.com/christophehurpeau/reviewflow/blob/main/docs/api.md";
 
 const formatDate = (date: Date): string =>
   date.toLocaleDateString("en-US", {
@@ -189,6 +193,9 @@ export function PersonalTokensList({
           read: your account, and the organizations you belong to that allow
           personal tokens.
         </Text>
+        <View className="flex-row">
+          <ExternalLinkText href={apiDocUrl} text="API documentation" />
+        </View>
         <View className="flex-row">
           <Button
             text="New token"
