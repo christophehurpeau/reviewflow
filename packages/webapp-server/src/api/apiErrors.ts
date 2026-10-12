@@ -17,13 +17,22 @@ const statusByCode: Record<ApiErrorCode, number> = {
 
 export class ApiError extends Error {
   readonly code: ApiErrorCode;
+  readonly retryAfterSeconds?: number;
 
-  constructor(code: ApiErrorCode, message: string) {
+  constructor(code: ApiErrorCode, message: string, retryAfterSeconds?: number) {
     super(message);
     this.name = "ApiError";
     this.code = code;
+    this.retryAfterSeconds = retryAfterSeconds;
   }
 }
+
+export const rateLimitedError = (retryAfterSeconds: number): ApiError =>
+  new ApiError(
+    "rateLimited",
+    `Too many requests, retry in ${retryAfterSeconds}s`,
+    retryAfterSeconds,
+  );
 
 export const sendApiError = (
   res: Response,
@@ -41,6 +50,9 @@ export const apiErrorHandler: ErrorRequestHandler = (
   next,
 ) => {
   if (error instanceof ApiError) {
+    if (error.retryAfterSeconds !== undefined) {
+      res.setHeader("Retry-After", String(error.retryAfterSeconds));
+    }
     sendApiError(res, error.code, error.message);
     return;
   }

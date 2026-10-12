@@ -213,12 +213,24 @@ describe("errors", () => {
   it("answers an unknown endpoint with notFound", async () => {
     const { app } = createApp(createToken("t-404"));
 
-    const response = await callApp(app, { method: "GET", url: "/api/nope" });
+    const response = await callApp(app, {
+      method: "GET",
+      url: "/api/nope",
+      headers: { authorization: `Bearer ${plainToken}` },
+    });
 
     expect(response.status).toBe(404);
     expect(JSON.parse(response.body)).toEqual({
       error: { code: "notFound", message: "Unknown endpoint" },
     });
+  });
+
+  it("does not tell an anonymous caller which endpoints exist", async () => {
+    const { app } = createApp(createToken("t-404-anonymous"));
+
+    const response = await callApp(app, { method: "GET", url: "/api/nope" });
+
+    expect(response.status).toBe(401);
   });
 
   it("hides an unexpected failure behind the envelope", async () => {
@@ -235,5 +247,57 @@ describe("errors", () => {
       error: { code: "internal", message: "Unexpected error" },
     });
     consoleError.mockRestore();
+  });
+});
+
+describe("rate limits", () => {
+  it("answers 429 with Retry-After past 60 requests in a row", async () => {
+    const { app } = createApp(createToken("t-burst"));
+
+    for (let index = 0; index < 60; index++) {
+      const response = await getMe(app, `Bearer ${plainToken}`);
+      expect(response.status).toBe(200);
+    }
+    const limited = await getMe(app, `Bearer ${plainToken}`);
+
+    expect(limited.status).toBe(429);
+    expect(limited.headers["retry-after"]).toBe("1");
+    expect(JSON.parse(limited.body)).toEqual({
+      error: { code: "rateLimited", message: "Too many requests, retry in 1s" },
+    });
+  });
+
+  it("stops looking tokens up after 10 failed attempts from one ip", async () => {
+    const { app, findOne } = createApp(undefined);
+
+    for (let index = 0; index < 10; index++) {
+      const response = await getMe(app, `Bearer ${plainToken}`);
+      expect(response.status).toBe(401);
+    }
+    const limited = await getMe(app, `Bearer ${plainToken}`);
+
+    expect(limited.status).toBe(429);
+    expect(limited.headers["retry-after"]).toBe("6");
+    expect(findOne).toHaveBeenCalledTimes(10);
+  });
+
+  it("counts a missing token as a failed attempt too", async () => {
+    const { app } = createApp(undefined);
+
+    for (let index = 0; index < 10; index++) {
+      await getMe(app);
+    }
+    const limited = await getMe(app);
+
+    expect(limited.status).toBe(429);
+  });
+
+  it("does not count successful requests against the ip", async () => {
+    const { app } = createApp(createToken("t-ip-ok"));
+
+    for (let index = 0; index < 20; index++) {
+      const response = await getMe(app, `Bearer ${plainToken}`);
+      expect(response.status).toBe(200);
+    }
   });
 });

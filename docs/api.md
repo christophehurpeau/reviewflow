@@ -39,13 +39,20 @@ A token never carries your GitHub credentials, and nothing in this API calls Git
   { "error": { "code": "unauthenticated", "message": "…" } }
   ```
 
-  | Status | Code              | When                                                                       |
-  | ------ | ----------------- | -------------------------------------------------------------------------- |
-  | 401    | `unauthenticated` | missing, unknown or revoked token                                          |
-  | 403    | `forbidden`       | the account is outside what the token can read                             |
-  | 404    | `notFound`        | unknown resource                                                           |
-  | 429    | `rateLimited`     | too many requests; retry after the `Retry-After` header (not enforced yet) |
-  | 500    | `internal`        | unexpected server failure                                                  |
+  | Status | Code              | When                                                    |
+  | ------ | ----------------- | ------------------------------------------------------- |
+  | 401    | `unauthenticated` | missing, unknown or revoked token                       |
+  | 403    | `forbidden`       | the account is outside what the token can read          |
+  | 404    | `notFound`        | unknown resource or endpoint (after authentication)     |
+  | 429    | `rateLimited`     | too many requests; retry after the `Retry-After` header |
+  | 500    | `internal`        | unexpected server failure                               |
+
+## Rate limits
+
+- **Per token**: 60 requests at once, refilled at one per second. A poll every few seconds stays well below it.
+- **Per IP address, failed authentication only**: after 10 requests with a missing, unknown or revoked token, the address waits about 6 seconds per further attempt, whatever token it sends. Successful requests do not count.
+
+Past a limit the API answers `429 rateLimited` with a `Retry-After` header, in seconds. Wait that long before retrying.
 
 ## Endpoints
 
@@ -95,4 +102,4 @@ Authorization: Bearer rfp_…
 - `teams`: your GitHub teams in that organization, as last synced by reviewflow.
 - Dates are ISO 8601 in UTC.
 
-Errors: `401` for a missing, unknown or revoked token.
+Errors: `401` for a missing, unknown or revoked token, `429` past a rate limit.
