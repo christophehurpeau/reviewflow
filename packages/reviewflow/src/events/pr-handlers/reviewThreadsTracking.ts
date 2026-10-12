@@ -3,6 +3,10 @@ import type { UnresolvedReviewThread } from "reviewflow-core";
 import type { AppContext } from "../../context/AppContext.ts";
 import { fetchUnresolvedReviewThreads } from "../../utils/github/pullRequest/fetchUnresolvedReviewThreads.ts";
 import type { ProbotEvent } from "../probot-types.ts";
+import {
+  markAsDoneSlackSentMessages,
+  unmarkAsDoneSlackSentMessages,
+} from "./actions/utils/slackUtils.ts";
 import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
 
 type ReviewThreadsEventName =
@@ -107,9 +111,29 @@ export default function reviewThreadsTracking(
     async (
       pullRequest,
       context,
-      _repoContext,
+      repoContext,
       reviewflowPrContext,
     ): Promise<void> => {
+      if (
+        repoContext.slack &&
+        "thread" in context.payload &&
+        (context.payload.action === "resolved" ||
+          context.payload.action === "unresolved")
+      ) {
+        const updateSlackSentMessages =
+          context.payload.action === "resolved"
+            ? markAsDoneSlackSentMessages
+            : unmarkAsDoneSlackSentMessages;
+        await Promise.all(
+          context.payload.thread.comments.map((comment) =>
+            updateSlackSentMessages(appContext, repoContext, {
+              type: "review-comment",
+              typeId: comment.id,
+            }),
+          ),
+        );
+      }
+
       if (!reviewflowPrContext) return;
 
       const nextThreads = await applyReviewThreadsChange(

@@ -3,7 +3,6 @@ import type { Probot } from "probot";
 import pullRequestOpened from "../../__fixtures__/pull_request_30.opened.json";
 import reviewCommentCreated from "../../__fixtures__/pull_request_review_comment.created.json";
 import reviewThreadResolved from "../../__fixtures__/pull_request_review_thread.resolved.json";
-import { voidTeamSlack } from "../../context/slack/voidTeamSlack.ts";
 import {
   initializeProbotApp,
   mockAccessToken,
@@ -11,10 +10,6 @@ import {
   nock,
 } from "../../tests/setup.ts";
 import { createEmptyReviews } from "./utils/groupReviewsWithState.ts";
-
-vi.mock("../../context/slack/initTeamSlack", () => ({
-  initTeamSlack: () => Promise.resolve(voidTeamSlack()),
-}));
 
 nock.disableNetConnect();
 
@@ -46,6 +41,8 @@ describe("review threads tracking", (): void => {
   const partialUpdateOnePr = vi.fn();
   const findOnePr = vi.fn();
   const graphqlCalled = vi.fn();
+  const findAllSlackSentMessages = vi.fn();
+  const partialUpdateManySlackSentMessages = vi.fn();
   let seededThreads: ReturnType<typeof graphqlNode>[] = [];
 
   const storedPr = (unresolvedThreads?: ReturnType<typeof thread>[]) => ({
@@ -85,13 +82,20 @@ describe("review threads tracking", (): void => {
     partialUpdateOnePr.mockReset();
     findOnePr.mockReset();
     graphqlCalled.mockReset();
+    findAllSlackSentMessages.mockReset();
+    findAllSlackSentMessages.mockResolvedValue([]);
+    partialUpdateManySlackSentMessages.mockReset();
     seededThreads = [];
     nock.cleanAll();
     probot = await initializeProbotApp({
       prs: { findOne: findOnePr, partialUpdateOne: partialUpdateOnePr },
       orgMembers: { findOne: () => Promise.resolve(undefined) },
       // commentEditedOrDeleted runs on the same deletion
-      slackSentMessages: { deleteMany: () => Promise.resolve() },
+      slackSentMessages: {
+        deleteMany: () => Promise.resolve(),
+        findAll: findAllSlackSentMessages,
+        partialUpdateMany: partialUpdateManySlackSentMessages,
+      },
     });
     mockAccessToken();
     mockLabels();
@@ -220,6 +224,74 @@ describe("review threads tracking", (): void => {
     expect(graphqlCalled).toHaveBeenCalledTimes(1);
     expect(partialUpdateOnePr).toHaveBeenCalledWith(expect.anything(), {
       $set: { unresolvedThreads: [thread(200)] },
+    });
+  });
+
+  describe("slack messages of the thread comments", () => {
+    const sentMessage = (typeId: number, isMarkedAsDone = false) => ({
+      type: "review-comment",
+      typeId,
+      isMarkedAsDone,
+      message: { text: `comment ${typeId}` },
+      sentTo: [{ user: { id: "U1" }, ts: `ts${typeId}`, channel: "C1" }],
+    });
+
+    const sentMessagesOf = (ids: number[], isMarkedAsDone: boolean) =>
+      findAllSlackSentMessages.mockImplementation((criteria) =>
+        Promise.resolve(
+          ids
+            .filter((id) => id === criteria.typeId)
+            .map((id) => sentMessage(id, isMarkedAsDone)),
+        ),
+      );
+
+    test("resolved marks the messages of every comment of the thread", async () => {
+      findOnePr.mockResolvedValue(storedPr([thread(101)]));
+      sentMessagesOf([101, 102], false);
+
+      await receiveThread("resolved");
+
+      expect(partialUpdateManySlackSentMessages).toHaveBeenCalledTimes(2);
+      for (const typeId of [101, 102]) {
+        expect(partialUpdateManySlackSentMessages).toHaveBeenCalledWith(
+          expect.objectContaining({ type: "review-comment", typeId }),
+          { $set: { isMarkedAsDone: true } },
+        );
+      }
+    });
+
+    test("unresolved unmarks the struck messages", async () => {
+      findOnePr.mockResolvedValue(storedPr([thread(101)]));
+      sentMessagesOf([101], true);
+
+      await receiveThread("unresolved");
+
+      expect(partialUpdateManySlackSentMessages).toHaveBeenCalledTimes(1);
+      expect(partialUpdateManySlackSentMessages).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "review-comment", typeId: 101 }),
+        { $set: { isMarkedAsDone: false } },
+      );
+    });
+
+    test("unresolved leaves messages that are not struck", async () => {
+      findOnePr.mockResolvedValue(storedPr([thread(101)]));
+      sentMessagesOf([101], false);
+
+      await receiveThread("unresolved");
+
+      expect(partialUpdateManySlackSentMessages).not.toHaveBeenCalled();
+    });
+
+    test("resolved marks even when the threads were never read", async () => {
+      findOnePr.mockResolvedValue(storedPr());
+      sentMessagesOf([101], false);
+
+      await receiveThread("resolved");
+
+      expect(partialUpdateManySlackSentMessages).toHaveBeenCalledWith(
+        expect.objectContaining({ typeId: 101 }),
+        { $set: { isMarkedAsDone: true } },
+      );
     });
   });
 

@@ -285,6 +285,45 @@ export const markAsDoneSlackSentMessages = async (
   ]);
 };
 
+export const unmarkAsDoneSlackSentMessages = async (
+  appContext: AppContext,
+  repoContext: RepoContext,
+  { type, typeId, messageId }: GetSlackSentMessagesOptions,
+): Promise<void> => {
+  const criteria = createCriteria(repoContext, type, typeId, messageId);
+  const sentMessages = await findSlackSentMessages(appContext, repoContext, {
+    type,
+    typeId,
+  });
+
+  const markedAsDoneMessages = sentMessages.filter(
+    (sentMessage) => sentMessage.isMarkedAsDone,
+  );
+  if (markedAsDoneMessages.length === 0) return;
+
+  await Promise.all([
+    ...markedAsDoneMessages.map((sentMessage) =>
+      Promise.all(
+        sentMessage.sentTo.map(
+          (sentTo) =>
+            sentTo.user && // legacy
+            repoContext.slack.updateMessage(
+              sentTo.user,
+              sentTo.ts,
+              sentTo.channel,
+              sentMessage.message,
+            ),
+        ),
+      ),
+    ),
+    appContext.mongoStores.slackSentMessages.partialUpdateMany(criteria, {
+      $set: {
+        isMarkedAsDone: false,
+      },
+    }),
+  ]);
+};
+
 interface AddReactionToSlackSentMessageOptions extends GetSlackSentMessagesOptions {
   reaction: string;
 }
