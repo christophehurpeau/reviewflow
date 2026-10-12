@@ -61,7 +61,6 @@ describe("identity and branches", () => {
       headSha: null,
       headRepoFullName: null,
       reviewState: null,
-      unresolvedThreads: null,
       mergeable: "unknown",
       flowDates: {
         createdAt: null,
@@ -120,6 +119,29 @@ describe("identity and branches", () => {
 
     expect(detail).not.toHaveProperty("openedAt");
     expect(detail).not.toHaveProperty("approvedAt");
+  });
+});
+
+describe("unresolvedThreads", () => {
+  const thread = {
+    rootCommentId: 1,
+    url: "https://github.com/acme/api/pull/412#discussion_r1",
+    path: "src/a.ts",
+    authorLogin: "reviewer",
+  };
+
+  it("is null until the threads were read", () => {
+    expect(toPrDetail(buildPr()).unresolvedThreads).toBeNull();
+  });
+
+  it("counts the stored threads", () => {
+    expect(
+      toPrDetail(buildPr({ unresolvedThreads: [thread, thread] }))
+        .unresolvedThreads,
+    ).toBe(2);
+    expect(
+      toPrDetail(buildPr({ unresolvedThreads: [] })).unresolvedThreads,
+    ).toBe(0);
   });
 });
 

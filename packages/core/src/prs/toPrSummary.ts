@@ -152,6 +152,7 @@ export const toPrSummary = (pr: ReviewflowPr): PrSummary => ({
       }
     : undefined,
   changes: pr.changesInformation,
+  unresolvedThreads: pr.unresolvedThreads?.length ?? null,
   openedAt: pr.flowDates?.openedAt,
   approvedAt: pr.flowDates?.approvedAt,
 });

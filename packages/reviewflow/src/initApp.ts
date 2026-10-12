@@ -27,6 +27,7 @@ import reviewDismissedHandler from "./events/pr-handlers/reviewDismissed.ts";
 import reviewRequestRemovedHandler from "./events/pr-handlers/reviewRequestRemoved.ts";
 import reviewRequestedHandler from "./events/pr-handlers/reviewRequested.ts";
 import reviewSubmittedHandler from "./events/pr-handlers/reviewSubmitted.ts";
+import reviewThreadsTracking from "./events/pr-handlers/reviewThreadsTracking.ts";
 import status from "./events/pr-handlers/status.ts";
 import synchronizeHandler from "./events/pr-handlers/synchronize.ts";
 import repoArchivedOrUnarchived from "./events/repository-handlers/repoArchivedOrUnarchived.ts";
@@ -93,6 +94,7 @@ export default function initApp(app: Probot, appContext: AppContext): void {
   /* https://developer.github.com/webhooks/event-payloads/#issue_comment */
   commentCreated(app, appContext);
   commentEditedOrDeleted(app, appContext);
+  reviewThreadsTracking(app, appContext);
 
   /* https://developer.github.com/webhooks/event-payloads/#check_run */
   checkrunCompleted(app, appContext);

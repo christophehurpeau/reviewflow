@@ -13,6 +13,7 @@ import type {
 } from "../../../context/repoContext.ts";
 import { ExcludesFalsy } from "../../../utils/Excludes.ts";
 import { checkIfUserIsBot } from "../../../utils/github/isBotUser.ts";
+import { fetchUnresolvedReviewThreads } from "../../../utils/github/pullRequest/fetchUnresolvedReviewThreads.ts";
 import { isPrFromRenovateBot } from "../../../utils/github/renovate.ts";
 import { orgSettingsUrl } from "../../../webappUrl.ts";
 import type { ProbotEvent } from "../../probot-types.ts";
@@ -318,6 +319,26 @@ export const editOpenedPR = async <
       !flowDates.reviewStartedAt
     ) {
       partialUpdateReviewflowPr["flowDates.reviewStartedAt"] = new Date();
+    }
+  }
+
+  // pull requests opened before threads were tracked: read once, then kept up to date by webhooks
+  if (
+    !reviewflowPrContext.reviewflowPr.unresolvedThreads &&
+    !pullRequest.closed_at
+  ) {
+    try {
+      partialUpdateReviewflowPr.unresolvedThreads =
+        await fetchUnresolvedReviewThreads(context.octokit, {
+          ...context.repo(),
+          number: pullRequest.number,
+        });
+    } catch (error) {
+      // left unknown, tried again with the next event
+      context.log.warn(
+        { err: error, prNumber: pullRequest.number },
+        "Failed to read the unresolved review threads",
+      );
     }
   }
 

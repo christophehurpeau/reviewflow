@@ -173,6 +173,14 @@ interface ReviewflowPrChangesInformation {
   deletions: number;
 }
 
+export interface UnresolvedReviewThread {
+  rootCommentId: number;
+  /** the root comment `html_url` (`#discussion_r…`) */
+  url: string;
+  path: string;
+  authorLogin: string | null;
+}
+
 export interface ReviewflowPr extends MongoBaseModel {
   account: AccountEmbed;
   repo: RepoEmbed;
@@ -195,6 +203,11 @@ export interface ReviewflowPr extends MongoBaseModel {
   reviewState?: ReviewState;
   /** from the last `pull_request` payload; `unknown` again when the base branch moves */
   mergeable?: PrMergeable;
+  /**
+   * Open review threads, by their root comment. Absent = not read yet, which
+   * is not the same as none. No comment text is stored.
+   */
+  unresolvedThreads?: UnresolvedReviewThread[];
   changesInformation?: ReviewflowPrChangesInformation;
   lastLintStatusesCommit?: string;
   lintStatuses?: ReviewflowStatus[];

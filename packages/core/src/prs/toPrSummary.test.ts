@@ -377,3 +377,26 @@ describe("toPrSummary status links", () => {
     ]);
   });
 });
+
+describe("toPrSummary unresolvedThreads", () => {
+  const thread = {
+    rootCommentId: 1,
+    url: "https://github.com/org/repo/pull/42#discussion_r1",
+    path: "src/a.ts",
+    authorLogin: null,
+  };
+
+  it("is null while the threads are unknown", () => {
+    expect(toPrSummary(buildPr()).unresolvedThreads).toBeNull();
+  });
+
+  it("is the number of stored threads, 0 when none is open", () => {
+    expect(
+      toPrSummary(buildPr({ unresolvedThreads: [] })).unresolvedThreads,
+    ).toBe(0);
+    expect(
+      toPrSummary(buildPr({ unresolvedThreads: [thread, thread] }))
+        .unresolvedThreads,
+    ).toBe(2);
+  });
+});

@@ -75,7 +75,6 @@ export interface PrDetail extends Omit<
   reviewState: PrReviewState | null;
   /** people asked or having reviewed, the author excluded; teams are in `requestedTeams` */
   reviewers: PrReviewer[];
-  unresolvedThreads: number | null;
 
   checks: PrDetailChecks;
 

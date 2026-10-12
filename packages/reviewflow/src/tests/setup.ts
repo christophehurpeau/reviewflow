@@ -78,6 +78,7 @@ export const initializeProbotApp = async ({
           commentId: 1,
           reviews: createEmptyReviews(),
           assignees: [],
+          unresolvedThreads: [],
         }),
       partialUpdateOne: () => Promise.resolve(),
       partialUpdateByKey: () => Promise.resolve(),

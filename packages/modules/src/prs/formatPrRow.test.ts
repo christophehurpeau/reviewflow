@@ -23,6 +23,7 @@ const createPrSummary = (overrides: Partial<PrSummary> = {}): PrSummary => ({
   reRequestedReviewers: [],
   requestedTeams: [],
   assignees: [],
+  unresolvedThreads: null,
   ...overrides,
 });
 

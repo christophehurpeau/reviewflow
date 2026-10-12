@@ -22,6 +22,7 @@ const basePr: PrSummary = {
   assignees: [],
   creator: { id: 9, login: "frank" },
   changes: { changedFiles: 5, additions: 120, deletions: 8 },
+  unresolvedThreads: null,
   openedAt: new Date("2026-01-05T15:04:00Z"),
 };
 

@@ -29,6 +29,7 @@ describe("synchronize", (): void => {
             commentId: 1,
             reviews: createEmptyReviews(),
             assignees: [],
+            unresolvedThreads: [],
             flowDates: {
               createdAt: new Date("2021-11-10T16:18:08Z"),
               openedAt: new Date("2021-11-10T16:18:08Z"),

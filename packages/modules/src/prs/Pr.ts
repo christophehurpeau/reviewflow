@@ -63,6 +63,8 @@ export interface PrSummary {
   assignees: PrUserSummary[];
   creator?: PrUserSummary;
   changes?: PrChangesSummary;
+  /** `null` until reviewflow has read the review threads once */
+  unresolvedThreads: number | null;
   openedAt?: Date;
   approvedAt?: Date;
 }

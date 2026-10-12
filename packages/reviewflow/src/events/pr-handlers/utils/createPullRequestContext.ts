@@ -118,6 +118,8 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
       isClosed: "closed_at" in pullRequest ? !!pullRequest.closed_at : false,
       isDraft: "draft" in pullRequest && pullRequest.draft === true,
       reviews: createEmptyReviews(),
+      // a new pull request has no thread yet
+      unresolvedThreads: [],
       ...getBranchesFromPullRequest(pullRequest),
       ...getMergeableFromPullRequest(pullRequest),
       creator: getCreatorFromPullRequest(pullRequest),

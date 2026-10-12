@@ -144,7 +144,6 @@ export const createToPrDetail = (
 
       reviewState: pr.reviewState ?? null,
       reviewers: toReviewers(pr),
-      unresolvedThreads: null,
 
       checks: toDetailChecks(readPrChecksAndStatuses(pr)),
 
