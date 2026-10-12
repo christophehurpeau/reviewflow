@@ -2,8 +2,10 @@ import { ActionButton, Badge, Code, InfoMessage, Text, View } from "alouette";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
 import type {
+  OrgPersonalTokensPolicy,
   OrgSettings,
   QueryMyDmSettingsParams,
+  QueryOrgPersonalTokensPolicyParams,
   QueryOrgSettingsParams,
   UserDmSettingsSummary,
 } from "reviewflow-modules";
@@ -12,10 +14,11 @@ import { DmSettingsList } from "#/components/dm-settings-list.tsx";
 import { ResourceView } from "#/components/resource-view.tsx";
 import { Screen } from "#/components/screen.tsx";
 import { SettingsSection } from "#/components/settings-section.tsx";
-import { SkeletonSections } from "#/components/skeleton.tsx";
+import { SkeletonBlock, SkeletonSections } from "#/components/skeleton.tsx";
 import { SlackConnectionCard } from "#/components/slack-connection-card.tsx";
 import { TeamSilenceList } from "#/components/team-silence-list.tsx";
 import { errorToMessage } from "#/errorToMessage.ts";
+import { PersonalTokensPolicySection } from "./PersonalTokensPolicySection.tsx";
 
 const configRepoUrl =
   "https://github.com/christophehurpeau/reviewflow/blob/master/packages/reviewflow/src/accountConfigs";
@@ -23,6 +26,11 @@ const configRepoUrl =
 type DmSettingsResource = ResourceResult<
   UserDmSettingsSummary | undefined,
   QueryMyDmSettingsParams
+>;
+
+type PersonalTokensPolicyResource = ResourceResult<
+  OrgPersonalTokensPolicy | undefined,
+  QueryOrgPersonalTokensPolicyParams
 >;
 
 interface DmSettingsSectionsProps {
@@ -73,13 +81,17 @@ function DmSettingsSections({
 interface OrgSettingsContentProps {
   orgSettings: OrgSettings;
   dmSettings: DmSettingsResource;
+  personalTokensPolicy: PersonalTokensPolicyResource;
   onForceSync: () => Promise<void>;
+  onSetAllowPersonalTokens: (allow: boolean) => Promise<void>;
 }
 
 function OrgSettingsContent({
   orgSettings,
   dmSettings,
+  personalTokensPolicy,
   onForceSync,
+  onSetAllowPersonalTokens,
 }: OrgSettingsContentProps): ReactNode {
   return (
     <View className="gap-l">
@@ -121,6 +133,21 @@ function OrgSettingsContent({
               : "No github team"}
           </Text>
         </SettingsSection>
+
+        <ResourceView
+          resource={personalTokensPolicy}
+          loading={<SkeletonBlock />}
+        >
+          {(policy) =>
+            policy ? (
+              <PersonalTokensPolicySection
+                orgLogin={orgSettings.login}
+                policy={policy}
+                onSetAllow={onSetAllowPersonalTokens}
+              />
+            ) : null
+          }
+        </ResourceView>
       </Columns>
 
       <DmSettingsSections orgSettings={orgSettings} dmSettings={dmSettings} />
@@ -132,14 +159,18 @@ interface OrgSettingsScreenProps {
   orgLogin: string;
   settings: ResourceResult<OrgSettings | undefined, QueryOrgSettingsParams>;
   dmSettings: DmSettingsResource;
+  personalTokensPolicy: PersonalTokensPolicyResource;
   onForceSync: () => Promise<void>;
+  onSetAllowPersonalTokens: (allow: boolean) => Promise<void>;
 }
 
 export function OrgSettingsScreen({
   orgLogin,
   settings,
   dmSettings,
+  personalTokensPolicy,
   onForceSync,
+  onSetAllowPersonalTokens,
 }: OrgSettingsScreenProps): ReactNode {
   return (
     <Screen title="">
@@ -152,7 +183,9 @@ export function OrgSettingsScreen({
             <OrgSettingsContent
               orgSettings={orgSettings}
               dmSettings={dmSettings}
+              personalTokensPolicy={personalTokensPolicy}
               onForceSync={onForceSync}
+              onSetAllowPersonalTokens={onSetAllowPersonalTokens}
             />
           ) : (
             <InfoMessage>

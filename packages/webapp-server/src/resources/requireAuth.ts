@@ -1,5 +1,6 @@
 import { ResourcesServerError } from "liwi-resources-server";
 import type { MongoStores, OrgMember, PrBucketAccount } from "reviewflow-core";
+import { callBotApiForJson } from "../botApi.ts";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
 
 export const requireAuthenticatedUser = (
@@ -34,6 +35,42 @@ export const requireOrgMember = async (
   }
 
   return { user, orgMember };
+};
+
+interface OrgMemberRoleResponse {
+  role: "admin" | "member" | null;
+}
+
+/**
+ * Asks github through the bot on every call: the synced members carry no
+ * role, and an owner demoted on github must lose access at once.
+ */
+export const isOrgOwner = async (
+  orgId: number,
+  user: AuthenticatedWsUser,
+): Promise<boolean> => {
+  const { role } = await callBotApiForJson<OrgMemberRoleResponse>(
+    "/org/member-role",
+    { orgId, userLogin: user.login },
+  );
+  return role === "admin";
+};
+
+export const requireOrgOwner = async (
+  mongoStores: MongoStores,
+  orgId: number,
+  loggedInUser: AuthenticatedWsUser | undefined,
+): Promise<{ user: AuthenticatedWsUser; orgMember: OrgMember }> => {
+  const membership = await requireOrgMember(mongoStores, orgId, loggedInUser);
+
+  if (!(await isOrgOwner(orgId, membership.user))) {
+    throw new ResourcesServerError(
+      "FORBIDDEN",
+      `Only an owner of ${membership.orgMember.org.login} can change this`,
+    );
+  }
+
+  return membership;
 };
 
 export interface AuthorizedAccount {

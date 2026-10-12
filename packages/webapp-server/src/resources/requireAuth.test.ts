@@ -1,7 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 import type { MongoStores, OrgMember } from "reviewflow-core";
+import { callBotApiForJson } from "../botApi.ts";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
-import { requireAccount, requireAccounts } from "./requireAuth.ts";
+import {
+  requireAccount,
+  requireAccounts,
+  requireOrgOwner,
+} from "./requireAuth.ts";
+
+vi.mock("../botApi.ts", () => ({ callBotApiForJson: vi.fn() }));
 
 /** the membership cache is keyed on this object, so no two cases may share one */
 const createLoggedInUser = (): AuthenticatedWsUser => ({
@@ -199,5 +206,47 @@ describe("requireAccount", () => {
     await expect(
       requireAccount(createStores([]), 42, undefined),
     ).rejects.toThrow("Not authenticated");
+  });
+});
+
+describe("requireOrgOwner", () => {
+  it("lets an owner through, asking github through the bot", async () => {
+    vi.mocked(callBotApiForJson).mockResolvedValue({ role: "admin" });
+
+    const { user } = await requireOrgOwner(
+      createStores([orgMember(1, [])]),
+      1,
+      createLoggedInUser(),
+    );
+
+    expect(user.id).toBe(42);
+    expect(callBotApiForJson).toHaveBeenCalledWith("/org/member-role", {
+      orgId: 1,
+      userLogin: "christophehurpeau",
+    });
+  });
+
+  it.each(["member", null])("refuses the role %j", async (role) => {
+    vi.mocked(callBotApiForJson).mockResolvedValue({ role });
+
+    await expect(
+      requireOrgOwner(
+        createStores([orgMember(1, [])]),
+        1,
+        createLoggedInUser(),
+      ),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: "Only an owner of org-1 can change this",
+    });
+  });
+
+  it("refuses a non member without asking github", async () => {
+    vi.mocked(callBotApiForJson).mockClear();
+
+    await expect(
+      requireOrgOwner(createStores([]), 1, createLoggedInUser()),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    expect(callBotApiForJson).not.toHaveBeenCalled();
   });
 });

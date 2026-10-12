@@ -25,8 +25,14 @@ const createOrgsServiceClient = createResourceClientService<OrgsService>(
       queryMyOrgs: null,
       queryOrgSettings: null,
       queryMyDmSettings: null,
+      queryOrgPersonalTokensPolicy: null,
     },
-    operations: { setDmSetting: null, setTeamSilenced: null, forceSync: null },
+    operations: {
+      setDmSetting: null,
+      setTeamSilenced: null,
+      forceSync: null,
+      setAllowPersonalTokens: null,
+    },
   },
 );
 

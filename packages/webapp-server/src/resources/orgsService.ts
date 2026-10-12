@@ -8,6 +8,7 @@ import {
 } from "reviewflow-core";
 import type { MongoStores, Org, OrgMember } from "reviewflow-core";
 import type {
+  OrgPersonalTokensPolicy,
   OrgSettings,
   OrgSlackStatus,
   OrgSummary,
@@ -18,7 +19,12 @@ import type { ResourcesContext } from "../ResourcesContext.ts";
 import { callBotApi } from "../botApi.ts";
 import { setDmSetting, setTeamSilenced } from "../dm/updateUserDmSettings.ts";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
-import { requireAuthenticatedUser, requireOrgMember } from "./requireAuth.ts";
+import {
+  isOrgOwner,
+  requireAuthenticatedUser,
+  requireOrgMember,
+  requireOrgOwner,
+} from "./requireAuth.ts";
 
 const buildSlackStatus = (
   org: Org,
@@ -49,6 +55,10 @@ const buildSlackStatus = (
   };
 };
 
+// `syncOrg` upserts orgs without a config: absent on those documents
+const allowsPersonalTokens = (org: Org): boolean =>
+  (org.config as Org["config"] | undefined)?.allowPersonalTokens ?? false;
+
 const requireOrg = async (
   mongoStores: MongoStores,
   orgId: number,
@@ -73,10 +83,25 @@ export const createOrgsService = ({
       return mongoStores.orgs.createQueryCollection({
         criteria: { _id: { $in: orgMembers.map(({ org }) => org.id) } },
         sort: { login: 1 },
-        transformer: ({ _id, login, status }): OrgSummary => ({
-          _id,
-          login,
-          status,
+        transformer: (org): OrgSummary => ({
+          _id: org._id,
+          login: org.login,
+          status: org.status,
+          allowPersonalTokens: allowsPersonalTokens(org),
+        }),
+      });
+    },
+
+    queryOrgPersonalTokensPolicy: async ({ orgId }, loggedInUser) => {
+      const { user } = await requireOrgMember(mongoStores, orgId, loggedInUser);
+      const viewerIsOwner = await isOrgOwner(orgId, user);
+
+      return mongoStores.orgs.createQuerySingleItem({
+        criteria: { _id: orgId },
+        transformer: (org): OrgPersonalTokensPolicy => ({
+          _id: org._id,
+          allowPersonalTokens: allowsPersonalTokens(org),
+          viewerIsOwner,
         }),
       });
     },
@@ -167,6 +192,21 @@ export const createOrgsService = ({
       const org = await requireOrg(mongoStores, orgId);
 
       await callBotApi("/sync/org", { orgId: org._id });
+    },
+
+    setAllowPersonalTokens: async ({ orgId, allow }, loggedInUser) => {
+      const { user } = await requireOrgOwner(mongoStores, orgId, loggedInUser);
+
+      await mongoStores.orgs.partialUpdateByKey(orgId, {
+        $set: {
+          "config.allowPersonalTokens": allow,
+          "config.allowPersonalTokensChangedBy": {
+            id: user.id,
+            login: user.login,
+            at: new Date(),
+          },
+        },
+      });
     },
   },
 });

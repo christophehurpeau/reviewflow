@@ -4,6 +4,14 @@ export interface OrgSummary {
   _id: number;
   login: string;
   status: "active" | "deleted" | "suspended";
+  allowPersonalTokens: boolean;
+}
+
+export interface OrgPersonalTokensPolicy {
+  _id: number;
+  allowPersonalTokens: boolean;
+  /** read from github when the query opens: display only, writes re-check it */
+  viewerIsOwner: boolean;
 }
 
 export interface OrgTeamSummary {

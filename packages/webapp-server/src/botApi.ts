@@ -16,10 +16,10 @@ const errorCodeByStatus: Record<number, string> = {
   404: "NOT_FOUND",
 };
 
-export const callBotApi = async (
+const postToBot = async (
   path: string,
   body: Record<string, number | string>,
-): Promise<void> => {
+): Promise<Response> => {
   const secret = process.env.INTERNAL_API_SECRET;
   if (!secret) {
     throw new Error("Missing env variable: INTERNAL_API_SECRET");
@@ -39,7 +39,7 @@ export const callBotApi = async (
     );
   });
 
-  if (response.ok) return;
+  if (response.ok) return response;
 
   const errorBody = (await response.json().catch(() => null)) as {
     error?: string;
@@ -49,6 +49,22 @@ export const callBotApi = async (
     errorCodeByStatus[response.status] || "UNEXPECTED_ERROR",
     errorBody?.error || "The reviewflow bot rejected the request",
   );
+};
+
+export const callBotApi = async (
+  path: string,
+  body: Record<string, number | string>,
+): Promise<void> => {
+  await postToBot(path, body);
+};
+
+/** the caller types the answer: the bot is trusted, its json is not re-validated */
+export const callBotApiForJson = async <Result>(
+  path: string,
+  body: Record<string, number | string>,
+): Promise<Result> => {
+  const response = await postToBot(path, body);
+  return (await response.json()) as Result;
 };
 
 /**

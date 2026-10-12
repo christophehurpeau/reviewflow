@@ -18,13 +18,25 @@ export default function OrgSettingsPage(): ReactNode {
     { params: { orgId: org._id }, subscribe: true },
     [org._id],
   );
+  const personalTokensPolicy = useResource(
+    orgsService.queries.queryOrgPersonalTokensPolicy,
+    { params: { orgId: org._id }, subscribe: true },
+    [org._id],
+  );
 
   return (
     <OrgSettingsScreen
       orgLogin={org.login}
       settings={settings}
       dmSettings={dmSettings}
+      personalTokensPolicy={personalTokensPolicy}
       onForceSync={() => orgsService.operations.forceSync({ orgId: org._id })}
+      onSetAllowPersonalTokens={(allow) =>
+        orgsService.operations.setAllowPersonalTokens({
+          orgId: org._id,
+          allow,
+        })
+      }
     />
   );
 }

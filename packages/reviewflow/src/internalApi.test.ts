@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import express from "express";
+import type { NextFunction, Request, Response } from "express";
 import type { Probot } from "probot";
 import type { AppContext } from "./context/AppContext.ts";
 import { getExistingAccountContext } from "./context/accountContext.ts";
@@ -473,5 +474,132 @@ describe("POST /slack/member-linked", () => {
     });
 
     expect(response.status).toBe(400);
+  });
+});
+
+describe("POST /org/member-role", () => {
+  const org = { _id: 1, login: "acme", installationId: 77 };
+
+  const callMemberRole = (app: express.Express, body: unknown) =>
+    callApp(app, {
+      method: "POST",
+      url: "/api/internal/org/member-role",
+      headers: authorized,
+      body,
+    });
+
+  const withMembership = (
+    auth: ReturnType<typeof vi.fn>,
+    getMembershipForUser: () => Promise<unknown>,
+  ): ReturnType<typeof vi.fn> => {
+    const getMembership = vi.fn(getMembershipForUser);
+    auth.mockResolvedValue({
+      rest: { orgs: { getMembershipForUser: getMembership } },
+    });
+    return getMembership;
+  };
+
+  it("rejects a missing userLogin", async () => {
+    const { app } = createApp({ org });
+
+    const response = await callMemberRole(app, { orgId: 1 });
+
+    expect(response.status).toBe(400);
+  });
+
+  it("answers not found for an org without installation", async () => {
+    const { app, auth } = createApp({ org: { _id: 1, login: "acme" } });
+
+    const response = await callMemberRole(app, {
+      orgId: 1,
+      userLogin: "chris",
+    });
+
+    expect(response.status).toBe(404);
+    expect(auth).not.toHaveBeenCalled();
+  });
+
+  it("reads the role of an active owner with the installation octokit", async () => {
+    const { app, auth } = createApp({ org });
+    const getMembership = withMembership(auth, () =>
+      Promise.resolve({ data: { state: "active", role: "admin" } }),
+    );
+
+    const response = await callMemberRole(app, {
+      orgId: 1,
+      userLogin: "chris",
+    });
+
+    expect(auth).toHaveBeenCalledWith(77);
+    expect(getMembership).toHaveBeenCalledWith({
+      org: "acme",
+      username: "chris",
+    });
+    expect(response).toEqual({ status: 200, body: { role: "admin" } });
+  });
+
+  it.each(["member", "billing_manager"])(
+    "answers member for the %s role",
+    async (role) => {
+      const { app, auth } = createApp({ org });
+      withMembership(auth, () =>
+        Promise.resolve({ data: { state: "active", role } }),
+      );
+
+      const response = await callMemberRole(app, {
+        orgId: 1,
+        userLogin: "chris",
+      });
+
+      expect(response.body).toEqual({ role: "member" });
+    },
+  );
+
+  it("answers no role for a pending invitation, even as owner", async () => {
+    const { app, auth } = createApp({ org });
+    withMembership(auth, () =>
+      Promise.resolve({ data: { state: "pending", role: "admin" } }),
+    );
+
+    const response = await callMemberRole(app, {
+      orgId: 1,
+      userLogin: "chris",
+    });
+
+    expect(response.body).toEqual({ role: null });
+  });
+
+  it("answers no role when github does not know the membership", async () => {
+    const { app, auth } = createApp({ org });
+    withMembership(auth, () =>
+      Promise.reject(Object.assign(new Error("Not Found"), { status: 404 })),
+    );
+
+    const response = await callMemberRole(app, {
+      orgId: 1,
+      userLogin: "chris",
+    });
+
+    expect(response).toEqual({ status: 200, body: { role: null } });
+  });
+
+  it("fails on any other github error", async () => {
+    const { app, auth } = createApp({ org });
+    withMembership(auth, () =>
+      Promise.reject(Object.assign(new Error("Forbidden"), { status: 403 })),
+    );
+    // express's default handler answers html, which callApp cannot parse
+    app.use(
+      (error: Error, req: Request, res: Response, next: NextFunction): void => {
+        res.status(500).json({ error: error.message });
+      },
+    );
+
+    const response = await callMemberRole(app, {
+      orgId: 1,
+      userLogin: "chris",
+    });
+
+    expect(response).toEqual({ status: 500, body: { error: "Forbidden" } });
   });
 });

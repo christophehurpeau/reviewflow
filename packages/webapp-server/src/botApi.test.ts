@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ResourcesServerError } from "liwi-resources-server";
-import { callBotApi, callBotApiBestEffort } from "./botApi.ts";
+import {
+  callBotApi,
+  callBotApiBestEffort,
+  callBotApiForJson,
+} from "./botApi.ts";
 
 const respond = (status: number, body?: unknown): Response =>
   ({
@@ -112,6 +116,29 @@ describe("callBotApi", () => {
 
     await expect(callBotApi("/sync/org", { orgId: 1 })).rejects.toMatchObject({
       code: "UNEXPECTED_ERROR",
+    });
+  });
+});
+
+describe("callBotApiForJson", () => {
+  it("returns the bot's json answer", async () => {
+    fetchMock.mockResolvedValue(respond(200, { role: "admin" }));
+
+    await expect(
+      callBotApiForJson("/org/member-role", { orgId: 1, userLogin: "chris" }),
+    ).resolves.toEqual({ role: "admin" });
+  });
+
+  it("maps a refusal like callBotApi", async () => {
+    fetchMock.mockResolvedValue(
+      respond(404, { error: "Unknown organization" }),
+    );
+
+    await expect(
+      callBotApiForJson("/org/member-role", { orgId: 1, userLogin: "chris" }),
+    ).rejects.toMatchObject({
+      code: "NOT_FOUND",
+      message: "Unknown organization",
     });
   });
 });

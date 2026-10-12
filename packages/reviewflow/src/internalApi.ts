@@ -31,6 +31,14 @@ const readNumber = (value: unknown): number | undefined => {
 const readString = (value: unknown): string | undefined =>
   typeof value === "string" && value !== "" ? value : undefined;
 
+const isNotFound = (error: unknown): boolean =>
+  typeof error === "object" &&
+  error !== null &&
+  "status" in error &&
+  error.status === 404;
+
+type OrgMemberRole = "admin" | "member";
+
 export default function internalApiRouter(
   probot: Probot,
   { mongoStores }: AppContext,
@@ -171,6 +179,39 @@ export default function internalApiRouter(
     (async () => {
       await deleteRepositoryData({ mongoStores, repositoryId });
       res.status(204).end();
+    })().catch(next);
+  });
+
+  // read live from github on every call: it gates org-wide settings, and the
+  // synced members carry no role
+  router.post("/org/member-role", (req, res, next) => {
+    const orgId = readNumber(req.body?.orgId);
+    const userLogin = readString(req.body?.userLogin);
+    if (!orgId || !userLogin) {
+      res.status(400).json({ error: "Invalid orgId or userLogin" });
+      return;
+    }
+
+    (async () => {
+      const org = await mongoStores.orgs.findByKey(orgId);
+      if (!org?.installationId) {
+        res.status(404).json({ error: "Unknown organization" });
+        return;
+      }
+
+      const octokit = await probot.auth(org.installationId);
+      const role = await octokit.rest.orgs
+        .getMembershipForUser({ org: org.login, username: userLogin })
+        .then(({ data }): OrgMemberRole | null => {
+          if (data.state !== "active") return null;
+          return data.role === "admin" ? "admin" : "member";
+        })
+        .catch((error: unknown) => {
+          if (isNotFound(error)) return null;
+          throw error;
+        });
+
+      res.status(200).json({ role });
     })().catch(next);
   });
 

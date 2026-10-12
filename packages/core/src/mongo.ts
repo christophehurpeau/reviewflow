@@ -52,8 +52,11 @@ export interface User extends BaseAccount {
   type: string;
 }
 
-interface OrgConfig {
+export interface OrgConfig {
   canUseExternalSlack?: boolean;
+  /** set by a github owner of the org; absent = not allowed */
+  allowPersonalTokens?: boolean;
+  allowPersonalTokensChangedBy?: { id: number; login: string; at: Date };
 }
 
 export interface Org extends BaseAccount {
