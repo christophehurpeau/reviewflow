@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.14.0](https://github.com/christophehurpeau/reviewflow/compare/v6.13.0...v6.14.0) (2026-10-12)
+
+### Features
+
+* add personal api tokens
+* let org owners allow personal api tokens
+
+Version bump for dependency: reviewflow-core
+Version bump for dependency: reviewflow-modules
+
+
 ## [6.13.0](https://github.com/christophehurpeau/reviewflow/compare/v6.12.0...v6.13.0) (2026-10-12)
 
 ### Features
