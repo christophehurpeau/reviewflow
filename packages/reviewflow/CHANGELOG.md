@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.13.0](https://github.com/christophehurpeau/reviewflow/compare/v6.12.0...v6.13.0) (2026-10-12)
+
+### Features
+
+* **deps:** upgrade liwi to 14 and drop the local prs writer
+* **reviewflow:** backfill head, base, head repo and merged on prs
+* **reviewflow:** persist headRef, baseRef and headRepoFullName on prs
+* **reviewflow:** persist isMerged on prs
+* **reviewflow:** persist lastPushedAt and lastReviewSubmittedAt on prs
+* **reviewflow:** persist per-reviewer requestedAt and submittedAt on prs
+* **reviewflow:** persist reviewState on prs
+
+### Bug Fixes
+
+* **codeReview:** correct logic for missing review condition
+* **reviewflow:** notify pr author on review, comment, draft and dismiss when not assigned
+
+Version bump for dependency: reviewflow-core
+Version bump for dependency: reviewflow-modules
+
+
 ## [6.12.0](https://github.com/christophehurpeau/reviewflow/compare/v6.11.0...v6.12.0) (2026-10-03)
 
 ### Features
