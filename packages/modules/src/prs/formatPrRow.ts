@@ -179,6 +179,9 @@ export const selectPrRowStatus = (
       pr.approvedBy.length > 0
         ? `approved by ${formatLogins(pr.approvedBy, loginsOptions)}`
         : undefined,
+      pr.unresolvedThreads
+        ? pluralize(pr.unresolvedThreads, "unresolved thread")
+        : undefined,
       formatReviewRequests(pr, {
         ...loginsOptions,
         verb: reviewRequestVerb,

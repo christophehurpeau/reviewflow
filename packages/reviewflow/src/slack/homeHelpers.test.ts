@@ -202,6 +202,21 @@ describe("homeHelpers", () => {
       `);
   });
 
+  it("createBlocksForDataFromMongoPr states the unresolved threads", () => {
+    const thread = (rootCommentId: number) => ({
+      rootCommentId,
+      url: `https://github.com/org/repo/pull/1#discussion_r${rootCommentId}`,
+      path: "src/a.ts",
+      authorLogin: "carol",
+    });
+    const blocks = createBlocksForDataFromMongoPr(
+      createMockPr({ unresolvedThreads: [thread(1), thread(2)] }),
+      "bob",
+    );
+
+    expect(JSON.stringify(blocks)).toContain("2 unresolved threads");
+  });
+
   /**
    * slack cannot act as the reviewer, so the link hands the webapp the pull
    * request id and lets it start the review and forward to github.

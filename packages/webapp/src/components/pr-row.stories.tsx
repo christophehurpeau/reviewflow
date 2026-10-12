@@ -299,6 +299,18 @@ export const VariantsStory: StoryObj<typeof PrRow> = {
         />
       </Story.Section>
 
+      <Story.Section title="one unresolved thread">
+        <PrRow pr={buildPr({ unresolvedThreads: 1 })} />
+      </Story.Section>
+
+      <Story.Section title="several unresolved threads">
+        <PrRow pr={buildPr({ unresolvedThreads: 4 })} />
+      </Story.Section>
+
+      <Story.Section title="no unresolved thread">
+        <PrRow pr={buildPr({ unresolvedThreads: 0 })} />
+      </Story.Section>
+
       <Story.Section title="one status link">
         <PrRow
           pr={buildPr({
@@ -364,6 +376,7 @@ export const VariantsStory: StoryObj<typeof PrRow> = {
             requestedReviewers: [{ id: 2, login: "carol" }],
             requestedTeams: ["core"],
             reRequestedReviewers: [{ id: 5, login: "erin" }],
+            unresolvedThreads: 2,
           })}
         />
       </Story.Section>

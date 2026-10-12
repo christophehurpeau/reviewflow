@@ -172,6 +172,37 @@ describe("selectPrRowStatus", () => {
     expect(status.rest).toBe("3 checks running");
   });
 
+  it.each([
+    [1, "1 unresolved thread"],
+    [3, "3 unresolved threads"],
+  ])("counts %i unresolved threads", (unresolvedThreads, expected) => {
+    const status = selectPrRowStatus(createPrSummary({ unresolvedThreads }));
+
+    expect(status.rest).toBe(expected);
+  });
+
+  it.each([0, null])("says nothing of %s unresolved threads", (count) => {
+    const status = selectPrRowStatus(
+      createPrSummary({ unresolvedThreads: count }),
+    );
+
+    expect(status.rest).toBe("");
+  });
+
+  it("lists unresolved threads between the approval and the awaited reviewers", () => {
+    const status = selectPrRowStatus(
+      createPrSummary({
+        approvedBy: [{ id: 7, login: "dan" }],
+        unresolvedThreads: 2,
+        requestedTeams: ["core"],
+      }),
+    );
+
+    expect(status.rest).toBe(
+      "approved by @dan · 2 unresolved threads · awaiting #core",
+    );
+  });
+
   it("asks for a review of the teams alone", () => {
     const status = selectPrRowStatus(
       createPrSummary({ requestedTeams: ["core", "infra"] }),
