@@ -33,8 +33,6 @@ export interface PrDetailChecks extends PrChecksSummary {
   failed: number;
   /** codecov and `/hold-` checks left out, as reviewflow ignores them */
   pending: number;
-  /** github was read 100 checks at a time: past that, some may be missing */
-  truncated: boolean;
 }
 
 /**

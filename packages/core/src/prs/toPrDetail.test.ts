@@ -252,21 +252,7 @@ describe("checks", () => {
       passed: 3,
       failed: 1,
       pending: 2,
-      truncated: false,
     });
-  });
-
-  it("flags a record as full as one page of github checks", () => {
-    const checksConclusion = Object.fromEntries(
-      Array.from({ length: 99 }, (_, index) => [
-        `check-${index}`,
-        { name: `check-${index}`, conclusion: "success" as const },
-      ]),
-    );
-
-    expect(toPrDetail(buildPr({ checksConclusion })).checks.truncated).toBe(
-      true,
-    );
   });
 });
 

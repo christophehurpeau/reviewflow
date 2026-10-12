@@ -37,12 +37,6 @@ const toState = ({
 
 const passedCheckConclusions = new Set(["neutral", "skipped", "success"]);
 
-/**
- * `checks.listForRef` is read one page of 100, reviewflow's own check
- * included and then dropped: a record that full may be missing some.
- */
-const checksPageSize = 100;
-
 const toDetailChecks = (
   checksAndStatuses: PrChecksAndStatuses,
 ): PrDetailChecks => {
@@ -60,7 +54,6 @@ const toDetailChecks = (
       ).length + statuses.filter(({ state }) => state === "success").length,
     failed: result.failedChecks.length + result.failedStatuses.length,
     pending: result.pendingChecks.length + result.pendingStatuses.length,
-    truncated: checks.length >= checksPageSize - 1,
   };
 };
 
