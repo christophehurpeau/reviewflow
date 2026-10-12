@@ -65,7 +65,9 @@ describe("markAsDoneSlackSentMessages and unmarkAsDoneSlackSentMessages", () => 
       message: {
         text: "line one\n\n> quoted",
         blocks: [section("<url|path>"), divider],
-        secondaryBlocks: [section("body")],
+        secondaryBlocks: [
+          section("body \n  • item\n```\nconst a = 1;\n```\n`inline` end"),
+        ],
       },
     });
 
@@ -74,7 +76,9 @@ describe("markAsDoneSlackSentMessages and unmarkAsDoneSlackSentMessages", () => 
     expect(updateMessage).toHaveBeenCalledWith({ id: "U1" }, "ts1", "C1", {
       text: "~line one~\n\n> ~quoted~",
       blocks: [section("~<url|path>~"), divider],
-      secondaryBlocks: [section("body")],
+      secondaryBlocks: [
+        section("~body~ \n  ~• item~\n```\nconst a = 1;\n```\n~`inline` end~"),
+      ],
     });
   });
 

@@ -1,3 +1,9 @@
+import type {
+  Block,
+  KnownBlock,
+  MrkdwnElement,
+  SectionBlock,
+} from "@slack/web-api";
 import type { Criteria } from "liwi-store";
 import type {
   AccountInfo,
@@ -242,31 +248,64 @@ export const deleteSlackSentMessages = async (
   ]);
 };
 
-const quotePrefix = "> ";
+const quoteMarker = /^>\s?/;
 
+// a quote marker or an indent inside the tildes would no longer start the
+// line, and slack ignores a closing tilde after a space
 const strikeLine = (line: string): string => {
-  if (!line) return line;
-  // a quote marker inside the tildes would no longer start the line
-  if (line.startsWith(quotePrefix)) {
-    return `${quotePrefix}~${line.slice(quotePrefix.length)}~`;
-  }
-  return `~${line}~`;
+  const trimmedStart = line.trimStart();
+  const indent = line.slice(0, line.length - trimmedStart.length);
+  const quote = quoteMarker.exec(trimmedStart)?.[0] ?? "";
+  const rest = trimmedStart.slice(quote.length);
+  const content = rest.trimEnd();
+  if (!content) return line;
+  return `${indent}${quote}~${content}~${rest.slice(content.length)}`;
 };
 
-// slack strike-through does not span lines
-const strike = (text: string): string =>
-  text.split("\n").map(strikeLine).join("\n");
+const codeFence = "```";
+
+const isCodeFenceToggle = (line: string): boolean => {
+  const trimmed = line.trim();
+  return (
+    trimmed.startsWith(codeFence) &&
+    !(trimmed.length > codeFence.length * 2 && trimmed.endsWith(codeFence))
+  );
+};
+
+// slack strike-through does not span lines; tildes would show in code
+const strike = (text: string): string => {
+  let isInCode = false;
+  return text
+    .split("\n")
+    .map((line) => {
+      if (isCodeFenceToggle(line)) {
+        isInCode = !isInCode;
+        return line;
+      }
+      return isInCode ? line : strikeLine(line);
+    })
+    .join("\n");
+};
+
+const isMrkdwnSection = (
+  block: Block | KnownBlock,
+): block is SectionBlock & { text: MrkdwnElement } =>
+  block.type === "section" && (block as SectionBlock).text?.type === "mrkdwn";
+
+const strikeBlocks = <T extends Block | KnownBlock>(blocks: T[]): T[] =>
+  blocks.map((block) =>
+    isMrkdwnSection(block)
+      ? { ...block, text: { ...block.text, text: strike(block.text.text) } }
+      : block,
+  );
 
 // slack renders blocks instead of text when a message has both
 const strikeSlackMessage = (message: SlackMessage): SlackMessage => ({
   ...message,
   text: strike(message.text),
-  ...(message.blocks && {
-    blocks: message.blocks.map((block) =>
-      block.type === "section" && block.text?.type === "mrkdwn"
-        ? { ...block, text: { ...block.text, text: strike(block.text.text) } }
-        : block,
-    ),
+  ...(message.blocks && { blocks: strikeBlocks(message.blocks) }),
+  ...(message.secondaryBlocks && {
+    secondaryBlocks: strikeBlocks(message.secondaryBlocks),
   }),
 });
 
