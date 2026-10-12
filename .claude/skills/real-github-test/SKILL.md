@@ -32,9 +32,7 @@ description: >
 ## Observing
 
 - The server logs are in the user's terminal, out of reach. Observe through the
-  local mongo (`mongosh`, database `reviewflow`): `prs` keyed by `account.id`,
-  `repo.id` and `pr.number`; `slackSentMessages` by `type` and `typeId`
-  (`isMarkedAsDone` once struck through; `sentTo` empty means slack skipped it).
+  local mongo (`mongosh`, database `reviewflow`).
 - And through GitHub: the pull request body, labels, statuses and comments the bot wrote.
 - Slack itself is only visible to the user: ask them to confirm what a DM looks like.
 
