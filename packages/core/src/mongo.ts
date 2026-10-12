@@ -214,6 +214,18 @@ export interface ReviewflowPr extends MongoBaseModel {
   // flowHistory: FlowHistory[];
 }
 
+export interface PersonalToken extends MongoBaseModel {
+  userId: number;
+  name: string;
+  /** sha-256 hex of the full token, which is never stored */
+  hash: string;
+  /** start of the token, shown to tell tokens apart */
+  prefix: string;
+  lastUsedAt?: Date;
+  lastUsedIp?: string;
+  revokedAt?: Date;
+}
+
 export interface InstallationEvent extends MongoBaseModel {
   installationId: number;
   account: AccountEmbed;
@@ -244,6 +256,7 @@ export interface MongoStores {
   slackSentMessages: MongoStore<SlackSentMessage>;
   prs: MongoSubscribeStore<ReviewflowPr>;
   installationsEvents: MongoStore<InstallationEvent>;
+  personalTokens: MongoSubscribeStore<PersonalToken>;
   // prEvents: MongoStore<PrEventsModel>;
 }
 
@@ -427,6 +440,15 @@ export default function init(): InitializedMongoStores {
     },
   );
 
+  const personalTokens = new MongoStore<PersonalToken>(
+    connection,
+    "personalTokens",
+  );
+  const personalTokensReady = personalTokens.collection.then(async (coll) => {
+    await coll.createIndex({ hash: 1 }, { unique: true });
+    await coll.createIndex({ userId: 1, created: -1 });
+  });
+
   const ready = Promise.all([
     userDmSettingsReady,
     usersReady,
@@ -438,6 +460,7 @@ export default function init(): InitializedMongoStores {
     repositoriesReady,
     labelsReady,
     installationsEventsReady,
+    personalTokensReady,
   ]).then(() => undefined);
 
   // return { connection, prEvents };
@@ -456,5 +479,6 @@ export default function init(): InitializedMongoStores {
     labels,
     prs: createMongoSubscribeStore(prs),
     installationsEvents,
+    personalTokens: createMongoSubscribeStore(personalTokens),
   };
 }

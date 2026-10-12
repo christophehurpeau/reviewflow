@@ -38,6 +38,7 @@
     "alouette": "24.1.0",
     "alouette-icons": "12.0.0",
     "expo": "57.0.12",
+    "expo-clipboard": "57.0.2",
     "expo-constants": "57.0.10",
     "expo-linking": "57.0.5",
     "expo-router": "57.0.12",

@@ -55,4 +55,25 @@ describe("mongo stores on a real mongod", () => {
       }),
     ).rejects.toThrow();
   });
+
+  it("indexes personal tokens on their hash and on their owner", async () => {
+    const indexes = await stores.db.collection("personalTokens").indexes();
+    expect(indexes.map(({ name }) => name)).toEqual(
+      expect.arrayContaining(["hash_1", "userId_1_created_-1"]),
+    );
+  });
+
+  it("rejects a second personal token with the same hash", async () => {
+    const token = {
+      userId: 42,
+      name: "vigie",
+      hash: "abc",
+      prefix: "rfp_abcd",
+    };
+    await stores.personalTokens.insertOne({ ...token });
+
+    await expect(
+      stores.personalTokens.insertOne({ ...token, name: "other" }),
+    ).rejects.toThrow();
+  });
 });

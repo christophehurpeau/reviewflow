@@ -4,6 +4,7 @@ import { createContext, use, useState } from "react";
 import { TransportClientContext } from "react-liwi";
 import type {
   OrgsService,
+  PersonalTokensService,
   PrsService,
   RepositoriesService,
   UsersService,
@@ -40,11 +41,22 @@ const createPrsServiceClient = createResourceClientService<PrsService>("prs", {
   operations: { startReview: null },
 });
 
+const createPersonalTokensServiceClient =
+  createResourceClientService<PersonalTokensService>("personalTokens", {
+    queries: { queryMyPersonalTokens: null },
+    operations: {
+      createPersonalToken: null,
+      regeneratePersonalToken: null,
+      revokePersonalToken: null,
+    },
+  });
+
 interface ReviewflowServices {
   usersService: UsersService;
   orgsService: OrgsService;
   repositoriesService: RepositoriesService;
   prsService: PrsService;
+  personalTokensService: PersonalTokensService;
 }
 
 const ReviewflowServicesContext = createContext<ReviewflowServices | undefined>(
@@ -73,6 +85,7 @@ export function ReviewflowServicesProvider({
     orgsService: createOrgsServiceClient(transportClient),
     repositoriesService: createRepositoriesServiceClient(transportClient),
     prsService: createPrsServiceClient(transportClient),
+    personalTokensService: createPersonalTokensServiceClient(transportClient),
   }));
 
   return (
