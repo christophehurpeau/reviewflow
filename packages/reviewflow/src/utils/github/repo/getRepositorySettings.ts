@@ -86,7 +86,9 @@ export interface RepositorySettingsLog {
 }
 
 const consoleLog: RepositorySettingsLog = {
-  error: (details, message) =>{  console.error(message, details); },
+  error: (details, message) => {
+    console.error(message, details);
+  },
 };
 
 const fetchRulesetsRequireConversationResolution = async (
