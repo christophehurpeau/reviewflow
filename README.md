@@ -22,7 +22,7 @@ slow down or take down webhook handling:
 | Process                                              | Serves                                                                                                                   | Port                                         |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
 | [reviewflow](packages/reviewflow/src/index.ts)       | `/api/github/webhooks` (probot), the slack home worker, the smee client, and `/api/internal` on a loopback only listener | `PORT`, `3001` (`INTERNAL_API_PORT`, `3002`) |
-| [webapp-server](packages/webapp-server/src/index.ts) | the oauth flows under `/app`, the resources websocket on `/ws`, the webapp                                               | `PORT`, `3000`                               |
+| [webapp-server](packages/webapp-server/src/index.ts) | the oauth flows under `/app`, the resources websocket on `/ws`, the read api on `/api`, the webapp                       | `PORT`, `3000`                               |
 
 The webapp never calls a REST api: it reads and writes through the
 [liwi](https://github.com/christophehurpeau/liwi) resources websocket on `/ws`,
@@ -36,7 +36,10 @@ to `INTERNAL_API_HOST` (`127.0.0.1`), not on the public webhook port: it must
 never be exposed publicly.
 
 A reverse proxy in front of both must send `/api/github/webhooks` to the webhook
-server and everything else to the webapp server. See
+server and everything else to the webapp server. Set `TRUST_PROXY` on the webapp
+server to that proxy (`loopback` when it runs on the same host), so the read api
+records callers' ips rather than the proxy's. The read api, for tools outside the
+webapp, is authenticated by personal tokens: see [docs/api.md](docs/api.md). See
 [docs/deployment.md](docs/deployment.md).
 
 Because liwi subscriptions are in-process, a document written by the webhook
