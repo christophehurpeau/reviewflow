@@ -17,6 +17,7 @@ const activeCriteria = { userId: 42, revokedAt: { $exists: false } };
 const existingToken: PersonalToken = {
   _id: "token-id",
   userId: 42,
+  userLogin: "christophehurpeau",
   name: "vigie on MacBook",
   hash: "hash",
   prefix: "rfp_abcd",
@@ -128,6 +129,7 @@ describe("createPersonalToken", () => {
     expect(created._id).toBe("new-token-id");
     expect(insertOne).toHaveBeenCalledWith({
       userId: 42,
+      userLogin: "christophehurpeau",
       name: "vigie on MacBook",
       hash: hashPersonalToken(created.token),
       prefix: created.token.slice(0, 8),

@@ -66,6 +66,7 @@ describe("mongo stores on a real mongod", () => {
   it("rejects a second personal token with the same hash", async () => {
     const token = {
       userId: 42,
+      userLogin: "christophehurpeau",
       name: "vigie",
       hash: "abc",
       prefix: "rfp_abcd",

@@ -18,6 +18,7 @@ import type {
 import type { ResourcesContext } from "../ResourcesContext.ts";
 import { callBotApi } from "../botApi.ts";
 import { setDmSetting, setTeamSilenced } from "../dm/updateUserDmSettings.ts";
+import { orgAllowsPersonalTokens } from "../orgAllowsPersonalTokens.ts";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
 import {
   isOrgOwner,
@@ -55,10 +56,6 @@ const buildSlackStatus = (
   };
 };
 
-// `syncOrg` upserts orgs without a config: absent on those documents
-const allowsPersonalTokens = (org: Org): boolean =>
-  (org.config as Org["config"] | undefined)?.allowPersonalTokens ?? false;
-
 const requireOrg = async (
   mongoStores: MongoStores,
   orgId: number,
@@ -87,7 +84,7 @@ export const createOrgsService = ({
           _id: org._id,
           login: org.login,
           status: org.status,
-          allowPersonalTokens: allowsPersonalTokens(org),
+          allowPersonalTokens: orgAllowsPersonalTokens(org),
         }),
       });
     },
@@ -100,7 +97,7 @@ export const createOrgsService = ({
         criteria: { _id: orgId },
         transformer: (org): OrgPersonalTokensPolicy => ({
           _id: org._id,
-          allowPersonalTokens: allowsPersonalTokens(org),
+          allowPersonalTokens: orgAllowsPersonalTokens(org),
           viewerIsOwner,
         }),
       });

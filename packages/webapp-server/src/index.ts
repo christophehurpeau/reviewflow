@@ -6,6 +6,7 @@ import Express from "express";
 import { createWsServer } from "liwi-resources-websocket-server";
 import { mongoInit } from "reviewflow-core";
 import type { ResourcesContext } from "./ResourcesContext.ts";
+import apiRouter from "./api/apiRouter.ts";
 import appRouter from "./appRouter.ts";
 import { getAuthenticatedUser } from "./resources/getAuthenticatedUser.ts";
 import { createResourcesServerService } from "./resources/index.ts";
@@ -27,8 +28,16 @@ const resourcesContext: ResourcesContext = { mongoStores };
 
 const expressApp = Express();
 
+// behind the reverse proxy `req.ip` is the proxy's address: TRUST_PROXY takes
+// express's values ("loopback", a subnet...) so the api records the caller's
+// own ip on its tokens
+if (process.env.TRUST_PROXY) {
+  expressApp.set("trust proxy", process.env.TRUST_PROXY);
+}
+
 expressApp.use(cookieParser());
 expressApp.use("/app", appRouter(resourcesContext));
+expressApp.use("/api", apiRouter(resourcesContext));
 
 // The webapp is a single page app: static assets first, then everything that
 // is not an api or oauth route falls back to its entry point.

@@ -11,6 +11,9 @@ interface CallOptions {
 interface CallResult {
   status: number;
   location: string | undefined;
+  headers: Record<string, unknown>;
+  /** raw response body, empty when the route sent none */
+  body: string;
 }
 
 /**
@@ -30,10 +33,20 @@ export const callApp = async (
 
   const response = new ServerResponse(request);
 
-  response.write = ((): boolean => true) as ServerResponse["write"];
+  const chunks: string[] = [];
+  const collect = (chunk: unknown): void => {
+    if (typeof chunk === "string") chunks.push(chunk);
+    else if (Buffer.isBuffer(chunk)) chunks.push(chunk.toString("utf8"));
+  };
+
+  response.write = ((chunk: unknown): boolean => {
+    collect(chunk);
+    return true;
+  }) as ServerResponse["write"];
 
   const finished = new Promise<void>((resolve) => {
-    response.end = ((): ServerResponse => {
+    response.end = ((chunk?: unknown): ServerResponse => {
+      collect(chunk);
       resolve();
       return response;
     }) as ServerResponse["end"];
@@ -47,5 +60,7 @@ export const callApp = async (
   return {
     status: response.statusCode,
     location: typeof location === "string" ? location : undefined,
+    headers: response.getHeaders(),
+    body: chunks.join(""),
   };
 };

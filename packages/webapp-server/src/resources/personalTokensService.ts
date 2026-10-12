@@ -53,12 +53,14 @@ const validateName = (name: string): string => {
 
 const insertToken = async (
   mongoStores: MongoStores,
-  userId: number,
+  user: AuthenticatedWsUser,
   name: string,
 ): Promise<CreatedPersonalToken> => {
   const { token, hash, prefix } = generatePersonalToken();
   const inserted = await mongoStores.personalTokens.insertOne({
-    userId,
+    userId: user.id,
+    // the webapp login does not record users: the api reads the login here
+    userLogin: user.login,
     name,
     hash,
     prefix,
@@ -120,7 +122,7 @@ export const createPersonalTokensService = ({
         );
       }
 
-      return insertToken(mongoStores, user.id, validName);
+      return insertToken(mongoStores, user, validName);
     },
 
     // revoked before the new one exists: a failure in between leaves the
@@ -128,7 +130,7 @@ export const createPersonalTokensService = ({
     regeneratePersonalToken: async ({ tokenId }, loggedInUser) => {
       const user = requireAuthenticatedUser(loggedInUser);
       const revoked = await revokeOwnToken(mongoStores, user.id, tokenId);
-      return insertToken(mongoStores, user.id, revoked.name);
+      return insertToken(mongoStores, user, revoked.name);
     },
 
     revokePersonalToken: async ({ tokenId }, loggedInUser) => {

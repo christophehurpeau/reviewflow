@@ -219,6 +219,7 @@ export interface ReviewflowPr extends MongoBaseModel {
 
 export interface PersonalToken extends MongoBaseModel {
   userId: number;
+  userLogin: string;
   name: string;
   /** sha-256 hex of the full token, which is never stored */
   hash: string;
