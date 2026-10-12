@@ -122,7 +122,6 @@ export const createToPrDetail = (
       accountId: pr.account.id,
       repoId: pr.repo.id,
       ownerRepo: `${pr.account.login}/${pr.repo.name}`,
-      githubNodeId: null,
 
       headRef: pr.headRef ?? null,
       baseRef: pr.baseRef ?? null,

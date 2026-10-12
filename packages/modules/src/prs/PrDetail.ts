@@ -48,7 +48,6 @@ export interface PrDetail extends Omit<
   repoId: number;
   /** "owner/name" */
   ownerRepo: string;
-  githubNodeId: string | null;
 
   headRef: string | null;
   baseRef: string | null;

@@ -56,7 +56,6 @@ describe("identity and branches", () => {
 
   it("answers null for what an old document does not hold", () => {
     expect(toPrDetail(buildPr())).toMatchObject({
-      githubNodeId: null,
       headRef: null,
       baseRef: null,
       headSha: null,
