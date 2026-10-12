@@ -30,6 +30,7 @@ import reviewSubmittedHandler from "./events/pr-handlers/reviewSubmitted.ts";
 import reviewThreadsTracking from "./events/pr-handlers/reviewThreadsTracking.ts";
 import status from "./events/pr-handlers/status.ts";
 import synchronizeHandler from "./events/pr-handlers/synchronize.ts";
+import protectionChanged from "./events/repository-handlers/protectionChanged.ts";
 import repoArchivedOrUnarchived from "./events/repository-handlers/repoArchivedOrUnarchived.ts";
 import repoDeleted from "./events/repository-handlers/repoDeleted.ts";
 import repoEdited from "./events/repository-handlers/repoEdited.ts";
@@ -54,6 +55,9 @@ export default function initApp(app: Probot, appContext: AppContext): void {
   // Repo
   /* https://developer.github.com/webhooks/event-payloads/#repository */
   repoEdited(app, appContext);
+  /* https://docs.github.com/en/webhooks/webhook-events-and-payloads#branch_protection_rule */
+  /* https://docs.github.com/en/webhooks/webhook-events-and-payloads#repository_ruleset */
+  protectionChanged(app, appContext);
   repoRenamed(app, appContext);
   repoTransferred(app, appContext);
   repoDeleted(app, appContext);

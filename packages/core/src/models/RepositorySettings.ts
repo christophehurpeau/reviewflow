@@ -12,6 +12,7 @@ export interface RepositorySettingsQueryResult {
       nodes: {
         matchingRefs: { nodes: { name: string }[] };
         requiresStatusChecks: boolean;
+        requiresConversationResolution: boolean;
         // requiredStatusChecks: {
         //   app: { id: string; name: string } | null;
         //   context: string;
@@ -19,6 +20,7 @@ export interface RepositorySettingsQueryResult {
       }[];
     };
   };
+  rulesets: { requiresConversationResolution: boolean };
 }
 
 export interface RepositorySettings {
@@ -30,7 +32,8 @@ export interface RepositorySettings {
   allowMergeCommit?: boolean;
   defaultBranchProtectionRules?: {
     // requiredStatusChecks: RepositorySettingsQueryResult["repository"]["branchProtectionRules"]["nodes"][number]["requiredStatusChecks"];
-    requiresStatusChecks: RepositorySettingsQueryResult["repository"]["branchProtectionRules"]["nodes"][number]["requiresStatusChecks"];
+    requiresStatusChecks?: RepositorySettingsQueryResult["repository"]["branchProtectionRules"]["nodes"][number]["requiresStatusChecks"];
+    requiresConversationResolution?: boolean;
   } | null;
   lastUpdated?: Date;
 }

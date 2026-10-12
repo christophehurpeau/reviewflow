@@ -3,11 +3,16 @@ import type { UnresolvedReviewThread } from "reviewflow-core";
 import type { AppContext } from "../../context/AppContext.ts";
 import { fetchUnresolvedReviewThreads } from "../../utils/github/pullRequest/fetchUnresolvedReviewThreads.ts";
 import type { ProbotEvent } from "../probot-types.ts";
+import { tryToAutomerge } from "./actions/tryToAutomerge.ts";
+import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState.ts";
+import hasLabelInPR from "./actions/utils/labels/hasLabelInPR.ts";
 import {
   markAsDoneSlackSentMessages,
   unmarkAsDoneSlackSentMessages,
 } from "./actions/utils/slackUtils.ts";
+import { calcStepsState } from "./actions/utils/steps/calcStepsState.ts";
 import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
+import { fetchPr } from "./utils/fetchPr.ts";
 
 type ReviewThreadsEventName =
   | "pull_request_review_comment.created"
@@ -151,6 +156,47 @@ export default function reviewThreadsTracking(
         reviewflowPrContext.reviewflowPr,
         { $set: { unresolvedThreads: nextThreads } },
       );
+      reviewflowPrContext.reviewflowPr.unresolvedThreads = nextThreads;
+
+      const requiresConversationResolution =
+        !!repoContext.settings.defaultBranchProtectionRules
+          ?.requiresConversationResolution;
+      if (
+        !requiresConversationResolution ||
+        repoContext.shouldIgnore ||
+        pullRequest.state !== "open"
+      ) {
+        return;
+      }
+
+      const stepsState = calcStepsState({
+        pullRequest,
+        repoContext,
+        reviewflowPrContext,
+      });
+      await updateStatusCheckFromStepsState(
+        stepsState,
+        pullRequest,
+        context,
+        repoContext,
+        appContext,
+        reviewflowPrContext,
+      );
+
+      const hasResolvedLastThread =
+        context.payload.action === "resolved" && nextThreads.length === 0;
+      if (
+        hasResolvedLastThread &&
+        hasLabelInPR(pullRequest.labels, repoContext.labels["merge/automerge"])
+      ) {
+        const restPullRequest = await fetchPr(context, pullRequest.number);
+        await tryToAutomerge({
+          pullRequest: restPullRequest,
+          context,
+          repoContext,
+          reviewflowPrContext,
+        });
+      }
     },
   );
 }

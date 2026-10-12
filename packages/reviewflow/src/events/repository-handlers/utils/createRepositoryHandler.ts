@@ -4,18 +4,29 @@ import { accountConfigs, defaultConfig } from "reviewflow-core";
 import type { AppContext } from "../../../context/AppContext.ts";
 import type { AccountContext } from "../../../context/accountContext.ts";
 import { obtainAccountContext } from "../../../context/accountContext.ts";
-import type { CustomExtract } from "../../../context/repoContext.ts";
+import type {
+  CustomExtract,
+  EventsWithRepository,
+} from "../../../context/repoContext.ts";
 import type { ProbotEvent } from "../../probot-types.ts";
 
 /**
  * Repository events handled from `repository.owner`, so they also apply to
  * repositories owned by a user account, for which `payload.organization` is absent.
+ * `repository_ruleset` payloads may have no `repository` (organization rulesets):
+ * they are ignored here.
  */
 export type EventsWithRepositoryOwner = CustomExtract<
   EmitterWebhookEventName,
+  | "branch_protection_rule.created"
+  | "branch_protection_rule.deleted"
+  | "branch_protection_rule.edited"
   | "label.created"
   | "label.deleted"
   | "label.edited"
+  | "repository_ruleset.created"
+  | "repository_ruleset.deleted"
+  | "repository_ruleset.edited"
   | "repository.edited"
   | "repository.renamed"
   | "repository.transferred"
@@ -37,12 +48,13 @@ export const createRepositoryHandler = <
   callback: CallbackContextAndAccountContext<EventName>,
 ): void => {
   app.on(eventName, async (context) => {
-    const owner = context.payload.repository.owner;
+    const owner = context.payload.repository?.owner;
     if (!owner) return;
+    const repositoryContext = context as ProbotEvent<EventsWithRepository>;
     const config = accountConfigs[owner.login] || defaultConfig;
-    const accountContext = await obtainAccountContext<EventName>(
+    const accountContext = await obtainAccountContext(
       appContext,
-      context,
+      repositoryContext,
       config,
       owner,
     );

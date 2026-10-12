@@ -10,6 +10,24 @@ export interface GraphqlOctokit {
   graphql: <T>(query: string, parameters: Record<string, string>) => Promise<T>;
 }
 
+interface BranchRule {
+  type: string;
+  parameters?: object;
+}
+
+export interface RepositorySettingsOctokit extends GraphqlOctokit {
+  rest: {
+    repos: {
+      getBranchRules: (parameters: {
+        owner: string;
+        repo: string;
+        branch: string;
+        per_page: number;
+      }) => Promise<{ data: BranchRule[] }>;
+    };
+  };
+}
+
 const repositorySettingsQuery = `
 query repository($owner: String!, $repo: String!) {
   repository(owner: $owner, name: $repo) {
@@ -29,6 +47,7 @@ query repository($owner: String!, $repo: String!) {
           }
         }
         requiresStatusChecks
+        requiresConversationResolution
       }
     }
   }
@@ -47,6 +66,7 @@ const testRepositorySettings: RepositorySettingsQueryResult = {
         {
           matchingRefs: { nodes: [{ name: "main" }] },
           requiresStatusChecks: true,
+          requiresConversationResolution: false,
           // requiredStatusChecks: [
           //   { app: null, context: "reviewflow" },
           //   {
@@ -58,25 +78,69 @@ const testRepositorySettings: RepositorySettingsQueryResult = {
       ],
     },
   },
+  rulesets: { requiresConversationResolution: false },
 };
 
-export const fetchRepositorySettings = (
-  octokit: GraphqlOctokit,
+export interface RepositorySettingsLog {
+  error: (details: object, message: string) => void;
+}
+
+const consoleLog: RepositorySettingsLog = {
+  error: (details, message) =>{  console.error(message, details); },
+};
+
+const fetchRulesetsRequireConversationResolution = async (
+  octokit: RepositorySettingsOctokit,
+  { owner, repo, branch }: RepositoryRef & { branch: string },
+  log: RepositorySettingsLog,
+): Promise<boolean> => {
+  try {
+    const { data: rules } = await octokit.rest.repos.getBranchRules({
+      owner,
+      repo,
+      branch,
+      per_page: 100,
+    });
+    return rules.some(
+      (rule) =>
+        rule.type === "pull_request" &&
+        !!rule.parameters &&
+        "required_review_thread_resolution" in rule.parameters &&
+        rule.parameters.required_review_thread_resolution === true,
+    );
+  } catch (error) {
+    log.error(
+      { error, owner, repo, branch },
+      "failed to read the branch rules, conversation resolution counts as not required",
+    );
+    return false;
+  }
+};
+
+export const fetchRepositorySettings = async (
+  octokit: RepositorySettingsOctokit,
   { owner, repo }: RepositoryRef,
+  log: RepositorySettingsLog = consoleLog,
 ): Promise<RepositorySettingsQueryResult> => {
   if (process.env.NODE_ENV === "test") {
-    return Promise.resolve(testRepositorySettings);
+    return testRepositorySettings;
   }
-  return octokit.graphql<RepositorySettingsQueryResult>(
-    repositorySettingsQuery,
-    { owner, repo },
-  );
+  const { repository } = await octokit.graphql<
+    Pick<RepositorySettingsQueryResult, "repository">
+  >(repositorySettingsQuery, { owner, repo });
+  const requiresConversationResolution =
+    await fetchRulesetsRequireConversationResolution(
+      octokit,
+      { owner, repo, branch: repository.defaultBranchRef.name },
+      log,
+    );
+  return { repository, rulesets: { requiresConversationResolution } };
 };
 
 export const getRepositorySettings = (
   context: Context,
 ): Promise<RepositorySettingsQueryResult> =>
-  fetchRepositorySettings(context.octokit, context.repo());
+  fetchRepositorySettings(context.octokit, context.repo(), context.log);
 
 // not allowed
 /*

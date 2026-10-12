@@ -49,6 +49,9 @@ export type CustomExtract<T, U extends T> = U;
 
 export type EventsWithRepository = CustomExtract<
   EmitterWebhookEventName,
+  | "branch_protection_rule.created"
+  | "branch_protection_rule.deleted"
+  | "branch_protection_rule.edited"
   | "check_run.completed"
   | "check_run.created"
   | "check_run.rerequested"

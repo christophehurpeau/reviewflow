@@ -5,6 +5,7 @@ import type {
 
 export function createRepositorySettings({
   repository,
+  rulesets,
 }: RepositorySettingsQueryResult): RepositorySettings {
   const defaultBranchProtectionRules =
     repository.branchProtectionRules.nodes.find((node) =>
@@ -19,14 +20,18 @@ export function createRepositorySettings({
     allowRebaseMerge: repository.rebaseMergeAllowed,
     allowSquashMerge: repository.squashMergeAllowed,
     allowMergeCommit: repository.mergeCommitAllowed,
-    defaultBranchProtectionRules: !defaultBranchProtectionRules
-      ? null
-      : {
-          requiresStatusChecks:
-            defaultBranchProtectionRules.requiresStatusChecks,
-          // requiredStatusChecks:
-          //   defaultBranchProtectionRules.requiredStatusChecks,
-        },
+    defaultBranchProtectionRules:
+      !defaultBranchProtectionRules && !rulesets.requiresConversationResolution
+        ? null
+        : {
+            requiresStatusChecks:
+              defaultBranchProtectionRules?.requiresStatusChecks,
+            requiresConversationResolution:
+              !!defaultBranchProtectionRules?.requiresConversationResolution ||
+              rulesets.requiresConversationResolution,
+            // requiredStatusChecks:
+            //   defaultBranchProtectionRules.requiredStatusChecks,
+          },
     lastUpdated: new Date(),
   };
 }

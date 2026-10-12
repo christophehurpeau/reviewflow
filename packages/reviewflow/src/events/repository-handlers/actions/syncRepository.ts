@@ -8,14 +8,14 @@ import {
 import { deleteRepoContext } from "../../../context/repoContext.ts";
 import { syncRepositoryLabels } from "../../../context/syncRepositoryLabels.ts";
 import type { OctokitPaginate, OctokitRestCompat } from "../../../octokit";
-import type { GraphqlOctokit } from "../../../utils/github/repo/getRepositorySettings.ts";
+import type { RepositorySettingsOctokit } from "../../../utils/github/repo/getRepositorySettings.ts";
 import { fetchRepositorySettings } from "../../../utils/github/repo/getRepositorySettings.ts";
 import { createRepositorySettings } from "../../pr-handlers/actions/utils/body/repositorySettings.ts";
 import { deleteRepositoryData } from "../utils/deleteRepositoryData.ts";
 import { setRepositoryArchived } from "../utils/setRepositoryArchived.ts";
 import { updateRepositoryAccount } from "../utils/updateRepositoryAccount.ts";
 
-export interface SyncRepositoryOctokit extends GraphqlOctokit {
+export interface SyncRepositoryOctokit extends RepositorySettingsOctokit {
   rest: OctokitRestCompat;
   paginate: OctokitPaginate;
 }

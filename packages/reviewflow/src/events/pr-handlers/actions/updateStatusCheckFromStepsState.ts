@@ -300,9 +300,21 @@ export const updateStatusCheckFromStepsState = <
     reviewflowPrContext,
     {
       state: "success",
-      description: shouldEnforceProgress
-        ? "✓ PR ready to merge !"
-        : "✓ Automerge can be enabled",
+      description: (() => {
+        if (!shouldEnforceProgress) return "✓ Automerge can be enabled";
+        const unresolvedCount =
+          reviewflowPrContext.reviewflowPr.unresolvedThreads?.length ?? 0;
+        if (
+          unresolvedCount > 0 &&
+          repoContext.settings.defaultBranchProtectionRules
+            ?.requiresConversationResolution
+        ) {
+          return `✓ Ready to merge once ${unresolvedCount} ${
+            unresolvedCount === 1 ? "conversation is" : "conversations are"
+          } resolved`;
+        }
+        return "✓ PR ready to merge !";
+      })(),
     },
     previousSha,
   ).then(() => "success");

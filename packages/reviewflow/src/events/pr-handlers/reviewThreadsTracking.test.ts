@@ -41,6 +41,7 @@ describe("review threads tracking", (): void => {
   const partialUpdateOnePr = vi.fn();
   const findOnePr = vi.fn();
   const graphqlCalled = vi.fn();
+  const statusCreated = vi.fn();
   const findAllSlackSentMessages = vi.fn();
   const partialUpdateManySlackSentMessages = vi.fn();
   let seededThreads: ReturnType<typeof graphqlNode>[] = [];
@@ -82,6 +83,7 @@ describe("review threads tracking", (): void => {
     partialUpdateOnePr.mockReset();
     findOnePr.mockReset();
     graphqlCalled.mockReset();
+    statusCreated.mockReset();
     findAllSlackSentMessages.mockReset();
     findAllSlackSentMessages.mockResolvedValue([]);
     partialUpdateManySlackSentMessages.mockReset();
@@ -120,6 +122,13 @@ describe("review threads tracking", (): void => {
       });
     nock("https://api.github.com")
       .persist()
+      .post(/\/statuses\//)
+      .reply(200, () => {
+        statusCreated();
+        return {};
+      });
+    nock("https://api.github.com")
+      .persist()
       .get(/\/issues\/comments\/1/)
       .reply(200, { id: 1, body: "### Progress\n\n### Options:\n" })
       .get(/\/check-runs/)
@@ -154,6 +163,15 @@ describe("review threads tracking", (): void => {
       $set: { unresolvedThreads: [thread(200)] },
     });
     expect(graphqlCalled).not.toHaveBeenCalled();
+  });
+
+  test("the status is left alone when conversation resolution is not required", async () => {
+    findOnePr.mockResolvedValue(storedPr([thread(101)]));
+
+    await receiveThread("resolved");
+
+    expect(unresolvedThreadsWrites()).toHaveLength(1);
+    expect(statusCreated).not.toHaveBeenCalled();
   });
 
   test("resolved writes nothing when the thread was not stored", async () => {
