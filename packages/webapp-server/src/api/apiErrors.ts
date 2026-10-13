@@ -1,4 +1,5 @@
 import type { ErrorRequestHandler, Response } from "express";
+import { sendJsonWithoutEtag } from "./sendJsonWithoutEtag.ts";
 
 export type ApiErrorCode =
   | "badRequest"
@@ -41,7 +42,8 @@ export const sendApiError = (
   code: ApiErrorCode,
   message: string,
 ): void => {
-  res.status(statusByCode[code]).json({ error: { code, message } });
+  res.status(statusByCode[code]);
+  sendJsonWithoutEtag(res, { error: { code, message } });
 };
 
 /** every failure answers the documented envelope, never express's html page */

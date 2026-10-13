@@ -104,6 +104,7 @@ describe("GET /api/health/v1", () => {
       ...unknownPropagation,
     });
     expect(response.headers["cache-control"]).toBe("no-store");
+    expect(response.headers.etag).toBeUndefined();
     expect(findOne).not.toHaveBeenCalled();
   });
 

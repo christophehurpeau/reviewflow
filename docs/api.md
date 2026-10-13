@@ -48,6 +48,8 @@ A token never carries your GitHub credentials, and nothing in this API calls Git
   | 429    | `rateLimited`     | too many requests; retry after the `Retry-After` header |
   | 500    | `internal`        | unexpected server failure                               |
 
+- Conditional requests: a successful `GET` of a pull request, the board or a board bucket carries a weak `ETag`, a hash of the response body. Send it back as `If-None-Match` to get `304 Not Modified` with no body when nothing changed, and keep your copy. A `304` still counts against the rate limits and still authenticates the token. The `ETag` is per reader: the same pull request has a different one for each user, because `myBuckets` depends on who asks, so never share one between tokens of different users. Errors, `POST /api/prs-lookup/v1`, `GET /api/me/v1` (its `serverTime` changes on every call, so its `ETag` never helps) and `GET /api/health/v1` are not conditional: no usable `ETag`, no `304`.
+
 ## Rate limits
 
 - **Per token**: 60 requests at once, refilled at one per second. A poll every few seconds stays well below it.
@@ -131,6 +133,7 @@ Authorization: Bearer rfp_…
 - `accounts`: your own account first, then each organization the token reaches. An organization whose owners have not allowed personal tokens is left out.
 - `teams`: your GitHub teams in that organization, as last synced by reviewflow.
 - Dates are ISO 8601 in UTC.
+- Not conditional: `serverTime` changes on every call, so its `ETag` is of no use: do not send `If-None-Match`.
 
 Errors: `401` for a missing, unknown or revoked token, `429` past a rate limit.
 
@@ -148,6 +151,7 @@ GET /api/health/v1
 
 - `status`: `ok`, or `degraded` when the server is reachable but its database does not answer within 2 seconds. The HTTP status is `200` either way: read the body.
 - `propagation` and `lagSeconds`: reserved for how far behind the server is in seeing changes made by the bot. For now `propagation` is always `"unknown"` and `lagSeconds` is `null`. Later `propagation` becomes `"ok"` or `"lagging"` and `lagSeconds` a number: treat any other value as unknown.
+- Never carries an `ETag`: always read the body.
 - The answer is shared between callers for 5 seconds, and is not subject to the rate limits above, nor blocked by them.
 
 ### `GET /api/board/v1`
@@ -196,6 +200,8 @@ Errors:
 | 403    | `forbidden`       | `account` is not an account the token reads: not yours, an organization whose owners have not allowed tokens, or unknown to reviewflow, the same answer in all three cases |
 | 429    | `rateLimited`     | past a rate limit                                                                                                                                                          |
 
+Conditional: `ETag` / `If-None-Match`, see [conventions](#conventions). Poll with it: an unchanged board answers `304` with no body.
+
 ### `GET /api/board-bucket/v1`
 
 One bucket of the board, 100 pull requests at a time.
@@ -210,6 +216,7 @@ The response is one bucket of the board response: `{ key, title, total, prs, nex
 - `bucket` is required, one of the bucket keys above. `account` is as for the board and must be the same one the `page` came from.
 - Omit `page` for the first page; otherwise pass the `nextPage` you were given, untouched. A page token is opaque and only valid for this API: do not build or parse one.
 - Pages are read live. A pull request entering or leaving the bucket between two requests can shift the next page by a row: a pull request can appear twice or be missed. `total` is the bucket's size at the time of each request.
+- Conditional: `ETag` / `If-None-Match`, see [conventions](#conventions). `total` and the rows are in the hash, so any change to the bucket changes it.
 
 Errors: as for the board, and `400 badRequest` when `bucket` is missing or unknown, or `page` is not a token this API issued.
 
@@ -250,6 +257,8 @@ Errors:
 
 `403` depends on the owner only, never on whether the repository or pull request exists, so it cannot be used to probe private repositories.
 
+Conditional: `ETag` / `If-None-Match`, see [conventions](#conventions). Different for each reader, since `myBuckets` is.
+
 ### `POST /api/prs-lookup/v1`
 
 The newest pull request of each `(repository, head branch)`, for up to 200 branches in one request. Meant for a tool that tracks branches, not pull requests.
@@ -280,6 +289,7 @@ Content-Type: application/json
 - Only pull requests whose head branch lives in that repository match: a fork pushing a branch with the same name is not a match.
 - The newest pull request is the one with the highest number, open or closed.
 - An empty `targets` returns an empty `results`. Identical targets are looked up once.
+- Not conditional: a `POST` carries no `ETag` and is never answered `304`, whatever `If-None-Match` it sends. To poll cheaply, resolve the branches to pull request numbers once, then poll `GET /api/pr/v1/...`, which is.
 
 When `found` is `false`, `reason` tells what to do next:
 

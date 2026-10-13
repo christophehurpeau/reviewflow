@@ -15,6 +15,7 @@ import { createHealthChecker } from "./health.ts";
 import { lookupPrs, parseLookupTargets } from "./prsLookup.ts";
 import { createRateLimiter } from "./rateLimiter.ts";
 import { resolveRepository } from "./resolveRepository.ts";
+import { sendJsonWithoutEtag } from "./sendJsonWithoutEtag.ts";
 import { resolveTokenAccounts } from "./tokenAccounts.ts";
 
 /** 60 requests at once, then one a second: a poll every few seconds fits */
@@ -79,7 +80,7 @@ export default function apiRouter({ mongoStores }: ResourcesContext): Router {
   // hide the health of the server, and the checker bounds its own cost
   router.get("/health/v1", async (_req, res) => {
     res.set("Cache-Control", "no-store");
-    res.json(await healthChecker.check());
+    sendJsonWithoutEtag(res, await healthChecker.check());
   });
 
   router.use(authenticate);
@@ -178,7 +179,9 @@ export default function apiRouter({ mongoStores }: ResourcesContext): Router {
       const auth = apiAuthOf(res);
       const targets = parseLookupTargets(req.body);
 
-      res.json({ results: await lookupPrs(mongoStores, auth, targets) });
+      sendJsonWithoutEtag(res, {
+        results: await lookupPrs(mongoStores, auth, targets),
+      });
     },
   );
 
