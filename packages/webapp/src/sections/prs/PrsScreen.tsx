@@ -14,6 +14,7 @@ import type {
   PrSummary,
   UserSummary,
 } from "reviewflow-modules";
+import { prBucketGroupTitles } from "reviewflow-modules";
 import { Columns } from "#/components/columns.tsx";
 import { ResourceView } from "#/components/resource-view.tsx";
 import { Screen } from "#/components/screen.tsx";
@@ -107,7 +108,9 @@ export function PrsScreen({
                   ) : (
                     <Columns>
                       {hasPrsRequestingAttention ? (
-                        <PrGroupSection title="PRs requesting your attention">
+                        <PrGroupSection
+                          title={prBucketGroupTitles["requesting-attention"]}
+                        >
                           <PrBucketSection
                             title="Re-Requested reviews"
                             icon={<EyeglassesRegularIcon />}
@@ -159,7 +162,9 @@ export function PrsScreen({
                       ) : null}
 
                       {hasPrsInProgress ? (
-                        <PrGroupSection title="Your PRs in progress">
+                        <PrGroupSection
+                          title={prBucketGroupTitles["in-progress"]}
+                        >
                           <PrBucketSection
                             title="Missing request for review"
                             icon={<WarningRegularIcon />}

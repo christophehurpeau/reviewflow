@@ -2,7 +2,7 @@
 
 A read-only HTTP API on the reviewflow webapp server, for tools that follow your pull requests from outside the webapp (vigie, scripts).
 
-> **Status:** early. `GET /api/me/v1`, `GET /api/pr/v1/<owner>/<repo>/<number>` and `POST /api/prs-lookup/v1` are available; the other endpoints ship one by one, and the table below says which ones are.
+> **Status:** early. `GET /api/me/v1`, `GET /api/board/v1`, `GET /api/board-bucket/v1`, `GET /api/pr/v1/<owner>/<repo>/<number>` and `POST /api/prs-lookup/v1` are available; the other endpoints ship one by one, and the table below says which ones are.
 
 ## Authentication
 
@@ -41,7 +41,7 @@ A token never carries your GitHub credentials, and nothing in this API calls Git
 
   | Status | Code              | When                                                    |
   | ------ | ----------------- | ------------------------------------------------------- |
-  | 400    | `badRequest`      | malformed request body                                  |
+  | 400    | `badRequest`      | malformed request body or query parameter               |
   | 401    | `unauthenticated` | missing, unknown or revoked token                       |
   | 403    | `forbidden`       | the account is outside what the token can read          |
   | 404    | `notFound`        | unknown resource or endpoint (after authentication)     |
@@ -89,8 +89,8 @@ Dates are ISO 8601 strings in UTC.
 | Endpoint                                 | Returns                                                     | Status        |
 | ---------------------------------------- | ----------------------------------------------------------- | ------------- |
 | `GET /api/me/v1`                         | your user, the accounts the token reaches, the token's name | available     |
-| `GET /api/board/v1?account=<login>`      | your pull requests board, grouped like the webapp           | not available |
-| `GET /api/board-bucket/v1`               | one board bucket, paginated                                 | not available |
+| `GET /api/board/v1?account=<login>`      | your pull requests board, grouped like the webapp           | available     |
+| `GET /api/board-bucket/v1`               | one board bucket, paginated                                 | available     |
 | `POST /api/prs-lookup/v1`                | pull requests by repository and branch, up to 200 at once   | available     |
 | `GET /api/pr/v1/<owner>/<repo>/<number>` | one pull request                                            | available     |
 | `GET /api/health/v1`                     | server health, unauthenticated                              | not available |
@@ -133,6 +133,69 @@ Authorization: Bearer rfp_…
 - Dates are ISO 8601 in UTC.
 
 Errors: `401` for a missing, unknown or revoked token, `429` past a rate limit.
+
+### `GET /api/board/v1`
+
+The board as the webapp shows it, for the pull requests you own or are asked to review. Same buckets, same membership, same order: the code is the webapp's.
+
+```http
+GET /api/board/v1?account=acme
+Authorization: Bearer rfp_…
+```
+
+```json
+{
+  "groups": [
+    {
+      "key": "requesting-attention",
+      "title": "PRs requesting your attention",
+      "buckets": [
+        {
+          "key": "requested-reviews",
+          "title": "Requested reviews",
+          "total": 130,
+          "prs": [{ "_id": "6718f0c2a1b2c3d4e5f60718", "number": 412 }],
+          "nextPage": "b2Zmc2V0OjEwMA"
+        }
+      ]
+    },
+    { "key": "in-progress", "title": "Your PRs in progress", "buckets": [] }
+  ]
+}
+```
+
+- `account` is the login of one account the token reads. Omitted, the board spans every account the token reads, like the webapp's "all accounts".
+- Groups and buckets are always all there, in display order, even empty: `requesting-attention` (`re-requested-reviews`, `requested-reviews`, `ready-to-merge`, `changes-requested`) then `in-progress` (`opened-missing-review-request`, `drafts`, `waiting-for-review`). Render them as given.
+- Each bucket holds its first 100 pull requests (`prs`, the [pull request object](#pull-request-shape)), sorted like the webapp, and the `total` it holds. `myBuckets` is computed over the same accounts as the board.
+- "Your PRs" are the open pull requests you created or are assigned to.
+- `nextPage` is `null` when `prs` holds everything, otherwise pass it as `page` to [`GET /api/board-bucket/v1`](#get-apiboard-bucketv1).
+- There is no cursor: to catch up after being away, fetch the board again.
+
+Errors:
+
+| Status | Code              | When                                                                                                                                                                       |
+| ------ | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 400    | `badRequest`      | `account` is empty or repeated                                                                                                                                             |
+| 401    | `unauthenticated` | missing, unknown or revoked token                                                                                                                                          |
+| 403    | `forbidden`       | `account` is not an account the token reads: not yours, an organization whose owners have not allowed tokens, or unknown to reviewflow, the same answer in all three cases |
+| 429    | `rateLimited`     | past a rate limit                                                                                                                                                          |
+
+### `GET /api/board-bucket/v1`
+
+One bucket of the board, 100 pull requests at a time.
+
+```http
+GET /api/board-bucket/v1?bucket=requested-reviews&account=acme&page=b2Zmc2V0OjEwMA
+Authorization: Bearer rfp_…
+```
+
+The response is one bucket of the board response: `{ key, title, total, prs, nextPage }`.
+
+- `bucket` is required, one of the bucket keys above. `account` is as for the board and must be the same one the `page` came from.
+- Omit `page` for the first page; otherwise pass the `nextPage` you were given, untouched. A page token is opaque and only valid for this API: do not build or parse one.
+- Pages are read live. A pull request entering or leaving the bucket between two requests can shift the next page by a row: a pull request can appear twice or be missed. `total` is the bucket's size at the time of each request.
+
+Errors: as for the board, and `400 badRequest` when `bucket` is missing or unknown, or `page` is not a token this API issued.
 
 ### `GET /api/pr/v1/<owner>/<repo>/<number>`
 

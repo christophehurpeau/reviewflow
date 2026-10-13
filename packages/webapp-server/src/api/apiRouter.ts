@@ -10,6 +10,7 @@ import {
 } from "./apiErrors.ts";
 import type { ApiAuth } from "./authenticatePersonalToken.ts";
 import { authenticatePersonalToken } from "./authenticatePersonalToken.ts";
+import { parseBucket, parsePage, readBoard, readBucketPage } from "./board.ts";
 import { lookupPrs, parseLookupTargets } from "./prsLookup.ts";
 import { createRateLimiter } from "./rateLimiter.ts";
 import { resolveRepository } from "./resolveRepository.ts";
@@ -25,6 +26,19 @@ const failedAuthLimits = { capacity: 10, refillPerSecond: 10 / 60 };
 const lookupBodyLimit = "100kb";
 
 const apiAuthOf = (res: Response): ApiAuth => res.locals.apiAuth as ApiAuth;
+
+/** a query parameter is a single string: repeated or nested ones are rejected */
+const queryParam = (req: express.Request, name: string): string | undefined => {
+  const value: unknown = req.query[name];
+  if (value === undefined) return undefined;
+  if (typeof value !== "string" || value === "") {
+    throw new ApiError(
+      "badRequest",
+      `\`${name}\` must be a single, non-empty value`,
+    );
+  }
+  return value;
+};
 
 const isUnauthenticated = (error: unknown): boolean =>
   error instanceof ApiError && error.code === "unauthenticated";
@@ -115,6 +129,24 @@ export default function apiRouter({ mongoStores }: ResourcesContext): Router {
           { accountId: resolved.account.id, teams: resolved.account.teams },
         ],
       })(pr),
+    );
+  });
+
+  router.get("/board/v1", async (req, res) => {
+    const auth = apiAuthOf(res);
+    const account = queryParam(req, "account");
+
+    res.json(await readBoard(mongoStores, auth, account));
+  });
+
+  router.get("/board-bucket/v1", async (req, res) => {
+    const auth = apiAuthOf(res);
+    const bucket = parseBucket(queryParam(req, "bucket"));
+    const page = parsePage(queryParam(req, "page"));
+    const account = queryParam(req, "account");
+
+    res.json(
+      await readBucketPage(mongoStores, auth, { bucket, account, page }),
     );
   });
 

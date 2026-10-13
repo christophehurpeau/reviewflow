@@ -7,6 +7,12 @@ import type { PrRowDisplayOptions } from "./formatPrRow.ts";
  */
 export type PrBucketGroup = "in-progress" | "requesting-attention";
 
+/** the headings of the two groups, worded for the viewer reading their own board */
+export const prBucketGroupTitles: Record<PrBucketGroup, string> = {
+  "requesting-attention": "PRs requesting your attention",
+  "in-progress": "Your PRs in progress",
+};
+
 export interface PrBucketDisplay {
   group: PrBucketGroup;
   title: string;
