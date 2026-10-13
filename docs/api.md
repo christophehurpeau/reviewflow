@@ -2,7 +2,7 @@
 
 A read-only HTTP API on the reviewflow webapp server, for tools that follow your pull requests from outside the webapp (vigie, scripts).
 
-> **Status:** early. `GET /api/me/v1`, `GET /api/board/v1`, `GET /api/board-bucket/v1`, `GET /api/pr/v1/<owner>/<repo>/<number>` and `POST /api/prs-lookup/v1` are available; the other endpoints ship one by one, and the table below says which ones are.
+> **Status:** early. `GET /api/me/v1`, `GET /api/board/v1`, `GET /api/board-bucket/v1`, `GET /api/pr/v1/<owner>/<repo>/<number>`, `POST /api/prs-lookup/v1` and `GET /api/health/v1` are available; the other endpoints ship one by one, and the table below says which ones are.
 
 ## Authentication
 
@@ -93,7 +93,7 @@ Dates are ISO 8601 strings in UTC.
 | `GET /api/board-bucket/v1`               | one board bucket, paginated                                 | available     |
 | `POST /api/prs-lookup/v1`                | pull requests by repository and branch, up to 200 at once   | available     |
 | `GET /api/pr/v1/<owner>/<repo>/<number>` | one pull request                                            | available     |
-| `GET /api/health/v1`                     | server health, unauthenticated                              | not available |
+| `GET /api/health/v1`                     | server health, unauthenticated                              | available     |
 | `GET /api/stream/v1`                     | server-sent events: pull request changes as they happen     | not available |
 
 Each endpoint gets its request and response documented here when it ships.
@@ -133,6 +133,22 @@ Authorization: Bearer rfp_…
 - Dates are ISO 8601 in UTC.
 
 Errors: `401` for a missing, unknown or revoked token, `429` past a rate limit.
+
+### `GET /api/health/v1`
+
+Whether the server is up and can read its data. No token needed.
+
+```http
+GET /api/health/v1
+```
+
+```json
+{ "status": "ok", "propagation": "unknown", "lagSeconds": null }
+```
+
+- `status`: `ok`, or `degraded` when the server is reachable but its database does not answer within 2 seconds. The HTTP status is `200` either way: read the body.
+- `propagation` and `lagSeconds`: reserved for how far behind the server is in seeing changes made by the bot. For now `propagation` is always `"unknown"` and `lagSeconds` is `null`. Later `propagation` becomes `"ok"` or `"lagging"` and `lagSeconds` a number: treat any other value as unknown.
+- The answer is shared between callers for 5 seconds, and is not subject to the rate limits above, nor blocked by them.
 
 ### `GET /api/board/v1`
 

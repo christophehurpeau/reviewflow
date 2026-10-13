@@ -11,6 +11,7 @@ import {
 import type { ApiAuth } from "./authenticatePersonalToken.ts";
 import { authenticatePersonalToken } from "./authenticatePersonalToken.ts";
 import { parseBucket, parsePage, readBoard, readBucketPage } from "./board.ts";
+import { createHealthChecker } from "./health.ts";
 import { lookupPrs, parseLookupTargets } from "./prsLookup.ts";
 import { createRateLimiter } from "./rateLimiter.ts";
 import { resolveRepository } from "./resolveRepository.ts";
@@ -53,6 +54,7 @@ export default function apiRouter({ mongoStores }: ResourcesContext): Router {
   const router = Router();
   const tokenLimiter = createRateLimiter(tokenLimits);
   const failedAuthLimiter = createRateLimiter(failedAuthLimits);
+  const healthChecker = createHealthChecker(mongoStores);
 
   const authenticate: RequestHandler = async (req, res, next) => {
     const ip = req.ip ?? "unknown";
@@ -72,6 +74,13 @@ export default function apiRouter({ mongoStores }: ResourcesContext): Router {
     res.locals.apiAuth = auth;
     next();
   };
+
+  // before `authenticate`, outside both limiters: a failed-auth block must not
+  // hide the health of the server, and the checker bounds its own cost
+  router.get("/health/v1", async (_req, res) => {
+    res.set("Cache-Control", "no-store");
+    res.json(await healthChecker.check());
+  });
 
   router.use(authenticate);
 
