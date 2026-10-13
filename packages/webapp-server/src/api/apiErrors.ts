@@ -1,6 +1,7 @@
 import type { ErrorRequestHandler, Response } from "express";
 
 export type ApiErrorCode =
+  | "badRequest"
   | "forbidden"
   | "internal"
   | "notFound"
@@ -8,6 +9,7 @@ export type ApiErrorCode =
   | "unauthenticated";
 
 const statusByCode: Record<ApiErrorCode, number> = {
+  badRequest: 400,
   unauthenticated: 401,
   forbidden: 403,
   notFound: 404,

@@ -1,5 +1,5 @@
 import type { RequestHandler, Response } from "express";
-import { Router } from "express";
+import express, { Router } from "express";
 import { createToPrDetail } from "reviewflow-core";
 import type { ResourcesContext } from "../ResourcesContext.ts";
 import {
@@ -10,6 +10,7 @@ import {
 } from "./apiErrors.ts";
 import type { ApiAuth } from "./authenticatePersonalToken.ts";
 import { authenticatePersonalToken } from "./authenticatePersonalToken.ts";
+import { lookupPrs, parseLookupTargets } from "./prsLookup.ts";
 import { createRateLimiter } from "./rateLimiter.ts";
 import { resolveRepository } from "./resolveRepository.ts";
 import { resolveTokenAccounts } from "./tokenAccounts.ts";
@@ -19,6 +20,9 @@ const tokenLimits = { capacity: 60, refillPerSecond: 1 };
 
 /** checked before the token lookup, so guessing and floods cost no query */
 const failedAuthLimits = { capacity: 10, refillPerSecond: 10 / 60 };
+
+/** 200 targets of a repository and a branch name stay far below it */
+const lookupBodyLimit = "100kb";
 
 const apiAuthOf = (res: Response): ApiAuth => res.locals.apiAuth as ApiAuth;
 
@@ -113,6 +117,29 @@ export default function apiRouter({ mongoStores }: ResourcesContext): Router {
       })(pr),
     );
   });
+
+  router.post(
+    "/prs-lookup/v1",
+    // runs after authentication: an anonymous body is never parsed
+    (req, res, next) => {
+      express.json({ limit: lookupBodyLimit })(req, res, (error?: unknown) => {
+        next(
+          error
+            ? new ApiError(
+                "badRequest",
+                "The body is not valid JSON, or is too large",
+              )
+            : undefined,
+        );
+      });
+    },
+    async (req, res) => {
+      const auth = apiAuthOf(res);
+      const targets = parseLookupTargets(req.body);
+
+      res.json({ results: await lookupPrs(mongoStores, auth, targets) });
+    },
+  );
 
   router.use((req, res) => {
     sendApiError(res, "notFound", "Unknown endpoint");

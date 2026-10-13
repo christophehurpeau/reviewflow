@@ -6,6 +6,8 @@ interface CallOptions {
   method: "GET" | "POST";
   url: string;
   headers?: Record<string, string>;
+  /** raw request body, sent as is */
+  body?: string;
 }
 
 interface CallResult {
@@ -23,12 +25,13 @@ interface CallResult {
  */
 export const callApp = async (
   app: Express,
-  { method, url, headers = {} }: CallOptions,
+  { method, url, headers = {}, body }: CallOptions,
 ): Promise<CallResult> => {
   const request = new IncomingMessage(new Socket());
   request.method = method;
   request.url = url;
   request.headers = headers;
+  if (body !== undefined) request.push(body);
   request.push(null);
 
   const response = new ServerResponse(request);

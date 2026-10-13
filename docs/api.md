@@ -2,7 +2,7 @@
 
 A read-only HTTP API on the reviewflow webapp server, for tools that follow your pull requests from outside the webapp (vigie, scripts).
 
-> **Status:** early. `GET /api/me/v1` and `GET /api/pr/v1/<owner>/<repo>/<number>` are available; the other endpoints ship one by one, and the table below says which ones are.
+> **Status:** early. `GET /api/me/v1`, `GET /api/pr/v1/<owner>/<repo>/<number>` and `POST /api/prs-lookup/v1` are available; the other endpoints ship one by one, and the table below says which ones are.
 
 ## Authentication
 
@@ -41,6 +41,7 @@ A token never carries your GitHub credentials, and nothing in this API calls Git
 
   | Status | Code              | When                                                    |
   | ------ | ----------------- | ------------------------------------------------------- |
+  | 400    | `badRequest`      | malformed request body                                  |
   | 401    | `unauthenticated` | missing, unknown or revoked token                       |
   | 403    | `forbidden`       | the account is outside what the token can read          |
   | 404    | `notFound`        | unknown resource or endpoint (after authentication)     |
@@ -90,7 +91,7 @@ Dates are ISO 8601 strings in UTC.
 | `GET /api/me/v1`                         | your user, the accounts the token reaches, the token's name | available     |
 | `GET /api/board/v1?account=<login>`      | your pull requests board, grouped like the webapp           | not available |
 | `GET /api/board-bucket/v1`               | one board bucket, paginated                                 | not available |
-| `POST /api/prs-lookup/v1`                | pull requests by repository and branch, up to 200 at once   | not available |
+| `POST /api/prs-lookup/v1`                | pull requests by repository and branch, up to 200 at once   | available     |
 | `GET /api/pr/v1/<owner>/<repo>/<number>` | one pull request                                            | available     |
 | `GET /api/health/v1`                     | server health, unauthenticated                              | not available |
 | `GET /api/stream/v1`                     | server-sent events: pull request changes as they happen     | not available |
@@ -169,3 +170,50 @@ Errors:
 | 429    | `rateLimited`     | past a rate limit                                                                                                                                                               |
 
 `403` depends on the owner only, never on whether the repository or pull request exists, so it cannot be used to probe private repositories.
+
+### `POST /api/prs-lookup/v1`
+
+The newest pull request of each `(repository, head branch)`, for up to 200 branches in one request. Meant for a tool that tracks branches, not pull requests.
+
+```http
+POST /api/prs-lookup/v1
+Authorization: Bearer rfp_…
+Content-Type: application/json
+
+{ "targets": [{ "ownerRepo": "acme/api", "headRef": "feat/read-api" }] }
+```
+
+```json
+{
+  "results": [
+    {
+      "found": true,
+      "pr": { "_id": "6718f0c2a1b2c3d4e5f60718", "number": 412 }
+    },
+    { "found": false, "reason": "noPr" }
+  ]
+}
+```
+
+`results` has one entry per target, in the same order. `pr` is the [pull request object](#pull-request-shape), `myBuckets` computed for you.
+
+- `ownerRepo` is the repository the pull request targets, and is case-insensitive; `headRef` is the branch name, case-sensitive.
+- Only pull requests whose head branch lives in that repository match: a fork pushing a branch with the same name is not a match.
+- The newest pull request is the one with the highest number, open or closed.
+- An empty `targets` returns an empty `results`. Identical targets are looked up once.
+
+When `found` is `false`, `reason` tells what to do next:
+
+| Reason       | Meaning                                                                                                                                                                                                                             |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `noPr`       | reviewflow tracks the repository and knows no pull request from that branch: there is none                                                                                                                                          |
+| `notTracked` | reviewflow cannot tell: the repository is unknown to it, not installed, ignored by the account's configuration, or still holds pull requests recorded without their branch. Ask GitHub instead                                      |
+| `forbidden`  | the owner is not an account the token reads (see [what a token can read](#what-a-token-can-read)). The answer is the same whether or not the repository exists. One forbidden target does not fail the others, the status stays 200 |
+
+Errors:
+
+| Status | Code              | When                                                                                               |
+| ------ | ----------------- | -------------------------------------------------------------------------------------------------- |
+| 400    | `badRequest`      | the body is not JSON, `targets` is not an array of at most 200 `{ ownerRepo, headRef }` of strings |
+| 401    | `unauthenticated` | missing, unknown or revoked token                                                                  |
+| 429    | `rateLimited`     | past a rate limit                                                                                  |
