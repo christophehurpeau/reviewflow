@@ -2,7 +2,7 @@
 
 A read-only HTTP API on the reviewflow webapp server, for tools that follow your pull requests from outside the webapp (vigie, scripts).
 
-> **Status:** early. `GET /api/me/v1` is available; the other endpoints ship one by one, and the table below says which ones are.
+> **Status:** early. `GET /api/me/v1` and `GET /api/pr/v1/<owner>/<repo>/<number>` are available; the other endpoints ship one by one, and the table below says which ones are.
 
 ## Authentication
 
@@ -91,7 +91,7 @@ Dates are ISO 8601 strings in UTC.
 | `GET /api/board/v1?account=<login>`      | your pull requests board, grouped like the webapp           | not available |
 | `GET /api/board-bucket/v1`               | one board bucket, paginated                                 | not available |
 | `POST /api/prs-lookup/v1`                | pull requests by repository and branch, up to 200 at once   | not available |
-| `GET /api/pr/v1/<owner>/<repo>/<number>` | one pull request                                            | not available |
+| `GET /api/pr/v1/<owner>/<repo>/<number>` | one pull request                                            | available     |
 | `GET /api/health/v1`                     | server health, unauthenticated                              | not available |
 | `GET /api/stream/v1`                     | server-sent events: pull request changes as they happen     | not available |
 
@@ -132,3 +132,40 @@ Authorization: Bearer rfp_…
 - Dates are ISO 8601 in UTC.
 
 Errors: `401` for a missing, unknown or revoked token, `429` past a rate limit.
+
+### `GET /api/pr/v1/<owner>/<repo>/<number>`
+
+One pull request, in the [shape above](#pull-request-shape), with `myBuckets` computed for you in that account.
+
+```http
+GET /api/pr/v1/acme/api/412
+Authorization: Bearer rfp_…
+```
+
+The response is the pull request object, abridged here:
+
+```json
+{
+  "_id": "6718f0c2a1b2c3d4e5f60718",
+  "ownerRepo": "acme/api",
+  "number": 412,
+  "state": "open",
+  "reviewState": "requested",
+  "myBuckets": ["requested-reviews"],
+  "updatedAt": "2026-10-12T10:00:00.000Z"
+}
+```
+
+- `owner` and `repo` are case-insensitive.
+- Only pull requests reviewflow has handled are known; one it never saw is `404`.
+
+Errors:
+
+| Status | Code              | When                                                                                                                                                                            |
+| ------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 401    | `unauthenticated` | missing, unknown or revoked token                                                                                                                                               |
+| 403    | `forbidden`       | `owner` is not an account the token reads: not yours, an organization whose owners have not allowed tokens, or unknown to reviewflow. The answer is the same in all three cases |
+| 404    | `notFound`        | `owner` is readable but the repository or the pull request is unknown, or the number is not a positive integer                                                                  |
+| 429    | `rateLimited`     | past a rate limit                                                                                                                                                               |
+
+`403` depends on the owner only, never on whether the repository or pull request exists, so it cannot be used to probe private repositories.

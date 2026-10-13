@@ -1,5 +1,6 @@
 import type { RequestHandler, Response } from "express";
 import { Router } from "express";
+import { createToPrDetail } from "reviewflow-core";
 import type { ResourcesContext } from "../ResourcesContext.ts";
 import {
   ApiError,
@@ -10,6 +11,7 @@ import {
 import type { ApiAuth } from "./authenticatePersonalToken.ts";
 import { authenticatePersonalToken } from "./authenticatePersonalToken.ts";
 import { createRateLimiter } from "./rateLimiter.ts";
+import { resolveRepository } from "./resolveRepository.ts";
 import { resolveTokenAccounts } from "./tokenAccounts.ts";
 
 /** 60 requests at once, then one a second: a poll every few seconds fits */
@@ -78,6 +80,38 @@ export default function apiRouter({ mongoStores }: ResourcesContext): Router {
       },
       serverTime: new Date().toISOString(),
     });
+  });
+
+  router.get("/pr/v1/:owner/:repo/:number", async (req, res) => {
+    const auth = apiAuthOf(res);
+    const { owner, repo, number } = req.params;
+    const prNumber = /^[1-9]\d{0,14}$/.test(number) ? Number(number) : null;
+
+    const resolved = await resolveRepository(mongoStores, auth, owner, repo);
+    // 403 is decided on the account alone, whether or not the pull request
+    // exists, so it is not a way to probe private repositories
+    if (resolved.status === "forbidden") {
+      throw new ApiError("forbidden", "The token cannot read this account");
+    }
+
+    const pr =
+      resolved.status === "ok" && prNumber !== null
+        ? await mongoStores.prs.findOne({
+            "account.id": resolved.account.id,
+            "repo.id": resolved.repository._id,
+            "pr.number": prNumber,
+          })
+        : undefined;
+    if (!pr) throw new ApiError("notFound", "Pull request not found");
+
+    res.json(
+      createToPrDetail({
+        userId: auth.user.id,
+        accounts: [
+          { accountId: resolved.account.id, teams: resolved.account.teams },
+        ],
+      })(pr),
+    );
   });
 
   router.use((req, res) => {
