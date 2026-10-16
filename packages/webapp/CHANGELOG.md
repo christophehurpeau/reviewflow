@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.15.0](https://github.com/christophehurpeau/reviewflow/compare/v6.14.0...v6.15.0) (2026-10-16)
+
+### Features
+
+* ask to sign in to slack again when the user token was revoked
+* **modules:** show unresolved review threads on pull request rows
+* send a slack dm on merge conflict, struck through once resolved
+* track unresolved review threads on prs
+* **webapp-server:** add GET /api/board/v1 and /api/board-bucket/v1
+
+Version bump for dependency: reviewflow-modules
+
+
 ## [6.14.0](https://github.com/christophehurpeau/reviewflow/compare/v6.13.0...v6.14.0) (2026-10-12)
 
 ### Features

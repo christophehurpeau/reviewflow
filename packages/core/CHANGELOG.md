@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.15.0](https://github.com/christophehurpeau/reviewflow/compare/v6.14.0...v6.15.0) (2026-10-16)
+
+### Features
+
+* ask to sign in to slack again when the user token was revoked
+* **core:** add PrDetail, the read api pull request shape
+* record mergeable on prs, reset it when the base branch moves
+* **reviewflow:** strike the slack review message once its threads are resolved
+* send a slack dm on merge conflict, struck through once resolved
+* show unresolved conversations in the status and retry automerge when resolved
+* track unresolved review threads on prs
+* **webapp-server:** add the read api with personal token auth and GET /api/me/v1
+
+Version bump for dependency: reviewflow-modules
+
+
 ## [6.14.0](https://github.com/christophehurpeau/reviewflow/compare/v6.13.0...v6.14.0) (2026-10-12)
 
 ### Features
