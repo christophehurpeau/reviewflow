@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.15.1](https://github.com/christophehurpeau/reviewflow/compare/v6.15.0...v6.15.1) (2026-10-16)
+
+Note: no notable changes
+
+
 ## [6.15.0](https://github.com/christophehurpeau/reviewflow/compare/v6.14.0...v6.15.0) (2026-10-16)
 
 ### Features
