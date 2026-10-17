@@ -35,7 +35,7 @@
   "dependencies": {
     "@octokit/rest": "22.0.1",
     "@slack/web-api": "8.0.0",
-    "cookie": "0.7.2",
+    "cookie": "2.0.1",
     "cookie-parser": "1.4.7",
     "dotenv": "17.4.2",
     "express": "5.2.1",
