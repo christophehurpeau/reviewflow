@@ -39,9 +39,9 @@
   "dependencies": {
     "emoji-regex": "10.6.0",
     "gemoji": "8.1.0",
-    "liwi-mongo": "14.0.0",
-    "liwi-store": "14.0.0",
-    "mingo": "6.2.7",
+    "liwi-mongo": "15.0.0",
+    "liwi-store": "14.1.0",
+    "mingo": "7.2.5",
     "reviewflow-modules": "workspace:*"
   },
   "devDependencies": {
