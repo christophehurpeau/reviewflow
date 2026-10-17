@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.16.1](https://github.com/christophehurpeau/reviewflow/compare/v6.16.0...v6.16.1) (2026-10-17)
+
+### Bug Fixes
+
+* check the slack sign-in token with users.identity
+
 ## [6.16.0](https://github.com/christophehurpeau/reviewflow/compare/v6.15.1...v6.16.0) (2026-10-17)
 
 ### Features
