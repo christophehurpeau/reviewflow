@@ -3,6 +3,7 @@ import Express from "express";
 import { createNodeMiddleware, createProbot } from "probot";
 import { mongoInit } from "reviewflow-core";
 import type { AppContext } from "./context/AppContext.ts";
+import { healthRouter } from "./healthRouter.ts";
 import initApp from "./initApp.ts";
 import internalApiRouter from "./internalApi.ts";
 import { createSlackHomeWorker } from "./slack/home.ts";
@@ -48,6 +49,7 @@ const middleware = await createNodeMiddleware(
   },
 );
 
+expressApp.use(healthRouter(mongoStores));
 expressApp.use(middleware);
 
 const internalApiApp = Express();

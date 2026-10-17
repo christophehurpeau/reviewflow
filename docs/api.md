@@ -2,7 +2,7 @@
 
 A read-only HTTP API on the reviewflow webapp server, for tools that follow your pull requests from outside the webapp (vigie, scripts).
 
-> **Status:** early. `GET /api/me/v1`, `GET /api/board/v1`, `GET /api/board-bucket/v1`, `GET /api/pr/v1/<owner>/<repo>/<number>`, `POST /api/prs-lookup/v1` and `GET /api/health/v1` are available; the other endpoints ship one by one, and the table below says which ones are.
+> **Status:** early. `GET /api/me/v1`, `GET /api/board/v1`, `GET /api/board-bucket/v1`, `GET /api/pr/v1/<owner>/<repo>/<number>`, `POST /api/prs-lookup/v1`, `GET /api/health/v1` and `GET /api/health` are available; the other endpoints ship one by one, and the table below says which ones are.
 
 ## Authentication
 
@@ -96,6 +96,7 @@ Dates are ISO 8601 strings in UTC.
 | `POST /api/prs-lookup/v1`                | pull requests by repository and branch, up to 200 at once   | available     |
 | `GET /api/pr/v1/<owner>/<repo>/<number>` | one pull request                                            | available     |
 | `GET /api/health/v1`                     | server health, unauthenticated                              | available     |
+| `GET /api/health`                        | server health as an HTTP status, for probes                 | available     |
 | `GET /api/stream/v1`                     | server-sent events: pull request changes as they happen     | not available |
 
 Each endpoint gets its request and response documented here when it ships.
@@ -153,6 +154,21 @@ GET /api/health/v1
 - `propagation` and `lagSeconds`: reserved for how far behind the server is in seeing changes made by the bot. For now `propagation` is always `"unknown"` and `lagSeconds` is `null`. Later `propagation` becomes `"ok"` or `"lagging"` and `lagSeconds` a number: treat any other value as unknown.
 - Never carries an `ETag`: always read the body.
 - The answer is shared between callers for 5 seconds, and is not subject to the rate limits above, nor blocked by them.
+
+### `GET /api/health`
+
+The same check as `GET /api/health/v1`, for load balancers and container probes that read the HTTP status only. No token needed, unversioned.
+
+```http
+GET /api/health
+```
+
+```json
+{ "status": "ok" }
+```
+
+- `200` with `{ "status": "ok" }`, or `503` with `{ "status": "degraded" }` when the database does not answer within 2 seconds.
+- Shares its answer, its cache and its exemption from the rate limits with `GET /api/health/v1`.
 
 ### `GET /api/board/v1`
 

@@ -1,6 +1,10 @@
 import type { RequestHandler, Response } from "express";
 import express, { Router } from "express";
-import { createToPrDetail } from "reviewflow-core";
+import {
+  createHealthChecker,
+  createToPrDetail,
+  healthHttpStatus,
+} from "reviewflow-core";
 import type { ResourcesContext } from "../ResourcesContext.ts";
 import {
   ApiError,
@@ -11,7 +15,7 @@ import {
 import type { ApiAuth } from "./authenticatePersonalToken.ts";
 import { authenticatePersonalToken } from "./authenticatePersonalToken.ts";
 import { parseBucket, parsePage, readBoard, readBucketPage } from "./board.ts";
-import { createHealthChecker } from "./health.ts";
+import { toHealthV1 } from "./health.ts";
 import { lookupPrs, parseLookupTargets } from "./prsLookup.ts";
 import { createRateLimiter } from "./rateLimiter.ts";
 import { resolveRepository } from "./resolveRepository.ts";
@@ -80,7 +84,15 @@ export default function apiRouter({ mongoStores }: ResourcesContext): Router {
   // hide the health of the server, and the checker bounds its own cost
   router.get("/health/v1", async (_req, res) => {
     res.set("Cache-Control", "no-store");
-    sendJsonWithoutEtag(res, await healthChecker.check());
+    sendJsonWithoutEtag(res, toHealthV1(await healthChecker.check()));
+  });
+
+  // for load balancers and container probes, which read the HTTP status only
+  router.get("/health", async (_req, res) => {
+    const status = await healthChecker.check();
+    res.set("Cache-Control", "no-store");
+    res.status(healthHttpStatus(status));
+    sendJsonWithoutEtag(res, { status });
   });
 
   router.use(authenticate);

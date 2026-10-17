@@ -36,7 +36,10 @@ to `INTERNAL_API_HOST` (`127.0.0.1`), not on the public webhook port: it must
 never be exposed publicly.
 
 A reverse proxy in front of both must send `/api/github/webhooks` to the webhook
-server and everything else to the webapp server. Set `TRUST_PROXY` on the webapp
+server and everything else to the webapp server. Both servers answer
+`GET /api/health` on their public port: `200` with `{"status":"ok"}`, or `503`
+when mongo does not answer, for load balancer and container probes (through the
+proxy it reaches the webapp server). Set `TRUST_PROXY` on the webapp
 server to that proxy (`loopback` when it runs on the same host), so the read api
 records callers' ips rather than the proxy's. The read api, for tools outside the
 webapp, is authenticated by personal tokens: see [docs/api.md](docs/api.md). See

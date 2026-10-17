@@ -4,6 +4,7 @@ export * from "./buildPullRequestUrl.ts";
 export * from "./checksAndStatuses/getFailedOrWaitingChecksAndStatuses.ts";
 export * from "./dm/defaultDmSettings.ts";
 export * from "./getTeams.ts";
+export * from "./health.ts";
 export type * from "./models/AccountInfo.ts";
 export type * from "./models/BasicUser.ts";
 export type * from "./models/ChecksAndStatuses.ts";
