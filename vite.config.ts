@@ -7,6 +7,18 @@ const testTimeout = 30_000;
 const mongoGlobalSetup = fileURLToPath(
   new URL("./scripts/vitestMongoGlobalSetup.ts", import.meta.url),
 );
+// the workspace libraries' package exports point at their rollup build: tests
+// load the sources instead, so they never run against a stale build
+const resolve = {
+  alias: {
+    "reviewflow-core": fileURLToPath(
+      new URL("./packages/core/src/index.ts", import.meta.url),
+    ),
+    "reviewflow-modules": fileURLToPath(
+      new URL("./packages/modules/src/index.ts", import.meta.url),
+    ),
+  },
+};
 
 export default defineConfig({
   test: {
@@ -20,6 +32,7 @@ export default defineConfig({
       // renders every webapp story in a browser, see its own config
       "packages/webapp/vitest.config.ts",
       {
+        resolve,
         test: {
           name: "core",
           root: "packages/core",
@@ -30,6 +43,7 @@ export default defineConfig({
         },
       },
       {
+        resolve,
         test: {
           name: "modules",
           root: "packages/modules",
@@ -40,6 +54,7 @@ export default defineConfig({
         },
       },
       {
+        resolve,
         test: {
           name: "reviewflow",
           root: "packages/reviewflow",
@@ -54,6 +69,7 @@ export default defineConfig({
         },
       },
       {
+        resolve,
         test: {
           name: "webapp-server",
           root: "packages/webapp-server",

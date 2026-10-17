@@ -13,6 +13,13 @@ const dirname = import.meta.dirname;
  */
 export default defineConfig({
   plugins: [storybookTest({ configDir: path.join(dirname, ".storybook-web") })],
+  // the package exports point at its rollup build: load the sources instead,
+  // so the stories never render against a stale build
+  resolve: {
+    alias: {
+      "reviewflow-modules": path.join(dirname, "../modules/src/index.ts"),
+    },
+  },
   test: {
     name: "webapp-storybook",
     browser: {
