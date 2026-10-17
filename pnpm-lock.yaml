@@ -148,6 +148,12 @@ importers:
       liwi-mongo:
         specifier: 15.0.0
         version: 15.0.0
+      liwi-resources-server:
+        specifier: 15.0.0
+        version: 15.0.0
+      liwi-resources-websocket-server:
+        specifier: 15.0.0
+        version: 15.0.0
       liwi-store:
         specifier: 14.1.0
         version: 14.1.0
@@ -182,6 +188,12 @@ importers:
       '@typescript/native':
         specifier: npm:typescript@7.0.2
         version: typescript@7.0.2
+      liwi-resources-client:
+        specifier: 15.0.0
+        version: 15.0.0
+      liwi-resources-websocket-client-node:
+        specifier: 15.0.0
+        version: 15.0.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       nock:
         specifier: 14.0.17
         version: 14.0.17
@@ -375,9 +387,15 @@ importers:
       liwi-mongo:
         specifier: 15.0.0
         version: 15.0.0
+      liwi-resources-client:
+        specifier: 15.0.0
+        version: 15.0.0
       liwi-resources-server:
         specifier: 15.0.0
         version: 15.0.0
+      liwi-resources-websocket-client-node:
+        specifier: 15.0.0
+        version: 15.0.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       liwi-resources-websocket-server:
         specifier: 15.0.0
         version: 15.0.0
@@ -5795,6 +5813,10 @@ packages:
 
   liwi-resources-void-client@15.0.0:
     resolution: {integrity: sha512-fk4Ux6scVTkJHLl1OqEJSGDa8O5sLLOdI4c33SnEhiJjBZpGtXRl3KtHip19ds4cuG3QQxjGeM+1BYvF9oR/ug==}
+    engines: {node: '>=22.18.0'}
+
+  liwi-resources-websocket-client-node@15.0.0:
+    resolution: {integrity: sha512-qmx6bXdw3TJpn7n5qbCpkSRPBonTi9lpwLreMDjFV3ttoMJ3L3epA/AtcDF6X1YWyPK80tRAxY7Mkx027URuIg==}
     engines: {node: '>=22.18.0'}
 
   liwi-resources-websocket-client@15.0.0:
@@ -13691,6 +13713,15 @@ snapshots:
     dependencies:
       liwi-resources-client: 15.0.0
       liwi-resources-server: 15.0.0
+
+  liwi-resources-websocket-client-node@15.0.0(bufferutil@4.1.0)(utf-8-validate@6.0.6):
+    dependencies:
+      liwi-resources-client: 15.0.0
+      liwi-resources-websocket-client: 15.0.0
+      ws: 8.22.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   liwi-resources-websocket-client@15.0.0:
     dependencies:

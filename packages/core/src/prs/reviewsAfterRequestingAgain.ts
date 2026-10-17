@@ -29,8 +29,8 @@ export const reviewedWithReviewer = (
  * reviewers the pull request waits on. When they reached it stays recorded.
  *
  * Written here rather than waited for: the webhook server recomputes the same
- * thing moments later, but its write reaches no subscription of the webapp
- * server, so a screen would not move until it refetched.
+ * thing once github delivers the event, and only then would its write reach the
+ * webapp server's subscriptions through the store relay.
  */
 export const reviewsAfterRequestingAgain = (
   reviews: ReviewersGroupedByState | undefined,

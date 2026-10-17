@@ -1,12 +1,13 @@
 import "dotenv/config";
 import Express from "express";
 import { createNodeMiddleware, createProbot } from "probot";
-import { mongoInit } from "reviewflow-core";
+import { getRelayedStores, mongoInit } from "reviewflow-core";
 import type { AppContext } from "./context/AppContext.ts";
 import { healthRouter } from "./healthRouter.ts";
 import initApp from "./initApp.ts";
 import internalApiRouter from "./internalApi.ts";
 import { createSlackHomeWorker } from "./slack/home.ts";
+import { createStoreRelayServer } from "./storeRelay.ts";
 import { checkWebappUrlConfig } from "./webappUrl.ts";
 
 if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = "reviewflow";
@@ -72,6 +73,13 @@ const internalApiServer = internalApiApp.listen(
   },
 );
 
+// `internalApiRouter` has already thrown when the secret is missing
+const storeRelayServer = createStoreRelayServer({
+  server: internalApiServer,
+  stores: getRelayedStores(mongoStores),
+  secret: process.env.INTERNAL_API_SECRET!,
+});
+
 // In development github cannot reach this machine, so smee replays the
 // webhooks onto the same route the production deliveries hit.
 const smeeClient = process.env.WEBHOOK_PROXY_URL
@@ -90,6 +98,7 @@ await smeeClient?.start();
 const gracefulExit = function gracefulExit(): void {
   smeeClient?.stop().catch(console.error);
   server.close();
+  storeRelayServer.close();
   internalApiServer.close();
   setTimeout(() => {
     mongoStores.connection.close().then(() => {

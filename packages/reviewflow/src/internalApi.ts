@@ -1,4 +1,3 @@
-import { timingSafeEqual } from "node:crypto";
 import type { NextFunction, Request, Response, Router } from "express";
 import express from "express";
 import type { Probot } from "probot";
@@ -9,19 +8,13 @@ import { syncTeamsAndTeamMembers } from "./events/account-handlers/actions/syncT
 import { syncUser } from "./events/account-handlers/actions/syncUser.ts";
 import { syncRepository } from "./events/repository-handlers/actions/syncRepository.ts";
 import { deleteRepositoryData } from "./events/repository-handlers/utils/deleteRepositoryData.ts";
+import { hasInternalApiSecret } from "./internalApiSecret.ts";
 
 /**
  * Server to server routes for the webapp server: it holds no github app
  * credentials and runs in another process, so anything needing the installation
  * octokit or the account contexts cached here goes through this router.
  */
-
-const isExpectedSecret = (given: string, expected: string): boolean => {
-  const givenBuffer = Buffer.from(given);
-  const expectedBuffer = Buffer.from(expected);
-  if (givenBuffer.length !== expectedBuffer.length) return false;
-  return timingSafeEqual(givenBuffer, expectedBuffer);
-};
 
 const readNumber = (value: unknown): number | undefined => {
   const parsed = Number(value);
@@ -53,10 +46,7 @@ export default function internalApiRouter(
   router.use(express.json());
 
   router.use((req: Request, res: Response, next: NextFunction) => {
-    const header = req.headers.authorization;
-    const given = header?.startsWith("Bearer ") ? header.slice(7) : undefined;
-
-    if (!given || !isExpectedSecret(given, secret)) {
+    if (!hasInternalApiSecret(req.headers.authorization, secret)) {
       res.status(401).json({ error: "Invalid internal api secret" });
       return;
     }

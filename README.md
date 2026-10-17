@@ -45,10 +45,13 @@ records callers' ips rather than the proxy's. The read api, for tools outside th
 webapp, is authenticated by personal tokens: see [docs/api.md](docs/api.md). See
 [docs/deployment.md](docs/deployment.md).
 
-Because liwi subscriptions are in-process, a document written by the webhook
-server does not notify a webapp subscription, and vice versa: screens only
-update on their own writes and on refetch. See
-[plans/webapp-server-change-propagation.md](plans/webapp-server-change-propagation.md).
+liwi subscriptions are in-process, so the webhook server relays the keys it
+writes to `prs`, `orgs`, `orgMembers`, `repositories` and `users` to the webapp
+server, over a websocket on its internal api listener
+(`/api/internal/store-relay`, same `INTERNAL_API_SECRET`). The webapp server
+re-reads those documents for its subscriptions, and refetches every open
+subscription each time the relay connects: writes made while it is down are not
+replayed. One instance of each server: several would need a broker.
 
 <h3>💻 Development</h3>
 

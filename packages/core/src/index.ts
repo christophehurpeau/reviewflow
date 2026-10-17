@@ -23,4 +23,5 @@ export * from "./prs/toPrSummary.ts";
 export { default as mongoInit } from "./mongo.ts";
 export * from "./prOptions.ts";
 export * from "./shouldIgnoreRepo.ts";
+export * from "./storeRelay.ts";
 export * from "./utils.ts";

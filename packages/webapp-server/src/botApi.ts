@@ -7,7 +7,7 @@ import { ResourcesServerError } from "liwi-resources-server";
 
 // not PORT: that one is this process's own. The bot serves the internal api on
 // a loopback only listener, apart from the public port github delivers to
-const getBaseUrl = (): string =>
+export const getBotInternalUrl = (): string =>
   (process.env.BOT_INTERNAL_URL || "http://127.0.0.1:3002").replace(/\/+$/, "");
 
 const errorCodeByStatus: Record<number, string> = {
@@ -25,7 +25,7 @@ const postToBot = async (
     throw new Error("Missing env variable: INTERNAL_API_SECRET");
   }
 
-  const response = await fetch(`${getBaseUrl()}/api/internal${path}`, {
+  const response = await fetch(`${getBotInternalUrl()}/api/internal${path}`, {
     method: "POST",
     headers: {
       "content-type": "application/json",

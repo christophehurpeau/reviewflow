@@ -4,13 +4,15 @@ import { fileURLToPath } from "node:url";
 import cookieParser from "cookie-parser";
 import Express from "express";
 import { createWsServer } from "liwi-resources-websocket-server";
-import { mongoInit } from "reviewflow-core";
+import { getRelayedStores, mongoInit } from "reviewflow-core";
 import type { ResourcesContext } from "./ResourcesContext.ts";
 import apiRouter from "./api/apiRouter.ts";
 import appRouter from "./appRouter.ts";
+import { getBotInternalUrl } from "./botApi.ts";
 import { getAuthenticatedUser } from "./resources/getAuthenticatedUser.ts";
 import { createResourcesServerService } from "./resources/index.ts";
 import { createSlackUserTokensCheck } from "./resources/slackUserToken.ts";
+import { connectBotStoreRelay } from "./storeRelay.ts";
 
 if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = "reviewflow";
 
@@ -24,8 +26,19 @@ const webappDistPath = fileURLToPath(
   new URL("../../webapp/dist", import.meta.url),
 );
 
+const internalApiSecret = process.env.INTERNAL_API_SECRET;
+if (!internalApiSecret) {
+  throw new Error("Missing env variable: INTERNAL_API_SECRET");
+}
+
 const mongoStores = mongoInit();
 const resourcesContext: ResourcesContext = { mongoStores };
+
+const storeRelay = connectBotStoreRelay({
+  botInternalUrl: getBotInternalUrl(),
+  secret: internalApiSecret,
+  stores: getRelayedStores(mongoStores),
+});
 
 const expressApp = Express();
 
@@ -70,6 +83,7 @@ const wsServer = createWsServer(
 );
 
 const gracefulExit = function gracefulExit(): void {
+  storeRelay.close();
   wsServer.close();
   server.close();
   setTimeout(() => {
