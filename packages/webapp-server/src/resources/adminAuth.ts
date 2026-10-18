@@ -14,17 +14,21 @@ export const readAdminUserIds = (
       .map(Number),
   );
 
+/**
+ * Never through the editor extension: its token sits on the developer's disk
+ * for days, and the admin switches paid features for every account.
+ */
 export const isAdminUser = (
   adminUserIds: ReadonlySet<number>,
-  user: { id: number } | undefined,
-): boolean => !!user && adminUserIds.has(user.id);
+  user: Pick<AuthenticatedWsUser, "id" | "isEditorSession"> | undefined,
+): boolean => !!user && !user.isEditorSession && adminUserIds.has(user.id);
 
 export const requireAdmin = (
   adminUserIds: ReadonlySet<number>,
   loggedInUser: AuthenticatedWsUser | undefined,
 ): AuthenticatedWsUser => {
   const user = requireAuthenticatedUser(loggedInUser);
-  if (!adminUserIds.has(user.id)) {
+  if (!isAdminUser(adminUserIds, user)) {
     throw new ResourcesServerError("FORBIDDEN", "Admin only");
   }
   return user;

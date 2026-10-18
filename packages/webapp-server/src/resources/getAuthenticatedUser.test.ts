@@ -1,7 +1,12 @@
 import type http from "node:http";
 import { describe, expect, it } from "vitest";
 import type { AuthInfo } from "../auth/authCookie.ts";
-import { authCookieName, signAuthCookie } from "../auth/authCookie.ts";
+import {
+  authCookieName,
+  signAuthCookie,
+  signAuthToken,
+  vscodeUserAgent,
+} from "../auth/authCookie.ts";
 import { getAuthenticatedUser } from "./getAuthenticatedUser.ts";
 
 const userAgent = "vitest";
@@ -34,7 +39,21 @@ describe("getAuthenticatedUser", () => {
       id: 42,
       login: "someone",
       accessToken: "gh-token",
+      isEditorSession: false,
     });
+  });
+
+  it("marks a session of the editor extension", async () => {
+    const token = await signAuthToken(authInfo, vscodeUserAgent);
+
+    await expect(
+      getAuthenticatedUser(
+        createRequest({
+          cookie: `${authCookieName}=${token}`,
+          "user-agent": vscodeUserAgent,
+        }),
+      ),
+    ).resolves.toMatchObject({ id: 42, isEditorSession: true });
   });
 
   it("returns null without a cookie", async () => {

@@ -2,7 +2,11 @@ import type http from "node:http";
 import * as cookie from "cookie";
 import type { AuthenticatedUser } from "reviewflow-modules";
 import type { AuthInfo } from "../auth/authCookie.ts";
-import { authCookieName, verifyAuthCookie } from "../auth/authCookie.ts";
+import {
+  authCookieName,
+  verifyAuthCookie,
+  vscodeUserAgent,
+} from "../auth/authCookie.ts";
 import { webappHost } from "../webappUrl.ts";
 
 /**
@@ -22,6 +26,8 @@ const isAllowedOrigin = (origin: string | undefined, host: string): boolean => {
 
 export interface AuthenticatedWsUser extends AuthenticatedUser {
   accessToken: AuthInfo["accessToken"];
+  /** signed in through the editor extension, whose token lives on disk for days */
+  isEditorSession?: boolean;
 }
 
 export const getAuthenticatedUser = async (
@@ -41,5 +47,6 @@ export const getAuthenticatedUser = async (
     id: authInfo.id,
     login: authInfo.login,
     accessToken: authInfo.accessToken,
+    isEditorSession: request.headers["user-agent"] === vscodeUserAgent,
   };
 };

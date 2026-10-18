@@ -10,6 +10,11 @@ const adminUser: AuthenticatedWsUser = {
   accessToken: "token",
 };
 
+const adminInEditor: AuthenticatedWsUser = {
+  ...adminUser,
+  isEditorSession: true,
+};
+
 const otherUser: AuthenticatedWsUser = {
   id: 42,
   login: "someone",
@@ -73,6 +78,10 @@ describe("readAdminUserIds", () => {
     expect(isAdminUser(ids, { ...adminUser, id: 1 })).toBe(false);
     expect(isAdminUser(ids, undefined)).toBe(false);
   });
+
+  it("is never an editor session, whatever the id", () => {
+    expect(isAdminUser(new Set([1_234_567]), adminInEditor)).toBe(false);
+  });
 });
 
 describe("the admin service authorization", () => {
@@ -85,6 +94,11 @@ describe("the admin service authorization", () => {
   it.each([
     ["a user who is not an admin", otherUser, new Set([1_234_567])],
     ["a user while no admin is configured", adminUser, new Set<number>()],
+    [
+      "the admin signed in through the editor",
+      adminInEditor,
+      new Set([1_234_567]),
+    ],
   ])("refuses %s on every query and operation", async (_name, user, ids) => {
     const {
       service,
