@@ -50,4 +50,12 @@ describe("toHealthV1", () => {
       toHealthV1("ok", { isLive: true, lastMessageAt: secondsAgo(-3) }, now),
     ).toEqual({ status: "ok", propagation: "ok", lagSeconds: 0 });
   });
+
+  it("reports a disabled relay without degrading the status", () => {
+    expect(toHealthV1("ok", undefined, now)).toEqual({
+      status: "ok",
+      propagation: "disabled",
+      lagSeconds: null,
+    });
+  });
 });

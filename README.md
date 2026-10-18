@@ -52,6 +52,7 @@ server, over a websocket on its internal api listener
 re-reads those documents for its subscriptions, and refetches every open
 subscription each time the relay connects: writes made while it is down are not
 replayed. One instance of each server: several would need a broker.
+`STORE_RELAY_DISABLED=true` on both servers switches it off.
 
 <h3>💻 Development</h3>
 

@@ -23,3 +23,11 @@ export const getRelayedStores = (
   repositories: mongoStores.repositories,
   users: mongoStores.users,
 });
+
+/**
+ * Off switch for both processes, for when the relay costs more than it
+ * brings: the webapp then only updates live on its own writes.
+ */
+export const isStoreRelayDisabled = (
+  env: NodeJS.ProcessEnv = process.env,
+): boolean => env.STORE_RELAY_DISABLED === "true";

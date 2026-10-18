@@ -5,9 +5,10 @@ export interface HealthV1 {
   status: HealthStatus;
   /**
    * `lagging` when the relay from the bot is down or silent: the webapp then
-   * stops updating live. A client treats any other value as unknown
+   * stops updating live. `disabled` when switched off on purpose. A client
+   * treats any other value as unknown
    */
-  propagation: "lagging" | "ok";
+  propagation: "disabled" | "lagging" | "ok";
   /** seconds since the last message of the relay, `null` before the first */
   lagSeconds: number | null;
 }
@@ -17,16 +18,19 @@ export interface RelayState {
   lastMessageAt: Date | null;
 }
 
-export type GetRelayState = () => RelayState;
+/** undefined when the relay is disabled (`STORE_RELAY_DISABLED`) */
+export type GetRelayState = () => RelayState | undefined;
 
 /** two missed heartbeats: one alone can be late */
 const MAX_SILENCE_MS = 2 * STORE_RELAY_HEARTBEAT_INTERVAL_MS;
 
 export const toHealthV1 = (
   status: HealthStatus,
-  { isLive, lastMessageAt }: RelayState,
+  relayState: RelayState | undefined,
   now = Date.now(),
 ): HealthV1 => {
+  if (!relayState) return { status, propagation: "disabled", lagSeconds: null };
+  const { isLive, lastMessageAt } = relayState;
   const silenceMs = lastMessageAt
     ? Math.max(0, now - lastMessageAt.getTime())
     : null;

@@ -152,7 +152,7 @@ GET /api/health/v1
 ```
 
 - `status`: `ok`, or `degraded` when the server is reachable but its database does not answer within 2 seconds, or when `propagation` is `lagging`. The HTTP status is `200` either way: read the body.
-- `propagation`: `ok`, or `lagging` when the server no longer sees the changes made by the bot live: its link to the bot is down, or nothing arrived from it for 30 seconds (the bot sends a heartbeat every 15 seconds, so that is two missed). Webapp screens then stop updating until the link is back, and the server still answers. Treat any other value as unknown.
+- `propagation`: `ok`, or `lagging` when the server no longer sees the changes made by the bot live: its link to the bot is down, or nothing arrived from it for 30 seconds (the bot sends a heartbeat every 15 seconds, so that is two missed). Webapp screens then stop updating until the link is back, and the server still answers. `disabled` when the operator switched the link off (`STORE_RELAY_DISABLED`): the status is not degraded, and screens only update on their own changes. Treat any other value as unknown.
 - `lagSeconds`: whole seconds since the last message from the bot, heartbeats included, or `null` before the first one since the server started.
 - Never carries an `ETag`: always read the body.
 - The answer is shared between callers for 5 seconds, and is not subject to the rate limits above, nor blocked by them.

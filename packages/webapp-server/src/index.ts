@@ -4,7 +4,11 @@ import { fileURLToPath } from "node:url";
 import cookieParser from "cookie-parser";
 import Express from "express";
 import { createWsServer } from "liwi-resources-websocket-server";
-import { getRelayedStores, mongoInit } from "reviewflow-core";
+import {
+  getRelayedStores,
+  isStoreRelayDisabled,
+  mongoInit,
+} from "reviewflow-core";
 import type { ResourcesContext } from "./ResourcesContext.ts";
 import apiRouter from "./api/apiRouter.ts";
 import appRouter from "./appRouter.ts";
@@ -40,11 +44,13 @@ const resourcesContext: ResourcesContext = { mongoStores };
 // one budget for the webapp's subscriptions and the api's streams
 const subscriptionSlots = createSubscriptionSlots(readSubscriptionLimits());
 
-const storeRelay = connectBotStoreRelay({
-  botInternalUrl: getBotInternalUrl(),
-  secret: internalApiSecret,
-  stores: getRelayedStores(mongoStores),
-});
+const storeRelay = isStoreRelayDisabled()
+  ? undefined
+  : connectBotStoreRelay({
+      botInternalUrl: getBotInternalUrl(),
+      secret: internalApiSecret,
+      stores: getRelayedStores(mongoStores),
+    });
 
 const expressApp = Express();
 
@@ -60,7 +66,7 @@ expressApp.use("/app", appRouter(resourcesContext));
 expressApp.use(
   "/api",
   apiRouter(resourcesContext, {
-    getRelayState: storeRelay.getState,
+    getRelayState: () => storeRelay?.getState(),
     subscriptionSlots,
   }),
 );
@@ -95,7 +101,7 @@ const wsServer = createWsServer(
 );
 
 const gracefulExit = function gracefulExit(): void {
-  storeRelay.close();
+  storeRelay?.close();
   wsServer.close();
   server.close();
   setTimeout(() => {
