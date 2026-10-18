@@ -7,7 +7,6 @@ import type {
   PersonalTokenSummary,
   UserSummary,
 } from "reviewflow-modules";
-import { NotEnabledMessage } from "#/components/not-enabled-message.tsx";
 import { ResourceView } from "#/components/resource-view.tsx";
 import { Screen } from "#/components/screen.tsx";
 import { SkeletonList } from "#/components/skeleton.tsx";
@@ -47,22 +46,17 @@ export function ApiTokensScreen({
 
               return (
                 <View className="gap-l">
-                  {canReadAnAccount ? (
-                    <ResourceView resource={personalTokens}>
-                      {(tokens) => (
-                        <PersonalTokensList
-                          tokens={tokens}
-                          onCreate={onCreate}
-                          onRegenerate={onRegenerate}
-                          onRevoke={onRevoke}
-                        />
-                      )}
-                    </ResourceView>
-                  ) : (
-                    <NotEnabledMessage>
-                      The API is not enabled for any of your accounts.
-                    </NotEnabledMessage>
-                  )}
+                  <ResourceView resource={personalTokens}>
+                    {(tokens) => (
+                      <PersonalTokensList
+                        tokens={tokens}
+                        isApiEnabled={canReadAnAccount}
+                        onCreate={onCreate}
+                        onRegenerate={onRegenerate}
+                        onRevoke={onRevoke}
+                      />
+                    )}
+                  </ResourceView>
                   <TokenReachList
                     userLogin={userLogin}
                     userPaidEnabled={userPaidEnabled}

@@ -80,12 +80,24 @@ export const VariantsStory: StoryObj<typeof meta> = {
           onSetAllow={onSetAllow}
         />
       </Story.Section>
-      <Story.Section title="not enabled">
+      <Story.Section title="not enabled: the switch is off and disabled">
         <PersonalTokensPolicySection
           orgLogin="acme"
           policy={{
             _id: 1,
             allowPersonalTokens: false,
+            paidEnabled: false,
+            viewerIsOwner: true,
+          }}
+          onSetAllow={onSetAllow}
+        />
+      </Story.Section>
+      <Story.Section title="not enabled, still allowed: the owner can switch it off">
+        <PersonalTokensPolicySection
+          orgLogin="acme"
+          policy={{
+            _id: 1,
+            allowPersonalTokens: true,
             paidEnabled: false,
             viewerIsOwner: true,
           }}

@@ -20,26 +20,23 @@ export function PersonalTokensPolicySection({
   onSetAllow,
 }: PersonalTokensPolicySectionProps): ReactNode {
   const [error, setError] = useState<unknown>();
-
-  if (!policy.paidEnabled) {
-    return (
-      <SettingsSection title="API tokens">
-        <NotEnabledMessage variant="flat">
-          {`The API is not enabled for ${orgLogin}.`}
-        </NotEnabledMessage>
-      </SettingsSection>
-    );
-  }
+  // turning tokens off stays possible: the server allows it without the feature
+  const canSwitchOn = policy.paidEnabled || policy.allowPersonalTokens;
 
   return (
     <SettingsSection title="API tokens">
+      {policy.paidEnabled ? null : (
+        <NotEnabledMessage variant="flat">
+          {`The API is not enabled for ${orgLogin}.`}
+        </NotEnabledMessage>
+      )}
       {error ? (
         <ErrorMessage variant="flat">{errorToMessage(error)}</ErrorMessage>
       ) : null}
       <View className="flex-row items-center gap-m">
         <Switch
           checked={policy.allowPersonalTokens}
-          disabled={!policy.viewerIsOwner}
+          disabled={!policy.viewerIsOwner || !canSwitchOn}
           aria-labelledby={labelId}
           onValueChange={(allow) => {
             setError(undefined);

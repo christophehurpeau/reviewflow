@@ -24,6 +24,7 @@ import type {
   CreatedPersonalToken,
   PersonalTokenSummary,
 } from "reviewflow-modules";
+import { NotEnabledMessage } from "#/components/not-enabled-message.tsx";
 import { errorToMessage } from "#/errorToMessage.ts";
 import { RevealedTokenModal } from "./RevealedTokenModal.tsx";
 
@@ -166,6 +167,8 @@ interface PendingAction {
 
 interface PersonalTokensListProps {
   tokens: PersonalTokenSummary[];
+  /** false when none of the user's accounts has the API: creating a token is then pointless */
+  isApiEnabled: boolean;
   onCreate: (name: string) => Promise<CreatedPersonalToken>;
   onRegenerate: (tokenId: string) => Promise<CreatedPersonalToken>;
   onRevoke: (tokenId: string) => Promise<void>;
@@ -173,6 +176,7 @@ interface PersonalTokensListProps {
 
 export function PersonalTokensList({
   tokens,
+  isApiEnabled,
   onCreate,
   onRegenerate,
   onRevoke,
@@ -196,10 +200,16 @@ export function PersonalTokensList({
         <View className="flex-row">
           <ExternalLinkText href={apiDocUrl} text="API documentation" />
         </View>
+        {isApiEnabled ? null : (
+          <NotEnabledMessage>
+            The API is not enabled for any of your accounts.
+          </NotEnabledMessage>
+        )}
         <View className="flex-row">
           <Button
             text="New token"
             icon={<PlusRegularIcon />}
+            disabled={!isApiEnabled}
             onPress={() => {
               setIsCreating(true);
             }}

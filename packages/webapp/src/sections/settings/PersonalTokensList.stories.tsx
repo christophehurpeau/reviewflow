@@ -38,6 +38,7 @@ const longNameToken: PersonalTokenSummary = {
 };
 
 const callbacks = {
+  isApiEnabled: true,
   onCreate: fn(() => Promise.resolve(createdToken)),
   onRegenerate: fn(() => Promise.resolve(createdToken)),
   onRevoke: fn(() => Promise.resolve()),
@@ -75,6 +76,13 @@ export const VariantsStory: StoryObj<typeof PersonalTokensList> = {
         <PersonalTokensList
           {...callbacks}
           tokens={[usedToken, usedWithoutIpToken]}
+        />
+      </Story.Section>
+      <Story.Section title="API not enabled for any account">
+        <PersonalTokensList
+          {...callbacks}
+          isApiEnabled={false}
+          tokens={[usedToken]}
         />
       </Story.Section>
       <Story.Section title="name long enough to wrap">

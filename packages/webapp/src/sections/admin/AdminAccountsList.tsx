@@ -45,7 +45,7 @@ function AdminAccountRow({
           </Text>
           {account.knownSince ? (
             <Text className="text-sm text-muted">
-              {`since ${formatDate(account.knownSince)}`}
+              {`in reviewflow since ${formatDate(account.knownSince)}`}
             </Text>
           ) : null}
         </View>
