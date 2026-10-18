@@ -423,6 +423,58 @@ describe("createPaidAccounts", () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it("wakes on a relayed write only when the flag was not seen yet or differs", () => {
+    const { stores, listeners } = createStores();
+    const onChange = vi.fn();
+    createPaidAccounts(stores).watch(() => [1], onChange);
+    const relay = (next: ReturnType<typeof org>[]): void => {
+      listeners.orgs[0]!({ type: "changed", keys: [1], next });
+    };
+
+    relay([org(1, true)]);
+    expect(onChange).toHaveBeenCalledTimes(1);
+
+    relay([org(1, true)]);
+    expect(onChange).toHaveBeenCalledTimes(1);
+
+    relay([org(1, false)]);
+    expect(onChange).toHaveBeenCalledTimes(2);
+
+    relay([]);
+    expect(onChange).toHaveBeenCalledTimes(3);
+  });
+
+  it("compares a relayed write with the flag of a local write", () => {
+    const { stores, listeners } = createStores();
+    const onChange = vi.fn();
+    createPaidAccounts(stores).watch(() => [1], onChange);
+
+    listeners.orgs[0]!({ type: "updated", changes: [[org(1), org(1, true)]] });
+    listeners.orgs[0]!({ type: "changed", keys: [1], next: [org(1, true)] });
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
+
+  it("forgets the seen flags on a resync and once detached", () => {
+    const { stores, listeners } = createStores();
+    const onChange = vi.fn();
+    const paidAccounts = createPaidAccounts(stores);
+    const unwatch = paidAccounts.watch(() => [1], onChange);
+    const relayEnabled = (): void => {
+      listeners.orgs[0]!({ type: "changed", keys: [1], next: [org(1, true)] });
+    };
+
+    relayEnabled();
+    listeners.orgs[0]!({ type: "resync" });
+    relayEnabled();
+    expect(onChange).toHaveBeenCalledTimes(3);
+
+    unwatch();
+    paidAccounts.watch(() => [1], onChange);
+    relayEnabled();
+    expect(onChange).toHaveBeenCalledTimes(4);
+  });
+
   it("wakes every watcher on a resync, and detaches once none is left", () => {
     const { stores, listeners } = createStores();
     const onChange = vi.fn();
