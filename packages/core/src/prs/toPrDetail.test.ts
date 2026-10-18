@@ -73,6 +73,8 @@ describe("identity and branches", () => {
         lastPushedAt: null,
         lastReviewSubmittedAt: null,
         lastCommentActivityAt: null,
+        lastReviewCommentActivityAt: null,
+        lastBodyEditedAt: null,
       },
     });
   });
@@ -89,6 +91,7 @@ describe("identity and branches", () => {
           createdAt: new Date("2026-10-01T09:00:00Z"),
           openedAt: new Date("2026-10-01T09:05:00Z"),
           lastPushedAt: new Date("2026-10-02T08:00:00Z"),
+          lastReviewCommentActivityAt: new Date("2026-10-02T09:00:00Z"),
         },
       }),
     );
@@ -105,6 +108,7 @@ describe("identity and branches", () => {
       createdAt: "2026-10-01T09:00:00.000Z",
       openedAt: "2026-10-01T09:05:00.000Z",
       lastPushedAt: "2026-10-02T08:00:00.000Z",
+      lastReviewCommentActivityAt: "2026-10-02T09:00:00.000Z",
       closedAt: null,
     });
   });
@@ -121,6 +125,19 @@ describe("identity and branches", () => {
 
     expect(detail).not.toHaveProperty("openedAt");
     expect(detail).not.toHaveProperty("approvedAt");
+  });
+});
+
+describe("labels", () => {
+  it("keeps the id and name of each stored label", () => {
+    expect(
+      toPrDetail(buildPr({ labels: [{ id: 7, name: "merge/automerge" }] }))
+        .labels,
+    ).toEqual([{ id: 7, name: "merge/automerge" }]);
+  });
+
+  it("is empty for a document stored before labels were", () => {
+    expect(toPrDetail(buildPr()).labels).toEqual([]);
   });
 });
 

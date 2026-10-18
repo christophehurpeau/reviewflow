@@ -17,7 +17,7 @@ import { parseMentions } from "../../utils/github/parseMentions.ts";
 import { createSlackMessageWithSecondaryBlock } from "../../utils/slack/createSlackMessageWithSecondaryBlock.ts";
 import { slackifyCommentBody } from "../../utils/slackifyCommentBody.ts";
 import type { ProbotEvent } from "../probot-types.ts";
-import { recordCommentActivity } from "./actions/utils/recordCommentActivity.ts";
+import { recordFlowDate } from "./actions/utils/recordFlowDate.ts";
 import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
 import { fetchPr } from "./utils/fetchPr.ts";
 import { getPullRequestFromPayload } from "./utils/getPullRequestFromPayload.ts";
@@ -135,13 +135,14 @@ export default function prCommentCreated(
       reviewflowPrContext,
     ): Promise<void> => {
       const { comment } = context.payload;
-      if (context.name === "issue_comment") {
-        await recordCommentActivity(
-          appContext,
-          reviewflowPrContext,
-          new Date(comment.created_at),
-        );
-      }
+      await recordFlowDate(
+        appContext,
+        reviewflowPrContext,
+        context.name === "issue_comment"
+          ? "lastCommentActivityAt"
+          : "lastReviewCommentActivityAt",
+        new Date(comment.created_at),
+      );
 
       const pr = await fetchPr(context, pullRequest.number);
       const prUser = pr.user;

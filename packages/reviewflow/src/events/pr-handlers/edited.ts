@@ -5,6 +5,7 @@ import { getChecksAndStatusesForPullRequest } from "../../utils/github/pullReque
 import { editOpenedPR } from "./actions/editOpenedPR.ts";
 import { tryToAutomerge } from "./actions/tryToAutomerge.ts";
 import { updateStatusCheckFromStepsState } from "./actions/updateStatusCheckFromStepsState.ts";
+import { recordFlowDate } from "./actions/utils/recordFlowDate.ts";
 import { calcStepsState } from "./actions/utils/steps/calcStepsState.ts";
 import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
 import { fetchPr } from "./utils/fetchPr.ts";
@@ -29,6 +30,15 @@ export default function edited(app: Probot, appContext: AppContext): void {
       const sender = context.payload.sender!;
       if (checkIfIsThisBot(sender)) {
         return;
+      }
+
+      if (context.payload.changes.body) {
+        await recordFlowDate(
+          appContext,
+          reviewflowPrContext,
+          "lastBodyEditedAt",
+          new Date(pullRequest.updated_at),
+        );
       }
 
       const [updatedPullRequest, checksAndStatuses] = await Promise.all([

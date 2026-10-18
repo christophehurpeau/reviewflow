@@ -9,6 +9,7 @@ import {
   mockLabels,
   nock,
 } from "../../tests/setup.ts";
+import { createEmptyReviews } from "./utils/groupReviewsWithState.ts";
 
 vi.mock("../../context/slack/initTeamSlack", () => ({
   initTeamSlack: () => Promise.resolve(voidTeamSlack()),
@@ -16,13 +17,40 @@ vi.mock("../../context/slack/initTeamSlack", () => ({
 
 nock.disableNetConnect();
 
+const lastBodyEditedAt = (date: unknown) => ({
+  $set: { "flowDates.lastBodyEditedAt": date },
+});
+
 describe("edited", (): void => {
   let probot: Probot;
   const partialUpdateOnePr = vi.fn();
 
+  // the date is recorded first: what follows needs github mocks these tests
+  // have no use for
+  const receiveEdited = (payload: Record<string, unknown>) =>
+    probot
+      .receive({
+        id: "1",
+        name: pullRequestEdited.event as any,
+        payload: { ...pullRequestEdited.payload, ...payload } as any,
+      })
+      .catch(() => {});
+
   beforeEach(async () => {
+    partialUpdateOnePr.mockClear();
     probot = await initializeProbotApp({
       prs: {
+        findOne: () =>
+          Promise.resolve({
+            commentId: 1,
+            reviews: createEmptyReviews(),
+            assignees: [],
+            unresolvedThreads: [],
+            flowDates: {
+              createdAt: new Date("2020-05-22T12:00:00Z"),
+              openedAt: new Date("2020-05-22T12:00:00Z"),
+            },
+          }),
         partialUpdateOne: partialUpdateOnePr,
       },
     });
@@ -84,7 +112,35 @@ describe("edited", (): void => {
         headRepoFullName: "reviewflow/reviewflow-test",
       }),
     });
+    expect(partialUpdateOnePr).toHaveBeenCalledWith(
+      expect.anything(),
+      lastBodyEditedAt(new Date("2020-05-22T12:38:13Z")),
+    );
     expect(scope.pendingMocks()).toEqual([]);
     expect(scope.activeMocks()).toEqual([]);
+  });
+
+  test("does not date the body when only the title changed", async () => {
+    await receiveEdited({ changes: { title: { from: "old title" } } });
+
+    expect(partialUpdateOnePr).not.toHaveBeenCalledWith(
+      expect.anything(),
+      lastBodyEditedAt(expect.anything()),
+    );
+  });
+
+  test("leaves out reviewflow's own body rewrites", async () => {
+    await receiveEdited({
+      sender: {
+        ...pullRequestEdited.payload.sender,
+        login: `${process.env.REVIEWFLOW_NAME}[bot]`,
+        type: "Bot",
+      },
+    });
+
+    expect(partialUpdateOnePr).not.toHaveBeenCalledWith(
+      expect.anything(),
+      lastBodyEditedAt(expect.anything()),
+    );
   });
 });

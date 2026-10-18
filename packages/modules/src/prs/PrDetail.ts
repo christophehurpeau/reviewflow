@@ -38,6 +38,11 @@ export interface PrDetailChecks extends PrChecksSummary {
   pending: number;
 }
 
+export interface PrLabel {
+  id: number;
+  name: string;
+}
+
 /**
  * One pull request as the read api returns it: dates are ISO 8601 strings in
  * UTC, and a field reviewflow cannot know for an old document is `null`.
@@ -62,6 +67,7 @@ export interface PrDetail extends Omit<
 
   state: PrState | null;
   mergeable: PrMergeable;
+  labels: PrLabel[];
 
   flowDates: {
     createdAt: string | null;
@@ -73,6 +79,8 @@ export interface PrDetail extends Omit<
     lastPushedAt: string | null;
     lastReviewSubmittedAt: string | null;
     lastCommentActivityAt: string | null;
+    lastReviewCommentActivityAt: string | null;
+    lastBodyEditedAt: string | null;
   };
 
   reviewState: PrReviewState | null;

@@ -131,6 +131,7 @@ export const createToPrDetail = (
 
       state: toState(pr),
       mergeable: pr.mergeable ?? "unknown",
+      labels: pr.labels?.map(({ id, name }) => ({ id, name })) ?? [],
 
       flowDates: {
         createdAt: toIso(pr.flowDates?.createdAt),
@@ -142,6 +143,10 @@ export const createToPrDetail = (
         lastPushedAt: toIso(pr.flowDates?.lastPushedAt),
         lastReviewSubmittedAt: toIso(pr.flowDates?.lastReviewSubmittedAt),
         lastCommentActivityAt: toIso(pr.flowDates?.lastCommentActivityAt),
+        lastReviewCommentActivityAt: toIso(
+          pr.flowDates?.lastReviewCommentActivityAt,
+        ),
+        lastBodyEditedAt: toIso(pr.flowDates?.lastBodyEditedAt),
       },
 
       reviewState: pr.reviewState ?? null,

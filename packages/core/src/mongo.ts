@@ -249,6 +249,10 @@ export interface ReviewflowPr extends MongoBaseModel {
     lastReviewSubmittedAt?: Date;
     /** a conversation comment created, edited or deleted, reviewflow's own left out */
     lastCommentActivityAt?: Date;
+    /** a review comment created, edited or deleted, reviewflow's own left out */
+    lastReviewCommentActivityAt?: Date;
+    /** the description edited, reviewflow's own rewrites left out */
+    lastBodyEditedAt?: Date;
   };
   // flowHistory: FlowHistory[];
 }

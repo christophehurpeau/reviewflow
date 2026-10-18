@@ -45,6 +45,16 @@ const lastCommentActivityAt = (date: unknown) => ({
   $set: { "flowDates.lastCommentActivityAt": date },
 });
 
+const lastReviewCommentActivityAt = (date: unknown) => ({
+  $set: { "flowDates.lastReviewCommentActivityAt": date },
+});
+
+const reviewComment = {
+  ...reviewCommentCreated.payload.comment,
+  created_at: "2026-10-18T11:00:00Z",
+  updated_at: "2026-10-18T11:05:00Z",
+};
+
 describe("conversation comment activity", (): void => {
   let probot: Probot;
   const partialUpdateOnePr = vi.fn();
@@ -60,6 +70,22 @@ describe("conversation comment activity", (): void => {
       name: "issue_comment",
       payload: { ...eventBase, action, issue, comment, sender } as any,
     });
+
+  // the activity is recorded first: what follows, the slack notification and
+  // the review threads tracking, needs graphql mocks this test has no use for
+  const receiveReviewComment = (action: "created" | "deleted" | "edited") =>
+    probot
+      .receive({
+        id: "1",
+        name: "pull_request_review_comment",
+        payload: {
+          ...reviewCommentCreated.payload,
+          action,
+          comment: reviewComment,
+          sender: commenter,
+        } as any,
+      })
+      .catch(() => {});
 
   beforeEach(async () => {
     partialUpdateOnePr.mockClear();
@@ -141,21 +167,38 @@ describe("conversation comment activity", (): void => {
     );
   });
 
-  test("leaves out review comments", async () => {
-    // the activity is recorded first: what follows, the slack notification,
-    // needs graphql mocks this test has no use for
-    await probot
-      .receive({
-        id: "1",
-        name: "pull_request_review_comment",
-        payload: reviewCommentCreated.payload as any,
-      })
-      .catch(() => {});
+  test("dates a created review comment apart from the conversation", async () => {
+    await receiveReviewComment("created");
 
+    expect(partialUpdateOnePr).toHaveBeenCalledWith(
+      expect.anything(),
+      lastReviewCommentActivityAt(new Date("2026-10-18T11:00:00Z")),
+    );
     expect(partialUpdateOnePr).not.toHaveBeenCalledWith(
       expect.anything(),
       lastCommentActivityAt(expect.anything()),
     );
+  });
+
+  test("dates an edited review comment with its edition time", async () => {
+    await receiveReviewComment("edited");
+
+    expect(partialUpdateOnePr).toHaveBeenCalledWith(
+      expect.anything(),
+      lastReviewCommentActivityAt(new Date("2026-10-18T11:05:00Z")),
+    );
+  });
+
+  test("dates a deleted review comment with the receipt time", async () => {
+    const before = Date.now();
+    await receiveReviewComment("deleted");
+
+    const [, update] = partialUpdateOnePr.mock.calls.find(
+      ([, call]) => call.$set["flowDates.lastReviewCommentActivityAt"],
+    )!;
+    expect(
+      update.$set["flowDates.lastReviewCommentActivityAt"].getTime(),
+    ).toBeGreaterThanOrEqual(before);
   });
 
   test("leaves a document without flowDates untouched", async () => {
