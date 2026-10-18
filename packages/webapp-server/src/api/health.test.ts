@@ -2,7 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 import express from "express";
 import type { MongoStores } from "reviewflow-core";
 import { callApp } from "../tests/callRouter.ts";
+import { liveRelayState } from "../tests/relayState.ts";
 import apiRouter from "./apiRouter.ts";
+import type { RelayState } from "./health.ts";
 
 const createConnection = (command: () => Promise<unknown>) => {
   const getConnection = vi.fn(() =>
@@ -13,21 +15,25 @@ const createConnection = (command: () => Promise<unknown>) => {
   };
 };
 
-const unknownPropagation = { propagation: "unknown", lagSeconds: null };
-
 describe("GET /api/health/v1", () => {
-  const createApp = (command: () => Promise<unknown>) => {
+  const createApp = (
+    command: () => Promise<unknown>,
+    getRelayState: () => RelayState = liveRelayState,
+  ) => {
     const { stores } = createConnection(command);
     const findOne = vi.fn(() => Promise.resolve(undefined));
     const app = express();
     app.use(
       "/api",
-      apiRouter({
-        mongoStores: {
-          ...stores,
-          personalTokens: { findOne },
-        } as unknown as MongoStores,
-      }),
+      apiRouter(
+        {
+          mongoStores: {
+            ...stores,
+            personalTokens: { findOne },
+          } as unknown as MongoStores,
+        },
+        { getRelayState },
+      ),
     );
     return { app, findOne };
   };
@@ -43,7 +49,8 @@ describe("GET /api/health/v1", () => {
     expect(response.status).toBe(200);
     expect(JSON.parse(response.body)).toEqual({
       status: "ok",
-      ...unknownPropagation,
+      propagation: "ok",
+      lagSeconds: 0,
     });
     expect(response.headers["cache-control"]).toBe("no-store");
     expect(response.headers.etag).toBeUndefined();
@@ -61,8 +68,58 @@ describe("GET /api/health/v1", () => {
     expect(response.status).toBe(200);
     expect(JSON.parse(response.body)).toEqual({
       status: "degraded",
-      ...unknownPropagation,
+      propagation: "ok",
+      lagSeconds: 0,
     });
+  });
+
+  it("answers 200 degraded and lagging when the relay is not live", async () => {
+    const { app } = createApp(
+      () => Promise.resolve({}),
+      () => ({ isLive: false, lastMessageAt: new Date(Date.now() - 5000) }),
+    );
+
+    const response = await callApp(app, {
+      method: "GET",
+      url: "/api/health/v1",
+    });
+
+    expect(response.status).toBe(200);
+    expect(JSON.parse(response.body)).toEqual({
+      status: "degraded",
+      propagation: "lagging",
+      lagSeconds: 5,
+    });
+  });
+
+  it("answers lagging with a null lag when no message arrived yet", async () => {
+    const { app } = createApp(
+      () => Promise.resolve({}),
+      () => ({ isLive: false, lastMessageAt: null }),
+    );
+
+    const response = await callApp(app, {
+      method: "GET",
+      url: "/api/health/v1",
+    });
+
+    expect(JSON.parse(response.body)).toEqual({
+      status: "degraded",
+      propagation: "lagging",
+      lagSeconds: null,
+    });
+  });
+
+  it("GET /api/health stays 200 when the relay is lagging", async () => {
+    const { app } = createApp(
+      () => Promise.resolve({}),
+      () => ({ isLive: false, lastMessageAt: null }),
+    );
+
+    const response = await callApp(app, { method: "GET", url: "/api/health" });
+
+    expect(response.status).toBe(200);
+    expect(JSON.parse(response.body)).toEqual({ status: "ok" });
   });
 
   it("is not blocked by failed authentications from the same ip", async () => {

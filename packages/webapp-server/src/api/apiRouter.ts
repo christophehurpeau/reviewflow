@@ -15,6 +15,7 @@ import {
 import type { ApiAuth } from "./authenticatePersonalToken.ts";
 import { authenticatePersonalToken } from "./authenticatePersonalToken.ts";
 import { parseBucket, parsePage, readBoard, readBucketPage } from "./board.ts";
+import type { GetRelayState } from "./health.ts";
 import { toHealthV1 } from "./health.ts";
 import { lookupPrs, parseLookupTargets } from "./prsLookup.ts";
 import { createRateLimiter } from "./rateLimiter.ts";
@@ -49,13 +50,20 @@ const queryParam = (req: express.Request, name: string): string | undefined => {
 const isUnauthenticated = (error: unknown): boolean =>
   error instanceof ApiError && error.code === "unauthenticated";
 
+export interface ApiRouterOptions {
+  getRelayState: GetRelayState;
+}
+
 /**
  * Read-only api for tools outside the webapp, authenticated by personal tokens
  * only: the cookie session never reaches it, and these tokens never reach the
  * resources websocket. No CORS headers: a browser must not hold a token.
  * Documented in docs/api.md.
  */
-export default function apiRouter({ mongoStores }: ResourcesContext): Router {
+export default function apiRouter(
+  { mongoStores }: ResourcesContext,
+  { getRelayState }: ApiRouterOptions,
+): Router {
   const router = Router();
   const tokenLimiter = createRateLimiter(tokenLimits);
   const failedAuthLimiter = createRateLimiter(failedAuthLimits);
@@ -84,10 +92,15 @@ export default function apiRouter({ mongoStores }: ResourcesContext): Router {
   // hide the health of the server, and the checker bounds its own cost
   router.get("/health/v1", async (_req, res) => {
     res.set("Cache-Control", "no-store");
-    sendJsonWithoutEtag(res, toHealthV1(await healthChecker.check()));
+    sendJsonWithoutEtag(
+      res,
+      toHealthV1(await healthChecker.check(), getRelayState()),
+    );
   });
 
-  // for load balancers and container probes, which read the HTTP status only
+  // for load balancers and container probes, which read the HTTP status only.
+  // The relay is left out: a bot restart must not take the webapp, which still
+  // serves, out of a load balancer
   router.get("/health", async (_req, res) => {
     const status = await healthChecker.check();
     res.set("Cache-Control", "no-store");

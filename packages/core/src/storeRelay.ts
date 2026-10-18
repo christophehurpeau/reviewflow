@@ -4,6 +4,9 @@ import type { MongoStores } from "./mongo.ts";
 export const STORE_RELAY_PATH = "/api/internal/store-relay";
 export const STORE_RELAY_RESOURCE_NAME = "storeRelay";
 
+/** the producer sends a message at least this often, an empty one if idle */
+export const STORE_RELAY_HEARTBEAT_INTERVAL_MS = 15_000;
+
 /**
  * The stores the bot writes and the webapp server subscribes to. Both sides
  * take them from here: their names are the relay's wire identifiers.

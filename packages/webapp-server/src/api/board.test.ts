@@ -5,6 +5,7 @@ import { buildPrBucketQuery } from "reviewflow-core";
 import { prBucketsInOrder } from "reviewflow-modules";
 import { hashPersonalToken } from "../auth/personalTokens.ts";
 import { callApp } from "../tests/callRouter.ts";
+import { liveRelayState } from "../tests/relayState.ts";
 import apiRouter from "./apiRouter.ts";
 
 const plainToken = "rfp_valid-token";
@@ -118,7 +119,10 @@ const createApp = (tokenId: string, requestedTotal = 2) => {
   } as unknown as MongoStores;
 
   const app = express();
-  app.use("/api", apiRouter({ mongoStores }));
+  app.use(
+    "/api",
+    apiRouter({ mongoStores }, { getRelayState: liveRelayState }),
+  );
 
   return { app, calls, counts };
 };

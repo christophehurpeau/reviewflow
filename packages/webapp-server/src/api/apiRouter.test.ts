@@ -3,6 +3,7 @@ import express from "express";
 import type { MongoStores, PersonalToken } from "reviewflow-core";
 import { hashPersonalToken } from "../auth/personalTokens.ts";
 import { callApp } from "../tests/callRouter.ts";
+import { liveRelayState } from "../tests/relayState.ts";
 import apiRouter from "./apiRouter.ts";
 
 const plainToken = "rfp_valid-token";
@@ -57,7 +58,10 @@ const createApp = (stored: PersonalToken | undefined): Harness => {
   } as unknown as MongoStores;
 
   const app = express();
-  app.use("/api", apiRouter({ mongoStores }));
+  app.use(
+    "/api",
+    apiRouter({ mongoStores }, { getRelayState: liveRelayState }),
+  );
 
   return { app, findOne, partialUpdateByKey, orgMembersFindAll };
 };

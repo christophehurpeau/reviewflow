@@ -147,11 +147,12 @@ GET /api/health/v1
 ```
 
 ```json
-{ "status": "ok", "propagation": "unknown", "lagSeconds": null }
+{ "status": "ok", "propagation": "ok", "lagSeconds": 4 }
 ```
 
-- `status`: `ok`, or `degraded` when the server is reachable but its database does not answer within 2 seconds. The HTTP status is `200` either way: read the body.
-- `propagation` and `lagSeconds`: reserved for how far behind the server is in seeing changes made by the bot. For now `propagation` is always `"unknown"` and `lagSeconds` is `null`. Later `propagation` becomes `"ok"` or `"lagging"` and `lagSeconds` a number: treat any other value as unknown.
+- `status`: `ok`, or `degraded` when the server is reachable but its database does not answer within 2 seconds, or when `propagation` is `lagging`. The HTTP status is `200` either way: read the body.
+- `propagation`: `ok`, or `lagging` when the server no longer sees the changes made by the bot live: its link to the bot is down, or nothing arrived from it for 30 seconds (the bot sends a heartbeat every 15 seconds, so that is two missed). Webapp screens then stop updating until the link is back, and the server still answers. Treat any other value as unknown.
+- `lagSeconds`: whole seconds since the last message from the bot, heartbeats included, or `null` before the first one since the server started.
 - Never carries an `ETag`: always read the body.
 - The answer is shared between callers for 5 seconds, and is not subject to the rate limits above, nor blocked by them.
 
@@ -169,6 +170,7 @@ GET /api/health
 
 - `200` with `{ "status": "ok" }`, or `503` with `{ "status": "degraded" }` when the database does not answer within 2 seconds.
 - Shares its answer, its cache and its exemption from the rate limits with `GET /api/health/v1`.
+- Only the database decides the status: a `lagging` propagation does not turn it into `503`, so a restart of the bot does not take the server out of a load balancer.
 
 ### `GET /api/board/v1`
 

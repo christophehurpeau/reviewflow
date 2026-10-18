@@ -51,7 +51,10 @@ if (process.env.TRUST_PROXY) {
 
 expressApp.use(cookieParser());
 expressApp.use("/app", appRouter(resourcesContext));
-expressApp.use("/api", apiRouter(resourcesContext));
+expressApp.use(
+  "/api",
+  apiRouter(resourcesContext, { getRelayState: storeRelay.getState }),
+);
 
 // The webapp is a single page app: static assets first, then everything that
 // is not an api or oauth route falls back to its entry point.

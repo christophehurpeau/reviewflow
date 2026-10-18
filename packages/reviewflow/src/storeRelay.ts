@@ -6,7 +6,11 @@ import {
 } from "liwi-resources-server";
 import type { ResourcesWebsocketServer } from "liwi-resources-websocket-server";
 import { createWsServer } from "liwi-resources-websocket-server";
-import { STORE_RELAY_PATH, STORE_RELAY_RESOURCE_NAME } from "reviewflow-core";
+import {
+  STORE_RELAY_HEARTBEAT_INTERVAL_MS,
+  STORE_RELAY_PATH,
+  STORE_RELAY_RESOURCE_NAME,
+} from "reviewflow-core";
 import { hasInternalApiSecret } from "./internalApiSecret.ts";
 
 const RELAY_READER = "webapp-server";
@@ -29,7 +33,7 @@ export const createStoreRelayServer = ({
   server,
   stores,
   secret,
-  heartbeatIntervalMs,
+  heartbeatIntervalMs = STORE_RELAY_HEARTBEAT_INTERVAL_MS,
 }: CreateStoreRelayServerOptions): ResourcesWebsocketServer =>
   createWsServer<RelayReader>(
     server,
