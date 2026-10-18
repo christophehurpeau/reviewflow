@@ -59,6 +59,7 @@ describe("identity and branches", () => {
       headRef: null,
       baseRef: null,
       headSha: null,
+      baseSha: null,
       headRepoFullName: null,
       reviewState: null,
       mergeable: "unknown",

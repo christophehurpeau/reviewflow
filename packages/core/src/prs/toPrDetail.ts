@@ -126,6 +126,7 @@ export const createToPrDetail = (
       headRef: pr.headRef ?? null,
       baseRef: pr.baseRef ?? null,
       headSha: pr.headSha ?? null,
+      baseSha: pr.baseSha ?? null,
       headRepoFullName: pr.headRepoFullName ?? null,
 
       state: toState(pr),

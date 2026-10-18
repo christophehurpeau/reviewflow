@@ -60,7 +60,7 @@ export const getInitialFlowDatesFromPullRequest = (
 export const getBranchesFromPullRequest = (
   pullRequest: PullRequestDataMinimumData | PullRequestWithDecentData,
 ):
-  | Pick<ReviewflowPr, "baseRef" | "headRef" | "headRepoFullName">
+  | Pick<ReviewflowPr, "baseRef" | "baseSha" | "headRef" | "headRepoFullName">
   | undefined => {
   if (!("head" in pullRequest) || !("base" in pullRequest)) return undefined;
   const headRepo: { full_name?: string } | null | undefined =
@@ -68,6 +68,7 @@ export const getBranchesFromPullRequest = (
   const branches: NonNullable<ReturnType<typeof getBranchesFromPullRequest>> = {
     headRef: pullRequest.head.ref,
     baseRef: pullRequest.base.ref,
+    baseSha: pullRequest.base.sha,
   };
   // `null`: the head repository was deleted. The minimal pull requests of
   // `check_run` payloads have a repo without `full_name`: unknown, left absent.

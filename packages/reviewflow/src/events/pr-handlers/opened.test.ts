@@ -123,6 +123,7 @@ describe("opened", (): void => {
         labels: [],
         headRef: "christophehurpeau-patch-2",
         baseRef: "master",
+        baseSha: "555c182f2a1353cac4b13af8f1f592640a146b1d",
         headRepoFullName: "reviewflow/reviewflow-test",
       }),
     );

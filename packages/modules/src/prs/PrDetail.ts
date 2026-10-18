@@ -55,6 +55,8 @@ export interface PrDetail extends Omit<
   headRef: string | null;
   baseRef: string | null;
   headSha: string | null;
+  /** base branch tip as of the last update of the pull request, not the merge base */
+  baseSha: string | null;
   /** `owner/name` of the head branch, a fork for fork pull requests */
   headRepoFullName: string | null;
 

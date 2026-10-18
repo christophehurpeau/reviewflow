@@ -205,6 +205,8 @@ export interface ReviewflowPr extends MongoBaseModel {
   headSha?: string;
   headRef?: string;
   baseRef?: string;
+  /** base branch tip from the last `pull_request` payload, not refreshed on a push to the base */
+  baseSha?: string;
   /**
    * `owner/repo` of the head branch (a fork for fork PRs); `null` when the
    * head repository was deleted, absent = unknown.
