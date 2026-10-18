@@ -120,24 +120,34 @@ describe("limitQuerySubscriptions", () => {
       {
         type: "initial",
         initial: queryResult.result,
-        meta: { ...queryResult.meta, liveUpdates: "paused" },
+        meta: {
+          ...queryResult.meta,
+          liveUpdates: "paused",
+          liveUpdatesPausedBy: "userLimit",
+        },
         queryInfo: queryResult.info,
       },
     ]);
     expect(query.liveCallbacks).toHaveLength(2);
-    expect(onLimitReached).toHaveBeenCalledOnce();
+    expect(onLimitReached).toHaveBeenCalledExactlyOnceWith("userLimit");
     expect(slots.getCounts()).toEqual({ total: 2, users: 2 });
   });
 
   it("degrades past the total limit, and subscribes live again once a slot is free", async () => {
     const slots = createSubscriptionSlots({ maxTotal: 1, maxPerUser: 10 });
     const query = createFakeQuery();
+    const onLimitReached = vi.fn();
     const limitedFor = (userKey: string): Query<any, any> =>
-      limitQuerySubscriptions(query, () => slots.acquire(userKey), vi.fn());
+      limitQuerySubscriptions(
+        query,
+        () => slots.acquire(userKey),
+        onLimitReached,
+      );
 
     const first = limitedFor("42").fetchAndSubscribe(vi.fn());
     await limitedFor("43").subscribe(vi.fn());
     expect(query.liveCallbacks).toHaveLength(1);
+    expect(onLimitReached).toHaveBeenCalledExactlyOnceWith("serverLimit");
 
     first.stop();
     await limitedFor("43").subscribe(vi.fn());

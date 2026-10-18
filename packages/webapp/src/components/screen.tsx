@@ -1,6 +1,7 @@
 import { IconButton, Text, View } from "alouette";
 import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeft";
 import type { ReactNode } from "react";
+import type { LiveUpdatesPausedBy } from "reviewflow-modules";
 import { LiveUpdatesPausedNotice } from "#/components/live-updates-paused-notice.tsx";
 import { PageContainer } from "#/components/page-container.tsx";
 
@@ -10,7 +11,7 @@ interface ScreenProps {
   onBack?: () => void;
   actions?: ReactNode;
   /** a query of the screen could not subscribe, its data will not update by itself */
-  isLiveUpdatesPaused?: boolean;
+  liveUpdatesPausedBy?: LiveUpdatesPausedBy;
   children: ReactNode;
 }
 
@@ -19,7 +20,7 @@ export function Screen({
   backLabel = "Back",
   onBack,
   actions,
-  isLiveUpdatesPaused = false,
+  liveUpdatesPausedBy,
   children,
 }: ScreenProps): ReactNode {
   return (
@@ -42,7 +43,7 @@ export function Screen({
         </View>
         {actions}
       </View>
-      <LiveUpdatesPausedNotice isPaused={isLiveUpdatesPaused} />
+      <LiveUpdatesPausedNotice pausedBy={liveUpdatesPausedBy} />
       {children}
     </PageContainer>
   );

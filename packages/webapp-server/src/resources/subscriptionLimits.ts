@@ -1,6 +1,6 @@
 import type { ServiceResource } from "liwi-resources-server";
 import type { Query, QuerySubscription, SubscribeCallback } from "liwi-store";
-import type { LiveUpdatesMeta } from "reviewflow-modules";
+import type { LiveUpdatesMeta, LiveUpdatesPausedBy } from "reviewflow-modules";
 
 /*
  * Every live subscription is refetched on each store relay (re)connection and
@@ -40,9 +40,12 @@ export const readSubscriptionLimits = (
 
 type ReleaseSlot = () => void;
 
+export type AcquiredSlot =
+  | { limitReached: LiveUpdatesPausedBy }
+  | { release: ReleaseSlot };
+
 export interface SubscriptionSlots {
-  /** undefined when a limit is reached */
-  acquire: (userKey: string) => ReleaseSlot | undefined;
+  acquire: (userKey: string) => AcquiredSlot;
   getCounts: () => { total: number; users: number };
 }
 
@@ -56,18 +59,21 @@ export const createSubscriptionSlots = ({
   return {
     acquire: (userKey) => {
       const userCount = countByUser.get(userKey) ?? 0;
-      if (total >= maxTotal || userCount >= maxPerUser) return undefined;
+      if (userCount >= maxPerUser) return { limitReached: "userLimit" };
+      if (total >= maxTotal) return { limitReached: "serverLimit" };
 
       total++;
       countByUser.set(userKey, userCount + 1);
       let isReleased = false;
-      return () => {
-        if (isReleased) return;
-        isReleased = true;
-        total--;
-        const remaining = (countByUser.get(userKey) ?? 1) - 1;
-        if (remaining === 0) countByUser.delete(userKey);
-        else countByUser.set(userKey, remaining);
+      return {
+        release: () => {
+          if (isReleased) return;
+          isReleased = true;
+          total--;
+          const remaining = (countByUser.get(userKey) ?? 1) - 1;
+          if (remaining === 0) countByUser.delete(userKey);
+          else countByUser.set(userKey, remaining);
+        },
       };
     },
     getCounts: () => ({ total, users: countByUser.size }),
@@ -88,13 +94,14 @@ const toSubscription = (
 
 const withLiveUpdates = <Meta extends object>(
   meta: Meta,
-  liveUpdates: LiveUpdatesMeta["liveUpdates"],
-): LiveUpdatesMeta & Meta => ({ ...meta, liveUpdates });
+  liveUpdates: LiveUpdatesMeta,
+): LiveUpdatesMeta & Meta => ({ ...meta, ...liveUpdates });
 
 /** the degraded mode: the result as of now, no live update */
 const fetchOnce = (
   query: Query<any, any>,
   callback: SubscribeCallback<any, any>,
+  pausedBy: LiveUpdatesPausedBy,
 ): QuerySubscription =>
   toSubscription(
     query.fetch(({ result, meta, info }) => {
@@ -102,7 +109,10 @@ const fetchOnce = (
         {
           type: "initial",
           initial: result,
-          meta: withLiveUpdates(meta, "paused"),
+          meta: withLiveUpdates(meta, {
+            liveUpdates: "paused",
+            liveUpdatesPausedBy: pausedBy,
+          }),
           queryInfo: info,
         },
       ]);
@@ -120,7 +130,10 @@ const withSlot = (
       err,
       changes?.map((change) =>
         change.type === "initial"
-          ? { ...change, meta: withLiveUpdates(change.meta, "live") }
+          ? {
+              ...change,
+              meta: withLiveUpdates(change.meta, { liveUpdates: "live" }),
+            }
           : change,
       ),
     ),
@@ -133,8 +146,8 @@ const withSlot = (
 
 export const limitQuerySubscriptions = (
   query: Query<any, any>,
-  acquireSlot: () => ReleaseSlot | undefined,
-  onLimitReached: () => void,
+  acquireSlot: () => AcquiredSlot,
+  onLimitReached: (limitReached: LiveUpdatesPausedBy) => void,
 ): Query<any, any> => ({
   changeParams: (params) => {
     query.changeParams(params);
@@ -144,27 +157,27 @@ export const limitQuerySubscriptions = (
   },
   fetch: (onFulfilled) => query.fetch(onFulfilled),
   fetchAndSubscribe: (callback) => {
-    const releaseSlot = acquireSlot();
-    if (!releaseSlot) {
-      onLimitReached();
-      return fetchOnce(query, callback);
+    const slot = acquireSlot();
+    if ("limitReached" in slot) {
+      onLimitReached(slot.limitReached);
+      return fetchOnce(query, callback, slot.limitReached);
     }
     return withSlot(
       (subscriptionCallback) => query.fetchAndSubscribe(subscriptionCallback),
       callback,
-      releaseSlot,
+      slot.release,
     );
   },
   subscribe: (callback) => {
-    const releaseSlot = acquireSlot();
-    if (!releaseSlot) {
-      onLimitReached();
+    const slot = acquireSlot();
+    if ("limitReached" in slot) {
+      onLimitReached(slot.limitReached);
       return toSubscription(Promise.resolve(), noop);
     }
     return withSlot(
       (subscriptionCallback) => query.subscribe(subscriptionCallback),
       callback,
-      releaseSlot,
+      slot.release,
     );
   },
 });
@@ -193,10 +206,11 @@ export const withSubscriptionLimits = <
         return limitQuerySubscriptions(
           query,
           () => slots.acquire(userKey),
-          () => {
+          (limitReached) => {
             console.warn("Live subscription limit reached, fetch only", {
               query: key,
               userKey,
+              limitReached,
               ...slots.getCounts(),
             });
           },

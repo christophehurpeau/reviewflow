@@ -20,7 +20,7 @@ import { ResourceView } from "#/components/resource-view.tsx";
 import { Screen } from "#/components/screen.tsx";
 import { StartReviewButton } from "#/components/start-review-button.tsx";
 import { reviewflowName } from "#/reviewflowName.ts";
-import { isAnyLiveUpdatesPaused } from "#/services/isAnyLiveUpdatesPaused.ts";
+import { getScreenLiveUpdatesPausedBy } from "#/services/getScreenLiveUpdatesPausedBy.ts";
 import type { PrBucketResource } from "./PrBucketSection.tsx";
 import { PrBucketSection, hasBucketContent } from "./PrBucketSection.tsx";
 import { PrGroupSection } from "./PrGroupSection.tsx";
@@ -74,7 +74,7 @@ export function PrsScreen({
   return (
     <Screen
       title="Pull requests"
-      isLiveUpdatesPaused={isAnyLiveUpdatesPaused([
+      liveUpdatesPausedBy={getScreenLiveUpdatesPausedBy([
         me,
         orgs,
         ...Object.values(prsByBucket),
