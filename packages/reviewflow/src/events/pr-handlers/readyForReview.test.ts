@@ -123,6 +123,7 @@ describe("edited", (): void => {
         reviewState: "none",
         headRef: "test-drft",
         baseRef: "master",
+        baseSha: "f2c8db3664c6497c14be729f75b37e9b7507db47",
         headRepoFullName: "reviewflow/reviewflow-test",
         mergeable: "mergeable",
         changesInformation: {
