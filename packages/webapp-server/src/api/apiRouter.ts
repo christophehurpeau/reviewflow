@@ -85,7 +85,7 @@ export default function apiRouter(
   const tokenLimiter = createRateLimiter(tokenLimits);
   const failedAuthLimiter = createRateLimiter(failedAuthLimits);
   const healthChecker = createHealthChecker(mongoStores);
-  const openStreams = new Set<string>();
+  const openStreams = new Map<string, number>();
 
   const authenticate: RequestHandler = async (req, res, next) => {
     const ip = req.ip ?? "unknown";

@@ -220,6 +220,14 @@ export const openPrStream = ({
 const dayMs = 24 * 60 * 60 * 1000;
 /** the reader's client waits this long before trying again */
 const retryAfterSeconds = { busy: 60, sameToken: 30 };
+/**
+ * Two, not one: a reader whose connection vanished (sleep, network change)
+ * keeps its stream until TCP gives up, minutes later, and must be able to
+ * reconnect meanwhile.
+ */
+export const maxStreamsPerToken = 2;
+/** a reader this far behind gets the scope again by reconnecting */
+export const streamMaxBufferedBytes = 1024 * 1024;
 
 export interface ServeStreamOptions {
   mongoStores: MongoStores;
@@ -228,10 +236,11 @@ export interface ServeStreamOptions {
   /** what the stream's scope spans, read again every `recheckIntervalMs` */
   resolveAccounts: () => Promise<PrBucketAccount[]>;
   slots: SubscriptionSlots;
-  /** token ids with an open stream: one each */
-  openStreams: Set<string>;
+  /** open streams by token id, at most `maxStreamsPerToken` each */
+  openStreams: Map<string, number>;
   heartbeatIntervalMs?: number;
   recheckIntervalMs?: number;
+  maxBufferedBytes?: number;
 }
 
 const isTokenActive = async (
@@ -243,8 +252,20 @@ const isTokenActive = async (
     revokedAt: { $exists: false },
   }));
 
+/** only a lost scope changes it: any other failure is retried on the next check */
+const resolveCurrentAccounts = async (
+  resolveAccounts: () => Promise<PrBucketAccount[]>,
+): Promise<PrBucketAccount[]> => {
+  try {
+    return await resolveAccounts();
+  } catch (error) {
+    if (error instanceof ApiError) return [];
+    throw error;
+  }
+};
+
 /**
- * Refused before anything is written: a second stream of the token, or no
+ * Refused before anything is written: a third stream of the token, or no
  * live subscription left for the user or the server. Then held open until
  * the reader leaves, the token is revoked or the scope changes.
  */
@@ -259,15 +280,19 @@ export const serveStream = async (
     openStreams,
     heartbeatIntervalMs = streamHeartbeatIntervalMs,
     recheckIntervalMs = streamRecheckIntervalMs,
+    maxBufferedBytes = streamMaxBufferedBytes,
   }: ServeStreamOptions,
 ): Promise<void> => {
   const tokenId = auth.token._id;
   const accounts = await resolveAccounts();
+  // gone during the await: its `close` was emitted before anything listened
+  if (res.destroyed) return;
 
-  if (openStreams.has(tokenId)) {
+  const tokenStreams = openStreams.get(tokenId) ?? 0;
+  if (tokenStreams >= maxStreamsPerToken) {
     throw new ApiError(
       "rateLimited",
-      "This token already has an open stream",
+      `This token already has ${maxStreamsPerToken} open streams`,
       retryAfterSeconds.sameToken,
     );
   }
@@ -281,7 +306,7 @@ export const serveStream = async (
       retryAfterSeconds.busy,
     );
   }
-  openStreams.add(tokenId);
+  openStreams.set(tokenId, tokenStreams + 1);
 
   res.status(200);
   res.set({
@@ -293,9 +318,6 @@ export const serveStream = async (
   });
   res.flushHeaders();
 
-  const send = (event: StreamEvent): void => {
-    if (!res.writableEnded) res.write(formatStreamEvent(event));
-  };
   const serverTime = (): { serverTime: string } => ({
     serverTime: new Date().toISOString(),
   });
@@ -308,6 +330,8 @@ export const serveStream = async (
       : undefined;
 
   let isClosed = false;
+  let isReady = false;
+  let isRechecking = false;
   let heartbeat: ReturnType<typeof setInterval> | undefined;
   let recheck: ReturnType<typeof setInterval> | undefined;
   let stream: QuerySubscription | undefined;
@@ -319,10 +343,26 @@ export const serveStream = async (
     clearInterval(recheck);
     stream?.stop();
     slot.release();
-    openStreams.delete(tokenId);
+    const remaining = (openStreams.get(tokenId) ?? 1) - 1;
+    if (remaining === 0) openStreams.delete(tokenId);
+    else openStreams.set(tokenId, remaining);
     if (!res.writableEnded) res.end();
   };
   res.on("close", close);
+
+  const send = (event: StreamEvent): void => {
+    if (res.writableEnded) return;
+    res.write(formatStreamEvent(event));
+    if (event.event === "ready") {
+      // the initial scope is written at once, whatever its size
+      isReady = true;
+    } else if (isReady && res.writableLength > maxBufferedBytes) {
+      res.write(
+        formatStreamEvent({ event: "reset", data: { reason: "error" } }),
+      );
+      close();
+    }
+  };
 
   stream = openPrStream({
     query: mongoStores.prs.createQueryCollection({
@@ -335,6 +375,11 @@ export const serveStream = async (
     send,
     end: close,
   });
+  // closed by a change sent synchronously, before `stream` was assigned
+  if (isClosed) {
+    stream.stop();
+    return;
+  }
 
   heartbeat = setInterval(() => {
     send({ event: "heartbeat", data: serverTime() });
@@ -346,15 +391,22 @@ export const serveStream = async (
       close();
       return;
     }
-    const current = await resolveAccounts().catch(() => []);
+    const current = await resolveCurrentAccounts(resolveAccounts);
     if (JSON.stringify(current) !== JSON.stringify(accounts)) {
       send({ event: "scopeChanged", data: {} });
       close();
     }
   };
   recheck = setInterval(() => {
-    recheckReader().catch((error: unknown) => {
-      logger.error("Could not check a pull request stream reader", { error });
-    });
+    // lookups slowed down by mongo must not pile up
+    if (isRechecking) return;
+    isRechecking = true;
+    recheckReader()
+      .catch((error: unknown) => {
+        logger.error("Could not check a pull request stream reader", { error });
+      })
+      .finally(() => {
+        isRechecking = false;
+      });
   }, recheckIntervalMs);
 };

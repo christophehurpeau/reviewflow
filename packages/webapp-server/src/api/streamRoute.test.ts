@@ -123,17 +123,22 @@ describe("GET /api/stream/v1", () => {
     );
   });
 
-  it("answers 429 to a second stream of the same token", async () => {
-    const harness = createApp("t-second");
+  it("accepts a second stream of the same token, answers 429 to a third", async () => {
+    const harness = createApp("t-third");
     const first = openStream(harness.app);
     await waitForStreams(harness, 1);
+    const second = openStream(harness.app);
+    await waitForStreams(harness, 2);
 
-    const second = await openStream(harness.app);
+    const third = await openStream(harness.app);
 
-    expect(second.status).toBe(429);
-    expect(second.headers["retry-after"]).toBe("30");
+    expect(third.status).toBe(429);
+    expect(third.headers["retry-after"]).toBe("30");
     failStream(harness, 0);
-    await first;
+    failStream(harness, 1);
+    const [firstResponse, secondResponse] = await Promise.all([first, second]);
+    expect(firstResponse.status).toBe(200);
+    expect(secondResponse.status).toBe(200);
   });
 
   it("answers 503 past the user's live subscriptions", async () => {

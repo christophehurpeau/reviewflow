@@ -366,13 +366,13 @@ The scope is every pull request on your board, every open pull request you creat
 | `ready`        | `{ "serverTime" }`                                    | the pull requests in scope have all been sent                                                                                                                        |
 | `heartbeat`    | `{ "serverTime" }`                                    | every 25 s, so that a proxy keeps the connection and you can tell a dead one                                                                                         |
 | `scopeChanged` | `{}`                                                  | the accounts the token reads, or your teams, changed. The stream then ends: reconnect                                                                                |
-| `reset`        | `{ "reason": "resync" \| "tokenRevoked" \| "error" }` | the stream ends: reconnect, which sends the scope again. `tokenRevoked`: reconnecting answers `401`                                                                  |
+| `reset`        | `{ "reason": "resync" \| "tokenRevoked" \| "error" }` | the stream ends: reconnect, which sends the scope again. `tokenRevoked`: reconnecting answers `401`. `error` also when you read too slowly and fall far behind       |
 
 - Events are state, not deltas: each `pr` carries the whole pull request. Several changes of one pull request within a second are sent as one event with the latest state, and a change of `updatedAt` alone is not sent.
 - One action on GitHub can produce several `pr` events: GitHub sends separate webhooks (the review, each of its comments, the echo of reviewflow's own edits) in no guaranteed order, and reviewflow cannot know whether more will follow. Take each event as the latest known state; an activity date that moved means the content changed on GitHub, so refetch it there, ideally debounced per pull request.
 - There is no resume: after a disconnection, reconnect and take the `pr` events before `ready` as the current state; drop what you held that they do not include.
 - A revoked token or a membership change is noticed within a minute.
-- One stream per token: a second one is refused with `429` while the first is open. Each stream holds one of the live connections the server allows per user and in total: past them, `503 unavailable`.
+- Two streams per token, so that you can reconnect while a stream whose connection vanished (sleep, network change) is still held on the server: a third one is refused with `429`. Each stream holds one of the live connections the server allows per user and in total: past them, `503 unavailable`.
 - Changes reach the stream within a second or two of reviewflow receiving the GitHub webhook.
 - Behind a reverse proxy, turn response buffering off for this path (the server already sends `X-Accel-Buffering: no` for nginx).
 
@@ -383,5 +383,5 @@ Errors, before the stream starts:
 | 400    | `badRequest`      | `account` is empty or repeated, `closedWithinDays` is not an integer from 0 to 30         |
 | 401    | `unauthenticated` | missing, unknown or revoked token                                                         |
 | 403    | `forbidden`       | `account` is not an account the token reads                                               |
-| 429    | `rateLimited`     | past a rate limit, or the token already has an open stream                                |
+| 429    | `rateLimited`     | past a rate limit, or the token already has two open streams                              |
 | 503    | `unavailable`     | the server holds too many live connections for you or in total; retry after `Retry-After` |
