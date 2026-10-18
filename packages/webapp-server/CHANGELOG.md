@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.19.0](https://github.com/christophehurpeau/reviewflow/compare/v6.18.0...v6.19.0) (2026-10-18)
+
+Version bump for dependency: reviewflow-core
+Version bump for dependency: reviewflow-modules
+
+
 ## [6.18.0](https://github.com/christophehurpeau/reviewflow/compare/v6.17.0...v6.18.0) (2026-10-18)
 
 ### Features
