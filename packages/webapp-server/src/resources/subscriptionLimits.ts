@@ -1,5 +1,6 @@
 import type { ServiceResource } from "liwi-resources-server";
 import type { Query, QuerySubscription, SubscribeCallback } from "liwi-store";
+import type { LiveUpdatesMeta } from "reviewflow-modules";
 
 /*
  * Every live subscription is refetched on each store relay (re)connection and
@@ -85,6 +86,11 @@ const toSubscription = (
     promise.then(() => undefined).then(onFulfilled, onRejected),
 });
 
+const withLiveUpdates = <Meta extends object>(
+  meta: Meta,
+  liveUpdates: LiveUpdatesMeta["liveUpdates"],
+): LiveUpdatesMeta & Meta => ({ ...meta, liveUpdates });
+
 /** the degraded mode: the result as of now, no live update */
 const fetchOnce = (
   query: Query<any, any>,
@@ -93,7 +99,12 @@ const fetchOnce = (
   toSubscription(
     query.fetch(({ result, meta, info }) => {
       callback(null, [
-        { type: "initial", initial: result, meta, queryInfo: info },
+        {
+          type: "initial",
+          initial: result,
+          meta: withLiveUpdates(meta, "paused"),
+          queryInfo: info,
+        },
       ]);
     }),
     noop,
@@ -104,7 +115,16 @@ const withSlot = (
   callback: SubscribeCallback<any, any>,
   releaseSlot: ReleaseSlot,
 ): QuerySubscription => {
-  const subscription = subscribe(callback);
+  const subscription = subscribe((err, changes) =>
+    callback(
+      err,
+      changes?.map((change) =>
+        change.type === "initial"
+          ? { ...change, meta: withLiveUpdates(change.meta, "live") }
+          : change,
+      ),
+    ),
+  );
   return toSubscription(subscription, () => {
     releaseSlot();
     subscription.stop();

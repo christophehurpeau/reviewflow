@@ -1,5 +1,6 @@
 export type * from "./auth/AuthenticatedUser.ts";
 export type * from "./dm/MessageCategory.ts";
+export * from "./live-updates/liveUpdates.ts";
 export type * from "./orgs/Org.ts";
 export type * from "./orgs/OrgsService.ts";
 export type * from "./personal-tokens/PersonalTokensService.ts";

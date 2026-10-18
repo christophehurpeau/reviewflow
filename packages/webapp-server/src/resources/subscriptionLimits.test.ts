@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { Query, QueryResult, SubscribeCallback } from "liwi-store";
+import type { Change, Query, QueryResult, SubscribeCallback } from "liwi-store";
 import {
   createSubscriptionSlots,
   limitQuerySubscriptions,
@@ -72,6 +72,34 @@ describe("limitQuerySubscriptions", () => {
     expect(onLimitReached).not.toHaveBeenCalled();
   });
 
+  it("marks the initial change live within the limits, and leaves later changes as they are", async () => {
+    const slots = createSubscriptionSlots({ maxTotal: 2, maxPerUser: 2 });
+    const query = createFakeQuery();
+    const limited = limitQuerySubscriptions(
+      query,
+      () => slots.acquire("42"),
+      vi.fn(),
+    );
+    const callback = vi.fn();
+
+    await limited.fetchAndSubscribe(callback);
+    const inserted: Change<string, { _id: string }[]> = {
+      type: "inserted",
+      result: [{ _id: "pr-2" }],
+    };
+    query.liveCallbacks[0]?.(null, [inserted]);
+
+    expect(callback).toHaveBeenNthCalledWith(1, null, [
+      {
+        type: "initial",
+        initial: queryResult.result,
+        meta: { ...queryResult.meta, liveUpdates: "live" },
+        queryInfo: queryResult.info,
+      },
+    ]);
+    expect(callback).toHaveBeenNthCalledWith(2, null, [inserted]);
+  });
+
   it("degrades to one fetch past the per user limit, leaving other users live", async () => {
     const slots = createSubscriptionSlots({ maxTotal: 10, maxPerUser: 1 });
     const query = createFakeQuery();
@@ -92,7 +120,7 @@ describe("limitQuerySubscriptions", () => {
       {
         type: "initial",
         initial: queryResult.result,
-        meta: queryResult.meta,
+        meta: { ...queryResult.meta, liveUpdates: "paused" },
         queryInfo: queryResult.info,
       },
     ]);
