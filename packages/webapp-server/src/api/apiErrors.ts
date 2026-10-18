@@ -58,6 +58,13 @@ export const apiErrorHandler: ErrorRequestHandler = (
   res,
   next,
 ) => {
+  // a started response, a stream, can only be cut: its own `close` cleans up
+  if (res.headersSent) {
+    logger.error("Api error after the response started", { error });
+    res.destroy();
+    return;
+  }
+
   if (error instanceof ApiError) {
     if (error.retryAfterSeconds !== undefined) {
       res.setHeader("Retry-After", String(error.retryAfterSeconds));
