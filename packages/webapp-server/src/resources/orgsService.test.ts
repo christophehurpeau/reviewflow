@@ -18,12 +18,16 @@ const loggedInUser: AuthenticatedWsUser = {
   accessToken: "gh-token",
 };
 
-const buildOrg = (config: Org["config"] | undefined): Org =>
+const buildOrg = (
+  config: Org["config"] | undefined,
+  paidEnabled = false,
+): Org =>
   ({
     _id: 1,
     login: "acme",
     status: "active",
     config,
+    paidFeatures: paidEnabled ? { enabled: true } : undefined,
   }) as unknown as Org;
 
 interface Stores {
@@ -34,7 +38,7 @@ interface Stores {
 }
 
 /** the user is a member of org 1, and of nothing else */
-const createStores = (): Stores => {
+const createStores = (isPaidEnabled = true): Stores => {
   const partialUpdateByKey = vi.fn(() => Promise.resolve());
   const createQuerySingleItem = vi.fn(() => "query");
   const createQueryCollection = vi.fn(() => "query");
@@ -50,7 +54,12 @@ const createStores = (): Stores => {
             : null,
         ),
     },
-    orgs: { partialUpdateByKey, createQuerySingleItem, createQueryCollection },
+    orgs: {
+      partialUpdateByKey,
+      createQuerySingleItem,
+      createQueryCollection,
+      findByKey: () => Promise.resolve(buildOrg({}, isPaidEnabled)),
+    },
   };
 
   return {
@@ -96,6 +105,16 @@ describe("setAllowPersonalTokens", () => {
     });
   });
 
+  it("refuses to allow tokens on an org the admin did not enable", async () => {
+    vi.mocked(callBotApiForJson).mockResolvedValue({ role: "admin" });
+    const { mongoStores, partialUpdateByKey } = createStores(false);
+
+    await expect(setAllow(mongoStores)).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+    expect(partialUpdateByKey).not.toHaveBeenCalled();
+  });
+
   it("refuses a member who is not an owner", async () => {
     vi.mocked(callBotApiForJson).mockResolvedValue({ role: "member" });
     const { mongoStores, partialUpdateByKey } = createStores();
@@ -134,9 +153,14 @@ describe("queryOrgPersonalTokensPolicy", () => {
     );
     expect(
       transformerOf(createQuerySingleItem)(
-        buildOrg({ allowPersonalTokens: true }),
+        buildOrg({ allowPersonalTokens: true }, true),
       ),
-    ).toEqual({ _id: 1, allowPersonalTokens: true, viewerIsOwner: true });
+    ).toEqual({
+      _id: 1,
+      allowPersonalTokens: true,
+      paidEnabled: true,
+      viewerIsOwner: true,
+    });
   });
 
   it("reads an org without config as not allowing tokens", async () => {
@@ -148,6 +172,7 @@ describe("queryOrgPersonalTokensPolicy", () => {
     expect(transformerOf(createQuerySingleItem)(buildOrg(undefined))).toEqual({
       _id: 1,
       allowPersonalTokens: false,
+      paidEnabled: false,
       viewerIsOwner: false,
     });
   });
@@ -211,14 +236,16 @@ describe("queryMyOrgs", () => {
     );
     const transformer = transformerOf(createQueryCollection);
 
-    expect(transformer(buildOrg({ allowPersonalTokens: true }))).toEqual({
+    expect(transformer(buildOrg({ allowPersonalTokens: true }, true))).toEqual({
       _id: 1,
       login: "acme",
       status: "active",
       allowPersonalTokens: true,
+      paidEnabled: true,
     });
     expect(transformer(buildOrg({}))).toMatchObject({
       allowPersonalTokens: false,
+      paidEnabled: false,
     });
   });
 });

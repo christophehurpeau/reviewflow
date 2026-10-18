@@ -7,7 +7,14 @@ const buildOrg = (
   _id: number,
   login: string,
   allowPersonalTokens: boolean,
-): OrgSummary => ({ _id, login, status: "active", allowPersonalTokens });
+  paidEnabled = true,
+): OrgSummary => ({
+  _id,
+  login,
+  status: "active",
+  allowPersonalTokens,
+  paidEnabled,
+});
 
 const meta = {
   component: TokenReachList,
@@ -16,6 +23,7 @@ const meta = {
   },
   args: {
     userLogin: "christophehurpeau",
+    userPaidEnabled: true,
     orgs: [buildOrg(1, "elax", true), buildOrg(2, "acme", false)],
   },
 } satisfies Meta<typeof TokenReachList>;
@@ -31,27 +39,52 @@ export const VariantsStory: StoryObj<typeof meta> = {
   render: () => (
     <Story>
       <Story.Section title="no org">
-        <TokenReachList userLogin="christophehurpeau" orgs={[]} />
+        <TokenReachList
+          userPaidEnabled
+          userLogin="christophehurpeau"
+          orgs={[]}
+        />
       </Story.Section>
       <Story.Section title="every org allows">
         <TokenReachList
+          userPaidEnabled
           userLogin="christophehurpeau"
           orgs={[buildOrg(1, "elax", true)]}
         />
       </Story.Section>
       <Story.Section title="one org does not allow">
         <TokenReachList
+          userPaidEnabled
           userLogin="christophehurpeau"
           orgs={[buildOrg(1, "elax", true), buildOrg(2, "acme", false)]}
         />
       </Story.Section>
       <Story.Section title="several orgs do not allow">
         <TokenReachList
+          userPaidEnabled
           userLogin="christophehurpeau"
           orgs={[
             buildOrg(2, "acme", false),
             buildOrg(3, "globex", false),
             buildOrg(4, "initech", false),
+          ]}
+        />
+      </Story.Section>
+      <Story.Section title="own account not enabled">
+        <TokenReachList
+          userLogin="christophehurpeau"
+          userPaidEnabled={false}
+          orgs={[buildOrg(1, "elax", true)]}
+        />
+      </Story.Section>
+      <Story.Section title="orgs not enabled">
+        <TokenReachList
+          userPaidEnabled
+          userLogin="christophehurpeau"
+          orgs={[
+            buildOrg(1, "elax", true),
+            buildOrg(2, "acme", true, false),
+            buildOrg(3, "globex", false, false),
           ]}
         />
       </Story.Section>

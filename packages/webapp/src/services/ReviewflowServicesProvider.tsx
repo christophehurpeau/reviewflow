@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { createContext, use, useState } from "react";
 import { TransportClientContext } from "react-liwi";
 import type {
+  AdminService,
   OrgsService,
   PersonalTokensService,
   PrsService,
@@ -57,7 +58,16 @@ const createPersonalTokensServiceClient =
     },
   });
 
+const createAdminServiceClient = createResourceClientService<AdminService>(
+  "admin",
+  {
+    queries: { queryAdminOrgs: null, queryAdminUsers: null },
+    operations: { setAccountPaidEnabled: null },
+  },
+);
+
 interface ReviewflowServices {
+  adminService: AdminService;
   usersService: UsersService;
   orgsService: OrgsService;
   repositoriesService: RepositoriesService;
@@ -87,6 +97,7 @@ export function ReviewflowServicesProvider({
   const transportClient = use(TransportClientContext);
   // oxlint-disable-next-line react/hook-use-state -- created once, never replaced
   const [services] = useState<ReviewflowServices>(() => ({
+    adminService: createAdminServiceClient(transportClient),
     usersService: createUsersServiceClient(transportClient),
     orgsService: createOrgsServiceClient(transportClient),
     repositoriesService: createRepositoriesServiceClient(transportClient),

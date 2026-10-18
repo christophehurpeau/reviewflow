@@ -68,11 +68,19 @@ const createApp = (
     orgs: {
       findAll: () =>
         Promise.resolve([
-          { _id: 1, login: "elax", config: { allowPersonalTokens: true } },
+          {
+            _id: 1,
+            login: "elax",
+            config: { allowPersonalTokens: true },
+            paidFeatures: { enabled: true },
+          },
         ]),
       findByKey: () => Promise.resolve({ _id: 1, installationId: 100 }),
     },
-    users: { findByKey: () => Promise.resolve({ _id: userId }) },
+    users: {
+      findByKey: () =>
+        Promise.resolve({ _id: userId, paidFeatures: { enabled: true } }),
+    },
     repositories: {
       findOne: () => Promise.resolve({ _id: 20, fullName: "elax/api" }),
     },

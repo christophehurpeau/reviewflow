@@ -1,10 +1,11 @@
 import type { ServiceQuery } from "liwi-resources-client";
-import type { AuthenticatedUser } from "../auth/AuthenticatedUser.ts";
+import type { SessionUser } from "../auth/AuthenticatedUser.ts";
 
 export interface UserSummary {
   _id: number;
   login: string;
   installed: boolean;
+  paidEnabled: boolean;
 }
 
 export interface UsersService {
@@ -12,7 +13,7 @@ export interface UsersService {
     queryMe: ServiceQuery<UserSummary | undefined, Record<string, never>>;
   };
   operations: {
-    getAuthenticatedUser: () => Promise<AuthenticatedUser>;
+    getAuthenticatedUser: () => Promise<SessionUser>;
     forceSync: () => Promise<void>;
   };
 }

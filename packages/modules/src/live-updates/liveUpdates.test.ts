@@ -26,6 +26,15 @@ describe("getLiveUpdatesPausedBy", () => {
     ).toBe("serverLimit");
   });
 
+  it("names an account that is not enabled", () => {
+    expect(
+      getLiveUpdatesPausedBy({
+        liveUpdates: "paused",
+        liveUpdatesPausedBy: "notEnabled",
+      }),
+    ).toBe("notEnabled");
+  });
+
   it("falls back on the server limit when the reason is missing", () => {
     expect(getLiveUpdatesPausedBy({ liveUpdates: "paused" })).toBe(
       "serverLimit",

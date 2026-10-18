@@ -108,10 +108,19 @@ const createApp = (tokenId: string, requestedTotal = 2) => {
           { org: { id: 2, login: "acme" }, teams: [] },
         ]),
     },
+    users: {
+      findByKey: () =>
+        Promise.resolve({ _id: 42, paidFeatures: { enabled: true } }),
+    },
     orgs: {
       findAll: () =>
         Promise.resolve([
-          { _id: 1, login: "elax", config: { allowPersonalTokens: true } },
+          {
+            _id: 1,
+            login: "elax",
+            config: { allowPersonalTokens: true },
+            paidFeatures: { enabled: true },
+          },
           { _id: 2, login: "acme", config: {} },
         ]),
     },

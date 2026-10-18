@@ -4,14 +4,21 @@ import { getLiveUpdatesPausedBy } from "reviewflow-modules";
 
 type AnyResourceResult = ResourceResult<any, any>;
 
-/** the user's own limit wins: closing pages is something they can do */
+/**
+ * What lasts comes first: an account not enabled is for the admin to change,
+ * then the user's own limit, which closing pages fixes.
+ */
+const pausedByPriority: LiveUpdatesPausedBy[] = [
+  "notEnabled",
+  "userLimit",
+  "serverLimit",
+];
+
 export const getScreenLiveUpdatesPausedBy = (
   resources: readonly AnyResourceResult[],
 ): LiveUpdatesPausedBy | undefined => {
   const pausedBy = resources
     .filter((resource) => resource.fetched)
     .map((resource) => getLiveUpdatesPausedBy(resource.meta));
-  if (pausedBy.includes("userLimit")) return "userLimit";
-  if (pausedBy.includes("serverLimit")) return "serverLimit";
-  return undefined;
+  return pausedByPriority.find((reason) => pausedBy.includes(reason));
 };

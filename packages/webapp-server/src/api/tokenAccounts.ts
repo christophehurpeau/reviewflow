@@ -1,3 +1,4 @@
+import { isPaidEnabled } from "reviewflow-core";
 import type { AccountType, MongoStores, OrgTeamEmbed } from "reviewflow-core";
 import { orgAllowsPersonalTokens } from "../orgAllowsPersonalTokens.ts";
 import type { ApiAuth } from "./authenticatePersonalToken.ts";
@@ -34,12 +35,20 @@ const lookupAccounts = async (
     _id: { $in: orgMembers.map(({ org }) => org.id) },
   });
   const allowedOrgIds = new Set(
-    orgs.filter((org) => orgAllowsPersonalTokens(org)).map(({ _id }) => _id),
+    orgs
+      .filter((org) => isPaidEnabled(org) && orgAllowsPersonalTokens(org))
+      .map(({ _id }) => _id),
   );
+  const ownAccount = await mongoStores.users.findByKey(user.id);
+
+  const own: TokenAccount[] =
+    ownAccount && isPaidEnabled(ownAccount)
+      ? [{ id: user.id, login: user.login, type: "User", teams: [] }]
+      : [];
 
   return [
-    // the user's own account needs no policy: nobody else's data is in it
-    { id: user.id, login: user.login, type: "User", teams: [] },
+    // the user's own account needs no policy, only the admin's enabling
+    ...own,
     ...orgMembers
       .filter(({ org }) => allowedOrgIds.has(org.id))
       .map(({ org, teams }): TokenAccount => ({
@@ -52,8 +61,9 @@ const lookupAccounts = async (
 };
 
 /**
- * The accounts a token reads: the user's own, and each org they belong to
- * whose owners allow personal tokens. A rejected lookup is not cached.
+ * The accounts a token reads, all enabled by the admin: the user's own, and
+ * each org they belong to whose owners allow personal tokens. A rejected
+ * lookup is not cached.
  */
 export const resolveTokenAccounts = (
   mongoStores: MongoStores,

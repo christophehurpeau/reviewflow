@@ -43,9 +43,21 @@ export interface UserDmSettings extends MongoBaseModel {
   silentTeams?: OrgTeamEmbed[];
 }
 
+/**
+ * Set by the instance admin only, never by the bot: no sync payload may carry
+ * it. One switch for the whole paid bundle (live updates in the webapp and the
+ * read API); per-feature keys can join `enabled` later.
+ */
+export interface PaidFeatures {
+  enabled?: boolean;
+  changedBy?: { id: number; login: string; at: Date };
+}
+
 interface BaseAccount extends MongoBaseModel<number> {
   login: string;
   installationId?: number;
+  /** absent = not enabled */
+  paidFeatures?: PaidFeatures;
 }
 
 export interface User extends BaseAccount {

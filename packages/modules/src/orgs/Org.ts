@@ -5,11 +5,14 @@ export interface OrgSummary {
   login: string;
   status: "active" | "deleted" | "suspended";
   allowPersonalTokens: boolean;
+  /** the admin enabled the paid features (live updates, read API) for the org */
+  paidEnabled: boolean;
 }
 
 export interface OrgPersonalTokensPolicy {
   _id: number;
   allowPersonalTokens: boolean;
+  paidEnabled: boolean;
   /** read from github when the query opens: display only, writes re-check it */
   viewerIsOwner: boolean;
 }

@@ -2,6 +2,7 @@ import { ErrorMessage, Switch, Text, View } from "alouette";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import type { OrgPersonalTokensPolicy } from "reviewflow-modules";
+import { NotEnabledMessage } from "#/components/not-enabled-message.tsx";
 import { SettingsSection } from "#/components/settings-section.tsx";
 import { errorToMessage } from "#/errorToMessage.ts";
 
@@ -19,6 +20,16 @@ export function PersonalTokensPolicySection({
   onSetAllow,
 }: PersonalTokensPolicySectionProps): ReactNode {
   const [error, setError] = useState<unknown>();
+
+  if (!policy.paidEnabled) {
+    return (
+      <SettingsSection title="API tokens">
+        <NotEnabledMessage variant="flat">
+          {`The API is not enabled for ${orgLogin}.`}
+        </NotEnabledMessage>
+      </SettingsSection>
+    );
+  }
 
   return (
     <SettingsSection title="API tokens">

@@ -8,8 +8,10 @@ import { useReviewflowServices } from "#/services/ReviewflowServicesProvider.tsx
 export default function ApiTokensPage(): ReactNode {
   const router = useRouter();
   const user = useAuthenticatedUser();
-  const { orgsService, personalTokensService } = useReviewflowServices();
+  const { orgsService, personalTokensService, usersService } =
+    useReviewflowServices();
 
+  const me = useResource(usersService.queries.queryMe, { subscribe: true }, []);
   const personalTokens = useResource(
     personalTokensService.queries.queryMyPersonalTokens,
     { subscribe: true },
@@ -24,6 +26,7 @@ export default function ApiTokensPage(): ReactNode {
   return (
     <ApiTokensScreen
       userLogin={user.login}
+      me={me}
       personalTokens={personalTokens}
       orgs={orgs}
       onBack={() => {

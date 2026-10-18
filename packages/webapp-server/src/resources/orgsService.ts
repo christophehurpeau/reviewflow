@@ -5,8 +5,10 @@ import {
   defaultConfig,
   defaultDmSettings,
   getTeams,
+  isPaidEnabled,
 } from "reviewflow-core";
 import type { MongoStores, Org, OrgMember } from "reviewflow-core";
+import { paidFeaturesContactEmail } from "reviewflow-modules";
 import type {
   OrgPersonalTokensPolicy,
   OrgSettings,
@@ -101,6 +103,7 @@ export const createOrgsService = (
               login: org.login,
               status: org.status,
               allowPersonalTokens: orgAllowsPersonalTokens(org),
+              paidEnabled: isPaidEnabled(org),
             }),
           }),
       });
@@ -125,6 +128,7 @@ export const createOrgsService = (
             transformer: (org): OrgPersonalTokensPolicy => ({
               _id: org._id,
               allowPersonalTokens: orgAllowsPersonalTokens(org),
+              paidEnabled: isPaidEnabled(org),
               viewerIsOwner,
             }),
           }),
@@ -232,6 +236,12 @@ export const createOrgsService = (
 
     setAllowPersonalTokens: async ({ orgId, allow }, loggedInUser) => {
       const { user } = await requireOrgOwner(mongoStores, orgId, loggedInUser);
+      if (allow && !isPaidEnabled(await requireOrg(mongoStores, orgId))) {
+        throw new ResourcesServerError(
+          "FORBIDDEN",
+          `Personal tokens need the paid features, contact ${paidFeaturesContactEmail}`,
+        );
+      }
 
       await mongoStores.orgs.partialUpdateByKey(orgId, {
         $set: {

@@ -19,10 +19,12 @@ Tokens start with `rfp_`, so secret scanners can recognise a leaked one. Revoke 
 
 A token is read-only and reads what you can read in the webapp:
 
-- your own account;
-- each organization you are a member of, **if an owner of that organization allows personal tokens** (organization settings → API tokens). It is off by default.
+- your own account, **if the reviewflow admin enabled it** (a paid feature);
+- each organization you are a member of, **if the reviewflow admin enabled it and an owner of that organization allows personal tokens** (organization settings → API tokens). Personal tokens are off by default.
 
-The **API tokens** page lists which of your accounts a token reaches. Memberships and organization policies are re-read at most 5 seconds apart, so leaving an organization, or an owner switching tokens off, takes effect within seconds without revoking the token.
+An account that is not enabled is not read at all: it is left out of `/me/v1`, and answers `403` like an account the token cannot read. To enable one, contact contact@chapplications.com.
+
+The **API tokens** page lists which of your accounts a token reaches. Memberships, organization policies and enablings are re-read at most 5 seconds apart, so leaving an organization, an owner switching tokens off, or an account being disabled takes effect within seconds without revoking the token. An open stream ends with `scopeChanged` within about a minute.
 
 The token page also shows when and from which IP address each token was last used.
 
@@ -132,7 +134,7 @@ Authorization: Bearer rfp_…
 }
 ```
 
-- `accounts`: your own account first, then each organization the token reaches. An organization whose owners have not allowed personal tokens is left out.
+- `accounts`: your own account first, then each organization the token reaches. An account that is not enabled, or an organization whose owners have not allowed personal tokens, is left out.
 - `teams`: your GitHub teams in that organization, as last synced by reviewflow.
 - Dates are ISO 8601 in UTC.
 - Not conditional: `serverTime` changes on every call, so its `ETag` is of no use: do not send `If-None-Match`.
@@ -212,12 +214,12 @@ Authorization: Bearer rfp_…
 
 Errors:
 
-| Status | Code              | When                                                                                                                                                                       |
-| ------ | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 400    | `badRequest`      | `account` is empty or repeated                                                                                                                                             |
-| 401    | `unauthenticated` | missing, unknown or revoked token                                                                                                                                          |
-| 403    | `forbidden`       | `account` is not an account the token reads: not yours, an organization whose owners have not allowed tokens, or unknown to reviewflow, the same answer in all three cases |
-| 429    | `rateLimited`     | past a rate limit                                                                                                                                                          |
+| Status | Code              | When                                                                                                                                                                              |
+| ------ | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 400    | `badRequest`      | `account` is empty or repeated                                                                                                                                                    |
+| 401    | `unauthenticated` | missing, unknown or revoked token                                                                                                                                                 |
+| 403    | `forbidden`       | `account` is not an account the token reads: not yours, not enabled, an organization whose owners have not allowed tokens, or unknown to reviewflow, the same answer in all cases |
+| 429    | `rateLimited`     | past a rate limit                                                                                                                                                                 |
 
 Conditional: `ETag` / `If-None-Match`, see [conventions](#conventions). Poll with it: an unchanged board answers `304` with no body.
 
@@ -267,12 +269,12 @@ The response is the pull request object, abridged here:
 
 Errors:
 
-| Status | Code              | When                                                                                                                                                                            |
-| ------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 401    | `unauthenticated` | missing, unknown or revoked token                                                                                                                                               |
-| 403    | `forbidden`       | `owner` is not an account the token reads: not yours, an organization whose owners have not allowed tokens, or unknown to reviewflow. The answer is the same in all three cases |
-| 404    | `notFound`        | `owner` is readable but the repository or the pull request is unknown, or the number is not a positive integer                                                                  |
-| 429    | `rateLimited`     | past a rate limit                                                                                                                                                               |
+| Status | Code              | When                                                                                                                                                                                   |
+| ------ | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 401    | `unauthenticated` | missing, unknown or revoked token                                                                                                                                                      |
+| 403    | `forbidden`       | `owner` is not an account the token reads: not yours, not enabled, an organization whose owners have not allowed tokens, or unknown to reviewflow. The answer is the same in all cases |
+| 404    | `notFound`        | `owner` is readable but the repository or the pull request is unknown, or the number is not a positive integer                                                                         |
+| 429    | `rateLimited`     | past a rate limit                                                                                                                                                                      |
 
 `403` depends on the owner only, never on whether the repository or pull request exists, so it cannot be used to probe private repositories.
 

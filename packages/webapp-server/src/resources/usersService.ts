@@ -1,23 +1,27 @@
 import { ResourcesServerError } from "liwi-resources-server";
 import type { ServiceResource } from "liwi-resources-server";
+import { isPaidEnabled } from "reviewflow-core";
 import type { UserSummary, UsersService } from "reviewflow-modules";
 import type { ResourcesContext } from "../ResourcesContext.ts";
 import { callBotApi } from "../botApi.ts";
+import { isAdminUser, readAdminUserIds } from "./adminAuth.ts";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
 import { requireAuthenticatedUser } from "./requireAuth.ts";
 
-export const createUsersService = ({
-  mongoStores,
-}: ResourcesContext): ServiceResource<UsersService, AuthenticatedWsUser> => ({
+export const createUsersService = (
+  { mongoStores }: ResourcesContext,
+  adminUserIds: ReadonlySet<number> = readAdminUserIds(),
+): ServiceResource<UsersService, AuthenticatedWsUser> => ({
   queries: {
     queryMe: (params, loggedInUser) => {
       const user = requireAuthenticatedUser(loggedInUser);
       return mongoStores.users.createQuerySingleItem({
         criteria: { _id: user.id },
-        transformer: ({ _id, login, installationId }): UserSummary => ({
-          _id,
-          login,
-          installed: installationId != null,
+        transformer: (account): UserSummary => ({
+          _id: account._id,
+          login: account.login,
+          installed: account.installationId != null,
+          paidEnabled: isPaidEnabled(account),
         }),
       });
     },
@@ -25,7 +29,11 @@ export const createUsersService = ({
   operations: {
     getAuthenticatedUser: (params, loggedInUser) => {
       const user = requireAuthenticatedUser(loggedInUser);
-      return Promise.resolve({ id: user.id, login: user.login });
+      return Promise.resolve({
+        id: user.id,
+        login: user.login,
+        isAdmin: isAdminUser(adminUserIds, user),
+      });
     },
 
     forceSync: async (params, loggedInUser) => {

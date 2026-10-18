@@ -1,6 +1,7 @@
 import { WarningMessage } from "alouette";
 import type { ReactNode } from "react";
 import type { LiveUpdatesPausedBy } from "reviewflow-modules";
+import { NotEnabledMessage } from "./not-enabled-message.tsx";
 
 interface LiveUpdatesPausedNoticeProps {
   pausedBy: LiveUpdatesPausedBy | undefined;
@@ -9,6 +10,14 @@ interface LiveUpdatesPausedNoticeProps {
 export function LiveUpdatesPausedNotice({
   pausedBy,
 }: LiveUpdatesPausedNoticeProps): ReactNode {
+  if (pausedBy === "notEnabled") {
+    return (
+      <NotEnabledMessage>
+        Live updates are not enabled for this account or organization: this page
+        shows the data as of its opening.
+      </NotEnabledMessage>
+    );
+  }
   if (pausedBy === "userLimit") {
     return (
       <WarningMessage>

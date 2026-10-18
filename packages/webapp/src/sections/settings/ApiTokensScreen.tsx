@@ -5,7 +5,9 @@ import type {
   CreatedPersonalToken,
   OrgSummary,
   PersonalTokenSummary,
+  UserSummary,
 } from "reviewflow-modules";
+import { NotEnabledMessage } from "#/components/not-enabled-message.tsx";
 import { ResourceView } from "#/components/resource-view.tsx";
 import { Screen } from "#/components/screen.tsx";
 import { SkeletonList } from "#/components/skeleton.tsx";
@@ -14,6 +16,7 @@ import { TokenReachList } from "./TokenReachList.tsx";
 
 interface ApiTokensScreenProps {
   userLogin: string;
+  me: ResourceResult<UserSummary | undefined, Record<string, never>>;
   personalTokens: ResourceResult<PersonalTokenSummary[], Record<string, never>>;
   orgs: ResourceResult<OrgSummary[], Record<string, never>>;
   onBack: () => void;
@@ -24,6 +27,7 @@ interface ApiTokensScreenProps {
 
 export function ApiTokensScreen({
   userLogin,
+  me,
   personalTokens,
   orgs,
   onBack,
@@ -33,21 +37,43 @@ export function ApiTokensScreen({
 }: ApiTokensScreenProps): ReactNode {
   return (
     <Screen title="API tokens" backLabel="Back to settings" onBack={onBack}>
-      <View className="gap-l">
-        <ResourceView resource={personalTokens}>
-          {(tokens) => (
-            <PersonalTokensList
-              tokens={tokens}
-              onCreate={onCreate}
-              onRegenerate={onRegenerate}
-              onRevoke={onRevoke}
-            />
-          )}
-        </ResourceView>
-        <ResourceView resource={orgs} loading={<SkeletonList rows={2} />}>
-          {(orgList) => <TokenReachList userLogin={userLogin} orgs={orgList} />}
-        </ResourceView>
-      </View>
+      <ResourceView resource={me} loading={<SkeletonList rows={3} />}>
+        {(user) => (
+          <ResourceView resource={orgs} loading={<SkeletonList rows={3} />}>
+            {(orgList) => {
+              const userPaidEnabled = user?.paidEnabled ?? false;
+              const canReadAnAccount =
+                userPaidEnabled || orgList.some((org) => org.paidEnabled);
+
+              return (
+                <View className="gap-l">
+                  {canReadAnAccount ? (
+                    <ResourceView resource={personalTokens}>
+                      {(tokens) => (
+                        <PersonalTokensList
+                          tokens={tokens}
+                          onCreate={onCreate}
+                          onRegenerate={onRegenerate}
+                          onRevoke={onRevoke}
+                        />
+                      )}
+                    </ResourceView>
+                  ) : (
+                    <NotEnabledMessage>
+                      The API is not enabled for any of your accounts.
+                    </NotEnabledMessage>
+                  )}
+                  <TokenReachList
+                    userLogin={userLogin}
+                    userPaidEnabled={userPaidEnabled}
+                    orgs={orgList}
+                  />
+                </View>
+              );
+            }}
+          </ResourceView>
+        )}
+      </ResourceView>
     </Screen>
   );
 }

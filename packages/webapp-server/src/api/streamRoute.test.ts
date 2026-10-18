@@ -55,6 +55,10 @@ const createApp = (
     },
     orgMembers: { findAll: () => Promise.resolve([]) },
     orgs: { findAll: () => Promise.resolve([]) },
+    users: {
+      findByKey: () =>
+        Promise.resolve({ _id: 42, paidFeatures: { enabled: true } }),
+    },
     prs: { createQueryCollection, findByKey: () => Promise.resolve(undefined) },
   } as unknown as MongoStores;
 

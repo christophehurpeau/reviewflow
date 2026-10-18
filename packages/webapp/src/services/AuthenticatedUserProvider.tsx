@@ -3,13 +3,13 @@ import { ResourcesServerError } from "liwi-resources-client";
 import type { ReactNode } from "react";
 import { createContext, use, useEffect, useMemo, useState } from "react";
 import { useTransportClientIsReady } from "react-liwi";
-import type { AuthenticatedUser } from "reviewflow-modules";
+import type { SessionUser } from "reviewflow-modules";
 import { SkeletonSections } from "#/components/skeleton.tsx";
 import { errorToMessage } from "#/errorToMessage.ts";
 import { useReviewflowServices } from "./ReviewflowServicesProvider.tsx";
 
 interface AuthenticatedUserContextValue {
-  user: AuthenticatedUser | null;
+  user: SessionUser | null;
 }
 
 const AuthenticatedUserContext = createContext<
@@ -17,13 +17,13 @@ const AuthenticatedUserContext = createContext<
 >(undefined);
 
 /** `null` while signed out, which only the landing page is allowed to render. */
-export const useAuthenticatedUserOrNull = (): AuthenticatedUser | null => {
+export const useAuthenticatedUserOrNull = (): SessionUser | null => {
   const contextValue = use(AuthenticatedUserContext);
   if (!contextValue) throw new Error("Missing AuthenticatedUserProvider");
   return contextValue.user;
 };
 
-export const useAuthenticatedUser = (): AuthenticatedUser => {
+export const useAuthenticatedUser = (): SessionUser => {
   const user = useAuthenticatedUserOrNull();
   if (!user) throw new Error("Not authenticated");
   return user;
@@ -43,7 +43,7 @@ export function AuthenticatedUserProvider({
 }: AuthenticatedUserProviderProps): ReactNode {
   const { usersService } = useReviewflowServices();
   const isReady = useTransportClientIsReady();
-  const [user, setUser] = useState<AuthenticatedUser | null>();
+  const [user, setUser] = useState<SessionUser | null>();
   const [error, setError] = useState<unknown>();
   const [retryCount, setRetryCount] = useState(0);
 

@@ -20,6 +20,7 @@ export default function SettingsPage(): ReactNode {
     <SettingsHomeScreen
       userLogin={user.login}
       orgs={orgs}
+      isAdmin={user.isAdmin}
       onSelectUser={() => {
         router.navigate("/user");
       }}
@@ -28,6 +29,9 @@ export default function SettingsPage(): ReactNode {
       }}
       onSelectApiTokens={() => {
         router.navigate("/settings/tokens");
+      }}
+      onSelectAdmin={() => {
+        router.navigate("/admin");
       }}
     />
   );

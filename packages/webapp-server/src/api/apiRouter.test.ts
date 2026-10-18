@@ -51,9 +51,18 @@ const createApp = (stored: PersonalToken | undefined): Harness => {
     orgs: {
       findAll: () =>
         Promise.resolve([
-          { _id: 1, login: "elax", config: { allowPersonalTokens: true } },
+          {
+            _id: 1,
+            login: "elax",
+            config: { allowPersonalTokens: true },
+            paidFeatures: { enabled: true },
+          },
           { _id: 2, login: "acme", config: {} },
         ]),
+    },
+    users: {
+      findByKey: () =>
+        Promise.resolve({ _id: 42, paidFeatures: { enabled: true } }),
     },
   } as unknown as MongoStores;
 

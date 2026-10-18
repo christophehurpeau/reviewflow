@@ -12,7 +12,12 @@ const meta = {
   },
   args: {
     orgLogin: "acme",
-    policy: { _id: 1, allowPersonalTokens: false, viewerIsOwner: true },
+    policy: {
+      _id: 1,
+      allowPersonalTokens: false,
+      paidEnabled: true,
+      viewerIsOwner: true,
+    },
     onSetAllow,
   },
 } satisfies Meta<typeof PersonalTokensPolicySection>;
@@ -30,28 +35,60 @@ export const VariantsStory: StoryObj<typeof meta> = {
       <Story.Section title="owner, not allowed">
         <PersonalTokensPolicySection
           orgLogin="acme"
-          policy={{ _id: 1, allowPersonalTokens: false, viewerIsOwner: true }}
+          policy={{
+            _id: 1,
+            allowPersonalTokens: false,
+            paidEnabled: true,
+            viewerIsOwner: true,
+          }}
           onSetAllow={onSetAllow}
         />
       </Story.Section>
       <Story.Section title="owner, allowed">
         <PersonalTokensPolicySection
           orgLogin="acme"
-          policy={{ _id: 1, allowPersonalTokens: true, viewerIsOwner: true }}
+          policy={{
+            _id: 1,
+            allowPersonalTokens: true,
+            paidEnabled: true,
+            viewerIsOwner: true,
+          }}
           onSetAllow={onSetAllow}
         />
       </Story.Section>
       <Story.Section title="member, not allowed">
         <PersonalTokensPolicySection
           orgLogin="acme"
-          policy={{ _id: 1, allowPersonalTokens: false, viewerIsOwner: false }}
+          policy={{
+            _id: 1,
+            allowPersonalTokens: false,
+            paidEnabled: true,
+            viewerIsOwner: false,
+          }}
           onSetAllow={onSetAllow}
         />
       </Story.Section>
       <Story.Section title="member, allowed">
         <PersonalTokensPolicySection
           orgLogin="acme"
-          policy={{ _id: 1, allowPersonalTokens: true, viewerIsOwner: false }}
+          policy={{
+            _id: 1,
+            allowPersonalTokens: true,
+            paidEnabled: true,
+            viewerIsOwner: false,
+          }}
+          onSetAllow={onSetAllow}
+        />
+      </Story.Section>
+      <Story.Section title="not enabled">
+        <PersonalTokensPolicySection
+          orgLogin="acme"
+          policy={{
+            _id: 1,
+            allowPersonalTokens: false,
+            paidEnabled: false,
+            viewerIsOwner: true,
+          }}
           onSetAllow={onSetAllow}
         />
       </Story.Section>

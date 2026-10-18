@@ -106,14 +106,20 @@ const createApp = (tokenId: string, prs: ReviewflowPr[]) => {
     orgs: {
       findAll: () =>
         Promise.resolve([
-          { _id: 1, login: "elax", config: { allowPersonalTokens: true } },
+          {
+            _id: 1,
+            login: "elax",
+            config: { allowPersonalTokens: true },
+            paidFeatures: { enabled: true },
+          },
           { _id: 2, login: "acme", config: {} },
         ]),
       findByKey: (id: number) =>
         Promise.resolve(id === 1 ? { _id: 1, installationId: 100 } : null),
     },
     users: {
-      findByKey: () => Promise.resolve({ _id: 42 }),
+      findByKey: () =>
+        Promise.resolve({ _id: 42, paidFeatures: { enabled: true } }),
     },
     repositories: { findOne: repositoriesFindOne },
     prs: { findAll: prsFindAll, findOne: prsFindOne },

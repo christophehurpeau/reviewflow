@@ -8,6 +8,7 @@ import {
   View,
 } from "alouette";
 import { KeyRegularIcon } from "alouette-icons/phosphor-icons/Key";
+import { ShieldCheckRegularIcon } from "alouette-icons/phosphor-icons/ShieldCheck";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
 import type { OrgSummary } from "reviewflow-modules";
@@ -25,6 +26,9 @@ interface SettingsHomeScreenProps {
   onSelectUser: () => void;
   onSelectOrg: (org: OrgSummary) => void;
   onSelectApiTokens: () => void;
+  /** hides the entry only: the server refuses everyone else */
+  isAdmin: boolean;
+  onSelectAdmin: () => void;
 }
 
 export function SettingsHomeScreen({
@@ -33,6 +37,8 @@ export function SettingsHomeScreen({
   onSelectUser,
   onSelectOrg,
   onSelectApiTokens,
+  isAdmin,
+  onSelectAdmin,
 }: SettingsHomeScreenProps): ReactNode {
   return (
     <Screen title="Settings">
@@ -95,6 +101,21 @@ export function SettingsHomeScreen({
             </View>
           </PressableListItem>
         </ListSection>
+
+        {isAdmin ? (
+          <ListSection title="Administration">
+            <PressableListItem onPress={onSelectAdmin}>
+              <View className="flex-row items-center gap-m">
+                <Icon
+                  icon={<ShieldCheckRegularIcon />}
+                  size={20}
+                  className="text-muted"
+                />
+                <Text className="font-body-bold">Paid features</Text>
+              </View>
+            </PressableListItem>
+          </ListSection>
+        ) : null}
       </View>
     </Screen>
   );

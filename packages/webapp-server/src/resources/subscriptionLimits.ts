@@ -83,9 +83,9 @@ export const createSubscriptionSlots = ({
   };
 };
 
-const noop = (): void => {};
+export const noop = (): void => {};
 
-const toSubscription = (
+export const toSubscription = (
   promise: PromiseLike<unknown>,
   stop: () => void,
 ): QuerySubscription => ({
@@ -101,7 +101,7 @@ const withLiveUpdates = <Meta extends object>(
 ): LiveUpdatesMeta & Meta => ({ ...meta, ...liveUpdates });
 
 /** the degraded mode: the result as of now, no live update */
-const fetchOnce = (
+export const fetchOnce = (
   query: Query<any, any>,
   callback: SubscribeCallback<any, any>,
   pausedBy: LiveUpdatesPausedBy,

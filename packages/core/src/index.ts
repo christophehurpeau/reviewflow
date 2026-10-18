@@ -17,6 +17,7 @@ export type * from "./models/ReviewflowStatus.ts";
 export type * from "./models/SlackMessage.ts";
 export type * from "./models/TeamInfo.ts";
 export * from "./mongo.ts";
+export * from "./paidFeatures.ts";
 export * from "./prBucketCriteria.ts";
 export * from "./prs/reviewsAfterRequestingAgain.ts";
 export * from "./prs/toPrDetail.ts";
