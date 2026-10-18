@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.17.0](https://github.com/christophehurpeau/reviewflow/compare/v6.16.1...v6.17.0) (2026-10-18)
+
+### Features
+
+* record the last conversation comment activity on pull requests
+* relay bot writes to the webapp server subscriptions
+* report the store relay state in GET /api/health/v1
+
+Version bump for dependency: reviewflow-core
+Version bump for dependency: reviewflow-modules
+
+
 ## [6.16.0](https://github.com/christophehurpeau/reviewflow/compare/v6.15.1...v6.16.0) (2026-10-17)
 
 ### Features

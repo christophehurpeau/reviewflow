@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.17.0](https://github.com/christophehurpeau/reviewflow/compare/v6.16.1...v6.17.0) (2026-10-18)
+
+### Features
+
+* lower the per user live subscription limit to 45, reword the paused notice
+* tell the user when live updates are paused
+* tell the user which live subscription limit paused their updates
+
+Version bump for dependency: reviewflow-modules
+
+
 ## [6.15.0](https://github.com/christophehurpeau/reviewflow/compare/v6.14.0...v6.15.0) (2026-10-16)
 
 ### Features

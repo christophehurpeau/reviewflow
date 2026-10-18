@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.17.0](https://github.com/christophehurpeau/reviewflow/compare/v6.16.1...v6.17.0) (2026-10-18)
+
+### Features
+
+* cap live subscriptions, degrade to fetch only past the limit
+* follow org membership changes in live subscriptions
+* lower the per user live subscription limit to 45, reword the paused notice
+* relay bot writes to the webapp server subscriptions
+* report the store relay state in GET /api/health/v1
+* stream pull request changes as server-sent events on GET /api/stream/v1
+* tell the user when live updates are paused
+* tell the user which live subscription limit paused their updates
+
+Version bump for dependency: reviewflow-core
+Version bump for dependency: reviewflow-modules
+
+
 ## [6.16.1](https://github.com/christophehurpeau/reviewflow/compare/v6.16.0...v6.16.1) (2026-10-17)
 
 ### Bug Fixes
