@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.18.0](https://github.com/christophehurpeau/reviewflow/compare/v6.17.0...v6.18.0) (2026-10-18)
+
+### Features
+
+* report errors to Sentry and log with nightingale in both servers
+* switch the store relay off with STORE_RELAY_DISABLED
+
+Version bump for dependency: reviewflow-core
+Version bump for dependency: reviewflow-modules
+
+
 ## [6.17.0](https://github.com/christophehurpeau/reviewflow/compare/v6.16.1...v6.17.0) (2026-10-18)
 
 ### Features

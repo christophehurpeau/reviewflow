@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.18.0](https://github.com/christophehurpeau/reviewflow/compare/v6.17.0...v6.18.0) (2026-10-18)
+
+### Features
+
+* gate live updates and the read API behind per-account paid features
+* report errors to Sentry and log with nightingale in both servers
+* show the token controls disabled with a message when the API is not enabled
+* switch the store relay off with STORE_RELAY_DISABLED
+
+### Bug Fixes
+
+* refuse the admin to sessions of the editor extension
+
 ## [6.17.0](https://github.com/christophehurpeau/reviewflow/compare/v6.16.1...v6.17.0) (2026-10-18)
 
 ### Features
