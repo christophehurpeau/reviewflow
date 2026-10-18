@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.21.0](https://github.com/christophehurpeau/reviewflow/compare/v6.20.0...v6.21.0) (2026-10-18)
+
+### Features
+
+* date reviewflow's own comment and description edits
+* store check run and status details and expose them in the read api
+
+Version bump for dependency: reviewflow-modules
+
+
 ## [6.20.0](https://github.com/christophehurpeau/reviewflow/compare/v6.19.0...v6.20.0) (2026-10-18)
 
 ### Features

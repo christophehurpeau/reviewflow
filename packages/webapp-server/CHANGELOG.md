@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.21.0](https://github.com/christophehurpeau/reviewflow/compare/v6.20.0...v6.21.0) (2026-10-18)
+
+### Bug Fixes
+
+* coalesce stream events per pull request
+* cut an api response that fails after it started
+* harden the pull request stream against vanished, slow and failing readers
+
+### Performance Improvements
+
+* wake gated subscriptions only when a relayed write changes the paid flag
+
+Version bump for dependency: reviewflow-core
+Version bump for dependency: reviewflow-modules
+
+
 ## [6.20.0](https://github.com/christophehurpeau/reviewflow/compare/v6.19.0...v6.20.0) (2026-10-18)
 
 Version bump for dependency: reviewflow-core
