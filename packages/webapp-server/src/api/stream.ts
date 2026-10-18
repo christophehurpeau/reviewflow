@@ -87,7 +87,8 @@ export const openPrStream = ({
   const pending = new Map<string, StreamEvent>();
   /** a removal read asynchronously must not override a later change */
   const versions = new Map<string, number>();
-  let flushTimeout: ReturnType<typeof setTimeout> | undefined;
+  /** one window per pull request: another one's must not cut it short */
+  const flushTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
   let subscription: QuerySubscription | undefined;
   let isReady = false;
   let isEnded = false;
@@ -99,25 +100,35 @@ export const openPrStream = ({
     send({ event: "pr", data: detail });
   };
 
-  const flush = (): void => {
-    flushTimeout = undefined;
-    const events = [...pending.values()];
-    pending.clear();
-    for (const event of events) {
-      if (event.event === "pr") {
-        sendPr(event.data);
-      } else if (
-        event.event === "prRemoved" &&
-        sentFingerprints.delete(event.data._id)
-      ) {
-        send(event);
-      }
+  const flushPr = (id: string): void => {
+    clearTimeout(flushTimeouts.get(id));
+    flushTimeouts.delete(id);
+    const event = pending.get(id);
+    pending.delete(id);
+    if (event?.event === "pr") {
+      sendPr(event.data);
+    } else if (
+      event?.event === "prRemoved" &&
+      sentFingerprints.delete(event.data._id)
+    ) {
+      send(event);
     }
+  };
+
+  const flush = (): void => {
+    [...pending.keys()].forEach(flushPr);
   };
 
   const queue = (id: string, event: StreamEvent): void => {
     pending.set(id, event);
-    flushTimeout ??= setTimeout(flush, coalesceMs);
+    if (!flushTimeouts.has(id)) {
+      flushTimeouts.set(
+        id,
+        setTimeout(() => {
+          flushPr(id);
+        }, coalesceMs),
+      );
+    }
   };
 
   const bump = (id: string): number => {
@@ -129,7 +140,10 @@ export const openPrStream = ({
   const stop = (): void => {
     if (isEnded) return;
     isEnded = true;
-    clearTimeout(flushTimeout);
+    flushTimeouts.forEach((timeout) => {
+      clearTimeout(timeout);
+    });
+    flushTimeouts.clear();
     subscription?.stop();
   };
 

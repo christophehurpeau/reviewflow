@@ -117,6 +117,32 @@ describe("openPrStream", () => {
     ]);
   });
 
+  it("gives each pull request its own coalescing window", () => {
+    const harness = openWith();
+    snapshot(harness, [detail("a"), detail("b")]);
+    harness.events.length = 0;
+
+    harness.emit(null, [
+      { type: "updated", result: [detail("a", { title: "a1" })] },
+    ]);
+    vi.advanceTimersByTime(900);
+    harness.emit(null, [
+      { type: "updated", result: [detail("b", { title: "b1" })] },
+    ]);
+    vi.advanceTimersByTime(100);
+    expect(names(harness.events)).toEqual(["pr:a"]);
+
+    harness.emit(null, [
+      { type: "updated", result: [detail("b", { title: "b2" })] },
+    ]);
+    vi.advanceTimersByTime(900);
+    expect(harness.events.at(-1)).toEqual({
+      event: "pr",
+      data: detail("b", { title: "b2" }),
+    });
+    expect(names(harness.events)).toEqual(["pr:a", "pr:b"]);
+  });
+
   it("skips a change of `updatedAt` alone", () => {
     const harness = openWith();
     snapshot(harness, [detail("a")]);
