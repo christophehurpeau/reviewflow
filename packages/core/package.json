@@ -50,7 +50,7 @@
   },
   "devDependencies": {
     "@octokit/rest": "22.0.1",
-    "@pob/rollup-esbuild": "10.2.0",
+    "@pob/rollup-esbuild": "11.1.0",
     "@slack/web-api": "8.0.0",
     "@types/node": "24.12.4",
     "@typescript/native": "npm:typescript@7.0.2",

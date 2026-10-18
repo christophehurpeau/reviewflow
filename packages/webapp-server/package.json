@@ -52,7 +52,7 @@
     "simple-oauth2": "5.1.0"
   },
   "devDependencies": {
-    "@pob/rollup-esbuild": "10.2.0",
+    "@pob/rollup-esbuild": "11.1.0",
     "@types/cookie": "0.6.0",
     "@types/cookie-parser": "1.4.10",
     "@types/express": "5.0.6",

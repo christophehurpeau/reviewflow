@@ -60,7 +60,7 @@
     "slackify-markdown": "5.0.0"
   },
   "devDependencies": {
-    "@pob/rollup-esbuild": "10.2.0",
+    "@pob/rollup-esbuild": "11.1.0",
     "@types/express": "5.0.6",
     "@types/issue-parser": "3.0.5",
     "@types/node": "24.12.4",
