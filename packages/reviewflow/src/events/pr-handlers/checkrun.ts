@@ -2,6 +2,11 @@ import { Logger } from "nightingale-logger";
 import type { Probot } from "probot";
 import type { AppContext } from "../../context/AppContext.ts";
 import {
+  getCheckRunKey,
+  isSameStoredRecord,
+  toStoredCheckRun,
+} from "../../utils/github/pullRequest/checksAndStatuses.ts";
+import {
   calcAndUpdateChecksAndStatuses,
   getChecksAndStatusesState,
 } from "./actions/calcAndUpdateChecksAndStatuses.ts";
@@ -60,13 +65,24 @@ export default function checkrun(app: Probot, appContext: AppContext): void {
         return;
       }
 
-      if (reviewflowPrContext.reviewflowPr.checksConclusion) {
-        const checkConclusionKey =
-          `${checkRun.check_suite.id}_${checkRun.name}`.replace(/[\s.]/g, "_");
-        if (
-          reviewflowPrContext.reviewflowPr.checksConclusion[checkConclusionKey]
-            ?.conclusion === checkRun.conclusion
-        ) {
+      const { checksConclusion } = reviewflowPrContext.reviewflowPr;
+      if (checksConclusion) {
+        const key = getCheckRunKey(checkRun);
+        const storedCheckRun = checksConclusion[key];
+        const receivedCheckRun = toStoredCheckRun(checkRun);
+        if (isSameStoredRecord(storedCheckRun, receivedCheckRun)) return;
+
+        const storeCheckRun = (): Promise<unknown> =>
+          appContext.mongoStores.prs.partialUpdateOne(
+            reviewflowPrContext.reviewflowPr,
+            {
+              $set: { [`checksConclusion.${key}`]: receivedCheckRun } as any,
+            },
+          );
+
+        if (storedCheckRun?.conclusion === receivedCheckRun.conclusion) {
+          checksConclusion[key] = receivedCheckRun;
+          await storeCheckRun();
           return;
         }
 
@@ -75,8 +91,7 @@ export default function checkrun(app: Probot, appContext: AppContext): void {
           repoContext,
         );
 
-        reviewflowPrContext.reviewflowPr.checksConclusion[checkConclusionKey] =
-          { name: checkRun.name, conclusion: checkRun.conclusion as any };
+        checksConclusion[key] = receivedCheckRun;
 
         await Promise.all([
           calcAndUpdateChecksAndStatuses(
@@ -86,17 +101,7 @@ export default function checkrun(app: Probot, appContext: AppContext): void {
             pullRequest,
             reviewflowPrContext,
           ),
-          appContext.mongoStores.prs.partialUpdateOne(
-            reviewflowPrContext.reviewflowPr,
-            {
-              $set: {
-                [`checksConclusion.${checkConclusionKey}`]:
-                  reviewflowPrContext.reviewflowPr.checksConclusion[
-                    checkConclusionKey
-                  ],
-              } as any,
-            },
-          ),
+          storeCheckRun(),
         ]);
 
         // the home shows the checks, but only a transition is worth republishing

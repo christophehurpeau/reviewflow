@@ -30,12 +30,34 @@ export interface PrReviewer {
   requestedAt: string | null;
 }
 
+/** values are GitHub's; `null` for a check run stored before reviewflow recorded the field */
+export interface PrCheckRun {
+  name: string;
+  status: string | null;
+  conclusion: string | null;
+  /** `output.title` */
+  title: string | null;
+  detailsUrl: string | null;
+}
+
+/** values are GitHub's; `null` for a status stored before reviewflow recorded the field */
+export interface PrCommitStatus {
+  context: string;
+  state: string;
+  description: string | null;
+  targetUrl: string | null;
+}
+
 export interface PrDetailChecks extends PrChecksSummary {
   passed: number;
   /** after the account's checks allowed to fail and the `/hold-` rule */
   failed: number;
   /** codecov and `/hold-` checks left out, as reviewflow ignores them */
   pending: number;
+  /** every check run of the head commit, by name */
+  checkRuns: PrCheckRun[];
+  /** every commit status of the head commit, by context */
+  statuses: PrCommitStatus[];
 }
 
 export interface PrLabel {

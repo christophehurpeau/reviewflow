@@ -3,6 +3,11 @@ import type { Probot } from "probot";
 import type { ReviewflowPr } from "reviewflow-core";
 import type { AppContext } from "../../context/AppContext.ts";
 import {
+  getCommitStatusKey,
+  isSameStoredRecord,
+  toStoredCommitStatus,
+} from "../../utils/github/pullRequest/checksAndStatuses.ts";
+import {
   calcAndUpdateChecksAndStatuses,
   getChecksAndStatusesState,
 } from "./actions/calcAndUpdateChecksAndStatuses.ts";
@@ -54,13 +59,25 @@ export default function status(app: Probot, appContext: AppContext): void {
         });
       }
 
-      if (reviewflowPrContext?.reviewflowPr.statusesConclusion) {
-        const key = context.payload.context.replace(/[\s.]/g, "_");
+      const statusesConclusion =
+        reviewflowPrContext?.reviewflowPr.statusesConclusion;
+      if (reviewflowPrContext && statusesConclusion) {
+        const key = getCommitStatusKey(context.payload);
+        const storedStatus = statusesConclusion[key];
+        const receivedStatus = toStoredCommitStatus(context.payload);
+        if (isSameStoredRecord(storedStatus, receivedStatus)) return;
 
-        if (
-          reviewflowPrContext.reviewflowPr.statusesConclusion[key]?.state ===
-          context.payload.state
-        ) {
+        const storeStatus = (): Promise<unknown> =>
+          appContext.mongoStores.prs.partialUpdateOne(
+            reviewflowPrContext.reviewflowPr,
+            {
+              $set: { [`statusesConclusion.${key}`]: receivedStatus } as any,
+            },
+          );
+
+        if (storedStatus?.state === receivedStatus.state) {
+          statusesConclusion[key] = receivedStatus;
+          await storeStatus();
           return;
         }
 
@@ -69,10 +86,7 @@ export default function status(app: Probot, appContext: AppContext): void {
           repoContext,
         );
 
-        reviewflowPrContext.reviewflowPr.statusesConclusion[key] = {
-          state: context.payload.state,
-          context: context.payload.context,
-        };
+        statusesConclusion[key] = receivedStatus;
 
         // TODO calc and update ci step state
         await Promise.all([
@@ -83,17 +97,7 @@ export default function status(app: Probot, appContext: AppContext): void {
             pullRequest,
             reviewflowPrContext,
           ),
-          appContext.mongoStores.prs.partialUpdateOne(
-            reviewflowPrContext.reviewflowPr,
-            {
-              $set: {
-                [`statusesConclusion.${key}`]: {
-                  context: context.payload.context,
-                  state: context.payload.state,
-                },
-              } as any,
-            },
-          ),
+          storeStatus(),
         ]);
 
         // the home shows the checks, but only a transition is worth republishing

@@ -81,6 +81,9 @@ const mockChecksAndStatuses = (
     .reply(200, {
       check_runs: checkRuns.map((checkRun) => ({
         ...checkRun,
+        status: "completed",
+        details_url: null,
+        output: { title: null },
         check_suite: { id: 1 },
       })),
     })

@@ -1,6 +1,8 @@
 import { Query } from "mingo";
 import type {
   PrBucket,
+  PrCheckRun,
+  PrCommitStatus,
   PrDetail,
   PrDetailChecks,
   PrReviewer,
@@ -54,6 +56,23 @@ const toDetailChecks = (
       ).length + statuses.filter(({ state }) => state === "success").length,
     failed: result.failedChecks.length + result.failedStatuses.length,
     pending: result.pendingChecks.length + result.pendingStatuses.length,
+    checkRuns: checks
+      .map((checkRun): PrCheckRun => ({
+        name: checkRun.name,
+        status: checkRun.status ?? null,
+        conclusion: checkRun.conclusion ?? null,
+        title: checkRun.title ?? null,
+        detailsUrl: checkRun.details_url ?? null,
+      }))
+      .toSorted((a, b) => a.name.localeCompare(b.name)),
+    statuses: statuses
+      .map((status): PrCommitStatus => ({
+        context: status.context,
+        state: status.state,
+        description: status.description ?? null,
+        targetUrl: status.target_url ?? null,
+      }))
+      .toSorted((a, b) => a.context.localeCompare(b.context)),
   };
 };
 

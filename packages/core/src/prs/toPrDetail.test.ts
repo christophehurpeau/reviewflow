@@ -294,7 +294,7 @@ describe("checks", () => {
       }),
     );
 
-    expect(detail.checks).toEqual({
+    expect(detail.checks).toMatchObject({
       conclusion: "failed",
       runningCount: 2,
       failedNames: ["test"],
@@ -302,6 +302,63 @@ describe("checks", () => {
       failed: 1,
       pending: 2,
     });
+  });
+
+  it("lists each check run and status by name, null where not recorded", () => {
+    const detail = toPrDetail(
+      buildPr({
+        checksConclusion: {
+          a: {
+            name: "test",
+            status: "completed",
+            conclusion: "failure",
+            title: "2 tests failed",
+            details_url: "https://github.com/acme/api/actions/runs/1/job/2",
+          },
+          b: { name: "build", conclusion: "success" },
+        },
+        statusesConclusion: {
+          c: {
+            context: "ci/deploy",
+            state: "pending",
+            description: "Deploying preview",
+            target_url: "https://deploy.example/1",
+          },
+          d: { context: "ci/legacy", state: "success" },
+        },
+      }),
+    );
+
+    expect(detail.checks.checkRuns).toEqual([
+      {
+        name: "build",
+        status: null,
+        conclusion: "success",
+        title: null,
+        detailsUrl: null,
+      },
+      {
+        name: "test",
+        status: "completed",
+        conclusion: "failure",
+        title: "2 tests failed",
+        detailsUrl: "https://github.com/acme/api/actions/runs/1/job/2",
+      },
+    ]);
+    expect(detail.checks.statuses).toEqual([
+      {
+        context: "ci/deploy",
+        state: "pending",
+        description: "Deploying preview",
+        targetUrl: "https://deploy.example/1",
+      },
+      {
+        context: "ci/legacy",
+        state: "success",
+        description: null,
+        targetUrl: null,
+      },
+    ]);
   });
 });
 

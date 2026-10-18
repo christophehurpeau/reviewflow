@@ -349,7 +349,10 @@ describe("tryToAutomergeFromReschedule", (): void => {
         check_runs: [
           {
             name: "build",
+            status: "completed",
             conclusion: "failure",
+            details_url: null,
+            output: { title: null },
             check_suite: { id: 2 },
           },
         ],
