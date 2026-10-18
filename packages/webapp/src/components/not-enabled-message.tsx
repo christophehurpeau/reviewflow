@@ -17,8 +17,11 @@ export function NotEnabledMessage({
   return (
     <WarningMessage variant={variant}>
       {`${children} Contact `}
+      {/* TODO remove once https://github.com/christophehurpeau/alouette/issues/385
+          is fixed: inside a Text the link is baselined on the icon's bottom */}
       <ExternalLinkText
         size="sm"
+        className="web:items-baseline"
         href={`mailto:${paidFeaturesContactEmail}`}
         text={paidFeaturesContactEmail}
       />
