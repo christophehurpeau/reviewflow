@@ -1,4 +1,7 @@
 import { ResourcesServerError } from "liwi-resources-server";
+import { Logger } from "nightingale-logger";
+
+const logger = new Logger("reviewflow:webapp-server:botApi");
 
 /**
  * Client for the webhook server's internal api: this process holds no github
@@ -79,6 +82,6 @@ export const callBotApiBestEffort = async (
   try {
     await callBotApi(path, body);
   } catch (error) {
-    console.error(`Could not notify the bot on ${path}`, error);
+    logger.error(`Could not notify the bot on ${path}`, { error });
   }
 };

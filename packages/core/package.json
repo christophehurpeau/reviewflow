@@ -37,11 +37,15 @@
     "watch": "pnpm run clean:build && rollup --config rollup.config.mjs --watch"
   },
   "dependencies": {
+    "@sentry/node": "11.8.0",
     "emoji-regex": "10.6.0",
     "gemoji": "8.1.0",
     "liwi-mongo": "15.0.0",
     "liwi-store": "14.1.0",
     "mingo": "7.2.5",
+    "nightingale": "18.2.0",
+    "nightingale-logger": "18.2.0",
+    "nightingale-sentry": "18.2.0",
     "reviewflow-modules": "workspace:*"
   },
   "devDependencies": {

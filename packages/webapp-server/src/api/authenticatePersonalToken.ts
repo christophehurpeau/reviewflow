@@ -1,10 +1,13 @@
 import type { Request } from "express";
+import { Logger } from "nightingale-logger";
 import type { MongoStores, PersonalToken } from "reviewflow-core";
 import {
   hashPersonalToken,
   personalTokenPrefix,
 } from "../auth/personalTokens.ts";
 import { ApiError } from "./apiErrors.ts";
+
+const logger = new Logger("reviewflow:webapp-server:authenticatePersonalToken");
 
 export interface ApiAuth {
   token: Pick<PersonalToken, "_id" | "created" | "name">;
@@ -45,7 +48,7 @@ const recordUse = (
       { touchUpdated: false },
     )
     .catch((error: unknown) => {
-      console.error("Could not record the use of a personal token", error);
+      logger.error("Could not record the use of a personal token", { error });
     });
 };
 

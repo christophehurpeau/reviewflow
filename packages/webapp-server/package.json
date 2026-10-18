@@ -46,6 +46,7 @@
     "liwi-resources-websocket-client-node": "15.0.0",
     "liwi-resources-websocket-server": "15.0.0",
     "liwi-store": "14.1.0",
+    "nightingale-logger": "18.2.0",
     "reviewflow-core": "workspace:*",
     "reviewflow-modules": "workspace:*",
     "simple-oauth2": "5.1.0"

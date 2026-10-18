@@ -1,5 +1,6 @@
 import type { Response } from "express";
 import type { Query, QuerySubscription } from "liwi-store";
+import { Logger } from "nightingale-logger";
 import type {
   MongoStores,
   PrBucketAccount,
@@ -11,6 +12,8 @@ import type { PrDetail } from "reviewflow-modules";
 import type { SubscriptionSlots } from "../resources/subscriptionLimits.ts";
 import { ApiError } from "./apiErrors.ts";
 import type { ApiAuth } from "./authenticatePersonalToken.ts";
+
+const logger = new Logger("reviewflow:webapp-server:stream");
 
 /** proxies close an idle connection after about a minute */
 export const streamHeartbeatIntervalMs = 25_000;
@@ -155,7 +158,7 @@ export const openPrStream = ({
   subscription = query.fetchAndSubscribe((error, changes) => {
     if (isEnded) return;
     if (error) {
-      console.error("Pull request stream failed", error);
+      logger.error("Pull request stream failed", { error });
       endWith("error");
       return;
     }
@@ -174,7 +177,9 @@ export const openPrStream = ({
       } else if (change.type === "deleted") {
         for (const key of change.keys) {
           tellRemoval(String(key)).catch((removalError: unknown) => {
-            console.error("Pull request stream failed", removalError);
+            logger.error("Pull request stream failed", {
+              error: removalError,
+            });
             endWith("error");
           });
         }
@@ -335,7 +340,7 @@ export const serveStream = async (
   };
   recheck = setInterval(() => {
     recheckReader().catch((error: unknown) => {
-      console.error("Could not check a pull request stream reader", error);
+      logger.error("Could not check a pull request stream reader", { error });
     });
   }, recheckIntervalMs);
 };

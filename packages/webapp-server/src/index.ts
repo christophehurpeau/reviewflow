@@ -4,8 +4,10 @@ import { fileURLToPath } from "node:url";
 import cookieParser from "cookie-parser";
 import Express from "express";
 import { createWsServer } from "liwi-resources-websocket-server";
+import { Logger } from "nightingale-logger";
 import {
   getRelayedStores,
+  initErrorReporting,
   isStoreRelayDisabled,
   mongoInit,
 } from "reviewflow-core";
@@ -21,6 +23,10 @@ import {
   readSubscriptionLimits,
 } from "./resources/subscriptionLimits.ts";
 import { connectBotStoreRelay } from "./storeRelay.ts";
+
+initErrorReporting({ service: "webapp-server" });
+
+const logger = new Logger("reviewflow:webapp-server");
 
 if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = "reviewflow";
 
@@ -79,7 +85,7 @@ expressApp.get(/^(?!\/(?:api|app|ws)(?:\/|$)).*/, (req, res) => {
 });
 
 const server = expressApp.listen(port, () => {
-  console.log(`Webapp server is running at http://localhost:${port}`);
+  logger.info(`Webapp server is running at http://localhost:${port}`);
 });
 
 const checkSlackUserTokens = createSlackUserTokensCheck(mongoStores);
@@ -93,7 +99,7 @@ const wsServer = createWsServer(
     // when the user opens the app, so a revoked slack sign-in asks to sign in again
     if (user) {
       checkSlackUserTokens(user.id).catch((error: unknown) => {
-        console.error("Could not check the slack user tokens", error);
+        logger.error("Could not check the slack user tokens", { error });
       });
     }
     return user;

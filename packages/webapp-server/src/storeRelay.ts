@@ -4,7 +4,10 @@ import type {
 } from "liwi-resources-client";
 import { connectStoreRelay } from "liwi-resources-client";
 import { createNodeWebsocketTransportClient } from "liwi-resources-websocket-client-node";
+import { Logger } from "nightingale-logger";
 import { STORE_RELAY_PATH, STORE_RELAY_RESOURCE_NAME } from "reviewflow-core";
+
+const logger = new Logger("reviewflow:webapp-server:storeRelay");
 
 export interface ConnectBotStoreRelayOptions {
   /** the bot's internal api, `http(s)://host:port` */
@@ -37,14 +40,14 @@ export const connectBotStoreRelay = ({
     onStateChange: ({ isLive }) => {
       if (isLive === wasLive) return;
       wasLive = isLive;
-      console.log(
+      logger.info(
         isLive
           ? "Store relay from the bot is live"
           : "Store relay from the bot is disconnected, reconnecting",
       );
     },
     onError: (error) => {
-      console.error("Store relay from the bot failed", error);
+      logger.error("Store relay from the bot failed", { error });
     },
   });
 

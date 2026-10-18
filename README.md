@@ -67,6 +67,14 @@ Copy `packages/reviewflow/.env.example`, `packages/webapp-server/.env.example`
 and `packages/webapp/.env.example` to `.env` first. `MONGO_*`, `REVIEWFLOW_NAME`
 and `INTERNAL_API_SECRET` must match between the two servers.
 
+Both servers report errors to Sentry when `SENTRY_DSN` is set (nothing is sent
+otherwise); `SENTRY_ENVIRONMENT` optionally tags the environment. One Sentry
+project fits both. The webapp server sets Sentry up in `initErrorReporting`
+(`reviewflow-core`): logs go through nightingale to the console, and logged
+errors are forwarded to Sentry. The webhook server leaves Sentry to probot,
+which reports what goes through its logger (`context.log`, `probot.log`); its
+own nightingale logs only reach the console.
+
 In development the webapp is served by the expo dev server on another port, so
 `REVIEWFLOW_APP_URL` must point at it; in production the webapp server serves
 both and no `EXPO_PUBLIC_*` url is needed.

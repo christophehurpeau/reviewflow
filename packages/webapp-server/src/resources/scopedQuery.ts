@@ -1,7 +1,10 @@
 import { ResourcesServerError } from "liwi-resources-server";
 import type { Query, QuerySubscription, SubscribeCallback } from "liwi-store";
+import { Logger } from "nightingale-logger";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
 import type { MembershipScopes } from "./membershipScopes.ts";
+
+const logger = new Logger("reviewflow:webapp-server:scopedQuery");
 
 /** criteria no document matches: what a query selects once its scope is lost */
 export const matchNothing: any = { _id: { $in: [] } };
@@ -93,7 +96,9 @@ export const createScopedQuery = <Scope>({
 
     const unwatch = scopes.watch(user, () => {
       refresh().catch((error: unknown) => {
-        console.error("Could not refresh the scope of a subscription", error);
+        logger.error("Could not refresh the scope of a subscription", {
+          error,
+        });
       });
     });
 

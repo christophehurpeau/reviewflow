@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ResourcesServerError } from "liwi-resources-server";
+import { Logger } from "nightingale-logger";
 import {
   callBotApi,
   callBotApiBestEffort,
@@ -145,22 +146,22 @@ describe("callBotApiForJson", () => {
 
 describe("callBotApiBestEffort", () => {
   it("swallows an unreachable bot so the oauth redirect still happens", async () => {
-    const consoleError = vi
-      .spyOn(console, "error")
+    const loggerError = vi
+      .spyOn(Logger.prototype, "error")
       .mockImplementation(() => {});
     fetchMock.mockRejectedValue(new Error("ECONNREFUSED"));
 
     await expect(
       callBotApiBestEffort("/slack/member-linked", { orgId: 1 }),
     ).resolves.toBeUndefined();
-    expect(consoleError).toHaveBeenCalled();
+    expect(loggerError).toHaveBeenCalled();
 
-    consoleError.mockRestore();
+    loggerError.mockRestore();
   });
 
   it("swallows a rejected request too", async () => {
-    const consoleError = vi
-      .spyOn(console, "error")
+    const loggerError = vi
+      .spyOn(Logger.prototype, "error")
       .mockImplementation(() => {});
     fetchMock.mockResolvedValue(respond(401, { error: "nope" }));
 
@@ -168,18 +169,18 @@ describe("callBotApiBestEffort", () => {
       callBotApiBestEffort("/slack/org-installed", { orgId: 1 }),
     ).resolves.toBeUndefined();
 
-    consoleError.mockRestore();
+    loggerError.mockRestore();
   });
 
   it("stays quiet when the bot accepts", async () => {
-    const consoleError = vi
-      .spyOn(console, "error")
+    const loggerError = vi
+      .spyOn(Logger.prototype, "error")
       .mockImplementation(() => {});
     fetchMock.mockResolvedValue(respond(204));
 
     await callBotApiBestEffort("/slack/org-installed", { orgId: 1 });
 
-    expect(consoleError).not.toHaveBeenCalled();
-    consoleError.mockRestore();
+    expect(loggerError).not.toHaveBeenCalled();
+    loggerError.mockRestore();
   });
 });

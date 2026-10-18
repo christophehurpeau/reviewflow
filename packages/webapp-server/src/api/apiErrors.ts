@@ -1,5 +1,8 @@
 import type { ErrorRequestHandler, Response } from "express";
+import { Logger } from "nightingale-logger";
 import { sendJsonWithoutEtag } from "./sendJsonWithoutEtag.ts";
+
+const logger = new Logger("reviewflow:webapp-server:api");
 
 export type ApiErrorCode =
   | "badRequest"
@@ -63,6 +66,6 @@ export const apiErrorHandler: ErrorRequestHandler = (
     return;
   }
 
-  console.error("Unexpected api error", error);
+  logger.error("Unexpected api error", { error });
   sendApiError(res, "internal", "Unexpected error");
 };

@@ -1,7 +1,10 @@
 import { setTimeout as delay } from "node:timers/promises";
 import { Octokit } from "@octokit/rest";
 import { ResourcesServerError } from "liwi-resources-server";
+import { Logger } from "nightingale-logger";
 import type { ReviewflowPr } from "reviewflow-core";
+
+const logger = new Logger("reviewflow:webapp-server:reviewAsUser");
 
 export const startReviewBody = "I started the review";
 
@@ -85,7 +88,7 @@ export const createReviewAsUser = async (
   } catch (error) {
     if (!isGithubError(error)) throw error;
 
-    console.error("Could not start the review on github", {
+    logger.error("Could not start the review on github", {
       status: error.status,
       message: error.response?.data?.message,
       prId: pr._id,
@@ -128,7 +131,7 @@ export const requestOwnReviewAgain = async (
     });
     return true;
   } catch (error) {
-    console.error("Could not request the review again on github", {
+    logger.error("Could not request the review again on github", {
       status: isGithubError(error) ? error.status : undefined,
       message: isGithubError(error) ? error.response?.data?.message : undefined,
       prId: pr._id,

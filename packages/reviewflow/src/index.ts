@@ -1,8 +1,10 @@
 import "dotenv/config";
 import Express from "express";
+import { Logger } from "nightingale-logger";
 import { createNodeMiddleware, createProbot } from "probot";
 import {
   getRelayedStores,
+  initErrorReporting,
   isStoreRelayDisabled,
   mongoInit,
 } from "reviewflow-core";
@@ -14,12 +16,16 @@ import { createSlackHomeWorker } from "./slack/home.ts";
 import { createStoreRelayServer } from "./storeRelay.ts";
 import { checkWebappUrlConfig } from "./webappUrl.ts";
 
+// probot reports to Sentry itself from SENTRY_DSN, through its own logger
+initErrorReporting({ service: "reviewflow", reportToSentry: false });
+
+const logger = new Logger("reviewflow");
+
 if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = "reviewflow";
 
 checkWebappUrlConfig();
 
-// eslint-disable-next-line no-console
-console.log({ name: process.env.REVIEWFLOW_NAME });
+logger.info("Starting", { name: process.env.REVIEWFLOW_NAME });
 
 const port = Number(process.env.PORT) || 3001;
 const webhooksPath = "/api/github/webhooks";
@@ -61,7 +67,7 @@ const internalApiApp = Express();
 internalApiApp.use("/api/internal", internalApiRouter(probot, appContext));
 
 const server = expressApp.listen(port, () => {
-  console.log(`Webhook server is running at http://localhost:${port}`);
+  logger.info(`Webhook server is running at http://localhost:${port}`);
   slackHome.scheduleUpdateAllOrgs((id) =>
     probot.auth(id).then((octokit) => octokit.rest),
   );
@@ -71,7 +77,7 @@ const internalApiServer = internalApiApp.listen(
   internalApiPort,
   internalApiHost,
   () => {
-    console.log(
+    logger.info(
       `Internal api is running at http://${internalApiHost}:${internalApiPort}`,
     );
   },

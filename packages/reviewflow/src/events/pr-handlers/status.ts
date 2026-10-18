@@ -1,3 +1,4 @@
+import { Logger } from "nightingale-logger";
 import type { Probot } from "probot";
 import type { ReviewflowPr } from "reviewflow-core";
 import type { AppContext } from "../../context/AppContext.ts";
@@ -8,6 +9,8 @@ import {
 import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome.ts";
 import { createPullRequestsHandler } from "./utils/createPullRequestHandler.ts";
 import { fetchPr } from "./utils/fetchPr.ts";
+
+const logger = new Logger("reviewflow:status");
 
 export default function status(app: Probot, appContext: AppContext): void {
   createPullRequestsHandler(
@@ -36,7 +39,7 @@ export default function status(app: Probot, appContext: AppContext): void {
       const pullRequest = await fetchPr(context, prEmbed.number);
 
       if (context.payload.commit.sha !== pullRequest.head.sha) {
-        console.log("commit sha mismatch");
+        logger.info("commit sha mismatch");
         // filter prs that have newer commit sha
         return;
       }

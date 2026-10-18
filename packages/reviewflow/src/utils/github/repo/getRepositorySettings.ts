@@ -1,5 +1,8 @@
+import { Logger } from "nightingale-logger";
 import type { Context } from "probot";
 import type { RepositorySettingsQueryResult } from "reviewflow-core";
+
+const logger = new Logger("reviewflow:getRepositorySettings");
 
 export interface RepositoryRef {
   owner: string;
@@ -85,9 +88,9 @@ export interface RepositorySettingsLog {
   error: (details: object, message: string) => void;
 }
 
-const consoleLog: RepositorySettingsLog = {
+const loggerLog: RepositorySettingsLog = {
   error: (details, message) => {
-    console.error(message, details);
+    logger.error(message, { ...details });
   },
 };
 
@@ -122,7 +125,7 @@ const fetchRulesetsRequireConversationResolution = async (
 export const fetchRepositorySettings = async (
   octokit: RepositorySettingsOctokit,
   { owner, repo }: RepositoryRef,
-  log: RepositorySettingsLog = consoleLog,
+  log: RepositorySettingsLog = loggerLog,
 ): Promise<RepositorySettingsQueryResult> => {
   if (process.env.NODE_ENV === "test") {
     return testRepositorySettings;

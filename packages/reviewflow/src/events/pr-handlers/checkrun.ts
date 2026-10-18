@@ -1,3 +1,4 @@
+import { Logger } from "nightingale-logger";
 import type { Probot } from "probot";
 import type { AppContext } from "../../context/AppContext.ts";
 import {
@@ -7,6 +8,8 @@ import {
 import { updateSlackHomeForPr } from "./actions/utils/updateSlackHome.ts";
 import { createPullRequestsHandler } from "./utils/createPullRequestHandler.ts";
 import { fetchPr } from "./utils/fetchPr.ts";
+
+const logger = new Logger("reviewflow:checkrun");
 
 export default function checkrun(app: Probot, appContext: AppContext): void {
   createPullRequestsHandler(
@@ -53,7 +56,7 @@ export default function checkrun(app: Probot, appContext: AppContext): void {
       }
 
       if (reviewflowPrContext?.reviewflowPr.headSha !== checkRun.head_sha) {
-        console.log("head sha mismatch");
+        logger.info("head sha mismatch");
         return;
       }
 

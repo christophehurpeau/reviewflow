@@ -1,6 +1,9 @@
 import type { ServiceResource } from "liwi-resources-server";
 import type { Query, QuerySubscription, SubscribeCallback } from "liwi-store";
+import { Logger } from "nightingale-logger";
 import type { LiveUpdatesMeta, LiveUpdatesPausedBy } from "reviewflow-modules";
+
+const logger = new Logger("reviewflow:webapp-server:subscriptionLimits");
 
 /*
  * Every live subscription is refetched on each store relay (re)connection and
@@ -207,7 +210,7 @@ export const withSubscriptionLimits = <
           query,
           () => slots.acquire(userKey),
           (limitReached) => {
-            console.warn("Live subscription limit reached, fetch only", {
+            logger.warn("Live subscription limit reached, fetch only", {
               query: key,
               userKey,
               limitReached,
