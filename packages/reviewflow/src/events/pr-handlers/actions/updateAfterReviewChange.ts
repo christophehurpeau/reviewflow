@@ -70,11 +70,12 @@ export async function updateAfterReviewChange<
       appContext,
       reviewflowPrContext,
     ),
-    updateCommentBodyProgressFromStepsState(
+    updateCommentBodyProgressFromStepsState({
+      appContext,
       stepsState,
       context,
       reviewflowPrContext,
-    ),
+    }),
   ]);
 
   const { wasMerged } = await tryToAutomerge({

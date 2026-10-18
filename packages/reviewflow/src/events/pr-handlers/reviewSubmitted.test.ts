@@ -7,6 +7,7 @@ import {
   mockAccessToken,
   mockLabels,
   nock,
+  storedPrIdentity,
 } from "../../tests/setup.ts";
 import { createEmptyReviews } from "./utils/groupReviewsWithState.ts";
 
@@ -86,6 +87,7 @@ describe("review submitted", (): void => {
 
   test("stores the receipt time of a review", async () => {
     findOnePr.mockResolvedValue({
+      ...storedPrIdentity,
       commentId: 1,
       reviews: createEmptyReviews(),
       assignees: [],
@@ -101,6 +103,7 @@ describe("review submitted", (): void => {
 
   test("leaves a document without flowDates untouched", async () => {
     findOnePr.mockResolvedValue({
+      ...storedPrIdentity,
       commentId: 1,
       reviews: createEmptyReviews(),
       assignees: [],

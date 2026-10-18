@@ -11,6 +11,13 @@ const APP_ID = 1;
 
 nock.disableNetConnect();
 
+/** what every stored pull request has, for mocks of the `prs` store */
+export const storedPrIdentity = {
+  account: { id: 64_312_233, login: "reviewflow", type: "Organization" },
+  repo: { id: 167_861_157, name: "reviewflow-test" },
+  pr: { number: 30 },
+};
+
 export const initializeProbotApp = async ({
   orgs,
   orgMembers,
@@ -75,6 +82,7 @@ export const initializeProbotApp = async ({
     prs: {
       findOne: () =>
         Promise.resolve({
+          ...storedPrIdentity,
           commentId: 1,
           reviews: createEmptyReviews(),
           assignees: [],

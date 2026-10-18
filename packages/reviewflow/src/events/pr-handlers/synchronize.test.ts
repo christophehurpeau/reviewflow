@@ -7,6 +7,7 @@ import {
   mockAccessToken,
   mockLabels,
   nock,
+  storedPrIdentity,
 } from "../../tests/setup.ts";
 import { createEmptyReviews } from "./utils/groupReviewsWithState.ts";
 
@@ -26,6 +27,7 @@ describe("synchronize", (): void => {
       prs: {
         findOne: () =>
           Promise.resolve({
+            ...storedPrIdentity,
             commentId: 1,
             reviews: createEmptyReviews(),
             assignees: [],

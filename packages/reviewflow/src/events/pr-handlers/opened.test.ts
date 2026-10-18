@@ -8,6 +8,7 @@ import {
   mockAccessToken,
   mockLabels,
   nock,
+  storedPrIdentity,
 } from "../../tests/setup.ts";
 import type { ProbotEvent } from "../probot-types.ts";
 import commentBodyV2InitialAfterEditSimple from "./actions/utils/body/mocks/commentBody-v2-initialAfterEdit-simpleWithProgress.ts";
@@ -21,7 +22,9 @@ nock.disableNetConnect();
 describe("opened", (): void => {
   let probot: Probot;
   const findOnePr = vi.fn(() => Promise.resolve(undefined));
-  const insertOnePr = vi.fn(() => Promise.resolve({ commentId: 1 }));
+  const insertOnePr = vi.fn(() =>
+    Promise.resolve({ ...storedPrIdentity, commentId: 1 }),
+  );
   const partialUpdateOnePr = vi.fn();
 
   beforeEach(async () => {

@@ -89,7 +89,13 @@ export const readCommitsAndUpdateInfos = async <
   }
 
   await Promise.all([
-    updatePrIfNeeded(pullRequest, context, { title: prTitle, body: prBody }),
+    updatePrIfNeeded({
+      appContext: repoContext.appContext,
+      pullRequest,
+      context,
+      reviewflowPr: reviewflowPrContext.reviewflowPr,
+      update: { title: prTitle, body: prBody },
+    }),
     syncLabel(
       pullRequest,
       context,
@@ -103,6 +109,11 @@ export const readCommitsAndUpdateInfos = async <
         },
       },
     ),
-    updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newCommentBody),
+    updatePrCommentBodyIfNeeded({
+      appContext: repoContext.appContext,
+      context,
+      reviewflowPrContext,
+      newBody: newCommentBody,
+    }),
   ]);
 };

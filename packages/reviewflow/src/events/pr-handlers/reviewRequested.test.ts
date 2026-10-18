@@ -7,6 +7,7 @@ import {
   mockAccessToken,
   mockLabels,
   nock,
+  storedPrIdentity,
 } from "../../tests/setup.ts";
 import { createEmptyReviews } from "./utils/groupReviewsWithState.ts";
 
@@ -35,6 +36,7 @@ describe("review requested", (): void => {
       prs: {
         findOne: () =>
           Promise.resolve({
+            ...storedPrIdentity,
             commentId: 1,
             reviews: createEmptyReviews(),
             assignees: [],

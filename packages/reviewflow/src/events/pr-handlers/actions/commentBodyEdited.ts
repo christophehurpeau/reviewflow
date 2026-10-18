@@ -43,7 +43,12 @@ export const commentBodyEdited = async <Name extends EventsWithRepository>(
     calcDefaultOptions(repoContext, pullRequest.labels),
   );
 
-  await updatePrCommentBodyIfNeeded(context, reviewflowPrContext, commentBody);
+  await updatePrCommentBodyIfNeeded({
+    appContext,
+    context,
+    reviewflowPrContext,
+    newBody: commentBody,
+  });
 
   if (options) {
     const shouldUpdateChecks = actions.includes("updateChecks");

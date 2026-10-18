@@ -247,11 +247,11 @@ export interface ReviewflowPr extends MongoBaseModel {
     /** time reviewflow received the event; absent = unknown */
     lastPushedAt?: Date;
     lastReviewSubmittedAt?: Date;
-    /** a conversation comment created, edited or deleted, reviewflow's own left out */
+    /** a conversation comment created, edited or deleted */
     lastCommentActivityAt?: Date;
-    /** a review comment created, edited or deleted, reviewflow's own left out */
+    /** a review comment created, edited or deleted */
     lastReviewCommentActivityAt?: Date;
-    /** the description edited, reviewflow's own rewrites left out */
+    /** the description edited */
     lastBodyEditedAt?: Date;
   };
   // flowHistory: FlowHistory[];

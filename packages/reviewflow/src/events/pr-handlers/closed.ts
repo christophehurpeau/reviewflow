@@ -70,11 +70,12 @@ export default function closed(app: Probot, appContext: AppContext): void {
                   )
                   .catch(() => {})
               : undefined,
-            updateCommentBodyProgressFromStepsState(
+            updateCommentBodyProgressFromStepsState({
+              appContext,
               stepsState,
               context,
               reviewflowPrContext,
-            ),
+            }),
           ]);
         } else {
           await Promise.all([
@@ -94,11 +95,12 @@ export default function closed(app: Probot, appContext: AppContext): void {
               appContext,
               reviewflowPrContext,
             ),
-            updateCommentBodyProgressFromStepsState(
+            updateCommentBodyProgressFromStepsState({
+              appContext,
               stepsState,
               context,
               reviewflowPrContext,
-            ),
+            }),
           ]);
         }
       }

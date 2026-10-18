@@ -219,11 +219,12 @@ export async function calcAndUpdateChecksAndStatuses<
         reviewflowPrContext,
         updatedLabels,
       ),
-      updateCommentBodyProgressFromStepsState(
+      updateCommentBodyProgressFromStepsState({
+        appContext,
         stepsState,
         context,
         reviewflowPrContext,
-      ),
+      }),
     ]);
   }
 

@@ -465,8 +465,19 @@ export const editOpenedPR = async <
     );
   } else {
     promises.push(
-      updatePrIfNeeded(pullRequest, context, { title, body }),
-      updatePrCommentBodyIfNeeded(context, reviewflowPrContext, newCommentBody),
+      updatePrIfNeeded({
+        appContext,
+        pullRequest,
+        context,
+        reviewflowPr: reviewflowPrContext.reviewflowPr,
+        update: { title, body },
+      }),
+      updatePrCommentBodyIfNeeded({
+        appContext,
+        context,
+        reviewflowPrContext,
+        newBody: newCommentBody,
+      }),
     );
   }
 

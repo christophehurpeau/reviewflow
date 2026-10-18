@@ -19,6 +19,7 @@ export type * from "./models/TeamInfo.ts";
 export * from "./mongo.ts";
 export * from "./paidFeatures.ts";
 export * from "./prBucketCriteria.ts";
+export * from "./prs/recordPrActivity.ts";
 export * from "./prs/reviewsAfterRequestingAgain.ts";
 export * from "./prs/toPrDetail.ts";
 export * from "./prs/toPrSummary.ts";

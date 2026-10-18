@@ -8,6 +8,7 @@ import commitCommentCreated from "./events/commit-handlers/commitCommentCreated.
 import installation from "./events/installation-handlers/installation.ts";
 import installationRepositoriesRemoved from "./events/installation-handlers/installationRepositoriesRemoved.ts";
 import labelChanged from "./events/label-handlers/labelChanged.ts";
+import activityFlowDates from "./events/pr-handlers/activityFlowDates.ts";
 import assignedOrUnassignedHandler from "./events/pr-handlers/assignedOrUnassigned.ts";
 import autoMergeChangedHandler from "./events/pr-handlers/autoMergeChanged.ts";
 import checkrunCompleted from "./events/pr-handlers/checkrun.ts";
@@ -99,6 +100,7 @@ export default function initApp(app: Probot, appContext: AppContext): void {
   commentCreated(app, appContext);
   commentEditedOrDeleted(app, appContext);
   reviewThreadsTracking(app, appContext);
+  activityFlowDates(app, appContext);
 
   /* https://developer.github.com/webhooks/event-payloads/#check_run */
   checkrunCompleted(app, appContext);

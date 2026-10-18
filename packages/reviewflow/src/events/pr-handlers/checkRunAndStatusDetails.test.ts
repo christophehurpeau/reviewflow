@@ -7,6 +7,7 @@ import {
   mockAccessToken,
   mockLabels,
   nock,
+  storedPrIdentity,
 } from "../../tests/setup.ts";
 import { createEmptyReviews } from "./utils/groupReviewsWithState.ts";
 
@@ -75,7 +76,7 @@ describe("check run and status details", (): void => {
 
   const storedPr = () => ({
     _id: "pr-id",
-    pr: { number: 30 },
+    ...storedPrIdentity,
     commentId: 1,
     headSha,
     reviews: createEmptyReviews(),

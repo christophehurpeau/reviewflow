@@ -8,6 +8,7 @@ import {
   mockAccessToken,
   mockLabels,
   nock,
+  storedPrIdentity,
 } from "../../tests/setup.ts";
 import { createEmptyReviews } from "./utils/groupReviewsWithState.ts";
 
@@ -50,6 +51,7 @@ describe("review threads tracking", (): void => {
   let reviewState = "COMMENTED";
 
   const storedPr = (unresolvedThreads?: ReturnType<typeof thread>[]) => ({
+    ...storedPrIdentity,
     commentId: 1,
     reviews: createEmptyReviews(),
     assignees: [],
