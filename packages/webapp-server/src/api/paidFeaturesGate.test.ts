@@ -97,9 +97,7 @@ describe("resolveTokenAccounts", () => {
   });
 
   it("reads the own account once the admin enabled it", async () => {
-    expect(await loginsOf({ user: true }, "t-user")).toEqual([
-      "jane-doe",
-    ]);
+    expect(await loginsOf({ user: true }, "t-user")).toEqual(["jane-doe"]);
   });
 
   it("reads an org the admin enabled and its owners allow", async () => {
