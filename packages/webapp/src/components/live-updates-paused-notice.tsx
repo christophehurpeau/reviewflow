@@ -11,8 +11,8 @@ export function LiveUpdatesPausedNotice({
   if (!isPaused) return null;
   return (
     <WarningMessage>
-      Live updates are paused because the server is busy. This page will not
-      refresh by itself: reload it to see the latest data.
+      Due to high usage, live updates are paused: this page shows the data as of
+      its opening.
     </WarningMessage>
   );
 }

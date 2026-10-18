@@ -9,8 +9,8 @@ import type { LiveUpdatesMeta } from "reviewflow-modules";
  * 1400 board subscriptions on a laptop.
  */
 const DEFAULT_MAX_LIVE_SUBSCRIPTIONS = 1000;
-/** a board tab holds 9 subscriptions */
-const DEFAULT_MAX_LIVE_SUBSCRIPTIONS_PER_USER = 60;
+/** a board tab holds 9 subscriptions: about 5 tabs */
+const DEFAULT_MAX_LIVE_SUBSCRIPTIONS_PER_USER = 45;
 
 export interface SubscriptionLimits {
   maxTotal: number;

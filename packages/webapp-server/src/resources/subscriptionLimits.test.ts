@@ -152,10 +152,10 @@ describe("readSubscriptionLimits", () => {
         MAX_LIVE_SUBSCRIPTIONS: "200",
         MAX_LIVE_SUBSCRIPTIONS_PER_USER: "0",
       }),
-    ).toEqual({ maxTotal: 200, maxPerUser: 60 });
+    ).toEqual({ maxTotal: 200, maxPerUser: 45 });
     expect(readSubscriptionLimits({})).toEqual({
       maxTotal: 1000,
-      maxPerUser: 60,
+      maxPerUser: 45,
     });
   });
 });
