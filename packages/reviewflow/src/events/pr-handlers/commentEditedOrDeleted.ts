@@ -3,6 +3,7 @@ import type { AppContext } from "../../context/AppContext.ts";
 import { checkIfIsThisBot } from "../../utils/github/isBotUser.ts";
 import { slackifyCommentBody } from "../../utils/slackifyCommentBody.ts";
 import { commentBodyEdited } from "./actions/commentBodyEdited.ts";
+import { recordCommentActivity } from "./actions/utils/recordCommentActivity.ts";
 import {
   deleteSlackSentMessages,
   findSlackSentMessages,
@@ -83,6 +84,16 @@ export default function prCommentEditedOrDeleted<TeamNames extends string>(
           );
         }
         return;
+      }
+
+      if (context.name === "issue_comment") {
+        await recordCommentActivity(
+          appContext,
+          reviewflowPrContext,
+          context.payload.action === "edited"
+            ? new Date(context.payload.comment.updated_at)
+            : new Date(),
+        );
       }
 
       const getTypeAndComment = () => {

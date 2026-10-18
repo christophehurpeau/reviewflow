@@ -71,6 +71,7 @@ describe("identity and branches", () => {
         closedAt: null,
         lastPushedAt: null,
         lastReviewSubmittedAt: null,
+        lastCommentActivityAt: null,
       },
     });
   });

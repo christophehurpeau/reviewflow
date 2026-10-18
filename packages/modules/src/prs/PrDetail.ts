@@ -70,6 +70,7 @@ export interface PrDetail extends Omit<
     closedAt: string | null;
     lastPushedAt: string | null;
     lastReviewSubmittedAt: string | null;
+    lastCommentActivityAt: string | null;
   };
 
   reviewState: PrReviewState | null;

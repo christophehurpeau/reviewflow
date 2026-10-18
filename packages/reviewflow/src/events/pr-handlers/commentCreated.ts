@@ -17,6 +17,7 @@ import { parseMentions } from "../../utils/github/parseMentions.ts";
 import { createSlackMessageWithSecondaryBlock } from "../../utils/slack/createSlackMessageWithSecondaryBlock.ts";
 import { slackifyCommentBody } from "../../utils/slackifyCommentBody.ts";
 import type { ProbotEvent } from "../probot-types.ts";
+import { recordCommentActivity } from "./actions/utils/recordCommentActivity.ts";
 import { createPullRequestHandler } from "./utils/createPullRequestHandler.ts";
 import { fetchPr } from "./utils/fetchPr.ts";
 import { getPullRequestFromPayload } from "./utils/getPullRequestFromPayload.ts";
@@ -133,10 +134,18 @@ export default function prCommentCreated(
       repoContext,
       reviewflowPrContext,
     ): Promise<void> => {
+      const { comment } = context.payload;
+      if (context.name === "issue_comment") {
+        await recordCommentActivity(
+          appContext,
+          reviewflowPrContext,
+          new Date(comment.created_at),
+        );
+      }
+
       const pr = await fetchPr(context, pullRequest.number);
       const prUser = pr.user;
       if (!prUser) return;
-      const { comment } = context.payload;
       const isReviewComment = !!(comment as any).pull_request_review_id;
       const type = isReviewComment ? "review-comment" : "issue-comment";
 

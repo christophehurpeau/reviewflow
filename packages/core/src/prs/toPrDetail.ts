@@ -140,6 +140,7 @@ export const createToPrDetail = (
         closedAt: toIso(pr.flowDates?.closedAt),
         lastPushedAt: toIso(pr.flowDates?.lastPushedAt),
         lastReviewSubmittedAt: toIso(pr.flowDates?.lastReviewSubmittedAt),
+        lastCommentActivityAt: toIso(pr.flowDates?.lastCommentActivityAt),
       },
 
       reviewState: pr.reviewState ?? null,
