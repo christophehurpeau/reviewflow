@@ -3,7 +3,10 @@ import { ResourcesServerError } from "liwi-resources-server";
 import { NotFoundError } from "liwi-store";
 import type { MongoStores, ReviewflowPr } from "reviewflow-core";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
+import type { MembershipScopes } from "./membershipScopes.ts";
 import { createPrsService } from "./prsService.ts";
+
+const scopes: MembershipScopes = { watch: () => () => {} };
 
 const { createReviewAsUser, requestOwnReviewAgain } = vi.hoisted(() => ({
   createReviewAsUser: vi.fn<() => Promise<void>>(),
@@ -59,7 +62,7 @@ const createStores = (pr: ReviewflowPr | undefined): Stores => {
 };
 
 const startReview = (mongoStores: MongoStores) =>
-  createPrsService({ mongoStores }).operations.startReview(
+  createPrsService({ mongoStores }, scopes).operations.startReview(
     { prId: "pr-id" },
     loggedInUser,
   );
@@ -298,7 +301,7 @@ describe("startReview", () => {
     const { mongoStores, partialUpdateOne } = createStores(
       buildPr(buildReviews()),
     );
-    const service = createPrsService({ mongoStores });
+    const service = createPrsService({ mongoStores }, scopes);
 
     const results = await Promise.all([
       service.operations.startReview({ prId: "pr-id" }, loggedInUser),
@@ -316,7 +319,7 @@ describe("startReview", () => {
   /** deduplicating is for one send in two, never for the next press */
   it("starts again once the earlier send answered", async () => {
     const { mongoStores } = createStores(buildPr(buildReviews()));
-    const service = createPrsService({ mongoStores });
+    const service = createPrsService({ mongoStores }, scopes);
 
     await service.operations.startReview({ prId: "pr-id" }, loggedInUser);
     await service.operations.startReview({ prId: "pr-id" }, loggedInUser);
@@ -328,7 +331,7 @@ describe("startReview", () => {
     const { mongoStores } = createStores(buildPr());
 
     await expect(
-      createPrsService({ mongoStores }).operations.startReview(
+      createPrsService({ mongoStores }, scopes).operations.startReview(
         { prId: "pr-id" },
         undefined,
       ),

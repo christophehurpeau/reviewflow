@@ -8,7 +8,7 @@ import {
   reviewsAfterRequestingAgain,
   toPrSummary,
 } from "reviewflow-core";
-import type { MongoStores } from "reviewflow-core";
+import type { MongoStores, PrBucketAccount } from "reviewflow-core";
 import type { PrsService, StartReviewResult } from "reviewflow-modules";
 import type { ResourcesContext } from "../ResourcesContext.ts";
 import {
@@ -16,11 +16,17 @@ import {
   requestOwnReviewAgain,
 } from "../github/reviewAsUser.ts";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
+import type { MembershipScopes } from "./membershipScopes.ts";
 import {
   requireAccount,
   requireAccounts,
   requireAuthenticatedUser,
 } from "./requireAuth.ts";
+import {
+  createScopedQuery,
+  matchNothing,
+  toScopeOrUndefined,
+} from "./scopedQuery.ts";
 
 const startReviewForUser = async (
   mongoStores: MongoStores,
@@ -103,9 +109,10 @@ const startReviewForUser = async (
   return { prUrl };
 };
 
-export const createPrsService = ({
-  mongoStores,
-}: ResourcesContext): ServiceResource<PrsService, AuthenticatedWsUser> => {
+export const createPrsService = (
+  { mongoStores }: ResourcesContext,
+  scopes: MembershipScopes,
+): ServiceResource<PrsService, AuthenticatedWsUser> => {
   /**
    * Starting a review comments on the pull request, and the document that
    * decides whether it still has to be started is written back only once the
@@ -128,16 +135,32 @@ export const createPrsService = ({
           loggedInUser,
         );
 
-        const { criteria, sort } = buildPrBucketQuery(bucket, {
-          userId: user.id,
-          accounts,
-        });
+        const createQuery = (scope: PrBucketAccount[] | undefined) => {
+          const { criteria, sort } = buildPrBucketQuery(bucket, {
+            userId: user.id,
+            accounts: scope ?? [],
+          });
+          return mongoStores.prs.createQueryCollection({
+            criteria: scope ? criteria : matchNothing,
+            sort,
+            limit: 100,
+            transformer: toPrSummary,
+          });
+        };
 
-        return mongoStores.prs.createQueryCollection({
-          criteria,
-          sort,
-          limit: 100,
-          transformer: toPrSummary,
+        if (accountId === user.id) return createQuery(accounts);
+
+        return createScopedQuery({
+          user,
+          scopes,
+          initialScope: accounts,
+          resolveScope: () =>
+            toScopeOrUndefined(async () =>
+              requireAccounts(mongoStores, accountId, user).then(
+                (resolved) => resolved.accounts,
+              ),
+            ),
+          createQuery,
         });
       },
     },

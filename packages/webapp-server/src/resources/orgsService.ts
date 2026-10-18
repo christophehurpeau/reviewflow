@@ -20,12 +20,18 @@ import { callBotApi } from "../botApi.ts";
 import { setDmSetting, setTeamSilenced } from "../dm/updateUserDmSettings.ts";
 import { orgAllowsPersonalTokens } from "../orgAllowsPersonalTokens.ts";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
+import type { MembershipScopes } from "./membershipScopes.ts";
 import {
   isOrgOwner,
   requireAuthenticatedUser,
   requireOrgMember,
   requireOrgOwner,
 } from "./requireAuth.ts";
+import {
+  createScopedQuery,
+  matchNothing,
+  toScopeOrUndefined,
+} from "./scopedQuery.ts";
 
 const buildSlackStatus = (
   org: Org,
@@ -67,25 +73,36 @@ const requireOrg = async (
   return org;
 };
 
-export const createOrgsService = ({
-  mongoStores,
-}: ResourcesContext): ServiceResource<OrgsService, AuthenticatedWsUser> => ({
+export const createOrgsService = (
+  { mongoStores }: ResourcesContext,
+  scopes: MembershipScopes,
+): ServiceResource<OrgsService, AuthenticatedWsUser> => ({
   queries: {
     queryMyOrgs: async (params, loggedInUser) => {
       const user = requireAuthenticatedUser(loggedInUser);
-      const orgMembers = await mongoStores.orgMembers.findAll({
-        "user.id": user.id,
-      });
+      const findOrgIds = async (): Promise<number[]> => {
+        const orgMembers = await mongoStores.orgMembers.findAll({
+          "user.id": user.id,
+        });
+        return orgMembers.map(({ org }) => org.id).toSorted((a, b) => a - b);
+      };
 
-      return mongoStores.orgs.createQueryCollection({
-        criteria: { _id: { $in: orgMembers.map(({ org }) => org.id) } },
-        sort: { login: 1 },
-        transformer: (org): OrgSummary => ({
-          _id: org._id,
-          login: org.login,
-          status: org.status,
-          allowPersonalTokens: orgAllowsPersonalTokens(org),
-        }),
+      return createScopedQuery({
+        user,
+        scopes,
+        initialScope: await findOrgIds(),
+        resolveScope: findOrgIds,
+        createQuery: (orgIds) =>
+          mongoStores.orgs.createQueryCollection({
+            criteria: { _id: { $in: orgIds ?? [] } },
+            sort: { login: 1 },
+            transformer: (org): OrgSummary => ({
+              _id: org._id,
+              login: org.login,
+              status: org.status,
+              allowPersonalTokens: orgAllowsPersonalTokens(org),
+            }),
+          }),
       });
     },
 
@@ -93,13 +110,24 @@ export const createOrgsService = ({
       const { user } = await requireOrgMember(mongoStores, orgId, loggedInUser);
       const viewerIsOwner = await isOrgOwner(orgId, user);
 
-      return mongoStores.orgs.createQuerySingleItem({
-        criteria: { _id: orgId },
-        transformer: (org): OrgPersonalTokensPolicy => ({
-          _id: org._id,
-          allowPersonalTokens: orgAllowsPersonalTokens(org),
-          viewerIsOwner,
-        }),
+      return createScopedQuery({
+        user,
+        scopes,
+        initialScope: true,
+        resolveScope: () =>
+          toScopeOrUndefined(async () => {
+            await requireOrgMember(mongoStores, orgId, user);
+            return true;
+          }),
+        createQuery: (isMember) =>
+          mongoStores.orgs.createQuerySingleItem({
+            criteria: isMember ? { _id: orgId } : matchNothing,
+            transformer: (org): OrgPersonalTokensPolicy => ({
+              _id: org._id,
+              allowPersonalTokens: orgAllowsPersonalTokens(org),
+              viewerIsOwner,
+            }),
+          }),
       });
     },
 
@@ -140,17 +168,28 @@ export const createOrgsService = ({
     queryMyDmSettings: async ({ orgId }, loggedInUser) => {
       const { user } = await requireOrgMember(mongoStores, orgId, loggedInUser);
 
-      return mongoStores.userDmSettings.createQuerySingleItem({
-        criteria: { orgId, userId: user.id },
-        transformer: ({
-          _id,
-          settings,
-          silentTeams,
-        }): UserDmSettingsSummary => ({
-          _id,
-          settings,
-          silentTeamIds: silentTeams?.map((team) => team.id) ?? [],
-        }),
+      return createScopedQuery({
+        user,
+        scopes,
+        initialScope: true,
+        resolveScope: () =>
+          toScopeOrUndefined(async () => {
+            await requireOrgMember(mongoStores, orgId, user);
+            return true;
+          }),
+        createQuery: (isMember) =>
+          mongoStores.userDmSettings.createQuerySingleItem({
+            criteria: isMember ? { orgId, userId: user.id } : matchNothing,
+            transformer: ({
+              _id,
+              settings,
+              silentTeams,
+            }): UserDmSettingsSummary => ({
+              _id,
+              settings,
+              silentTeamIds: silentTeams?.map((team) => team.id) ?? [],
+            }),
+          }),
       });
     },
   },

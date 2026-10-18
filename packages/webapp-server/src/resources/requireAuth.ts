@@ -143,6 +143,10 @@ const accountsByUser = new WeakMap<
   Map<AccountsCacheKey, CachedAccounts>
 >();
 
+export const forgetAccounts = (user: AuthenticatedWsUser): void => {
+  accountsByUser.delete(user);
+};
+
 /** a rejected lookup is dropped rather than held, so a failure is retried at once */
 const cachedAccounts = (
   user: AuthenticatedWsUser,

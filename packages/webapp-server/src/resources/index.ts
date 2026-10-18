@@ -1,6 +1,8 @@
 import type { ServiceResource } from "liwi-resources-server";
 import { ResourcesServerService } from "liwi-resources-server";
 import type { ResourcesContext } from "../ResourcesContext.ts";
+import type { MembershipScopes } from "./membershipScopes.ts";
+import { createMembershipScopes } from "./membershipScopes.ts";
 import { createOrgsService } from "./orgsService.ts";
 import { createPersonalTokensService } from "./personalTokensService.ts";
 import { createPrsService } from "./prsService.ts";
@@ -16,15 +18,18 @@ import { createUsersService } from "./usersService.ts";
 export const createResourcesServerService = (
   appContext: ResourcesContext,
   slots: SubscriptionSlots = createSubscriptionSlots(readSubscriptionLimits()),
+  scopes: MembershipScopes = createMembershipScopes(
+    appContext.mongoStores.orgMembers,
+  ),
 ): ResourcesServerService =>
   new ResourcesServerService({
     serviceResources: new Map<string, ServiceResource<any, any>>(
       (
         [
           ["users", createUsersService(appContext)],
-          ["orgs", createOrgsService(appContext)],
-          ["repositories", createRepositoriesService(appContext)],
-          ["prs", createPrsService(appContext)],
+          ["orgs", createOrgsService(appContext, scopes)],
+          ["repositories", createRepositoriesService(appContext, scopes)],
+          ["prs", createPrsService(appContext, scopes)],
           ["personalTokens", createPersonalTokensService(appContext)],
         ] as const
       ).map(([name, resource]) => [

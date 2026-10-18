@@ -2,7 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MongoStores, Org } from "reviewflow-core";
 import { callBotApiForJson } from "../botApi.ts";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
+import type { MembershipScopes } from "./membershipScopes.ts";
 import { createOrgsService } from "./orgsService.ts";
+
+const scopes: MembershipScopes = { watch: () => () => {} };
 
 vi.mock("../botApi.ts", () => ({
   callBotApi: vi.fn(),
@@ -70,10 +73,10 @@ beforeEach(() => {
 
 describe("setAllowPersonalTokens", () => {
   const setAllow = (mongoStores: MongoStores, orgId = 1) =>
-    createOrgsService({ mongoStores }).operations.setAllowPersonalTokens(
-      { orgId, allow: true },
-      loggedInUser,
-    );
+    createOrgsService(
+      { mongoStores },
+      scopes,
+    ).operations.setAllowPersonalTokens({ orgId, allow: true }, loggedInUser);
 
   it("lets an owner allow tokens, recording who did it", async () => {
     vi.mocked(callBotApiForJson).mockResolvedValue({ role: "admin" });
@@ -115,10 +118,10 @@ describe("setAllowPersonalTokens", () => {
 
 describe("queryOrgPersonalTokensPolicy", () => {
   const query = (mongoStores: MongoStores) =>
-    createOrgsService({ mongoStores }).queries.queryOrgPersonalTokensPolicy(
-      { orgId: 1 },
-      loggedInUser,
-    );
+    createOrgsService(
+      { mongoStores },
+      scopes,
+    ).queries.queryOrgPersonalTokensPolicy({ orgId: 1 }, loggedInUser);
 
   it("tells an owner they can change the policy", async () => {
     vi.mocked(callBotApiForJson).mockResolvedValue({ role: "admin" });
@@ -170,9 +173,10 @@ describe("queryOrgSettings", () => {
       },
     } as unknown as MongoStores;
 
-    await createOrgsService({
-      mongoStores: settingsStores,
-    }).queries.queryOrgSettings({ orgLogin: "acme" }, loggedInUser);
+    await createOrgsService(
+      { mongoStores: settingsStores },
+      scopes,
+    ).queries.queryOrgSettings({ orgLogin: "acme" }, loggedInUser);
     const transformer = transformerOf(createQuerySingleItem) as (
       orgMember: unknown,
     ) => { slack: unknown };
@@ -201,7 +205,7 @@ describe("queryMyOrgs", () => {
   it("tells whether each org allows personal tokens", async () => {
     const { mongoStores, createQueryCollection } = createStores();
 
-    await createOrgsService({ mongoStores }).queries.queryMyOrgs(
+    await createOrgsService({ mongoStores }, scopes).queries.queryMyOrgs(
       {},
       loggedInUser,
     );

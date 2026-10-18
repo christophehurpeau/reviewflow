@@ -1,7 +1,7 @@
 import { ResourcesServerError } from "liwi-resources-server";
 import type { ServiceResource } from "liwi-resources-server";
 import { emojiToUnicode } from "reviewflow-core";
-import type { Repository } from "reviewflow-core";
+import type { MongoStores, Repository } from "reviewflow-core";
 import type {
   RepositoriesService,
   RepositorySummary,
@@ -9,7 +9,13 @@ import type {
 import type { ResourcesContext } from "../ResourcesContext.ts";
 import { callBotApi } from "../botApi.ts";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
+import type { MembershipScopes } from "./membershipScopes.ts";
 import { requireAccount } from "./requireAuth.ts";
+import {
+  createScopedQuery,
+  matchNothing,
+  toScopeOrUndefined,
+} from "./scopedQuery.ts";
 
 const toRepositorySummary = ({
   _id,
@@ -26,36 +32,69 @@ const toRepositorySummary = ({
   archived: archived ?? false,
 });
 
-export const createRepositoriesService = ({
-  mongoStores,
-}: ResourcesContext): ServiceResource<
-  RepositoriesService,
-  AuthenticatedWsUser
-> => ({
+const resolveIsAuthorized = (
+  mongoStores: MongoStores,
+  accountId: number,
+  user: AuthenticatedWsUser,
+): Promise<boolean | undefined> =>
+  toScopeOrUndefined(async () => {
+    await requireAccount(mongoStores, accountId, user);
+    return true;
+  });
+
+export const createRepositoriesService = (
+  { mongoStores }: ResourcesContext,
+  scopes: MembershipScopes,
+): ServiceResource<RepositoriesService, AuthenticatedWsUser> => ({
   queries: {
     queryAccountRepositories: async ({ accountId }, loggedInUser) => {
-      await requireAccount(mongoStores, accountId, loggedInUser);
-
-      return mongoStores.repositories.createQueryCollection({
-        criteria: { "account.id": accountId },
-        sort: { fullName: 1 },
-        transformer: toRepositorySummary,
-      });
-    },
-
-    queryRepository: async ({ accountId, name }, loggedInUser) => {
-      const { account } = await requireAccount(
+      const { user, account } = await requireAccount(
         mongoStores,
         accountId,
         loggedInUser,
       );
 
-      return mongoStores.repositories.createQuerySingleItem({
-        criteria: {
-          "account.id": accountId,
-          fullName: `${account.login}/${name}`,
-        },
-        transformer: toRepositorySummary,
+      const createQuery = (isAuthorized: boolean | undefined) =>
+        mongoStores.repositories.createQueryCollection({
+          criteria: isAuthorized ? { "account.id": accountId } : matchNothing,
+          sort: { fullName: 1 },
+          transformer: toRepositorySummary,
+        });
+
+      if (account.id === user.id) return createQuery(true);
+
+      return createScopedQuery({
+        user,
+        scopes,
+        initialScope: true,
+        resolveScope: () => resolveIsAuthorized(mongoStores, accountId, user),
+        createQuery,
+      });
+    },
+
+    queryRepository: async ({ accountId, name }, loggedInUser) => {
+      const { user, account } = await requireAccount(
+        mongoStores,
+        accountId,
+        loggedInUser,
+      );
+
+      const createQuery = (isAuthorized: boolean | undefined) =>
+        mongoStores.repositories.createQuerySingleItem({
+          criteria: isAuthorized
+            ? { "account.id": accountId, fullName: `${account.login}/${name}` }
+            : matchNothing,
+          transformer: toRepositorySummary,
+        });
+
+      if (account.id === user.id) return createQuery(true);
+
+      return createScopedQuery({
+        user,
+        scopes,
+        initialScope: true,
+        resolveScope: () => resolveIsAuthorized(mongoStores, accountId, user),
+        createQuery,
       });
     },
   },
