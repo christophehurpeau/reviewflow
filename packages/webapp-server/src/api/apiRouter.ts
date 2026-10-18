@@ -6,6 +6,11 @@ import {
   healthHttpStatus,
 } from "reviewflow-core";
 import type { ResourcesContext } from "../ResourcesContext.ts";
+import type { SubscriptionSlots } from "../resources/subscriptionLimits.ts";
+import {
+  createSubscriptionSlots,
+  readSubscriptionLimits,
+} from "../resources/subscriptionLimits.ts";
 import {
   ApiError,
   apiErrorHandler,
@@ -14,13 +19,20 @@ import {
 } from "./apiErrors.ts";
 import type { ApiAuth } from "./authenticatePersonalToken.ts";
 import { authenticatePersonalToken } from "./authenticatePersonalToken.ts";
-import { parseBucket, parsePage, readBoard, readBucketPage } from "./board.ts";
+import {
+  parseBucket,
+  parsePage,
+  readBoard,
+  readBucketPage,
+  resolveBoardAccounts,
+} from "./board.ts";
 import type { GetRelayState } from "./health.ts";
 import { toHealthV1 } from "./health.ts";
 import { lookupPrs, parseLookupTargets } from "./prsLookup.ts";
 import { createRateLimiter } from "./rateLimiter.ts";
 import { resolveRepository } from "./resolveRepository.ts";
 import { sendJsonWithoutEtag } from "./sendJsonWithoutEtag.ts";
+import { parseClosedWithinDays, serveStream } from "./stream.ts";
 import { resolveTokenAccounts } from "./tokenAccounts.ts";
 
 /** 60 requests at once, then one a second: a poll every few seconds fits */
@@ -52,6 +64,8 @@ const isUnauthenticated = (error: unknown): boolean =>
 
 export interface ApiRouterOptions {
   getRelayState: GetRelayState;
+  /** shared with the resources websocket: a stream holds a live subscription */
+  subscriptionSlots?: SubscriptionSlots;
 }
 
 /**
@@ -62,12 +76,16 @@ export interface ApiRouterOptions {
  */
 export default function apiRouter(
   { mongoStores }: ResourcesContext,
-  { getRelayState }: ApiRouterOptions,
+  {
+    getRelayState,
+    subscriptionSlots = createSubscriptionSlots(readSubscriptionLimits()),
+  }: ApiRouterOptions,
 ): Router {
   const router = Router();
   const tokenLimiter = createRateLimiter(tokenLimits);
   const failedAuthLimiter = createRateLimiter(failedAuthLimits);
   const healthChecker = createHealthChecker(mongoStores);
+  const openStreams = new Set<string>();
 
   const authenticate: RequestHandler = async (req, res, next) => {
     const ip = req.ip ?? "unknown";
@@ -183,6 +201,23 @@ export default function apiRouter(
     res.json(
       await readBucketPage(mongoStores, auth, { bucket, account, page }),
     );
+  });
+
+  router.get("/stream/v1", async (req, res) => {
+    const auth = apiAuthOf(res);
+    const account = queryParam(req, "account");
+    const closedWithinDays = parseClosedWithinDays(
+      queryParam(req, "closedWithinDays"),
+    );
+
+    await serveStream(res, {
+      mongoStores,
+      auth,
+      closedWithinDays,
+      resolveAccounts: () => resolveBoardAccounts(mongoStores, auth, account),
+      slots: subscriptionSlots,
+      openStreams,
+    });
   });
 
   router.post(

@@ -7,7 +7,8 @@ export type ApiErrorCode =
   | "internal"
   | "notFound"
   | "rateLimited"
-  | "unauthenticated";
+  | "unauthenticated"
+  | "unavailable";
 
 const statusByCode: Record<ApiErrorCode, number> = {
   badRequest: 400,
@@ -16,6 +17,7 @@ const statusByCode: Record<ApiErrorCode, number> = {
   notFound: 404,
   rateLimited: 429,
   internal: 500,
+  unavailable: 503,
 };
 
 export class ApiError extends Error {

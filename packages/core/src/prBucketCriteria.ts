@@ -173,3 +173,32 @@ export const buildPrBucketQuery = (
       throw new Error(`Unknown bucket: ${bucket as string}`);
   }
 };
+
+export interface PrStreamScopeOptions {
+  /** closed pull requests the user owns stay in scope when closed since then */
+  closedSince?: Date;
+}
+
+/**
+ * Every pull request of the board, open ones the user owns whatever their
+ * bucket, and, with `closedSince`, the ones they own closed since then.
+ */
+export const buildPrStreamCriteria = (
+  context: PrBucketContext,
+  { closedSince }: PrStreamScopeOptions = {},
+): Criteria<ReviewflowPr> => ({
+  $or: [
+    buildRequestedReviewsCriteria(context, false),
+    buildRequestedReviewsCriteria(context, true),
+    buildOwnedCriteria(context, {}),
+    ...(closedSince
+      ? [
+          {
+            ...buildOwnedCriteria(context, {}),
+            isClosed: true,
+            "flowDates.closedAt": { $gte: closedSince },
+          },
+        ]
+      : []),
+  ],
+});

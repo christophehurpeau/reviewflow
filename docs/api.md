@@ -2,7 +2,7 @@
 
 A read-only HTTP API on the reviewflow webapp server, for tools that follow your pull requests from outside the webapp (vigie, scripts).
 
-> **Status:** early. `GET /api/me/v1`, `GET /api/board/v1`, `GET /api/board-bucket/v1`, `GET /api/pr/v1/<owner>/<repo>/<number>`, `POST /api/prs-lookup/v1`, `GET /api/health/v1` and `GET /api/health` are available; the other endpoints ship one by one, and the table below says which ones are.
+> **Status:** early. `GET /api/me/v1`, `GET /api/board/v1`, `GET /api/board-bucket/v1`, `GET /api/pr/v1/<owner>/<repo>/<number>`, `POST /api/prs-lookup/v1`, `GET /api/stream/v1`, `GET /api/health/v1` and `GET /api/health` are available.
 
 ## Authentication
 
@@ -39,14 +39,15 @@ A token never carries your GitHub credentials, and nothing in this API calls Git
   { "error": { "code": "unauthenticated", "message": "…" } }
   ```
 
-  | Status | Code              | When                                                    |
-  | ------ | ----------------- | ------------------------------------------------------- |
-  | 400    | `badRequest`      | malformed request body or query parameter               |
-  | 401    | `unauthenticated` | missing, unknown or revoked token                       |
-  | 403    | `forbidden`       | the account is outside what the token can read          |
-  | 404    | `notFound`        | unknown resource or endpoint (after authentication)     |
-  | 429    | `rateLimited`     | too many requests; retry after the `Retry-After` header |
-  | 500    | `internal`        | unexpected server failure                               |
+  | Status | Code              | When                                                                 |
+  | ------ | ----------------- | -------------------------------------------------------------------- |
+  | 400    | `badRequest`      | malformed request body or query parameter                            |
+  | 401    | `unauthenticated` | missing, unknown or revoked token                                    |
+  | 403    | `forbidden`       | the account is outside what the token can read                       |
+  | 404    | `notFound`        | unknown resource or endpoint (after authentication)                  |
+  | 429    | `rateLimited`     | too many requests; retry after the `Retry-After` header              |
+  | 500    | `internal`        | unexpected server failure                                            |
+  | 503    | `unavailable`     | the server cannot serve it now; retry after the `Retry-After` header |
 
 - Conditional requests: a successful `GET` of a pull request, the board or a board bucket carries a weak `ETag`, a hash of the response body. Send it back as `If-None-Match` to get `304 Not Modified` with no body when nothing changed, and keep your copy. A `304` still counts against the rate limits and still authenticates the token. The `ETag` is per reader: the same pull request has a different one for each user, because `myBuckets` depends on who asks, so never share one between tokens of different users. Errors, `POST /api/prs-lookup/v1`, `GET /api/me/v1` (its `serverTime` changes on every call, so its `ETag` never helps) and `GET /api/health/v1` are not conditional: no usable `ETag`, no `304`.
 
@@ -88,16 +89,16 @@ Dates are ISO 8601 strings in UTC.
 
 ## Endpoints
 
-| Endpoint                                 | Returns                                                     | Status        |
-| ---------------------------------------- | ----------------------------------------------------------- | ------------- |
-| `GET /api/me/v1`                         | your user, the accounts the token reaches, the token's name | available     |
-| `GET /api/board/v1?account=<login>`      | your pull requests board, grouped like the webapp           | available     |
-| `GET /api/board-bucket/v1`               | one board bucket, paginated                                 | available     |
-| `POST /api/prs-lookup/v1`                | pull requests by repository and branch, up to 200 at once   | available     |
-| `GET /api/pr/v1/<owner>/<repo>/<number>` | one pull request                                            | available     |
-| `GET /api/health/v1`                     | server health, unauthenticated                              | available     |
-| `GET /api/health`                        | server health as an HTTP status, for probes                 | available     |
-| `GET /api/stream/v1`                     | server-sent events: pull request changes as they happen     | not available |
+| Endpoint                                 | Returns                                                     | Status    |
+| ---------------------------------------- | ----------------------------------------------------------- | --------- |
+| `GET /api/me/v1`                         | your user, the accounts the token reaches, the token's name | available |
+| `GET /api/board/v1?account=<login>`      | your pull requests board, grouped like the webapp           | available |
+| `GET /api/board-bucket/v1`               | one board bucket, paginated                                 | available |
+| `POST /api/prs-lookup/v1`                | pull requests by repository and branch, up to 200 at once   | available |
+| `GET /api/pr/v1/<owner>/<repo>/<number>` | one pull request                                            | available |
+| `GET /api/health/v1`                     | server health, unauthenticated                              | available |
+| `GET /api/health`                        | server health as an HTTP status, for probes                 | available |
+| `GET /api/stream/v1`                     | server-sent events: pull request changes as they happen     | available |
 
 Each endpoint gets its request and response documented here when it ships.
 
@@ -324,3 +325,59 @@ Errors:
 | 400    | `badRequest`      | the body is not JSON, `targets` is not an array of at most 200 `{ ownerRepo, headRef }` of strings |
 | 401    | `unauthenticated` | missing, unknown or revoked token                                                                  |
 | 429    | `rateLimited`     | past a rate limit                                                                                  |
+
+### `GET /api/stream/v1`
+
+Your pull requests as they change, as [server-sent events](https://html.spec.whatwg.org/multipage/server-sent-events.html): the board, kept current, without polling.
+
+```http
+GET /api/stream/v1?account=acme&closedWithinDays=7
+Authorization: Bearer rfp_…
+Accept: text/event-stream
+```
+
+```text
+event: pr
+data: {"_id":"6718f0c2a1b2c3d4e5f60718","number":412,"state":"open", …}
+
+event: ready
+data: {"serverTime":"2026-10-18T10:00:00.000Z"}
+
+event: pr
+data: {"_id":"6718f0c2a1b2c3d4e5f60718","number":412,"state":"merged", …}
+
+event: heartbeat
+data: {"serverTime":"2026-10-18T10:00:25.000Z"}
+```
+
+The scope is every pull request on your board, every open pull request you created or are assigned to, and, with `closedWithinDays`, the ones you created or are assigned to that closed within that many days.
+
+- `account` is as for [the board](#get-apiboardv1): omitted, every account the token reads.
+- `closedWithinDays`: an integer from 0 to 30, `0` by default.
+- On connect, one `pr` event per pull request in scope, then `ready`. Then the changes as they happen.
+
+| Event          | Data                                                  | When                                                                                                                                                                 |
+| -------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pr`           | the [pull request object](#pull-request-shape)        | a pull request in scope changed or entered it. A pull request that closes gets a last `pr` with its closed or merged `state`, even when closed ones are out of scope |
+| `prRemoved`    | `{ "_id", "reason": "outOfScope" \| "deleted" }`      | a pull request left the scope for another reason (no longer assigned, review request removed…), or was deleted                                                       |
+| `ready`        | `{ "serverTime" }`                                    | the pull requests in scope have all been sent                                                                                                                        |
+| `heartbeat`    | `{ "serverTime" }`                                    | every 25 s, so that a proxy keeps the connection and you can tell a dead one                                                                                         |
+| `scopeChanged` | `{}`                                                  | the accounts the token reads, or your teams, changed. The stream then ends: reconnect                                                                                |
+| `reset`        | `{ "reason": "resync" \| "tokenRevoked" \| "error" }` | the stream ends: reconnect, which sends the scope again. `tokenRevoked`: reconnecting answers `401`                                                                  |
+
+- Events are state, not deltas: each `pr` carries the whole pull request. Several changes of one pull request within a second are sent as one event with the latest state, and a change of `updatedAt` alone is not sent.
+- There is no resume: after a disconnection, reconnect and take the `pr` events before `ready` as the current state; drop what you held that they do not include.
+- A revoked token or a membership change is noticed within a minute.
+- One stream per token: a second one is refused with `429` while the first is open. Each stream holds one of the live connections the server allows per user and in total: past them, `503 unavailable`.
+- Changes reach the stream within a second or two of reviewflow receiving the GitHub webhook.
+- Behind a reverse proxy, turn response buffering off for this path (the server already sends `X-Accel-Buffering: no` for nginx).
+
+Errors, before the stream starts:
+
+| Status | Code              | When                                                                                      |
+| ------ | ----------------- | ----------------------------------------------------------------------------------------- |
+| 400    | `badRequest`      | `account` is empty or repeated, `closedWithinDays` is not an integer from 0 to 30         |
+| 401    | `unauthenticated` | missing, unknown or revoked token                                                         |
+| 403    | `forbidden`       | `account` is not an account the token reads                                               |
+| 429    | `rateLimited`     | past a rate limit, or the token already has an open stream                                |
+| 503    | `unavailable`     | the server holds too many live connections for you or in total; retry after `Retry-After` |

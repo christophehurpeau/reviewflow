@@ -12,6 +12,10 @@ import { getBotInternalUrl } from "./botApi.ts";
 import { getAuthenticatedUser } from "./resources/getAuthenticatedUser.ts";
 import { createResourcesServerService } from "./resources/index.ts";
 import { createSlackUserTokensCheck } from "./resources/slackUserToken.ts";
+import {
+  createSubscriptionSlots,
+  readSubscriptionLimits,
+} from "./resources/subscriptionLimits.ts";
 import { connectBotStoreRelay } from "./storeRelay.ts";
 
 if (!process.env.REVIEWFLOW_NAME) process.env.REVIEWFLOW_NAME = "reviewflow";
@@ -33,6 +37,8 @@ if (!internalApiSecret) {
 
 const mongoStores = mongoInit();
 const resourcesContext: ResourcesContext = { mongoStores };
+// one budget for the webapp's subscriptions and the api's streams
+const subscriptionSlots = createSubscriptionSlots(readSubscriptionLimits());
 
 const storeRelay = connectBotStoreRelay({
   botInternalUrl: getBotInternalUrl(),
@@ -53,7 +59,10 @@ expressApp.use(cookieParser());
 expressApp.use("/app", appRouter(resourcesContext));
 expressApp.use(
   "/api",
-  apiRouter(resourcesContext, { getRelayState: storeRelay.getState }),
+  apiRouter(resourcesContext, {
+    getRelayState: storeRelay.getState,
+    subscriptionSlots,
+  }),
 );
 
 // The webapp is a single page app: static assets first, then everything that
@@ -72,7 +81,7 @@ const checkSlackUserTokens = createSlackUserTokensCheck(mongoStores);
 const wsServer = createWsServer(
   server,
   "/ws",
-  createResourcesServerService(resourcesContext),
+  createResourcesServerService(resourcesContext, subscriptionSlots),
   async (request) => {
     const user = await getAuthenticatedUser(request);
     // when the user opens the app, so a revoked slack sign-in asks to sign in again
