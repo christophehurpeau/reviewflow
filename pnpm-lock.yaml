@@ -131,8 +131,8 @@ importers:
         specifier: 9.0.4
         version: 9.0.4
       '@octokit/plugin-rest-endpoint-methods':
-        specifier: 17.0.0
-        version: 17.0.0(@octokit/core@7.0.7)
+        specifier: 18.0.0
+        version: 18.0.0(@octokit/core@7.0.7)
       '@octokit/rest':
         specifier: 22.0.1
         version: 22.0.1
@@ -1528,6 +1528,12 @@ packages:
     peerDependencies:
       '@octokit/core': '>=6'
 
+  '@octokit/plugin-rest-endpoint-methods@18.0.0':
+    resolution: {integrity: sha512-1wM02pQTHEarWYij0Bb4gu8X8fBy2FJdI4HMTSFDxtYLbOkJErGVx5ywmM6jeS8tOmC0iCiRLrn6YsSIecUeOQ==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      '@octokit/core': '>=6'
+
   '@octokit/plugin-retry@8.1.0':
     resolution: {integrity: sha512-O1FZgXeiGb2sowEr/hYTr6YunGdSAFWnr2fyW39Ah85H8O33ELASQxcvOFF5LE6Tjekcyu2ms4qAzJVhSaJxTw==}
     engines: {node: '>= 20'}
@@ -2249,7 +2255,11 @@ packages:
     engines: {node: '>=22.18.0'}
     hasBin: true
     peerDependencies:
+      rollup: 4.60.4
       typescript: ^4.0.3 || ^5.0.0 || ^6.0.0 || ^7.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
 
   '@pob/rollup@8.4.0':
     resolution: {integrity: sha512-o7wjgNK4tUFklJ/dRnSBB+Qsl/htOy3kvCdrOgGZQrvi9JOYXBIZlWgheLBlcV4Ks8fIcv9Pzr0pH95ig0plAQ==}
@@ -5041,6 +5051,7 @@ packages:
     resolution: {integrity: sha512-sVgXaMjh5uapBvBkik3QibxbKI2g1zNtNeHntjRfixWAI3tlQZbaK4ACdInY4+jUBVymkf8u9BXJUaSes9jdtA==}
     hasBin: true
     peerDependencies:
+      '@expo/dom-webview': '*'
       '@expo/metro-runtime': '*'
       react: '*'
       react-dom: '*'
@@ -5048,6 +5059,8 @@ packages:
       react-native-web: '*'
       react-native-webview: '*'
     peerDependenciesMeta:
+      '@expo/dom-webview':
+        optional: true
       '@expo/metro-runtime':
         optional: true
       react-dom:
@@ -9475,6 +9488,11 @@ snapshots:
     dependencies:
       '@octokit/core': 7.0.7
       '@octokit/types': 16.0.0
+
+  '@octokit/plugin-rest-endpoint-methods@18.0.0(@octokit/core@7.0.7)':
+    dependencies:
+      '@octokit/core': 7.0.7
+      '@octokit/types': 17.0.0
 
   '@octokit/plugin-retry@8.1.0(@octokit/core@7.0.7)':
     dependencies:
