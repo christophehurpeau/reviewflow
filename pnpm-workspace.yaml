@@ -20,6 +20,8 @@ minimumReleaseAgeExclude:
   - nightingale
   - nightingale-logger
   - react-liwi
+  # Renovate security update: vite@8.2.4
+  - vite@8.2.4
 nodeLinker: hoisted
 packages:
   - packages/*
