@@ -2249,7 +2249,11 @@ packages:
     engines: {node: '>=22.18.0'}
     hasBin: true
     peerDependencies:
+      rollup: 4.60.4
       typescript: ^4.0.3 || ^5.0.0 || ^6.0.0 || ^7.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
 
   '@pob/rollup@8.4.0':
     resolution: {integrity: sha512-o7wjgNK4tUFklJ/dRnSBB+Qsl/htOy3kvCdrOgGZQrvi9JOYXBIZlWgheLBlcV4Ks8fIcv9Pzr0pH95ig0plAQ==}
@@ -5041,6 +5045,7 @@ packages:
     resolution: {integrity: sha512-sVgXaMjh5uapBvBkik3QibxbKI2g1zNtNeHntjRfixWAI3tlQZbaK4ACdInY4+jUBVymkf8u9BXJUaSes9jdtA==}
     hasBin: true
     peerDependencies:
+      '@expo/dom-webview': '*'
       '@expo/metro-runtime': '*'
       react: '*'
       react-dom: '*'
@@ -5048,6 +5053,8 @@ packages:
       react-native-web: '*'
       react-native-webview: '*'
     peerDependenciesMeta:
+      '@expo/dom-webview':
+        optional: true
       '@expo/metro-runtime':
         optional: true
       react-dom:
@@ -7728,8 +7735,8 @@ packages:
   undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
 
-  undici@7.30.0:
-    resolution: {integrity: sha512-dkrQXeHSaoamnItlYbmzG0wFYrM0ZwDxCIg0A7aKjTyyhh9svRzCNFEzV+Vm05/yehjCzjDZ31KXfGEjYSztDQ==}
+  undici@7.30.1:
+    resolution: {integrity: sha512-03KrMbjIFDWQR5RNPrSw3bd1r12JpyFQl9/yxjUbJtqkjmllqC5lFjZh6ujeuJCKr8EOQvRW872Oy/az+nLYxg==}
     engines: {node: '>=20.18.1'}
 
   unicode-canonical-property-names-ecmascript@2.0.1:
@@ -15762,7 +15769,7 @@ snapshots:
   smee-client@5.0.0:
     dependencies:
       eventsource: 4.1.0
-      undici: 7.30.0
+      undici: 7.30.1
 
   sonic-boom@4.2.1:
     dependencies:
@@ -16190,7 +16197,7 @@ snapshots:
 
   undici-types@7.16.0: {}
 
-  undici@7.30.0: {}
+  undici@7.30.1: {}
 
   unicode-canonical-property-names-ecmascript@2.0.1: {}
 
