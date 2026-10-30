@@ -20,6 +20,8 @@ minimumReleaseAgeExclude:
   - nightingale
   - nightingale-logger
   - react-liwi
+  # Renovate security update: storybook@10.6.2
+  - storybook@10.6.2
 nodeLinker: hoisted
 packages:
   - packages/*
