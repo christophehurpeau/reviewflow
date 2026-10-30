@@ -70,7 +70,7 @@
     "@react-native/metro-config": "0.86.2",
     "@storybook/addon-ondevice-actions": "10.6.0",
     "@storybook/addon-ondevice-controls": "10.6.0",
-    "@storybook/addon-vitest": "10.6.0",
+    "@storybook/addon-vitest": "10.6.2",
     "@storybook/react": "10.6.0",
     "@storybook/react-native-web-vite": "10.6.0",
     "@types/react": "19.2.18",
