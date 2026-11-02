@@ -35,12 +35,12 @@
     "@pob/eslint-config-typescript-react": "67.12.0",
     "@pob/root": "27.15.0",
     "@typescript/native": "npm:typescript@7.0.2",
-    "@vitest/coverage-v8": "4.1.11",
+    "@vitest/coverage-v8": "4.1.12",
     "eslint": "10.8.1",
     "mongodb-memory-server": "11.3.0",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.2.4",
-    "vitest": "4.1.11"
+    "vitest": "4.1.12"
   },
   "commitlint": {
     "extends": [
