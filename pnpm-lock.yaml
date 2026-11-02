@@ -5180,8 +5180,8 @@ packages:
     engines: {node: '>=4'}
     hasBin: true
 
-  follow-redirects@1.16.1:
-    resolution: {integrity: sha512-FNvFGzoMLWmE6Yj9spb/zjd7yiNCHiAW9/Tg9CXrQ8wuu32HtlJOwWO11OJafl5FfY3DxTdQ0vj42zU1kvv5jg==}
+  follow-redirects@1.16.2:
+    resolution: {integrity: sha512-/kVP2U8z596Ia0gwFrwyIeo74ta5aVmSeU1FfAUMAmcEP5EP7zydmag3SLiN64NaRKef3lxsq7i/g7ltJQDGow==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -13105,7 +13105,7 @@ snapshots:
       pirates: 3.0.2
       vlq: 0.2.3
 
-  follow-redirects@1.16.1(debug@4.4.3(supports-color@8.1.1)):
+  follow-redirects@1.16.2(debug@4.4.3(supports-color@8.1.1)):
     optionalDependencies:
       debug: 4.4.3(supports-color@8.1.1)
 
@@ -14450,7 +14450,7 @@ snapshots:
       camelcase: 6.3.0
       debug: 4.4.3(supports-color@8.1.1)
       find-cache-dir: 3.3.2
-      follow-redirects: 1.16.1(debug@4.4.3(supports-color@8.1.1))
+      follow-redirects: 1.16.2(debug@4.4.3(supports-color@8.1.1))
       https-proxy-agent: 7.0.6(supports-color@8.1.1)
       mongodb: 7.5.0
       new-find-package-json: 2.0.0(supports-color@8.1.1)
