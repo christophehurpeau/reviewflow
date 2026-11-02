@@ -70,7 +70,7 @@
     "@react-native/metro-config": "0.86.2",
     "@storybook/addon-ondevice-actions": "10.6.0",
     "@storybook/addon-ondevice-controls": "10.6.0",
-    "@storybook/addon-vitest": "10.6.0",
+    "@storybook/addon-vitest": "10.6.2",
     "@storybook/react": "10.6.0",
     "@storybook/react-native-web-vite": "10.6.0",
     "@types/react": "19.2.18",
@@ -79,7 +79,7 @@
     "@vitejs/plugin-react": "6.1.2",
     "@vitest/browser-playwright": "4.1.11",
     "playwright": "1.63.0",
-    "storybook": "10.6.0",
+    "storybook": "10.6.2",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.2.4",
     "vitest": "4.1.11"
