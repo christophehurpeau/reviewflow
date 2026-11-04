@@ -57,8 +57,8 @@ importers:
         specifier: 14.1.0
         version: 14.1.0
       mingo:
-        specifier: 7.2.5
-        version: 7.2.5
+        specifier: 7.2.7
+        version: 7.2.7
       nightingale:
         specifier: 18.2.0
         version: 18.2.0
@@ -6281,8 +6281,8 @@ packages:
     resolution: {integrity: sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==}
     engines: {node: '>=4'}
 
-  mingo@7.2.5:
-    resolution: {integrity: sha512-lZR31XnwGQuDHebGyLTlW095BI19qfaYE/IAcVkmBDRyn7DnEwYLQFMfnwFVr+bmc+42a3elhOB2ZBL73i782A==}
+  mingo@7.2.7:
+    resolution: {integrity: sha512-4IRY2mkJlAv/RmnLrXJyP01T6JW9tmD8NmOC7ANgTUW6B1AU8enDySHWREdMvY2yBv0xuQ1hzA1d4fEHYgDoXw==}
 
   minimatch@10.2.5:
     resolution: {integrity: sha512-MULkVLfKGYDFYejP07QOurDLLQpcjk7Fw+7jXS2R2czRQzR56yHRveU5NDJEOviH+hETZKSkIk5c+T23GjFUMg==}
@@ -13746,7 +13746,7 @@ snapshots:
     dependencies:
       liwi-store: 14.1.0
       liwi-subscribe-store: 15.0.0
-      mingo: 7.2.5
+      mingo: 7.2.7
       mongodb: 7.7.0
       nightingale-logger: 18.2.0
     transitivePeerDependencies:
@@ -14420,7 +14420,7 @@ snapshots:
 
   min-indent@1.0.1: {}
 
-  mingo@7.2.5: {}
+  mingo@7.2.7: {}
 
   minimatch@10.2.5:
     dependencies:
@@ -15148,7 +15148,7 @@ snapshots:
     dependencies:
       liwi-resources-client: 15.0.0
       liwi-store: 14.1.0
-      mingo: 7.2.5
+      mingo: 7.2.7
       nightingale-logger: 18.2.0
       react: 19.2.8
 
