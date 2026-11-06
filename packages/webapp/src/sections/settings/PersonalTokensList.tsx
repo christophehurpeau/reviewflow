@@ -30,6 +30,8 @@ import { RevealedTokenModal } from "./RevealedTokenModal.tsx";
 
 const maxNameLength = 100;
 
+const apiNotEnabledReason = "The API is not enabled for any of your accounts.";
+
 const apiDocUrl =
   "https://github.com/christophehurpeau/reviewflow/blob/main/docs/api.md";
 
@@ -129,7 +131,7 @@ function PersonalTokenRow({
       <View className="flex-1 gap-xs">
         <Text className="font-body-bold">{token.name}</Text>
         <Text className="text-sm text-muted">
-          <Text className="font-mono text-sm text-muted">{`${token.prefix}…`}</Text>
+          <Text className="font-mono">{`${token.prefix}…`}</Text>
           {` · created ${formatDate(token.createdAt)} · ${formatLastUse(token)}`}
         </Text>
       </View>
@@ -201,15 +203,13 @@ export function PersonalTokensList({
           <ExternalLinkText href={apiDocUrl} text="API documentation" />
         </View>
         {isApiEnabled ? null : (
-          <NotEnabledMessage>
-            The API is not enabled for any of your accounts.
-          </NotEnabledMessage>
+          <NotEnabledMessage>{apiNotEnabledReason}</NotEnabledMessage>
         )}
         <View className="flex-row">
           <Button
             text="New token"
             icon={<PlusRegularIcon />}
-            disabled={!isApiEnabled}
+            disabledReason={isApiEnabled ? null : apiNotEnabledReason}
             onPress={() => {
               setIsCreating(true);
             }}
