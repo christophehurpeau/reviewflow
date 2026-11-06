@@ -1,11 +1,11 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   type ColorModePreference,
   ScopedTheme,
   useResolvedColorMode,
 } from "alouette";
 import type { ReactNode } from "react";
-import { createContext, use, useEffect, useMemo, useState } from "react";
+import { createContext, use, useMemo } from "react";
+import { useStoredPreference } from "#/services/useStoredPreference.ts";
 
 const storageKey = "reviewflow:color-mode";
 
@@ -33,39 +33,22 @@ interface ColorModeProviderProps {
 
 /**
  * Owns the light/dark choice: it applies it to the whole tree and persists it,
- * which is the app's job — `ColorModePicker` only reports the choice. Nothing
- * can be read synchronously on native, so the first paint follows the system
- * and the stored preference lands right after.
+ * which is the app's job — `ColorModePicker` only reports the choice.
  */
 export function ColorModeProvider({
   children,
 }: ColorModeProviderProps): ReactNode {
-  const [preference, setPreference] = useState<ColorModePreference>("system");
-
-  useEffect(() => {
-    let cancelled = false;
-    AsyncStorage.getItem(storageKey).then((stored) => {
-      if (!cancelled && stored !== null && isColorModePreference(stored)) {
-        setPreference(stored);
-      }
-    }, console.error);
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const [preference, setPreference] = useStoredPreference<ColorModePreference>(
+    storageKey,
+    isColorModePreference,
+    "system",
+  );
 
   const mode = useResolvedColorMode(preference);
 
   const contextValue = useMemo<ColorModeContextValue>(
-    () => ({
-      preference,
-      setPreference: (nextPreference) => {
-        setPreference(nextPreference);
-        AsyncStorage.setItem(storageKey, nextPreference).catch(console.error);
-      },
-    }),
-    [preference],
+    () => ({ preference, setPreference }),
+    [preference, setPreference],
   );
 
   return (
