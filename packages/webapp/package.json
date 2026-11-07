@@ -47,7 +47,7 @@
     "liwi-resources-client": "15.0.0",
     "liwi-resources-void-client": "15.0.0",
     "liwi-resources-websocket-client": "15.0.0",
-    "nativewind": "5.0.0-rc.0",
+    "nativewind": "5.0.0-rc.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-liwi": "15.0.0",
