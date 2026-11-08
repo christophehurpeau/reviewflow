@@ -9,7 +9,11 @@ import type {
   DiffWhitespace,
   OpenPullRequestsResponse,
   RepoPathSuggestionsResponse,
+  WorktreeRemovalRequest,
+  WorktreeRemovalResult,
+  WorktreeRemovalStatusResponse,
 } from "@reviewflow/sdk";
+import type { WorktreeRemovalCheck } from "@reviewflow/ui";
 import type { QueryClient, UseQueryResult } from "@tanstack/react-query";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getJson, postJson } from "./api.ts";
@@ -172,6 +176,39 @@ export const syncRepo = async (
   await postJson(
     `/api/repos/${action}?${new URLSearchParams(checkoutQuery(checkout))}`,
     {},
+  );
+};
+
+/**
+ * What removing the worktree would lose, read again on every confirmation. A
+ * merged pull request of its branch marks the branch spent.
+ */
+export const readWorktreeRemovalCheck = async (
+  checkout: CheckoutRef,
+): Promise<WorktreeRemovalCheck> => {
+  const answer = await getJson<WorktreeRemovalStatusResponse>(
+    "/api/repos/worktree-status",
+    checkoutQuery(checkout),
+  );
+  return {
+    status: answer.status,
+    branchSpent: answer.pullRequests.some(({ state }) => state === "MERGED"),
+    notice:
+      answer.pullRequestsError === null
+        ? null
+        : `GitHub could not be read (${answer.pullRequestsError}): no pull request proves a commit pushed.`,
+  };
+};
+
+/** Answered once git removed it; the server's refusal is the error. */
+export const removeWorktree = (
+  checkout: CheckoutRef,
+  deleteBranch: boolean,
+): Promise<WorktreeRemovalResult> => {
+  const request: WorktreeRemovalRequest = { deleteBranch };
+  return postJson<WorktreeRemovalResult>(
+    `/api/repos/worktree-remove?${new URLSearchParams(checkoutQuery(checkout))}`,
+    request,
   );
 };
 

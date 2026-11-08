@@ -1,15 +1,25 @@
-import type { CheckoutWorktree } from "@reviewflow/sdk";
+import type { CheckoutWorktree, WorktreeRemovalResult } from "@reviewflow/sdk";
 import type { CheckoutRead } from "@reviewflow/ui";
-import { RepoOverview } from "@reviewflow/ui";
+import { RemoveWorktreeButton, RepoOverview } from "@reviewflow/ui";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
-import { ErrorMessage, IconButton, ScreenScrollView, View } from "alouette";
+import {
+  ConfirmationMessage,
+  ErrorMessage,
+  IconButton,
+  ScreenScrollView,
+  View,
+  WarningMessage,
+} from "alouette";
 import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeft";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import type { ReactNode } from "react";
+import { useState } from "react";
 import { rememberPullRequest } from "#/services/recentPullRequests.ts";
 import {
   invalidateRepo,
+  readWorktreeRemovalCheck,
+  removeWorktree,
   useRepoBranches,
   useRepoPulls,
 } from "#/services/reposApi.ts";
@@ -22,6 +32,29 @@ const readOf = <Value,>(query: UseQueryResult<Value>): CheckoutRead<Value> => ({
   error: query.error?.message ?? null,
   loading: query.isFetching,
 });
+
+interface RemovalNoticeProps {
+  removal: WorktreeRemovalResult;
+  onDismiss: () => void;
+}
+
+/** What the last removal did: the branch git kept is the one thing left to act on. */
+function RemovalNotice({ removal, onDismiss }: RemovalNoticeProps): ReactNode {
+  if (removal.branchError !== null) {
+    return (
+      <WarningMessage dismissIconAriaLabel="Dismiss" onDismiss={onDismiss}>
+        {`Removed ${removal.path}. git kept the branch ${removal.branch ?? ""}: ${removal.branchError}`}
+      </WarningMessage>
+    );
+  }
+  return (
+    <ConfirmationMessage dismissIconAriaLabel="Dismiss" onDismiss={onDismiss}>
+      {removal.branch === null
+        ? `Removed ${removal.path}.`
+        : `Removed ${removal.path} and the branch ${removal.branch}.`}
+    </ConfirmationMessage>
+  );
+}
 
 interface RepoOverviewScreenProps {
   ownerRepo: string;
@@ -36,6 +69,7 @@ function RepoOverviewScreen({
   const client = useQueryClient();
   const branches = useRepoBranches(ownerRepo);
   const pulls = useRepoPulls(ownerRepo);
+  const [removal, setRemoval] = useState<WorktreeRemovalResult | null>(null);
 
   const openWorktree = (worktree: CheckoutWorktree): void => {
     router.push({
@@ -60,6 +94,31 @@ function RepoOverviewScreen({
       branches={readOf(branches)}
       pulls={readOf(pulls)}
       headerStart={back}
+      notices={
+        removal === null ? null : (
+          <RemovalNotice
+            removal={removal}
+            onDismiss={() => {
+              setRemoval(null);
+            }}
+          />
+        )
+      }
+      renderWorktreeActions={(worktree) => {
+        if (worktree.main || worktree.prunable) return null;
+        const checkout = { ownerRepo, worktree: worktree.path };
+        return (
+          <RemoveWorktreeButton
+            path={worktree.path}
+            readCheck={() => readWorktreeRemovalCheck(checkout)}
+            onRemove={(deleteBranch) => removeWorktree(checkout, deleteBranch)}
+            onRemoved={(result) => {
+              setRemoval(result);
+              invalidateRepo(client, ownerRepo).catch(() => undefined);
+            }}
+          />
+        );
+      }}
       onOpenWorktree={openWorktree}
       onOpenPullRequest={openPullRequest}
       onReload={() => {
