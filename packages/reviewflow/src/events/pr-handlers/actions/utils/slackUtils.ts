@@ -1,16 +1,16 @@
 import type {
+  AccountInfo,
+  SlackMessage,
+  SlackSentMessage,
+} from "@reviewflow/core";
+import type { MessageCategory } from "@reviewflow/modules";
+import type {
   Block,
   KnownBlock,
   MrkdwnElement,
   SectionBlock,
 } from "@slack/web-api";
 import type { Criteria } from "liwi-store";
-import type {
-  AccountInfo,
-  SlackMessage,
-  SlackSentMessage,
-} from "reviewflow-core";
-import type { MessageCategory } from "reviewflow-modules";
 import type { AppContext } from "../../../../context/AppContext.ts";
 import type { RepoContext } from "../../../../context/repoContext.ts";
 import { ExcludesFalsy, ExcludesNullish } from "../../../../utils/Excludes.ts";

@@ -1,6 +1,6 @@
+import type { LiveUpdatesPausedBy } from "@reviewflow/modules";
 import { WarningMessage } from "alouette";
 import type { ReactNode } from "react";
-import type { LiveUpdatesPausedBy } from "reviewflow-modules";
 import { NotEnabledMessage } from "./not-enabled-message.tsx";
 
 interface LiveUpdatesPausedNoticeProps {

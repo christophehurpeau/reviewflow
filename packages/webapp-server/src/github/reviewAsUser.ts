@@ -1,8 +1,8 @@
 import { setTimeout as delay } from "node:timers/promises";
 import { Octokit } from "@octokit/rest";
+import type { ReviewflowPr } from "@reviewflow/core";
 import { ResourcesServerError } from "liwi-resources-server";
 import { Logger } from "nightingale-logger";
-import type { ReviewflowPr } from "reviewflow-core";
 
 const logger = new Logger("reviewflow:webapp-server:reviewAsUser");
 

@@ -1,6 +1,6 @@
 import type { EmitterWebhookEventName } from "@octokit/webhooks";
+import { accountConfigs, defaultConfig } from "@reviewflow/core";
 import type { Probot } from "probot";
-import { accountConfigs, defaultConfig } from "reviewflow-core";
 import type { AppContext } from "../../../context/AppContext.ts";
 import type { AccountContext } from "../../../context/accountContext.ts";
 import { obtainAccountContext } from "../../../context/accountContext.ts";

@@ -1,4 +1,4 @@
-import type { ReviewersGroupedByState } from "reviewflow-core";
+import type { ReviewersGroupedByState } from "@reviewflow/core";
 import type {
   ReviewerWithState,
   ReviewsState,

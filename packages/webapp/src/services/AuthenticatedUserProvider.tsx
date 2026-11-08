@@ -1,9 +1,9 @@
+import type { SessionUser } from "@reviewflow/modules";
 import { Button, ErrorMessage, View } from "alouette";
 import { ResourcesServerError } from "liwi-resources-client";
 import type { ReactNode } from "react";
 import { createContext, use, useEffect, useMemo, useState } from "react";
 import { useTransportClientIsReady } from "react-liwi";
-import type { SessionUser } from "reviewflow-modules";
 import { SkeletonSections } from "#/components/skeleton.tsx";
 import { errorToMessage } from "#/errorToMessage.ts";
 import { useReviewflowServices } from "./ReviewflowServicesProvider.tsx";

@@ -1,11 +1,11 @@
-import type { MongoStores, ReviewflowPr } from "reviewflow-core";
+import type { MongoStores, ReviewflowPr } from "@reviewflow/core";
 import {
   accountConfigs,
   createToPrDetail,
   defaultConfig,
   shouldIgnoreRepo,
-} from "reviewflow-core";
-import type { PrDetail } from "reviewflow-modules";
+} from "@reviewflow/core";
+import type { PrDetail } from "@reviewflow/modules";
 import { ApiError } from "./apiErrors.ts";
 import type { ApiAuth } from "./authenticatePersonalToken.ts";
 import type { ResolvedRepository } from "./resolveRepository.ts";

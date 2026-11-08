@@ -1,4 +1,4 @@
-import type { AccountInfo, ReviewerReview, TeamInfo } from "reviewflow-core";
+import type { AccountInfo, ReviewerReview, TeamInfo } from "@reviewflow/core";
 import type { EventsWithRepository } from "../../../context/repoContext";
 import type { PullRequestWithDecentData } from "../../../events/pr-handlers/utils/PullRequestData";
 import type { ProbotEvent } from "../../../events/probot-types";

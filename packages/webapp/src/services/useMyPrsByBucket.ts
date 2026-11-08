@@ -1,5 +1,5 @@
+import type { PrBucket } from "@reviewflow/modules";
 import { useResource } from "react-liwi";
-import type { PrBucket } from "reviewflow-modules";
 import type { PrBucketResource } from "#/sections/prs/PrBucketSection.tsx";
 import { useReviewflowServices } from "./ReviewflowServicesProvider.tsx";
 

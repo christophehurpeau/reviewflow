@@ -1,6 +1,6 @@
+import type { RepositorySettingsQueryResult } from "@reviewflow/core";
 import { Logger } from "nightingale-logger";
 import type { Context } from "probot";
-import type { RepositorySettingsQueryResult } from "reviewflow-core";
 
 const logger = new Logger("reviewflow:getRepositorySettings");
 

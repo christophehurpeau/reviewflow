@@ -1,5 +1,5 @@
 import type { EmitterWebhookEventName } from "@octokit/webhooks";
-import type { ReviewflowPr } from "reviewflow-core";
+import type { ReviewflowPr } from "@reviewflow/core";
 import type { SetRequired } from "type-fest";
 import type { AppContext } from "../../../../context/AppContext.ts";
 import type { LabelResponse } from "../../../../context/initRepoLabels";

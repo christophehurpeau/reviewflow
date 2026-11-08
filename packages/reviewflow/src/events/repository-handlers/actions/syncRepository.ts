@@ -1,10 +1,10 @@
-import type { AccountEmbed, MongoStores, Repository } from "reviewflow-core";
+import type { AccountEmbed, MongoStores, Repository } from "@reviewflow/core";
 import {
   accountConfigs,
   defaultConfig,
   getEmojiFromRepoDescription,
   shouldIgnoreRepo,
-} from "reviewflow-core";
+} from "@reviewflow/core";
 import { deleteRepoContext } from "../../../context/repoContext.ts";
 import { syncRepositoryLabels } from "../../../context/syncRepositoryLabels.ts";
 import type { OctokitPaginate, OctokitRestCompat } from "../../../octokit";

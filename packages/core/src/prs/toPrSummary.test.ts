@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ReviewflowPr } from "reviewflow-core";
+import type { ReviewflowPr } from "@reviewflow/core";
 import { toPrSummary } from "./toPrSummary.ts";
 
 const buildPr = (overrides: Partial<ReviewflowPr> = {}): ReviewflowPr =>

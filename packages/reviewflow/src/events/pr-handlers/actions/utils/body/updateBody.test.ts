@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { LabelList, Options, RepositorySettings } from "reviewflow-core";
+import type { LabelList, Options, RepositorySettings } from "@reviewflow/core";
 import initialSimpleV1 from "./mocks/commentBody-v1-initial-simple.ts";
 import initialAfterEditSimpleV1 from "./mocks/commentBody-v1-initialAfterEdit-simple.ts";
 import initialAfterEditSimpleWithInfosV1 from "./mocks/commentBody-v1-initialAfterEdit-simpleWithInfos.ts";

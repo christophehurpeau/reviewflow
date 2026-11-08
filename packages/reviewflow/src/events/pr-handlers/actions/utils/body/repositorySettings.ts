@@ -1,7 +1,7 @@
 import type {
   RepositorySettings,
   RepositorySettingsQueryResult,
-} from "reviewflow-core";
+} from "@reviewflow/core";
 
 export function createRepositorySettings({
   repository,

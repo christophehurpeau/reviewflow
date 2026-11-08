@@ -1,5 +1,5 @@
+import type { UnresolvedReviewThread } from "@reviewflow/core";
 import type { Probot } from "probot";
-import type { UnresolvedReviewThread } from "reviewflow-core";
 import type { AppContext } from "../../context/AppContext.ts";
 import type { RepoContext } from "../../context/repoContext.ts";
 import { fetchUnresolvedReviewThreads } from "../../utils/github/pullRequest/fetchUnresolvedReviewThreads.ts";

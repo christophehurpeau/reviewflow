@@ -41,6 +41,9 @@ importers:
 
   packages/core:
     dependencies:
+      '@reviewflow/modules':
+        specifier: workspace:*
+        version: link:../modules
       '@sentry/node':
         specifier: 11.8.0
         version: 11.8.0(@babel/core@7.29.7(supports-color@8.1.1))(rollup@4.60.4)
@@ -68,9 +71,6 @@ importers:
       nightingale-sentry:
         specifier: 18.2.0
         version: 18.2.0(@sentry/core@11.8.0)
-      reviewflow-modules:
-        specifier: workspace:*
-        version: link:../modules
     devDependencies:
       '@octokit/rest':
         specifier: 22.0.1
@@ -139,6 +139,12 @@ importers:
       '@octokit/webhooks':
         specifier: 14.2.0
         version: 14.2.0
+      '@reviewflow/core':
+        specifier: workspace:*
+        version: link:../core
+      '@reviewflow/modules':
+        specifier: workspace:*
+        version: link:../modules
       '@slack/web-api':
         specifier: 8.0.0
         version: 8.0.0
@@ -175,12 +181,6 @@ importers:
       probot:
         specifier: 14.3.2
         version: 14.3.2
-      reviewflow-core:
-        specifier: workspace:*
-        version: link:../core
-      reviewflow-modules:
-        specifier: workspace:*
-        version: link:../modules
       slackify-markdown:
         specifier: 5.0.0
         version: 5.0.0(supports-color@8.1.1)
@@ -230,6 +230,9 @@ importers:
       '@react-native-async-storage/async-storage':
         specifier: 2.2.0
         version: 2.2.0(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))
+      '@reviewflow/modules':
+        specifier: workspace:*
+        version: link:../modules
       '@storybook/react-native':
         specifier: 10.6.0
         version: 10.6.0(396e120470c300b17ecff66d1ad5fccf)
@@ -308,9 +311,6 @@ importers:
       react-native-worklets:
         specifier: 0.10.3
         version: 0.10.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@8.1.1)
-      reviewflow-modules:
-        specifier: workspace:*
-        version: link:../modules
       tailwindcss:
         specifier: 4.3.3
         version: 4.3.3
@@ -378,6 +378,12 @@ importers:
       '@octokit/rest':
         specifier: 22.0.1
         version: 22.0.1
+      '@reviewflow/core':
+        specifier: workspace:*
+        version: link:../core
+      '@reviewflow/modules':
+        specifier: workspace:*
+        version: link:../modules
       '@slack/web-api':
         specifier: 8.0.0
         version: 8.0.0
@@ -417,12 +423,6 @@ importers:
       nightingale-logger:
         specifier: 18.2.0
         version: 18.2.0
-      reviewflow-core:
-        specifier: workspace:*
-        version: link:../core
-      reviewflow-modules:
-        specifier: workspace:*
-        version: link:../modules
       simple-oauth2:
         specifier: 5.1.0
         version: 5.1.0(supports-color@8.1.1)

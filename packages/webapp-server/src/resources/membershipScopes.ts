@@ -1,4 +1,4 @@
-import type { MongoStores } from "reviewflow-core";
+import type { MongoStores } from "@reviewflow/core";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
 import { forgetAccounts } from "./requireAuth.ts";
 

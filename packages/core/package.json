@@ -1,5 +1,5 @@
 {
-  "name": "reviewflow-core",
+  "name": "@reviewflow/core",
   "version": "6.21.0",
   "private": true,
   "description": "mongo stores, models and account configs shared by the reviewflow servers",
@@ -37,6 +37,7 @@
     "watch": "pnpm run clean:build && rollup --config rollup.config.mjs --watch"
   },
   "dependencies": {
+    "@reviewflow/modules": "workspace:*",
     "@sentry/node": "11.8.0",
     "emoji-regex": "10.6.0",
     "gemoji": "8.1.0",
@@ -45,8 +46,7 @@
     "mingo": "7.2.7",
     "nightingale": "18.2.0",
     "nightingale-logger": "18.2.0",
-    "nightingale-sentry": "18.2.0",
-    "reviewflow-modules": "workspace:*"
+    "nightingale-sentry": "18.2.0"
   },
   "devDependencies": {
     "@octokit/rest": "22.0.1",

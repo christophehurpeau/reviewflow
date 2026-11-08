@@ -1,4 +1,4 @@
-import type { StatusInfo } from "reviewflow-core";
+import type { StatusInfo } from "@reviewflow/core";
 import type { AppContext } from "../../../context/AppContext.ts";
 import type {
   EventsWithRepository,

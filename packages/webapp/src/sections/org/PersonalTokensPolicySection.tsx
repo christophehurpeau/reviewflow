@@ -1,7 +1,7 @@
+import type { OrgPersonalTokensPolicy } from "@reviewflow/modules";
 import { ErrorMessage, Switch, Text, View } from "alouette";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import type { OrgPersonalTokensPolicy } from "reviewflow-modules";
 import { NotEnabledMessage } from "#/components/not-enabled-message.tsx";
 import { SettingsSection } from "#/components/settings-section.tsx";
 import { errorToMessage } from "#/errorToMessage.ts";

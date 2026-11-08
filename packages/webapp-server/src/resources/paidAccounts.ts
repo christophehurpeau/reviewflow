@@ -1,5 +1,5 @@
-import type { MongoStores } from "reviewflow-core";
-import { findEnabledAccountIds, isPaidEnabled } from "reviewflow-core";
+import type { MongoStores } from "@reviewflow/core";
+import { findEnabledAccountIds, isPaidEnabled } from "@reviewflow/core";
 
 export interface PaidAccounts {
   /** which of the accounts the admin enabled */

@@ -1,6 +1,6 @@
 import type http from "node:http";
+import type { AuthenticatedUser } from "@reviewflow/modules";
 import * as cookie from "cookie";
-import type { AuthenticatedUser } from "reviewflow-modules";
 import type { AuthInfo } from "../auth/authCookie.ts";
 import {
   authCookieName,

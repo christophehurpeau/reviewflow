@@ -1,4 +1,4 @@
-import type { MessageCategory } from "reviewflow-modules";
+import type { MessageCategory } from "@reviewflow/modules";
 import type { Options } from "../prOptions.ts";
 
 export interface StatusInfo {

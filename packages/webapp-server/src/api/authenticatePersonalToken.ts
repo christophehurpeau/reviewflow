@@ -1,6 +1,6 @@
+import type { MongoStores, PersonalToken } from "@reviewflow/core";
 import type { Request } from "express";
 import { Logger } from "nightingale-logger";
-import type { MongoStores, PersonalToken } from "reviewflow-core";
 import {
   hashPersonalToken,
   personalTokenPrefix,

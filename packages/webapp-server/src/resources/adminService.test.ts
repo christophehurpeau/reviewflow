@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { MongoStores } from "reviewflow-core";
+import type { MongoStores } from "@reviewflow/core";
 import { isAdminUser, readAdminUserIds } from "./adminAuth.ts";
 import { createAdminService } from "./adminService.ts";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";

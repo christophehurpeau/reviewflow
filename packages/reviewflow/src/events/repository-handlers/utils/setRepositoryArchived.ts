@@ -1,5 +1,5 @@
+import type { MongoStores } from "@reviewflow/core";
 import { NotFoundError } from "liwi-store";
-import type { MongoStores } from "reviewflow-core";
 import { deleteRepoContext } from "../../../context/repoContext.ts";
 
 export interface SetRepositoryArchivedOptions {

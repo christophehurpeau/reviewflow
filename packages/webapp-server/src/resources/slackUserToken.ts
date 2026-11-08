@@ -1,5 +1,5 @@
+import type { MongoStores, OrgMember } from "@reviewflow/core";
 import { WebClient } from "@slack/web-api";
-import type { MongoStores, OrgMember } from "reviewflow-core";
 
 export type SlackTokenCheck = (token: string) => Promise<void>;
 

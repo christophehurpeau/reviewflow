@@ -1,7 +1,3 @@
-import { createResourceClientService } from "liwi-resources-client";
-import type { ReactNode } from "react";
-import { createContext, use, useState } from "react";
-import { TransportClientContext } from "react-liwi";
 import type {
   AdminService,
   OrgsService,
@@ -9,7 +5,11 @@ import type {
   PrsService,
   RepositoriesService,
   UsersService,
-} from "reviewflow-modules";
+} from "@reviewflow/modules";
+import { createResourceClientService } from "liwi-resources-client";
+import type { ReactNode } from "react";
+import { createContext, use, useState } from "react";
+import { TransportClientContext } from "react-liwi";
 
 const createUsersServiceClient = createResourceClientService<UsersService>(
   "users",

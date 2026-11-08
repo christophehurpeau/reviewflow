@@ -1,5 +1,5 @@
-import type { HealthStatus } from "reviewflow-core";
-import { STORE_RELAY_HEARTBEAT_INTERVAL_MS } from "reviewflow-core";
+import type { HealthStatus } from "@reviewflow/core";
+import { STORE_RELAY_HEARTBEAT_INTERVAL_MS } from "@reviewflow/core";
 
 export interface HealthV1 {
   status: HealthStatus;

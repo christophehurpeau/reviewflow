@@ -1,3 +1,4 @@
+import type { UserSummary } from "@reviewflow/modules";
 import {
   ActionButton,
   ConfirmationMessage,
@@ -7,7 +8,6 @@ import {
 } from "alouette";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
-import type { UserSummary } from "reviewflow-modules";
 import { ResourceView } from "#/components/resource-view.tsx";
 import { Screen } from "#/components/screen.tsx";
 import { SkeletonBlock } from "#/components/skeleton.tsx";

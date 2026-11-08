@@ -1,3 +1,7 @@
+import type {
+  QueryRepositoryParams,
+  RepositorySummary,
+} from "@reviewflow/modules";
 import {
   ActionButton,
   ExternalLinkButton,
@@ -8,10 +12,6 @@ import {
 } from "alouette";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
-import type {
-  QueryRepositoryParams,
-  RepositorySummary,
-} from "reviewflow-modules";
 import { ResourceView } from "#/components/resource-view.tsx";
 import { Screen } from "#/components/screen.tsx";
 import { SkeletonBlock } from "#/components/skeleton.tsx";

@@ -18,11 +18,11 @@
       "typescript": true,
       "eslint": true,
       "packageNames": [
-        "reviewflow-modules",
-        "reviewflow-core",
-        "webapp",
-        "reviewflow",
-        "reviewflow-webapp-server"
+        "@reviewflow/modules",
+        "@reviewflow/core",
+        "@reviewflow/webapp",
+        "@reviewflow/reviewflow",
+        "@reviewflow/webapp-server"
       ]
     }
   }

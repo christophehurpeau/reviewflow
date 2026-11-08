@@ -1,5 +1,5 @@
-import type { Options } from "reviewflow-core";
-import { recordPrActivity, toPrActivityTarget } from "reviewflow-core";
+import type { Options } from "@reviewflow/core";
+import { recordPrActivity, toPrActivityTarget } from "@reviewflow/core";
 import type { AppContext } from "../../../context/AppContext.ts";
 import type {
   EventsWithRepository,

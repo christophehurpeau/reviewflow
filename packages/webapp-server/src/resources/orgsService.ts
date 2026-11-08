@@ -1,14 +1,12 @@
-import { ResourcesServerError } from "liwi-resources-server";
-import type { ServiceResource } from "liwi-resources-server";
 import {
   accountConfigs,
   defaultConfig,
   defaultDmSettings,
   getTeams,
   isPaidEnabled,
-} from "reviewflow-core";
-import type { MongoStores, Org, OrgMember } from "reviewflow-core";
-import { paidFeaturesContactEmail } from "reviewflow-modules";
+} from "@reviewflow/core";
+import type { MongoStores, Org, OrgMember } from "@reviewflow/core";
+import { paidFeaturesContactEmail } from "@reviewflow/modules";
 import type {
   OrgPersonalTokensPolicy,
   OrgSettings,
@@ -16,7 +14,9 @@ import type {
   OrgSummary,
   OrgsService,
   UserDmSettingsSummary,
-} from "reviewflow-modules";
+} from "@reviewflow/modules";
+import type { ServiceResource } from "liwi-resources-server";
+import { ResourcesServerError } from "liwi-resources-server";
 import type { ResourcesContext } from "../ResourcesContext.ts";
 import { callBotApi } from "../botApi.ts";
 import { setDmSetting, setTeamSilenced } from "../dm/updateUserDmSettings.ts";

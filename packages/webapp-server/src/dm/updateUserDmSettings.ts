@@ -2,8 +2,8 @@ import type {
   MongoStores,
   OrgTeamEmbed,
   UserDmSettings,
-} from "reviewflow-core";
-import type { MessageCategory } from "reviewflow-modules";
+} from "@reviewflow/core";
+import type { MessageCategory } from "@reviewflow/modules";
 
 interface UserDmSettingsRef {
   orgId: number;

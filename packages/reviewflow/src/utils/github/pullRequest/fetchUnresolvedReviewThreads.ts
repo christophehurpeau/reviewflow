@@ -1,4 +1,4 @@
-import type { UnresolvedReviewThread } from "reviewflow-core";
+import type { UnresolvedReviewThread } from "@reviewflow/core";
 
 export interface ReviewThreadsOctokit {
   graphql: <T>(

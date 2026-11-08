@@ -1,8 +1,8 @@
 import type { Mock } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { ReviewflowPr } from "@reviewflow/core";
+import type { PrDetail } from "@reviewflow/modules";
 import type { Query, SubscribeCallback } from "liwi-store";
-import type { ReviewflowPr } from "reviewflow-core";
-import type { PrDetail } from "reviewflow-modules";
 import type { StreamEvent } from "./stream.ts";
 import { openPrStream, parseClosedWithinDays } from "./stream.ts";
 

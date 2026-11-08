@@ -1,3 +1,4 @@
+import type { OrgSlackStatus } from "@reviewflow/modules";
 import {
   Code,
   ConfirmationMessage,
@@ -8,7 +9,6 @@ import {
   WarningMessage,
 } from "alouette";
 import type { ReactNode } from "react";
-import type { OrgSlackStatus } from "reviewflow-modules";
 import { serverUrl } from "#/services/serverUrl.ts";
 
 interface SlackConnectionCardProps {

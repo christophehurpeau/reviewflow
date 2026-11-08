@@ -1,10 +1,10 @@
-import type { MongoInsertType } from "liwi-mongo";
-import type { MongoStores, UserDmSettings } from "reviewflow-core";
+import type { MongoStores, UserDmSettings } from "@reviewflow/core";
 import {
   accountConfigs,
   defaultConfig,
   defaultDmSettings,
-} from "reviewflow-core";
+} from "@reviewflow/core";
+import type { MongoInsertType } from "liwi-mongo";
 
 interface CacheEntry {
   userDmSettings: MongoInsertType<UserDmSettings>;

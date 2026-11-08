@@ -1,3 +1,14 @@
+import type {
+  PrRowStatus,
+  PrSummary,
+  ReviewRequestVerb,
+} from "@reviewflow/modules";
+import {
+  formatPrChanges,
+  formatPrFlowDate,
+  selectPrOwners,
+  selectPrRowStatus,
+} from "@reviewflow/modules";
 import {
   AccentScope,
   ExternalLink,
@@ -9,17 +20,6 @@ import {
 import type { ExternalOpenLinkBehavior } from "alouette";
 import { Fragment } from "react";
 import type { ReactNode } from "react";
-import type {
-  PrRowStatus,
-  PrSummary,
-  ReviewRequestVerb,
-} from "reviewflow-modules";
-import {
-  formatPrChanges,
-  formatPrFlowDate,
-  selectPrOwners,
-  selectPrRowStatus,
-} from "reviewflow-modules";
 
 /** matches what ExternalLinkText does on its own */
 const openLinkBehavior: ExternalOpenLinkBehavior = {

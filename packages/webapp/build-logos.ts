@@ -2,7 +2,7 @@
  * Regenerate the bot logos in packages/reviewflow/logos, and the webapp
  * favicon in packages/webapp/assets.
  *
- * Usage: pnpm --filter webapp run build:logos
+ * Usage: pnpm --filter @reviewflow/webapp run build:logos
  *
  * The mark is the phosphor `Checks` icon shipped by alouette-icons — the same
  * double checkmark the hand-drawn logos had — and its green is read straight

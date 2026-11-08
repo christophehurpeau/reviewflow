@@ -1,5 +1,5 @@
-import { isPaidEnabled } from "reviewflow-core";
-import type { AccountType, MongoStores, OrgTeamEmbed } from "reviewflow-core";
+import { isPaidEnabled } from "@reviewflow/core";
+import type { AccountType, MongoStores, OrgTeamEmbed } from "@reviewflow/core";
 import { orgAllowsPersonalTokens } from "../orgAllowsPersonalTokens.ts";
 import type { ApiAuth } from "./authenticatePersonalToken.ts";
 

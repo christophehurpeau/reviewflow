@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterEach, describe, expect, it } from "vitest";
+import { STORE_RELAY_PATH, STORE_RELAY_RESOURCE_NAME } from "@reviewflow/core";
 import type {
   RelayTargetStore,
   StoreRelayConnection,
@@ -14,7 +15,6 @@ import {
 import type { ResourcesWebsocketServer } from "liwi-resources-websocket-server";
 import { createWsServer } from "liwi-resources-websocket-server";
 import type { AllowedKeyValue } from "liwi-store";
-import { STORE_RELAY_PATH, STORE_RELAY_RESOURCE_NAME } from "reviewflow-core";
 import { connectBotStoreRelay } from "./storeRelay.ts";
 
 const secret = "internal-secret";

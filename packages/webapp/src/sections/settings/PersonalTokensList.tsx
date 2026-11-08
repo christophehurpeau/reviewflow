@@ -1,3 +1,7 @@
+import type {
+  CreatedPersonalToken,
+  PersonalTokenSummary,
+} from "@reviewflow/modules";
 import {
   Button,
   ExternalLinkText,
@@ -20,10 +24,6 @@ import { PlusRegularIcon } from "alouette-icons/phosphor-icons/Plus";
 import { TrashRegularIcon } from "alouette-icons/phosphor-icons/Trash";
 import type { ReactNode } from "react";
 import { Fragment, useState } from "react";
-import type {
-  CreatedPersonalToken,
-  PersonalTokenSummary,
-} from "reviewflow-modules";
 import { NotEnabledMessage } from "#/components/not-enabled-message.tsx";
 import { errorToMessage } from "#/errorToMessage.ts";
 import { RevealedTokenModal } from "./RevealedTokenModal.tsx";

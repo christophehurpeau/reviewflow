@@ -6,13 +6,13 @@
 
 This repository is a monorepo using workspaces.
 
-| Package                                            | Version | Description                                                                     |
-| -------------------------------------------------- | ------- | ------------------------------------------------------------------------------- |
-| [reviewflow-core](packages/core)                   |         | mongo stores, models and account configs shared by the reviewflow servers       |
-| [reviewflow-modules](packages/modules)             |         | shared types and service contracts between the reviewflow server and the webapp |
-| [reviewflow](packages/reviewflow)                  |         | 🚦 Open Source GitHub bot that improves PR flow from opening to merging.        |
-| [webapp](packages/webapp)                          |         | Expo Router app to configure reviewflow and follow your pull requests.          |
-| [reviewflow-webapp-server](packages/webapp-server) |         | serves the reviewflow webapp, its oauth flows and its resources websocket       |
+| Package                                             | Version | Description                                                                     |
+| --------------------------------------------------- | ------- | ------------------------------------------------------------------------------- |
+| [@reviewflow/core](packages/core)                   |         | mongo stores, models and account configs shared by the reviewflow servers       |
+| [@reviewflow/modules](packages/modules)             |         | shared types and service contracts between the reviewflow server and the webapp |
+| [@reviewflow/reviewflow](packages/reviewflow)       |         | 🚦 Open Source GitHub bot that improves PR flow from opening to merging.        |
+| [@reviewflow/webapp](packages/webapp)               |         | Expo Router app to configure reviewflow and follow your pull requests.          |
+| [@reviewflow/webapp-server](packages/webapp-server) |         | serves the reviewflow webapp, its oauth flows and its resources websocket       |
 
 <h3>🏗 Architecture</h3>
 
@@ -60,7 +60,7 @@ In two terminals:
 
 ```sh
 pnpm dev                          # core watch, webhook server :3001, webapp server :3000
-pnpm --filter webapp run start    # http://localhost:8081
+pnpm --filter @reviewflow/webapp run start    # http://localhost:8081
 ```
 
 Copy `packages/reviewflow/.env.example`, `packages/webapp-server/.env.example`
@@ -70,7 +70,7 @@ and `INTERNAL_API_SECRET` must match between the two servers.
 Both servers report errors to Sentry when `SENTRY_DSN` is set (nothing is sent
 otherwise); `SENTRY_ENVIRONMENT` optionally tags the environment. One Sentry
 project fits both. The webapp server sets Sentry up in `initErrorReporting`
-(`reviewflow-core`): logs go through nightingale to the console, and logged
+(`@reviewflow/core`): logs go through nightingale to the console, and logged
 errors are forwarded to Sentry. The webhook server leaves Sentry to probot,
 which reports what goes through its logger (`context.log`, `probot.log`); its
 own nightingale logs only reach the console.

@@ -1,3 +1,4 @@
+import type { OrgSummary } from "@reviewflow/modules";
 import {
   Avatar,
   ExternalLinkButton,
@@ -11,7 +12,6 @@ import { KeyRegularIcon } from "alouette-icons/phosphor-icons/Key";
 import { ShieldCheckRegularIcon } from "alouette-icons/phosphor-icons/ShieldCheck";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
-import type { OrgSummary } from "reviewflow-modules";
 import { ListSection } from "#/components/list-section.tsx";
 import { ResourceView } from "#/components/resource-view.tsx";
 import { Screen } from "#/components/screen.tsx";

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import type { MongoStores, Repository } from "reviewflow-core";
+import type { MongoStores, Repository } from "@reviewflow/core";
 import { deleteRepoContext } from "../../../context/repoContext.ts";
 import { syncRepositoryLabels } from "../../../context/syncRepositoryLabels.ts";
 import { deleteRepositoryData } from "../utils/deleteRepositoryData.ts";

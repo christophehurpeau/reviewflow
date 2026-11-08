@@ -1,6 +1,6 @@
+import type { ReviewflowPr } from "@reviewflow/core";
 import { Logger } from "nightingale-logger";
 import type { Probot } from "probot";
-import type { ReviewflowPr } from "reviewflow-core";
 import type { AppContext } from "../../context/AppContext.ts";
 import {
   getCommitStatusKey,

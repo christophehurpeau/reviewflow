@@ -1,4 +1,4 @@
-import type { Options } from "reviewflow-core";
+import type { Options } from "@reviewflow/core";
 import type { PullRequestWithDecentData } from "../utils/PullRequestData";
 import type { ParsedBody } from "./utils/body/parseBody";
 

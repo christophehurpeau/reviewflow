@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
+import type { MongoStores, PersonalToken } from "@reviewflow/core";
 import express from "express";
 import type { SubscribeCallback } from "liwi-store";
-import type { MongoStores, PersonalToken } from "reviewflow-core";
 import { hashPersonalToken } from "../auth/personalTokens.ts";
 import { createSubscriptionSlots } from "../resources/subscriptionLimits.ts";
 import type { SubscriptionLimits } from "../resources/subscriptionLimits.ts";

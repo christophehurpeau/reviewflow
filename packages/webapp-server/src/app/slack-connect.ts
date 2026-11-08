@@ -1,7 +1,7 @@
+import type { MongoStores, SlackTeam } from "@reviewflow/core";
 import { WebClient } from "@slack/web-api";
 import type { Request, Response, Router } from "express";
 import type { MongoInsertType } from "liwi-mongo";
-import type { MongoStores, SlackTeam } from "reviewflow-core";
 import type { SetRequired } from "type-fest";
 import { slackOAuth2, slackOAuth2Version2 } from "../auth/slack.ts";
 import { callBotApiBestEffort } from "../botApi.ts";

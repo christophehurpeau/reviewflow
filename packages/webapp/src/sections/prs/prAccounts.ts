@@ -1,4 +1,4 @@
-import type { OrgSummary, UserSummary } from "reviewflow-modules";
+import type { OrgSummary, UserSummary } from "@reviewflow/modules";
 
 export interface PrAccount {
   id: number;

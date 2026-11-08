@@ -1,19 +1,19 @@
-import type { KnownBlock } from "@slack/web-api";
-import type { ReviewflowPr } from "reviewflow-core";
-import { toPrSummary } from "reviewflow-core";
+import type { ReviewflowPr } from "@reviewflow/core";
+import { toPrSummary } from "@reviewflow/core";
 import type {
   PrOwners,
   PrRowDisplayOptions,
   PrRowStatus,
   PrSummary,
-} from "reviewflow-modules";
+} from "@reviewflow/modules";
 import {
   formatPrChanges,
   formatPrFlowDate,
   joinSegments,
   selectPrOwners,
   selectPrRowStatus,
-} from "reviewflow-modules";
+} from "@reviewflow/modules";
+import type { KnownBlock } from "@slack/web-api";
 import type { OctokitRestCompat } from "../octokit.ts";
 import { prsUrl } from "../webappUrl.ts";
 import { createLink, createStartReviewLink } from "./utils.ts";

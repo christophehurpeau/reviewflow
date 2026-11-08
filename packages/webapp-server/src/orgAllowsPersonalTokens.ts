@@ -1,4 +1,4 @@
-import type { Org } from "reviewflow-core";
+import type { Org } from "@reviewflow/core";
 
 // `syncOrg` upserts orgs without a config: absent on those documents
 export const orgAllowsPersonalTokens = (org: Org): boolean =>

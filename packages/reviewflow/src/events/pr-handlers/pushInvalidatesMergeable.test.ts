@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { MongoStores } from "reviewflow-core";
+import type { MongoStores } from "@reviewflow/core";
 import {
   hasOpenPullRequestsOnBase,
   invalidateMergeableOnBasePush,

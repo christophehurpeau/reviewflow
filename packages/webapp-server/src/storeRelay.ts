@@ -1,3 +1,4 @@
+import { STORE_RELAY_PATH, STORE_RELAY_RESOURCE_NAME } from "@reviewflow/core";
 import type {
   RelayTargetStore,
   StoreRelayConnection,
@@ -5,7 +6,6 @@ import type {
 import { connectStoreRelay } from "liwi-resources-client";
 import { createNodeWebsocketTransportClient } from "liwi-resources-websocket-client-node";
 import { Logger } from "nightingale-logger";
-import { STORE_RELAY_PATH, STORE_RELAY_RESOURCE_NAME } from "reviewflow-core";
 
 const logger = new Logger("reviewflow:webapp-server:storeRelay");
 

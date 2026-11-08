@@ -1,8 +1,8 @@
 import { monitorEventLoopDelay } from "node:perf_hooks";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import type { PrBucket } from "@reviewflow/modules";
+import { prBucketsInOrder } from "@reviewflow/modules";
 import type { QuerySubscription } from "liwi-store";
-import type { PrBucket } from "reviewflow-modules";
-import { prBucketsInOrder } from "reviewflow-modules";
 import type { ReviewflowPr } from "./mongo.ts";
 import type { PrBucketContext } from "./prBucketCriteria.ts";
 import { buildPrBucketQuery } from "./prBucketCriteria.ts";

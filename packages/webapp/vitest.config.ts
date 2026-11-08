@@ -17,7 +17,7 @@ export default defineConfig({
   // so the stories never render against a stale build
   resolve: {
     alias: {
-      "reviewflow-modules": path.join(dirname, "../modules/src/index.ts"),
+      "@reviewflow/modules": path.join(dirname, "../modules/src/index.ts"),
     },
   },
   test: {

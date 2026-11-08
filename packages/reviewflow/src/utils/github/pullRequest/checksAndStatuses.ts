@@ -3,7 +3,7 @@ import type {
   ChecksAndStatuses,
   StoredCheckRun,
   StoredCommitStatus,
-} from "reviewflow-core";
+} from "@reviewflow/core";
 import type { PullRequestData } from "../../../events/pr-handlers/utils/PullRequestData";
 import type { ProbotEvent } from "../../../events/probot-types";
 

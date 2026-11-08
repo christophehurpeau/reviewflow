@@ -3,7 +3,7 @@ import type {
   PrStatusLink,
   PrSummary,
   PrUserSummary,
-} from "reviewflow-modules";
+} from "@reviewflow/modules";
 import { accountConfigs } from "../accountConfigs/index.ts";
 import { buildPullRequestUrl } from "../buildPullRequestUrl.ts";
 import type { FailedOrWaitingChecksAndStatuses } from "../checksAndStatuses/getFailedOrWaitingChecksAndStatuses.ts";

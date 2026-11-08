@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { MongoStores, OrgMember } from "@reviewflow/core";
 import cookieParser from "cookie-parser";
 import express from "express";
-import type { MongoStores, OrgMember } from "reviewflow-core";
 import { authCookieName, signAuthCookie } from "../auth/authCookie.ts";
 import { callApp } from "../tests/callRouter.ts";
 import slackConnect from "./slack-connect.ts";

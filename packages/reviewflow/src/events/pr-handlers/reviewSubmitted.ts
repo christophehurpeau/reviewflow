@@ -1,5 +1,5 @@
+import type { AccountEmbed, SlackMessage } from "@reviewflow/core";
 import type { Probot } from "probot";
-import type { AccountEmbed, SlackMessage } from "reviewflow-core";
 import { slackifyMarkdown } from "slackify-markdown";
 import type { AppContext } from "../../context/AppContext.ts";
 import type { PostSlackMessageResult } from "../../context/slack/TeamSlack.ts";

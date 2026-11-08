@@ -1,6 +1,6 @@
 import type { EmitterWebhookEventName } from "@octokit/webhooks";
-import type { ReviewflowPr } from "reviewflow-core";
-import { recordPrActivity, toPrActivityTarget } from "reviewflow-core";
+import type { ReviewflowPr } from "@reviewflow/core";
+import { recordPrActivity, toPrActivityTarget } from "@reviewflow/core";
 import type { AppContext } from "../../../context/AppContext.ts";
 import type { ProbotEvent } from "../../probot-types";
 import type { PullRequestWithDecentData } from "../utils/PullRequestData";

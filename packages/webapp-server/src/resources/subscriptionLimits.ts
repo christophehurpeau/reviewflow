@@ -1,7 +1,7 @@
+import type { LiveUpdatesMeta, LiveUpdatesPausedBy } from "@reviewflow/modules";
 import type { ServiceResource } from "liwi-resources-server";
 import type { Query, QuerySubscription, SubscribeCallback } from "liwi-store";
 import { Logger } from "nightingale-logger";
-import type { LiveUpdatesMeta, LiveUpdatesPausedBy } from "reviewflow-modules";
 
 const logger = new Logger("reviewflow:webapp-server:subscriptionLimits");
 

@@ -1,12 +1,12 @@
-import { View } from "alouette";
-import type { ReactNode } from "react";
-import type { ResourceResult } from "react-liwi";
 import type {
   CreatedPersonalToken,
   OrgSummary,
   PersonalTokenSummary,
   UserSummary,
-} from "reviewflow-modules";
+} from "@reviewflow/modules";
+import { View } from "alouette";
+import type { ReactNode } from "react";
+import type { ResourceResult } from "react-liwi";
 import { ResourceView } from "#/components/resource-view.tsx";
 import { Screen } from "#/components/screen.tsx";
 import { SkeletonList } from "#/components/skeleton.tsx";

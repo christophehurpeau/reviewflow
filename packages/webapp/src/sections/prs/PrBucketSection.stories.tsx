@@ -1,7 +1,7 @@
+import type { PrSummary } from "@reviewflow/modules";
 import type { Meta, StoryObj } from "@storybook/react-native";
 import { EyeRegularIcon } from "alouette-icons/phosphor-icons/Eye";
 import { ResourcesServerError } from "liwi-resources-client";
-import type { PrSummary } from "reviewflow-modules";
 import { fn } from "storybook/test";
 import { StartReviewButton } from "#/components/start-review-button.tsx";
 import type { PrBucketResource } from "#/sections/prs/PrBucketSection.tsx";

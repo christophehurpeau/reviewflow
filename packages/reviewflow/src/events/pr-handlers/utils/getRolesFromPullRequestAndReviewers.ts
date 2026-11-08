@@ -1,4 +1,4 @@
-import type { AccountInfo } from "reviewflow-core";
+import type { AccountInfo } from "@reviewflow/core";
 import { ExcludesFalsy } from "../../../utils/Excludes.ts";
 import type {
   PullRequestWithDecentData,

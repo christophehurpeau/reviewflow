@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { SlackSentMessage } from "reviewflow-core";
+import type { SlackSentMessage } from "@reviewflow/core";
 import type { AppContext } from "../../../context/AppContext.ts";
 import type { RepoContext } from "../../../context/repoContext.ts";
 import { voidTeamSlack } from "../../../context/slack/voidTeamSlack.ts";

@@ -11,10 +11,10 @@ const mongoGlobalSetup = fileURLToPath(
 // load the sources instead, so they never run against a stale build
 const resolve = {
   alias: {
-    "reviewflow-core": fileURLToPath(
+    "@reviewflow/core": fileURLToPath(
       new URL("./packages/core/src/index.ts", import.meta.url),
     ),
-    "reviewflow-modules": fileURLToPath(
+    "@reviewflow/modules": fileURLToPath(
       new URL("./packages/modules/src/index.ts", import.meta.url),
     ),
   },

@@ -1,17 +1,17 @@
 import type {
   ChecksAndStatuses,
   FailedOrWaitingChecksAndStatuses,
-} from "reviewflow-core";
+} from "@reviewflow/core";
 import {
   getFailedOrWaitingChecksAndStatuses as getFailedOrWaitingChecksAndStatusesFromConfig,
   isCheckNotAllowedToFail as isCheckNotAllowedToFailWithConfig,
-} from "reviewflow-core";
+} from "@reviewflow/core";
 import type { RepoContext } from "../../../context/repoContext.ts";
 
 export type {
   ChecksAndStatusesState,
   FailedOrWaitingChecksAndStatuses,
-} from "reviewflow-core";
+} from "@reviewflow/core";
 
 export const isCheckNotAllowedToFail = (
   repoContext: RepoContext,

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import type { MongoStores } from "@reviewflow/core";
 import express from "express";
-import type { MongoStores } from "reviewflow-core";
 import { healthRouter } from "./healthRouter.ts";
 import { callApp } from "./tests/callRouter.ts";
 

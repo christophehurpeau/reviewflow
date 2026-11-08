@@ -1,17 +1,17 @@
 import type { EmitterWebhookEventName } from "@octokit/webhooks";
-import { Lock } from "lock";
 import type {
   BasicUser,
   Config,
   Repository,
   RepositorySettings,
-} from "reviewflow-core";
+} from "@reviewflow/core";
 import {
   accountConfigs,
   defaultConfig,
   getEmojiFromRepoDescription,
   shouldIgnoreRepo,
-} from "reviewflow-core";
+} from "@reviewflow/core";
+import { Lock } from "lock";
 import { tryToAutomergeFromReschedule } from "../events/pr-handlers/actions/tryToAutomerge.ts";
 import {
   createRepositorySettings,

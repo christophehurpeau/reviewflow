@@ -1,5 +1,5 @@
+import type { AccountEmbed, MongoStores } from "@reviewflow/core";
 import { NotFoundError } from "liwi-store";
-import type { AccountEmbed, MongoStores } from "reviewflow-core";
 
 const mongoDuplicateKeyErrorCode = 11_000;
 

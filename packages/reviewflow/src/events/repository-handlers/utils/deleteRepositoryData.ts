@@ -1,4 +1,4 @@
-import type { MongoStores } from "reviewflow-core";
+import type { MongoStores } from "@reviewflow/core";
 import { deleteRepoContext } from "../../../context/repoContext.ts";
 
 export interface DeleteRepositoryDataOptions {

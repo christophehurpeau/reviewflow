@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
+import type { AccountEmbed, MongoStores, ReviewflowPr } from "@reviewflow/core";
 import { NotFoundError } from "liwi-store";
-import type { AccountEmbed, MongoStores, ReviewflowPr } from "reviewflow-core";
 import { updateRepositoryAccount } from "./updateRepositoryAccount.ts";
 
 const account: AccountEmbed = {

@@ -1,12 +1,12 @@
-import { PressableListItem, Text, View } from "alouette";
-import type { Accent, SVGIconElement } from "alouette";
-import type { ReactNode } from "react";
-import type { ResourceResult } from "react-liwi";
 import type {
   PrSummary,
   QueryMyPrsParams,
   ReviewRequestVerb,
-} from "reviewflow-modules";
+} from "@reviewflow/modules";
+import { PressableListItem, Text, View } from "alouette";
+import type { Accent, SVGIconElement } from "alouette";
+import type { ReactNode } from "react";
+import type { ResourceResult } from "react-liwi";
 import { ListSection } from "#/components/list-section.tsx";
 import { PrRow } from "#/components/pr-row.tsx";
 import { ResourceView } from "#/components/resource-view.tsx";

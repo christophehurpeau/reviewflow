@@ -1,4 +1,3 @@
-import { Query } from "mingo";
 import type {
   PrBucket,
   PrCheckRun,
@@ -8,8 +7,9 @@ import type {
   PrReviewer,
   PrReviewerState,
   PrState,
-} from "reviewflow-modules";
-import { prBucketsInOrder } from "reviewflow-modules";
+} from "@reviewflow/modules";
+import { prBucketsInOrder } from "@reviewflow/modules";
+import { Query } from "mingo";
 import type { AccountInfo } from "../models/AccountInfo.ts";
 import type { ReviewerRequest } from "../models/ReviewerRequest.ts";
 import type { ReviewerReview } from "../models/ReviewerReview.ts";

@@ -1,6 +1,6 @@
+import type { MongoStores } from "@reviewflow/core";
+import { createHealthChecker, healthHttpStatus } from "@reviewflow/core";
 import { Router } from "express";
-import type { MongoStores } from "reviewflow-core";
-import { createHealthChecker, healthHttpStatus } from "reviewflow-core";
 
 /** for load balancers and container probes, which read the HTTP status only */
 export const healthRouter = (

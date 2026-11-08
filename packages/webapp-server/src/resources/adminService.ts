@@ -1,11 +1,11 @@
-import { ResourcesServerError } from "liwi-resources-server";
-import type { ServiceResource } from "liwi-resources-server";
-import type { MongoStores } from "reviewflow-core";
+import type { MongoStores } from "@reviewflow/core";
 import type {
   AdminAccountSummary,
   AdminAccountType,
   AdminService,
-} from "reviewflow-modules";
+} from "@reviewflow/modules";
+import { ResourcesServerError } from "liwi-resources-server";
+import type { ServiceResource } from "liwi-resources-server";
 import type { ResourcesContext } from "../ResourcesContext.ts";
 import { readAdminUserIds, requireAdmin } from "./adminAuth.ts";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";

@@ -1,10 +1,10 @@
 import { IncomingMessage, ServerResponse } from "node:http";
 import { Socket } from "node:net";
 import { describe, expect, it, vi } from "vitest";
+import type { MongoStores, PrBucketAccount } from "@reviewflow/core";
 import type { Response } from "express";
 import express from "express";
 import type { SubscribeCallback } from "liwi-store";
-import type { MongoStores, PrBucketAccount } from "reviewflow-core";
 import { createSubscriptionSlots } from "../resources/subscriptionLimits.ts";
 import { ApiError } from "./apiErrors.ts";
 import type { ApiAuth } from "./authenticatePersonalToken.ts";

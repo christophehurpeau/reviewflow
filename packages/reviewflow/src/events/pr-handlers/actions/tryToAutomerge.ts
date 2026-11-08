@@ -1,4 +1,4 @@
-import type { BasicUser } from "reviewflow-core";
+import type { BasicUser } from "@reviewflow/core";
 import type {
   EventsWithRepository,
   RepoContext,

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
+import type { MongoStores, PersonalToken } from "@reviewflow/core";
 import { ResourcesServerError } from "liwi-resources-server";
 import { NotFoundError } from "liwi-store";
-import type { MongoStores, PersonalToken } from "reviewflow-core";
 import { hashPersonalToken } from "../auth/personalTokens.ts";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
 import { createPersonalTokensService } from "./personalTokensService.ts";

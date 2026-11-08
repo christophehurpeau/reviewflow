@@ -1,6 +1,3 @@
-import { WebClient } from "@slack/web-api";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- invalid used detection
-import type { CodedError } from "@slack/web-api";
 import type {
   AccountInfo,
   Config,
@@ -9,8 +6,11 @@ import type {
   OrgTeamEmbed,
   SlackMessage,
   User,
-} from "reviewflow-core";
-import type { MessageCategory } from "reviewflow-modules";
+} from "@reviewflow/core";
+import type { MessageCategory } from "@reviewflow/modules";
+import { WebClient } from "@slack/web-api";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- invalid used detection
+import type { CodedError } from "@slack/web-api";
 import { getUserDmSettings } from "../../dm/getUserDmSettings.ts";
 import type { ProbotEvent } from "../../events/probot-types";
 import type { AppContext } from "../AppContext.ts";

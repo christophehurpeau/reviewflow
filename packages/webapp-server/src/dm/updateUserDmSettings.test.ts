@@ -3,8 +3,8 @@ import type {
   MongoStores,
   OrgTeamEmbed,
   UserDmSettings,
-} from "reviewflow-core";
-import { defaultDmSettings } from "reviewflow-core";
+} from "@reviewflow/core";
+import { defaultDmSettings } from "@reviewflow/core";
 import { setDmSetting, setTeamSilenced } from "./updateUserDmSettings.ts";
 
 const ref = { orgId: 1, userId: 42 };

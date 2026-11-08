@@ -1,4 +1,4 @@
-import type { PrMergeable } from "reviewflow-modules";
+import type { PrMergeable } from "@reviewflow/modules";
 import type { AppContext } from "../../../context/AppContext.ts";
 import type {
   EventsWithRepository,

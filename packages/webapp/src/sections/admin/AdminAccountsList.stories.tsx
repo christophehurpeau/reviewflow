@@ -1,5 +1,5 @@
+import type { AdminAccountSummary } from "@reviewflow/modules";
 import type { Meta, StoryObj } from "@storybook/react-native";
-import type { AdminAccountSummary } from "reviewflow-modules";
 import { fn } from "storybook/test";
 import { Story } from "#storybook/Story.tsx";
 import { AdminAccountsList } from "./AdminAccountsList.tsx";

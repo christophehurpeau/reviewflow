@@ -1,4 +1,4 @@
-import type { AccountEmbedWithoutType } from "reviewflow-core";
+import type { AccountEmbedWithoutType } from "@reviewflow/core";
 import type { RepoContext } from "../../../../context/repoContext";
 import type { PullRequestWithDecentData } from "../../utils/PullRequestData";
 

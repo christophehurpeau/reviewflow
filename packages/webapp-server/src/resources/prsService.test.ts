@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { MongoStores, ReviewflowPr } from "@reviewflow/core";
 import { ResourcesServerError } from "liwi-resources-server";
 import { NotFoundError } from "liwi-store";
-import type { MongoStores, ReviewflowPr } from "reviewflow-core";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
 import type { MembershipScopes } from "./membershipScopes.ts";
 import { createPrsService } from "./prsService.ts";

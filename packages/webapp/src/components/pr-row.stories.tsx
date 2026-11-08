@@ -1,5 +1,5 @@
+import type { PrSummary } from "@reviewflow/modules";
 import type { Meta, StoryObj } from "@storybook/react-native";
-import type { PrSummary } from "reviewflow-modules";
 import { PrRow } from "#/components/pr-row.tsx";
 import { Story } from "#storybook/Story.tsx";
 

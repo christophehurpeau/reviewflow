@@ -1,3 +1,10 @@
+import type {
+  OrgSummary,
+  PrBucket,
+  PrSummary,
+  UserSummary,
+} from "@reviewflow/modules";
+import { prBucketGroupTitles } from "@reviewflow/modules";
 import { ExternalLinkButton, InfoMessage, View } from "alouette";
 import { BarricadeRegularIcon } from "alouette-icons/phosphor-icons/Barricade";
 import { CheckCircleRegularIcon } from "alouette-icons/phosphor-icons/CheckCircle";
@@ -8,13 +15,6 @@ import { WarningRegularIcon } from "alouette-icons/phosphor-icons/Warning";
 import { XCircleRegularIcon } from "alouette-icons/phosphor-icons/XCircle";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
-import type {
-  OrgSummary,
-  PrBucket,
-  PrSummary,
-  UserSummary,
-} from "reviewflow-modules";
-import { prBucketGroupTitles } from "reviewflow-modules";
 import { Columns } from "#/components/columns.tsx";
 import { ResourceView } from "#/components/resource-view.tsx";
 import { Screen } from "#/components/screen.tsx";

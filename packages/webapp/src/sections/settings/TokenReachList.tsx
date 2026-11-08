@@ -1,6 +1,6 @@
+import type { OrgSummary } from "@reviewflow/modules";
 import { Avatar, Badge, Text, View, WarningMessage } from "alouette";
 import type { ReactNode } from "react";
-import type { OrgSummary } from "reviewflow-modules";
 import { NotEnabledMessage } from "#/components/not-enabled-message.tsx";
 
 type Reach = "allowed" | "notAllowed" | "notEnabled";

@@ -1,7 +1,7 @@
+import type { LiveUpdatesPausedBy } from "@reviewflow/modules";
 import { IconButton, Text, View } from "alouette";
 import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeft";
 import type { ReactNode } from "react";
-import type { LiveUpdatesPausedBy } from "reviewflow-modules";
 import { LiveUpdatesPausedNotice } from "#/components/live-updates-paused-notice.tsx";
 import { PageContainer } from "#/components/page-container.tsx";
 

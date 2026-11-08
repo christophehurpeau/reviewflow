@@ -1,4 +1,9 @@
 import type { Server } from "node:http";
+import {
+  STORE_RELAY_HEARTBEAT_INTERVAL_MS,
+  STORE_RELAY_PATH,
+  STORE_RELAY_RESOURCE_NAME,
+} from "@reviewflow/core";
 import type { RelayedStore } from "liwi-resources-server";
 import {
   ResourcesServerService,
@@ -6,11 +11,6 @@ import {
 } from "liwi-resources-server";
 import type { ResourcesWebsocketServer } from "liwi-resources-websocket-server";
 import { createWsServer } from "liwi-resources-websocket-server";
-import {
-  STORE_RELAY_HEARTBEAT_INTERVAL_MS,
-  STORE_RELAY_PATH,
-  STORE_RELAY_RESOURCE_NAME,
-} from "reviewflow-core";
 import { hasInternalApiSecret } from "./internalApiSecret.ts";
 
 const RELAY_READER = "webapp-server";

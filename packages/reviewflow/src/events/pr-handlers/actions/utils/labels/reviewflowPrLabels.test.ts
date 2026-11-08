@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import type { ReviewflowPr } from "reviewflow-core";
+import type { ReviewflowPr } from "@reviewflow/core";
 import type { AppContext } from "../../../../../context/AppContext.ts";
 import type { LabelResponse } from "../../../../../context/initRepoLabels.ts";
 import {

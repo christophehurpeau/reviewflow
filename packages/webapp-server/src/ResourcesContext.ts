@@ -1,4 +1,4 @@
-import type { MongoStores } from "reviewflow-core";
+import type { MongoStores } from "@reviewflow/core";
 
 /**
  * What the webapp server process needs: it serves the resources and the oauth

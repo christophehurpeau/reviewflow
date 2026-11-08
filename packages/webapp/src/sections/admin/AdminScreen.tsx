@@ -1,7 +1,7 @@
+import type { AdminAccountSummary } from "@reviewflow/modules";
 import { InfoMessage, View } from "alouette";
 import type { ReactNode } from "react";
 import type { ResourceResult } from "react-liwi";
-import type { AdminAccountSummary } from "reviewflow-modules";
 import { ResourceView } from "#/components/resource-view.tsx";
 import { Screen } from "#/components/screen.tsx";
 import { SkeletonSections } from "#/components/skeleton.tsx";

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { MongoStores, OrgMember } from "reviewflow-core";
+import type { MongoStores, OrgMember } from "@reviewflow/core";
 import { createSlackUserTokensCheck } from "./slackUserToken.ts";
 
 const slackError = (error: string): Error =>

@@ -1,13 +1,13 @@
-import { ResourcesServerError } from "liwi-resources-server";
-import type { ServiceResource } from "liwi-resources-server";
-import type { Criteria } from "liwi-store";
-import { NotFoundError } from "liwi-store";
-import type { MongoStores, PersonalToken } from "reviewflow-core";
+import type { MongoStores, PersonalToken } from "@reviewflow/core";
 import type {
   CreatedPersonalToken,
   PersonalTokenSummary,
   PersonalTokensService,
-} from "reviewflow-modules";
+} from "@reviewflow/modules";
+import { ResourcesServerError } from "liwi-resources-server";
+import type { ServiceResource } from "liwi-resources-server";
+import type { Criteria } from "liwi-store";
+import { NotFoundError } from "liwi-store";
 import type { ResourcesContext } from "../ResourcesContext.ts";
 import { generatePersonalToken } from "../auth/personalTokens.ts";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";

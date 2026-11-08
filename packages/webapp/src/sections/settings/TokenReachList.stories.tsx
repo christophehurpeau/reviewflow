@@ -1,5 +1,5 @@
+import type { OrgSummary } from "@reviewflow/modules";
 import type { Meta, StoryObj } from "@storybook/react-native";
-import type { OrgSummary } from "reviewflow-modules";
 import { Story } from "#storybook/Story.tsx";
 import { TokenReachList } from "./TokenReachList.tsx";
 

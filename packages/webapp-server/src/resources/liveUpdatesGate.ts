@@ -1,7 +1,7 @@
+import { isLiveForAccounts } from "@reviewflow/core";
 import { ResourcesServerError } from "liwi-resources-server";
 import type { ServiceResource } from "liwi-resources-server";
 import type { Query, QuerySubscription, SubscribeCallback } from "liwi-store";
-import { isLiveForAccounts } from "reviewflow-core";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
 import type { MembershipScopes } from "./membershipScopes.ts";
 import type { PaidAccounts } from "./paidAccounts.ts";

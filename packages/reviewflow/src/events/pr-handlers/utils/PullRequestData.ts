@@ -1,4 +1,4 @@
-import type { BasicUser, LabelEmbed } from "reviewflow-core";
+import type { BasicUser, LabelEmbed } from "@reviewflow/core";
 import type { SetRequired } from "type-fest";
 import type { LabelResponse } from "../../../context/initRepoLabels";
 import type {

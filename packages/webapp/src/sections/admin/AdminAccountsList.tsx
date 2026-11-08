@@ -1,3 +1,4 @@
+import type { AdminAccountSummary } from "@reviewflow/modules";
 import {
   Avatar,
   Badge,
@@ -9,7 +10,6 @@ import {
 } from "alouette";
 import type { ReactNode } from "react";
 import { Fragment, useState } from "react";
-import type { AdminAccountSummary } from "reviewflow-modules";
 import { SettingsSection } from "#/components/settings-section.tsx";
 import { errorToMessage } from "#/errorToMessage.ts";
 

@@ -16,7 +16,7 @@
   "scripts": {
     "build": "pnpm -r run build",
     "clean": "pnpm -r run clean",
-    "dev": "pnpm -r --parallel --filter reviewflow-modules --filter reviewflow-core --filter reviewflow --filter reviewflow-webapp-server run start",
+    "dev": "pnpm -r --parallel --filter @reviewflow/modules --filter @reviewflow/core --filter @reviewflow/reviewflow --filter @reviewflow/webapp-server run start",
     "format": "oxfmt",
     "format:check": "oxfmt --check .",
     "lint": "pnpm run format && pnpm run lint:oxlint && pnpm run lint:eslint",

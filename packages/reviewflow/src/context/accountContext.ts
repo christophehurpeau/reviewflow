@@ -1,4 +1,3 @@
-import { Lock } from "lock";
 import type {
   AccountEmbed,
   AccountEmbedWithoutType,
@@ -8,8 +7,9 @@ import type {
   Org,
   OrgMember,
   User,
-} from "reviewflow-core";
-import { getTeams } from "reviewflow-core";
+} from "@reviewflow/core";
+import { getTeams } from "@reviewflow/core";
+import { Lock } from "lock";
 import type { EventsWithOrganisation } from "../events/account-handlers/utils/createHandlerOrgChange";
 import type { ProbotEvent } from "../events/probot-types";
 import type { AppContext } from "./AppContext.ts";

@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
+import type { MongoStores, OrgMember } from "@reviewflow/core";
+import type { PrBucket } from "@reviewflow/modules";
 import type {
   Query,
   QueryResult,
   QuerySubscription,
   SubscribeCallback,
 } from "liwi-store";
-import type { MongoStores, OrgMember } from "reviewflow-core";
-import type { PrBucket } from "reviewflow-modules";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
 import { createMembershipScopes } from "./membershipScopes.ts";
 import { createPrsService } from "./prsService.ts";

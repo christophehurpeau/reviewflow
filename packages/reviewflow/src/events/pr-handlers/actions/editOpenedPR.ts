@@ -1,11 +1,11 @@
-import type { Update } from "liwi-mongo";
 import type {
   ChecksAndStatuses,
   ReviewflowPr,
   ReviewflowStatus,
   StatusInfo,
-} from "reviewflow-core";
-import { getKeys } from "reviewflow-core";
+} from "@reviewflow/core";
+import { getKeys } from "@reviewflow/core";
+import type { Update } from "liwi-mongo";
 import type { AppContext } from "../../../context/AppContext.ts";
 import type {
   EventsWithRepository,

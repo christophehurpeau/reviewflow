@@ -1,6 +1,6 @@
+import { paidFeaturesContactEmail } from "@reviewflow/modules";
 import { ExternalLinkText, WarningMessage } from "alouette";
 import type { ReactNode } from "react";
-import { paidFeaturesContactEmail } from "reviewflow-modules";
 
 interface NotEnabledMessageProps {
   /** what is not enabled, as a sentence: "Live updates are not enabled for acme." */

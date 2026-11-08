@@ -1,13 +1,13 @@
 import "dotenv/config";
-import Express from "express";
-import { Logger } from "nightingale-logger";
-import { createNodeMiddleware, createProbot } from "probot";
 import {
   getRelayedStores,
   initErrorReporting,
   isStoreRelayDisabled,
   mongoInit,
-} from "reviewflow-core";
+} from "@reviewflow/core";
+import Express from "express";
+import { Logger } from "nightingale-logger";
+import { createNodeMiddleware, createProbot } from "probot";
 import type { AppContext } from "./context/AppContext.ts";
 import { healthRouter } from "./healthRouter.ts";
 import initApp from "./initApp.ts";

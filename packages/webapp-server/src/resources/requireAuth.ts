@@ -1,5 +1,5 @@
+import type { MongoStores, OrgMember, PrBucketAccount } from "@reviewflow/core";
 import { ResourcesServerError } from "liwi-resources-server";
-import type { MongoStores, OrgMember, PrBucketAccount } from "reviewflow-core";
 import { callBotApiForJson } from "../botApi.ts";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
 

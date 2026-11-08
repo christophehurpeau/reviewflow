@@ -1,5 +1,5 @@
+import type { AccountType, MongoStores } from "@reviewflow/core";
 import type { Probot } from "probot";
-import type { AccountType, MongoStores } from "reviewflow-core";
 import type { AppContext } from "../../context/AppContext";
 import { deleteRepoContext } from "../../context/repoContext.ts";
 

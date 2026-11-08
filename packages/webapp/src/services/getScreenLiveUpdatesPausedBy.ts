@@ -1,6 +1,6 @@
+import type { LiveUpdatesPausedBy } from "@reviewflow/modules";
+import { getLiveUpdatesPausedBy } from "@reviewflow/modules";
 import type { ResourceResult } from "react-liwi";
-import type { LiveUpdatesPausedBy } from "reviewflow-modules";
-import { getLiveUpdatesPausedBy } from "reviewflow-modules";
 
 type AnyResourceResult = ResourceResult<any, any>;
 

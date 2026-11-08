@@ -1,7 +1,7 @@
+import type { MessageCategory, OrgSettings } from "@reviewflow/modules";
 import { ErrorMessage, Switch, Text, View } from "alouette";
 import type { ReactNode } from "react";
 import { useOperation } from "react-liwi";
-import type { MessageCategory, OrgSettings } from "reviewflow-modules";
 import { dmMessageCategories, dmMessageLabels } from "#/dm/dmMessageLabels.ts";
 import { useReviewflowServices } from "#/services/ReviewflowServicesProvider.tsx";
 

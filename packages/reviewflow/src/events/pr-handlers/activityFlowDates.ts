@@ -1,5 +1,5 @@
+import { recordPrActivity } from "@reviewflow/core";
 import type { Probot } from "probot";
-import { recordPrActivity } from "reviewflow-core";
 import type { AppContext } from "../../context/AppContext.ts";
 
 interface DatedComment {

@@ -132,12 +132,12 @@ plain props) and write the stories against that, not against the route.
 ## Running
 
 ```sh
-pnpm --filter webapp run start   # then open /storybook
+pnpm --filter @reviewflow/webapp run start   # then open /storybook
 pnpm test                        # renders every story in chromium, fails on a render error
 ```
 
 The vitest project needs chromium installed once:
 
 ```sh
-pnpm --filter webapp exec playwright install chromium
+pnpm --filter @reviewflow/webapp exec playwright install chromium
 ```

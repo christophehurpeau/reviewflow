@@ -1,4 +1,4 @@
-import type { MessageCategory } from "reviewflow-modules";
+import type { MessageCategory } from "@reviewflow/modules";
 
 export const defaultDmSettings: Record<MessageCategory, boolean> = {
   "pr-checksAndStatuses": true,

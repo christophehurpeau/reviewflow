@@ -1,4 +1,4 @@
-import type { LabelEmbed, ReviewflowPr } from "reviewflow-core";
+import type { LabelEmbed, ReviewflowPr } from "@reviewflow/core";
 import type { AppContext } from "../../../../../context/AppContext.ts";
 import type { PullRequestLabels } from "../../../utils/PullRequestData.ts";
 

@@ -1,14 +1,14 @@
-import type { Response } from "express";
-import type { Query, QuerySubscription } from "liwi-store";
-import { Logger } from "nightingale-logger";
 import type {
   MongoStores,
   PrBucketAccount,
   PrBucketContext,
   ReviewflowPr,
-} from "reviewflow-core";
-import { buildPrStreamCriteria, createToPrDetail } from "reviewflow-core";
-import type { PrDetail } from "reviewflow-modules";
+} from "@reviewflow/core";
+import { buildPrStreamCriteria, createToPrDetail } from "@reviewflow/core";
+import type { PrDetail } from "@reviewflow/modules";
+import type { Response } from "express";
+import type { Query, QuerySubscription } from "liwi-store";
+import { Logger } from "nightingale-logger";
 import type { SubscriptionSlots } from "../resources/subscriptionLimits.ts";
 import { ApiError } from "./apiErrors.ts";
 import type { ApiAuth } from "./authenticatePersonalToken.ts";

@@ -1,7 +1,7 @@
+import { isPaidEnabled } from "@reviewflow/core";
+import type { UserSummary, UsersService } from "@reviewflow/modules";
 import { ResourcesServerError } from "liwi-resources-server";
 import type { ServiceResource } from "liwi-resources-server";
-import { isPaidEnabled } from "reviewflow-core";
-import type { UserSummary, UsersService } from "reviewflow-modules";
 import type { ResourcesContext } from "../ResourcesContext.ts";
 import { callBotApi } from "../botApi.ts";
 import { isAdminUser, readAdminUserIds } from "./adminAuth.ts";

@@ -1,6 +1,3 @@
-import { ActionButton, Badge, Code, InfoMessage, Text, View } from "alouette";
-import type { ReactNode } from "react";
-import type { ResourceResult } from "react-liwi";
 import type {
   OrgPersonalTokensPolicy,
   OrgSettings,
@@ -8,7 +5,10 @@ import type {
   QueryOrgPersonalTokensPolicyParams,
   QueryOrgSettingsParams,
   UserDmSettingsSummary,
-} from "reviewflow-modules";
+} from "@reviewflow/modules";
+import { ActionButton, Badge, Code, InfoMessage, Text, View } from "alouette";
+import type { ReactNode } from "react";
+import type { ResourceResult } from "react-liwi";
 import { Columns } from "#/components/columns.tsx";
 import { DmSettingsList } from "#/components/dm-settings-list.tsx";
 import { ResourceView } from "#/components/resource-view.tsx";

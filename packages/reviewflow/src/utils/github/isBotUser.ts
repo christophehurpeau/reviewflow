@@ -1,5 +1,5 @@
 import type { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
-import type { BasicUser } from "reviewflow-core";
+import type { BasicUser } from "@reviewflow/core";
 import type { RepoContext } from "../../context/repoContext";
 
 export const checkIfUserIsBot = (

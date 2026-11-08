@@ -1,5 +1,5 @@
-import type { AccountInfo, SlackMessage } from "reviewflow-core";
-import type { MessageCategory } from "reviewflow-modules";
+import type { AccountInfo, SlackMessage } from "@reviewflow/core";
+import type { MessageCategory } from "@reviewflow/modules";
 
 export interface SlackMessageResult {
   ts: string;

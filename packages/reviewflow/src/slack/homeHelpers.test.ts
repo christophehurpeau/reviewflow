@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import type { ReviewflowPr } from "@reviewflow/core";
 import type { KnownBlock } from "@slack/web-api";
-import type { ReviewflowPr } from "reviewflow-core";
 import {
   type GithubSearchResponse,
   allocateRowBudget,

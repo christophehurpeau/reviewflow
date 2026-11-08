@@ -1,4 +1,4 @@
-import type { ReviewState } from "reviewflow-core";
+import type { ReviewState } from "@reviewflow/core";
 import type { CodeReviewStepState } from "./codeReviewStep.ts";
 
 /** Approvals that do not satisfy the repo rules (`restrictAutoMergeTo`) still leave a review to obtain. */

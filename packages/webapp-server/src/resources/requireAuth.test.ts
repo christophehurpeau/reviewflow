@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { MongoStores, OrgMember } from "reviewflow-core";
+import type { MongoStores, OrgMember } from "@reviewflow/core";
 import { callBotApiForJson } from "../botApi.ts";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";
 import {

@@ -52,7 +52,7 @@ Prefer the `alouette-*` skills over reading its source when working in the webap
 
 ```sh
 pnpm test                         # vitest, whole repo
-pnpm --filter reviewflow run test # vitest, one package
+pnpm --filter @reviewflow/reviewflow run test # vitest, one package
 pnpm tsc                          # typecheck the whole build graph
 pnpm lint                         # oxfmt + eslint
 ```
@@ -73,7 +73,7 @@ hues (green `brand` and `success`, Primer blue, red, amber, cool grays) declared
 in [packages/webapp/build-theme.ts](packages/webapp/build-theme.ts). It generates
 `src/palette.css`, `src/palette-oklch.css` and `src/themeVariables.ts` — all
 three generated, committed and never edited by hand. Change a hue in the script
-then `pnpm --filter webapp run build:theme`, which also regenerates the bot logos
+then `pnpm --filter @reviewflow/webapp run build:theme`, which also regenerates the bot logos
 and the webapp favicon from the new brand green (`build:logos`).
 
 ## Storybook (webapp)

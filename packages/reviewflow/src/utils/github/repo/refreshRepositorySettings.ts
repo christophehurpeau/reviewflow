@@ -1,4 +1,4 @@
-import type { RepositorySettings } from "reviewflow-core";
+import type { RepositorySettings } from "@reviewflow/core";
 import type {
   EventsWithRepository,
   RepoContext,

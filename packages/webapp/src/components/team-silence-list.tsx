@@ -1,7 +1,7 @@
+import type { OrgTeamSummary } from "@reviewflow/modules";
 import { ErrorMessage, Paragraph, Switch, Text, View } from "alouette";
 import type { ReactNode } from "react";
 import { useOperation } from "react-liwi";
-import type { OrgTeamSummary } from "reviewflow-modules";
 import { useReviewflowServices } from "#/services/ReviewflowServicesProvider.tsx";
 
 interface TeamSilenceListProps {

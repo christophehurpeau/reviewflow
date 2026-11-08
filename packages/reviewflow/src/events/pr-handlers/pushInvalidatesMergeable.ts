@@ -1,5 +1,5 @@
+import type { MongoStores } from "@reviewflow/core";
 import type { Probot } from "probot";
-import type { MongoStores } from "reviewflow-core";
 import type { AppContext } from "../../context/AppContext.ts";
 import { obtainRepoContext } from "../../context/repoContext.ts";
 import { scheduleMergeableRefresh } from "./utils/refreshMergeable.ts";

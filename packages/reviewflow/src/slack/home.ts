@@ -1,14 +1,14 @@
-import type { KnownBlock } from "@slack/web-api";
-import { WebClient } from "@slack/web-api";
-import type { Probot } from "probot";
 import type {
   MongoStores,
   Org,
   OrgMember,
   ReviewflowPr,
-} from "reviewflow-core";
-import { buildPrBucketQuery } from "reviewflow-core";
-import type { PrBucket } from "reviewflow-modules";
+} from "@reviewflow/core";
+import { buildPrBucketQuery } from "@reviewflow/core";
+import type { PrBucket } from "@reviewflow/modules";
+import type { KnownBlock } from "@slack/web-api";
+import { WebClient } from "@slack/web-api";
+import type { Probot } from "probot";
 import type { OctokitRestCompat } from "../octokit.ts";
 import { orgSettingsUrl } from "../webappUrl.ts";
 import {

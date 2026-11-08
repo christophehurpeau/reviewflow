@@ -1,11 +1,11 @@
-import type { Probot } from "probot";
 import type {
   AccountEmbed,
   AccountInfo,
   BasicUser,
   SlackMessage,
-} from "reviewflow-core";
-import type { MessageCategory } from "reviewflow-modules";
+} from "@reviewflow/core";
+import type { MessageCategory } from "@reviewflow/modules";
+import type { Probot } from "probot";
 import type { AppContext } from "../../context/AppContext.ts";
 import type {
   PostSlackMessageResult,

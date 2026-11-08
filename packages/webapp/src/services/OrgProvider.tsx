@@ -1,7 +1,7 @@
+import type { OrgSummary } from "@reviewflow/modules";
 import type { ReactNode } from "react";
 import { createContext, use } from "react";
 import { useResource } from "react-liwi";
-import type { OrgSummary } from "reviewflow-modules";
 import { ResourceView } from "#/components/resource-view.tsx";
 import { Screen } from "#/components/screen.tsx";
 import { SkeletonSections } from "#/components/skeleton.tsx";

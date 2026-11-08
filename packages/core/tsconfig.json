@@ -19,8 +19,8 @@
     "resolveJsonModule": true,
 
     "paths": {
-      "reviewflow-modules": ["../../packages/reviewflow-modules/lib"],
-      "reviewflow-modules/*": ["../../packages/reviewflow-modules/lib/*"]
+      "@reviewflow/modules": ["../../packages/reviewflow-modules/lib"],
+      "@reviewflow/modules/*": ["../../packages/reviewflow-modules/lib/*"]
     }
   }
 }

@@ -1,10 +1,10 @@
-import { InfoMessage, PressableListItem, Text, View } from "alouette";
-import type { ReactNode } from "react";
-import type { ResourceResult } from "react-liwi";
 import type {
   QueryAccountRepositoriesParams,
   RepositorySummary,
-} from "reviewflow-modules";
+} from "@reviewflow/modules";
+import { InfoMessage, PressableListItem, Text, View } from "alouette";
+import type { ReactNode } from "react";
+import type { ResourceResult } from "react-liwi";
 import { ListSection } from "#/components/list-section.tsx";
 import { ResourceView } from "#/components/resource-view.tsx";
 import { Screen } from "#/components/screen.tsx";

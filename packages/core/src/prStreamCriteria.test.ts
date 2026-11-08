@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { prBucketsInOrder } from "@reviewflow/modules";
 import { Query } from "mingo";
-import { prBucketsInOrder } from "reviewflow-modules";
 import {
   buildPrBucketQuery,
   buildPrStreamCriteria,

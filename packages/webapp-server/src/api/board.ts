@@ -2,14 +2,14 @@ import type {
   MongoStores,
   PrBucketAccount,
   ReviewflowPr,
-} from "reviewflow-core";
-import { buildPrBucketQuery, createToPrDetail } from "reviewflow-core";
-import type { PrBucket, PrBucketGroup, PrDetail } from "reviewflow-modules";
+} from "@reviewflow/core";
+import { buildPrBucketQuery, createToPrDetail } from "@reviewflow/core";
+import type { PrBucket, PrBucketGroup, PrDetail } from "@reviewflow/modules";
 import {
   prBucketDisplay,
   prBucketGroupTitles,
   prBucketsInGroup,
-} from "reviewflow-modules";
+} from "@reviewflow/modules";
 import { ApiError } from "./apiErrors.ts";
 import type { ApiAuth } from "./authenticatePersonalToken.ts";
 import { resolveTokenAccounts } from "./tokenAccounts.ts";

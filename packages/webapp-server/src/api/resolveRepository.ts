@@ -1,4 +1,4 @@
-import type { MongoStores, Repository } from "reviewflow-core";
+import type { MongoStores, Repository } from "@reviewflow/core";
 import type { ApiAuth } from "./authenticatePersonalToken.ts";
 import type { TokenAccount } from "./tokenAccounts.ts";
 import { resolveTokenAccounts } from "./tokenAccounts.ts";

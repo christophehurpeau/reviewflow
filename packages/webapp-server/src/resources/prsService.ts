@@ -1,15 +1,15 @@
-import { ResourcesServerError } from "liwi-resources-server";
-import type { ServiceResource } from "liwi-resources-server";
-import { NotFoundError } from "liwi-store";
 import {
   buildPrBucketQuery,
   buildPullRequestUrl,
   reviewedWithReviewer,
   reviewsAfterRequestingAgain,
   toPrSummary,
-} from "reviewflow-core";
-import type { MongoStores, PrBucketAccount } from "reviewflow-core";
-import type { PrsService, StartReviewResult } from "reviewflow-modules";
+} from "@reviewflow/core";
+import type { MongoStores, PrBucketAccount } from "@reviewflow/core";
+import type { PrsService, StartReviewResult } from "@reviewflow/modules";
+import { ResourcesServerError } from "liwi-resources-server";
+import type { ServiceResource } from "liwi-resources-server";
+import { NotFoundError } from "liwi-store";
 import type { ResourcesContext } from "../ResourcesContext.ts";
 import {
   createReviewAsUser,

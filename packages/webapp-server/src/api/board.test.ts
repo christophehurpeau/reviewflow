@@ -1,8 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
+import type {
+  MongoStores,
+  PersonalToken,
+  ReviewflowPr,
+} from "@reviewflow/core";
+import { buildPrBucketQuery } from "@reviewflow/core";
+import { prBucketsInOrder } from "@reviewflow/modules";
 import express from "express";
-import type { MongoStores, PersonalToken, ReviewflowPr } from "reviewflow-core";
-import { buildPrBucketQuery } from "reviewflow-core";
-import { prBucketsInOrder } from "reviewflow-modules";
 import { hashPersonalToken } from "../auth/personalTokens.ts";
 import { callApp } from "../tests/callRouter.ts";
 import { liveRelayState } from "../tests/relayState.ts";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ReviewflowPr } from "reviewflow-core";
+import type { ReviewflowPr } from "@reviewflow/core";
 import type { RepoContext } from "../../../context/repoContext.ts";
 import { getChecksAndStatusesState } from "./calcAndUpdateChecksAndStatuses.ts";
 

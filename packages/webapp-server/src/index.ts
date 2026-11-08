@@ -1,16 +1,16 @@
 import "dotenv/config";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import cookieParser from "cookie-parser";
-import Express from "express";
-import { createWsServer } from "liwi-resources-websocket-server";
-import { Logger } from "nightingale-logger";
 import {
   getRelayedStores,
   initErrorReporting,
   isStoreRelayDisabled,
   mongoInit,
-} from "reviewflow-core";
+} from "@reviewflow/core";
+import cookieParser from "cookie-parser";
+import Express from "express";
+import { createWsServer } from "liwi-resources-websocket-server";
+import { Logger } from "nightingale-logger";
 import type { ResourcesContext } from "./ResourcesContext.ts";
 import apiRouter from "./api/apiRouter.ts";
 import appRouter from "./appRouter.ts";

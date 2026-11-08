@@ -1,5 +1,5 @@
 {
-  "name": "reviewflow-webapp-server",
+  "name": "@reviewflow/webapp-server",
   "version": "6.21.0",
   "private": true,
   "description": "serves the reviewflow webapp, its oauth flows and its resources websocket",
@@ -34,6 +34,8 @@
   },
   "dependencies": {
     "@octokit/rest": "22.0.1",
+    "@reviewflow/core": "workspace:*",
+    "@reviewflow/modules": "workspace:*",
     "@slack/web-api": "8.0.0",
     "cookie": "0.7.2",
     "cookie-parser": "1.4.7",
@@ -47,8 +49,6 @@
     "liwi-resources-websocket-server": "15.0.0",
     "liwi-store": "14.1.0",
     "nightingale-logger": "18.2.0",
-    "reviewflow-core": "workspace:*",
-    "reviewflow-modules": "workspace:*",
     "simple-oauth2": "5.1.0"
   },
   "devDependencies": {

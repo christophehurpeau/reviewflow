@@ -1,4 +1,4 @@
-import type { MessageCategory } from "reviewflow-modules";
+import type { MessageCategory } from "@reviewflow/modules";
 
 export const dmMessageLabels: Record<MessageCategory, string> = {
   "pr-checksAndStatuses": "Your PR has failed checks or statuses",

@@ -1,5 +1,5 @@
+import type { PrBucket } from "@reviewflow/modules";
 import type { Criteria, Sort } from "liwi-store";
-import type { PrBucket } from "reviewflow-modules";
 import type { OrgTeamEmbed, ReviewflowPr } from "./mongo.ts";
 
 export interface PrBucketAccount {

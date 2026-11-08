@@ -1,7 +1,7 @@
 import type { RestEndpointMethodTypes } from "@octokit/rest";
+import type { AccountEmbed, AccountInfo, SlackMessage } from "@reviewflow/core";
+import type { MessageCategory } from "@reviewflow/modules";
 import type { Context, Probot } from "probot";
-import type { AccountEmbed, AccountInfo, SlackMessage } from "reviewflow-core";
-import type { MessageCategory } from "reviewflow-modules";
 import type { AppContext } from "../../context/AppContext.ts";
 import type {
   PostSlackMessageResult,

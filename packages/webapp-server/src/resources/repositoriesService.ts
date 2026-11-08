@@ -1,11 +1,11 @@
-import { ResourcesServerError } from "liwi-resources-server";
-import type { ServiceResource } from "liwi-resources-server";
-import { emojiToUnicode } from "reviewflow-core";
-import type { MongoStores, Repository } from "reviewflow-core";
+import { emojiToUnicode } from "@reviewflow/core";
+import type { MongoStores, Repository } from "@reviewflow/core";
 import type {
   RepositoriesService,
   RepositorySummary,
-} from "reviewflow-modules";
+} from "@reviewflow/modules";
+import type { ServiceResource } from "liwi-resources-server";
+import { ResourcesServerError } from "liwi-resources-server";
 import type { ResourcesContext } from "../ResourcesContext.ts";
 import { callBotApi } from "../botApi.ts";
 import type { AuthenticatedWsUser } from "./getAuthenticatedUser.ts";

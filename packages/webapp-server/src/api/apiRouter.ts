@@ -1,10 +1,10 @@
-import type { RequestHandler, Response } from "express";
-import express, { Router } from "express";
 import {
   createHealthChecker,
   createToPrDetail,
   healthHttpStatus,
-} from "reviewflow-core";
+} from "@reviewflow/core";
+import type { RequestHandler, Response } from "express";
+import express, { Router } from "express";
 import type { ResourcesContext } from "../ResourcesContext.ts";
 import type { SubscriptionSlots } from "../resources/subscriptionLimits.ts";
 import {

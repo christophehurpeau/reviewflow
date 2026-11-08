@@ -1,5 +1,9 @@
-import type { Options, OptionsKeys, RepositorySettings } from "reviewflow-core";
-import { options } from "reviewflow-core";
+import type {
+  Options,
+  OptionsKeys,
+  RepositorySettings,
+} from "@reviewflow/core";
+import { options } from "@reviewflow/core";
 import type { RepoContext } from "../../../../../context/repoContext.ts";
 import type { PullRequestLabels } from "../../../utils/PullRequestData.ts";
 import hasLabelInPR from "../labels/hasLabelInPR.ts";

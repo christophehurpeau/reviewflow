@@ -2,7 +2,7 @@ import type {
   LabelList,
   RepositorySettings,
   StatusInfo,
-} from "reviewflow-core";
+} from "@reviewflow/core";
 import type { StepState } from "../steps/BaseStepState.ts";
 import { steps } from "../steps/calcStepsState.ts";
 import type { StepsState } from "../steps/calcStepsState.ts";
