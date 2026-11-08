@@ -42,7 +42,7 @@ pnpm --filter @reviewflow/app-expo run start    # http://localhost:8085
 
 Open the page, press Open a pull request and enter `https://github.com/owner/repo/pull/123`,
 `owner/repo#123` or `owner/repo/123`. A pull request is also reachable at
-`/pull-request?repo=owner/repo&number=123&tab=files&commit=<oid>`.
+`/pull-request?repo=owner/repo&number=123&tab=review&commit=<oid>`.
 
 ## Connect reviewflow: the pull request list
 

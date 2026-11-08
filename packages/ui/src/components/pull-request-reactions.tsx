@@ -1,4 +1,4 @@
-import { pullRequestReactionContents } from "@reviewflow/sdk";
+import { pluralOf, pullRequestReactionContents } from "@reviewflow/sdk";
 import type {
   PullRequestEdit,
   PullRequestReactable,
@@ -58,7 +58,7 @@ function ReactionButton({
   toggle,
 }: ReactionButtonProps): ReactNode {
   const { content, count, viewerHasReacted } = reaction;
-  const people = count === 1 ? "1 person" : `${String(count)} people`;
+  const people = pluralOf(count, "person", "people");
   return (
     <ActionButton
       text={`${reactionEmoji[content]} ${String(count)}`}

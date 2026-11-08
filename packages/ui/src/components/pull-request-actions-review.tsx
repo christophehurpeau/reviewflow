@@ -53,7 +53,7 @@ const submitBlocker = (
 };
 
 /**
- * "Review changes", ending the Files changed tab's sticky toolbar: the verdict, a
+ * "Review changes", ending the Review tab's sticky toolbar: the verdict, a
  * summary and the inline comments the diff collected, sent as one review.
  * Brand while comments are pending, so an unsent review is not forgotten. Never
  * offered to the author, whom GitHub lets comment but not review. A review
@@ -181,7 +181,7 @@ export function PullRequestReviewButton({
             </Text>
             {comments.length === 0 ? (
               <Text className="text-sm text-muted">
-                None. Add them from the Files changed tab.
+                None. Add them from the diff lines.
               </Text>
             ) : (
               comments.map((comment) => (

@@ -1,4 +1,5 @@
 import type { ReviewflowPrChanges } from "../types/reviewflow.ts";
+import { pluralOf } from "../utils/pluralOf.ts";
 import type { FormatRelativeDateOptions } from "../utils/relativeDate.ts";
 import { formatRelativeDate } from "../utils/relativeDate.ts";
 import type { ReviewflowBoardPr } from "./board.ts";
@@ -25,9 +26,6 @@ const bucketsSilentOnPassedChecks = new Set(["changes-requested", "drafts"]);
 const reRequestedBucket = "re-requested-reviews";
 /** someone else's pull request requests a review, the operator's awaits one */
 const requestingAttentionGroup = "requesting-attention";
-
-const counted = (count: number, one: string, many: string): string =>
-  `${String(count)} ${count === 1 ? one : many}`;
 
 const people = (logins: string[], viewer: string | null): string =>
   logins.map((login) => (login === viewer ? "you" : `@${login}`)).join(", ");
@@ -81,7 +79,7 @@ const checksProgressText = (
   bucketKey: string,
 ): string | null => {
   if (checksRunning > 0) {
-    return `${counted(checksRunning, "check", "checks")} running`;
+    return `${pluralOf(checksRunning, "check")} running`;
   }
   return checksConclusion === "passed" &&
     !bucketsSilentOnPassedChecks.has(bucketKey)
@@ -133,7 +131,7 @@ export const reviewflowPrProgress = (
       ? null
       : `approved by ${people(pr.approvedBy, context.viewer)}`,
     pr.unresolvedThreads
-      ? counted(pr.unresolvedThreads, "unresolved thread", "unresolved threads")
+      ? pluralOf(pr.unresolvedThreads, "unresolved thread")
       : null,
     awaitedText(pr, context),
   ].filter((part) => part !== null);
@@ -181,4 +179,4 @@ export const formatPrChanges = ({
   additions,
   deletions,
 }: ReviewflowPrChanges): string =>
-  `${counted(changedFiles, "file", "files")} +${String(additions)} −${String(deletions)}`;
+  `${pluralOf(changedFiles, "file")} +${String(additions)} −${String(deletions)}`;

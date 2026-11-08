@@ -18,6 +18,7 @@ import type {
   PullRequestRef,
   PullRequestThread,
 } from "@reviewflow/sdk";
+import { pluralOf } from "@reviewflow/sdk";
 import {
   AccentScope,
   Badge,
@@ -70,7 +71,6 @@ import type { PullRequestMovedOn } from "./pull-request-diff-data.ts";
 import {
   countImpacts,
   maxImporterNames,
-  pluralOf,
   usageLabel,
 } from "./pull-request-diff-impacts.ts";
 import type { DiffFileHighlight } from "./pull-request-diff-jump.ts";
@@ -214,8 +214,7 @@ const useStableAnnotations = (
 /** Why a thread is listed above its file rather than placed on a line. */
 type UnplacedKind = "changedSince" | "outdated" | "whitespace";
 
-const commentsText = (count: number): string =>
-  `${String(count)} comment${count === 1 ? "" : "s"}`;
+const commentsText = (count: number): string => pluralOf(count, "comment");
 
 const unplacedLabel = (kind: UnplacedKind, count: number): string => {
   if (kind === "changedSince") {
@@ -224,7 +223,7 @@ const unplacedLabel = (kind: UnplacedKind, count: number): string => {
   if (kind === "whitespace") {
     return `${commentsText(count)} on lines hidden with whitespace changes`;
   }
-  return `${String(count)} outdated comment${count === 1 ? "" : "s"}`;
+  return pluralOf(count, "outdated comment");
 };
 
 const unplacedLineText = (

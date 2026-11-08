@@ -3,6 +3,7 @@ import type {
   PullRequestDetailResponse,
   PullRequestEdit,
 } from "@reviewflow/sdk";
+import { pluralOf } from "@reviewflow/sdk";
 import {
   Button,
   Code,
@@ -213,7 +214,7 @@ export function PullRequestCommits({
       ))}
       {unlisted > 0 ? (
         <Text className="text-xs text-muted">
-          {`${String(unlisted)} more commit${unlisted === 1 ? "" : "s"} not listed`}
+          {`${pluralOf(unlisted, "more commit")} not listed`}
         </Text>
       ) : null}
     </View>

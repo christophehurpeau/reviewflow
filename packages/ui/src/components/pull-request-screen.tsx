@@ -253,7 +253,7 @@ export interface PullRequestScreenProps {
 
 /**
  * One pull request laid out as GitHub's page: the header, then the tabs
- * Conversation, Commits, Checks and Files changed, with the edits a reviewer
+ * Conversation, Commits, Checks and Review, with the edits a reviewer
  * or an author makes. Reads and writes through the
  * {@link PullRequestDataSource} of the nearest
  * `PullRequestDataSourceProvider`, which the app provides. Mount it with a

@@ -1,4 +1,5 @@
 import type { DiffFileImpacts } from "@reviewflow/sdk";
+import { pluralOf } from "@reviewflow/sdk";
 
 /** `none`: no checkout, or a source that cannot read impacts. */
 export type ImpactsStatus = "failed" | "none" | "reading" | "ready";
@@ -33,9 +34,6 @@ export const countImpacts = (
 
 /** Past this many files using a changed file's exports, each export carries its counts only. */
 export const maxImporterNames = 50;
-
-export const pluralOf = (count: number, word: string): string =>
-  `${String(count)} ${word}${count === 1 ? "" : "s"}`;
 
 /** "4 files · 2 tests", either part left out when it is 0. */
 export const usageLabel = ({ files, tests }: ImpactCounts): string =>

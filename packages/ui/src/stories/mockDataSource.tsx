@@ -1,5 +1,6 @@
 import type {
   DiffReadingOrderResponse,
+  PullRequestDetailResponse,
   PullRequestDiffResponse,
   PullRequestPartResponses,
   PullRequestSummary,
@@ -38,6 +39,8 @@ const idleDiff: PullRequestDiffState = {
 };
 
 export interface MockDataSourceOptions {
+  /** defaults to the fixture's, read by a viewer who is not its author */
+  detail?: PullRequestDetailResponse;
   /** the diff state the mock answers; defaults to the fixture's diff */
   diff?: Partial<PullRequestDiffState>;
   /** the pull request is still being read: no part has answered */
@@ -58,6 +61,7 @@ export interface MockDataSourceOptions {
 
 /** A data source over fixtures, no network: what every story renders against. */
 export const createMockDataSource = ({
+  detail = fixtures.detail,
   diff,
   loading = false,
   attachment,
@@ -68,7 +72,7 @@ export const createMockDataSource = ({
   reviewflowPr,
 }: MockDataSourceOptions = {}): PullRequestDataSource => {
   const parts: PullRequestPartResponses = {
-    detail: fixtures.detail,
+    detail,
     checks: fixtures.checks,
     timeline: fixtures.timeline,
     commits: fixtures.commits,

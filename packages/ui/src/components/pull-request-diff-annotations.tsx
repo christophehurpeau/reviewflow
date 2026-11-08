@@ -4,7 +4,7 @@ import type {
   PullRequestEdit,
   PullRequestThread,
 } from "@reviewflow/sdk";
-import { suggestionOriginalLines } from "@reviewflow/sdk";
+import { pluralOf, suggestionOriginalLines } from "@reviewflow/sdk";
 import {
   ActionButton,
   Badge,
@@ -114,7 +114,7 @@ export function ThreadAnnotation({
             Resolved
           </Badge>
           <Text className="text-sm text-muted">
-            {`${first?.author.login ?? "thread"}, ${String(thread.commentsTotal)} comment${thread.commentsTotal === 1 ? "" : "s"}`}
+            {`${first?.author.login ?? "thread"}, ${pluralOf(thread.commentsTotal, "comment")}`}
           </Text>
           <Button
             size="sm"
@@ -160,7 +160,7 @@ export function ThreadAnnotation({
       </SuggestionOriginalContext>
       {unlisted > 0 ? (
         <Text className="text-xs text-muted">
-          {`${String(unlisted)} more comment${unlisted === 1 ? "" : "s"} on GitHub`}
+          {`${pluralOf(unlisted, "more comment")} on GitHub`}
         </Text>
       ) : null}
       {thread.viewerCanReply && first !== undefined ? (

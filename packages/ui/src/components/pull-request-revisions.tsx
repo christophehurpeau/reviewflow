@@ -3,6 +3,7 @@ import type {
   PullRequestRevision,
   PullRequestTextLine,
 } from "@reviewflow/sdk";
+import { pluralOf } from "@reviewflow/sdk";
 import {
   Box,
   Button,
@@ -86,7 +87,7 @@ function ChangeRunText({ run }: { run: ChangeRun }): ReactNode {
   if (run.kind === "folded") {
     return (
       <Text className="py-xxs text-xs text-muted">
-        {`⋯ ${String(run.count)} unchanged ${run.count === 1 ? "line" : "lines"}`}
+        {`⋯ ${pluralOf(run.count, "unchanged line")}`}
       </Text>
     );
   }

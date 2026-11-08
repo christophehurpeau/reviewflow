@@ -65,7 +65,7 @@ const meta = {
   component: PullRequestScreen,
   parameters: {
     componentSubtitle:
-      "A pull request as GitHub's page: header, conversation, checks, commits and files changed",
+      "A pull request as GitHub's page: header, conversation, commits, checks and review",
   },
 } satisfies Meta<typeof PullRequestScreen>;
 
@@ -73,9 +73,49 @@ export default meta;
 
 type Story = StoryObj<typeof PullRequestScreen>;
 
+const sectionTabNames = async (
+  canvasElement: HTMLElement,
+): Promise<string[]> => {
+  const sections = await within(canvasElement).findByRole("tablist", {
+    name: "Pull request sections",
+  });
+  return within(sections)
+    .getAllByRole("tab")
+    .map((tab) => tab.textContent ?? "");
+};
+
 export const ConversationStory: Story = {
   name: "PullRequestScreen Conversation",
   render: () => <ScreenCase initialTab="timeline" />,
+  play: async ({ canvasElement }) => {
+    await expect(await sectionTabNames(canvasElement)).toEqual([
+      "Review (2 files)",
+      "Conversation",
+      "Commits (2)",
+      "Checks (4)",
+    ]);
+  },
+};
+
+export const ConversationAsAuthorStory: Story = {
+  name: "PullRequestScreen Conversation, read by its author",
+  render: () => (
+    <ScreenCase
+      initialTab="timeline"
+      detail={{
+        ...fixtures.detail,
+        viewer: fixtures.detail.pullRequest.author?.login ?? "",
+      }}
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    await expect(await sectionTabNames(canvasElement)).toEqual([
+      "Conversation",
+      "Commits (2)",
+      "Checks (4)",
+      "Review (2 files)",
+    ]);
+  },
 };
 
 export const ChecksStory: Story = {
@@ -86,11 +126,6 @@ export const ChecksStory: Story = {
 export const CommitsStory: Story = {
   name: "PullRequestScreen Commits",
   render: () => <ScreenCase initialTab="commits" />,
-};
-
-export const FilesChangedStory: Story = {
-  name: "PullRequestScreen Files changed",
-  render: () => <ScreenCase initialTab="files" />,
 };
 
 export const ReviewStory: Story = {
@@ -129,10 +164,10 @@ export const ReviewUnknownToReviewflowStory: Story = {
   render: () => <ScreenCase initialTab="review" reviewflowPr={{ pr: null }} />,
 };
 
-export const FilesChangedByCommitStory: Story = {
-  name: "PullRequestScreen Files changed, commit by commit",
+export const ReviewDiffByCommitStory: Story = {
+  name: "PullRequestScreen Review, commit by commit",
   render: () => (
-    <ScreenCase initialTab="files" diffsByHead={fixtures.commitDiffs} />
+    <ScreenCase initialTab="review" diffsByHead={fixtures.commitDiffs} />
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -143,11 +178,11 @@ export const FilesChangedByCommitStory: Story = {
   },
 };
 
-export const FilesChangedByCommitNoCheckoutStory: Story = {
-  name: "PullRequestScreen Files changed, commit by commit without a checkout",
+export const ReviewDiffByCommitNoCheckoutStory: Story = {
+  name: "PullRequestScreen Review, commit by commit without a checkout",
   render: () => (
     <ScreenCase
-      initialTab="files"
+      initialTab="review"
       diffsByHead={fixtures.commitDiffs}
       attachment={{
         status: "notConfigured",
@@ -169,32 +204,32 @@ export const FilesChangedByCommitNoCheckoutStory: Story = {
   },
 };
 
-export const FilesChangedFetchingStory: Story = {
-  name: "PullRequestScreen Files changed, fetching commits",
+export const ReviewDiffFetchingStory: Story = {
+  name: "PullRequestScreen Review, fetching commits",
   render: () => (
     <ScreenCase
-      initialTab="files"
+      initialTab="review"
       diff={{ value: null, reading: true, step: "fetching" }}
     />
   ),
 };
 
-export const FilesChangedDiffingStory: Story = {
-  name: "PullRequestScreen Files changed, computing diff",
+export const ReviewDiffDiffingStory: Story = {
+  name: "PullRequestScreen Review, computing diff",
   render: () => (
     <ScreenCase
-      initialTab="files"
+      initialTab="review"
       diff={{ value: null, reading: true, step: "diffing" }}
     />
   ),
 };
 
-export const FilesChangedRefusedStory: Story = {
-  name: "PullRequestScreen Files changed, no checkout configured",
+export const ReviewDiffRefusedStory: Story = {
+  name: "PullRequestScreen Review, no checkout configured",
   render: () => (
     <ScreenCase
       withSettingsAction
-      initialTab="files"
+      initialTab="review"
       diff={{
         value: null,
         refused: {
@@ -208,11 +243,11 @@ export const FilesChangedRefusedStory: Story = {
   ),
 };
 
-export const FilesChangedInvalidPathStory: Story = {
-  name: "PullRequestScreen Files changed, invalid checkout path",
+export const ReviewDiffInvalidPathStory: Story = {
+  name: "PullRequestScreen Review, invalid checkout path",
   render: () => (
     <ScreenCase
-      initialTab="files"
+      initialTab="review"
       diff={{
         value: null,
         refused: {

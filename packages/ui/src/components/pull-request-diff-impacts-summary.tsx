@@ -1,10 +1,11 @@
 import type { DiffImpactsResponse } from "@reviewflow/sdk";
+import { pluralOf } from "@reviewflow/sdk";
 import { AccentScope, Icon, Text, View } from "alouette";
 import { InfoRegularIcon } from "alouette-icons/phosphor-icons/Info";
 import { ShareNetworkDuotoneIcon } from "alouette-icons/phosphor-icons/ShareNetwork";
 import type { ReactNode } from "react";
 import type { ImpactsStatus } from "./pull-request-diff-impacts.ts";
-import { countImpacts, pluralOf } from "./pull-request-diff-impacts.ts";
+import { countImpacts } from "./pull-request-diff-impacts.ts";
 
 interface PullRequestDiffImpactsSummaryProps {
   /** null until read, or when it could not be */

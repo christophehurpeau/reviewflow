@@ -4,7 +4,7 @@ import type {
   DiffOmittedFile,
   DiffReadingOrderResponse,
 } from "@reviewflow/sdk";
-import { isAttachablePath, subjectsOf } from "@reviewflow/sdk";
+import { isAttachablePath, pluralOf, subjectsOf } from "@reviewflow/sdk";
 import { Icon, PressableBox, Text, View } from "alouette";
 import { FileRegularIcon } from "alouette-icons/phosphor-icons/File";
 import { FileTsRegularIcon } from "alouette-icons/phosphor-icons/FileTs";
@@ -13,7 +13,6 @@ import { TestTubeRegularIcon } from "alouette-icons/phosphor-icons/TestTube";
 import type { ReactNode } from "react";
 import { PullRequestDiffImpactsSummary } from "./pull-request-diff-impacts-summary.tsx";
 import type { ImpactsStatus } from "./pull-request-diff-impacts.ts";
-import { pluralOf } from "./pull-request-diff-impacts.ts";
 
 /** Past this many names over the range, the rows carry their counts only. */
 export const maxOverviewNames = 50;

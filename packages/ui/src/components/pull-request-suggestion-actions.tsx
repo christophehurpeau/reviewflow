@@ -1,12 +1,13 @@
-import {
-  parseSuggestions,
-  suggestionCommitRefusal,
-  suggestionRangesOverlap,
-} from "@reviewflow/sdk";
 import type {
   PullRequestComment,
   PullRequestSuggestionRef,
   PullRequestThread,
+} from "@reviewflow/sdk";
+import {
+  parseSuggestions,
+  pluralOf,
+  suggestionCommitRefusal,
+  suggestionRangesOverlap,
 } from "@reviewflow/sdk";
 import {
   Button,
@@ -161,7 +162,7 @@ export function SuggestionActions({
         text={
           batch.batch.length === 0
             ? "Commit suggestion"
-            : `Commit ${String(batch.batch.length)} suggestion${batch.batch.length === 1 ? "" : "s"}`
+            : `Commit ${pluralOf(batch.batch.length, "suggestion")}`
         }
         disabledReason={
           toCommit.length === 0 ? (refusal ?? undefined) : undefined

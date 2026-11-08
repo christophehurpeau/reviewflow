@@ -6,7 +6,7 @@ import type {
   PullRequestThread,
   PullRequestViewerLastReview,
 } from "@reviewflow/sdk";
-import { formatRelativeDate } from "@reviewflow/sdk";
+import { formatRelativeDate, pluralOf } from "@reviewflow/sdk";
 import {
   Button,
   Code,
@@ -149,7 +149,7 @@ const describeCommit = (
 ): string => {
   const oid = commit.oid.slice(0, 7);
   if (summary === undefined) return oid;
-  const files = `${String(summary.files)} ${summary.files === 1 ? "file" : "files"}`;
+  const files = pluralOf(summary.files, "file");
   return [oid, summary.workspaces.join(", "), files]
     .filter((part) => part !== "")
     .join(" · ");

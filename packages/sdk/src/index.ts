@@ -20,6 +20,7 @@ export type * from "./api/pullRequest.ts";
 export type * from "./types/entities.ts";
 export type * from "./types/ids.ts";
 export type * from "./types/reviewflow.ts";
+export * from "./utils/pluralOf.ts";
 export * from "./utils/prStatus.ts";
 export * from "./utils/pullRequestEdit.ts";
 export * from "./utils/pullRequestPart.ts";

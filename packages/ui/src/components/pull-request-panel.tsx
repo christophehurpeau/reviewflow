@@ -7,7 +7,12 @@ import type {
   PullRequestReviewState,
   PullRequestSummary,
 } from "@reviewflow/sdk";
-import { prStatus, prStatusLabels, reviewflowPrStatus } from "@reviewflow/sdk";
+import {
+  pluralOf,
+  prStatus,
+  prStatusLabels,
+  reviewflowPrStatus,
+} from "@reviewflow/sdk";
 import type { Accent } from "alouette";
 import {
   AccentScope,
@@ -39,6 +44,7 @@ import { prStatusAccents } from "../prStatus.ts";
 import { emojify } from "../services/emojify.ts";
 import { errorToMessage } from "../services/errorToMessage.ts";
 import { formatDataAge } from "../services/formatDataAge.ts";
+import { isViewerAuthor } from "../services/isViewerAuthor.ts";
 import { LabelPill } from "./label-pill.tsx";
 import {
   PullRequestMergeButton,
@@ -48,7 +54,6 @@ import {
 import { CheckLine } from "./pull-request-checks.tsx";
 import { PullRequestCommits } from "./pull-request-commits.tsx";
 import { PersonAvatar } from "./pull-request-conversation-person.tsx";
-import { PullRequestFiles } from "./pull-request-files.tsx";
 import {
   PullRequestPartError,
   PullRequestPartPending,
@@ -361,7 +366,7 @@ function UnresolvedThreads({
         </View>
       </AccentScope>
       <Text className="min-w-0 flex-1 text-sm">
-        {`${String(unresolved)} unresolved ${unresolved === 1 ? "thread" : "threads"}`}
+        {pluralOf(unresolved, "unresolved thread")}
       </Text>
     </View>
   );
@@ -1120,18 +1125,12 @@ function Sidebar({ detail, candidates, onEdited }: CandidatesProps): ReactNode {
   );
 }
 
-export type PullRequestTab =
-  | "checks"
-  | "commits"
-  | "files"
-  | "review"
-  | "timeline";
+export type PullRequestTab = "checks" | "commits" | "review" | "timeline";
 
 export const isPullRequestTab = (value: unknown): value is PullRequestTab =>
   value === "checks" ||
   value === "commits" ||
   value === "timeline" ||
-  value === "files" ||
   value === "review";
 
 /** The timeline opens on the description, as GitHub's first comment. */
@@ -1174,7 +1173,7 @@ export interface PullRequestPanelProps extends CandidatesProps {
 /**
  * One pull request as GitHub reports it now, laid out as GitHub's own page —
  * the header, then Timeline (the description, a status box and a narrow
- * sidebar), Checks and Files changed — with the edits the operator makes
+ * sidebar), Commits, Checks and Review — with the edits the operator makes
  * before asking for a review. Every edit is GitHub's to refuse, and the panel
  * re-reads the pull request after it, so nothing on screen is the request
  * echoed back.
@@ -1194,6 +1193,13 @@ export function PullRequestPanel({
     pullRequest,
     "checks",
   ).value;
+  const viewerIsAuthor = isViewerAuthor(detail);
+  const reviewTab = (
+    <Tab
+      value="review"
+      label={`Review (${pluralOf(pullRequest.changedFiles, "file")})`}
+    />
+  );
   return (
     <View className="gap-l">
       {[...new Set([...errors, ...(candidates?.errors ?? [])])].map((error) => (
@@ -1214,6 +1220,7 @@ export function PullRequestPanel({
             if (isPullRequestTab(next)) onTabChange(next);
           }}
         >
+          {viewerIsAuthor ? null : reviewTab}
           <Tab value="timeline" label="Conversation" />
           <Tab
             value="commits"
@@ -1227,11 +1234,7 @@ export function PullRequestPanel({
                 : `Checks (${String(checks.checksTotal)})`
             }
           />
-          <Tab
-            value="files"
-            label={`Files changed (${String(pullRequest.changedFiles)})`}
-          />
-          <Tab value="review" label="Review" />
+          {viewerIsAuthor ? reviewTab : null}
         </Tabs>
         <PullRequestActions detail={detail} onEdited={onEdited} />
       </View>
@@ -1247,9 +1250,6 @@ export function PullRequestPanel({
           );
         }
         if (tab === "checks") return <ChecksTab pullRequest={pullRequest} />;
-        if (tab === "files") {
-          return <PullRequestFiles detail={detail} onEdited={onEdited} />;
-        }
         if (tab === "review") {
           return <PullRequestReview detail={detail} onEdited={onEdited} />;
         }

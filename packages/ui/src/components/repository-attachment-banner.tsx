@@ -13,7 +13,7 @@ interface RepositoryAttachmentBannerProps {
 /**
  * Says up front, on every tab, that the diff of this repository cannot be read
  * because no local checkout is attached to it, rather than leaving that to be
- * found in Files changed. An entry that exists but fails its check shows why.
+ * found in the Review tab. An entry that exists but fails its check shows why.
  * Nothing when the checkout is attached.
  */
 export function RepositoryAttachmentBanner({
