@@ -46,10 +46,10 @@ export const operations: PullRequestOperations = {
   readReadingOrder,
   readImpacts: (request) => readImpacts({ ...request, cache: bindingsCache }),
   readHeadBranch,
-  readCheckoutBranchDiff: ({ checkout, scope, whitespace }) =>
-    readCheckoutBranchDiff({ cwd: checkout, scope, whitespace }),
-  readRecentCommits: ({ checkout, limit }) =>
-    readRecentCommits({ cwd: checkout, limit }),
+  readCheckoutBranchDiff: ({ checkout, scope, whitespace, branch }) =>
+    readCheckoutBranchDiff({ cwd: checkout, scope, whitespace, branch }),
+  readRecentCommits: ({ checkout, limit, branch }) =>
+    readRecentCommits({ cwd: checkout, limit, branch }),
   readCommitDiff: ({ checkout, sha, whitespace }) =>
     readCommitDiff({ cwd: checkout, sha, whitespace }),
   readCheckoutSync: ({ checkout, fetch }) =>

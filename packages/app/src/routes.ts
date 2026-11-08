@@ -145,10 +145,14 @@ export interface PullRequestOperations {
     checkout: string;
     scope: BranchDiffScope;
     whitespace: DiffWhitespace;
+    /** a local branch in place of the checkout's HEAD */
+    branch?: string;
   }) => Promise<CheckoutBranchDiffResponse>;
   readRecentCommits: (params: {
     checkout: string;
     limit: number;
+    /** a local branch in place of the checkout's HEAD */
+    branch?: string;
   }) => Promise<CheckoutCommitsResponse>;
   readCommitDiff: (params: {
     checkout: string;
@@ -382,6 +386,18 @@ const readWhitespace = (
     : bad("whitespace must be show or hide");
 };
 
+/**
+ * `branch`: a local branch read in place of the checkout's HEAD, as `{}` when
+ * absent so the read keeps its HEAD. git checks it exists as `refs/heads/…`.
+ */
+const readBranchParam = (
+  request: RouteRequest,
+): { branch?: string } | RouteAnswer => {
+  const branch = request.query.get("branch");
+  if (branch === null) return {};
+  return branch.trim() === "" ? bad("branch must not be empty") : { branch };
+};
+
 const handleRepoDiff: Handler = async ({ operations, configPath }, request) => {
   if (request.method !== "GET") return notAllowed();
   const scope = request.query.get("scope") ?? "committed";
@@ -390,13 +406,20 @@ const handleRepoDiff: Handler = async ({ operations, configPath }, request) => {
   }
   const whitespace = readWhitespace(request);
   if (typeof whitespace !== "string") return whitespace;
+  const branch = readBranchParam(request);
+  if (isAnswer(branch)) return branch;
   const checkout = await readListedCheckout(
     { operations, configPath },
     request,
   );
   if (typeof checkout !== "string") return checkout;
   return gitAnswer(() =>
-    operations.readCheckoutBranchDiff({ checkout, scope, whitespace }),
+    operations.readCheckoutBranchDiff({
+      checkout,
+      scope,
+      whitespace,
+      ...branch,
+    }),
   );
 };
 
@@ -411,12 +434,16 @@ const handleRepoCommits: Handler = async (
   if (!Number.isInteger(limit) || limit < 1 || limit > maxRecentCommits) {
     return bad(`limit must be between 1 and ${String(maxRecentCommits)}`);
   }
+  const branch = readBranchParam(request);
+  if (isAnswer(branch)) return branch;
   const checkout = await readListedCheckout(
     { operations, configPath },
     request,
   );
   if (typeof checkout !== "string") return checkout;
-  return gitAnswer(() => operations.readRecentCommits({ checkout, limit }));
+  return gitAnswer(() =>
+    operations.readRecentCommits({ checkout, limit, ...branch }),
+  );
 };
 
 const handleRepoCommit: Handler = async (

@@ -239,6 +239,31 @@ describe("repos", () => {
     ).toBe(400);
   });
 
+  test("reads a local branch in place of HEAD when asked, refusing an empty name", async () => {
+    const deps = makeDeps();
+    await call(deps, "GET", "/api/repos/diff?repo=acme/widgets&branch=feat/x");
+    expect(deps.operations.readCheckoutBranchDiff).toHaveBeenCalledWith({
+      checkout: repo,
+      scope: "committed",
+      whitespace: "show",
+      branch: "feat/x",
+    });
+    await call(
+      deps,
+      "GET",
+      "/api/repos/commits?repo=acme/widgets&branch=feat/x",
+    );
+    expect(deps.operations.readRecentCommits).toHaveBeenCalledWith({
+      checkout: repo,
+      limit: 30,
+      branch: "feat/x",
+    });
+    expect(
+      (await call(deps, "GET", "/api/repos/commits?repo=acme/widgets&branch="))
+        ?.status,
+    ).toBe(400);
+  });
+
   test("diffs the configured checkout, never a path from the request", async () => {
     const deps = makeDeps();
     const answer = await call(
