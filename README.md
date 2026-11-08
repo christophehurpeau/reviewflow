@@ -18,6 +18,45 @@ This repository is a monorepo using workspaces.
 | [@reviewflow/webapp](packages/webapp)               |                                                                                                                                        | Expo Router app to configure reviewflow and follow your pull requests.                                                                                                                                                                                                                |
 | [@reviewflow/webapp-server](packages/webapp-server) |                                                                                                                                        | serves the reviewflow webapp, its oauth flows and its resources websocket                                                                                                                                                                                                             |
 
+<p align="center">
+  Open source GitHub bot that improves the pull request flow from opening to merging.
+  <br>
+  <a href="https://reviewflow.chapplications.com/"><strong>reviewflow.chapplications.com</strong></a>
+</p>
+
+<h3>Use reviewflow</h3>
+
+reviewflow runs at
+[reviewflow.chapplications.com](https://reviewflow.chapplications.com/): sign
+in with GitHub to configure your organizations, repositories and Slack
+notifications, and follow your pull requests.
+
+<h3>Review pull requests locally: the app</h3>
+
+[@reviewflow/app](packages/app) is where you review a GitHub pull request
+yourself, on your machine: read the conversation, checks, commits and the diff,
+then comment and submit your review with your own `gh` login.
+
+It is built to be fast: opening a pull request or switching between its tabs
+never reloads the page, and the diff is read from your local git checkout
+instead of being rendered by github.com.
+
+```sh
+npx @reviewflow/app   # http://127.0.0.1:7450
+```
+
+It needs macOS, node 24.14.1 or later and the
+[GitHub CLI](https://cli.github.com) logged in (`gh auth login`).
+
+Connected to reviewflow, it follows your pull requests in real time: the home
+page lists them as reviewflow sorts them and changes as they do, and an open
+pull request refreshes its conversation, checks, commits and files as soon as
+reviewflow sees them change, without reloading. That needs a **reviewflow API
+token**, available on request only: contact [contact@chapplications.com](mailto:contact@chapplications.com)
+to have your account enabled, then create the token in the webapp under
+**Settings → API tokens** and paste it in the app's settings. See
+[connecting reviewflow](packages/app-expo/README.md#connect-reviewflow-the-pull-request-list).
+
 <h3>🏗 Architecture</h3>
 
 Two node processes share the same mongo database, so that webapp traffic cannot
