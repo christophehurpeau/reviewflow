@@ -10,6 +10,7 @@ import {
   Button,
   ErrorMessage,
   IconButton,
+  LinkText,
   ScreenScrollView,
   View,
 } from "alouette";
@@ -22,6 +23,7 @@ import { useDiffPreferences } from "#/services/DiffPreferencesProvider.tsx";
 import { createLocalDraftStore } from "#/services/draftStore.ts";
 import { createPullRequestDataSource } from "#/services/pullRequestDataSource.tsx";
 import { rememberPullRequest } from "#/services/recentPullRequests.ts";
+import { useRepos } from "#/services/reposApi.ts";
 import { useStoredPreference } from "#/services/useStoredPreference.ts";
 
 const first = (value: string[] | string | undefined): string | undefined =>
@@ -47,6 +49,19 @@ const slots: PullRequestSlots = {
 };
 
 /** The route: parses and validates the url, owns tab and open commit, wires the data source. */
+interface RepoLinkProps {
+  /** as the repositories list names it */
+  ownerRepo: string;
+}
+
+function RepoLink({ ownerRepo }: RepoLinkProps): ReactNode {
+  return (
+    <Link asChild href={{ pathname: "/repo", params: { repo: ownerRepo } }}>
+      <LinkText text={ownerRepo} size="sm" accent="neutral" />
+    </Link>
+  );
+}
+
 export default function PullRequestPage(): ReactNode {
   const router = useRouter();
   const client = useQueryClient();
@@ -62,6 +77,7 @@ export default function PullRequestPage(): ReactNode {
     "packages",
   );
   const diffPreferences = useDiffPreferences();
+  const repos = useRepos();
   const params = useLocalSearchParams<{
     repo?: string;
     number?: string;
@@ -125,6 +141,17 @@ export default function PullRequestPage(): ReactNode {
               tab={tab}
               headerStart={back}
               slots={slots}
+              renderRepoLink={(name) => {
+                // only a repository with a usable checkout has a screen
+                const listed = repos.data?.repos.find(
+                  (repo) =>
+                    repo.problem === null &&
+                    repo.ownerRepo.toLowerCase() === name.toLowerCase(),
+                );
+                return listed === undefined ? null : (
+                  <RepoLink ownerRepo={listed.ownerRepo} />
+                );
+              }}
               draftStore={draftStore}
               diffFileOrder={diffFileOrder}
               diffTheme={diffPreferences.settings.theme}
