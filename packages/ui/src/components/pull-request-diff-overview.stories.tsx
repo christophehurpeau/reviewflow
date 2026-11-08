@@ -8,6 +8,7 @@ import { ScreenScrollView, View } from "alouette";
 import { Story } from "../stories/Story.tsx";
 import * as fixtures from "../stories/fixtures.ts";
 import { PullRequestDiffOverview } from "./pull-request-diff-overview.tsx";
+import type { DiffTreeFileStatus } from "./pull-request-diff-tree-files.ts";
 
 const noop = (): void => {};
 
@@ -15,7 +16,7 @@ const meta = {
   component: PullRequestDiffOverview,
   parameters: {
     componentSubtitle:
-      "What a range of the diff touches, by workspace: file counts and the roots to start reading from",
+      "What a range of the diff touches, by workspace: file counts and the roots to start reading from; aside the diff, every file as a tree row",
   },
   args: {
     groups: fixtures.readingOrderDiff.groups,
@@ -73,6 +74,45 @@ const omitted: DiffOmittedFile[] = [
   { path: "packages/app/assets/logo.png", reason: "binary" },
 ];
 
+const statuses = new Map<string, DiffTreeFileStatus>([
+  ["packages/app/src/cart-screen.tsx", "modified"],
+  ["packages/sdk/src/cart/totals.ts", "modified"],
+  ["packages/sdk/src/cart/cache.ts", "added"],
+  ["packages/sdk/src/cart/totals.test.ts", "added"],
+]);
+
+const kindsGroups: DiffGroup[] = [
+  {
+    name: "packages/web",
+    paths: [
+      "packages/web/src/app.tsx",
+      "packages/web/src/legacy.js",
+      "packages/web/src/theme.css",
+      "packages/web/package.json",
+      "packages/web/README.md",
+      "packages/web/public/index.html",
+      "packages/web/public/icon.svg",
+    ],
+  },
+  {
+    name: "",
+    paths: [".github/workflows/ci.yml", "pnpm-lock.yaml", "scripts/release.sh"],
+  },
+];
+
+const kindsStatuses = new Map<string, DiffTreeFileStatus>([
+  ["packages/web/src/app.tsx", "modified"],
+  ["packages/web/src/legacy.js", "deleted"],
+  ["packages/web/src/theme.css", "renamed"],
+  ["packages/web/package.json", "modified"],
+  ["packages/web/README.md", "added"],
+  ["packages/web/public/index.html", "modified"],
+  ["packages/web/public/icon.svg", "added"],
+  [".github/workflows/ci.yml", "modified"],
+  ["pnpm-lock.yaml", "modified"],
+  ["scripts/release.sh", "added"],
+]);
+
 const noRootGroups: DiffGroup[] = [
   {
     name: "packages/sdk",
@@ -118,6 +158,62 @@ export const VariantsStory: StoryObj<typeof PullRequestDiffOverview> = {
             onFilePress={noop}
           />
         </View>
+      </Story.Section>
+      <Story.Section title="aside: git statuses, a file viewed, the file the diff is scrolled to">
+        <View className="w-[280px]">
+          <PullRequestDiffOverview
+            aside
+            groups={fixtures.readingOrderDiff.groups}
+            omitted={[]}
+            readingOrder={fixtures.readingOrder}
+            readingOrderStatus="ready"
+            displayOrder={fixtures.readingOrder}
+            statuses={statuses}
+            viewedPaths={["packages/sdk/src/cart/cache.ts"]}
+            currentPath="packages/sdk/src/cart/totals.ts"
+            onFilePress={noop}
+          />
+        </View>
+      </Story.Section>
+      <Story.Section title="aside: omitted files left out, nothing to go to">
+        <View className="w-[280px]">
+          <PullRequestDiffOverview
+            aside
+            groups={fixtures.readingOrderDiff.groups}
+            omitted={omitted}
+            readingOrder={fixtures.readingOrder}
+            readingOrderStatus="ready"
+            displayOrder={fixtures.readingOrder}
+            statuses={statuses}
+            onFilePress={noop}
+          />
+        </View>
+      </Story.Section>
+      <Story.Section title="aside: an icon per file type, every status, the root workspace">
+        <View className="w-[280px]">
+          <PullRequestDiffOverview
+            aside
+            groups={kindsGroups}
+            omitted={[]}
+            readingOrder={null}
+            readingOrderStatus="none"
+            displayOrder={null}
+            statuses={kindsStatuses}
+            onFilePress={noop}
+          />
+        </View>
+      </Story.Section>
+      <Story.Section title="git statuses on the names">
+        <PullRequestDiffOverview
+          groups={kindsGroups}
+          omitted={[]}
+          readingOrder={null}
+          readingOrderStatus="none"
+          displayOrder={null}
+          statuses={kindsStatuses}
+          aside={false}
+          onFilePress={noop}
+        />
       </Story.Section>
       <Story.Section title="without checkout: file names, by first directory">
         <PullRequestDiffOverview

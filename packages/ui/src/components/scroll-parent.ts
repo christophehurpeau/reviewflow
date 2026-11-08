@@ -41,6 +41,26 @@ export const scrollToTopOf = (
   container.scrollTop -= hiddenAbove(element, container, stickyTop);
 };
 
+/**
+ * Scrolls `element`'s scroll parent alone, the least that shows it whole
+ * below the `stickyTop` pixels a pinned row covers: the page around it stays
+ * where the reader has it, unlike `scrollIntoView`.
+ */
+export const revealWithinScrollParent = (
+  element: HTMLElement,
+  stickyTop: number,
+): void => {
+  const container = scrollParentOf(element);
+  if (container === null) return;
+  const bounds = container.getBoundingClientRect();
+  const { top, bottom } = element.getBoundingClientRect();
+  const hidden = bounds.top + stickyTop - top;
+  if (hidden > 0) container.scrollTop -= hidden;
+  else if (bottom > bounds.bottom) {
+    container.scrollTop += bottom - bounds.bottom;
+  }
+};
+
 /** As `scrollToTopOf`, only when `element`'s top is hidden above that bar. */
 export const revealTopOf = (element: HTMLElement, stickyTop: number): void => {
   const container = scrollParentOf(element);

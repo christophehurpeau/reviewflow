@@ -54,6 +54,7 @@ import type { ImpactsStatus } from "./pull-request-diff-impacts.ts";
 import {
   DiffFileElementsContext,
   createDiffFileElements,
+  useFileInView,
 } from "./pull-request-diff-jump.ts";
 import type { Composer } from "./pull-request-diff-lines.ts";
 import type { OverviewReadingOrderStatus } from "./pull-request-diff-overview.tsx";
@@ -220,6 +221,7 @@ export function PullRequestDiffView({
   const [toolbarHeight, setToolbarHeight] = useState(0);
   const fileElements = useMemo(createDiffFileElements, []);
   const highlightProbe = useRef<ComponentRef<typeof View>>(null);
+  const toolbar = useRef<ComponentRef<typeof View>>(null);
   // a JS breakpoint rather than `xl:` classes: the sticky offset is the measured toolbar's
   const aside = useCurrentBreakpointNameFiltered(["base", "wide"]) === "wide";
   const whitespace = useWhitespaceToggle();
@@ -286,9 +288,23 @@ export function PullRequestDiffView({
     () => (shownDiff === null ? [] : diffTreeFilesOf(shownDiff)),
     [shownDiff],
   );
+  const statuses = useMemo(
+    () =>
+      new Map(
+        treeFiles.flatMap(({ path, status }) =>
+          status === null ? [] : [[path, status] as const],
+        ),
+      ),
+    [treeFiles],
+  );
   const viewedPaths = (review?.files ?? [])
     .filter(({ viewed }) => viewed === "viewed")
     .map(({ path }) => path);
+  const fileInView = useFileInView(
+    fileElements,
+    toolbar,
+    aside && asideView === "list",
+  );
 
   const goToFile = (path: string): void => {
     const element = fileElements.elementOf(path);
@@ -307,6 +323,7 @@ export function PullRequestDiffView({
       }
     >
       <View
+        ref={toolbar}
         className="-mx-l flex-row flex-wrap items-center justify-between gap-xs bg-screen px-l py-sm web:sticky web:top-0 web:z-10"
         onLayout={(event) => {
           setToolbarHeight(event.nativeEvent.layout.height);
@@ -446,6 +463,9 @@ export function PullRequestDiffView({
                         ? readingOrder.value
                         : null
                     }
+                    statuses={statuses}
+                    viewedPaths={viewedPaths}
+                    currentPath={fileInView}
                     aside={aside}
                     onFilePress={goToFile}
                   />
