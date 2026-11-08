@@ -44,6 +44,17 @@ export {
 } from "./git/checkoutBranches.ts";
 export type { ReadBranchesParams } from "./git/checkoutBranches.ts";
 export {
+  completeWorktreeRemoval,
+  countProcessesInside,
+  prepareWorktreeRemoval,
+  readWorktreeRemovalStatus,
+} from "./git/worktreeRemoval.ts";
+export type {
+  PrepareWorktreeRemovalParams,
+  ReadWorktreeRemovalStatusParams,
+  WorktreeRemovalPlan,
+} from "./git/worktreeRemoval.ts";
+export {
   parseStatusV2,
   pullCheckout,
   pushCheckout,

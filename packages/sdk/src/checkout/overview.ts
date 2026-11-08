@@ -71,6 +71,14 @@ export interface OpenPullRequestsResponse {
   totalCount: number;
 }
 
+/** A pull request whose head is a given branch, with the commit GitHub keeps for it. */
+export interface BranchPullRequestHead {
+  number: number;
+  state: "CLOSED" | "MERGED" | "OPEN";
+  /** the head commit, kept by GitHub after the head branch is deleted */
+  sha: string;
+}
+
 const sameRepo = (left: string | null, right: string): boolean =>
   left !== null && left.toLowerCase() === right.toLowerCase();
 

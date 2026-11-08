@@ -4,6 +4,7 @@
  */
 export * from "./checkout/overview.ts";
 export * from "./checkout/sync.ts";
+export * from "./checkout/worktreeRemoval.ts";
 export * from "./diff/diffPaths.ts";
 export type * from "./diff/impacts.ts";
 export { isAttachablePath, subjectsOf } from "./diff/readingOrder.ts";
