@@ -6,6 +6,7 @@ import type { CodeLanguage } from "./codeEditorExtensions.ts";
 import { codeEditorExtensions } from "./codeEditorExtensions.ts";
 import { changeBetween, externalUpdate } from "./extensions.ts";
 import "./markdown-editor.css";
+import "./code-token-colors.css";
 
 export interface CodeEditorProps {
   value: string;

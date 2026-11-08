@@ -28,14 +28,7 @@
   --md-frontmatter-bg: color-mix(in srgb, var(--color-muted) 7%, transparent);
   --md-quote-bg: color-mix(in srgb, var(--color-muted) 6%, transparent);
 
-  --md-tok-comment: #6e7781;
-  --md-tok-keyword: #cf222e;
-  --md-tok-string: #0a3069;
-  --md-tok-constant: #0550ae;
-  --md-tok-property: #0550ae;
-  --md-tok-type: #116329;
-  --md-tok-function: #8250df;
-  --md-tok-invalid: #82071e;
+  /* the --md-tok-* colors are generated, in code-token-colors.css */
 
   /* fills a column the caller grew; the editor still sizes to its content, and
      the page — the app layout is the scroll container — scrolls a long one */
@@ -51,32 +44,6 @@
   font-size: 0.9375rem;
   line-height: 1.7;
   transition: border-color 150ms ease-in;
-}
-
-.dark .markdown-editor {
-  --md-tok-comment: #8b949e;
-  --md-tok-keyword: #ff7b72;
-  --md-tok-string: #a5d6ff;
-  --md-tok-constant: #79c0ff;
-  --md-tok-property: #79c0ff;
-  --md-tok-type: #7ee787;
-  --md-tok-function: #d2a8ff;
-  --md-tok-invalid: #f85149;
-}
-
-/* the "system" preference never sets .dark: the palette resolves it with this
-   media query, so the dark tokens are repeated here */
-@media (prefers-color-scheme: dark) {
-  .system .markdown-editor {
-    --md-tok-comment: #8b949e;
-    --md-tok-keyword: #ff7b72;
-    --md-tok-string: #a5d6ff;
-    --md-tok-constant: #79c0ff;
-    --md-tok-property: #79c0ff;
-    --md-tok-type: #7ee787;
-    --md-tok-function: #d2a8ff;
-    --md-tok-invalid: #f85149;
-  }
 }
 
 .markdown-editor:hover {

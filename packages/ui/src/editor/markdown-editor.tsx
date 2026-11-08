@@ -32,6 +32,7 @@ import {
   markdownEditorExtensions,
 } from "./extensions.ts";
 import "./markdown-editor.css";
+import "./code-token-colors.css";
 
 interface FormatButtonProps {
   icon: SVGIconElement;

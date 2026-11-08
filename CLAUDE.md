@@ -92,10 +92,12 @@ The app (`app-expo`) has its own palette, whose spec lives in
 [packages/ui/src/palette.ts](packages/ui/src/palette.ts). `pnpm --filter
 @reviewflow/app-expo run build:theme` generates the app's `src/palette.css`,
 `src/palette-oklch.css`, `src/themeVariables.ts` and, from the same spec, the
-`reviewflow` diff theme
+`reviewflow` code theme by `packages/ui/build-code-theme.ts`: the diff's
 (`packages/ui/src/components/branch-diff/reviewflow-diff-themes.ts`, Pierre's
-themes recolored by `packages/ui/build-diff-theme.ts`). All generated,
-committed and never edited by hand.
+themes recolored) and CodeMirror's (`packages/ui/src/editor/code-token-colors.css`).
+Syntax colors are picked per role there (`roleInks`), from the palette plus
+the hues alouette has no accent for (`reviewflowCodePalette`, a purple). All
+generated, committed and never edited by hand.
 
 ## Storybook (webapp)
 

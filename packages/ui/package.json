@@ -56,7 +56,7 @@
     "access": "public"
   },
   "scripts": {
-    "build:diff-theme": "node build-diff-theme.ts",
+    "build:code-theme": "node build-code-theme.ts",
     "lint": "pnpm run lint:oxlint && pnpm run lint:eslint",
     "lint:eslint": "pnpm --dir '../..' exec eslint --quiet 'packages/ui'",
     "lint:oxlint": "pnpm --dir '../..' exec oxlint --quiet 'packages/ui'",

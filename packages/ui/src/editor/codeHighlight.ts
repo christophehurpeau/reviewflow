@@ -13,7 +13,8 @@ import { tags } from "@lezer/highlight";
  * **Every style is scoped to a nested language**: `@lezer/markdown` tags its
  * own nodes too (`heading1`, `strong`), and an unscoped style would paint prose
  * a second time over the `md-*` classes. Classes, not colours: the palette is
- * in `markdown-editor.css`, switched with the theme.
+ * in `code-token-colors.css`, generated with the diff's reviewflow theme
+ * (`build-code-theme.ts`), switched with the theme.
  *
  * Coarse on purpose — a parent tag catches its children, so a language emitting
  * a tag nobody listed still lands somewhere sensible. Ported from
