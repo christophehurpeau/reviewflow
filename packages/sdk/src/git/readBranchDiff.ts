@@ -1,10 +1,6 @@
 import { lstat } from "node:fs/promises";
 import { join } from "node:path";
-import type {
-  BranchDiffScope,
-  DiffOmittedFile,
-  DiffWhitespace,
-} from "../diff/types.ts";
+import type { DiffOmittedFile, DiffWhitespace } from "../diff/types.ts";
 import { git } from "./run.ts";
 
 /**
@@ -37,7 +33,7 @@ export interface DiffLimits {
   maxLinesPerFile: number;
   maxTotalLines: number;
   maxFiles: number;
-  /** untracked files read under the `all` scope; the rest are omitted */
+  /** untracked files read under the `workingTree` scope; the rest are omitted */
   maxUntrackedFiles: number;
   /** an untracked file larger than this is omitted as too large */
   maxUntrackedBytes: number;
@@ -302,15 +298,20 @@ export interface BranchDiff {
   untrackedCount: number;
 }
 
+/**
+ * Where the diff ends: `committed` at a commit, `workingTree` at the files on
+ * disk, staged, unstaged and untracked changes included.
+ */
+export type BranchDiffEnd = "committed" | "workingTree";
+
 interface ReadBranchDiffParams {
   cwd: string;
   mergeBase: string;
   /** `committed` unless set: the pull request path reads no working tree */
-  scope?: BranchDiffScope;
+  scope?: BranchDiffEnd;
   /**
    * The commit the `committed` scope ends at: a pull request's head, which no
-   * worktree need be on, or `HEAD` unless set. Ignored under `all`, which is
-   * the working tree.
+   * worktree need be on, or `HEAD` unless set. Ignored under `workingTree`.
    */
   head?: string;
   /** `show` unless set */

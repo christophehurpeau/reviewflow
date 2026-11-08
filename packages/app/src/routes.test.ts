@@ -152,7 +152,7 @@ describe("repos", () => {
     await call(deps, "GET", "/api/repos/diff?repo=ACME/gadgets");
     expect(deps.operations.readCheckoutBranchDiff).toHaveBeenCalledWith({
       checkout: discovered,
-      scope: "all",
+      scope: "committed",
       whitespace: "show",
     });
     expect(
@@ -231,12 +231,12 @@ describe("repos", () => {
     const answer = await call(
       deps,
       "GET",
-      "/api/repos/diff?repo=acme/widgets&scope=committed&whitespace=hide",
+      "/api/repos/diff?repo=acme/widgets&scope=uncommitted&whitespace=hide",
     );
     expect(answer).toEqual({ status: 200, body: { patch: "fake" } });
     expect(deps.operations.readCheckoutBranchDiff).toHaveBeenCalledWith({
       checkout: repo,
-      scope: "committed",
+      scope: "uncommitted",
       whitespace: "hide",
     });
   });

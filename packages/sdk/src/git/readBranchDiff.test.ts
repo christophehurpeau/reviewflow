@@ -153,7 +153,7 @@ describe("readBranchDiff", () => {
   });
 });
 
-describe("readBranchDiff under the all scope", () => {
+describe("readBranchDiff under the workingTree scope", () => {
   const readAll = async (
     change: () => void,
     options: Partial<Parameters<typeof readBranchDiff>[0]> = {},
@@ -164,7 +164,7 @@ describe("readBranchDiff under the all scope", () => {
     return readBranchDiff({
       cwd: repo.path,
       mergeBase,
-      scope: "all",
+      scope: "workingTree",
       ...options,
     });
   };
@@ -185,7 +185,7 @@ describe("readBranchDiff under the all scope", () => {
     const all = await readBranchDiff({
       cwd: repo.path,
       mergeBase,
-      scope: "all",
+      scope: "workingTree",
     });
 
     expect(patchPaths(committed.patch)).toEqual(["committed.txt"]);

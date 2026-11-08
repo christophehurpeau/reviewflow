@@ -36,13 +36,14 @@ describe("readRecentCommits", () => {
       "feat: b\n\nwhy b matters",
     );
 
-    const { branch, base, commits } = await readRecentCommits({
+    const { branch, base, onBranchCount, commits } = await readRecentCommits({
       cwd: repo.path,
       baseName: "main",
     });
 
     expect(branch).toBe("feature");
     expect(base?.ref).toBe("main");
+    expect(onBranchCount).toBe(1);
     expect(commits).toMatchObject([
       {
         oid: second,
@@ -52,18 +53,40 @@ describe("readRecentCommits", () => {
         body: "why b matters",
         author: { login: "reviewflow test", avatarUrl: null },
         onBranch: true,
+        pushed: false,
       },
       { oid: first, parentOid: null, headline: "feat: a", onBranch: false },
     ]);
   });
 
+  it("marks the commits no remote-tracking ref reaches as not pushed", async () => {
+    repo = createGitRepo({ initialCommit: false });
+    const first = commitFile(repo, "a.txt", "a\n", "feat: a");
+    repo.git(["update-ref", "refs/remotes/origin/main", first]);
+    const second = commitFile(repo, "a.txt", "a\nb\n", "feat: b");
+
+    const { commits } = await readRecentCommits({ cwd: repo.path });
+
+    expect(commits.map(({ oid, pushed }) => ({ oid, pushed }))).toEqual([
+      { oid: second, pushed: false },
+      { oid: first, pushed: true },
+    ]);
+  });
+
+  it("marks nothing pushed or not in a checkout without a remote", async () => {
+    repo = createGitRepo({ remote: null });
+    const { commits } = await readRecentCommits({ cwd: repo.path });
+    expect(commits[0]?.pushed).toBeNull();
+  });
+
   it("keeps the commits but marks none when the base does not exist", async () => {
     repo = createGitRepo();
-    const { base, commits } = await readRecentCommits({
+    const { base, onBranchCount, commits } = await readRecentCommits({
       cwd: repo.path,
       baseName: "develop",
     });
     expect(base).toBeNull();
+    expect(onBranchCount).toBeNull();
     expect(commits).toHaveLength(1);
     expect(commits[0]?.onBranch).toBe(false);
   });

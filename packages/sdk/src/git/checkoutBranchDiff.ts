@@ -97,7 +97,20 @@ export interface CheckoutBranchDiffParams {
   limits?: DiffLimits;
 }
 
-/** The checked-out branch since it left its base, grouped by package. */
+const readScopeStart = async (
+  cwd: string,
+  scope: BranchDiffScope,
+  baseName: string | undefined,
+): Promise<ResolvedDiffBase | null> => {
+  if (scope === "uncommitted") return null;
+  const name = baseName ?? (await readDefaultBranch(cwd)) ?? "main";
+  return resolveDiffBase(cwd, name);
+};
+
+/**
+ * The checked-out branch since it left its base (`committed`), or the working
+ * tree since `HEAD` (`uncommitted`), grouped by package.
+ */
 export const readCheckoutBranchDiff = async ({
   cwd,
   baseName,
@@ -105,16 +118,15 @@ export const readCheckoutBranchDiff = async ({
   whitespace = "show",
   limits,
 }: CheckoutBranchDiffParams): Promise<CheckoutBranchDiffResponse> => {
-  const name = baseName ?? (await readDefaultBranch(cwd)) ?? "main";
-  const [branch, { base, mergeBase }, headSha] = await Promise.all([
+  const [branch, start, headSha] = await Promise.all([
     readHeadBranch(cwd),
-    resolveDiffBase(cwd, name),
+    readScopeStart(cwd, scope, baseName),
     readHeadSha(cwd),
   ]);
   const { paths, ...diff } = await readBranchDiff({
     cwd,
-    mergeBase,
-    scope,
+    mergeBase: start?.mergeBase ?? headSha,
+    scope: scope === "uncommitted" ? "workingTree" : "committed",
     whitespace,
     limits,
   });
@@ -123,8 +135,8 @@ export const readCheckoutBranchDiff = async ({
     whitespace,
     branch,
     headSha,
-    base,
-    mergeBase,
+    base: start?.base ?? null,
+    mergeBase: start?.mergeBase ?? null,
     ...diff,
     groups: groupDiffPaths(packagesOnDisk(cwd), paths),
   };

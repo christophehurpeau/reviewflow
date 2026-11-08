@@ -28,13 +28,14 @@ export interface DiffOmittedFile {
 }
 
 /**
- * `committed`: the merge base to `head`. `all`: the merge base to the working
- * tree, which adds the staged and unstaged changes and the untracked files.
+ * `committed`: the merge base to `HEAD`, what the branch's pull request shows.
+ * `uncommitted`: `HEAD` to the working tree, the staged and unstaged changes
+ * and the untracked files.
  */
-export type BranchDiffScope = "all" | "committed";
+export type BranchDiffScope = "committed" | "uncommitted";
 
 export const isBranchDiffScope = (value: unknown): value is BranchDiffScope =>
-  value === "all" || value === "committed";
+  value === "committed" || value === "uncommitted";
 
 /** What a checkout's branch is diffed against. */
 export interface BranchDiffBase {
@@ -56,8 +57,9 @@ export interface CheckoutBranchDiffResponse {
   /** null on a detached HEAD */
   branch: string | null;
   headSha: string;
-  base: BranchDiffBase;
-  mergeBase: string;
+  /** null under `uncommitted`, which needs no base */
+  base: BranchDiffBase | null;
+  mergeBase: string | null;
   /** a unified diff, `a/` and `b/` prefixes, the omitted files left out */
   patch: string;
   omitted: DiffOmittedFile[];
@@ -109,6 +111,8 @@ export interface RepoPathSuggestionsResponse {
 export interface CheckoutCommit extends PullRequestCommit {
   /** since the branch left its base: what the branch's diff carries */
   onBranch: boolean;
+  /** reachable from a remote-tracking ref; null when the checkout has no remote */
+  pushed: boolean | null;
 }
 
 /** `GET /api/repos/commits` — the last commits of HEAD, newest first. */
@@ -117,6 +121,8 @@ export interface CheckoutCommitsResponse {
   branch: string | null;
   /** null when the base cannot be found: no commit is then marked on the branch */
   base: BranchDiffBase | null;
+  /** every commit since the branch left its base, listed or not; null without a base */
+  onBranchCount: number | null;
   commits: CheckoutCommit[];
 }
 

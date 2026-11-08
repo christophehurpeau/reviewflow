@@ -56,12 +56,12 @@ describe("readHeadBranch", () => {
 });
 
 describe("readCheckoutBranchDiff", () => {
-  it("diffs the branch and the working tree against the local base", async () => {
+  it("diffs the branch's commits against the local base, leaving the working tree out", async () => {
     repo = createFeatureBranch();
     const diff = await readCheckoutBranchDiff({
       cwd: repo.path,
       baseName: "main",
-      scope: "all",
+      scope: "committed",
     });
 
     expect(diff.branch).toBe("feature");
@@ -70,21 +70,26 @@ describe("readCheckoutBranchDiff", () => {
       ref: "main",
       sha: repo.git(["rev-parse", "main"]).trim(),
     });
-    expect(diff.untrackedCount).toBe(1);
-    expect(diff.groups).toEqual([{ name: "", paths: ["a.txt", "new.txt"] }]);
+    expect(diff.untrackedCount).toBe(0);
+    expect(diff.groups).toEqual([{ name: "", paths: ["a.txt"] }]);
     expect(diff.patch).toContain("+b");
   });
 
-  it("leaves the working tree out of the committed scope", async () => {
+  it("diffs the working tree against HEAD under the uncommitted scope, with no base", async () => {
     repo = createFeatureBranch();
+    writeFileSync(join(repo.path, "a.txt"), "a\nb\nc\n");
     const diff = await readCheckoutBranchDiff({
       cwd: repo.path,
-      baseName: "main",
-      scope: "committed",
+      baseName: "develop",
+      scope: "uncommitted",
     });
 
-    expect(diff.untrackedCount).toBe(0);
-    expect(diff.groups).toEqual([{ name: "", paths: ["a.txt"] }]);
+    expect(diff.base).toBeNull();
+    expect(diff.mergeBase).toBeNull();
+    expect(diff.untrackedCount).toBe(1);
+    expect(diff.groups).toEqual([{ name: "", paths: ["a.txt", "new.txt"] }]);
+    expect(diff.patch).toContain("+c");
+    expect(diff.patch).not.toContain("+b");
   });
 
   it("prefers origin/<base>, the default branch when none is named", async () => {
@@ -100,7 +105,7 @@ describe("readCheckoutBranchDiff", () => {
       scope: "committed",
     });
 
-    expect(diff.base.ref).toBe("origin/main");
+    expect(diff.base?.ref).toBe("origin/main");
   });
 
   it("names the refs it looked for when the base does not exist", async () => {
@@ -109,7 +114,7 @@ describe("readCheckoutBranchDiff", () => {
       readCheckoutBranchDiff({
         cwd: repo.path,
         baseName: "develop",
-        scope: "all",
+        scope: "committed",
       }),
     ).rejects.toThrow("neither origin/develop nor develop exists");
   });

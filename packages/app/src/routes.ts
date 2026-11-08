@@ -335,8 +335,10 @@ const readWhitespace = (
 
 const handleRepoDiff: Handler = async ({ operations, configPath }, request) => {
   if (request.method !== "GET") return notAllowed();
-  const scope = request.query.get("scope") ?? "all";
-  if (!isBranchDiffScope(scope)) return bad("scope must be all or committed");
+  const scope = request.query.get("scope") ?? "committed";
+  if (!isBranchDiffScope(scope)) {
+    return bad("scope must be committed or uncommitted");
+  }
   const whitespace = readWhitespace(request);
   if (typeof whitespace !== "string") return whitespace;
   const checkout = await readListedCheckout(configPath, request);

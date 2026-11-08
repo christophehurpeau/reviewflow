@@ -78,6 +78,28 @@ const readBranchStart = async (
   }
 };
 
+/**
+ * The commits among HEAD's last `limit` that no remote-tracking ref reaches:
+ * `--not --remotes` keeps rev-list's order, so the ones in the log are all in
+ * its first `limit`. Null when the checkout has no remote, where every commit
+ * would read as not pushed.
+ */
+const readUnpushed = async (
+  cwd: string,
+  limit: number,
+): Promise<Set<string> | null> => {
+  const remotes = await git(cwd, ["remote"]);
+  if (remotes.trim() === "") return null;
+  const listed = await gitOrNull(cwd, [
+    "rev-list",
+    `--max-count=${String(limit)}`,
+    "HEAD",
+    "--not",
+    "--remotes",
+  ]);
+  return new Set((listed ?? "").split("\n").filter((sha) => sha !== ""));
+};
+
 export interface RecentCommitsParams {
   cwd: string;
   /** `defaultRecentCommits` unless set */
@@ -88,16 +110,18 @@ export interface RecentCommitsParams {
 
 /**
  * The last commits of HEAD, newest first, each marked when the branch carries
- * it since it left its base. A repository without a commit has none.
+ * it since it left its base, and when it is pushed. A repository without a
+ * commit has none.
  */
 export const readRecentCommits = async ({
   cwd,
   limit = defaultRecentCommits,
   baseName,
 }: RecentCommitsParams): Promise<CheckoutCommitsResponse> => {
-  const [branch, start, log] = await Promise.all([
+  const [branch, start, unpushed, log] = await Promise.all([
     readHeadBranch(cwd),
     readBranchStart(cwd, baseName),
+    readUnpushed(cwd, limit),
     gitOrNull(cwd, [
       "log",
       "--no-color",
@@ -115,8 +139,14 @@ export const readRecentCommits = async ({
     author: { login: commit.author, avatarUrl: null },
     committedAt: commit.committedAt,
     onBranch: start?.onBranch.has(commit.sha) ?? false,
+    pushed: unpushed === null ? null : !unpushed.has(commit.sha),
   }));
-  return { branch, base: start?.base ?? null, commits };
+  return {
+    branch,
+    base: start?.base ?? null,
+    onBranchCount: start?.onBranch.size ?? null,
+    commits,
+  };
 };
 
 /** The empty tree, in whichever object format the repository uses. */
