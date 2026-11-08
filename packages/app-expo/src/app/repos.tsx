@@ -46,7 +46,7 @@ function RepoRow({ repo }: RepoRowProps): ReactNode {
   return (
     <PressableListItem
       role="link"
-      aria-label={`Diff of ${repo.ownerRepo}`}
+      aria-label={`Open ${repo.ownerRepo}`}
       onPress={() => {
         router.push({ pathname: "/repo", params: { repo: repo.ownerRepo } });
       }}
@@ -142,9 +142,13 @@ export default function ReposPage(): ReactNode {
             </Link>
           </View>
         ) : null}
-        {data?.repos.map((repo) => (
-          <RepoRow key={repo.ownerRepo} repo={repo} />
-        ))}
+        {data === undefined || data.repos.length === 0 ? null : (
+          <View className="gap-xs">
+            {data.repos.map((repo) => (
+              <RepoRow key={repo.ownerRepo} repo={repo} />
+            ))}
+          </View>
+        )}
       </View>
     </ScreenScrollView>
   );

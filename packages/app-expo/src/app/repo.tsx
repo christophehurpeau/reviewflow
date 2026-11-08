@@ -1,10 +1,15 @@
-import type { DiffWhitespace } from "@reviewflow/sdk";
-import type { BranchDiffTab } from "@reviewflow/ui";
+import type {
+  CheckoutCommitsResponse,
+  CheckoutSyncResponse,
+  DiffWhitespace,
+} from "@reviewflow/sdk";
+import type { CheckoutRead, CheckoutTab } from "@reviewflow/ui";
 import {
-  BranchDiffView,
   CheckoutSyncButtons,
+  CheckoutView,
   DiffSettingsProvider,
 } from "@reviewflow/ui";
+import type { UseQueryResult } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { ErrorMessage, IconButton, View, WarningMessage } from "alouette";
 import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeft";
@@ -24,6 +29,29 @@ import {
 const first = (value: string[] | string | undefined): string | undefined =>
   Array.isArray(value) ? value[0] : value;
 
+const readOf = <Value,>(query: UseQueryResult<Value>): CheckoutRead<Value> => ({
+  value: query.data ?? null,
+  error: query.error?.message ?? null,
+  loading: query.isFetching,
+});
+
+/**
+ * Where the work is: what is uncommitted, else the branch's own commits, else
+ * the history. Null until the status and the commits have answered.
+ */
+const firstTabOf = (
+  status: UseQueryResult<CheckoutSyncResponse>,
+  commits: UseQueryResult<CheckoutCommitsResponse>,
+): CheckoutTab | null => {
+  if (status.isPending || commits.isPending) return null;
+  const read = status.data?.status;
+  if (read !== undefined && read.modified + read.untracked > 0) {
+    return "uncommitted";
+  }
+  if ((commits.data?.onBranchCount ?? 0) > 0) return "branch";
+  return "history";
+};
+
 interface RepoSyncProps {
   ownerRepo: string;
 }
@@ -31,7 +59,7 @@ interface RepoSyncProps {
 /** Pull and Push, shown once the status (fetched first) says they apply. */
 function RepoSyncButtons({ ownerRepo }: RepoSyncProps): ReactNode {
   const client = useQueryClient();
-  const { data } = useRepoStatus(ownerRepo);
+  const { data } = useRepoStatus(ownerRepo, "fetched");
   if (data === undefined) return null;
   return (
     <CheckoutSyncButtons
@@ -49,56 +77,64 @@ function RepoSyncButtons({ ownerRepo }: RepoSyncProps): ReactNode {
 
 /** A failed fetch degrades: the counts are then as of the previous one, and it says so. */
 function RepoSyncNotice({ ownerRepo }: RepoSyncProps): ReactNode {
-  const { data, error } = useRepoStatus(ownerRepo);
+  const { data, error } = useRepoStatus(ownerRepo, "fetched");
   const problem = error?.message ?? data?.fetchError ?? null;
   if (problem === null) return null;
   return <WarningMessage>{`Could not fetch: ${problem}`}</WarningMessage>;
 }
 
-interface RepoDiffProps {
+interface RepoCheckoutProps {
   ownerRepo: string;
   initialWhitespace: DiffWhitespace;
   back: ReactNode;
 }
 
-function RepoDiff({
+function RepoCheckout({
   ownerRepo,
   initialWhitespace,
   back,
-}: RepoDiffProps): ReactNode {
+}: RepoCheckoutProps): ReactNode {
   const client = useQueryClient();
-  const [tab, setTab] = useState<BranchDiffTab>("all");
+  const [chosenTab, setChosenTab] = useState<CheckoutTab | null>(null);
   const [openSha, setOpenSha] = useState<string | null>(null);
   const [whitespace, setWhitespace] = useState(initialWhitespace);
-  const onCommits = tab === "commits";
-  const diff = useRepoDiff({
+  const localStatus = useRepoStatus(ownerRepo, "local");
+  const fetchedStatus = useRepoStatus(ownerRepo, "fetched");
+  const commits = useRepoCommits(ownerRepo);
+
+  // decided once: a reload after a commit must not move the reader to another tab
+  const tab = chosenTab ?? firstTabOf(localStatus, commits);
+  if (chosenTab === null && tab !== null) setChosenTab(tab);
+
+  const uncommitted = useRepoDiff({
     ownerRepo,
-    scope: tab === "committed" ? "committed" : "all",
+    scope: "uncommitted",
     whitespace,
-    enabled: !onCommits,
+    enabled: tab === "uncommitted",
   });
-  const commits = useRepoCommits(ownerRepo, onCommits);
+  const branch = useRepoDiff({
+    ownerRepo,
+    scope: "committed",
+    whitespace,
+    enabled: tab === "branch",
+  });
   const commitDiff = useCommitDiff({
     ownerRepo,
-    sha: onCommits ? openSha : null,
+    sha: tab === "history" ? openSha : null,
     whitespace,
   });
+  const status = fetchedStatus.data?.status ?? localStatus.data?.status ?? null;
 
   return (
-    <BranchDiffView
+    <CheckoutView
       title={ownerRepo}
-      diff={diff.data ?? null}
-      error={diff.error?.message ?? null}
-      loading={diff.isFetching}
+      status={status}
       tab={tab}
-      commits={{
-        list: commits.data?.commits ?? null,
-        error: commits.error?.message ?? null,
-        loading: commits.isFetching,
+      diff={readOf(tab === "branch" ? branch : uncommitted)}
+      history={{
+        commits: readOf(commits),
         openSha,
-        diff: commitDiff.data ?? null,
-        diffError: commitDiff.error?.message ?? null,
-        diffLoading: commitDiff.isFetching,
+        diff: readOf(commitDiff),
         onOpenChange: setOpenSha,
       }}
       whitespace={whitespace}
@@ -109,7 +145,7 @@ function RepoDiff({
         // a failed read is the query's error, shown in place
         invalidateRepo(client, ownerRepo).catch(() => undefined);
       }}
-      onTabChange={setTab}
+      onTabChange={setChosenTab}
       onWhitespaceToggle={() => {
         setWhitespace(whitespace === "show" ? "hide" : "show");
       }}
@@ -117,7 +153,7 @@ function RepoDiff({
   );
 }
 
-/** One configured checkout: its checked-out branch against the repository's default branch. */
+/** One listed checkout: what is uncommitted, its branch against the default branch, its history. */
 export default function RepoPage(): ReactNode {
   const router = useRouter();
   const params = useLocalSearchParams<{ repo?: string }>();
@@ -158,7 +194,7 @@ export default function RepoPage(): ReactNode {
         customFont={settings.customFont}
         wordWrap={settings.wordWrap}
       >
-        <RepoDiff
+        <RepoCheckout
           ownerRepo={ownerRepo}
           initialWhitespace={settings.hideWhitespace ? "hide" : "show"}
           back={back}

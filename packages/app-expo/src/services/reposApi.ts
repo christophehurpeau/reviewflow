@@ -31,9 +31,9 @@ interface UseRepoDiffParams {
 }
 
 /**
- * The checked-out branch against its base. Keyed by what decides the patch;
- * the previous answer stays while the next is read, so a scope switch does not
- * blank a long diff.
+ * The checked-out branch against its base, or the working tree against HEAD.
+ * Keyed by what decides the patch; the previous answer stays while the next is
+ * read, so a whitespace toggle does not blank a long diff.
  */
 export const useRepoDiff = ({
   ownerRepo,
@@ -53,10 +53,12 @@ export const useRepoDiff = ({
     enabled,
   });
 
-/** The last commits of HEAD, newest first, read when the tab opens. */
+/**
+ * The last commits of HEAD, newest first: read with the screen, since the
+ * branch's commit count and its base head every tab.
+ */
 export const useRepoCommits = (
   ownerRepo: string,
-  enabled: boolean,
 ): UseQueryResult<CheckoutCommitsResponse> =>
   useQuery({
     queryKey: ["repoCommits", ownerRepo],
@@ -66,7 +68,6 @@ export const useRepoCommits = (
         { repo: ownerRepo },
         signal,
       ),
-    enabled,
   });
 
 interface UseCommitDiffParams {
@@ -95,18 +96,22 @@ export const useCommitDiff = ({
   });
 
 /**
- * The checkout's status, fetched first so Pull counts what the remote has now:
- * one network call when the screen opens, and on each reload.
+ * The checkout's status. `fetched`: fetched first so Pull counts what the
+ * remote has now, one network call when the screen opens and on each reload.
+ * `local`: as of the last fetch, answered at once.
  */
 export const useRepoStatus = (
   ownerRepo: string,
+  source: "fetched" | "local",
 ): UseQueryResult<CheckoutSyncResponse> =>
   useQuery({
-    queryKey: ["repoStatus", ownerRepo],
+    queryKey: ["repoStatus", ownerRepo, source],
     queryFn: ({ signal }) =>
       getJson<CheckoutSyncResponse>(
         "/api/repos/status",
-        { repo: ownerRepo, fetch: "1" },
+        source === "fetched"
+          ? { repo: ownerRepo, fetch: "1" }
+          : { repo: ownerRepo },
         signal,
       ),
   });
