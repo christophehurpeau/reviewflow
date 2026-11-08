@@ -1,8 +1,4 @@
-import {
-  type ColorModePreference,
-  ScopedTheme,
-  useResolvedColorMode,
-} from "alouette";
+import { type ColorModePreference, ScopedTheme } from "alouette";
 import type { ReactNode } from "react";
 import { createContext, use, useMemo } from "react";
 import { useStoredPreference } from "#/services/useStoredPreference.ts";
@@ -33,7 +29,10 @@ interface ColorModeProviderProps {
 
 /**
  * Owns the light/dark choice: it applies it to the whole tree and persists it,
- * which is the app's job — `ColorModePicker` only reports the choice.
+ * which is the app's job — `ColorModePicker` only reports the choice. The
+ * preference goes to `ScopedTheme` as is: `system` is resolved by the palette
+ * CSS (`prefers-color-scheme`), so the prerendered HTML wears the visitor's mode
+ * instead of flashing light until hydration.
  */
 export function ColorModeProvider({
   children,
@@ -44,8 +43,6 @@ export function ColorModeProvider({
     "system",
   );
 
-  const mode = useResolvedColorMode(preference);
-
   const contextValue = useMemo<ColorModeContextValue>(
     () => ({ preference, setPreference }),
     [preference, setPreference],
@@ -53,7 +50,7 @@ export function ColorModeProvider({
 
   return (
     <ColorModeContext value={contextValue}>
-      <ScopedTheme theme={mode}>{children}</ScopedTheme>
+      <ScopedTheme theme={preference}>{children}</ScopedTheme>
     </ColorModeContext>
   );
 }
