@@ -54,6 +54,7 @@ import {
   PullRequestPartPending,
   PullRequestPartReading,
 } from "./pull-request-part-notice.tsx";
+import { RepoName } from "./pull-request-repo-name.tsx";
 import { PullRequestReview } from "./pull-request-review.tsx";
 import { PullRequestTimeline } from "./pull-request-timeline.tsx";
 
@@ -128,10 +129,6 @@ function TitleEditor({
 interface TitleTextProps {
   number: number;
   title: string;
-}
-
-function RepoName({ ownerRepo }: { ownerRepo: string }): ReactNode {
-  return <Text className="text-sm text-muted">{ownerRepo}</Text>;
 }
 
 function TitleText({ number, title }: TitleTextProps): ReactNode {

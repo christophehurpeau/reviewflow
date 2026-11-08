@@ -40,6 +40,8 @@ import {
   PullRequestPartPending,
   usePartReadingCount,
 } from "./pull-request-part-notice.tsx";
+import type { RenderRepoLink } from "./pull-request-repo-name.tsx";
+import { RepoLinkContext } from "./pull-request-repo-name.tsx";
 import { RepositoryAttachmentBanner } from "./repository-attachment-banner.tsx";
 
 /** How old what the header shows is: GitHub's answer, or the last read shown meanwhile. */
@@ -237,6 +239,8 @@ export interface PullRequestScreenProps {
     ref: PullRequestRef,
     detail: PullRequestDetailResponse | null,
   ) => ReactNode;
+  /** links the repository's name above the title; absent or null: plain text */
+  renderRepoLink?: RenderRepoLink;
   /** what the app replaces, see {@link PullRequestSlots} */
   slots?: PullRequestSlots;
   /**
@@ -286,35 +290,38 @@ export function PullRequestScreen({
   initialWhitespace,
   diffFileOrder,
   onDiffFileOrderChange,
+  renderRepoLink,
   ...body
 }: PullRequestScreenProps): ReactNode {
   return (
-    <PullRequestSlotsProvider value={slots}>
-      <DiffSettingsProvider
-        theme={diffTheme}
-        font={diffFont}
-        customFont={diffCustomFont}
-        wordWrap={diffWordWrap}
-        initialWhitespace={initialWhitespace}
-        fileOrder={diffFileOrder}
-        onFileOrderChange={onDiffFileOrderChange}
-      >
-        <View className="w-full px-l pt-l pb-xl web:@container">
-          <View className="mx-auto w-full max-w-[1200px] gap-m">
-            <PullRequestDraftsProvider
-              store={draftStore}
-              pullRequest={{ ownerRepo, number }}
-            >
-              <PullRequestBody
-                key={`${ownerRepo}#${String(number)}`}
-                ownerRepo={ownerRepo}
-                number={number}
-                {...body}
-              />
-            </PullRequestDraftsProvider>
+    <RepoLinkContext value={renderRepoLink ?? null}>
+      <PullRequestSlotsProvider value={slots}>
+        <DiffSettingsProvider
+          theme={diffTheme}
+          font={diffFont}
+          customFont={diffCustomFont}
+          wordWrap={diffWordWrap}
+          initialWhitespace={initialWhitespace}
+          fileOrder={diffFileOrder}
+          onFileOrderChange={onDiffFileOrderChange}
+        >
+          <View className="w-full px-l pt-l pb-xl web:@container">
+            <View className="mx-auto w-full max-w-[1200px] gap-m">
+              <PullRequestDraftsProvider
+                store={draftStore}
+                pullRequest={{ ownerRepo, number }}
+              >
+                <PullRequestBody
+                  key={`${ownerRepo}#${String(number)}`}
+                  ownerRepo={ownerRepo}
+                  number={number}
+                  {...body}
+                />
+              </PullRequestDraftsProvider>
+            </View>
           </View>
-        </View>
-      </DiffSettingsProvider>
-    </PullRequestSlotsProvider>
+        </DiffSettingsProvider>
+      </PullRequestSlotsProvider>
+    </RepoLinkContext>
   );
 }

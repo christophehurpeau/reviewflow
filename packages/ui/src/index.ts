@@ -18,6 +18,7 @@ export type { MarkdownEditorProps, PullRequestSlots } from "./slots.tsx";
 export { PullRequestSlotsProvider, usePullRequestSlots } from "./slots.tsx";
 export type { PullRequestScreenProps } from "./components/pull-request-screen.tsx";
 export { PullRequestScreen } from "./components/pull-request-screen.tsx";
+export type { RenderRepoLink } from "./components/pull-request-repo-name.tsx";
 export type { PullRequestTab } from "./components/pull-request-panel.tsx";
 export {
   PullRequestPanel,
