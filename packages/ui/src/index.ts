@@ -29,8 +29,16 @@ export { PullRequestReview } from "./components/pull-request-review.tsx";
 export { PullRequestCommits } from "./components/pull-request-commits.tsx";
 export { DiffRefused } from "./components/pull-request-diff-view.tsx";
 export { OmittedFiles } from "./components/omitted-files.tsx";
-export type { BranchDiffViewProps } from "./components/branch-diff-view.tsx";
+export type {
+  BranchDiffCommits,
+  BranchDiffTab,
+  BranchDiffViewProps,
+} from "./components/branch-diff-view.tsx";
 export { BranchDiffView } from "./components/branch-diff-view.tsx";
+export type { CommitListProps } from "./components/commit-list.tsx";
+export { CommitHeader, CommitList } from "./components/commit-list.tsx";
+export type { CheckoutSyncButtonsProps } from "./components/checkout-sync-buttons.tsx";
+export { CheckoutSyncButtons } from "./components/checkout-sync-buttons.tsx";
 // DiffViewer is the `@reviewflow/ui/diff-viewer` subpath (default export), to be loaded lazily:
 // it imports @pierre/diffs. Only its types come from here.
 export type {

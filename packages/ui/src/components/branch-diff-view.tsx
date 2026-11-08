@@ -1,9 +1,12 @@
 import type {
   BranchDiffScope,
   CheckoutBranchDiffResponse,
+  CheckoutCommit,
+  CommitDiffResponse,
   DiffWhitespace,
 } from "@reviewflow/sdk";
 import {
+  Badge,
   Code,
   IndeterminateCircularProgress,
   IndeterminateLinearProgress,
@@ -24,6 +27,7 @@ import type { ReactNode } from "react";
 import { Suspense, lazy, useDeferredValue, useState } from "react";
 import { useDiffSettings } from "./branch-diff/use-diff-settings.tsx";
 import { WhitespaceButton } from "./branch-diff/whitespace-button.tsx";
+import { CommitHeader, CommitList } from "./commit-list.tsx";
 import { OmittedFiles } from "./omitted-files.tsx";
 import type { PullRequestCollapse } from "./pull-request-diff-collapse.ts";
 import { usePullRequestCollapse } from "./pull-request-diff-collapse.ts";
@@ -75,8 +79,14 @@ function DiffLoading(): ReactNode {
   );
 }
 
+/** What a diff body draws: a branch's diff and a commit's both carry it. */
+type DiffPatch = Pick<
+  CheckoutBranchDiffResponse,
+  "groups" | "omitted" | "patch"
+>;
+
 interface DiffBodyProps {
-  diff: CheckoutBranchDiffResponse | null;
+  diff: DiffPatch | null;
   error: string | null;
   diffStyle: DiffStyle;
   collapse: PullRequestCollapse;
@@ -119,6 +129,79 @@ function DiffBody({
   );
 }
 
+/** A scope of the branch's diff, or the recent commits. */
+export type BranchDiffTab = BranchDiffScope | "commits";
+
+export interface BranchDiffCommits {
+  /** the last list read, newest first; null before the first answer */
+  list: CheckoutCommit[] | null;
+  error: string | null;
+  loading: boolean;
+  /** the commit whose diff is open; null shows the list */
+  openSha: string | null;
+  onOpenChange: (sha: string | null) => void;
+  /** the open commit's diff; null before it is read */
+  diff: CommitDiffResponse | null;
+  diffError: string | null;
+  diffLoading: boolean;
+}
+
+interface CommitsBodyProps {
+  commits: BranchDiffCommits;
+  diffStyle: DiffStyle;
+  collapse: PullRequestCollapse;
+}
+
+function CommitsBody({
+  commits,
+  diffStyle,
+  collapse,
+}: CommitsBodyProps): ReactNode {
+  const shownDiff = useDeferredValue(commits.diff);
+  const { list, error, openSha, onOpenChange } = commits;
+  if (openSha !== null) {
+    const commit = list?.find(({ oid }) => oid === openSha);
+    return (
+      <View className="gap-m">
+        {commit === undefined ? null : (
+          <CommitHeader
+            commit={commit}
+            onBack={() => {
+              onOpenChange(null);
+            }}
+          />
+        )}
+        <DiffBody
+          diff={shownDiff?.sha === openSha ? shownDiff : null}
+          error={commits.diffError}
+          diffStyle={diffStyle}
+          collapse={collapse}
+        />
+      </View>
+    );
+  }
+  if (list === null) {
+    if (error !== null) return <WarningMessage>{error}</WarningMessage>;
+    return <DiffLoading />;
+  }
+  return (
+    <View className="gap-m">
+      {error === null ? null : <WarningMessage>{error}</WarningMessage>}
+      {list.length === 0 ? (
+        <Text className="text-muted">no commits</Text>
+      ) : (
+        <CommitList
+          commits={list}
+          renderExtra={(commit) =>
+            commit.onBranch ? <Badge accent="info">on branch</Badge> : null
+          }
+          onOpen={onOpenChange}
+        />
+      )}
+    </View>
+  );
+}
+
 export interface BranchDiffViewProps<Diff extends CheckoutBranchDiffResponse> {
   title: string;
   /** for a dialog's `aria-labelledby` */
@@ -128,13 +211,18 @@ export interface BranchDiffViewProps<Diff extends CheckoutBranchDiffResponse> {
   error: string | null;
   /** a read is running; the diff on screen stays until it answers */
   loading: boolean;
+  /** reads again what the open tab shows */
   onReload: () => void;
-  scope: BranchDiffScope;
-  onScopeChange: (scope: BranchDiffScope) => void;
+  tab: BranchDiffTab;
+  onTabChange: (tab: BranchDiffTab) => void;
+  /** absent: no recent commits tab */
+  commits?: BranchDiffCommits;
   whitespace: DiffWhitespace;
   onWhitespaceToggle: () => void;
   /** why the whitespace toggle could not be stored, shown under the toolbar */
   whitespaceError?: string | null;
+  /** under the toolbar, e.g. a failed fetch */
+  notices?: ReactNode;
   /** after the base's ref, e.g. where the base was taken from */
   renderBaseExtra?: (diff: Diff) => ReactNode;
   /** before the title, e.g. a back button */
@@ -143,12 +231,18 @@ export interface BranchDiffViewProps<Diff extends CheckoutBranchDiffResponse> {
   headerEnd?: ReactNode;
 }
 
+const tabOf = (value: string): BranchDiffTab => {
+  if (value === "committed" || value === "commits") return value;
+  return "all";
+};
+
 /**
  * A checked-out branch against its base: a toolbar, the scope, the base, then
- * the files. It fills its parent, the toolbar fixed and the files scrolling
- * below it, so a dialog and a page both give it a bounded height. Theme, font
- * and word wrap come from `DiffSettingsProvider`; scope and whitespace are the
- * caller's, since they decide what it reads.
+ * the files; with `commits`, a tab of the recent commits, each opening its own
+ * diff. It fills its parent, the toolbar fixed and the files scrolling below
+ * it, so a dialog and a page both give it a bounded height. Theme, font and
+ * word wrap come from `DiffSettingsProvider`; the tab, the open commit and the
+ * whitespace are the caller's, since they decide what it reads.
  */
 export function BranchDiffView<Diff extends CheckoutBranchDiffResponse>({
   title,
@@ -157,11 +251,13 @@ export function BranchDiffView<Diff extends CheckoutBranchDiffResponse>({
   error,
   loading,
   onReload,
-  scope,
-  onScopeChange,
+  tab,
+  onTabChange,
+  commits,
   whitespace,
   onWhitespaceToggle,
   whitespaceError = null,
+  notices,
   renderBaseExtra,
   headerStart,
   headerEnd,
@@ -227,13 +323,16 @@ export function BranchDiffView<Diff extends CheckoutBranchDiffResponse>({
         <View className="flex-row flex-wrap items-center gap-m">
           <Tabs
             aria-label="Diff scope"
-            value={scope}
+            value={tab}
             onValueChange={(next) => {
-              onScopeChange(next === "committed" ? "committed" : "all");
+              onTabChange(tabOf(next));
             }}
           >
             <Tab value="all" label="Branch + uncommitted" />
             <Tab value="committed" label="Commits only" />
+            {commits === undefined ? null : (
+              <Tab value="commits" label="Recent commits" />
+            )}
           </Tabs>
           {shownDiff === null ? null : (
             <DiffBase
@@ -245,19 +344,32 @@ export function BranchDiffView<Diff extends CheckoutBranchDiffResponse>({
         {whitespaceError === null ? null : (
           <WarningMessage>{whitespaceError}</WarningMessage>
         )}
+        {notices}
       </View>
-      {/* the diff on screen stays while the next one is read, so the bar says it is being replaced */}
+      {/* what is on screen stays while the next read runs, so the bar says it is being replaced */}
       <IndeterminateLinearProgress
-        loading={loading || shownDiff !== diff}
+        loading={
+          commits !== undefined && tab === "commits"
+            ? commits.loading || commits.diffLoading
+            : loading || shownDiff !== diff
+        }
         size="xs"
       />
       <ScrollView className="flex-1" contentContainerClassName="p-m">
-        <DiffBody
-          diff={shownDiff}
-          error={error}
-          diffStyle={diffStyle}
-          collapse={collapse}
-        />
+        {commits !== undefined && tab === "commits" ? (
+          <CommitsBody
+            commits={commits}
+            diffStyle={diffStyle}
+            collapse={collapse}
+          />
+        ) : (
+          <DiffBody
+            diff={shownDiff}
+            error={error}
+            diffStyle={diffStyle}
+            collapse={collapse}
+          />
+        )}
       </ScrollView>
     </View>
   );

@@ -4,20 +4,11 @@ import type {
   PullRequestEdit,
 } from "@reviewflow/sdk";
 import { pluralOf } from "@reviewflow/sdk";
-import {
-  Button,
-  Code,
-  InfoMessage,
-  PressableListItem,
-  Text,
-  View,
-} from "alouette";
-import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeft";
+import { InfoMessage, Text, View } from "alouette";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { usePullRequestDataSource } from "../dataSource.ts";
-import { formatDataAge } from "../services/formatDataAge.ts";
-import { PersonAvatar } from "./pull-request-conversation-person.tsx";
+import { CommitHeader, CommitList } from "./commit-list.tsx";
 import { PullRequestDiffView } from "./pull-request-diff-view.tsx";
 import {
   PullRequestPartError,
@@ -35,46 +26,6 @@ export interface PullRequestCommitsProps {
    */
   openCommit?: string | null;
   onOpenCommitChange?: (oid: string | null) => void;
-}
-
-const shortSha = (oid: string): string => oid.slice(0, 7);
-
-const dayOf = (commit: PullRequestCommit): string =>
-  new Date(commit.committedAt).toLocaleDateString([], {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-
-interface CommitRowProps {
-  commit: PullRequestCommit;
-  onOpen: () => void;
-}
-
-/** A link, as a board row is: it opens the commit's own page, which a url keeps. */
-function CommitRow({ commit, onOpen }: CommitRowProps): ReactNode {
-  const login = commit.author?.login ?? "unknown";
-
-  return (
-    <PressableListItem
-      role="link"
-      aria-label={`Show the changes of ${commit.headline}`}
-      onPress={onOpen}
-    >
-      <View className="flex-row items-center gap-sm">
-        <PersonAvatar person={commit.author} />
-        <View className="min-w-0 flex-1">
-          <Text className="text-sm font-body-bold" numberOfLines={1}>
-            {commit.headline}
-          </Text>
-          <Text className="text-xs text-muted" numberOfLines={1}>
-            {`${login} committed ${formatDataAge(commit.committedAt)}`}
-          </Text>
-        </View>
-        <Code className="text-xs">{shortSha(commit.oid)}</Code>
-      </View>
-    </PressableListItem>
-  );
 }
 
 interface CommitDiffProps {
@@ -99,25 +50,7 @@ function CommitDiff({
   const dataSource = usePullRequestDataSource();
   return (
     <View className="gap-m">
-      <View className="flex-row flex-wrap items-center gap-sm">
-        <Button
-          text="Back to commits"
-          icon={<ArrowLeftRegularIcon />}
-          accent="neutral"
-          variant="tonal"
-          size="sm"
-          onPress={onBack}
-        />
-        <Text className="min-w-0 flex-1 text-sm font-body-bold">
-          {commit.headline}
-        </Text>
-        <Code className="text-xs">{shortSha(commit.oid)}</Code>
-      </View>
-      {commit.body.trim() === "" ? null : (
-        <Text className="select-auto font-mono text-xs text-muted">
-          {commit.body}
-        </Text>
-      )}
+      <CommitHeader commit={commit} onBack={onBack} />
       {commit.parentOid === null ? (
         <InfoMessage>
           This is a root commit with no parent: its changes cannot be shown.
@@ -185,33 +118,13 @@ export function PullRequestCommits({
     );
   }
 
-  const days = new Map<string, PullRequestCommit[]>();
-  for (const commit of listed) {
-    const day = dayOf(commit);
-    const ofDay = days.get(day);
-    if (ofDay === undefined) days.set(day, [commit]);
-    else ofDay.push(commit);
-  }
   const unlisted = pullRequest.commitsTotal - listed.length;
 
   return (
     <View className="gap-m">
       <PullRequestPartReading reading={reading} />
       <PullRequestPartError error={error} />
-      {[...days].map(([day, commits]) => (
-        <View key={day} className="gap-xs">
-          <Text className="text-xs font-body-bold text-muted">{day}</Text>
-          {commits.map((commit) => (
-            <CommitRow
-              key={commit.oid}
-              commit={commit}
-              onOpen={() => {
-                setOpenOid(commit.oid);
-              }}
-            />
-          ))}
-        </View>
-      ))}
+      <CommitList commits={listed} onOpen={setOpenOid} />
       {unlisted > 0 ? (
         <Text className="text-xs text-muted">
           {`${pluralOf(unlisted, "more commit")} not listed`}
