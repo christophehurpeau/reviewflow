@@ -101,7 +101,14 @@ export const createBareRemote = (): BareRemoteFixture => {
   const git = (args: string[], cwd: string = root): string =>
     execFileSync("git", args, { cwd, encoding: "utf8", env });
 
-  git(["init", "--quiet", "--bare", `--template=${template}`, path]);
+  git([
+    "init",
+    "--quiet",
+    "--bare",
+    "--initial-branch=main",
+    `--template=${template}`,
+    path,
+  ]);
 
   return {
     path,
