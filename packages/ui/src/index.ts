@@ -37,6 +37,8 @@ export type {
   CheckoutViewProps,
 } from "./components/checkout-view.tsx";
 export { CheckoutView } from "./components/checkout-view.tsx";
+export type { BranchPullRequestButtonsProps } from "./components/branch-pull-request-buttons.tsx";
+export { BranchPullRequestButtons } from "./components/branch-pull-request-buttons.tsx";
 export type { RepoOverviewProps } from "./components/repo-overview.tsx";
 export { RepoOverview } from "./components/repo-overview.tsx";
 export type {
