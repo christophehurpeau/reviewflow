@@ -116,16 +116,18 @@ export const diffThemeOptions = diffThemes.map((theme) => ({
 
 /**
  * The diff's code font: `alouette` is the design system's mono (Chivo Mono),
- * `pierre` the system mono stack `@pierre/diffs` ships with.
+ * `pierre` the system mono stack `@pierre/diffs` ships with, `custom` a font
+ * the user names (a CSS `font-family`, stored apart).
  */
-export type DiffFont = "alouette" | "pierre";
+export type DiffFont = "alouette" | "custom" | "pierre";
 
 export const isDiffFont = (value: unknown): value is DiffFont =>
-  value === "alouette" || value === "pierre";
+  value === "alouette" || value === "pierre" || value === "custom";
 
 export const defaultDiffFont: DiffFont = "alouette";
 
 export const diffFontOptions: { value: DiffFont; label: string }[] = [
   { value: "alouette", label: "Alouette (Chivo Mono)" },
   { value: "pierre", label: "Pierre (system mono)" },
+  { value: "custom", label: "Custom" },
 ];

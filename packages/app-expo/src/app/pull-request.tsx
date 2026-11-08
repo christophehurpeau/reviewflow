@@ -124,6 +124,7 @@ export default function PullRequestPage(): ReactNode {
               diffFileOrder={diffFileOrder}
               diffTheme={diffPreferences.settings.theme}
               diffFont={diffPreferences.settings.font}
+              diffCustomFont={diffPreferences.settings.customFont}
               diffWordWrap={diffPreferences.settings.wordWrap}
               initialWhitespace={
                 diffPreferences.settings.hideWhitespace ? "hide" : "show"

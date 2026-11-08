@@ -2,6 +2,7 @@ import type { DiffFont, DiffWhitespace } from "@reviewflow/sdk";
 import { defaultDiffFont, defaultDiffTheme } from "@reviewflow/sdk";
 import type { ReactNode } from "react";
 import { createContext, use, useMemo, useState } from "react";
+import { diffFontFamily } from "./diff-font.ts";
 import type { DiffTheme } from "./diff-themes.ts";
 
 /**
@@ -17,7 +18,8 @@ export const isDiffFileOrder = (value: string): value is DiffFileOrder =>
 export interface DiffSettings {
   wordWrap: boolean;
   theme: DiffTheme;
-  font: DiffFont;
+  /** the code's CSS `font-family`; null keeps pierre's own */
+  fontFamily: string | null;
   whitespace: DiffWhitespace;
   setWhitespace: (whitespace: DiffWhitespace) => void;
   fileOrder: DiffFileOrder;
@@ -27,7 +29,7 @@ export interface DiffSettings {
 const defaults: DiffSettings = {
   wordWrap: true,
   theme: defaultDiffTheme,
-  font: defaultDiffFont,
+  fontFamily: diffFontFamily(defaultDiffFont, ""),
   whitespace: "show",
   setWhitespace: () => undefined,
   fileOrder: "packages",
@@ -39,6 +41,8 @@ const DiffSettingsContext = createContext<DiffSettings>(defaults);
 interface DiffSettingsProviderProps {
   theme?: DiffTheme;
   font?: DiffFont;
+  /** the CSS `font-family` of the `custom` font */
+  customFont?: string;
   wordWrap?: boolean;
   /** the whitespace the diff starts with; the toolbar toggle then owns it */
   initialWhitespace?: DiffWhitespace;
@@ -56,7 +60,8 @@ interface DiffSettingsProviderProps {
  */
 export function DiffSettingsProvider({
   theme = defaults.theme,
-  font = defaults.font,
+  font = defaultDiffFont,
+  customFont = "",
   wordWrap = defaults.wordWrap,
   initialWhitespace = defaults.whitespace,
   fileOrder: storedFileOrder,
@@ -66,10 +71,11 @@ export function DiffSettingsProvider({
   const [whitespace, setWhitespace] = useState(initialWhitespace);
   const [ownFileOrder, setOwnFileOrder] = useState(defaults.fileOrder);
   const fileOrder = storedFileOrder ?? ownFileOrder;
+  const fontFamily = diffFontFamily(font, customFont);
   const value = useMemo(
     () => ({
       theme,
-      font,
+      fontFamily,
       wordWrap,
       whitespace,
       setWhitespace,
@@ -79,7 +85,7 @@ export function DiffSettingsProvider({
         onFileOrderChange?.(next);
       },
     }),
-    [theme, font, wordWrap, whitespace, fileOrder, onFileOrderChange],
+    [theme, fontFamily, wordWrap, whitespace, fileOrder, onFileOrderChange],
   );
   return <DiffSettingsContext value={value}>{children}</DiffSettingsContext>;
 }

@@ -244,6 +244,8 @@ export interface PullRequestScreenProps {
   diffTheme?: DiffTheme;
   /** the diff's code font; default `alouette` */
   diffFont?: DiffFont;
+  /** the CSS `font-family` of the `custom` diff font */
+  diffCustomFont?: string;
   /** wrap long lines in the diff; default true */
   diffWordWrap?: boolean;
   /** whether the diff starts with whitespace changes hidden; the toolbar toggle then owns it */
@@ -275,6 +277,7 @@ export function PullRequestScreen({
   draftStore,
   diffTheme,
   diffFont,
+  diffCustomFont,
   diffWordWrap,
   initialWhitespace,
   diffFileOrder,
@@ -286,6 +289,7 @@ export function PullRequestScreen({
       <DiffSettingsProvider
         theme={diffTheme}
         font={diffFont}
+        customFont={diffCustomFont}
         wordWrap={diffWordWrap}
         initialWhitespace={initialWhitespace}
         fileOrder={diffFileOrder}

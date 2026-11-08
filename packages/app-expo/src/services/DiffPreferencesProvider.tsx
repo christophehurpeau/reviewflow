@@ -15,6 +15,10 @@ type Toggle = "off" | "on";
 const isToggle = (value: string): value is Toggle =>
   value === "on" || value === "off";
 
+/** Any text: `diffFontFamily` keeps what can stand in a CSS declaration. */
+const isFontFamily = (value: string): value is string =>
+  typeof value === "string";
+
 interface DiffPreferences {
   settings: DiffDisplaySettings;
   /** every preference has been read from storage, or failed to be */
@@ -61,6 +65,12 @@ export function DiffPreferencesProvider({
     isDiffFont,
     defaultDiffFont,
   );
+  const [customFont, setCustomFont, customFontLoaded] =
+    useStoredPreference<string>(
+      "reviewflow:diff-custom-font",
+      isFontFamily,
+      "",
+    );
 
   const contextValue = useMemo<DiffPreferences>(
     () => ({
@@ -69,9 +79,14 @@ export function DiffPreferencesProvider({
         hideWhitespace: hideWhitespace === "on",
         theme,
         font,
+        customFont,
       },
       loaded:
-        wordWrapLoaded && hideWhitespaceLoaded && themeLoaded && fontLoaded,
+        wordWrapLoaded &&
+        hideWhitespaceLoaded &&
+        themeLoaded &&
+        fontLoaded &&
+        customFontLoaded,
       change: (change) => {
         if (change.wordWrap !== undefined) {
           setWordWrap(change.wordWrap ? "on" : "off");
@@ -81,6 +96,7 @@ export function DiffPreferencesProvider({
         }
         if (change.theme !== undefined) setTheme(change.theme);
         if (change.font !== undefined) setFont(change.font);
+        if (change.customFont !== undefined) setCustomFont(change.customFont);
         return Promise.resolve();
       },
     }),
@@ -89,14 +105,17 @@ export function DiffPreferencesProvider({
       hideWhitespace,
       theme,
       font,
+      customFont,
       wordWrapLoaded,
       hideWhitespaceLoaded,
       themeLoaded,
       fontLoaded,
+      customFontLoaded,
       setWordWrap,
       setHideWhitespace,
       setTheme,
       setFont,
+      setCustomFont,
     ],
   );
 

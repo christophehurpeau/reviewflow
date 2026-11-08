@@ -8,7 +8,6 @@ import { parsePatchFiles } from "@pierre/diffs";
 import { FileDiff } from "@pierre/diffs/react";
 import type {
   DiffFileImpacts,
-  DiffFont,
   DiffGroup,
   DiffImpactsResponse,
   DiffReadingOrderResponse,
@@ -448,7 +447,7 @@ interface DiffFileProps {
   diffStyle: DiffStyle;
   theme: DiffTheme;
   themeType: "dark" | "light";
-  font: DiffFont;
+  fontFamily: string | null;
   wordWrap: boolean;
   stickyTop: number;
   collapsed: boolean;
@@ -637,7 +636,7 @@ function DiffFile({
   diffStyle,
   theme,
   themeType,
-  font,
+  fontFamily,
   wordWrap,
   stickyTop,
   collapsed,
@@ -726,7 +725,7 @@ function DiffFile({
           overflow: wordWrap ? "wrap" : "scroll",
           collapsed,
           stickyHeader: true,
-          unsafeCSS: `${stickyHeaderBelow(stickyTop)} ${headerInset} ${roundedFile} ${pierreScrollbars} ${diffFontCSS(font)} ${headerHighlight(highlight, collapsed)}`,
+          unsafeCSS: `${stickyHeaderBelow(stickyTop)} ${headerInset} ${roundedFile} ${pierreScrollbars} ${diffFontCSS(fontFamily)} ${headerHighlight(highlight, collapsed)}`,
           loadDiffFiles: loadFiles,
           enableGutterUtility: commentable,
           onGutterUtilityClick: commentable ? onGutterUtilityClick : undefined,
@@ -1022,7 +1021,7 @@ interface ReviewedFilesProps {
   diffStyle: DiffStyle;
   theme: DiffTheme;
   themeType: "dark" | "light";
-  font: DiffFont;
+  fontFamily: string | null;
   wordWrap: boolean;
   stickyTop: number;
   collapse: PullRequestCollapse;
@@ -1039,7 +1038,7 @@ function ReviewedFiles({
   diffStyle,
   theme,
   themeType,
-  font,
+  fontFamily,
   wordWrap,
   stickyTop,
   collapse,
@@ -1180,7 +1179,7 @@ function ReviewedFiles({
               diffStyle={diffStyle}
               theme={theme}
               themeType={themeType}
-              font={font}
+              fontFamily={fontFamily}
               wordWrap={wordWrap}
               stickyTop={stickyTop}
               loadFiles={loadFiles}
@@ -1256,7 +1255,7 @@ interface PullRequestDiffViewerProps {
   diffStyle: DiffStyle;
   theme: DiffTheme;
   themeType: "dark" | "light";
-  font: DiffFont;
+  fontFamily: string | null;
   wordWrap: boolean;
   /** where a file header sticks: the height of the toolbar stuck above it */
   stickyTop: number;
@@ -1290,7 +1289,7 @@ function PullRequestDiffViewer({
   diffStyle,
   theme,
   themeType,
-  font,
+  fontFamily,
   wordWrap,
   stickyTop,
   collapse,
@@ -1343,7 +1342,7 @@ function PullRequestDiffViewer({
               diffStyle={diffStyle}
               theme={theme}
               themeType={themeType}
-              font={font}
+              fontFamily={fontFamily}
               wordWrap={wordWrap}
               stickyTop={stickyTop}
               loadFiles={loadFiles}
@@ -1367,7 +1366,7 @@ function PullRequestDiffViewer({
           diffStyle={diffStyle}
           theme={theme}
           themeType={themeType}
-          font={font}
+          fontFamily={fontFamily}
           wordWrap={wordWrap}
           stickyTop={stickyTop}
           collapse={collapse}

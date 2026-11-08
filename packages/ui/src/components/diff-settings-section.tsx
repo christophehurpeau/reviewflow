@@ -10,6 +10,7 @@ import {
   ErrorMessage,
   FormItem,
   IndeterminateCircularProgress,
+  InputText,
   Select,
   Switch,
   Text,
@@ -19,6 +20,7 @@ import {
 import type { ReactNode } from "react";
 import { Suspense, lazy, useState } from "react";
 import { errorToMessage } from "../services/errorToMessage.ts";
+import { diffFontFamily } from "./branch-diff/diff-font.ts";
 
 const DiffThemePreview = lazy(() => import("./diff-theme-preview.tsx"));
 
@@ -27,6 +29,8 @@ export interface DiffDisplaySettings {
   hideWhitespace: boolean;
   theme: DiffTheme;
   font: DiffFont;
+  /** the CSS `font-family` of the `custom` font */
+  customFont: string;
 }
 
 interface DiffSettingsSectionProps {
@@ -47,6 +51,7 @@ export function DiffSettingsSection({
   const [error, setError] = useState<string | null>(null);
   const [pickedTheme, setPickedTheme] = useState<DiffTheme | null>(null);
   const [pickedFont, setPickedFont] = useState<DiffFont | null>(null);
+  const [typedCustomFont, setTypedCustomFont] = useState<string | null>(null);
 
   const save = (
     change: Partial<DiffDisplaySettings>,
@@ -62,6 +67,7 @@ export function DiffSettingsSection({
 
   const previewTheme = pickedTheme ?? settings.theme;
   const previewFont = pickedFont ?? settings.font;
+  const previewCustomFont = typedCustomFont ?? settings.customFont;
 
   return (
     <Box className="surface gap-m p-m">
@@ -121,7 +127,7 @@ export function DiffSettingsSection({
 
       <FormItem
         label="Font"
-        details="The font of the diffs' code: the app's own mono, or the system mono font the diff library ships with."
+        details="The font of the diffs' code: the app's own mono, the system mono font the diff library ships with, or one installed on this machine."
         render={({ labelId, describedBy }) => (
           <Select
             aria-labelledby={labelId}
@@ -139,6 +145,30 @@ export function DiffSettingsSection({
         )}
       />
 
+      {previewFont === "custom" ? (
+        <FormItem
+          label="Custom font"
+          details="A CSS font-family, as installed on this machine: JetBrains Mono, or a list such as “Fira Code”, Menlo. The app's mono stands in for a font this machine does not have."
+          render={({ labelId, describedBy }) => (
+            <InputText
+              value={previewCustomFont}
+              aria-labelledby={labelId}
+              aria-describedby={describedBy}
+              autoComplete="off"
+              placeholder="JetBrains Mono"
+              onChangeText={(customFont) => {
+                setTypedCustomFont(customFont);
+                save({ customFont }, () => {
+                  setTypedCustomFont((current) =>
+                    current === customFont ? null : current,
+                  );
+                });
+              }}
+            />
+          )}
+        />
+      ) : null}
+
       <Suspense
         fallback={
           <View className="items-center py-m">
@@ -148,7 +178,7 @@ export function DiffSettingsSection({
       >
         <DiffThemePreview
           theme={previewTheme}
-          font={previewFont}
+          fontFamily={diffFontFamily(previewFont, previewCustomFont)}
           themeType={mode}
         />
       </Suspense>
