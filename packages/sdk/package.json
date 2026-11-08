@@ -1,6 +1,6 @@
 {
   "name": "@reviewflow/sdk",
-  "version": "6.22.0",
+  "version": "6.23.0",
   "description": "pull request model shared by the reviewflow app server and its ui: diff and api types, pure utils, the GitHub layer behind an injected transport, and (node only) reading a diff from a local checkout (@reviewflow/sdk/git) and editing a text file in place (@reviewflow/sdk/files)",
   "keywords": [
     "code-review",
