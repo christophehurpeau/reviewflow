@@ -7,8 +7,8 @@ import type {
 } from "../diff/types.ts";
 import {
   readDefaultBranch,
-  readHeadBranch,
   resolveDiffBase,
+  resolveReadHead,
 } from "./checkoutBranchDiff.ts";
 import { groupDiffPaths, packagesOnDisk } from "./groupDiffPaths.ts";
 import type { DiffLimits } from "./readBranchDiff.ts";
@@ -56,10 +56,17 @@ const parseLog = (output: string): LoggedCommit[] =>
 
 interface BranchStart {
   base: BranchDiffBase;
-  /** the branch's commits among the listed ones: HEAD has them, the base has not */
+  /** the branch's commits among the listed ones: its head has them, the base has not */
   onBranch: Set<string>;
   /** every commit of the branch, listed or not */
   count: number;
+}
+
+interface BranchStartParams {
+  cwd: string;
+  baseName: string | undefined;
+  limit: number;
+  head: string;
 }
 
 /**
@@ -67,15 +74,16 @@ interface BranchStart {
  * The range keeps `git log`'s order, so its first `limit` commits hold every
  * listed one it has.
  */
-const readBranchStart = async (
-  cwd: string,
-  baseName: string | undefined,
-  limit: number,
-): Promise<BranchStart | null> => {
+const readBranchStart = async ({
+  cwd,
+  baseName,
+  limit,
+  head,
+}: BranchStartParams): Promise<BranchStart | null> => {
   const name = baseName ?? (await readDefaultBranch(cwd)) ?? "main";
   try {
-    const { base, mergeBase } = await resolveDiffBase(cwd, name);
-    const range = `${mergeBase}..HEAD`;
+    const { base, mergeBase } = await resolveDiffBase(cwd, name, head);
+    const range = `${mergeBase}..${head}`;
     const [listed, count] = await Promise.all([
       git(cwd, ["rev-list", `--max-count=${String(limit)}`, range]),
       git(cwd, ["rev-list", "--count", range]),
@@ -91,21 +99,22 @@ const readBranchStart = async (
 };
 
 /**
- * The commits among HEAD's last `limit` that no remote-tracking ref reaches:
- * `--not --remotes` keeps rev-list's order, so the ones in the log are all in
- * its first `limit`. Null when the checkout has no remote, where every commit
- * would read as not pushed.
+ * The commits among the head's last `limit` that no remote-tracking ref
+ * reaches: `--not --remotes` keeps rev-list's order, so the ones in the log are
+ * all in its first `limit`. Null when the checkout has no remote, where every
+ * commit would read as not pushed.
  */
 const readUnpushed = async (
   cwd: string,
   limit: number,
+  head: string,
 ): Promise<Set<string> | null> => {
   const remotes = await git(cwd, ["remote"]);
   if (remotes.trim() === "") return null;
   const listed = await gitOrNull(cwd, [
     "rev-list",
     `--max-count=${String(limit)}`,
-    "HEAD",
+    head,
     "--not",
     "--remotes",
   ]);
@@ -118,30 +127,34 @@ export interface RecentCommitsParams {
   limit?: number;
   /** absent: the branch `origin/HEAD` names, else `main` */
   baseName?: string;
+  /** a local branch to read instead of HEAD */
+  branch?: string;
 }
 
 /**
- * The last commits of HEAD, newest first, each marked when the branch carries
- * it since it left its base, and when it is pushed. A repository without a
- * commit has none.
+ * The last commits of HEAD, or of `branch`, newest first, each marked when the
+ * branch carries it since it left its base, and when it is pushed. A
+ * repository without a commit has none.
  */
 export const readRecentCommits = async ({
   cwd,
   limit = defaultRecentCommits,
   baseName,
+  branch: branchName,
 }: RecentCommitsParams): Promise<CheckoutCommitsResponse> => {
-  const [branch, start, unpushed, log] = await Promise.all([
-    readHeadBranch(cwd),
-    readBranchStart(cwd, baseName, limit),
-    readUnpushed(cwd, limit),
+  const head = await resolveReadHead(cwd, branchName);
+  const [start, unpushed, log] = await Promise.all([
+    readBranchStart({ cwd, baseName, limit, head: head.ref }),
+    readUnpushed(cwd, limit, head.ref),
     gitOrNull(cwd, [
       "log",
       "--no-color",
       `--max-count=${String(limit)}`,
       `--format=${logFormat}%x1e`,
-      "HEAD",
+      head.ref,
     ]),
   ]);
+  const { branch } = head;
   const commits = parseLog(log ?? "").map((commit): CheckoutCommit => ({
     oid: commit.sha,
     parentOid: commit.parents[0] ?? null,

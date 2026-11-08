@@ -59,6 +59,27 @@ describe("readRecentCommits", () => {
     ]);
   });
 
+  it("lists a local branch that is not checked out, its own commits marked", async () => {
+    repo = createGitRepo({ initialCommit: false });
+    const first = commitFile(repo, "a.txt", "a\n", "feat: a");
+    repo.git(["switch", "--quiet", "-c", "feature"]);
+    const second = commitFile(repo, "a.txt", "a\nb\n", "feat: b");
+    repo.git(["switch", "--quiet", "main"]);
+
+    const { branch, onBranchCount, commits } = await readRecentCommits({
+      cwd: repo.path,
+      baseName: "main",
+      branch: "feature",
+    });
+
+    expect(branch).toBe("feature");
+    expect(onBranchCount).toBe(1);
+    expect(commits).toMatchObject([
+      { oid: second, onBranch: true },
+      { oid: first, onBranch: false },
+    ]);
+  });
+
   it("marks the commits no remote-tracking ref reaches as not pushed", async () => {
     repo = createGitRepo({ initialCommit: false });
     const first = commitFile(repo, "a.txt", "a\n", "feat: a");

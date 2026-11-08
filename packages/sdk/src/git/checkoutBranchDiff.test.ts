@@ -108,6 +108,42 @@ describe("readCheckoutBranchDiff", () => {
     expect(diff.base?.ref).toBe("origin/main");
   });
 
+  it("diffs a local branch that is not checked out against its base", async () => {
+    repo = createFeatureBranch();
+    repo.git(["switch", "--quiet", "main"]);
+    const diff = await readCheckoutBranchDiff({
+      cwd: repo.path,
+      baseName: "main",
+      scope: "committed",
+      branch: "feature",
+    });
+
+    expect(diff.branch).toBe("feature");
+    expect(diff.headSha).toBe(repo.git(["rev-parse", "feature"]).trim());
+    expect(diff.groups).toEqual([{ name: "", paths: ["a.txt"] }]);
+    expect(diff.patch).toContain("+b");
+  });
+
+  it("refuses a branch that does not exist, and the uncommitted scope of one", async () => {
+    repo = createFeatureBranch();
+    await expect(
+      readCheckoutBranchDiff({
+        cwd: repo.path,
+        baseName: "main",
+        scope: "committed",
+        branch: "--output=x",
+      }),
+    ).rejects.toThrow("no local branch --output=x");
+    await expect(
+      readCheckoutBranchDiff({
+        cwd: repo.path,
+        baseName: "main",
+        scope: "uncommitted",
+        branch: "feature",
+      }),
+    ).rejects.toThrow("nothing uncommitted");
+  });
+
   it("names the refs it looked for when the base does not exist", async () => {
     repo = createFeatureBranch();
     await expect(
