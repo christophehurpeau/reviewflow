@@ -54,6 +54,7 @@ export {
   branchTrackParts,
   checkoutSummaryParts,
 } from "./services/checkoutSummary.ts";
+export { formatDataAge } from "./services/formatDataAge.ts";
 export type {
   CommitListProps,
   CommitSteps,

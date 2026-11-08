@@ -107,13 +107,31 @@ export interface RemoveWorktreeButtonProps {
   onRemove: (deleteBranch: boolean) => Promise<WorktreeRemovalResult>;
   /** after the removal, the branch's refusal included */
   onRemoved: (result: WorktreeRemovalResult) => void;
-  /** why the button cannot be pressed at all, e.g. a removal already running */
+  /** why the button cannot be pressed at all */
   disabledReason?: string | null;
+  /** a removal of this worktree is running: the button says so and cannot be pressed */
+  pending?: boolean;
+  /** the button's label; "Remove" unless set */
+  text?: string;
+  /** the button's label while `pending`; "Removing…" unless set */
+  pendingText?: string;
+  /** "Remove this worktree?" unless set */
+  title?: string;
+  /** the dialog's confirm button; "Remove" unless set */
+  confirmText?: string;
+  /**
+   * The sentence under the title, e.g. naming what else the removal does;
+   * inline content only, as it renders in the dialog's description `Text`.
+   */
+  description?: ReactNode;
 }
+
+const defaultDescription =
+  "Its directory is deleted from disk. git refuses on its own if a file changed since this check.";
 
 /**
  * Removes a worktree after a confirmation that reads what it would lose.
- * Remove stays disabled until that read proves no uncommitted file, no commit
+ * Its confirm button stays disabled until that read proves no uncommitted file, no commit
  * only here, no lock and no process inside; an unread or failed read disables
  * it too, since nothing is proven. A `WarningAlertDialog`: one of the buttons
  * deletes files, and the icon says so before the copy is read.
@@ -124,6 +142,12 @@ export function RemoveWorktreeButton({
   onRemove,
   onRemoved,
   disabledReason = null,
+  pending = false,
+  text = "Remove",
+  pendingText = "Removing…",
+  title = "Remove this worktree?",
+  confirmText = "Remove",
+  description = defaultDescription,
 }: RemoveWorktreeButtonProps): ReactNode {
   const [confirming, setConfirming] = useState(false);
   const [read, setRead] = useState<CheckState>(unread);
@@ -169,7 +193,7 @@ export function RemoveWorktreeButton({
     if (read.error !== null) {
       return (
         <WarningMessage variant="flat">
-          {`Could not read the worktree: ${read.error}. Remove stays disabled until it can be.`}
+          {`Could not read the worktree: ${read.error}. ${confirmText} stays disabled until it can be.`}
         </WarningMessage>
       );
     }
@@ -186,19 +210,19 @@ export function RemoveWorktreeButton({
   return (
     <>
       <Button
-        text="Remove"
+        text={pending ? pendingText : text}
         icon={<TrashRegularIcon />}
         size="sm"
         variant="tonal"
         accent="danger"
-        aria-label={`Remove the worktree at ${path}`}
-        disabledReason={disabledReason}
+        aria-label={`${pending ? pendingText : text}: ${path}`}
+        disabledReason={pending ? pendingText : disabledReason}
         onPress={open}
       />
       <WarningAlertDialog
         visible={confirming}
-        title="Remove this worktree?"
-        confirmText="Remove"
+        title={title}
+        confirmText={confirmText}
         primaryAction="cancel"
         confirmDisabled={!removable}
         errorToMessage={errorToMessage}
@@ -225,8 +249,7 @@ export function RemoveWorktreeButton({
         }}
         onCancel={close}
       >
-        Its directory is deleted from disk. git refuses on its own if a file
-        changed since this check.
+        {description}
       </WarningAlertDialog>
     </>
   );
