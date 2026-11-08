@@ -1,4 +1,5 @@
-import type { DiffWhitespace } from "@reviewflow/sdk";
+import type { DiffFont, DiffWhitespace } from "@reviewflow/sdk";
+import { defaultDiffFont, defaultDiffTheme } from "@reviewflow/sdk";
 import type { ReactNode } from "react";
 import { createContext, use, useMemo, useState } from "react";
 import type { DiffTheme } from "./diff-themes.ts";
@@ -16,6 +17,7 @@ export const isDiffFileOrder = (value: string): value is DiffFileOrder =>
 export interface DiffSettings {
   wordWrap: boolean;
   theme: DiffTheme;
+  font: DiffFont;
   whitespace: DiffWhitespace;
   setWhitespace: (whitespace: DiffWhitespace) => void;
   fileOrder: DiffFileOrder;
@@ -24,7 +26,8 @@ export interface DiffSettings {
 
 const defaults: DiffSettings = {
   wordWrap: true,
-  theme: "github",
+  theme: defaultDiffTheme,
+  font: defaultDiffFont,
   whitespace: "show",
   setWhitespace: () => undefined,
   fileOrder: "packages",
@@ -35,6 +38,7 @@ const DiffSettingsContext = createContext<DiffSettings>(defaults);
 
 interface DiffSettingsProviderProps {
   theme?: DiffTheme;
+  font?: DiffFont;
   wordWrap?: boolean;
   /** the whitespace the diff starts with; the toolbar toggle then owns it */
   initialWhitespace?: DiffWhitespace;
@@ -52,6 +56,7 @@ interface DiffSettingsProviderProps {
  */
 export function DiffSettingsProvider({
   theme = defaults.theme,
+  font = defaults.font,
   wordWrap = defaults.wordWrap,
   initialWhitespace = defaults.whitespace,
   fileOrder: storedFileOrder,
@@ -64,6 +69,7 @@ export function DiffSettingsProvider({
   const value = useMemo(
     () => ({
       theme,
+      font,
       wordWrap,
       whitespace,
       setWhitespace,
@@ -73,7 +79,7 @@ export function DiffSettingsProvider({
         onFileOrderChange?.(next);
       },
     }),
-    [theme, wordWrap, whitespace, fileOrder, onFileOrderChange],
+    [theme, font, wordWrap, whitespace, fileOrder, onFileOrderChange],
   );
   return <DiffSettingsContext value={value}>{children}</DiffSettingsContext>;
 }

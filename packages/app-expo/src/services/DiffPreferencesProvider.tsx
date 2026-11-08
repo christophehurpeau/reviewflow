@@ -1,5 +1,10 @@
-import type { DiffTheme } from "@reviewflow/sdk";
-import { isDiffTheme } from "@reviewflow/sdk";
+import type { DiffFont, DiffTheme } from "@reviewflow/sdk";
+import {
+  defaultDiffFont,
+  defaultDiffTheme,
+  isDiffFont,
+  isDiffTheme,
+} from "@reviewflow/sdk";
 import type { DiffDisplaySettings } from "@reviewflow/ui";
 import type { ReactNode } from "react";
 import { createContext, use, useMemo } from "react";
@@ -49,7 +54,12 @@ export function DiffPreferencesProvider({
   const [theme, setTheme, themeLoaded] = useStoredPreference<DiffTheme>(
     "reviewflow:diff-theme",
     isDiffTheme,
-    "github",
+    defaultDiffTheme,
+  );
+  const [font, setFont, fontLoaded] = useStoredPreference<DiffFont>(
+    "reviewflow:diff-font",
+    isDiffFont,
+    defaultDiffFont,
   );
 
   const contextValue = useMemo<DiffPreferences>(
@@ -58,8 +68,10 @@ export function DiffPreferencesProvider({
         wordWrap: wordWrap === "on",
         hideWhitespace: hideWhitespace === "on",
         theme,
+        font,
       },
-      loaded: wordWrapLoaded && hideWhitespaceLoaded && themeLoaded,
+      loaded:
+        wordWrapLoaded && hideWhitespaceLoaded && themeLoaded && fontLoaded,
       change: (change) => {
         if (change.wordWrap !== undefined) {
           setWordWrap(change.wordWrap ? "on" : "off");
@@ -68,6 +80,7 @@ export function DiffPreferencesProvider({
           setHideWhitespace(change.hideWhitespace ? "on" : "off");
         }
         if (change.theme !== undefined) setTheme(change.theme);
+        if (change.font !== undefined) setFont(change.font);
         return Promise.resolve();
       },
     }),
@@ -75,12 +88,15 @@ export function DiffPreferencesProvider({
       wordWrap,
       hideWhitespace,
       theme,
+      font,
       wordWrapLoaded,
       hideWhitespaceLoaded,
       themeLoaded,
+      fontLoaded,
       setWordWrap,
       setHideWhitespace,
       setTheme,
+      setFont,
     ],
   );
 

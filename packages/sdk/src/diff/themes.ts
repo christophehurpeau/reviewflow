@@ -5,6 +5,7 @@
  * same list the ui renders.
  */
 export const diffThemes = [
+  "reviewflow",
   "github",
   "github-high-contrast",
   "pierre",
@@ -28,13 +29,22 @@ export type DiffTheme = (typeof diffThemes)[number];
 export const isDiffTheme = (value: unknown): value is DiffTheme =>
   (diffThemes as readonly unknown[]).includes(value);
 
+export const defaultDiffTheme: DiffTheme = "reviewflow";
+
 interface DiffThemeFamily {
   label: string;
-  /** shiki theme names, the pierre ones resolved by `@pierre/diffs` itself */
+  /**
+   * shiki theme names, the pierre ones resolved by `@pierre/diffs` itself, the
+   * reviewflow ones registered by `@reviewflow/ui`
+   */
   themes: { light: string; dark: string };
 }
 
 const families: Record<DiffTheme, DiffThemeFamily> = {
+  reviewflow: {
+    label: "Reviewflow",
+    themes: { light: "reviewflow-light", dark: "reviewflow-dark" },
+  },
   github: {
     label: "GitHub",
     themes: { light: "github-light-default", dark: "github-dark-default" },
@@ -103,3 +113,19 @@ export const diffThemeOptions = diffThemes.map((theme) => ({
   value: theme,
   label: families[theme].label,
 }));
+
+/**
+ * The diff's code font: `alouette` is the design system's mono (Chivo Mono),
+ * `pierre` the system mono stack `@pierre/diffs` ships with.
+ */
+export type DiffFont = "alouette" | "pierre";
+
+export const isDiffFont = (value: unknown): value is DiffFont =>
+  value === "alouette" || value === "pierre";
+
+export const defaultDiffFont: DiffFont = "alouette";
+
+export const diffFontOptions: { value: DiffFont; label: string }[] = [
+  { value: "alouette", label: "Alouette (Chivo Mono)" },
+  { value: "pierre", label: "Pierre (system mono)" },
+];

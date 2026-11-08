@@ -255,7 +255,7 @@ export function PullRequestDiffView({
     (shownCommitComposer !== null ||
       (review.commitOid === undefined && draft.composer !== null));
   const mode = useCurrentMode();
-  const { wordWrap, theme, fileOrder, setFileOrder } = useDiffSettings();
+  const { wordWrap, theme, font, fileOrder, setFileOrder } = useDiffSettings();
   const missingCheckout = useMissingCheckoutReason(range);
   const readingOrder = usePullRequestReadingOrder(
     range,
@@ -473,6 +473,7 @@ export function PullRequestDiffView({
                         diffStyle={diffStyle}
                         theme={theme}
                         themeType={mode}
+                        font={font}
                         wordWrap={wordWrap}
                         stickyTop={toolbarHeight}
                         collapse={collapse}

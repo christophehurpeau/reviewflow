@@ -1,8 +1,9 @@
 import { parseDiffFromFile } from "@pierre/diffs";
 import { FileDiff } from "@pierre/diffs/react";
-import type { DiffTheme } from "@reviewflow/sdk";
-import { diffThemeNames } from "@reviewflow/sdk";
+import type { DiffFont, DiffTheme } from "@reviewflow/sdk";
 import type { ReactNode } from "react";
+import { diffFontCSS } from "./branch-diff/diff-font.ts";
+import { diffThemeNames } from "./branch-diff/diff-themes.ts";
 
 const before = `import { readFile } from "node:fs/promises";
 
@@ -31,15 +32,17 @@ const sample = parseDiffFromFile(
 
 interface DiffThemePreviewProps {
   theme: DiffTheme;
+  font: DiffFont;
   themeType: "dark" | "light";
 }
 
 /**
- * A fixed diff rendered in the picked theme, in the app's current mode. Its
- * own lazy chunk, like the diff viewers: it carries shiki.
+ * A fixed diff rendered in the picked theme and font, in the app's current
+ * mode. Its own lazy chunk, like the diff viewers: it carries shiki.
  */
 export default function DiffThemePreview({
   theme,
+  font,
   themeType,
 }: DiffThemePreviewProps): ReactNode {
   return (
@@ -50,6 +53,7 @@ export default function DiffThemePreview({
         theme: diffThemeNames(theme),
         themeType,
         overflow: "wrap",
+        unsafeCSS: diffFontCSS(font),
       }}
     />
   );

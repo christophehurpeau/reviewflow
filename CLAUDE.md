@@ -88,6 +88,15 @@ three generated, committed and never edited by hand. Change a hue in the script
 then `pnpm --filter @reviewflow/webapp run build:theme`, which also regenerates the bot logos
 and the webapp favicon from the new brand green (`build:logos`).
 
+The app (`app-expo`) has its own palette, whose spec lives in
+[packages/ui/src/palette.ts](packages/ui/src/palette.ts). `pnpm --filter
+@reviewflow/app-expo run build:theme` generates the app's `src/palette.css`,
+`src/palette-oklch.css`, `src/themeVariables.ts` and, from the same spec, the
+`reviewflow` diff theme
+(`packages/ui/src/components/branch-diff/reviewflow-diff-themes.ts`, Pierre's
+themes recolored by `packages/ui/build-diff-theme.ts`). All generated,
+committed and never edited by hand.
+
 ## Storybook (webapp)
 
 Stories live next to their subject as `<component>.stories.tsx`. Use the

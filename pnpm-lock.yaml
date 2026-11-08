@@ -501,6 +501,9 @@ importers:
         specifier: 12.0.0
         version: 12.0.0
     devDependencies:
+      '@pierre/theme':
+        specifier: 2.0.0
+        version: 2.0.0
       '@storybook/react-native':
         specifier: 10.6.0
         version: 10.6.0(396e120470c300b17ecff66d1ad5fccf)
@@ -513,6 +516,9 @@ importers:
       alouette:
         specifier: 25.0.1
         version: 25.0.1(d18b26c2201f155635757a6234cc02c9)
+      colorjs.io:
+        specifier: 0.6.0-alpha.1
+        version: 0.6.0-alpha.1
       react:
         specifier: 19.2.8
         version: 19.2.8

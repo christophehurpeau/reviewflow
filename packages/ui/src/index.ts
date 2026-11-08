@@ -34,12 +34,10 @@ export {
   isDiffFileOrder,
 } from "./components/branch-diff/use-diff-settings.tsx";
 export type { DiffFileOrder } from "./components/branch-diff/use-diff-settings.tsx";
-export type { DiffTheme } from "./components/branch-diff/diff-themes.ts";
-export {
-  diffThemeNames,
-  diffThemeOptions,
-  diffThemes,
-} from "./components/branch-diff/diff-themes.ts";
+// From the sdk, not `branch-diff/diff-themes.ts`: that one registers the reviewflow themes with
+// @pierre/diffs, which this index would put in every importer's main bundle.
+export type { DiffTheme } from "@reviewflow/sdk";
+export { diffThemeNames, diffThemeOptions, diffThemes } from "@reviewflow/sdk";
 // DiffWorkerPool is the `@reviewflow/ui/diff-worker-pool` subpath, not exported here: its web
 // variant pulls @pierre/diffs and shiki, which this index would put in every importer's main
 // bundle. A lazily loaded diff viewer imports the subpath.

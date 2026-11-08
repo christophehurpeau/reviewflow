@@ -8,6 +8,7 @@ import { parsePatchFiles } from "@pierre/diffs";
 import { FileDiff } from "@pierre/diffs/react";
 import type {
   DiffFileImpacts,
+  DiffFont,
   DiffGroup,
   DiffImpactsResponse,
   DiffReadingOrderResponse,
@@ -49,6 +50,7 @@ import type { PullRequestDataSource } from "../dataSource.ts";
 import { usePullRequestDataSource } from "../dataSource.ts";
 import type { PendingComment } from "../services/PullRequestReviewDraftProvider.tsx";
 import { usePullRequestReviewDraft } from "../services/PullRequestReviewDraftProvider.tsx";
+import { diffFontCSS } from "./branch-diff/diff-font.ts";
 import type { DiffTheme } from "./branch-diff/diff-themes.ts";
 import { diffThemeNames } from "./branch-diff/diff-themes.ts";
 // metro picks the .web.tsx variant only for a specifier without extension
@@ -446,6 +448,7 @@ interface DiffFileProps {
   diffStyle: DiffStyle;
   theme: DiffTheme;
   themeType: "dark" | "light";
+  font: DiffFont;
   wordWrap: boolean;
   stickyTop: number;
   collapsed: boolean;
@@ -634,6 +637,7 @@ function DiffFile({
   diffStyle,
   theme,
   themeType,
+  font,
   wordWrap,
   stickyTop,
   collapsed,
@@ -722,7 +726,7 @@ function DiffFile({
           overflow: wordWrap ? "wrap" : "scroll",
           collapsed,
           stickyHeader: true,
-          unsafeCSS: `${stickyHeaderBelow(stickyTop)} ${headerInset} ${roundedFile} ${pierreScrollbars} ${headerHighlight(highlight, collapsed)}`,
+          unsafeCSS: `${stickyHeaderBelow(stickyTop)} ${headerInset} ${roundedFile} ${pierreScrollbars} ${diffFontCSS(font)} ${headerHighlight(highlight, collapsed)}`,
           loadDiffFiles: loadFiles,
           enableGutterUtility: commentable,
           onGutterUtilityClick: commentable ? onGutterUtilityClick : undefined,
@@ -1018,6 +1022,7 @@ interface ReviewedFilesProps {
   diffStyle: DiffStyle;
   theme: DiffTheme;
   themeType: "dark" | "light";
+  font: DiffFont;
   wordWrap: boolean;
   stickyTop: number;
   collapse: PullRequestCollapse;
@@ -1034,6 +1039,7 @@ function ReviewedFiles({
   diffStyle,
   theme,
   themeType,
+  font,
   wordWrap,
   stickyTop,
   collapse,
@@ -1174,6 +1180,7 @@ function ReviewedFiles({
               diffStyle={diffStyle}
               theme={theme}
               themeType={themeType}
+              font={font}
               wordWrap={wordWrap}
               stickyTop={stickyTop}
               loadFiles={loadFiles}
@@ -1249,6 +1256,7 @@ interface PullRequestDiffViewerProps {
   diffStyle: DiffStyle;
   theme: DiffTheme;
   themeType: "dark" | "light";
+  font: DiffFont;
   wordWrap: boolean;
   /** where a file header sticks: the height of the toolbar stuck above it */
   stickyTop: number;
@@ -1282,6 +1290,7 @@ function PullRequestDiffViewer({
   diffStyle,
   theme,
   themeType,
+  font,
   wordWrap,
   stickyTop,
   collapse,
@@ -1334,6 +1343,7 @@ function PullRequestDiffViewer({
               diffStyle={diffStyle}
               theme={theme}
               themeType={themeType}
+              font={font}
               wordWrap={wordWrap}
               stickyTop={stickyTop}
               loadFiles={loadFiles}
@@ -1357,6 +1367,7 @@ function PullRequestDiffViewer({
           diffStyle={diffStyle}
           theme={theme}
           themeType={themeType}
+          font={font}
           wordWrap={wordWrap}
           stickyTop={stickyTop}
           collapse={collapse}

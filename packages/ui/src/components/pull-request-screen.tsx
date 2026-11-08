@@ -1,5 +1,6 @@
 import { pullRequestPartsStaleAfter } from "@reviewflow/sdk";
 import type {
+  DiffFont,
   DiffWhitespace,
   PullRequestDetailResponse,
   PullRequestEdit,
@@ -239,8 +240,10 @@ export interface PullRequestScreenProps {
    * Absent: they live as long as the screen.
    */
   draftStore?: DraftStore;
-  /** the diff's syntax theme family; default `github` */
+  /** the diff's syntax theme family; default `reviewflow` */
   diffTheme?: DiffTheme;
+  /** the diff's code font; default `alouette` */
+  diffFont?: DiffFont;
   /** wrap long lines in the diff; default true */
   diffWordWrap?: boolean;
   /** whether the diff starts with whitespace changes hidden; the toolbar toggle then owns it */
@@ -271,6 +274,7 @@ export function PullRequestScreen({
   slots = {},
   draftStore,
   diffTheme,
+  diffFont,
   diffWordWrap,
   initialWhitespace,
   diffFileOrder,
@@ -281,6 +285,7 @@ export function PullRequestScreen({
     <PullRequestSlotsProvider value={slots}>
       <DiffSettingsProvider
         theme={diffTheme}
+        font={diffFont}
         wordWrap={diffWordWrap}
         initialWhitespace={initialWhitespace}
         fileOrder={diffFileOrder}

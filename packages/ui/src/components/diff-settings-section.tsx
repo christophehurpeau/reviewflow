@@ -1,5 +1,10 @@
-import type { DiffTheme } from "@reviewflow/sdk";
-import { diffThemeOptions, isDiffTheme } from "@reviewflow/sdk";
+import type { DiffFont, DiffTheme } from "@reviewflow/sdk";
+import {
+  diffFontOptions,
+  diffThemeOptions,
+  isDiffFont,
+  isDiffTheme,
+} from "@reviewflow/sdk";
 import {
   Box,
   ErrorMessage,
@@ -21,6 +26,7 @@ export interface DiffDisplaySettings {
   wordWrap: boolean;
   hideWhitespace: boolean;
   theme: DiffTheme;
+  font: DiffFont;
 }
 
 interface DiffSettingsSectionProps {
@@ -40,6 +46,7 @@ export function DiffSettingsSection({
   const mode = useCurrentMode();
   const [error, setError] = useState<string | null>(null);
   const [pickedTheme, setPickedTheme] = useState<DiffTheme | null>(null);
+  const [pickedFont, setPickedFont] = useState<DiffFont | null>(null);
 
   const save = (
     change: Partial<DiffDisplaySettings>,
@@ -54,6 +61,7 @@ export function DiffSettingsSection({
   };
 
   const previewTheme = pickedTheme ?? settings.theme;
+  const previewFont = pickedFont ?? settings.font;
 
   return (
     <Box className="surface gap-m p-m">
@@ -111,6 +119,26 @@ export function DiffSettingsSection({
         )}
       />
 
+      <FormItem
+        label="Font"
+        details="The font of the diffs' code: the app's own mono, or the system mono font the diff library ships with."
+        render={({ labelId, describedBy }) => (
+          <Select
+            aria-labelledby={labelId}
+            aria-describedby={describedBy}
+            options={diffFontOptions}
+            value={previewFont}
+            onValueChange={(font) => {
+              if (!isDiffFont(font)) return;
+              setPickedFont(font);
+              save({ font }, () => {
+                setPickedFont((current) => (current === font ? null : current));
+              });
+            }}
+          />
+        )}
+      />
+
       <Suspense
         fallback={
           <View className="items-center py-m">
@@ -118,7 +146,11 @@ export function DiffSettingsSection({
           </View>
         }
       >
-        <DiffThemePreview theme={previewTheme} themeType={mode} />
+        <DiffThemePreview
+          theme={previewTheme}
+          font={previewFont}
+          themeType={mode}
+        />
       </Suspense>
 
       {error === null ? null : <ErrorMessage>{error}</ErrorMessage>}

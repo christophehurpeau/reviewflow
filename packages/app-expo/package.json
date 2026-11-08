@@ -19,7 +19,7 @@
   },
   "scripts": {
     "build": "expo export --platform web --output-dir dist",
-    "build:theme": "node build-theme.ts",
+    "build:theme": "node build-theme.ts && pnpm --filter @reviewflow/ui run build:diff-theme",
     "clean": "rm -rf dist",
     "lint": "pnpm run lint:oxlint && pnpm run lint:eslint",
     "lint:eslint": "pnpm --dir '../..' exec eslint --quiet 'packages/app-expo'",
