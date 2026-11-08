@@ -1,9 +1,12 @@
 import type { PullRequestCommit } from "@reviewflow/sdk";
 import { Button, Code, PressableListItem, Text, View } from "alouette";
 import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeft";
+import { CaretDownRegularIcon } from "alouette-icons/phosphor-icons/CaretDown";
+import { CaretUpRegularIcon } from "alouette-icons/phosphor-icons/CaretUp";
 import type { ReactNode } from "react";
 import { formatDataAge } from "../services/formatDataAge.ts";
 import { PersonAvatar } from "./pull-request-conversation-person.tsx";
+import { TooltipIconButton } from "./tooltip-icon-button.tsx";
 
 const shortSha = (oid: string): string => oid.slice(0, 7);
 
@@ -94,13 +97,53 @@ export function CommitList<Commit extends PullRequestCommit>({
   );
 }
 
+/** Steps to the neighbouring commits of the list; null at its end. */
+export interface CommitSteps {
+  onNewer: (() => void) | null;
+  onOlder: (() => void) | null;
+}
+
+function CommitStepButtons({ onNewer, onOlder }: CommitSteps): ReactNode {
+  return (
+    <View className="flex-row items-center gap-xxs">
+      <TooltipIconButton
+        icon={<CaretUpRegularIcon />}
+        size="sm"
+        aria-label="Newer commit"
+        disabledReason={onNewer === null ? "This is the newest commit" : null}
+        onPress={() => {
+          onNewer?.();
+        }}
+      />
+      <TooltipIconButton
+        icon={<CaretDownRegularIcon />}
+        size="sm"
+        aria-label="Older commit"
+        disabledReason={onOlder === null ? "This is the oldest commit" : null}
+        onPress={() => {
+          onOlder?.();
+        }}
+      />
+    </View>
+  );
+}
+
 interface CommitHeaderProps {
   commit: PullRequestCommit;
   onBack: () => void;
+  /** absent: the commit cannot be stepped from */
+  steps?: CommitSteps;
+  /** beside the commit's short sha, e.g. a badge */
+  extra?: ReactNode;
 }
 
 /** Above a commit's own diff: the way back to the list, its message and its sha. */
-export function CommitHeader({ commit, onBack }: CommitHeaderProps): ReactNode {
+export function CommitHeader({
+  commit,
+  onBack,
+  steps,
+  extra,
+}: CommitHeaderProps): ReactNode {
   return (
     <View className="gap-m">
       <View className="flex-row flex-wrap items-center gap-sm">
@@ -115,7 +158,9 @@ export function CommitHeader({ commit, onBack }: CommitHeaderProps): ReactNode {
         <Text className="min-w-0 flex-1 text-sm font-body-bold">
           {commit.headline}
         </Text>
+        {extra}
         <Code className="text-xs">{shortSha(commit.oid)}</Code>
+        {steps === undefined ? null : <CommitStepButtons {...steps} />}
       </View>
       {commit.body.trim() === "" ? null : (
         <Text className="select-auto font-mono text-xs text-muted">

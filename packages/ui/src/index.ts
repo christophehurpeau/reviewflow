@@ -30,12 +30,16 @@ export { PullRequestCommits } from "./components/pull-request-commits.tsx";
 export { DiffRefused } from "./components/pull-request-diff-view.tsx";
 export { OmittedFiles } from "./components/omitted-files.tsx";
 export type {
-  BranchDiffCommits,
-  BranchDiffTab,
-  BranchDiffViewProps,
-} from "./components/branch-diff-view.tsx";
-export { BranchDiffView } from "./components/branch-diff-view.tsx";
-export type { CommitListProps } from "./components/commit-list.tsx";
+  CheckoutHistory,
+  CheckoutRead,
+  CheckoutTab,
+  CheckoutViewProps,
+} from "./components/checkout-view.tsx";
+export { CheckoutView } from "./components/checkout-view.tsx";
+export type {
+  CommitListProps,
+  CommitSteps,
+} from "./components/commit-list.tsx";
 export { CommitHeader, CommitList } from "./components/commit-list.tsx";
 export type { CheckoutSyncButtonsProps } from "./components/checkout-sync-buttons.tsx";
 export { CheckoutSyncButtons } from "./components/checkout-sync-buttons.tsx";
