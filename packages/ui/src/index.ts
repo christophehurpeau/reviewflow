@@ -36,6 +36,12 @@ export type {
   CheckoutViewProps,
 } from "./components/checkout-view.tsx";
 export { CheckoutView } from "./components/checkout-view.tsx";
+export type { RepoOverviewProps } from "./components/repo-overview.tsx";
+export { RepoOverview } from "./components/repo-overview.tsx";
+export {
+  branchTrackParts,
+  checkoutSummaryParts,
+} from "./services/checkoutSummary.ts";
 export type {
   CommitListProps,
   CommitSteps,

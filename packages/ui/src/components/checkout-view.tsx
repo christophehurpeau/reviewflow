@@ -32,6 +32,7 @@ import { ArrowsOutLineVerticalRegularIcon } from "alouette-icons/phosphor-icons/
 import { CheckCircleRegularIcon } from "alouette-icons/phosphor-icons/CheckCircle";
 import { ClockCounterClockwiseRegularIcon } from "alouette-icons/phosphor-icons/ClockCounterClockwise";
 import { ColumnsRegularIcon } from "alouette-icons/phosphor-icons/Columns";
+import { FolderSimpleRegularIcon } from "alouette-icons/phosphor-icons/FolderSimple";
 import { GitBranchRegularIcon } from "alouette-icons/phosphor-icons/GitBranch";
 import { GitCommitRegularIcon } from "alouette-icons/phosphor-icons/GitCommit";
 import { RowsRegularIcon } from "alouette-icons/phosphor-icons/Rows";
@@ -159,13 +160,18 @@ function UpstreamState({ status }: UpstreamStateProps): ReactNode {
 interface CheckoutContextProps {
   status: CheckoutStatus | null;
   base: BranchDiffBase | null;
+  renderBaseExtra: ((base: BranchDiffBase) => ReactNode) | undefined;
 }
 
 /**
- * The branch, its remote and its base. The base is named with its sha since
+ * The branch, its remote, where it is on disk and its base. The base is named with its sha since
  * nothing is fetched before a diff: `origin/main` is as fresh as the last fetch.
  */
-function CheckoutContext({ status, base }: CheckoutContextProps): ReactNode {
+function CheckoutContext({
+  status,
+  base,
+  renderBaseExtra,
+}: CheckoutContextProps): ReactNode {
   if (status === null) return null;
   const showsBase = base !== null && base.name !== status.branch;
   return (
@@ -175,12 +181,19 @@ function CheckoutContext({ status, base }: CheckoutContextProps): ReactNode {
         <Code className="text-sm">{status.branch ?? "detached HEAD"}</Code>
       </View>
       <UpstreamState status={status} />
+      <View className="flex-row items-center gap-xxs">
+        <Icon icon={<FolderSimpleRegularIcon />} size={14} />
+        <Text className="select-auto font-mono text-xs text-muted">
+          {status.path}
+        </Text>
+      </View>
       {showsBase ? (
         <View className="flex-row items-center gap-xs">
           <Text className="text-sm text-muted">from</Text>
           <Code className="text-sm">
             {`${base.ref} @ ${shortSha(base.sha)}`}
           </Code>
+          {renderBaseExtra?.(base)}
         </View>
       ) : null}
     </View>
@@ -313,16 +326,24 @@ function BranchCommits({ commits, onOpen }: BranchCommitsProps): ReactNode {
     return null;
   }
   const listed = commits.commits.filter(({ onBranch }) => onBranch);
+  const unlisted = onBranchCount - listed.length;
   return (
     <Disclosure
       guide
       label={`${pluralOf(onBranchCount, "commit")} since ${base.ref}`}
     >
-      <CommitList
-        commits={listed}
-        renderExtra={renderNotPushed}
-        onOpen={onOpen}
-      />
+      <View className="gap-xs">
+        <CommitList
+          commits={listed}
+          renderExtra={renderNotPushed}
+          onOpen={onOpen}
+        />
+        {unlisted > 0 ? (
+          <Text className="text-xs text-muted">
+            {`${pluralOf(unlisted, "older commit")} not listed`}
+          </Text>
+        ) : null}
+      </View>
     </Disclosure>
   );
 }
@@ -332,7 +353,8 @@ interface BranchBodyProps extends DiffDisplay {
   shownDiff: CheckoutBranchDiffResponse | null;
   commits: CheckoutCommitsResponse | null;
   uncommittedCount: number | null;
-  onOpenCommit: (sha: string) => void;
+  /** absent: no history tab to open a commit in, so the commits are not listed */
+  onOpenCommit: ((sha: string) => void) | undefined;
 }
 
 function BranchBody({
@@ -352,7 +374,7 @@ function BranchBody({
           {`Not included: ${pluralOf(uncommittedCount, "uncommitted change")}, under Uncommitted.`}
         </Text>
       )}
-      {commits === null ? null : (
+      {commits === null || onOpenCommit === undefined ? null : (
         <BranchCommits commits={commits} onOpen={onOpenCommit} />
       )}
       <DiffBody
@@ -536,7 +558,13 @@ export interface CheckoutViewProps {
   headerStart?: ReactNode;
   /** before the reload button, e.g. pull and push */
   headerEnd?: ReactNode;
+  /** the tabs offered; all three unless set */
+  tabs?: CheckoutTab[];
+  /** after the base's ref, e.g. where the base was taken from */
+  renderBaseExtra?: (base: BranchDiffBase) => ReactNode;
 }
+
+const allTabs: CheckoutTab[] = ["uncommitted", "branch", "history"];
 
 /**
  * A checkout: what is uncommitted, what its branch changed since it left its
@@ -561,6 +589,8 @@ export function CheckoutView({
   notices,
   headerStart,
   headerEnd,
+  tabs = allTabs,
+  renderBaseExtra,
 }: CheckoutViewProps): ReactNode {
   const [diffStyle, setDiffStyle] = useState<DiffStyle>("split");
   // the viewer is memoized: a press commits at once, the next patch renders after
@@ -605,7 +635,7 @@ export function CheckoutView({
           shownDiff={diffOf("committed")}
           commits={commits}
           uncommittedCount={uncommittedCount}
-          onOpenCommit={openCommit}
+          onOpenCommit={tabs.includes("history") ? openCommit : undefined}
           {...display}
         />
       );
@@ -638,7 +668,11 @@ export function CheckoutView({
             />
           </View>
         </View>
-        <CheckoutContext status={status} base={commits?.base ?? null} />
+        <CheckoutContext
+          status={status}
+          base={commits?.base ?? null}
+          renderBaseExtra={renderBaseExtra}
+        />
         <View className="flex-row flex-wrap items-center justify-between gap-m">
           <Tabs
             aria-label="Checkout view"
@@ -647,15 +681,21 @@ export function CheckoutView({
               if (isCheckoutTab(next)) onTabChange(next);
             }}
           >
-            <Tab
-              value="uncommitted"
-              label={withCount("Uncommitted", uncommittedCount)}
-            />
-            <Tab
-              value="branch"
-              label={withCount("Branch", commits?.onBranchCount ?? null)}
-            />
-            <Tab value="history" label="History" />
+            {tabs.includes("uncommitted") ? (
+              <Tab
+                value="uncommitted"
+                label={withCount("Uncommitted", uncommittedCount)}
+              />
+            ) : null}
+            {tabs.includes("branch") ? (
+              <Tab
+                value="branch"
+                label={withCount("Branch", commits?.onBranchCount ?? null)}
+              />
+            ) : null}
+            {tabs.includes("history") ? (
+              <Tab value="history" label="History" />
+            ) : null}
           </Tabs>
           {showsDiff ? (
             <DiffTools
