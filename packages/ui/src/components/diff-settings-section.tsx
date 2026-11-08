@@ -89,16 +89,6 @@ export function DiffSettingsSection({
         )}
       />
 
-      <Suspense
-        fallback={
-          <View className="items-center py-m">
-            <IndeterminateCircularProgress loading />
-          </View>
-        }
-      >
-        <DiffThemePreview theme={previewTheme} themeType={mode} />
-      </Suspense>
-
       <FormItem
         label="Theme"
         details="The syntax colours of the diffs. Each theme has a light and a dark variant, following the app's mode."
@@ -120,6 +110,16 @@ export function DiffSettingsSection({
           />
         )}
       />
+
+      <Suspense
+        fallback={
+          <View className="items-center py-m">
+            <IndeterminateCircularProgress loading />
+          </View>
+        }
+      >
+        <DiffThemePreview theme={previewTheme} themeType={mode} />
+      </Suspense>
 
       {error === null ? null : <ErrorMessage>{error}</ErrorMessage>}
     </Box>

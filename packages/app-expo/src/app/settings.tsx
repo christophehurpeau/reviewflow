@@ -13,6 +13,7 @@ import {
   Button,
   Code,
   ErrorMessage,
+  FormItem,
   IconButton,
   InputPassword,
   InputText,
@@ -42,43 +43,142 @@ import {
 
 export const defaultReviewflowUrl = "https://reviewflow.chapplications.com";
 
-function StatusBox({
+function ConnectionStatus({
   status,
 }: {
   status: ReviewflowConnectionStatus;
 }): ReactNode {
+  if (!status.configured) {
+    return (
+      <Text className="text-sm text-muted">
+        No token is stored. Save one below to read your pull requests.
+      </Text>
+    );
+  }
   return (
-    <Box className="surface surface-sm gap-xs">
+    <View className="gap-xxs">
+      <Text className="text-sm">
+        Server: <Code className="text-sm">{status.url ?? "unknown"}</Code>
+      </Text>
+      <Text className="text-sm">Login: {status.login ?? "unknown"}</Text>
+      <Text className="text-sm">
+        Accounts read:{" "}
+        {status.accounts.length === 0 ? "none" : status.accounts.join(", ")}
+      </Text>
       <View className="flex-row flex-wrap items-center gap-xs">
-        <Text className="font-heading-bold text-lg">Status</Text>
-        <Badge accent={status.configured ? "success" : "warning"}>
-          {status.configured ? "connected" : "no token"}
-        </Badge>
-      </View>
-      {status.configured ? (
-        <>
-          <Text>
-            Server: <Code>{status.url ?? "unknown"}</Code>
-          </Text>
-          <Text>Login: {status.login ?? "unknown"}</Text>
-          <Text>
-            Accounts read:{" "}
-            {status.accounts.length === 0 ? "none" : status.accounts.join(", ")}
-          </Text>
-          <View className="flex-row flex-wrap items-center gap-xs">
-            <Text>Stream (server to reviewflow): {status.stream}</Text>
-            <Text className="text-muted">· this page:</Text>
-            <LiveIndicator />
-          </View>
-        </>
-      ) : (
-        <Text className="text-muted">
-          No token is stored. Save one below to read your pull requests.
+        <Text className="text-sm">
+          Stream (server to reviewflow): {status.stream}
         </Text>
+        <Text className="text-sm text-muted">· this page:</Text>
+        <LiveIndicator />
+      </View>
+    </View>
+  );
+}
+
+/** The reviewflow connection: its status, the url and token, and forgetting it. */
+function ConnectionSection(): ReactNode {
+  const client = useQueryClient();
+  const status = useQuery({ queryKey: statusQueryKey, queryFn: readStatus });
+  const [url, setUrl] = useState<string | null>(null);
+  const [token, setToken] = useState("");
+  const [confirmForget, setConfirmForget] = useState(false);
+
+  const shownUrl = url ?? status.data?.url ?? defaultReviewflowUrl;
+  const statusError = status.data?.error ?? null;
+
+  return (
+    <Box className="surface gap-m p-m">
+      <View className="flex-row flex-wrap items-center gap-xs">
+        <Text className="font-heading-bold text-lg">reviewflow</Text>
+        {status.data === undefined ? null : (
+          <Badge accent={status.data.configured ? "success" : "warning"}>
+            {status.data.configured ? "connected" : "no token"}
+          </Badge>
+        )}
+      </View>
+      <Text className="text-sm text-muted">
+        The token is sent to the app server, checked against reviewflow, and
+        kept there (encrypted, key in the macOS keychain). It is never shown
+        again.
+      </Text>
+
+      {status.data === undefined ? (
+        <Text className="text-sm text-muted">
+          {status.error === null
+            ? "Reading the status…"
+            : errorToMessage(status.error)}
+        </Text>
+      ) : (
+        <ConnectionStatus status={status.data} />
       )}
-      {status.error === null ? null : (
-        <ErrorMessage>{status.error}</ErrorMessage>
-      )}
+      {statusError === null ? null : <ErrorMessage>{statusError}</ErrorMessage>}
+
+      <FormItem
+        label="reviewflow URL"
+        render={({ labelId }) => (
+          <InputText
+            mode="url"
+            value={shownUrl}
+            aria-labelledby={labelId}
+            onChangeText={setUrl}
+          />
+        )}
+      />
+      <FormItem
+        label="Token"
+        render={({ labelId }) => (
+          <InputPassword
+            value={token}
+            aria-labelledby={labelId}
+            autoComplete="off"
+            placeholder="a reviewflow API token"
+            onChangeText={setToken}
+          />
+        )}
+      />
+      <View className="flex-row gap-xs">
+        <ActionButton
+          text="Save"
+          accent="brand"
+          disabled={token.trim() === "" || shownUrl.trim() === ""}
+          errorToMessage={errorToMessage}
+          onPress={async () => {
+            await saveToken(client, {
+              url: shownUrl.trim(),
+              token: token.trim(),
+            });
+            setToken("");
+            setUrl(null);
+          }}
+        />
+        <Button
+          text="Forget"
+          accent="danger"
+          variant="tonal"
+          disabled={status.data?.configured !== true}
+          onPress={() => {
+            setConfirmForget(true);
+          }}
+        />
+      </View>
+
+      <WarningAlertDialog
+        visible={confirmForget}
+        title="Forget the reviewflow token?"
+        confirmText="Forget"
+        errorToMessage={errorToMessage}
+        onCancel={() => {
+          setConfirmForget(false);
+        }}
+        onConfirm={async () => {
+          await forgetToken(client);
+          setConfirmForget(false);
+        }}
+      >
+        The stored token is deleted from this machine. The pull request list
+        stops until you save a token again.
+      </WarningAlertDialog>
     </Box>
   );
 }
@@ -134,9 +234,9 @@ function CheckoutsSection(): ReactNode {
   });
 
   return (
-    <View className="gap-xs">
+    <Box className="surface gap-m p-m">
       <Text className="font-heading-bold text-lg">Checkouts</Text>
-      <Text className="text-muted">
+      <Text className="text-sm text-muted">
         The git diff is read from a local checkout of the repository. Map each{" "}
         <Code>owner/repo</Code> to the absolute path (or <Code>~/path</Code>) of
         a checkout whose origin remote is that repository:{" "}
@@ -144,7 +244,7 @@ function CheckoutsSection(): ReactNode {
         that is missing or names another repository is saved with a warning.
       </Text>
       {file.data === undefined ? (
-        <Text className="text-muted">
+        <Text className="text-sm text-muted">
           {file.error === null
             ? "Reading the config…"
             : errorToMessage(file.error)}
@@ -152,25 +252,18 @@ function CheckoutsSection(): ReactNode {
       ) : (
         <CheckoutsEditor file={file.data} add={add} />
       )}
-    </View>
+    </Box>
   );
 }
 
-/** The reviewflow connection (url, token, status, forgetting it), the checkouts, and how diffs render. */
+/** How diffs render, the reviewflow connection, and the checkouts: one card each, in two columns on a large screen. */
 export default function SettingsPage(): ReactNode {
   const router = useRouter();
-  const client = useQueryClient();
-  const status = useQuery({ queryKey: statusQueryKey, queryFn: readStatus });
-  const [url, setUrl] = useState<string | null>(null);
-  const [token, setToken] = useState("");
-  const [confirmForget, setConfirmForget] = useState(false);
   const diffPreferences = useDiffPreferences();
-
-  const shownUrl = url ?? status.data?.url ?? defaultReviewflowUrl;
 
   return (
     <ScreenScrollView>
-      <View className="mx-auto w-full max-w-[720px] gap-l px-m py-xl md:px-l">
+      <View className="mx-auto w-full max-w-[720px] gap-l px-m py-xl md:px-l lg:max-w-[1440px]">
         <View className="flex-row items-center gap-xs">
           <IconButton
             icon={<ArrowLeftRegularIcon />}
@@ -185,88 +278,20 @@ export default function SettingsPage(): ReactNode {
             reviewflow settings
           </Text>
         </View>
-        <Text className="text-muted">
-          The token is sent to the app server, checked against reviewflow, and
-          kept there (encrypted, key in the macOS keychain). It is never shown
-          again.
-        </Text>
 
-        {status.data === undefined ? (
-          <Text className="text-muted">
-            {status.error === null
-              ? "Reading the status…"
-              : errorToMessage(status.error)}
-          </Text>
-        ) : (
-          <StatusBox status={status.data} />
-        )}
-
-        <View className="gap-xs">
-          <Text className="font-body-bold">reviewflow URL</Text>
-          <InputText
-            mode="url"
-            value={shownUrl}
-            aria-label="reviewflow URL"
-            onChangeText={setUrl}
-          />
-          <Text className="font-body-bold">Token</Text>
-          <InputPassword
-            value={token}
-            aria-label="reviewflow token"
-            autoComplete="off"
-            placeholder="a reviewflow API token"
-            onChangeText={setToken}
-          />
-          <View className="flex-row gap-xs">
-            <ActionButton
-              text="Save"
-              accent="brand"
-              disabled={token.trim() === "" || shownUrl.trim() === ""}
-              errorToMessage={errorToMessage}
-              onPress={async () => {
-                await saveToken(client, {
-                  url: shownUrl.trim(),
-                  token: token.trim(),
-                });
-                setToken("");
-                setUrl(null);
-              }}
-            />
-            <Button
-              text="Forget"
-              accent="danger"
-              variant="tonal"
-              disabled={status.data?.configured !== true}
-              onPress={() => {
-                setConfirmForget(true);
-              }}
+        <View className="gap-l lg:flex-row lg:items-start">
+          <View className="min-w-0 gap-l lg:flex-1">
+            <DiffSettingsSection
+              settings={diffPreferences.settings}
+              onChange={diffPreferences.change}
             />
           </View>
+          <View className="min-w-0 gap-l lg:flex-1">
+            <ConnectionSection />
+            <CheckoutsSection />
+          </View>
         </View>
-
-        <CheckoutsSection />
-
-        <DiffSettingsSection
-          settings={diffPreferences.settings}
-          onChange={diffPreferences.change}
-        />
       </View>
-      <WarningAlertDialog
-        visible={confirmForget}
-        title="Forget the reviewflow token?"
-        confirmText="Forget"
-        errorToMessage={errorToMessage}
-        onCancel={() => {
-          setConfirmForget(false);
-        }}
-        onConfirm={async () => {
-          await forgetToken(client);
-          setConfirmForget(false);
-        }}
-      >
-        The stored token is deleted from this machine. The pull request list
-        stops until you save a token again.
-      </WarningAlertDialog>
     </ScreenScrollView>
   );
 }
