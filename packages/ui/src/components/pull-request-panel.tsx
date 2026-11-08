@@ -7,12 +7,7 @@ import type {
   PullRequestReviewState,
   PullRequestSummary,
 } from "@reviewflow/sdk";
-import {
-  pluralOf,
-  prStatus,
-  prStatusLabels,
-  reviewflowPrStatus,
-} from "@reviewflow/sdk";
+import { pluralOf, prStatusLabels, reviewflowPrStatus } from "@reviewflow/sdk";
 import type { Accent } from "alouette";
 import {
   AccentScope,
@@ -135,6 +130,10 @@ interface TitleTextProps {
   title: string;
 }
 
+function RepoName({ ownerRepo }: { ownerRepo: string }): ReactNode {
+  return <Text className="text-sm text-muted">{ownerRepo}</Text>;
+}
+
 function TitleText({ number, title }: TitleTextProps): ReactNode {
   return (
     <Text className="min-w-0 flex-1 font-heading-bold text-xl">
@@ -156,9 +155,16 @@ interface MergeLineProps {
   children?: ReactNode;
 }
 
+/** Badge aligns itself to the start: in a row, that is the top, not the center. */
+function CenteredBadge({ children }: { children: ReactNode }): ReactNode {
+  return <View className="justify-center">{children}</View>;
+}
+
 function StatusBadge({ status }: { status: PrStatus }): ReactNode {
   return (
-    <Badge accent={usePrStatusAccent(status)}>{prStatusLabels[status]}</Badge>
+    <CenteredBadge>
+      <Badge accent={usePrStatusAccent(status)}>{prStatusLabels[status]}</Badge>
+    </CenteredBadge>
   );
 }
 
@@ -201,6 +207,7 @@ export function PullRequestSummaryHeader({
 }): ReactNode {
   return (
     <View className="gap-sm">
+      <RepoName ownerRepo={summary.ownerRepo} />
       <TitleText number={summary.number} title={summary.title} />
       <MergeLine
         status={reviewflowPrStatus(summary)}
@@ -212,16 +219,23 @@ export function PullRequestSummaryHeader({
   );
 }
 
+interface HeaderProps extends EditableProps {
+  summary: PullRequestSummary | null;
+}
+
 /**
  * The header: the title and its number, Edit and the way out beside
- * them, and one line saying whose branch goes where.
+ * them, and one line saying whose branch goes where. The review status is
+ * reviewflow's, never recomputed from GitHub's: without reviewflow's
+ * summary, an open pull request shows none.
  */
-function Header({ detail, onEdited }: EditableProps): ReactNode {
+function Header({ detail, summary, onEdited }: HeaderProps): ReactNode {
   const { pullRequest } = detail;
   const [editing, setEditing] = useState(false);
 
   return (
     <View className="gap-sm">
+      <RepoName ownerRepo={pullRequest.ownerRepo} />
       {editing ? (
         <TitleEditor
           detail={detail}
@@ -251,7 +265,10 @@ function Header({ detail, onEdited }: EditableProps): ReactNode {
         </View>
       )}
       <MergeLine
-        status={prStatus(pullRequest)}
+        status={reviewflowPrStatus({
+          state: pullRequest.state,
+          reviewState: summary?.reviewState ?? null,
+        })}
         author={pullRequest.author?.login ?? null}
         baseRef={pullRequest.baseRef}
         headRef={pullRequest.headRef}
@@ -588,15 +605,17 @@ function ReviewerLine({
       <Text className="min-w-0 flex-1 text-sm" numberOfLines={1}>
         {name}
       </Text>
-      {state === null ? (
-        <Badge accent="warning" size="sm">
-          awaiting
-        </Badge>
-      ) : (
-        <Badge accent={reviewStateAccent(state)} size="sm">
-          {reviewStateLabel(state)}
-        </Badge>
-      )}
+      <CenteredBadge>
+        {state === null ? (
+          <Badge accent="warning" size="sm">
+            awaiting
+          </Badge>
+        ) : (
+          <Badge accent={reviewStateAccent(state)} size="sm">
+            {reviewStateLabel(state)}
+          </Badge>
+        )}
+      </CenteredBadge>
       {onRerequest === undefined ? null : (
         <RerequestButton name={name} onRerequest={onRerequest} />
       )}
@@ -1165,6 +1184,8 @@ function PullRequestActions({ detail, onEdited }: EditableProps): ReactNode {
 }
 
 export interface PullRequestPanelProps extends CandidatesProps {
+  /** reviewflow's copy, where the review status comes from; null without reviewflow */
+  summary: PullRequestSummary | null;
   /** why the editors stay read-only, when GitHub refused what they offer */
   candidatesError: string | null;
   /** absent: the first tab, Review for a reviewer and Conversation for the author */
@@ -1185,6 +1206,7 @@ export interface PullRequestPanelProps extends CandidatesProps {
  */
 export function PullRequestPanel({
   detail,
+  summary,
   candidates,
   candidatesError,
   onEdited,
@@ -1216,7 +1238,7 @@ export function PullRequestPanel({
           {`Reviewers, assignees and labels cannot be edited: ${candidatesError}`}
         </WarningMessage>
       )}
-      <Header detail={detail} onEdited={onEdited} />
+      <Header detail={detail} summary={summary} onEdited={onEdited} />
       <ConflictWarning pullRequest={pullRequest} />
       <View className="flex-row flex-wrap items-center justify-between gap-sm">
         <Tabs

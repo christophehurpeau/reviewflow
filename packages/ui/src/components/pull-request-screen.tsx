@@ -184,6 +184,7 @@ function PullRequestBody({
               <PartReadingScope value={partsReadInTabs.report}>
                 <PullRequestPanel
                   detail={detail}
+                  summary={summary}
                   candidates={candidates}
                   candidatesError={candidatesError}
                   tab={tab}
