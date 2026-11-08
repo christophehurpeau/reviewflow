@@ -4,6 +4,7 @@ import type {
 } from "@reviewflow/sdk";
 import { worktreeRemovalRefusals } from "@reviewflow/sdk";
 import {
+  Button,
   Checkbox,
   Code,
   ConfirmationMessage,
@@ -16,7 +17,6 @@ import { TrashRegularIcon } from "alouette-icons/phosphor-icons/Trash";
 import type { ReactNode } from "react";
 import { useRef, useState } from "react";
 import { errorToMessage } from "../services/errorToMessage.ts";
-import { TooltipIconButton } from "./tooltip-icon-button.tsx";
 
 const visibleIgnored = 10;
 
@@ -185,7 +185,8 @@ export function RemoveWorktreeButton({
 
   return (
     <>
-      <TooltipIconButton
+      <Button
+        text="Remove"
         icon={<TrashRegularIcon />}
         size="sm"
         variant="soft"

@@ -21,6 +21,7 @@ import {
   EmptyState,
   Icon,
   IndeterminateCircularProgress,
+  PressableListItem,
   SectionTitle,
   Text,
   View,
@@ -62,9 +63,8 @@ function Loading(): ReactNode {
 
 interface WorktreeRowProps {
   worktree: CheckoutWorktree;
-  first: boolean;
   onOpen: (worktree: CheckoutWorktree) => void;
-  /** after the open button, e.g. a removal */
+  /** at the row's bottom, e.g. a removal; each takes its own press */
   actions: ReactNode;
 }
 
@@ -101,55 +101,55 @@ function WorktreeBadges({ worktree }: Pick<WorktreeRowProps, "worktree">) {
   );
 }
 
+function WorktreeContent({ worktree }: Pick<WorktreeRowProps, "worktree">) {
+  return (
+    <View className="gap-xxs">
+      <View className="flex-row flex-wrap items-center gap-sm">
+        <View className="flex-row items-center gap-xxs">
+          <Icon icon={<GitBranchRegularIcon />} size={14} />
+          <Code className="text-sm">{worktree.branch ?? "detached HEAD"}</Code>
+        </View>
+        <WorktreeBadges worktree={worktree} />
+        {worktree.prunable ? null : <WorktreeSummary worktree={worktree} />}
+      </View>
+      <Text className="font-mono text-xs text-muted">{worktree.path}</Text>
+    </View>
+  );
+}
+
 /**
- * A static row: opening it and its actions are each a button of their own. A
- * worktree whose directory is gone opens nothing: git would prune it.
+ * The row opens the checkout; its actions sit at the bottom and take their own
+ * press. A worktree whose directory is gone opens nothing: git would prune it.
  */
 function WorktreeRow({
   worktree,
-  first,
   onOpen,
   actions,
 }: WorktreeRowProps): ReactNode {
+  if (worktree.prunable) {
+    return (
+      <Box className="surface px-m py-sm">
+        <WorktreeContent worktree={worktree} />
+      </Box>
+    );
+  }
   return (
-    <View
-      className={
-        first
-          ? "flex-row items-center gap-sm px-m py-sm"
-          : "flex-row items-center gap-sm border-t border-muted px-m py-sm"
-      }
-    >
-      <View className="min-w-0 flex-1 gap-xxs">
-        <View className="flex-row flex-wrap items-center gap-sm">
-          <View className="flex-row items-center gap-xxs">
-            <Icon icon={<GitBranchRegularIcon />} size={14} />
-            <Code className="text-sm">
-              {worktree.branch ?? "detached HEAD"}
-            </Code>
+    <PressableListItem
+      role="link"
+      aria-label={`Open the checkout at ${worktree.path}`}
+      actions={
+        actions === null || actions === undefined ? undefined : (
+          <View className="flex-row flex-wrap items-center gap-xs">
+            {actions}
           </View>
-          <WorktreeBadges worktree={worktree} />
-          {worktree.prunable ? null : <WorktreeSummary worktree={worktree} />}
-        </View>
-        <Text className="select-auto font-mono text-xs text-muted">
-          {worktree.path}
-        </Text>
-      </View>
-      {worktree.prunable ? null : (
-        <Button
-          text="Open"
-          icon={<FolderOpenRegularIcon />}
-          accent="neutral"
-          variant="soft"
-          size="sm"
-          role="link"
-          aria-label={`Open the checkout at ${worktree.path}`}
-          onPress={() => {
-            onOpen(worktree);
-          }}
-        />
-      )}
-      {actions}
-    </View>
+        )
+      }
+      onPress={() => {
+        onOpen(worktree);
+      }}
+    >
+      <WorktreeContent worktree={worktree} />
+    </PressableListItem>
   );
 }
 
@@ -502,7 +502,7 @@ export interface RepoOverviewProps {
   headerStart?: ReactNode;
   /** under the title, e.g. what the last removal left behind */
   notices?: ReactNode;
-  /** at the end of a worktree's row, e.g. its removal */
+  /** at the bottom of a worktree's row, e.g. its removal; each takes its own press */
   renderWorktreeActions?: (worktree: CheckoutWorktree) => ReactNode;
 }
 
@@ -544,17 +544,16 @@ export function RepoOverview({
               This repository is bare: no checkout has its files.
             </EmptyState>
           ) : (
-            <Box className="surface">
-              {overview.worktrees.map((worktree, index) => (
+            <View className="gap-xs">
+              {overview.worktrees.map((worktree) => (
                 <WorktreeRow
                   key={worktree.path}
                   worktree={worktree}
-                  first={index === 0}
                   actions={renderWorktreeActions?.(worktree)}
                   onOpen={onOpenWorktree}
                 />
               ))}
-            </Box>
+            </View>
           )}
         </View>
         <BranchesSection
