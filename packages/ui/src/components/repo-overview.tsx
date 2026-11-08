@@ -251,7 +251,7 @@ function BranchesSection({
   return (
     <View className="gap-sm">
       <SectionTitle icon={<GitBranchRegularIcon />}>
-        {`Branches (${String(branches.length)})`}
+        {`Local branches (${String(branches.length)})`}
       </SectionTitle>
       {branches.length === 0 ? (
         <Text className="text-sm text-muted">No local branch.</Text>
