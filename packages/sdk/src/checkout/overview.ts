@@ -31,8 +31,10 @@ export interface CheckoutBranch {
   /** the upstream it tracks no longer exists, as after GitHub deleted a merged head */
   upstreamGone: boolean;
   /**
-   * Every commit of it is in the base, so deleting it loses nothing. A squash
-   * or rebase merge leaves it unmerged: `upstreamGone` is the sign then.
+   * Every commit of it is in the base, so deleting it loses nothing; never the
+   * base branch itself, which a local copy behind its remote would otherwise
+   * be. A squash or rebase merge leaves it unmerged: `upstreamGone` is the
+   * sign then.
    */
   merged: boolean;
   /** the worktree it is checked out in; null when none */

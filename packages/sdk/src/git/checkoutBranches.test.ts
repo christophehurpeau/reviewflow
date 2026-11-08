@@ -156,6 +156,9 @@ describe("readBranches", () => {
       merged: true,
       worktreePath: null,
     });
+    expect(branches.find(({ name }) => name === "main")).toMatchObject({
+      merged: false,
+    });
   });
 
   it("marks nothing merged when the base does not exist", async () => {

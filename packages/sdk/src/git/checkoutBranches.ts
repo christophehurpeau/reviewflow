@@ -113,7 +113,11 @@ const readMergedBranches = async (
     "--format=%(refname:lstrip=2)",
     "refs/heads",
   ]);
-  return new Set(listed.split("\n").filter((name) => name !== ""));
+  return new Set(
+    listed
+      .split("\n")
+      .filter((name) => name !== "" && name !== start.base.name),
+  );
 };
 
 const readBase = async (
