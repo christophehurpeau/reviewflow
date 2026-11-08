@@ -17,6 +17,7 @@ import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeft";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import { mergedAccent } from "#/mergedAccent.ts";
 import { useDiffPreferences } from "#/services/DiffPreferencesProvider.tsx";
 import { createLocalDraftStore } from "#/services/draftStore.ts";
 import { createPullRequestDataSource } from "#/services/pullRequestDataSource.tsx";
@@ -26,8 +27,12 @@ import { useStoredPreference } from "#/services/useStoredPreference.ts";
 const first = (value: string[] | string | undefined): string | undefined =>
   Array.isArray(value) ? value[0] : value;
 
-/** Where a missing or wrong checkout is fixed: Settings, with the entry already in the editor. */
+/**
+ * Where a missing or wrong checkout is fixed: Settings, with the entry already
+ * in the editor. A merged pull request is violet.
+ */
 const slots: PullRequestSlots = {
+  prStatusAccents: { merged: mergedAccent },
   renderRepositoryAction: (ownerRepo) => (
     <Link asChild href={{ pathname: "/settings", params: { add: ownerRepo } }}>
       <Button

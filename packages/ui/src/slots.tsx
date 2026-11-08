@@ -1,3 +1,5 @@
+import type { PrStatus } from "@reviewflow/sdk";
+import type { Accent } from "alouette";
 import type { ReactNode } from "react";
 import { createContext, use } from "react";
 
@@ -25,6 +27,12 @@ export interface PullRequestSlots {
    * checkout is configured. Absent: the message stands alone.
    */
   renderRepositoryAction?: (ownerRepo: string) => ReactNode;
+  /**
+   * The status badge's accent, per status, over `prStatusAccents`: an app with
+   * an accent of its own for one (a theme it generates beside alouette's, cast
+   * to `Accent`) passes it here.
+   */
+  prStatusAccents?: Partial<Record<PrStatus, Accent | undefined>>;
 }
 
 const SlotsContext = createContext<PullRequestSlots>({});

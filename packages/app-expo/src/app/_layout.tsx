@@ -9,6 +9,10 @@ import { DensityProvider } from "#/services/DensityProvider.tsx";
 import { DiffPreferencesProvider } from "#/services/DiffPreferencesProvider.tsx";
 import { LiveEvents } from "#/services/liveEvents.tsx";
 import { themeVariables } from "#/themeVariables.ts";
+import { violetThemeVariables } from "#/violetThemeVariables.ts";
+
+// the merged pull request's violet is not an alouette accent: its themes join the map
+const appThemeVariables = { ...themeVariables, ...violetThemeVariables };
 
 // a failure is shown by the screen as it happens, not retried behind its back
 const queryClient = new QueryClient({
@@ -17,7 +21,7 @@ const queryClient = new QueryClient({
 
 export default function RootLayout(): ReactNode {
   return (
-    <AlouetteProvider themeVariables={themeVariables}>
+    <AlouetteProvider themeVariables={appThemeVariables}>
       <ColorModeProvider>
         <DensityProvider>
           <DiffPreferencesProvider>

@@ -40,7 +40,7 @@ import { ChatCircleDotsRegularIcon } from "alouette-icons/phosphor-icons/ChatCir
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { usePullRequestDataSource } from "../dataSource.ts";
-import { prStatusAccents } from "../prStatus.ts";
+import { usePrStatusAccent } from "../prStatus.ts";
 import { emojify } from "../services/emojify.ts";
 import { errorToMessage } from "../services/errorToMessage.ts";
 import { formatDataAge } from "../services/formatDataAge.ts";
@@ -156,6 +156,12 @@ interface MergeLineProps {
   children?: ReactNode;
 }
 
+function StatusBadge({ status }: { status: PrStatus }): ReactNode {
+  return (
+    <Badge accent={usePrStatusAccent(status)}>{prStatusLabels[status]}</Badge>
+  );
+}
+
 function MergeLine({
   status,
   author,
@@ -165,9 +171,7 @@ function MergeLine({
 }: MergeLineProps): ReactNode {
   return (
     <View className="flex-row flex-wrap items-center gap-xs">
-      {status === null ? null : (
-        <Badge accent={prStatusAccents[status]}>{prStatusLabels[status]}</Badge>
-      )}
+      {status === null ? null : <StatusBadge status={status} />}
       <Text className="text-sm font-body-bold">
         {author ?? "unknown author"}
       </Text>
