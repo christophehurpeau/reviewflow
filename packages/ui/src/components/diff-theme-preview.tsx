@@ -3,7 +3,10 @@ import { FileDiff } from "@pierre/diffs/react";
 import type { DiffTheme } from "@reviewflow/sdk";
 import type { ReactNode } from "react";
 import { diffFontCSS } from "./branch-diff/diff-font.ts";
-import { diffThemeNames } from "./branch-diff/diff-themes.ts";
+import {
+  changeBackgroundCSS,
+  diffThemeNames,
+} from "./branch-diff/diff-themes.ts";
 
 const before = `import { readFile } from "node:fs/promises";
 
@@ -53,7 +56,7 @@ export default function DiffThemePreview({
         theme: diffThemeNames(theme),
         themeType,
         overflow: "wrap",
-        unsafeCSS: diffFontCSS(fontFamily),
+        unsafeCSS: `${diffFontCSS(fontFamily)} ${changeBackgroundCSS(theme)}`,
       }}
     />
   );

@@ -51,7 +51,10 @@ import type { PendingComment } from "../services/PullRequestReviewDraftProvider.
 import { usePullRequestReviewDraft } from "../services/PullRequestReviewDraftProvider.tsx";
 import { diffFontCSS } from "./branch-diff/diff-font.ts";
 import type { DiffTheme } from "./branch-diff/diff-themes.ts";
-import { diffThemeNames } from "./branch-diff/diff-themes.ts";
+import {
+  changeBackgroundCSS,
+  diffThemeNames,
+} from "./branch-diff/diff-themes.ts";
 // metro picks the .web.tsx variant only for a specifier without extension
 /* eslint-disable-next-line import-x/no-unresolved */ // oxlint-disable-next-line import/extensions
 import { DiffWorkerPool } from "./branch-diff/diff-worker-pool";
@@ -733,7 +736,7 @@ function DiffFile({
           overflow: wordWrap ? "wrap" : "scroll",
           collapsed,
           stickyHeader: true,
-          unsafeCSS: `${stickyHeaderBelow(stickyTop)} ${headerInset} ${roundedFile} ${pierreScrollbars} ${diffFontCSS(fontFamily)} ${selectionCSS(theme, themeType)} ${headerHighlight(highlight, collapsed)}`,
+          unsafeCSS: `${stickyHeaderBelow(stickyTop)} ${headerInset} ${roundedFile} ${pierreScrollbars} ${diffFontCSS(fontFamily)} ${selectionCSS(theme, themeType)} ${changeBackgroundCSS(theme)} ${headerHighlight(highlight, collapsed)}`,
           loadDiffFiles: loadFiles,
           enableGutterUtility: commentable,
           onGutterUtilityClick: commentable ? onGutterUtilityClick : undefined,
