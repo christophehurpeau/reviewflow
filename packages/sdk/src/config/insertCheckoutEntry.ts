@@ -1,12 +1,15 @@
+import {
+  isRecord,
+  parseConfigText,
+  stringifyConfig,
+} from "./parseConfigText.ts";
+
 export interface InsertedCheckoutEntry {
   /** the config text with the entry in `repos` */
   source: string;
   /** where the path goes: between the quotes of the entry's value */
   cursor: number;
 }
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 /**
  * `"owner/repo": ""` added to `repos` of the app's config text, so an editor
@@ -21,17 +24,8 @@ export const insertCheckoutEntry = (
   source: string,
   ownerRepo: string,
 ): InsertedCheckoutEntry | null => {
-  let parsed: unknown;
-  if (source.trim() === "") {
-    parsed = {};
-  } else {
-    try {
-      parsed = JSON.parse(source);
-    } catch {
-      return null;
-    }
-  }
-  if (!isRecord(parsed)) return null;
+  const parsed = parseConfigText(source);
+  if (parsed === null) return null;
   const repos = parsed.repos ?? {};
   if (!isRecord(repos)) return null;
 
@@ -41,7 +35,7 @@ export const insertCheckoutEntry = (
   );
   const key = existing ?? ownerRepo;
   const next = existing === undefined ? { ...repos, [key]: "" } : repos;
-  const text = `${JSON.stringify({ ...parsed, repos: next }, null, 2)}\n`;
+  const text = stringifyConfig({ ...parsed, repos: next });
 
   // the value follows the key on the same line; the same key may appear
   // earlier under another top-level key

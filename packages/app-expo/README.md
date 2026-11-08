@@ -111,7 +111,7 @@ the entry already added, unsaved), or by hand. `~/.reviewflow-app/config.json`:
 
 A path is absolute or starts with `~/` (the home folder). It counts only if it exists and its `remote.origin.url` names that
 repository. A repository missing from `repos` is searched in `defaultRepoPath`
-(`~/dev/` when unset): `<path>/<repo>`, then `<path>/<owner>/<repo>`, then
+(`~/dev/` when unset, editable as "Repositories folder" in Settings → Checkouts): `<path>/<repo>`, then `<path>/<owner>/<repo>`, then
 `<path>/<any directory>/<repo>`, the first whose origin names it. A save is
 refused when the text is not that shape or the file changed on disk since the
 editor opened it (reload, or keep editing); a missing path, a checkout of

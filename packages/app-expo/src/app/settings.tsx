@@ -10,6 +10,7 @@ import {
   EditableFile,
   errorToMessage,
 } from "@reviewflow/ui";
+import type { QueryClient } from "@tanstack/react-query";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ActionButton,
@@ -191,6 +192,100 @@ function ConnectionSection(): ReactNode {
   );
 }
 
+interface RepositoriesFolderValues {
+  path: string;
+}
+
+/**
+ * Writes `defaultRepoPath` through the same save as the editor, against the
+ * text last read: a file changed since is refused, not overwritten.
+ */
+const saveDefaultRepoPath = async (
+  client: QueryClient,
+  file: ConfigFile,
+  path: string,
+): Promise<string[]> => {
+  const source = writeDefaultRepoPathSetting(file.source, path);
+  if (source === null) {
+    throw new Error("config.json is not a json object: fix it in the editor");
+  }
+  const result = await saveConfigFile(client, source, file.source);
+  if (result.status === "invalid") throw new Error(result.error);
+  if (result.status === "conflict") {
+    await client.invalidateQueries({ queryKey: configFileKey });
+    throw new Error("config.json changed on disk since it was read: try again");
+  }
+  return result.warnings;
+};
+
+interface RepositoriesFolderItemProps {
+  file: ConfigFile;
+}
+
+/** `defaultRepoPath` as a field, shown with the built-in default when unset. */
+function RepositoriesFolderItem({
+  file,
+}: RepositoriesFolderItemProps): ReactNode {
+  const client = useQueryClient();
+  const [warnings, setWarnings] = useState<string[]>([]);
+  const configured = readDefaultRepoPathSetting(file.source);
+
+  return (
+    <View className="gap-xs">
+      <FormEditableItem<RepositoriesFolderValues>
+        label="Repositories folder"
+        summary={
+          <Text className="font-mono text-sm">
+            {configured ?? defaultRepoPath}
+            {configured === undefined ? (
+              <Text className="font-body text-muted"> (default)</Text>
+            ) : null}
+          </Text>
+        }
+        editAriaLabel="Edit the repositories folder"
+        cancelLabel="Cancel"
+        submitLabel="Save"
+        submitErrorToMessage={errorToMessage}
+        defaultValues={{ path: configured ?? "" }}
+        render={({ control }) => (
+          <View className="gap-xs">
+            <Text className="text-sm text-muted">
+              An absolute path or <Code>~/path</Code>. Empty uses{" "}
+              <Code>{defaultRepoPath}</Code>.
+            </Text>
+            <FormField
+              control={control}
+              name="path"
+              label="Folder"
+              render={({ field, labelId, describedBy, invalid, required }) => (
+                <InputText
+                  ref={field.ref}
+                  value={field.value}
+                  placeholder={defaultRepoPath}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  aria-labelledby={labelId}
+                  aria-describedby={describedBy}
+                  aria-required={required}
+                  invalid={invalid}
+                  onChangeText={field.onChange}
+                  onBlur={field.onBlur}
+                />
+              )}
+            />
+          </View>
+        )}
+        onSubmit={async ({ path }) => {
+          setWarnings(await saveDefaultRepoPath(client, file, path));
+        }}
+      />
+      {warnings.map((warning) => (
+        <WarningMessage key={warning}>{warning}</WarningMessage>
+      ))}
+    </View>
+  );
+}
+
 /**
  * The editor of `config.json`, mounted once the file is read. With `add`
  * (`?add=owner/repo`, from a pull request whose repository is not attached) it
@@ -252,9 +347,9 @@ function CheckoutsSection(): ReactNode {
         that is missing or names another repository is saved with a warning.
       </Text>
       <Text className="text-sm text-muted">
-        A repository missing from <Code>repos</Code> is searched in{" "}
-        <Code>defaultRepoPath</Code> (<Code>{defaultRepoPath}</Code> when
-        unset), as <Code>{"<path>/<repo>"}</Code> or{" "}
+        A repository missing from <Code>repos</Code> is searched in the
+        repositories folder (<Code>defaultRepoPath</Code>), as{" "}
+        <Code>{"<path>/<repo>"}</Code> or{" "}
         <Code>{"<path>/<any directory>/<repo>"}</Code>, and used when its origin
         remote is that repository.
       </Text>
@@ -265,7 +360,10 @@ function CheckoutsSection(): ReactNode {
             : errorToMessage(file.error)}
         </Text>
       ) : (
-        <CheckoutsEditor file={file.data} add={add} />
+        <>
+          <RepositoriesFolderItem file={file.data} />
+          <CheckoutsEditor file={file.data} add={add} />
+        </>
       )}
     </Box>
   );

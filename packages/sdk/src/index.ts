@@ -36,5 +36,9 @@ export * from "./reviewflow/boardFacts.ts";
 export * from "./reviewflow/follow.ts";
 export type * from "./reviewflow/status.ts";
 export { defaultRepoPath } from "./config/defaultRepoPath.ts";
+export {
+  readDefaultRepoPathSetting,
+  writeDefaultRepoPathSetting,
+} from "./config/defaultRepoPathSetting.ts";
 export { insertCheckoutEntry } from "./config/insertCheckoutEntry.ts";
 export type { InsertedCheckoutEntry } from "./config/insertCheckoutEntry.ts";
