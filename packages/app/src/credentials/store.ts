@@ -147,7 +147,7 @@ const decrypt = (
     ]).toString("utf8");
   } catch {
     throw unreadable(
-      `${path} does not decrypt with the key in the keychain — restore the matching key or remove the file by hand`,
+      `${path} does not decrypt with its key (the keychain on macOS, a key file elsewhere) — restore the matching key or remove the file by hand`,
     );
   }
 };
@@ -194,7 +194,7 @@ const keyFor = (path: string, key: CredentialKey): Buffer => {
   const contents = readContents(path);
   if (contents !== null && isEncrypted(parseObject(path, contents))) {
     throw unreadable(
-      `${path} is encrypted but its key is not in the keychain — restore the key or remove the file by hand`,
+      `${path} is encrypted but its key is missing (the keychain on macOS, a key file elsewhere) — restore the key or remove the file by hand`,
     );
   }
   return key.create();

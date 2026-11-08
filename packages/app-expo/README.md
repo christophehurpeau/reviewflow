@@ -7,8 +7,7 @@ GitHub with your `gh` login and serves this app's web export.
 
 ## Run it
 
-macOS only (the credentials key lives in the login keychain), node 24.14.1 or
-later, and `gh auth login` done once.
+macOS or Linux, node 24.14.1 or later, and `gh auth login` done once.
 
 ```sh
 npx @reviewflow/app                                # http://127.0.0.1:7450
@@ -54,9 +53,11 @@ That needs a reviewflow API token:
 3. Paste the token and press Save. The server checks it against reviewflow first
    and shows the refusal as it is when it does not work; nothing is stored then.
 4. The token is kept by the server only, in `$REVIEWFLOW_APP_HOME/credentials.json`
-   (mode 0600, AES-256-GCM, the key in the macOS login keychain under
-   `com.christophehurpeau.reviewflow-app.credentials-key`). No route returns it,
-   and it is never written in clear.
+   (mode 0600, AES-256-GCM). The key is in the macOS login keychain under
+   `com.christophehurpeau.reviewflow-app.credentials-key`; on Linux, in a 0600
+   file under `$XDG_DATA_HOME/reviewflow-app` (default `~/.local/share`),
+   outside the app home. No route returns the token, and it is never written in
+   clear.
 5. Settings also shows the login, the accounts the token reads and the stream
    state; Forget deletes the token after a confirmation.
 

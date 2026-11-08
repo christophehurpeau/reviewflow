@@ -89,10 +89,10 @@ describe("encrypted file", () => {
     const before = readFileSync(path, "utf8");
     const lost = memoryKey();
     const store = createFileCredentialStore(lost, path);
-    expect(() => store.read()).toThrow(/key is not in the keychain/);
+    expect(() => store.read()).toThrow(/its key is missing/);
     expect(() => {
       store.write({ version: 1 });
-    }).toThrow(/key is not in the keychain/);
+    }).toThrow(/its key is missing/);
     expect(lost.created).toBe(0);
     expect(readFileSync(path, "utf8")).toBe(before);
   });

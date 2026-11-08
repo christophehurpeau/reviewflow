@@ -9,8 +9,10 @@ npx @reviewflow/app
 
 Then open http://127.0.0.1:7450.
 
-Requires macOS (the credentials key lives in the login keychain), node 24.14.1
-or later, and the [GitHub CLI](https://cli.github.com) logged in (`gh auth login`).
+Requires node 24.14.1 or later and the [GitHub CLI](https://cli.github.com)
+logged in (`gh auth login`). The key encrypting the stored credentials lives in
+the login keychain on macOS; elsewhere, in a 0600 file under
+`$XDG_DATA_HOME/reviewflow-app` (default `~/.local/share`), outside the app home.
 
 | Variable                 | Default                       | Purpose                                         |
 | ------------------------ | ----------------------------- | ----------------------------------------------- |
