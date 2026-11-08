@@ -3,7 +3,9 @@
     "app": {
       "type": "expo",
       "testing": false,
-      "e2e": false
+      "e2e": false,
+      "storybook": true,
+      "alouette": true
     },
     "project": {
       "type": "app"

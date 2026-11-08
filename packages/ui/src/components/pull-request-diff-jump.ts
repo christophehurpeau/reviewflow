@@ -1,5 +1,5 @@
 import { animationDurationsMs } from "alouette";
-import { createContext, useContext, useSyncExternalStore } from "react";
+import { createContext, use, useSyncExternalStore } from "react";
 
 /** How long a file gone to stays outlined before the outline fades. */
 const highlightHoldMs = 1500;
@@ -71,7 +71,7 @@ export const DiffFileElementsContext = createContext<DiffFileElements | null>(
 );
 
 export const useDiffFileElements = (): DiffFileElements | null =>
-  useContext(DiffFileElementsContext);
+  use(DiffFileElementsContext);
 
 const noSubscription = (): (() => void) => () => {};
 

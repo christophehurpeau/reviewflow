@@ -19,7 +19,7 @@ export const createCommitMessage = ({
     })`,
     parsedBody.commitNotes
       ? parsedBody.commitNotes
-          // eslint-disable-next-line regexp/no-super-linear-backtracking, regexp/no-misleading-capturing-group
+          // oxlint-disable-next-line regexp/no-super-linear-backtracking, regexp/no-misleading-capturing-group
           .replace(/^- (.*)\s*\([^)]+\)$/gm, "$1")
           .replace(/^Breaking Changes:\n/, "BREAKING CHANGE: ")
           .replace(/\n/g, "; ")

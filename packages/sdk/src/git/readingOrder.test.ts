@@ -14,6 +14,7 @@ describe("importSpecifiers", () => {
       'export * from "./c.ts";',
       'import "./side-effect.ts";',
       'const lazy = () => import("./lazy.tsx");',
+      // oxlint-disable-next-line @pob/no-useless-template-literal -- a string literal would trip no-template-curly-in-string
       `const dynamic = (name: string) => import(\`./\${name}.ts\`);`,
       'import { a } from "./types.ts";',
       'import React from "react";',

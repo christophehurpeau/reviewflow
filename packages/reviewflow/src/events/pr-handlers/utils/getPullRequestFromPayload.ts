@@ -44,7 +44,7 @@ export const getPullRequestFromPayload = <
   }
 
   if (issue.pull_request) {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    // oxlint-disable-next-line typescript/consistent-type-assertions
     return {
       ...issue,
       ...issue.pull_request,

@@ -83,7 +83,7 @@ const retryDelayMs = (error: unknown, failures: number): number => {
 const wait = async (ms: number, signal: AbortSignal): Promise<void> =>
   new Promise((resolve) => {
     const done = (): void => {
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      // oxlint-disable-next-line no-use-before-define
       clearTimeout(timer);
       signal.removeEventListener("abort", done);
       resolve();

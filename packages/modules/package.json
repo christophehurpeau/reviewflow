@@ -37,7 +37,8 @@
     "lint:eslint": "pnpm --dir '../..' exec eslint --quiet 'packages/modules'",
     "lint:oxlint": "pnpm --dir '../..' exec oxlint --quiet 'packages/modules'",
     "start": "pnpm run clean:build && rollup --config rollup.config.mjs --watch",
-    "tsc": "tsc",
+    "tsc": "tsrs",
+    "tsc:go": "tsc",
     "watch": "pnpm run clean:build && rollup --config rollup.config.mjs --watch"
   },
   "dependencies": {
@@ -45,8 +46,9 @@
     "liwi-resources-client": "15.0.0"
   },
   "devDependencies": {
-    "@pob/rollup-esbuild": "11.1.0",
+    "@pob/rollup-esbuild": "11.4.0",
     "@typescript/native": "npm:typescript@7.0.2",
+    "tsrs": "0.22.0-ts7.1.0-beta",
     "typescript": "npm:@typescript/typescript6@6.0.2"
   },
   "browserslist": {
@@ -59,7 +61,7 @@
     ]
   },
   "engines": {
-    "node": ">=24.14.1"
+    "node": "^24.22.1 || >=26.13.0"
   },
   "pob": {
     "bundler": "rollup-esbuild",

@@ -50,6 +50,11 @@
     "**/.tamagui/",
     "**/.expo/",
     "**/*.d.ts",
-    "/rollup.config.mjs"
+    "/rollup.config.mjs",
+    "**/storybook-static/",
+    "**/.rnstorybook/",
+    "**/storybook.requires.ts",
+    "packages/webapp/src/themeVariables.ts",
+    "packages/app-expo/src/themeVariables.ts"
   ]
 }

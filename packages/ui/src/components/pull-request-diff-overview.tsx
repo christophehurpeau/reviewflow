@@ -298,7 +298,7 @@ const statusNotes: Record<OverviewReadingOrderStatus, string | null> = {
   failed: "The entry points could not be read: files are listed instead.",
 };
 
-interface PullRequestDiffOverviewProps {
+export interface PullRequestDiffOverviewProps {
   /** `PullRequestDiffResponse.groups` of the range shown */
   groups: DiffGroup[];
   /** `PullRequestDiffResponse.omitted`: counted in their workspace */

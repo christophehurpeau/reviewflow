@@ -498,9 +498,7 @@ const restComment = (comment: PullRequestDraftComment) => ({
   ...(comment.startLine === null || comment.startSide === null
     ? {}
     : {
-        // eslint-disable-next-line camelcase -- GitHub's field name
         start_line: comment.startLine,
-        // eslint-disable-next-line camelcase -- GitHub's field name
         start_side: comment.startSide,
       }),
 });
@@ -586,7 +584,6 @@ export const editPullRequest = async (
         await transport.rest({
           method: "POST",
           path: `${pullPath}/requested_reviewers`,
-          // eslint-disable-next-line camelcase -- GitHub's field name
           body: { reviewers: edit.add, team_reviewers: edit.addTeams },
         });
       }
@@ -594,7 +591,6 @@ export const editPullRequest = async (
         await transport.rest({
           method: "DELETE",
           path: `${pullPath}/requested_reviewers`,
-          // eslint-disable-next-line camelcase -- GitHub's field name
           body: { reviewers: edit.remove, team_reviewers: edit.removeTeams },
         });
       }
@@ -642,15 +638,12 @@ export const editPullRequest = async (
         method: "PUT",
         path: `${pullPath}/merge`,
         body: {
-          // eslint-disable-next-line camelcase -- GitHub's field name
           merge_method: edit.method,
           sha: edit.expectedHeadSha,
           ...(edit.commitMessage === undefined
             ? {}
             : {
-                // eslint-disable-next-line camelcase -- GitHub's field name
                 commit_title: edit.commitMessage.title,
-                // eslint-disable-next-line camelcase -- GitHub's field name
                 commit_message: edit.commitMessage.body,
               }),
         },
@@ -661,7 +654,6 @@ export const editPullRequest = async (
       await transport.rest({
         method: "PUT",
         path: `${pullPath}/update-branch`,
-        // eslint-disable-next-line camelcase -- GitHub's field name
         body: { expected_head_sha: edit.expectedHeadSha },
       });
       return null;
@@ -744,7 +736,6 @@ export const editPullRequest = async (
         method: "POST",
         path: `${pullPath}/reviews`,
         body: {
-          // eslint-disable-next-line camelcase -- GitHub's field name
           commit_id: edit.commitId,
           ...(edit.body === "" ? {} : { body: edit.body }),
           event: reviewEventNames[edit.event],
@@ -764,7 +755,6 @@ export const editPullRequest = async (
       await transport.rest({
         method: "POST",
         path: `${pullPath}/comments`,
-        // eslint-disable-next-line camelcase -- GitHub's field name
         body: { commit_id: edit.commitId, ...restComment(edit.comment) },
       });
       return null;

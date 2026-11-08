@@ -17,8 +17,6 @@ const storageKey = "reviewflow:sign-in-redirect";
 const isInternalPath = (path: string): path is Extract<Href, string> =>
   path.startsWith("/") && !path.startsWith("//") && path !== "/";
 
-/* eslint-disable n/no-unsupported-features/node-builtins -- the browser session storage, not the experimental node one */
-
 /** Absent on native, and a browser may deny access to it. */
 const getSessionStorage = (): Storage | undefined => {
   try {
@@ -27,8 +25,6 @@ const getSessionStorage = (): Storage | undefined => {
     return undefined;
   }
 };
-
-/* eslint-enable n/no-unsupported-features/node-builtins */
 
 /** Read while rendering, before anything navigates away from it. */
 export const currentPath = (): string | undefined => {

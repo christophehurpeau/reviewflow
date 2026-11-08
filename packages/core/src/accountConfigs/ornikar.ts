@@ -158,7 +158,7 @@ const config: Config<"backends" | "frontends" | "ops"> = {
       {
         bot: false,
         regExp:
-          // eslint-disable-next-line regexp/optimal-quantifier-concatenation
+          // oxlint-disable-next-line regexp/optimal-quantifier-concatenation
           /^(?<revert>revert-\d+-)?(?<type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?<scope>\/[a-z-]+)?\/(?<breaking>!)?(?<subject>.*)(?:-(?<jiraIssue>[A-Z][\dA-Z]+-(\d+)))?$/,
         status: "branch-name",
         createStatusInfo: (match, { title }) => {

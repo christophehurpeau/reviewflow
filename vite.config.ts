@@ -51,6 +51,20 @@ export default defineConfig({
           // real mongod, see src/tests/testMongoStores.ts
           globalSetup: [mongoGlobalSetup],
           include: ["src/**/*.test.ts?(x)"],
+          exclude: ["src/**/*.load.test.ts"],
+        },
+      },
+      {
+        resolve,
+        test: {
+          name: "core-load",
+          root: "packages/core",
+          testTimeout,
+          globalSetup: [mongoGlobalSetup],
+          include: ["src/**/*.load.test.ts"],
+          // they measure event loop delays: run once every other project is
+          // done, so the cpu is not shared with the rest of the suite
+          sequence: { groupOrder: 1 },
         },
       },
       {

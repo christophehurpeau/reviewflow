@@ -256,7 +256,7 @@ export default function slackConnect(
                 ? (accessToken.token.scope as string).split(",")
                 : [],
               teamId: accessToken.token.team_id as string,
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+              // oxlint-disable-next-line typescript/no-unsafe-assignment
               email: (identity as any).user.email,
             },
           },

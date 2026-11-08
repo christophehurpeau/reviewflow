@@ -310,7 +310,7 @@ export const createSlackHomeWorker = (
 
       if (key === lastMemberId) {
         // delay if retriggered
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        // oxlint-disable-next-line no-use-before-define
         scheduleUpdateMember(octokitRest, slackClient, member);
         lastMemberId = undefined;
       } else {

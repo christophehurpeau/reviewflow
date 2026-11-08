@@ -222,7 +222,7 @@ export default function labelsChanged(
             await removeLabel(context, pullRequest, label, persistLabels);
           }
         } else {
-          // eslint-disable-next-line no-lonely-if
+          // oxlint-disable-next-line no-lonely-if
           if (repoContext.settings.allowAutoMerge) {
             successful = await disableGithubAutoMerge(
               pullRequest,

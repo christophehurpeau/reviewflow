@@ -50,8 +50,8 @@ import type { PendingComment } from "../services/PullRequestReviewDraftProvider.
 import { usePullRequestReviewDraft } from "../services/PullRequestReviewDraftProvider.tsx";
 import type { DiffTheme } from "./branch-diff/diff-themes.ts";
 import { diffThemeNames } from "./branch-diff/diff-themes.ts";
-// oxlint-disable-next-line import/extensions -- metro picks the .web.tsx variant only for a specifier without extension
-// eslint-disable-next-line import-x/extensions, import-x/no-unresolved -- same
+// metro picks the .web.tsx variant only for a specifier without extension
+/* eslint-disable-next-line import-x/no-unresolved */ // oxlint-disable-next-line import/extensions
 import { DiffWorkerPool } from "./branch-diff/diff-worker-pool";
 import type { CommitFileAnchoring } from "./pull-request-commit-files.ts";
 import type {

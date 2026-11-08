@@ -84,7 +84,7 @@ const initAccountContext = async <
       return new Promise((resolve, reject) => {
         const logInfos = { account: accountInfo.login };
         context.log.info(logInfos, "lock: try to lock account");
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        // oxlint-disable-next-line typescript/no-misused-promises
         lock("_", async (createReleaseCallback) => {
           const release = createReleaseCallback(() => {});
           context.log.info(logInfos, "lock: lock account acquired");
@@ -93,7 +93,7 @@ const initAccountContext = async <
           } catch (error) {
             context.log.info(logInfos, "lock: release account (with error)");
             release();
-            // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+            // oxlint-disable-next-line typescript/prefer-promise-reject-errors
             reject(error);
             return;
           }

@@ -27,7 +27,8 @@
     "lint:oxlint": "pnpm --dir '../..' exec oxlint --quiet 'packages/webapp'",
     "serve": "npx serve dist",
     "start": "expo start --web",
-    "tsc": "tsc",
+    "tsc": "tsrs",
+    "tsc:go": "tsc",
     "upgrade-expo": "expo install expo@57 --fix"
   },
   "dependencies": {
@@ -77,15 +78,16 @@
     "@types/react-dom": "19.2.4",
     "@typescript/native": "npm:typescript@7.0.2",
     "@vitejs/plugin-react": "6.1.2",
-    "@vitest/browser-playwright": "4.1.12",
+    "@vitest/browser-playwright": "5.1.0",
     "playwright": "1.63.0",
     "storybook": "10.6.5",
+    "tsrs": "0.22.0-ts7.1.0-beta",
     "typescript": "npm:@typescript/typescript6@6.0.2",
-    "vite": "8.2.4",
-    "vitest": "4.1.12"
+    "vite": "8.3.5",
+    "vitest": "5.1.0"
   },
   "engines": {
-    "node": ">=22.18.0"
+    "node": "^22.23.4 || ^24.22.1 || >=26.13.0"
   },
   "expo": {
     "install": {

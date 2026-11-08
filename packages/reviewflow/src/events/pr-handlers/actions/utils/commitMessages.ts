@@ -1,9 +1,15 @@
 import commitlintConventionalConfig from "@commitlint/config-conventional";
 import * as commitlintLintModule from "@commitlint/lint";
 import * as commitlintParseModule from "@commitlint/parse";
-// @ts-expect-error missing typings
-import createConventionalCommitsConfig from "conventional-changelog-conventionalcommits";
+import untypedCreateConventionalCommitsConfig from "conventional-changelog-conventionalcommits";
 import type { AsyncReturnType } from "type-fest";
+
+// the typings resolved are those of v10, hoisted by @pob/root, while this
+// package runs the untyped v9, which is async and returns the parser options
+const createConventionalCommitsConfig =
+  untypedCreateConventionalCommitsConfig as unknown as (
+    config: object,
+  ) => Promise<{ parser: Parameters<typeof commitlintParse>[2] }>;
 
 const conventionalCommitsConfig = await createConventionalCommitsConfig({});
 

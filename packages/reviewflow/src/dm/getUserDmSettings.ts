@@ -77,7 +77,7 @@ export const getUserDmSettings = async (
   return updateCache(org, userId, {
     orgId,
     userId,
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    // oxlint-disable-next-line typescript/consistent-type-assertions
     settings: {} as UserDmSettings["settings"],
     silentTeams: [],
   });

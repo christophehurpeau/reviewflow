@@ -1,4 +1,4 @@
-/* oxlint-disable typescript/require-await, typescript/no-useless-default-assignment */
+/* oxlint-disable typescript/require-await */
 import { describe, expect, test, vi } from "vitest";
 import { createAuthenticatedSend } from "./githubTransport.ts";
 

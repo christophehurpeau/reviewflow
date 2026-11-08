@@ -257,7 +257,7 @@ export const timeline: PullRequestTimelineResponse = {
           databaseId: 11,
           author: grace,
           // the suggestion block is markdown, `${}` is literal text
-          // eslint-disable-next-line no-template-curly-in-string
+          // oxlint-disable-next-line no-template-curly-in-string
           body: "Should the key include the currency?\n\n```suggestion\nconst key = `${sessionId}:${cartVersion}:${currency}`;\n```",
           createdAt: "2026-11-05T09:00:00.000Z",
           lastEditedAt: null,

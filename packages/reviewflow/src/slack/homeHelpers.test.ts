@@ -345,6 +345,7 @@ describe("homeHelpers", () => {
     expect(
       (context.elements[3] as { text: string }).text,
     ).toMatchInlineSnapshot(
+      // oxlint-disable-next-line @pob/no-useless-template-literal -- vitest writes inline snapshots as template literals
       `"*checks failed: \`check-0\`, \`check-1\`, \`check-2\`, \`check-3\`, \`check-4\`, \`check-5\`, \`check-6\`, \`check-7\`, \`check-8\` +3*"`,
     );
   });

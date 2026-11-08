@@ -114,7 +114,7 @@ const gracefulExit = function gracefulExit(): void {
   internalApiServer.close();
   setTimeout(() => {
     mongoStores.connection.close().then(() => {
-      // eslint-disable-next-line unicorn/no-process-exit
+      // oxlint-disable-next-line unicorn/no-process-exit
       process.exit(0);
     });
   }, 200);

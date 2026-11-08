@@ -116,6 +116,7 @@ describe("importedBindings", () => {
       'import def from "./def";',
       'import { named } from "./named";',
       "const lazy = () => import(`./lazy`);",
+      // oxlint-disable-next-line @pob/no-useless-template-literal -- a string literal would trip no-template-curly-in-string
       `const dynamic = (n: string) => import(\`./\${n}\`);`,
       'export { re } from "./re";',
     );

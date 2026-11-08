@@ -4,12 +4,12 @@
   "printWidth": 80,
   "sortPackageJson": { "sortScripts": true },
   "ignorePatterns": [
+    "**/storybook.requires.ts",
     "/packages/*/build",
     "/packages/*/.expo/",
     "/packages/*/android/",
     "/packages/*/ios/",
     "/packages/*/dist/",
-    "/packages/*/.storybook/storybook.requires.ts",
     "/packages/*/dist-native/",
     "*.jks",
     "*.p8",

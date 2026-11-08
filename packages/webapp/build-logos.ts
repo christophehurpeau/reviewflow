@@ -21,8 +21,6 @@
  * renderer: it is already installed for the browser tests.
  */
 
-/* eslint-disable no-console -- this is a cli script, its output is the point */
-
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";

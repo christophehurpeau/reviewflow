@@ -10,7 +10,7 @@ import { updateReviewflowPrLabels } from "./labels/reviewflowPrLabels.ts";
 
 type SyncLabelCallback = (
   prLabels: LabelResponse[],
-  // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+  // oxlint-disable-next-line typescript/no-invalid-void-type
 ) => Promise<boolean | undefined | void> | boolean | undefined | void;
 
 /**
@@ -185,7 +185,7 @@ export async function syncLabels<EventName extends EmitterWebhookEventName>(
     await updateReviewflowPrLabels({ ...persist, labels: updatedLabels });
   }
 
-  // eslint-disable-next-line @typescript-eslint/await-thenable
+  // oxlint-disable-next-line typescript/await-thenable
   await Promise.all(callbacks.map((callback) => callback(updatedLabels)));
 
   return updatedLabels;

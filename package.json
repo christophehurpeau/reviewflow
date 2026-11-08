@@ -27,20 +27,22 @@
     "test:coverage": "TZ=UTC POB_VITEST_COVERAGE=json,text vitest run --coverage",
     "test:coverage:generate": "TZ=UTC POB_VITEST_COVERAGE=json vitest run --coverage",
     "test:watch": "TZ=UTC vitest --watch",
-    "tsc": "tsc -b",
+    "tsc": "tsrs -b",
+    "tsc:go": "tsc -b",
     "watch": "pnpm -r --parallel --filter \"!*-example\" run watch"
   },
   "devDependencies": {
-    "@pob/eslint-config": "67.12.0",
-    "@pob/eslint-config-typescript-react": "67.12.0",
-    "@pob/root": "27.15.0",
+    "@pob/eslint-config": "68.4.0",
+    "@pob/eslint-config-typescript-react": "68.5.0",
+    "@pob/root": "28.7.0",
     "@typescript/native": "npm:typescript@7.0.2",
-    "@vitest/coverage-v8": "4.1.12",
-    "eslint": "10.8.1",
+    "@vitest/coverage-v8": "5.1.0",
+    "eslint": "10.14.0",
     "mongodb-memory-server": "11.3.0",
+    "tsrs": "0.22.0-ts7.1.0-beta",
     "typescript": "npm:@typescript/typescript6@6.0.2",
-    "vite": "8.2.4",
-    "vitest": "4.1.12"
+    "vite": "8.3.5",
+    "vitest": "5.1.0"
   },
   "commitlint": {
     "extends": [
@@ -55,7 +57,7 @@
     }
   },
   "engines": {
-    "node": ">=24.14.1",
+    "node": "^24.22.1 || >=26.13.0",
     "pnpm": ">= 12.0.0"
   }
 }

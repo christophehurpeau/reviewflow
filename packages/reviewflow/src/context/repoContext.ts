@@ -316,7 +316,7 @@ async function initRepoContext<
         prNumber,
       };
       context.log.debug(logInfos, "lock: try to lock pr");
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      // oxlint-disable-next-line typescript/no-misused-promises
       lock(String(prNumber), async (createReleaseCallback) => {
         const release = createReleaseCallback(() => {});
         context.log.info(logInfos, "lock: lock pr acquired");
@@ -325,7 +325,7 @@ async function initRepoContext<
         } catch (error) {
           context.log.info(logInfos, "lock: release pr (with error)");
           release();
-          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+          // oxlint-disable-next-line typescript/prefer-promise-reject-errors
           reject(error);
           return;
         }
@@ -349,7 +349,7 @@ async function initRepoContext<
     time: RescheduleTime,
     user?: BasicUser,
     attempt = 0,
-    // eslint-disable-next-line @typescript-eslint/require-await
+    // oxlint-disable-next-line typescript/require-await
   ): Promise<void> => {
     if (!pr) throw new Error("Cannot reschedule undefined");
     if (typeof pr.number !== "number") {
@@ -364,7 +364,7 @@ async function initRepoContext<
     rescheduleContext.log.info(pr, "reschedule", { time });
     const timeout = setTimeout(
       () => {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        // oxlint-disable-next-line typescript/no-floating-promises
         lockPR("reschedule", -1, () => {
           return lockPR("reschedule", pr.number, async () => {
             const [pullRequest, reviewflowPrContext] = await Promise.all([

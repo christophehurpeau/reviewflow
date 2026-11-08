@@ -7,18 +7,33 @@
       "label": "git: main",
       "type": "shell",
       "command": "git main",
-      "group": { "kind": "none" },
-      "options": { "cwd": "${workspaceFolder}" },
-      "presentation": { "close": true, "panel": "dedicated" },
+      "group": {
+        "kind": "none"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "close": true,
+        "panel": "dedicated"
+      },
       "problemMatcher": []
     },
     {
       "label": "modules > start",
       "type": "shell",
       "command": "pnpm start",
-      "options": { "cwd": "${workspaceFolder}/packages/modules" },
-      "group": { "kind": "none" },
-      "presentation": { "panel": "dedicated", "group": "dev", "clear": true },
+      "options": {
+        "cwd": "${workspaceFolder}/packages/modules"
+      },
+      "group": {
+        "kind": "none"
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "group": "dev",
+        "clear": true
+      },
       "isBackground": true,
       "problemMatcher": []
     },
@@ -26,9 +41,17 @@
       "label": "core > start",
       "type": "shell",
       "command": "pnpm start",
-      "options": { "cwd": "${workspaceFolder}/packages/core" },
-      "group": { "kind": "none" },
-      "presentation": { "panel": "dedicated", "group": "dev", "clear": true },
+      "options": {
+        "cwd": "${workspaceFolder}/packages/core"
+      },
+      "group": {
+        "kind": "none"
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "group": "dev",
+        "clear": true
+      },
       "isBackground": true,
       "problemMatcher": []
     },
@@ -36,9 +59,17 @@
       "label": "reviewflow > start",
       "type": "shell",
       "command": "pnpm start",
-      "options": { "cwd": "${workspaceFolder}/packages/reviewflow" },
-      "group": { "kind": "none" },
-      "presentation": { "panel": "dedicated", "group": "dev", "clear": true },
+      "options": {
+        "cwd": "${workspaceFolder}/packages/reviewflow"
+      },
+      "group": {
+        "kind": "none"
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "group": "dev",
+        "clear": true
+      },
       "isBackground": true,
       "problemMatcher": []
     },
@@ -46,9 +77,17 @@
       "label": "webapp-server > start",
       "type": "shell",
       "command": "pnpm start",
-      "options": { "cwd": "${workspaceFolder}/packages/webapp-server" },
-      "group": { "kind": "none" },
-      "presentation": { "panel": "dedicated", "group": "dev", "clear": true },
+      "options": {
+        "cwd": "${workspaceFolder}/packages/webapp-server"
+      },
+      "group": {
+        "kind": "none"
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "group": "dev",
+        "clear": true
+      },
       "isBackground": true,
       "problemMatcher": []
     },
@@ -56,9 +95,17 @@
       "label": "webapp > start",
       "type": "shell",
       "command": "pnpm start",
-      "options": { "cwd": "${workspaceFolder}/packages/webapp" },
-      "group": { "kind": "none" },
-      "presentation": { "panel": "dedicated", "group": "dev", "clear": true },
+      "options": {
+        "cwd": "${workspaceFolder}/packages/webapp"
+      },
+      "group": {
+        "kind": "none"
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "group": "dev",
+        "clear": true
+      },
       "isBackground": true,
       "problemMatcher": []
     },
@@ -78,8 +125,12 @@
       "label": "sdk > start",
       "type": "shell",
       "command": "pnpm start",
-      "options": { "cwd": "${workspaceFolder}/packages/sdk" },
-      "group": { "kind": "none" },
+      "options": {
+        "cwd": "${workspaceFolder}/packages/sdk"
+      },
+      "group": {
+        "kind": "none"
+      },
       "presentation": {
         "panel": "dedicated",
         "group": "dev:app",
@@ -92,8 +143,12 @@
       "label": "app > start",
       "type": "shell",
       "command": "pnpm start",
-      "options": { "cwd": "${workspaceFolder}/packages/app" },
-      "group": { "kind": "none" },
+      "options": {
+        "cwd": "${workspaceFolder}/packages/app"
+      },
+      "group": {
+        "kind": "none"
+      },
       "presentation": {
         "panel": "dedicated",
         "group": "dev:app",
@@ -106,8 +161,12 @@
       "label": "app-expo > start",
       "type": "shell",
       "command": "pnpm start",
-      "options": { "cwd": "${workspaceFolder}/packages/app-expo" },
-      "group": { "kind": "none" },
+      "options": {
+        "cwd": "${workspaceFolder}/packages/app-expo"
+      },
+      "group": {
+        "kind": "none"
+      },
       "presentation": {
         "panel": "dedicated",
         "group": "dev:app",
@@ -266,7 +325,9 @@
       "label": "test:watch",
       "problemMatcher": {
         "owner": "vitest-watch",
-        "pattern": { "regexp": ".*" },
+        "pattern": {
+          "regexp": ".*"
+        },
         "background": {
           "activeOnStart": true,
           "beginsPattern": "RERUN",
@@ -294,6 +355,17 @@
         "revealProblems": "onProblem",
         "panel": "dedicated",
         "group": "test",
+        "clear": true,
+        "isBackground": false
+      }
+    },
+    {
+      "label": "tsc:go",
+      "problemMatcher": [],
+      "type": "npm",
+      "script": "tsc:go",
+      "presentation": {
+        "panel": "dedicated",
         "clear": true,
         "isBackground": false
       }

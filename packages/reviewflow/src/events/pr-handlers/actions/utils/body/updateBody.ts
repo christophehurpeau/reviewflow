@@ -164,7 +164,7 @@ const internalUpdateBodyOptionsAndInfos = (
   infos?: StatusInfo[],
 ): string => {
   const infosAndCommitNotesParagraph = body.replace(
-    // eslint-disable-next-line regexp/no-super-linear-backtracking, regexp/optimal-quantifier-concatenation
+    // oxlint-disable-next-line regexp/no-super-linear-backtracking, regexp/optimal-quantifier-concatenation
     /^\s*(?:(####? Progress.*)?(####? Infos.*)?(####? Commits Notes.*)?####? Options:?)?.*$/s,
     `$1${getInfosReplacement("$2", infos)}$3`,
   );
@@ -229,7 +229,7 @@ export const updateCommentBodyInfos = (
   return commentBody.replace(
     // *  - zero or more
     // *? - zero or more (non-greedy)
-    // eslint-disable-next-line regexp/no-useless-quantifier
+    // oxlint-disable-next-line regexp/no-useless-quantifier
     /^\s*(####? Progress:?.*?)?(?:(####? Infos:?.*?)?(####? Commits Notes:?.*?)?(####? Options.*)?)?$/s,
     `$1${getInfosReplacement("$2", infos)}$3$4`,
   );
@@ -242,7 +242,7 @@ export const updateCommentBodyProgress = (
   return commentBody.replace(
     // *  - zero or more
     // *? - zero or more (non-greedy)
-    // eslint-disable-next-line regexp/no-useless-quantifier
+    // oxlint-disable-next-line regexp/no-useless-quantifier
     /^\s*(####? Progress:?.*?)?(?:(####? Infos:?.*?)?(####? Commits Notes:?.*?)?(####? Options.*)?)?$/s,
     `${getProgressReplacement(stepsState)}$2$3$4`,
   );
@@ -263,7 +263,6 @@ export const removeDeprecatedReviewflowInPrBody = (
 ): string => {
   if (!prBody) return "";
   return prBody.replace(
-    // eslint-disable-next-line regexp/no-unused-capturing-group
     /^(.*)<!---? do not edit after this -?-->(.*)<!---? end - don't add anything after this -?-->(.*)$/is,
     "$1$3",
   );

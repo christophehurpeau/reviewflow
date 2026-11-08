@@ -8,7 +8,7 @@ describe("isSafeUrl", () => {
   });
 
   it("refuses scripts, relative urls and garbage", () => {
-    // eslint-disable-next-line no-script-url
+    // oxlint-disable-next-line no-script-url
     expect(isSafeUrl("javascript:alert(1)")).toBe(false);
     expect(isSafeUrl(" JaVaScRiPt:alert(1)")).toBe(false);
     expect(isSafeUrl("/relative.png")).toBe(false);

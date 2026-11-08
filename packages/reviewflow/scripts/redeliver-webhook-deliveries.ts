@@ -27,7 +27,7 @@
  * githubstatus.com) without babysitting it.
  */
 
-/* eslint-disable no-console -- this is a cli script, its output is the point */
+/* oxlint-disable no-console -- this is a cli script, its output is the point */
 
 import { createSign } from "node:crypto";
 import { readFileSync, renameSync, writeFileSync } from "node:fs";

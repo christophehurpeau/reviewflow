@@ -253,7 +253,6 @@ describe("editPullRequest", () => {
         {
           method: "POST",
           path: "repos/acme/app/pulls/12/requested_reviewers",
-          // eslint-disable-next-line camelcase -- GitHub's field name
           body: { reviewers: ["carol"], team_reviewers: ["backend"] },
         },
       ],
@@ -261,7 +260,6 @@ describe("editPullRequest", () => {
         {
           method: "DELETE",
           path: "repos/acme/app/pulls/12/requested_reviewers",
-          // eslint-disable-next-line camelcase -- GitHub's field name
           body: { reviewers: [], team_reviewers: ["frontend"] },
         },
       ],
@@ -349,7 +347,6 @@ describe("editPullRequest", () => {
       {
         method: "PUT",
         path: "repos/acme/app/pulls/12/merge",
-        // eslint-disable-next-line camelcase -- GitHub's field name
         body: { merge_method: "squash", sha },
       },
     ]);
@@ -365,12 +362,9 @@ describe("editPullRequest", () => {
         method: "PUT",
         path: "repos/acme/app/pulls/12/merge",
         body: {
-          // eslint-disable-next-line camelcase -- GitHub's field name
           merge_method: "merge",
           sha,
-          // eslint-disable-next-line camelcase -- GitHub's field name
           commit_title: "Merge #12",
-          // eslint-disable-next-line camelcase -- GitHub's field name
           commit_message: "Details",
         },
       },
@@ -379,7 +373,6 @@ describe("editPullRequest", () => {
       {
         method: "PUT",
         path: "repos/acme/app/pulls/12/update-branch",
-        // eslint-disable-next-line camelcase -- GitHub's field name
         body: { expected_head_sha: sha },
       },
     ]);
@@ -484,7 +477,6 @@ describe("editPullRequest", () => {
       method: "POST",
       path: "repos/acme/app/pulls/12/reviews",
       body: {
-        // eslint-disable-next-line camelcase -- GitHub's field name
         commit_id: sha,
         event: "REQUEST_CHANGES",
         comments: [
@@ -494,9 +486,7 @@ describe("editPullRequest", () => {
             side: "LEFT",
             line: 9,
             body: "two",
-            // eslint-disable-next-line camelcase -- GitHub's field name
             start_line: 7,
-            // eslint-disable-next-line camelcase -- GitHub's field name
             start_side: "LEFT",
           },
         ],
@@ -520,7 +510,6 @@ describe("editPullRequest", () => {
     expect(inline).toEqual({
       method: "POST",
       path: "repos/acme/app/pulls/12/comments",
-      // eslint-disable-next-line camelcase -- GitHub's field name
       body: { commit_id: sha, path: "a.ts", body: "x", line: 5, side: "RIGHT" },
     });
 

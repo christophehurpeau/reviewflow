@@ -1,4 +1,4 @@
-/* oxlint-disable typescript/require-await, unicorn/no-await-expression-member, typescript/consistent-type-assertions, eslint/object-shorthand, eslint/func-names, eslint/no-loop-func, typescript/only-throw-error, eslint/no-bitwise, import/no-duplicates */
+/* oxlint-disable typescript/require-await */
 import { describe, expect, it } from "vitest";
 import type { ReviewflowBoardSnapshot } from "./board.ts";
 import {

@@ -9,6 +9,8 @@
       "enable": true
     },
     "monorepo": {
+      "storybook": true,
+      "storybookReactNative": true,
       "ci": true,
       "disablePushWorkflow": false,
       "testing": true,
@@ -19,8 +21,12 @@
       "eslint": true,
       "packageNames": [
         "@reviewflow/modules",
+        "@reviewflow/sdk",
+        "@reviewflow/app",
         "@reviewflow/core",
+        "@reviewflow/ui",
         "@reviewflow/webapp",
+        "@reviewflow/app-expo",
         "@reviewflow/reviewflow",
         "@reviewflow/webapp-server"
       ]

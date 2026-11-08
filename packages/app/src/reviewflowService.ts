@@ -270,7 +270,6 @@ export const createReviewflowService = ({
           const read = {
             generation,
             done: readBoards(generation).finally(() => {
-              // oxlint-disable-next-line eslint/no-use-before-define
               if (boardRead === read) boardRead = null;
             }),
           };

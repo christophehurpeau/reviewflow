@@ -173,7 +173,7 @@ export const editOpenedPR = async <
 
   const date = new Date().toISOString();
 
-  // eslint-disable-next-line no-useless-assignment
+  // oxlint-disable-next-line no-useless-assignment
   let hasLegacyLintPrCheck = false;
 
   if (checksAndStatuses) {
@@ -481,7 +481,7 @@ export const editOpenedPR = async <
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/await-thenable
+  // oxlint-disable-next-line typescript/await-thenable
   await Promise.all(promises);
 
   // the home shows the title and the lint statuses, so both are worth a refresh

@@ -19,6 +19,7 @@
     "packages/*/e2e/**/*.mts",
     "packages/*/e2e/**/*.cts"
   ],
+  "exclude": ["packages/reviewflow/scripts/**"],
   "compilerOptions": {
     "noEmit": true,
     "tsBuildInfoFile": "node_modules/.cache/tsc/tsbuildinfo-tools",

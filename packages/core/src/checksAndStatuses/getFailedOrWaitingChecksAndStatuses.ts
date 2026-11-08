@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* oxlint-disable typescript/no-unnecessary-condition */
 import type { ChecksAndStatuses } from "../models/ChecksAndStatuses.ts";
 
 export type ChecksAndStatusesState = "failed" | "passed" | "pending";

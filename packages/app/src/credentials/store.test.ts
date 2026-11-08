@@ -1,4 +1,4 @@
-/* oxlint-disable typescript/require-await, unicorn/no-await-expression-member, typescript/consistent-type-assertions, eslint/object-shorthand, eslint/func-names, eslint/no-loop-func, typescript/only-throw-error, eslint/no-bitwise, import/no-duplicates */
+/* oxlint-disable eslint/no-bitwise */
 import { randomBytes } from "node:crypto";
 import {
   mkdirSync,

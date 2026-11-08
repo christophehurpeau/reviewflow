@@ -55,7 +55,7 @@ export default function assignedOrUnassignedHandler(
         });
 
         await Promise.all(
-          // eslint-disable-next-line @typescript-eslint/await-thenable
+          // oxlint-disable-next-line typescript/await-thenable
           [
             ...pullRequest.assignees!,
             ...(pullRequest.assignees!.some(
