@@ -272,7 +272,7 @@ export function PullRequestDiffView({
     <View
       className={
         aside && diffStyle === "split"
-          ? "gap-m web:relative web:left-1/2 web:w-[min(100vw-3rem,1800px)] web:-translate-x-1/2"
+          ? "gap-m web:relative web:left-1/2 web:w-[100cqw] web:-translate-x-1/2"
           : "gap-m"
       }
     >

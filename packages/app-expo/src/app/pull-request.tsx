@@ -107,23 +107,26 @@ export default function PullRequestPage(): ReactNode {
     <ScreenScrollView>
       {valid ? (
         <PullRequestDataSourceProvider value={dataSource}>
-          <PullRequestScreen
-            ownerRepo={ownerRepo}
-            number={number}
-            tab={tab}
-            headerStart={back}
-            slots={slots}
-            draftStore={draftStore}
-            diffFileOrder={diffFileOrder}
-            openCommit={commit}
-            onDiffFileOrderChange={setDiffFileOrder}
-            onOpenCommitChange={(oid) => {
-              setParams({ commit: oid });
-            }}
-            onTabChange={(next) => {
-              setParams({ tab: next, commit: null });
-            }}
-          />
+          {/* wide enough for a split diff beside its file list */}
+          <View className="mx-auto w-full max-w-[1800px]">
+            <PullRequestScreen
+              ownerRepo={ownerRepo}
+              number={number}
+              tab={tab}
+              headerStart={back}
+              slots={slots}
+              draftStore={draftStore}
+              diffFileOrder={diffFileOrder}
+              openCommit={commit}
+              onDiffFileOrderChange={setDiffFileOrder}
+              onOpenCommitChange={(oid) => {
+                setParams({ commit: oid });
+              }}
+              onTabChange={(next) => {
+                setParams({ tab: next, commit: null });
+              }}
+            />
+          </View>
         </PullRequestDataSourceProvider>
       ) : (
         <View className="mx-auto w-full max-w-[1200px] gap-m px-l pt-l">

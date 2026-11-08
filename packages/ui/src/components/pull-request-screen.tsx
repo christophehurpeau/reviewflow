@@ -258,6 +258,12 @@ export interface PullRequestScreenProps {
  * {@link PullRequestDataSource} of the nearest
  * `PullRequestDataSourceProvider`, which the app provides. Mount it with a
  * `key` of the pull request, so a draft review never leaks to the next one.
+ *
+ * It fills its parent, and the app chooses how wide that is: its text stays in
+ * a 1200px column, and only a split diff beside its file list widens to the
+ * whole screen. The screen is the CSS container that diff is sized against
+ * (`100cqw`): the window (`100vw`) overflows an app that lays the page beside a
+ * sidebar.
  */
 export function PullRequestScreen({
   ownerRepo,
@@ -280,18 +286,20 @@ export function PullRequestScreen({
         fileOrder={diffFileOrder}
         onFileOrderChange={onDiffFileOrderChange}
       >
-        <View className="mx-auto w-full max-w-[1200px] gap-m px-l pt-l pb-xl">
-          <PullRequestDraftsProvider
-            store={draftStore}
-            pullRequest={{ ownerRepo, number }}
-          >
-            <PullRequestBody
-              key={`${ownerRepo}#${String(number)}`}
-              ownerRepo={ownerRepo}
-              number={number}
-              {...body}
-            />
-          </PullRequestDraftsProvider>
+        <View className="w-full px-l pt-l pb-xl web:@container">
+          <View className="mx-auto w-full max-w-[1200px] gap-m">
+            <PullRequestDraftsProvider
+              store={draftStore}
+              pullRequest={{ ownerRepo, number }}
+            >
+              <PullRequestBody
+                key={`${ownerRepo}#${String(number)}`}
+                ownerRepo={ownerRepo}
+                number={number}
+                {...body}
+              />
+            </PullRequestDraftsProvider>
+          </View>
         </View>
       </DiffSettingsProvider>
     </PullRequestSlotsProvider>
