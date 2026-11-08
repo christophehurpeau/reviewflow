@@ -29,7 +29,8 @@
         "@reviewflow/app-expo",
         "@reviewflow/reviewflow",
         "@reviewflow/webapp-server"
-      ]
+      ],
+      "mongodbBinaryCacheKeyFile": "scripts/vitestMongoGlobalSetup.ts"
     }
   }
 }
