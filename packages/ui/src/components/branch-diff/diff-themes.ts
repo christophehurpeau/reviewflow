@@ -14,7 +14,7 @@ export { diffThemeOptions, diffThemes } from "@reviewflow/sdk";
  * mixes into the code's background: less than pierre's 12% and 20%, which its
  * saturated palette greens and reds read too dark at.
  */
-const reviewflowChangeMix = { light: 8, dark: 13 };
+const reviewflowChangeMix = { light: 10, dark: 16 };
 
 const changeBackground = (base: string): string =>
   `light-dark(color-mix(in lab, var(--diffs-bg) ${String(100 - reviewflowChangeMix.light)}%, var(${base})), color-mix(in lab, var(--diffs-bg) ${String(100 - reviewflowChangeMix.dark)}%, var(${base})))`;
