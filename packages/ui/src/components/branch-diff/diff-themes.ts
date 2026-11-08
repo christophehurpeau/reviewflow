@@ -14,7 +14,7 @@ export { diffThemeOptions, diffThemes } from "@reviewflow/sdk";
  * mixes into the code's background: less than pierre's 12% and 20%, which its
  * saturated palette greens and reds read too dark at.
  */
-const reviewflowChangeMix = { light: 8, dark: 13 };
+const reviewflowChangeMix = { light: 6, dark: 15 };
 
 /**
  * For a pierre file's `unsafeCSS`: its added and deleted lines' background.
