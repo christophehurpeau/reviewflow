@@ -1,11 +1,11 @@
 import type {
+  PrStatus,
   PullRequestCandidatesResponse,
   PullRequestDetail,
   PullRequestDetailResponse,
   PullRequestEdit,
   PullRequestReviewState,
   PullRequestSummary,
-  PrStatus,
 } from "@reviewflow/sdk";
 import { prStatus, prStatusLabels, reviewflowPrStatus } from "@reviewflow/sdk";
 import type { Accent } from "alouette";
