@@ -1,6 +1,7 @@
-import type { ReviewflowBoardPr, ReviewflowPrChanges } from "@reviewflow/sdk";
-import type { FormatRelativeDateOptions } from "../services/formatRelativeDate.ts";
-import { formatRelativeDate } from "../services/formatRelativeDate.ts";
+import type { ReviewflowPrChanges } from "../types/reviewflow.ts";
+import type { FormatRelativeDateOptions } from "../utils/relativeDate.ts";
+import { formatRelativeDate } from "../utils/relativeDate.ts";
+import type { ReviewflowBoardPr } from "./board.ts";
 
 /**
  * What reviewflow's own board row says about a pull request, in its wording so

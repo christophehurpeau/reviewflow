@@ -59,8 +59,7 @@ export { PullRequestSuggestionBatchProvider } from "./services/PullRequestSugges
 export { emojify } from "./services/emojify.ts";
 export { errorToMessage } from "./services/errorToMessage.ts";
 export { isViewerAuthor } from "./services/isViewerAuthor.ts";
-export type { PrStatus } from "./prStatus.ts";
-export { prStatus, prStatusAccents, prStatusLabels } from "./prStatus.ts";
+export { prStatusAccents } from "./prStatus.ts";
 export * from "./board/index.ts";
 export { MarkdownEditor } from "./editor/markdown-editor.tsx";
 export type { MarkdownEditorFieldProps } from "./editor/markdown-editor.tsx";

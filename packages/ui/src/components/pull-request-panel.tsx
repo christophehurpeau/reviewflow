@@ -5,7 +5,9 @@ import type {
   PullRequestEdit,
   PullRequestReviewState,
   PullRequestSummary,
+  PrStatus,
 } from "@reviewflow/sdk";
+import { prStatus, prStatusLabels, reviewflowPrStatus } from "@reviewflow/sdk";
 import type { Accent } from "alouette";
 import {
   AccentScope,
@@ -33,13 +35,7 @@ import { ChatCircleDotsRegularIcon } from "alouette-icons/phosphor-icons/ChatCir
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { usePullRequestDataSource } from "../dataSource.ts";
-import type { PrStatus } from "../prStatus.ts";
-import {
-  prStatus,
-  prStatusAccents,
-  prStatusLabels,
-  reviewflowPrStatus,
-} from "../prStatus.ts";
+import { prStatusAccents } from "../prStatus.ts";
 import { emojify } from "../services/emojify.ts";
 import { errorToMessage } from "../services/errorToMessage.ts";
 import { formatDataAge } from "../services/formatDataAge.ts";

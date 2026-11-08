@@ -1,4 +1,16 @@
-import type { PullRequestRef, ReviewflowBoardPr } from "@reviewflow/sdk";
+import {
+  formatPrChanges,
+  reviewflowPrChangesRequested,
+  reviewflowPrFailure,
+  reviewflowPrFlowDate,
+  reviewflowPrOwners,
+  reviewflowPrProgress,
+} from "@reviewflow/sdk";
+import type {
+  PullRequestRef,
+  ReviewflowBoardPr,
+  ReviewflowRowContext,
+} from "@reviewflow/sdk";
 import {
   AccentScope,
   ExternalLinkText,
@@ -11,15 +23,6 @@ import type { ReactNode } from "react";
 import type { GestureResponderEvent } from "react-native";
 import { linkInRow } from "../components/link-in-row.ts";
 import { isSafeUrl } from "../markdown-github/safe-url.ts";
-import {
-  formatPrChanges,
-  reviewflowPrChangesRequested,
-  reviewflowPrFailure,
-  reviewflowPrFlowDate,
-  reviewflowPrOwners,
-  reviewflowPrProgress,
-} from "./facts.ts";
-import type { ReviewflowRowContext } from "./facts.ts";
 
 /**
  * Following a link from inside the pressable row must not also press the row.

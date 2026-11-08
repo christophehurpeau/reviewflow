@@ -6,6 +6,7 @@ import type {
   PullRequestThread,
   PullRequestViewerLastReview,
 } from "@reviewflow/sdk";
+import { formatRelativeDate } from "@reviewflow/sdk";
 import {
   Button,
   Code,
@@ -27,7 +28,6 @@ import { useMemo, useState } from "react";
 import { usePullRequestDataSource } from "../dataSource.ts";
 import { usePullRequestReviewDraft } from "../services/PullRequestReviewDraftProvider.tsx";
 import { errorToMessage } from "../services/errorToMessage.ts";
-import { formatRelativeDate } from "../services/formatRelativeDate.ts";
 import { isViewerAuthor } from "../services/isViewerAuthor.ts";
 import { PullRequestReviewButton } from "./pull-request-actions-review.tsx";
 import type {

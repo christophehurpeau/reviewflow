@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { ReviewflowBoardPr } from "@reviewflow/sdk";
-import type { ReviewflowRowContext } from "./facts.ts";
+import type { ReviewflowBoardPr } from "./board.ts";
+import type { ReviewflowRowContext } from "./boardFacts.ts";
 import {
   formatPrChanges,
   reviewflowPrChangesRequested,
@@ -8,7 +8,7 @@ import {
   reviewflowPrFlowDate,
   reviewflowPrOwners,
   reviewflowPrProgress,
-} from "./facts.ts";
+} from "./boardFacts.ts";
 
 const facts = (
   overrides: Partial<ReviewflowBoardPr> = {},
