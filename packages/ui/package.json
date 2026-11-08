@@ -42,6 +42,10 @@
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     },
+    "./diff-viewer": {
+      "types": "./src/components/diff-viewer.tsx",
+      "default": "./src/components/diff-viewer.tsx"
+    },
     "./diff-worker-pool": {
       "types": "./src/components/branch-diff/diff-worker-pool.tsx",
       "browser": "./src/components/branch-diff/diff-worker-pool.web.tsx",

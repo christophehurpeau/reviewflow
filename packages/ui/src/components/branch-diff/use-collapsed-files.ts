@@ -18,6 +18,9 @@ interface CollapsedState {
  * not the file list: the viewer parses the patch and is loaded lazily. Stored
  * as a default plus exceptions, so either "all" needs no list of files and a
  * file new to a refreshed diff follows the last "all" pressed.
+ *
+ * @deprecated `DiffViewer` and the pull request diff take a
+ * `PullRequestCollapse`: use `usePullRequestCollapse`.
  */
 export const useCollapsedFiles = (): CollapsedFiles => {
   const [state, setState] = useState<CollapsedState>({

@@ -49,6 +49,10 @@ import type { PullRequestDataSource } from "../dataSource.ts";
 import { usePullRequestDataSource } from "../dataSource.ts";
 import type { PendingComment } from "../services/PullRequestReviewDraftProvider.tsx";
 import { usePullRequestReviewDraft } from "../services/PullRequestReviewDraftProvider.tsx";
+import {
+  DiffChangeMark,
+  hidePierreChangeIcon,
+} from "./branch-diff/diff-change-mark.tsx";
 import { diffFontCSS } from "./branch-diff/diff-font.ts";
 import type { DiffTheme } from "./branch-diff/diff-themes.ts";
 import {
@@ -736,26 +740,31 @@ function DiffFile({
           overflow: wordWrap ? "wrap" : "scroll",
           collapsed,
           stickyHeader: true,
-          unsafeCSS: `${stickyHeaderBelow(stickyTop)} ${headerInset} ${roundedFile} ${pierreScrollbars} ${diffFontCSS(fontFamily)} ${selectionCSS(theme, themeType)} ${changeBackgroundCSS(theme)} ${headerHighlight(highlight, collapsed)}`,
+          unsafeCSS: `${stickyHeaderBelow(stickyTop)} ${headerInset} ${roundedFile} ${pierreScrollbars} ${hidePierreChangeIcon} ${diffFontCSS(fontFamily)} ${selectionCSS(theme, themeType)} ${changeBackgroundCSS(theme)} ${headerHighlight(highlight, collapsed)}`,
           loadDiffFiles: loadFiles,
           enableGutterUtility: commentable,
           onGutterUtilityClick: commentable ? onGutterUtilityClick : undefined,
         }}
         renderHeaderPrefix={() => (
-          <IconButton
-            icon={
-              collapsed ? <CaretRightRegularIcon /> : <CaretDownRegularIcon />
-            }
-            size="sm"
-            variant="soft"
-            accent="neutral"
-            aria-label={collapsed ? `Open ${file.name}` : `Close ${file.name}`}
-            aria-expanded={!collapsed}
-            onPress={() => {
-              revealBeforeClosing();
-              onToggleCollapsed();
-            }}
-          />
+          <View className="flex-row items-center gap-xxs">
+            <IconButton
+              icon={
+                collapsed ? <CaretRightRegularIcon /> : <CaretDownRegularIcon />
+              }
+              size="sm"
+              variant="soft"
+              accent="neutral"
+              aria-label={
+                collapsed ? `Open ${file.name}` : `Close ${file.name}`
+              }
+              aria-expanded={!collapsed}
+              onPress={() => {
+                revealBeforeClosing();
+                onToggleCollapsed();
+              }}
+            />
+            <DiffChangeMark type={file.type} />
+          </View>
         )}
         renderHeaderMetadata={
           !entry &&
@@ -961,6 +970,56 @@ function FileGroups({ groups, renderFile }: FileGroupsProps): ReactNode {
         );
       })}
     </View>
+  );
+}
+
+interface ReadOnlyFilesProps {
+  groups: FileGroup[];
+  diffStyle: DiffStyle;
+  theme: DiffTheme;
+  themeType: "dark" | "light";
+  fontFamily: string | null;
+  wordWrap: boolean;
+  stickyTop: number;
+  collapse: PullRequestCollapse;
+  loadFiles: FileDiffContentsLoader | undefined;
+  impactsOf?: (path: string) => DiffFileImpacts | undefined;
+}
+
+function ReadOnlyFiles({
+  groups,
+  diffStyle,
+  theme,
+  themeType,
+  fontFamily,
+  wordWrap,
+  stickyTop,
+  collapse,
+  loadFiles,
+  impactsOf,
+}: ReadOnlyFilesProps): ReactNode {
+  return (
+    <FileGroups
+      groups={groups}
+      renderFile={(file, { entry, attached }) => (
+        <DiffFile
+          file={file}
+          diffStyle={diffStyle}
+          theme={theme}
+          themeType={themeType}
+          fontFamily={fontFamily}
+          wordWrap={wordWrap}
+          stickyTop={stickyTop}
+          loadFiles={loadFiles}
+          entry={entry}
+          impacts={impactsOf?.(file.name)}
+          collapsed={collapse.isCollapsed(file.name, attached)}
+          onToggleCollapsed={() => {
+            collapse.set(file.name, !collapse.isCollapsed(file.name, attached));
+          }}
+        />
+      )}
+    />
   );
 }
 
@@ -1345,29 +1404,17 @@ function PullRequestDiffViewer({
   return (
     <DiffWorkerPool theme={theme}>
       {review === undefined ? (
-        <FileGroups
+        <ReadOnlyFiles
           groups={fileGroups}
-          renderFile={(file, { entry, attached }) => (
-            <DiffFile
-              file={file}
-              diffStyle={diffStyle}
-              theme={theme}
-              themeType={themeType}
-              fontFamily={fontFamily}
-              wordWrap={wordWrap}
-              stickyTop={stickyTop}
-              loadFiles={loadFiles}
-              entry={entry}
-              impacts={impactsOf(file.name)}
-              collapsed={collapse.isCollapsed(file.name, attached)}
-              onToggleCollapsed={() => {
-                collapse.set(
-                  file.name,
-                  !collapse.isCollapsed(file.name, attached),
-                );
-              }}
-            />
-          )}
+          diffStyle={diffStyle}
+          theme={theme}
+          themeType={themeType}
+          fontFamily={fontFamily}
+          wordWrap={wordWrap}
+          stickyTop={stickyTop}
+          collapse={collapse}
+          loadFiles={loadFiles}
+          impactsOf={impactsOf}
         />
       ) : (
         <ReviewedFiles
@@ -1392,3 +1439,64 @@ function PullRequestDiffViewer({
 }
 
 export default memo(PullRequestDiffViewer);
+
+export interface DiffViewerProps {
+  patch: string;
+  /** the files by package, in this order; a file no group names goes under the root */
+  groups: DiffGroup[];
+  diffStyle: DiffStyle;
+  theme: DiffTheme;
+  themeType: "dark" | "light";
+  fontFamily: string | null;
+  wordWrap: boolean;
+  /** where a file header sticks: the height of the toolbar stuck above it */
+  stickyTop: number;
+  collapse: PullRequestCollapse;
+  /** absent: the unchanged lines between hunks cannot be unfolded */
+  loadFiles?: FileDiffContentsLoader;
+}
+
+/**
+ * A read-only diff of any patch, with the pull request's file chrome and no
+ * pull request: a branch against its base, a working tree. Default export of
+ * `@reviewflow/ui/diff-viewer`, to be loaded lazily like the pull request's.
+ */
+function DiffViewer({
+  patch,
+  groups,
+  diffStyle,
+  theme,
+  themeType,
+  fontFamily,
+  wordWrap,
+  stickyTop,
+  collapse,
+  loadFiles,
+}: DiffViewerProps): ReactNode {
+  const fileGroups = useMemo(
+    () =>
+      groupFiles(
+        parsePatchFiles(patch).flatMap((parsed) => parsed.files),
+        groups,
+      ),
+    [patch, groups],
+  );
+  return (
+    <DiffWorkerPool theme={theme}>
+      <ReadOnlyFiles
+        groups={fileGroups}
+        diffStyle={diffStyle}
+        theme={theme}
+        themeType={themeType}
+        fontFamily={fontFamily}
+        wordWrap={wordWrap}
+        stickyTop={stickyTop}
+        collapse={collapse}
+        loadFiles={loadFiles}
+      />
+    </DiffWorkerPool>
+  );
+}
+
+const MemoizedDiffViewer = memo(DiffViewer);
+export { MemoizedDiffViewer as DiffViewer };

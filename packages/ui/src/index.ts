@@ -28,6 +28,18 @@ export { PullRequestFiles } from "./components/pull-request-files.tsx";
 export { PullRequestReview } from "./components/pull-request-review.tsx";
 export { PullRequestCommits } from "./components/pull-request-commits.tsx";
 export { DiffRefused } from "./components/pull-request-diff-view.tsx";
+export { OmittedFiles } from "./components/omitted-files.tsx";
+// DiffViewer is the `@reviewflow/ui/diff-viewer` subpath (default export), to be loaded lazily:
+// it imports @pierre/diffs. Only its types come from here.
+export type {
+  DiffStyle,
+  DiffViewerProps,
+} from "./components/pull-request-diff-viewer.tsx";
+export type { PullRequestCollapse } from "./components/pull-request-diff-collapse.ts";
+export { usePullRequestCollapse } from "./components/pull-request-diff-collapse.ts";
+export { diffFontFamily } from "./components/branch-diff/diff-font.ts";
+export { linkInRow } from "./components/link-in-row.ts";
+export { scrollParentOf } from "./components/scroll-parent.ts";
 export { MarkdownText } from "./components/markdown-text.tsx";
 export {
   DiffSettingsProvider,
