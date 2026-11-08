@@ -63,7 +63,7 @@
       "problemMatcher": []
     },
     {
-      "label": "dev",
+      "label": "dev:bot",
       "dependsOrder": "parallel",
       "dependsOn": [
         "modules > start",
@@ -72,6 +72,54 @@
         "webapp-server > start",
         "webapp > start"
       ],
+      "problemMatcher": []
+    },
+    {
+      "label": "sdk > start",
+      "type": "shell",
+      "command": "pnpm start",
+      "options": { "cwd": "${workspaceFolder}/packages/sdk" },
+      "group": { "kind": "none" },
+      "presentation": {
+        "panel": "dedicated",
+        "group": "dev:app",
+        "clear": true
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "app > start",
+      "type": "shell",
+      "command": "pnpm start",
+      "options": { "cwd": "${workspaceFolder}/packages/app" },
+      "group": { "kind": "none" },
+      "presentation": {
+        "panel": "dedicated",
+        "group": "dev:app",
+        "clear": true
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "app-expo > start",
+      "type": "shell",
+      "command": "pnpm start",
+      "options": { "cwd": "${workspaceFolder}/packages/app-expo" },
+      "group": { "kind": "none" },
+      "presentation": {
+        "panel": "dedicated",
+        "group": "dev:app",
+        "clear": true
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "dev:app",
+      "dependsOrder": "parallel",
+      "dependsOn": ["sdk > start", "app > start", "app-expo > start"],
       "problemMatcher": []
     },
     {

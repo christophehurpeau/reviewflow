@@ -1,0 +1,30 @@
+{
+  "extends": [
+    "@pob/root/tsconfigs/strict.json",
+    "@pob/root/tsconfigs/targets/expo.json"
+  ],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    ".storybook/**/*.ts",
+    ".storybook/**/*.tsx",
+    ".storybook-web/**/*.ts",
+    ".storybook-web/**/*.tsx",
+    "./*.ts",
+    ".expo/types/**/*.ts",
+    "nativewind-env.d.ts",
+    "expo-env.d.ts"
+  ],
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true,
+    "tsBuildInfoFile": "node_modules/.cache/tsc/tsbuildinfo",
+    "incremental": true,
+    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "paths": {
+      "#/*": ["./src/*"],
+      "#storybook/*": ["./.storybook/*"]
+    }
+  }
+}

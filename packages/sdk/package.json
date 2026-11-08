@@ -1,0 +1,136 @@
+{
+  "name": "@reviewflow/sdk",
+  "version": "6.21.0",
+  "description": "pull request model shared by the reviewflow app server and its ui: diff and api types, pure utils, the GitHub layer behind an injected transport, and (node only) reading a diff from a local checkout (@reviewflow/sdk/git) and editing a text file in place (@reviewflow/sdk/files)",
+  "keywords": [
+    "code-review",
+    "diff",
+    "git",
+    "github",
+    "pull-request",
+    "reviewflow"
+  ],
+  "homepage": "https://github.com/christophehurpeau/reviewflow",
+  "bugs": {
+    "url": "https://github.com/christophehurpeau/reviewflow/issues"
+  },
+  "license": "ISC",
+  "author": "Christophe Hurpeau <christophe@hurpeau.com> (https://christophe.hurpeau.com)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/christophehurpeau/reviewflow.git",
+    "directory": "packages/sdk"
+  },
+  "files": [
+    "build",
+    "src",
+    "!build/*.map",
+    "!src/**/*.test.ts",
+    "!src/**/test"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./build/index-node.mjs",
+  "module": "./build/index-browser.es.js",
+  "browser": "./build/index-browser.es.js",
+  "types": "./src/index.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./src/index.ts",
+      "node": {
+        "import": "./build/index-node.mjs"
+      },
+      "browser": {
+        "import": "./build/index-browser.es.js"
+      }
+    },
+    "./git": {
+      "types": "./src/git.ts",
+      "node": {
+        "import": "./build/git-node.mjs"
+      }
+    },
+    "./files": {
+      "types": "./src/files.ts",
+      "node": {
+        "import": "./build/files-node.mjs"
+      }
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "pnpm run clean:build && rollup --config rollup.config.mjs",
+    "clean": "pnpm run clean:build",
+    "clean:build": "pob-esbuild-clean-out build",
+    "lint": "pnpm run lint:oxlint && pnpm run lint:eslint",
+    "lint:eslint": "pnpm --dir '../..' exec eslint --quiet 'packages/sdk'",
+    "lint:oxlint": "pnpm --dir '../..' exec oxlint --quiet 'packages/sdk'",
+    "start": "pnpm run clean:build && rollup --config rollup.config.mjs --watch",
+    "test": "pnpm run --dir '../..' test -- 'packages/sdk'",
+    "tsc": "tsc",
+    "watch": "pnpm run clean:build && rollup --config rollup.config.mjs --watch"
+  },
+  "dependencies": {
+    "oxc-parser": "0.127.0"
+  },
+  "devDependencies": {
+    "@pob/rollup-esbuild": "11.1.0",
+    "@types/node": "24.12.4",
+    "@typescript/native": "npm:typescript@7.0.2",
+    "typescript": "npm:@typescript/typescript6@6.0.2"
+  },
+  "browserslist": {
+    "production": [
+      "defaults",
+      "> 0.2%",
+      "not ie < 12",
+      "not safari < 10",
+      "not ios_saf < 10"
+    ]
+  },
+  "engines": {
+    "node": ">=24.14.1"
+  },
+  "pob": {
+    "bundler": "rollup-esbuild",
+    "entries": [
+      {
+        "name": "index",
+        "envs": [
+          {
+            "target": "node",
+            "version": "24",
+            "omitVersionInFileName": true
+          },
+          {
+            "target": "browser"
+          }
+        ]
+      },
+      {
+        "name": "git",
+        "envs": [
+          {
+            "target": "node",
+            "version": "24",
+            "omitVersionInFileName": true
+          }
+        ]
+      },
+      {
+        "name": "files",
+        "envs": [
+          {
+            "target": "node",
+            "version": "24",
+            "omitVersionInFileName": true
+          }
+        ]
+      }
+    ],
+    "typescript": true
+  }
+}

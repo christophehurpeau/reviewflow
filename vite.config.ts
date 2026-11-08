@@ -14,6 +14,15 @@ const resolve = {
     "@reviewflow/core": fileURLToPath(
       new URL("./packages/core/src/index.ts", import.meta.url),
     ),
+    "@reviewflow/sdk/files": fileURLToPath(
+      new URL("./packages/sdk/src/files.ts", import.meta.url),
+    ),
+    "@reviewflow/sdk/git": fileURLToPath(
+      new URL("./packages/sdk/src/git.ts", import.meta.url),
+    ),
+    "@reviewflow/sdk": fileURLToPath(
+      new URL("./packages/sdk/src/index.ts", import.meta.url),
+    ),
     "@reviewflow/modules": fileURLToPath(
       new URL("./packages/modules/src/index.ts", import.meta.url),
     ),
@@ -31,6 +40,8 @@ export default defineConfig({
     projects: [
       // renders every webapp story in a browser, see its own config
       "packages/webapp/vitest.config.ts",
+      // same for the expo app, see its own config
+      "packages/app-expo/vitest.config.ts",
       {
         resolve,
         test: {
@@ -50,6 +61,42 @@ export default defineConfig({
           testTimeout,
           // the row formatters date with toLocaleDateString
           env: { TZ: "UTC" },
+          include: ["src/**/*.test.ts?(x)"],
+        },
+      },
+      {
+        resolve,
+        test: {
+          name: "sdk",
+          root: "packages/sdk",
+          testTimeout,
+          include: ["src/**/*.test.ts?(x)"],
+        },
+      },
+      {
+        resolve,
+        test: {
+          name: "ui",
+          root: "packages/ui",
+          testTimeout,
+          include: ["src/**/*.test.ts?(x)"],
+        },
+      },
+      {
+        resolve,
+        test: {
+          name: "app",
+          root: "packages/app",
+          testTimeout,
+          include: ["src/**/*.test.ts?(x)"],
+        },
+      },
+      {
+        resolve,
+        test: {
+          name: "app-expo",
+          root: "packages/app-expo",
+          testTimeout,
           include: ["src/**/*.test.ts?(x)"],
         },
       },

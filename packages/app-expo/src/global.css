@@ -1,0 +1,13 @@
+@import "alouette/core.css";
+@import "./palette.css";
+@import "./palette-oklch.css";
+
+/* Tailwind only emits classes it finds while scanning the @source paths below.
+   alouette is hoisted to the repo root node_modules, hence the depth. */
+@source "./**/*.{ts,tsx}";
+@source "../.storybook/**/*.{ts,tsx}";
+/* the pull request components are consumed as sources (see @reviewflow/ui's
+   package.json), so their classes are scanned from the real directory, not
+   through the node_modules symlink */
+@source "../../ui/src/**/*.{ts,tsx}";
+@source "../../../node_modules/alouette/src/**/*.{ts,tsx,js}";

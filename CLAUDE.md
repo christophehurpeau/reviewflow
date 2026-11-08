@@ -7,7 +7,9 @@ opening to merging: it rewrites the PR body with a status checklist, applies
 labels, enforces commit/title conventions, tracks reviews and checks, automerges,
 and notifies reviewers and authors over Slack (including DMs, whose settings live
 under the `dm/` folders). A companion webapp lets a user configure their account
-and follow their pull requests.
+and follow their pull requests. A separate local app, run on the reviewer's
+machine, reviews a pull request end to end (conversation, checks, commits,
+diff) over the reviewer's own `gh` login.
 
 pnpm workspaces, TypeScript everywhere, ESM only. See [README.md](README.md) for
 the architecture (two node processes on one mongo db, the internal api, the
@@ -22,9 +24,19 @@ reverse proxy) and for deployment.
 | [packages/webapp](packages/webapp)               | universal app | File-routed app to configure reviewflow (org, repositories, settings, user) and follow pull requests   |
 | [packages/core](packages/core)                   | shared lib    | Mongo stores and models, per-account configs (labels, review groups, rules), shared by the two servers |
 | [packages/modules](packages/modules)             | shared lib    | Types and resource/service contracts shared by the servers and the webapp                              |
+| [packages/app](packages/app)                     | local server  | `npx @reviewflow/app`: loopback-only server, GitHub through the `gh` token, diffs from local checkouts |
+| [packages/app-expo](packages/app-expo)           | local app     | Expo client of the app opening any pull request to review it; the board when connected to reviewflow   |
+| [packages/sdk](packages/sdk)                     | shared lib    | Pull request model, GitHub layer, git diff and reading order, reviewflow api client                    |
+| [packages/ui](packages/ui)                       | shared lib    | React Native pull request screens of the app, consumed as sources                                      |
 
 `core` is node-only; `modules` builds for both node and browser, which is why
 anything the webapp needs must live there and not in `core`.
+
+"The app" means `@reviewflow/app` (`packages/app`, published for `npx`, which
+embeds the `app-expo` web export at pack time), never the webapp. Every
+package is named `@reviewflow/<directory>`. The app family (`app`,
+`app-expo`, `sdk`, `ui`) shares no code with the webapp, `core` or `modules`:
+it reaches reviewflow only through its public api, with a user's api token.
 
 ## Technology
 

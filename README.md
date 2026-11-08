@@ -6,13 +6,17 @@
 
 This repository is a monorepo using workspaces.
 
-| Package                                             | Version | Description                                                                     |
-| --------------------------------------------------- | ------- | ------------------------------------------------------------------------------- |
-| [@reviewflow/core](packages/core)                   |         | mongo stores, models and account configs shared by the reviewflow servers       |
-| [@reviewflow/modules](packages/modules)             |         | shared types and service contracts between the reviewflow server and the webapp |
-| [@reviewflow/reviewflow](packages/reviewflow)       |         | 🚦 Open Source GitHub bot that improves PR flow from opening to merging.        |
-| [@reviewflow/webapp](packages/webapp)               |         | Expo Router app to configure reviewflow and follow your pull requests.          |
-| [@reviewflow/webapp-server](packages/webapp-server) |         | serves the reviewflow webapp, its oauth flows and its resources websocket       |
+| Package                                             | Version | Description                                                                           |
+| --------------------------------------------------- | ------- | ------------------------------------------------------------------------------------- |
+| [@reviewflow/core](packages/core)                   |         | mongo stores, models and account configs shared by the reviewflow servers             |
+| [@reviewflow/modules](packages/modules)             |         | shared types and service contracts between the reviewflow server and the webapp       |
+| [@reviewflow/reviewflow](packages/reviewflow)       |         | 🚦 Open Source GitHub bot that improves PR flow from opening to merging.              |
+| [@reviewflow/webapp](packages/webapp)               |         | Expo Router app to configure reviewflow and follow your pull requests.                |
+| [@reviewflow/webapp-server](packages/webapp-server) |         | serves the reviewflow webapp, its oauth flows and its resources websocket             |
+| [@reviewflow/app](packages/app)                     |         | review any GitHub pull request locally (`npx @reviewflow/app`) over your gh login     |
+| [@reviewflow/app-expo](packages/app-expo)           |         | Expo client of the app: conversation, checks, commits and the git diff                |
+| [@reviewflow/sdk](packages/sdk)                     |         | pull request model, GitHub layer, local git diff and reviewflow api client of the app |
+| [@reviewflow/ui](packages/ui)                       |         | React Native pull request screens of the app, consumed as sources                     |
 
 <h3>🏗 Architecture</h3>
 

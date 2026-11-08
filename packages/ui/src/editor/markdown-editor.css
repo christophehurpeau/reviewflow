@@ -1,0 +1,511 @@
+/*
+ * The markdown editor's look, ported from vscode-extension-markdown-beautiful-editor
+ * (src/styles/md-inline.css, md-block.css, md-alerts.css, code-tokens.css) with
+ * every --vscode-* colour rewritten as an alouette token, so the light and dark
+ * themes reach it through the same .light/.dark ancestor as the rest of the app.
+ *
+ * Everything is scoped under .markdown-editor: the md-* classes are generic
+ * names and must not reach anything else on the page.
+ *
+ * Two rules carried over from the extension, both because CodeMirror measures
+ * line boxes with getBoundingClientRect():
+ * - never a margin on a .cm-line — it sits outside the measured box, so clicks
+ *   in the gap resolve to a neighbouring line; vertical space is padding;
+ * - line-level rules are scoped to .cm-line.
+ */
+
+/* set under an info accent scope: the custom property keeps the info ink once
+   the current theme is restored below it (see LinkInkScope) */
+.markdown-editor-link-ink {
+  display: contents;
+  --md-link: var(--color-accent);
+}
+
+.markdown-editor {
+  --md-code-bg: color-mix(in srgb, var(--color-muted) 14%, transparent);
+  --md-code-block-bg: color-mix(in srgb, var(--color-muted) 10%, transparent);
+  --md-frontmatter-bg: color-mix(in srgb, var(--color-muted) 7%, transparent);
+  --md-quote-bg: color-mix(in srgb, var(--color-muted) 6%, transparent);
+
+  --md-tok-comment: #6e7781;
+  --md-tok-keyword: #cf222e;
+  --md-tok-string: #0a3069;
+  --md-tok-constant: #0550ae;
+  --md-tok-property: #0550ae;
+  --md-tok-type: #116329;
+  --md-tok-function: #8250df;
+  --md-tok-invalid: #82071e;
+
+  /* fills a column the caller grew; the editor still sizes to its content, and
+     the page — the app layout is the scroll container — scrolls a long one */
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-height: 240px;
+  border: 1px solid var(--color-interactive-outlined-pressable);
+  border-radius: 8px;
+  background: var(--color-highlight);
+  color: var(--color-sharp);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  transition: border-color 150ms ease-in;
+}
+
+.dark .markdown-editor {
+  --md-tok-comment: #8b949e;
+  --md-tok-keyword: #ff7b72;
+  --md-tok-string: #a5d6ff;
+  --md-tok-constant: #79c0ff;
+  --md-tok-property: #79c0ff;
+  --md-tok-type: #7ee787;
+  --md-tok-function: #d2a8ff;
+  --md-tok-invalid: #f85149;
+}
+
+.markdown-editor:hover {
+  border-color: var(--color-interactive-outlined-hover);
+}
+
+.markdown-editor:focus-within {
+  border-color: var(--color-interactive-outlined-focus);
+}
+
+.markdown-editor-readonly {
+  min-height: 0;
+  border: none;
+  background: transparent;
+}
+
+.markdown-editor-compact {
+  min-height: 96px;
+}
+
+/* the code editor shares the frame, the palette and the shell; only the type
+   and the height differ */
+.markdown-editor-code {
+  min-height: 160px;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.markdown-editor-code .cm-editor .cm-line {
+  padding: 0;
+}
+
+/* shell */
+
+.markdown-editor .cm-editor {
+  flex-grow: 1;
+  background: transparent;
+  font-family: inherit;
+}
+
+/* the frame's `:focus-within` border is the focus indicator; the browser's own
+   ring on the contenteditable would be a second one, in the system's accent */
+.markdown-editor .cm-editor.cm-focused,
+.markdown-editor .cm-content:focus-visible {
+  outline: none;
+}
+
+.markdown-editor .cm-scroller {
+  font-family: inherit;
+  line-height: inherit;
+}
+
+/* Through .cm-editor: CodeMirror injects its base theme as `.ͼ1 .cm-content`
+   and `.ͼ1 .cm-line` after this sheet, and a two-class rule loses that tie.
+   The inset is on the content rather than the lines, so a block's background
+   (frontmatter, a fence, a quote) keeps a gap from the border on every side. */
+.markdown-editor .cm-editor .cm-content {
+  padding: 10px;
+  caret-color: var(--color-accent);
+}
+
+.markdown-editor-readonly .cm-editor .cm-content {
+  padding: 0;
+}
+
+.markdown-editor .cm-editor .cm-line {
+  padding: 0 4px;
+}
+
+.markdown-editor-readonly .cm-editor .cm-line {
+  padding: 0;
+}
+
+.markdown-editor .cm-cursor,
+.markdown-editor .cm-dropCursor {
+  border-left-color: var(--color-accent);
+}
+
+.markdown-editor .cm-selectionBackground,
+.markdown-editor .cm-focused .cm-selectionBackground,
+.markdown-editor .cm-content ::selection {
+  background: var(--color-selection) !important;
+}
+
+.markdown-editor .cm-selectionMatch {
+  background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
+.markdown-editor .cm-panels {
+  background: var(--color-surface);
+  color: var(--color-sharp);
+  border-color: var(--color-border-muted);
+}
+
+.markdown-editor .cm-tooltip.cm-tooltip-autocomplete {
+  background: var(--color-surface);
+  color: var(--color-sharp);
+  border: 1px solid var(--color-border-muted);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.markdown-editor .cm-tooltip.cm-tooltip-autocomplete > ul {
+  font-family: var(--font-body);
+}
+
+.markdown-editor .cm-tooltip.cm-tooltip-autocomplete > ul > li {
+  padding: 2px 8px;
+}
+
+.markdown-editor .cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected] {
+  background: var(--color-selection);
+  color: var(--color-sharp);
+}
+
+/* inline */
+
+.markdown-editor .md-syntax {
+  color: var(--color-muted);
+  font-family: inherit;
+  font-style: normal;
+}
+
+/* Sora's weights are separate families on Expo web, so bold is a family, not a
+   synthesized font-weight */
+.markdown-editor .md-bold {
+  font-family: var(--font-body-bold);
+}
+
+.markdown-editor .md-bold .md-syntax {
+  font-family: var(--font-body);
+}
+
+.markdown-editor .md-italic {
+  font-style: italic;
+}
+
+/* box-decoration-break keeps a rounded chip on each fragment of a wrapped span */
+.markdown-editor .md-code {
+  background: var(--md-code-bg);
+  padding: 2px 0.25em;
+  border-radius: 5px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.markdown-editor .md-code-info {
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+}
+
+/* the strike is on the text between the ~~, never on the delimiters */
+.markdown-editor .md-strike {
+  opacity: 0.7;
+}
+
+.markdown-editor .md-strike-text {
+  text-decoration: line-through;
+}
+
+.markdown-editor .md-task-checked,
+.markdown-editor .md-task-parent-checked {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.markdown-editor .md-table {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.markdown-editor .md-table-cell {
+  display: inline-block;
+  white-space: nowrap;
+  padding: 0 6px;
+  vertical-align: top;
+}
+
+.markdown-editor .md-col-center {
+  text-align: center;
+}
+
+.markdown-editor .md-col-right {
+  text-align: right;
+}
+
+.markdown-editor .md-table-sep {
+  color: var(--color-muted);
+}
+
+.markdown-editor .md-link .md-text,
+.markdown-editor .md-autolink .md-url,
+.markdown-editor .md-link-def .md-ref,
+.markdown-editor .md-image .md-alt {
+  color: var(--md-link, var(--color-accent));
+  text-decoration: underline;
+}
+
+.markdown-editor .md-link .md-url,
+.markdown-editor .md-image .md-url,
+.markdown-editor .md-link-def .md-url,
+.markdown-editor .md-ref-link .md-ref {
+  color: var(--color-muted);
+  font-size: 0.9em;
+}
+
+.markdown-editor .md-link-title,
+.markdown-editor .md-link-def-title {
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+/* lines */
+
+.markdown-editor .cm-line.md-heading {
+  font-family: var(--font-heading-bold);
+}
+
+.markdown-editor .cm-line.md-heading .md-syntax {
+  font-family: var(--font-heading);
+}
+
+.markdown-editor .cm-line.md-h1 {
+  font-size: 1.75em;
+  padding-top: 0.5em;
+  padding-bottom: 0.25em;
+}
+
+.markdown-editor .cm-line.md-h2 {
+  font-size: 1.45em;
+  padding-top: 0.4em;
+  padding-bottom: 0.2em;
+}
+
+.markdown-editor .cm-line.md-h3 {
+  font-size: 1.25em;
+  padding-top: 0.3em;
+  padding-bottom: 0.15em;
+}
+
+.markdown-editor .cm-line.md-h4 {
+  font-size: 1.1em;
+  padding-top: 0.2em;
+}
+
+.markdown-editor .cm-line.md-h5 {
+  font-size: 1em;
+  padding-top: 0.15em;
+}
+
+.markdown-editor .cm-line.md-h6 {
+  font-size: 1em;
+  color: var(--color-muted);
+  padding-top: 0.1em;
+}
+
+/* the ===/--- line under a setext title is its syntax, not a second heading line */
+.markdown-editor .cm-line.md-setext-title {
+  padding-bottom: 0;
+}
+
+.markdown-editor .cm-line.md-setext-underline {
+  padding-bottom: 0.3em;
+}
+
+.markdown-editor .cm-line.md-blockquote {
+  background: var(--md-quote-bg);
+  border-left: 4px solid var(--color-border-muted);
+  color: var(--color-muted);
+  padding-left: 12px;
+}
+
+.markdown-editor .cm-line.blockquote-first.md-blockquote {
+  border-top-right-radius: 6px;
+  padding-top: 6px;
+}
+
+.markdown-editor .cm-line.blockquote-last.md-blockquote {
+  border-bottom-right-radius: 6px;
+  padding-bottom: 6px;
+}
+
+.markdown-editor .cm-line.md-quote-2 {
+  padding-left: 1.5em;
+}
+
+.markdown-editor .cm-line.md-quote-3 {
+  padding-left: 3em;
+}
+
+.markdown-editor .cm-line.md-code-block {
+  background: var(--md-code-block-bg);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.markdown-editor .cm-line.md-code-block-first {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  padding-top: 8px;
+  color: var(--color-muted);
+}
+
+.markdown-editor .cm-line.md-code-block-last {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  padding-bottom: 8px;
+  color: var(--color-muted);
+}
+
+/* frontmatter is metadata: the shape of a code block, quieter */
+.markdown-editor .cm-line.md-frontmatter {
+  background: var(--md-frontmatter-bg);
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.markdown-editor .cm-line.md-frontmatter-first {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  padding-top: 8px;
+}
+
+.markdown-editor .cm-line.md-frontmatter-last {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  padding-bottom: 8px;
+}
+
+/* the rule is drawn either side of the literal ---, which stays visible */
+.markdown-editor .cm-line.md-hr {
+  display: flex;
+  align-items: center;
+  color: var(--color-muted);
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+}
+
+.markdown-editor .cm-line.md-hr::before,
+.markdown-editor .cm-line.md-hr::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-border-muted);
+}
+
+.markdown-editor .cm-line.md-hr::before {
+  margin-right: 1em;
+}
+
+.markdown-editor .cm-line.md-hr::after {
+  margin-left: 1em;
+}
+
+.markdown-editor .md-hr-text {
+  letter-spacing: 0.2em;
+  flex-shrink: 0;
+}
+
+/* GitHub alerts: each type sets only its accent, the bar, wash and label derive from it */
+
+.markdown-editor .cm-line.md-alert,
+.markdown-editor .cm-line.md-alert-content {
+  --md-alert-accent: var(--color-border-muted);
+  background: color-mix(in srgb, var(--md-alert-accent) 12%, transparent);
+  border-left: 4px solid var(--md-alert-accent);
+  color: var(--color-sharp);
+}
+
+.markdown-editor .cm-line.alert-first {
+  padding-top: 8px;
+  border-top-right-radius: 6px;
+}
+
+.markdown-editor .cm-line.alert-last {
+  padding-bottom: 8px;
+  border-bottom-right-radius: 6px;
+}
+
+.markdown-editor .md-alert-type {
+  font-family: var(--font-body-bold);
+  letter-spacing: 0.02em;
+  color: var(--md-alert-accent);
+}
+
+.markdown-editor .cm-line.md-alert-note {
+  --md-alert-accent: #0969da;
+}
+
+.markdown-editor .cm-line.md-alert-tip {
+  --md-alert-accent: #1a7f37;
+}
+
+.markdown-editor .cm-line.md-alert-important {
+  --md-alert-accent: #8250df;
+}
+
+.markdown-editor .cm-line.md-alert-warning {
+  --md-alert-accent: #9a6700;
+}
+
+.markdown-editor .cm-line.md-alert-caution {
+  --md-alert-accent: #cf222e;
+}
+
+/* code tokens, in fences and in the frontmatter's yaml */
+
+.markdown-editor .cm-line .tok-comment {
+  color: var(--md-tok-comment);
+  font-style: italic;
+}
+
+.markdown-editor .cm-line .tok-keyword,
+.markdown-editor .cm-line .tok-operator {
+  color: var(--md-tok-keyword);
+}
+
+.markdown-editor .cm-line .tok-string {
+  color: var(--md-tok-string);
+}
+
+.markdown-editor .cm-line .tok-constant {
+  color: var(--md-tok-constant);
+}
+
+.markdown-editor .cm-line .tok-property {
+  color: var(--md-tok-property);
+}
+
+.markdown-editor .cm-line .tok-type {
+  color: var(--md-tok-type);
+}
+
+.markdown-editor .cm-line .tok-function {
+  color: var(--md-tok-function);
+}
+
+.markdown-editor .cm-line .tok-invalid {
+  color: var(--md-tok-invalid);
+  text-decoration: underline wavy;
+}

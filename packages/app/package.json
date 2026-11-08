@@ -1,0 +1,75 @@
+{
+  "name": "@reviewflow/app",
+  "version": "6.21.0",
+  "description": "reviewflow app: review any GitHub pull request locally (npx @reviewflow/app), a loopback server on 127.0.0.1:7450 over your gh login serving the expo app",
+  "homepage": "https://github.com/christophehurpeau/reviewflow",
+  "license": "ISC",
+  "author": "Christophe Hurpeau <christophe@hurpeau.com> (https://christophe.hurpeau.com)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/christophehurpeau/reviewflow.git",
+    "directory": "packages/app"
+  },
+  "bin": {
+    "reviewflow-app": "./bin/reviewflow-app.mjs"
+  },
+  "files": [
+    "client",
+    "bin",
+    "build",
+    "!build/*.map"
+  ],
+  "type": "module",
+  "main": "./build/index-node.mjs",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./src/index.ts",
+      "node": {
+        "import": "./build/index-node.mjs"
+      }
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "pnpm run clean:build && rollup --config rollup.config.mjs",
+    "clean": "pnpm run clean:build",
+    "clean:build": "pob-esbuild-clean-out build",
+    "lint": "pnpm run lint:oxlint && pnpm run lint:eslint",
+    "lint:eslint": "pnpm --dir '../..' exec eslint --quiet 'packages/app'",
+    "lint:oxlint": "pnpm --dir '../..' exec oxlint --quiet 'packages/app'",
+    "postpack": "rm -rf client",
+    "prepack": "node scripts/packApp.ts",
+    "start": "pnpm run clean:build && REVIEWFLOW_APP_DEV=1 rollup --config rollup.config.mjs --watch",
+    "test": "pnpm run --dir '../..' test -- 'packages/app'",
+    "tsc": "tsc"
+  },
+  "dependencies": {
+    "@reviewflow/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "@pob/rollup-esbuild": "11.1.0",
+    "@types/node": "24.12.4",
+    "@typescript/native": "npm:typescript@7.0.2",
+    "typescript": "npm:@typescript/typescript6@6.0.2"
+  },
+  "engines": {
+    "node": ">=24.14.1"
+  },
+  "pob": {
+    "bundler": "rollup-esbuild",
+    "entries": [
+      "index"
+    ],
+    "envs": [
+      {
+        "target": "node",
+        "version": "24",
+        "omitVersionInFileName": true
+      }
+    ],
+    "typescript": true
+  }
+}

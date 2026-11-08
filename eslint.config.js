@@ -5,6 +5,8 @@ export default [
     ignores: [
       "packages/webapp/src/themeVariables.ts",
       "packages/webapp/.storybook/storybook.requires.ts",
+      "packages/app-expo/src/themeVariables.ts",
+      "packages/app-expo/.storybook/storybook.requires.ts",
     ],
   },
   ...pobConfig.configs.node,
@@ -20,7 +22,7 @@ export default [
     ],
   }),
   {
-    files: ["packages/webapp/package.json"],
+    files: ["packages/webapp/package.json", "packages/app-expo/package.json"],
     rules: {
       "check-package-dependencies/require-direct-peer-dependencies": [
         "error",
