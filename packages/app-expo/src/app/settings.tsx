@@ -1,5 +1,10 @@
 import type { ReviewflowConnectionStatus } from "@reviewflow/sdk";
-import { defaultRepoPath, insertCheckoutEntry } from "@reviewflow/sdk";
+import {
+  defaultRepoPath,
+  insertCheckoutEntry,
+  readDefaultRepoPathSetting,
+  writeDefaultRepoPathSetting,
+} from "@reviewflow/sdk";
 import {
   DiffSettingsSection,
   EditableFile,
