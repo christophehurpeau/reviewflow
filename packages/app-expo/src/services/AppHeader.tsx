@@ -24,7 +24,8 @@ const sectionOf = (pathname: string): string => {
   if (
     pathname === reposHref ||
     pathname === "/repo" ||
-    pathname === "/checkout"
+    pathname === "/checkout" ||
+    pathname === "/branch"
   ) {
     return reposHref;
   }

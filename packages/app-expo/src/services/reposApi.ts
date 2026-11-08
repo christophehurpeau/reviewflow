@@ -33,13 +33,22 @@ export interface CheckoutRef {
   ownerRepo: string;
   /** a path `git worktree list` gave; null: the listed checkout itself */
   worktree: string | null;
+  /**
+   * A local branch read in place of the checkout's HEAD, by the diff and the
+   * commits only: it has no working tree, status or sync of its own.
+   */
+  branch?: string;
 }
 
 const checkoutQuery = ({
   ownerRepo,
   worktree,
-}: CheckoutRef): Record<string, string> =>
-  worktree === null ? { repo: ownerRepo } : { repo: ownerRepo, worktree };
+  branch,
+}: CheckoutRef): Record<string, string> => ({
+  repo: ownerRepo,
+  ...(worktree === null ? {} : { worktree }),
+  ...(branch === undefined ? {} : { branch }),
+});
 
 interface UseRepoDiffParams {
   checkout: CheckoutRef;
@@ -65,6 +74,7 @@ export const useRepoDiff = ({
       "repoDiff",
       checkout.ownerRepo,
       checkout.worktree,
+      checkout.branch ?? null,
       scope,
       whitespace,
     ],
@@ -86,7 +96,12 @@ export const useRepoCommits = (
   checkout: CheckoutRef,
 ): UseQueryResult<CheckoutCommitsResponse> =>
   useQuery({
-    queryKey: ["repoCommits", checkout.ownerRepo, checkout.worktree],
+    queryKey: [
+      "repoCommits",
+      checkout.ownerRepo,
+      checkout.worktree,
+      checkout.branch ?? null,
+    ],
     queryFn: ({ signal }) =>
       getJson<CheckoutCommitsResponse>(
         "/api/repos/commits",

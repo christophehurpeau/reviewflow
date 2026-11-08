@@ -81,6 +81,10 @@ function RepoOverviewScreen({
     });
   };
 
+  const openBranch = (branch: string): void => {
+    router.push({ pathname: "/branch", params: { repo: ownerRepo, branch } });
+  };
+
   /** git state moved, or may have, whether the pull succeeded or not */
   const pullWorktree = async (worktree: CheckoutWorktree): Promise<void> => {
     try {
@@ -133,6 +137,7 @@ function RepoOverviewScreen({
         );
       }}
       onOpenWorktree={openWorktree}
+      onOpenBranch={openBranch}
       onPullWorktree={pullWorktree}
       onOpenPullRequest={openPullRequest}
       onReload={() => {

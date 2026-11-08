@@ -29,7 +29,6 @@ import {
 } from "alouette";
 import { ArrowsClockwiseRegularIcon } from "alouette-icons/phosphor-icons/ArrowsClockwise";
 import { CloudArrowDownRegularIcon } from "alouette-icons/phosphor-icons/CloudArrowDown";
-import { FolderOpenRegularIcon } from "alouette-icons/phosphor-icons/FolderOpen";
 import { FolderSimpleRegularIcon } from "alouette-icons/phosphor-icons/FolderSimple";
 import { GitBranchRegularIcon } from "alouette-icons/phosphor-icons/GitBranch";
 import { GitPullRequestRegularIcon } from "alouette-icons/phosphor-icons/GitPullRequest";
@@ -213,8 +212,8 @@ interface BranchRowProps {
   pullRequest: OpenPullRequest | null;
   /** the worktree it is checked out in, openable; null when none */
   worktree: CheckoutWorktree | null;
-  first: boolean;
   onOpenWorktree: (worktree: CheckoutWorktree) => void;
+  onOpenBranch: (branch: string) => void;
   onPullWorktree: (worktree: CheckoutWorktree) => Promise<void>;
   onOpenPullRequest: (number: number) => void;
 }
@@ -227,27 +226,59 @@ const isPullable = (worktree: CheckoutWorktree | null): boolean =>
   worktree?.status != null && pullRefusal(worktree.status) === null;
 
 /**
- * A static row, with no single destination of its own: its pull, its pull
- * request and its checkout are each a button, at the bottom as on the
- * worktree rows.
+ * The row opens the branch: its checkout when a worktree has it out, else the
+ * branch read from the listed checkout. Its pull and its pull request sit at
+ * the bottom and take their own press.
  */
 function BranchRow({
   branch,
   pullRequest,
   worktree,
-  first,
   onOpenWorktree,
+  onOpenBranch,
   onPullWorktree,
   onOpenPullRequest,
 }: BranchRowProps): ReactNode {
   const track = branchTrackParts(branch);
   const pullable = worktree !== null && isPullable(worktree);
-  const hasActions = pullable || pullRequest !== null || worktree !== null;
+  const hasActions = pullable || pullRequest !== null;
   return (
-    <View
-      className={
-        first ? "gap-xs px-m py-sm" : "gap-xs border-t border-muted px-m py-sm"
+    <PressableListItem
+      role="link"
+      aria-label={
+        worktree === null
+          ? `Open the branch ${branch.name}`
+          : `Open the checkout of ${branch.name} at ${worktree.path}`
       }
+      actions={
+        hasActions ? (
+          <View className="flex-row flex-wrap items-center gap-xs">
+            {pullable ? (
+              <ActionButton
+                text={`Pull ${String(worktree.status?.behind)}`}
+                icon={<CloudArrowDownRegularIcon />}
+                accent="brand"
+                variant="tonal"
+                size="sm"
+                aria-label={`Pull ${branch.name}`}
+                errorMessageVariant="flat"
+                errorToMessage={errorToMessage}
+                onPress={() => onPullWorktree(worktree)}
+              />
+            ) : null}
+            {pullRequest === null ? null : (
+              <PullRequestButton
+                pullRequest={pullRequest}
+                onOpen={onOpenPullRequest}
+              />
+            )}
+          </View>
+        ) : undefined
+      }
+      onPress={() => {
+        if (worktree === null) onOpenBranch(branch.name);
+        else onOpenWorktree(worktree);
+      }}
     >
       <View className="min-w-0 gap-xxs">
         <View className="flex-row flex-wrap items-center gap-sm">
@@ -261,44 +292,7 @@ function BranchRow({
           {`${branch.lastCommit.subject} · ${formatRelativeDate(branch.lastCommit.committedAt)}`}
         </Text>
       </View>
-      {hasActions ? (
-        <View className="flex-row flex-wrap items-center gap-xs">
-          {pullable ? (
-            <ActionButton
-              text={`Pull ${String(worktree.status?.behind)}`}
-              icon={<CloudArrowDownRegularIcon />}
-              accent="brand"
-              variant="tonal"
-              size="sm"
-              aria-label={`Pull ${branch.name}`}
-              errorMessageVariant="flat"
-              errorToMessage={errorToMessage}
-              onPress={() => onPullWorktree(worktree)}
-            />
-          ) : null}
-          {pullRequest === null ? null : (
-            <PullRequestButton
-              pullRequest={pullRequest}
-              onOpen={onOpenPullRequest}
-            />
-          )}
-          {worktree === null ? null : (
-            <Button
-              text="Open checkout"
-              icon={<FolderOpenRegularIcon />}
-              accent="neutral"
-              variant="tonal"
-              size="sm"
-              role="link"
-              aria-label={`Open the checkout at ${worktree.path}`}
-              onPress={() => {
-                onOpenWorktree(worktree);
-              }}
-            />
-          )}
-        </View>
-      ) : null}
-    </View>
+    </PressableListItem>
   );
 }
 
@@ -307,6 +301,7 @@ interface BranchesSectionProps {
   overview: CheckoutBranchesResponse;
   pullRequests: OpenPullRequest[];
   onOpenWorktree: (worktree: CheckoutWorktree) => void;
+  onOpenBranch: (branch: string) => void;
   onPullWorktree: (worktree: CheckoutWorktree) => Promise<void>;
   onOpenPullRequest: (number: number) => void;
 }
@@ -316,6 +311,7 @@ function BranchesSection({
   overview,
   pullRequests,
   onOpenWorktree,
+  onOpenBranch,
   onPullWorktree,
   onOpenPullRequest,
 }: BranchesSectionProps): ReactNode {
@@ -335,8 +331,8 @@ function BranchesSection({
       {branches.length === 0 ? (
         <Text className="text-sm text-muted">No local branch.</Text>
       ) : (
-        <Box className="surface">
-          {shown.map((branch, index) => (
+        <View className="gap-xs">
+          {shown.map((branch) => (
             <BranchRow
               key={branch.name}
               branch={branch}
@@ -346,13 +342,13 @@ function BranchesSection({
                 branch.name,
               )}
               worktree={openableWorktree(branch.worktreePath)}
-              first={index === 0}
               onOpenWorktree={onOpenWorktree}
+              onOpenBranch={onOpenBranch}
               onPullWorktree={onPullWorktree}
               onOpenPullRequest={onOpenPullRequest}
             />
           ))}
-        </Box>
+        </View>
       )}
       {shown.length < branches.length ? (
         <View className="flex-row">
@@ -505,6 +501,8 @@ export interface RepoOverviewProps {
   pulls: CheckoutRead<OpenPullRequestsResponse>;
   onReload: () => void;
   onOpenWorktree: (worktree: CheckoutWorktree) => void;
+  /** a local branch no worktree has out, read from the listed checkout */
+  onOpenBranch: (branch: string) => void;
   /** a fast-forward pull in that worktree; a rejection is shown under its button */
   onPullWorktree: (worktree: CheckoutWorktree) => Promise<void>;
   onOpenPullRequest: (number: number) => void;
@@ -529,6 +527,7 @@ export function RepoOverview({
   pulls,
   onReload,
   onOpenWorktree,
+  onOpenBranch,
   onPullWorktree,
   onOpenPullRequest,
   headerStart,
@@ -571,6 +570,7 @@ export function RepoOverview({
           overview={overview}
           pullRequests={pullRequests}
           onOpenWorktree={onOpenWorktree}
+          onOpenBranch={onOpenBranch}
           onPullWorktree={onPullWorktree}
           onOpenPullRequest={onOpenPullRequest}
         />
