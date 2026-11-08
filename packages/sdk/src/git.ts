@@ -12,6 +12,7 @@ export {
 export type { BranchDiffScope } from "./diff/types.ts";
 export type {
   BranchDiff,
+  BranchDiffEnd,
   DiffLimits,
   NumstatEntry,
 } from "./git/readBranchDiff.ts";
@@ -35,6 +36,13 @@ export type {
   CommitDiffParams,
   RecentCommitsParams,
 } from "./git/checkoutCommits.ts";
+export {
+  parseTrack,
+  parseWorktreeList,
+  readBranches,
+  readWorktrees,
+} from "./git/checkoutBranches.ts";
+export type { ReadBranchesParams } from "./git/checkoutBranches.ts";
 export {
   parseStatusV2,
   pullCheckout,

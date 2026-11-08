@@ -56,22 +56,34 @@ const parseLog = (output: string): LoggedCommit[] =>
 
 interface BranchStart {
   base: BranchDiffBase;
-  /** the commits HEAD has and the base has not */
+  /** the branch's commits among the listed ones: HEAD has them, the base has not */
   onBranch: Set<string>;
+  /** every commit of the branch, listed or not */
+  count: number;
 }
 
-/** null when the base cannot be resolved: nothing is then marked on the branch. */
+/**
+ * Null when the base cannot be resolved: nothing is then marked on the branch.
+ * The range keeps `git log`'s order, so its first `limit` commits hold every
+ * listed one it has.
+ */
 const readBranchStart = async (
   cwd: string,
   baseName: string | undefined,
+  limit: number,
 ): Promise<BranchStart | null> => {
   const name = baseName ?? (await readDefaultBranch(cwd)) ?? "main";
   try {
     const { base, mergeBase } = await resolveDiffBase(cwd, name);
-    const listed = await git(cwd, ["rev-list", `${mergeBase}..HEAD`]);
+    const range = `${mergeBase}..HEAD`;
+    const [listed, count] = await Promise.all([
+      git(cwd, ["rev-list", `--max-count=${String(limit)}`, range]),
+      git(cwd, ["rev-list", "--count", range]),
+    ]);
     return {
       base,
       onBranch: new Set(listed.split("\n").filter((sha) => sha !== "")),
+      count: Number(count.trim()),
     };
   } catch {
     return null;
@@ -120,7 +132,7 @@ export const readRecentCommits = async ({
 }: RecentCommitsParams): Promise<CheckoutCommitsResponse> => {
   const [branch, start, unpushed, log] = await Promise.all([
     readHeadBranch(cwd),
-    readBranchStart(cwd, baseName),
+    readBranchStart(cwd, baseName, limit),
     readUnpushed(cwd, limit),
     gitOrNull(cwd, [
       "log",
@@ -144,7 +156,7 @@ export const readRecentCommits = async ({
   return {
     branch,
     base: start?.base ?? null,
-    onBranchCount: start?.onBranch.size ?? null,
+    onBranchCount: start?.count ?? null,
     commits,
   };
 };
