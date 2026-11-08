@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.27.0](https://github.com/christophehurpeau/reviewflow/compare/v6.26.0...v6.27.0) (2026-11-08)
+
+### Features
+
+* **app:** branch screen, and pressable branch rows opening it or their checkout
+* **app:** pull a checked-out branch from the repository screen, board-style pull request rows
+* **ui:** branch diff view, a checked-out branch against its base
+* **ui:** checkout view with uncommitted, branch and history tabs
+* **ui:** file tree beside the checkout and branch diffs
+* **ui:** link the repository name above a pull request when the app gives a link
+* **ui:** read-only DiffViewer, change marks with tooltips, shared diff helpers exported
+* **ui:** recent commits tab, shared commit list, pull and push buttons
+* **ui:** repository overview, checkout view tabs and base slot
+* **ui:** repository rows' actions at the bottom, as tonal text and icon buttons
+* **ui:** worktree removal confirmation, and worktree rows with an actions slot
+* **ui:** worktree rows open on press, with text and icon actions at the bottom
+
+### Bug Fixes
+
+* **ui:** review status from reviewflow, repo name in header, centered badges
+* **ui:** title the branches section as local branches
+
+Version bump for dependency: @reviewflow/sdk
+
+
 ## [6.26.0](https://github.com/christophehurpeau/reviewflow/compare/v6.25.0...v6.26.0) (2026-11-08)
 
 ### Features

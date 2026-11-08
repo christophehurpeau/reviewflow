@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.27.0](https://github.com/christophehurpeau/reviewflow/compare/v6.26.0...v6.27.0) (2026-11-08)
+
+### Features
+
+* **app:** edit the repositories folder (defaultRepoPath) in settings
+* **app:** several repositories folders, autodiscover, cached scan
+* **sdk:** read a checkout's branch diff against its default branch
+* **sdk:** read the commits and the diff of a local branch that is not checked out
+* **sdk:** read worktrees, local branches and open pull requests of a repository
+* **sdk:** recent commits, a commit's diff, and pull or push of a checkout
+* **sdk:** uncommitted diff scope, pushed commits and branch commit count
+* **sdk:** uninterruptible git option for commands that delete files
+* **sdk:** worktree removal status, shared refusals and a removal that never forces
+
+### Bug Fixes
+
+* **sdk:** never mark the base branch merged
+
 ## [6.25.0](https://github.com/christophehurpeau/reviewflow/compare/v6.24.0...v6.25.0) (2026-11-08)
 
 ### Features

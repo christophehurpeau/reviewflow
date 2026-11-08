@@ -3,6 +3,47 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.27.0](https://github.com/christophehurpeau/reviewflow/compare/v6.26.0...v6.27.0) (2026-11-08)
+
+### Features
+
+* **app:** branch parameter on the repository diff and commits routes
+* **app:** branch screen, and pressable branch rows opening it or their checkout
+* **app:** branches and open pull requests routes, checkout reads on a worktree
+* **app:** edit the repositories folder (defaultRepoPath) in settings
+* **app:** list the configured repositories and diff their checked-out branch
+* **app:** open a checkout on its uncommitted changes, branch or history
+* **app:** open the repository screen from a pull request's repository name
+* **app:** pull a checked-out branch from the repository screen, board-style pull request rows
+* **app:** recent commits, pull and push, and checkouts found under the repositories folder
+* **app:** remove a worktree from the repository screen
+* **app:** repository screen with worktrees, branches and their pull requests
+* **app:** several repositories folders, autodiscover, cached scan
+* **app:** worktree status and removal routes, pull request heads kept as pushed
+* **sdk:** read a checkout's branch diff against its default branch
+* **sdk:** read the commits and the diff of a local branch that is not checked out
+* **sdk:** read worktrees, local branches and open pull requests of a repository
+* **sdk:** recent commits, a commit's diff, and pull or push of a checkout
+* **sdk:** uncommitted diff scope, pushed commits and branch commit count
+* **sdk:** uninterruptible git option for commands that delete files
+* **sdk:** worktree removal status, shared refusals and a removal that never forces
+* **ui:** branch diff view, a checked-out branch against its base
+* **ui:** checkout view with uncommitted, branch and history tabs
+* **ui:** file tree beside the checkout and branch diffs
+* **ui:** link the repository name above a pull request when the app gives a link
+* **ui:** read-only DiffViewer, change marks with tooltips, shared diff helpers exported
+* **ui:** recent commits tab, shared commit list, pull and push buttons
+* **ui:** repository overview, checkout view tabs and base slot
+* **ui:** repository rows' actions at the bottom, as tonal text and icon buttons
+* **ui:** worktree removal confirmation, and worktree rows with an actions slot
+* **ui:** worktree rows open on press, with text and icon actions at the bottom
+
+### Bug Fixes
+
+* **sdk:** never mark the base branch merged
+* **ui:** review status from reviewflow, repo name in header, centered badges
+* **ui:** title the branches section as local branches
+
 ## [6.26.0](https://github.com/christophehurpeau/reviewflow/compare/v6.25.0...v6.26.0) (2026-11-08)
 
 ### Features

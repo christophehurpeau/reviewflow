@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.27.0](https://github.com/christophehurpeau/reviewflow/compare/v6.26.0...v6.27.0) (2026-11-08)
+
+### Features
+
+* **app:** branch parameter on the repository diff and commits routes
+* **app:** branches and open pull requests routes, checkout reads on a worktree
+* **app:** list the configured repositories and diff their checked-out branch
+* **app:** recent commits, pull and push, and checkouts found under the repositories folder
+* **app:** several repositories folders, autodiscover, cached scan
+* **app:** worktree status and removal routes, pull request heads kept as pushed
+* **sdk:** uncommitted diff scope, pushed commits and branch commit count
+
+Version bump for dependency: @reviewflow/sdk
+
+
 ## [6.25.0](https://github.com/christophehurpeau/reviewflow/compare/v6.24.0...v6.25.0) (2026-11-08)
 
 ### Features
