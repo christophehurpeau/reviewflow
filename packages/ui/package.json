@@ -74,6 +74,7 @@
     "@lezer/highlight": "1.2.3",
     "@lezer/markdown": "1.7.2",
     "@pierre/diffs": "1.5.2",
+    "@pierre/trees": "1.0.0-beta.6",
     "@reviewflow/sdk": "workspace:*",
     "@tanstack/markdown": "0.0.13",
     "alouette-icons": "12.0.0",
@@ -86,6 +87,7 @@
     "@typescript/native": "npm:typescript@7.0.2",
     "alouette": "25.0.1",
     "react": "19.2.8",
+    "react-dom": "19.2.8",
     "react-native": "0.86.2",
     "react-native-safe-area-context": "5.8.0",
     "react-native-svg": "15.15.5",
@@ -95,8 +97,14 @@
   "peerDependencies": {
     "alouette": "^25.0.0",
     "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "react-native": "*",
     "react-native-svg": "*"
+  },
+  "peerDependenciesMeta": {
+    "react-dom": {
+      "optional": true
+    }
   },
   "engines": {
     "node": ">=22.18.0"

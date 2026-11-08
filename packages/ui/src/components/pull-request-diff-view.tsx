@@ -11,6 +11,8 @@ import {
   IndeterminateCircularProgress,
   IndeterminateLinearProgress,
   InfoMessage,
+  Tab,
+  Tabs,
   Text,
   View,
   WarningMessage,
@@ -31,6 +33,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { Platform } from "react-native";
 import type { PullRequestDiffRefusal } from "../dataSource.ts";
 import { usePullRequestReviewDraft } from "../services/PullRequestReviewDraftProvider.tsx";
 import { usePullRequestSlots } from "../slots.tsx";
@@ -55,6 +58,7 @@ import {
 import type { Composer } from "./pull-request-diff-lines.ts";
 import type { OverviewReadingOrderStatus } from "./pull-request-diff-overview.tsx";
 import { PullRequestDiffOverview } from "./pull-request-diff-overview.tsx";
+import { diffTreeFilesOf } from "./pull-request-diff-tree-files.ts";
 import type {
   DiffStyle,
   PullRequestDiffReview,
@@ -64,6 +68,13 @@ import { cssVariableOf, scrollToTopOf } from "./scroll-parent.ts";
 const PullRequestDiffViewer = lazy(
   () => import("./pull-request-diff-viewer.tsx"),
 );
+
+const PullRequestDiffTree = lazy(() => import("./pull-request-diff-tree.tsx"));
+
+/** the tree renders DOM in a shadow root */
+const diffTreeAvailable = Platform.OS === "web";
+
+type AsideView = "list" | "tree";
 
 const omissionLabel = (reason: DiffOmittedFile["reason"]): string => {
   if (reason === "binary") return "binary";
@@ -267,6 +278,24 @@ export function PullRequestDiffView({
     if (readingOrder.error !== null) return "failed";
     return "none";
   })();
+  const [requestedAsideView, setRequestedAsideView] =
+    useState<AsideView>("tree");
+  const asideView: AsideView = diffTreeAvailable ? requestedAsideView : "list";
+  const treeFiles = useMemo(
+    () => (shownDiff === null ? [] : diffTreeFilesOf(shownDiff)),
+    [shownDiff],
+  );
+  const viewedPaths = (review?.files ?? [])
+    .filter(({ viewed }) => viewed === "viewed")
+    .map(({ path }) => path);
+
+  const goToFile = (path: string): void => {
+    const element = fileElements.elementOf(path);
+    if (element === undefined) return;
+    scrollToTopOf(element, toolbarHeight);
+    const color = cssVariableOf(highlightProbe.current, "--color-enabled");
+    if (color !== "") fileElements.highlight(path, color);
+  };
 
   return (
     <View
@@ -369,31 +398,57 @@ export function PullRequestDiffView({
               <View
                 className={
                   aside
-                    ? "w-[280px] shrink-0 web:sticky web:max-h-[calc(100vh-8rem)] web:overflow-y-auto"
+                    ? "w-[280px] shrink-0 gap-sm web:sticky web:max-h-[calc(100vh-8rem)] web:overflow-y-auto"
                     : ""
                 }
                 style={aside ? { top: toolbarHeight } : undefined}
               >
-                <PullRequestDiffOverview
-                  groups={shownDiff.groups}
-                  omitted={shownDiff.omitted}
-                  readingOrder={readingOrder.value}
-                  readingOrderStatus={overviewStatus}
-                  impacts={impacts.value}
-                  impactsStatus={impactsStatus}
-                  displayOrder={ordered ? readingOrder.value : null}
-                  aside={aside}
-                  onFilePress={(path) => {
-                    const element = fileElements.elementOf(path);
-                    if (element === undefined) return;
-                    scrollToTopOf(element, toolbarHeight);
-                    const color = cssVariableOf(
-                      highlightProbe.current,
-                      "--color-enabled",
-                    );
-                    if (color !== "") fileElements.highlight(path, color);
-                  }}
-                />
+                {aside && diffTreeAvailable ? (
+                  <Tabs
+                    aria-label="Files listed"
+                    value={asideView}
+                    onValueChange={(value) => {
+                      setRequestedAsideView(value as AsideView);
+                    }}
+                  >
+                    <Tab value="tree" label="Tree" />
+                    <Tab
+                      value="list"
+                      label={
+                        readingOrder.available ? "Reading order" : "Workspaces"
+                      }
+                    />
+                  </Tabs>
+                ) : null}
+                {aside && asideView === "tree" ? (
+                  // a height of its own: the tree virtualizes, and grows to every row without one
+                  <View className="web:h-[calc(100vh-12rem)]">
+                    <Suspense fallback={<DiffLoading />}>
+                      <PullRequestDiffTree
+                        files={treeFiles}
+                        viewedPaths={viewedPaths}
+                        theme={theme}
+                        onFilePress={goToFile}
+                      />
+                    </Suspense>
+                  </View>
+                ) : (
+                  <PullRequestDiffOverview
+                    groups={shownDiff.groups}
+                    omitted={shownDiff.omitted}
+                    readingOrder={readingOrder.value}
+                    readingOrderStatus={overviewStatus}
+                    impacts={impacts.value}
+                    impactsStatus={impactsStatus}
+                    displayOrder={
+                      (aside && diffTreeAvailable) || ordered
+                        ? readingOrder.value
+                        : null
+                    }
+                    aside={aside}
+                    onFilePress={goToFile}
+                  />
+                )}
                 {/* the file header is pierre's shadow DOM, which no accent
                     class reaches: the color is read here and handed to it */}
                 <AccentScope accent="info">
