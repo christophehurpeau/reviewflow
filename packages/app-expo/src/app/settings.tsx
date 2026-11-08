@@ -133,8 +133,8 @@ function CheckoutsSection(): ReactNode {
       <Text className="font-heading-bold text-lg">Checkouts</Text>
       <Text className="text-muted">
         The git diff is read from a local checkout of the repository. Map each{" "}
-        <Code>owner/repo</Code> to the absolute path of a checkout whose origin
-        remote is that repository:{" "}
+        <Code>owner/repo</Code> to the absolute path (or <Code>~/path</Code>) of
+        a checkout whose origin remote is that repository:{" "}
         <Code>{'{ "repos": { "owner/repo": "/absolute/path" } }'}</Code>. A path
         that is missing or names another repository is saved with a warning.
       </Text>

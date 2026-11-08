@@ -1,10 +1,11 @@
 import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   describeRepoAttachment,
+  expandHome,
   ownerRepoOfRemote,
   readConfigRepos,
   resolveCheckout,
@@ -55,7 +56,26 @@ describe("ownerRepoOfRemote", () => {
   });
 });
 
+describe("expandHome", () => {
+  test.each([
+    ["~", homedir()],
+    ["~/dev/widgets", join(homedir(), "dev/widgets")],
+    ["/abs/~/x", "/abs/~/x"],
+    ["~other/x", "~other/x"],
+    ["relative", "relative"],
+  ])("%s", (path, expected) => {
+    expect(expandHome(path)).toBe(expected);
+  });
+});
+
 describe("config", () => {
+  test("reads a path under ~ expanded", () => {
+    writeConfig({ "acme/widgets": "~/dev/widgets" });
+    expect(readConfigRepos(configPath)).toEqual({
+      "acme/widgets": join(homedir(), "dev/widgets"),
+    });
+  });
+
   test("a missing file is no repository, not an error", async () => {
     expect(readConfigRepos(join(root, "nope.json"))).toEqual({});
     const refusal = await resolveCheckout(
@@ -161,9 +181,21 @@ describe("validateConfigSource", () => {
     ],
     [source({ "acme/widgets": "" }), "non-empty string"],
     [source({ "acme/widgets": "relative/dir" }), "must be an absolute path"],
+    [source({ "acme/widgets": "~other/dir" }), "must be an absolute path"],
   ])("refuses %s", async (text, message) => {
     expect(await validateConfigSource(text)).toEqual({
       error: expect.stringContaining(message),
+    });
+  });
+
+  test("accepts a path under ~, checked expanded", async () => {
+    const missing = "~/reviewflow-app-config-test-missing";
+    expect(
+      await validateConfigSource(source({ "acme/widgets": missing })),
+    ).toEqual({
+      warnings: [
+        `acme/widgets: ${expandHome(missing)} does not exist or is not a directory`,
+      ],
     });
   });
 

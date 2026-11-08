@@ -106,7 +106,7 @@ the entry already added, unsaved), or by hand. `~/.reviewflow-app/config.json`:
 { "repos": { "acme/widgets": "/Users/me/dev/widgets" } }
 ```
 
-A path counts only if it exists and its `remote.origin.url` names that
+A path is absolute or starts with `~/` (the home folder). It counts only if it exists and its `remote.origin.url` names that
 repository. A save is refused when the text is not that shape or the file
 changed on disk since the editor opened it (reload, or keep editing); a missing
 path or a checkout of another repository is saved with a warning.

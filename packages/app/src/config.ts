@@ -19,8 +19,15 @@ export const configHome = (): string => {
 export const configPathOf = (home: string = configHome()): string =>
   join(home, "config.json");
 
+const homePrefix = /^~(?=$|[/\\])/;
+
+/** `~` and `~/…` resolved against the user's home; `~user/…` is left as is. */
+export const expandHome = (path: string): string =>
+  path.replace(homePrefix, () => homedir());
+
 /**
- * `{ "repos": { "owner/repo": "/absolute/path" } }`. A missing file means no
+ * `{ "repos": { "owner/repo": "/absolute/path" } }`, paths under `~/`
+ * returned expanded. A missing file means no
  * repository is configured, which is a state and not an error; an unreadable
  * or malformed file raises, so the user sees why nothing resolves.
  */
@@ -50,7 +57,7 @@ export const readConfigRepos = (configPath: string): Record<string, string> => {
         `${configPath}: repos["${ownerRepo}"] must be a path`,
       );
     }
-    result[ownerRepo] = path;
+    result[ownerRepo] = expandHome(path);
   }
   return result;
 };
@@ -190,6 +197,7 @@ const ownerRepoPattern = /^[^/\s]+\/[^/\s]+$/;
 /**
  * What a save of the config file is checked with. Refused, nothing written:
  * text that is not json, anything but `{ "repos": { "owner/repo": "/absolute/path" } }`
+ * (or `"~/path"`)
  * (an unknown key is refused too, so a typo like "repo" is caught rather than
  * ignored). Only warned, the file is saved: a path that is not a git checkout,
  * or whose origin names another repository, since a checkout may be
@@ -235,15 +243,15 @@ export const validateConfigSource = async (
         error: `repos["${ownerRepo}"] must be the absolute path of a checkout, as a non-empty string`,
       };
     }
-    if (!isAbsolute(path)) {
+    if (!isAbsolute(expandHome(path))) {
       return {
-        error: `repos["${ownerRepo}"] must be an absolute path, got "${path}"`,
+        error: `repos["${ownerRepo}"] must be an absolute path or start with "~/", got "${path}"`,
       };
     }
   }
   const problems = await Promise.all(
     entries.map(async ([ownerRepo, path]) => {
-      const reason = await checkCheckout(ownerRepo, path as string);
+      const reason = await checkCheckout(ownerRepo, expandHome(path as string));
       return reason === null ? null : `${ownerRepo}: ${reason}`;
     }),
   );
