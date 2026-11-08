@@ -10,6 +10,7 @@ import type {
 } from "@reviewflow/sdk";
 import { pluralOf } from "@reviewflow/sdk";
 import {
+  AccentScope,
   Badge,
   Code,
   Disclosure,
@@ -24,6 +25,7 @@ import {
   Text,
   View,
   WarningMessage,
+  useCurrentBreakpointNameFiltered,
   useCurrentMode,
 } from "alouette";
 import { ArrowsClockwiseRegularIcon } from "alouette-icons/phosphor-icons/ArrowsClockwise";
@@ -36,8 +38,16 @@ import { FolderSimpleRegularIcon } from "alouette-icons/phosphor-icons/FolderSim
 import { GitBranchRegularIcon } from "alouette-icons/phosphor-icons/GitBranch";
 import { GitCommitRegularIcon } from "alouette-icons/phosphor-icons/GitCommit";
 import { RowsRegularIcon } from "alouette-icons/phosphor-icons/Rows";
-import type { ReactNode } from "react";
-import { Suspense, lazy, useDeferredValue, useState } from "react";
+import type { ComponentRef, ReactNode } from "react";
+import {
+  Suspense,
+  lazy,
+  useDeferredValue,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Platform } from "react-native";
 import { useDiffSettings } from "./branch-diff/use-diff-settings.tsx";
 import { WhitespaceButton } from "./branch-diff/whitespace-button.tsx";
 import type { CommitSteps } from "./commit-list.tsx";
@@ -45,10 +55,22 @@ import { CommitHeader, CommitList } from "./commit-list.tsx";
 import { OmittedFiles } from "./omitted-files.tsx";
 import type { PullRequestCollapse } from "./pull-request-diff-collapse.ts";
 import { usePullRequestCollapse } from "./pull-request-diff-collapse.ts";
+import {
+  DiffFileElementsContext,
+  createDiffFileElements,
+} from "./pull-request-diff-jump.ts";
+import { diffTreeFilesOf } from "./pull-request-diff-tree-files.ts";
 import type { DiffStyle } from "./pull-request-diff-viewer.tsx";
+import { cssVariableOf, scrollToTopOf } from "./scroll-parent.ts";
 import { TooltipIconButton } from "./tooltip-icon-button.tsx";
 
 const DiffViewer = lazy(() => import("./diff-viewer.tsx"));
+const PullRequestDiffTree = lazy(() => import("./pull-request-diff-tree.tsx"));
+
+/** the tree renders DOM in a shadow root */
+const diffTreeAvailable = Platform.OS === "web";
+
+const noViewedPaths: readonly string[] = [];
 
 /**
  * `uncommitted`: the working tree against `HEAD`. `branch`: the commits since
@@ -89,6 +111,10 @@ interface DiffBodyProps extends DiffDisplay {
   empty: ReactNode;
 }
 
+/**
+ * The files beside the diff, as the pull request's diff lists them: pressing
+ * one brings it into view and outlines it a moment. On a wide web screen only.
+ */
 function DiffBody({
   diff,
   error,
@@ -98,31 +124,72 @@ function DiffBody({
 }: DiffBodyProps): ReactNode {
   const mode = useCurrentMode();
   const { wordWrap, theme, fontFamily } = useDiffSettings();
+  const fileElements = useMemo(createDiffFileElements, []);
+  const highlightProbe = useRef<ComponentRef<typeof View>>(null);
+  const wide = useCurrentBreakpointNameFiltered(["base", "wide"]) === "wide";
+  const treeFiles = useMemo(
+    () => (diff === null ? [] : diffTreeFilesOf(diff)),
+    [diff],
+  );
   if (diff === null) {
     if (error !== null) return <WarningMessage>{error}</WarningMessage>;
     return <Loading />;
   }
   const hasFiles = diff.patch !== "";
-  return (
-    <View className="gap-m">
+  const aside = wide && diffTreeAvailable && treeFiles.length > 0;
+
+  const goToFile = (path: string): void => {
+    const element = fileElements.elementOf(path);
+    if (element === undefined) return;
+    scrollToTopOf(element, 0);
+    const color = cssVariableOf(highlightProbe.current, "--color-enabled");
+    if (color !== "") fileElements.highlight(path, color);
+  };
+
+  const files = (
+    <View className="min-w-0 flex-1 gap-m">
       {error === null ? null : <WarningMessage>{error}</WarningMessage>}
       <OmittedFiles omitted={diff.omitted} />
       {hasFiles ? (
         <Suspense fallback={<Loading />}>
-          <DiffViewer
-            patch={diff.patch}
-            groups={diff.groups}
-            diffStyle={diffStyle}
-            theme={theme}
-            themeType={mode}
-            fontFamily={fontFamily}
-            wordWrap={wordWrap}
-            stickyTop={0}
-            collapse={collapse}
-          />
+          <DiffFileElementsContext value={fileElements}>
+            <DiffViewer
+              patch={diff.patch}
+              groups={diff.groups}
+              diffStyle={diffStyle}
+              theme={theme}
+              themeType={mode}
+              fontFamily={fontFamily}
+              wordWrap={wordWrap}
+              stickyTop={0}
+              collapse={collapse}
+            />
+          </DiffFileElementsContext>
         </Suspense>
       ) : null}
       {hasFiles || diff.omitted.length > 0 ? null : empty}
+    </View>
+  );
+  if (!aside) return files;
+
+  return (
+    <View className="flex-row items-start gap-xl">
+      <View className="w-[280px] shrink-0 web:sticky web:top-0 web:h-[calc(100vh-16rem)]">
+        <Suspense fallback={<Loading />}>
+          <PullRequestDiffTree
+            files={treeFiles}
+            viewedPaths={noViewedPaths}
+            theme={theme}
+            onFilePress={goToFile}
+          />
+        </Suspense>
+        {/* the file header is pierre's shadow DOM, which no accent class
+            reaches: the color is read here and handed to it */}
+        <AccentScope accent="info">
+          <View ref={highlightProbe} className="hidden" />
+        </AccentScope>
+      </View>
+      {files}
     </View>
   );
 }
