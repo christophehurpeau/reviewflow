@@ -55,6 +55,7 @@ import { diffThemeNames } from "./branch-diff/diff-themes.ts";
 // metro picks the .web.tsx variant only for a specifier without extension
 /* eslint-disable-next-line import-x/no-unresolved */ // oxlint-disable-next-line import/extensions
 import { DiffWorkerPool } from "./branch-diff/diff-worker-pool";
+import { reviewflowSelectionColors } from "./branch-diff/reviewflow-diff-selection.ts";
 import type { CommitFileAnchoring } from "./pull-request-commit-files.ts";
 import type {
   AnnotationGroup,
@@ -429,6 +430,13 @@ const fileRadius = "1rem";
  */
 const roundedFile = `:host { border-radius: ${fileRadius}; overflow: clip; box-shadow: ${surfaceShadow}; }`;
 
+/** The reviewflow theme's selected lines mix with a lighter blue than its modified color. */
+const selectionCSS = (theme: DiffTheme, mode: "dark" | "light"): string => {
+  if (theme !== "reviewflow") return "";
+  const color = reviewflowSelectionColors[mode];
+  return `:host { --diffs-bg-selection-override: ${color}; --diffs-bg-selection-number-override: ${color}; }`;
+};
+
 const pierreScrollbars =
   "@supports not (-moz-appearance: none) { [data-code] { scrollbar-width: auto; scrollbar-color: auto; } }";
 
@@ -725,7 +733,7 @@ function DiffFile({
           overflow: wordWrap ? "wrap" : "scroll",
           collapsed,
           stickyHeader: true,
-          unsafeCSS: `${stickyHeaderBelow(stickyTop)} ${headerInset} ${roundedFile} ${pierreScrollbars} ${diffFontCSS(fontFamily)} ${headerHighlight(highlight, collapsed)}`,
+          unsafeCSS: `${stickyHeaderBelow(stickyTop)} ${headerInset} ${roundedFile} ${pierreScrollbars} ${diffFontCSS(fontFamily)} ${selectionCSS(theme, themeType)} ${headerHighlight(highlight, collapsed)}`,
           loadDiffFiles: loadFiles,
           enableGutterUtility: commentable,
           onGutterUtilityClick: commentable ? onGutterUtilityClick : undefined,

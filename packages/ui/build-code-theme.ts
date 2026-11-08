@@ -115,12 +115,27 @@ const editorTokenRoles: Record<string, Role> = {
 };
 
 const diffThemesFile = "src/components/branch-diff/reviewflow-diff-themes.ts";
+const diffSelectionFile =
+  "src/components/branch-diff/reviewflow-diff-selection.ts";
 const editorColorsFile = "src/editor/code-token-colors.css";
 
 /** Below it, Pierre's color is a gray: Pierre's grays have no chroma at all. */
 const grayChroma = 0.04;
 
 const chromeAccents = ["danger", "warning", "success", "info"] as const;
+
+/** The step of alouette's `accent` text token on a colored scale. */
+const accentInkStep = 10;
+
+/**
+ * Pierre's modified blue is light, and its nearest step a lighter blue than
+ * the app's file lists write a modified file in: it takes the accent's ink.
+ * Added and deleted keep their nearest step, the diff mixing its line
+ * backgrounds from them.
+ */
+const statusInks: Record<string, (typeof chromeAccents)[number]> = {
+  "gitDecoration.modifiedResourceForeground": "info",
+};
 
 const scaleOf = (spec: PaletteSpec, mode: Mode): Scale => {
   const hexes = createColorScale(spec, mode);
@@ -196,6 +211,14 @@ const mapValues = <T>(
     Object.entries(record).map(([key, value]) => [key, mapValue(value, key)]),
   );
 
+const statusColorsOf = (mode: Mode): Record<string, string> =>
+  Object.fromEntries(
+    Object.entries(statusInks).map(([key, accent]) => [
+      key,
+      scaleOf(reviewflowPalette[accent], mode).steps[accentInkStep - 1].hex,
+    ]),
+  );
+
 const pierreThemes: Record<Mode, ThemeRegistration> = {
   light: pierreLight as ThemeRegistration,
   dark: pierreDark as ThemeRegistration,
@@ -233,9 +256,12 @@ const buildDiffTheme = (mode: Mode): ThemeRegistration => {
     name: `reviewflow-${mode}`,
     displayName: `Reviewflow ${mode === "light" ? "Light" : "Dark"}`,
     type: mode,
-    colors: mapValues(pierre.colors ?? {}, (value) =>
-      isColor(value) ? chrome(value) : value,
-    ),
+    colors: {
+      ...mapValues(pierre.colors ?? {}, (value) =>
+        isColor(value) ? chrome(value) : value,
+      ),
+      ...statusColorsOf(mode),
+    },
     tokenColors: [
       ...(pierre.tokenColors ?? []).map((rule, index) => ({
         ...rule,
@@ -258,6 +284,18 @@ const buildDiffTheme = (mode: Mode): ThemeRegistration => {
   return theme;
 };
 
+/**
+ * The diff's selected lines mix their background with the modified color: in
+ * the accent's ink (`statusInks`) the light mode's selection turns a dull
+ * navy. They keep Pierre's lighter blue, at its nearest step.
+ */
+const selectionColorOf = (mode: Mode): string =>
+  createChromeMapper(mode)(
+    String(
+      pierreThemes[mode].colors?.["gitDecoration.modifiedResourceForeground"],
+    ),
+  );
+
 const editorTokenVariables = (mode: Mode, indent: string): string =>
   Object.entries(editorTokenRoles)
     .map(([token, role]) => `${indent}--md-tok-${token}: ${inkOf(role, mode)};`)
@@ -272,6 +310,16 @@ import type { ThemeRegistration } from "@pierre/diffs";
 export const reviewflowLightTheme: ThemeRegistration = ${JSON.stringify(buildDiffTheme("light"))};
 
 export const reviewflowDarkTheme: ThemeRegistration = ${JSON.stringify(buildDiffTheme("dark"))};
+`;
+
+const diffSelectionSource = `/* ${header} */
+
+/**
+ * The background the reviewflow diff theme's selected lines mix with, apart
+ * from its modified color, which is darker (\`build-code-theme.ts\`). Its own
+ * module: the themes it comes with are loaded lazily.
+ */
+export const reviewflowSelectionColors: Record<"dark" | "light", string> = ${JSON.stringify({ light: selectionColorOf("light"), dark: selectionColorOf("dark") })};
 `;
 
 const editorColorsSource = `/* ${header} */
@@ -295,6 +343,7 @@ ${editorTokenVariables("dark", "    ")}
 `;
 
 writeFileSync(diffThemesFile, diffThemesSource);
+writeFileSync(diffSelectionFile, diffSelectionSource);
 writeFileSync(editorColorsFile, editorColorsSource);
 execFileSync(
   "pnpm",
@@ -304,6 +353,7 @@ execFileSync(
     "exec",
     "oxfmt",
     `packages/ui/${diffThemesFile}`,
+    `packages/ui/${diffSelectionFile}`,
     `packages/ui/${editorColorsFile}`,
   ],
   { stdio: "inherit" },
