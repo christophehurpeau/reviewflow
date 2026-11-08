@@ -38,6 +38,17 @@ export type {
 export { CheckoutView } from "./components/checkout-view.tsx";
 export type { RepoOverviewProps } from "./components/repo-overview.tsx";
 export { RepoOverview } from "./components/repo-overview.tsx";
+export type {
+  IgnoredFilesProps,
+  RemoveWorktreeButtonProps,
+  WorktreeRemovalCheck,
+  WorktreeRemovalMessagesProps,
+} from "./components/remove-worktree-button.tsx";
+export {
+  IgnoredFiles,
+  RemoveWorktreeButton,
+  WorktreeRemovalMessages,
+} from "./components/remove-worktree-button.tsx";
 export {
   branchTrackParts,
   checkoutSummaryParts,

@@ -55,7 +55,10 @@ function Loading(): ReactNode {
 
 interface WorktreeRowProps {
   worktree: CheckoutWorktree;
+  first: boolean;
   onOpen: (worktree: CheckoutWorktree) => void;
+  /** after the open button, e.g. a removal */
+  actions: ReactNode;
 }
 
 function WorktreeSummary({ worktree }: Pick<WorktreeRowProps, "worktree">) {
@@ -69,29 +72,47 @@ function WorktreeSummary({ worktree }: Pick<WorktreeRowProps, "worktree">) {
   );
 }
 
-/** A worktree whose directory is gone opens nothing: git would prune it. */
-function GoneWorktreeRow({ worktree }: Pick<WorktreeRowProps, "worktree">) {
+function WorktreeBadges({ worktree }: Pick<WorktreeRowProps, "worktree">) {
   return (
-    <Box className="surface gap-xxs px-m py-sm">
-      <Text className="font-mono text-sm">{worktree.path}</Text>
-      <Text className="text-sm text-muted">
-        The directory is gone: git worktree prune would drop it.
-      </Text>
-    </Box>
+    <>
+      {worktree.main ? (
+        <Badge accent="neutral" variant="outlined">
+          main checkout
+        </Badge>
+      ) : null}
+      {worktree.lock === null ? null : (
+        <Badge accent="warning" variant="outlined">
+          locked
+        </Badge>
+      )}
+      {worktree.prunable ? (
+        <Badge accent="warning" variant="outlined">
+          directory gone
+        </Badge>
+      ) : null}
+    </>
   );
 }
 
-function WorktreeRow({ worktree, onOpen }: WorktreeRowProps): ReactNode {
-  if (worktree.prunable) return <GoneWorktreeRow worktree={worktree} />;
+/**
+ * A static row: opening it and its actions are each a button of their own. A
+ * worktree whose directory is gone opens nothing: git would prune it.
+ */
+function WorktreeRow({
+  worktree,
+  first,
+  onOpen,
+  actions,
+}: WorktreeRowProps): ReactNode {
   return (
-    <PressableListItem
-      role="link"
-      aria-label={`Open the checkout at ${worktree.path}`}
-      onPress={() => {
-        onOpen(worktree);
-      }}
+    <View
+      className={
+        first
+          ? "flex-row items-center gap-sm px-m py-sm"
+          : "flex-row items-center gap-sm border-t border-muted px-m py-sm"
+      }
     >
-      <View className="gap-xxs">
+      <View className="min-w-0 flex-1 gap-xxs">
         <View className="flex-row flex-wrap items-center gap-sm">
           <View className="flex-row items-center gap-xxs">
             <Icon icon={<GitBranchRegularIcon />} size={14} />
@@ -99,21 +120,29 @@ function WorktreeRow({ worktree, onOpen }: WorktreeRowProps): ReactNode {
               {worktree.branch ?? "detached HEAD"}
             </Code>
           </View>
-          {worktree.main ? (
-            <Badge accent="neutral" variant="outlined">
-              main checkout
-            </Badge>
-          ) : null}
-          {worktree.lock === null ? null : (
-            <Badge accent="warning" variant="outlined">
-              locked
-            </Badge>
-          )}
-          <WorktreeSummary worktree={worktree} />
+          <WorktreeBadges worktree={worktree} />
+          {worktree.prunable ? null : <WorktreeSummary worktree={worktree} />}
         </View>
-        <Text className="font-mono text-xs text-muted">{worktree.path}</Text>
+        <Text className="select-auto font-mono text-xs text-muted">
+          {worktree.path}
+        </Text>
       </View>
-    </PressableListItem>
+      {worktree.prunable ? null : (
+        <Button
+          text="Open"
+          icon={<FolderOpenRegularIcon />}
+          accent="neutral"
+          variant="soft"
+          size="sm"
+          role="link"
+          aria-label={`Open the checkout at ${worktree.path}`}
+          onPress={() => {
+            onOpen(worktree);
+          }}
+        />
+      )}
+      {actions}
+    </View>
   );
 }
 
@@ -421,13 +450,18 @@ export interface RepoOverviewProps {
   onOpenPullRequest: (number: number) => void;
   /** before the title, e.g. a back button */
   headerStart?: ReactNode;
+  /** under the title, e.g. what the last removal left behind */
+  notices?: ReactNode;
+  /** at the end of a worktree's row, e.g. its removal */
+  renderWorktreeActions?: (worktree: CheckoutWorktree) => ReactNode;
 }
 
 /**
  * A repository as the disk has it: its worktrees, each opening its checkout;
  * its local branches, with the open pull request of each and the worktree it
  * is checked out in; and the open pull requests no local branch carries.
- * Read-only.
+ * Read-only: what changes the disk comes from the caller, through
+ * `renderWorktreeActions`.
  */
 export function RepoOverview({
   ownerRepo,
@@ -437,6 +471,8 @@ export function RepoOverview({
   onOpenWorktree,
   onOpenPullRequest,
   headerStart,
+  notices,
+  renderWorktreeActions,
 }: RepoOverviewProps): ReactNode {
   const overview = branches.value;
   const pullRequests = pulls.value?.pullRequests ?? [];
@@ -457,15 +493,17 @@ export function RepoOverview({
               This repository is bare: no checkout has its files.
             </EmptyState>
           ) : (
-            <View className="gap-xs">
-              {overview.worktrees.map((worktree) => (
+            <Box className="surface">
+              {overview.worktrees.map((worktree, index) => (
                 <WorktreeRow
                   key={worktree.path}
                   worktree={worktree}
+                  first={index === 0}
+                  actions={renderWorktreeActions?.(worktree)}
                   onOpen={onOpenWorktree}
                 />
               ))}
-            </View>
+            </Box>
           )}
         </View>
         <BranchesSection
@@ -506,6 +544,7 @@ export function RepoOverview({
           onPress={onReload}
         />
       </View>
+      {notices}
       {branches.error === null ? null : (
         <WarningMessage>{branches.error}</WarningMessage>
       )}
