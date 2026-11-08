@@ -167,7 +167,7 @@ function PullRequestButton({
       text={`#${String(pullRequest.number)}`}
       icon={<GitPullRequestRegularIcon />}
       accent={pullRequest.isDraft ? "neutral" : "success"}
-      variant="soft"
+      variant="tonal"
       size="sm"
       role="link"
       aria-label={`Open pull request #${String(pullRequest.number)}: ${pullRequest.title}`}
@@ -226,7 +226,11 @@ interface BranchRowProps {
 const isPullable = (worktree: CheckoutWorktree | null): boolean =>
   worktree?.status != null && pullRefusal(worktree.status) === null;
 
-/** A static row: its pull, its pull request and its worktree are each a button of their own. */
+/**
+ * A static row, with no single destination of its own: its pull, its pull
+ * request and its checkout are each a button, at the bottom as on the
+ * worktree rows.
+ */
 function BranchRow({
   branch,
   pullRequest,
@@ -237,15 +241,15 @@ function BranchRow({
   onOpenPullRequest,
 }: BranchRowProps): ReactNode {
   const track = branchTrackParts(branch);
+  const pullable = worktree !== null && isPullable(worktree);
+  const hasActions = pullable || pullRequest !== null || worktree !== null;
   return (
     <View
       className={
-        first
-          ? "flex-row items-center gap-sm px-m py-sm"
-          : "flex-row items-center gap-sm border-t border-muted px-m py-sm"
+        first ? "gap-xs px-m py-sm" : "gap-xs border-t border-muted px-m py-sm"
       }
     >
-      <View className="min-w-0 flex-1 gap-xxs">
+      <View className="min-w-0 gap-xxs">
         <View className="flex-row flex-wrap items-center gap-sm">
           <Code className="text-sm">{branch.name}</Code>
           <BranchStateBadges branch={branch} worktree={worktree} />
@@ -257,37 +261,43 @@ function BranchRow({
           {`${branch.lastCommit.subject} · ${formatRelativeDate(branch.lastCommit.committedAt)}`}
         </Text>
       </View>
-      {worktree !== null && isPullable(worktree) ? (
-        <ActionButton
-          text={`Pull ${String(worktree.status?.behind)}`}
-          icon={<CloudArrowDownRegularIcon />}
-          accent="brand"
-          variant="tonal"
-          size="sm"
-          aria-label={`Pull ${branch.name}`}
-          errorMessageVariant="flat"
-          errorToMessage={errorToMessage}
-          onPress={() => onPullWorktree(worktree)}
-        />
+      {hasActions ? (
+        <View className="flex-row flex-wrap items-center gap-xs">
+          {pullable ? (
+            <ActionButton
+              text={`Pull ${String(worktree.status?.behind)}`}
+              icon={<CloudArrowDownRegularIcon />}
+              accent="brand"
+              variant="tonal"
+              size="sm"
+              aria-label={`Pull ${branch.name}`}
+              errorMessageVariant="flat"
+              errorToMessage={errorToMessage}
+              onPress={() => onPullWorktree(worktree)}
+            />
+          ) : null}
+          {pullRequest === null ? null : (
+            <PullRequestButton
+              pullRequest={pullRequest}
+              onOpen={onOpenPullRequest}
+            />
+          )}
+          {worktree === null ? null : (
+            <Button
+              text="Open checkout"
+              icon={<FolderOpenRegularIcon />}
+              accent="neutral"
+              variant="tonal"
+              size="sm"
+              role="link"
+              aria-label={`Open the checkout at ${worktree.path}`}
+              onPress={() => {
+                onOpenWorktree(worktree);
+              }}
+            />
+          )}
+        </View>
       ) : null}
-      {pullRequest === null ? null : (
-        <PullRequestButton
-          pullRequest={pullRequest}
-          onOpen={onOpenPullRequest}
-        />
-      )}
-      {worktree === null ? null : (
-        <TooltipIconButton
-          icon={<FolderOpenRegularIcon />}
-          size="sm"
-          variant="soft"
-          accent="neutral"
-          aria-label={`Open the checkout at ${worktree.path}`}
-          onPress={() => {
-            onOpenWorktree(worktree);
-          }}
-        />
-      )}
     </View>
   );
 }

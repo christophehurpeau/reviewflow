@@ -189,7 +189,7 @@ export function RemoveWorktreeButton({
         text="Remove"
         icon={<TrashRegularIcon />}
         size="sm"
-        variant="soft"
+        variant="tonal"
         accent="danger"
         aria-label={`Remove the worktree at ${path}`}
         disabledReason={disabledReason}
