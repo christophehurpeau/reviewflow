@@ -51,11 +51,14 @@ export interface ReviewDraftActions {
   remove: (key: string) => void;
 }
 
-/** Flat: it sits inside the file's card, which is already raised. */
+/**
+ * Raised off the code on its own highlight ground, not the line's: a selected
+ * line's tint would show through, and a hairline left it reading as code.
+ */
 function Frame({ children }: { children: ReactNode }): ReactNode {
   return (
     <View className="p-xs">
-      <View className="min-w-0 gap-sm rounded-sm border border-border-muted p-m">
+      <View className="min-w-0 gap-sm rounded-sm bg-highlight p-m shadow-s">
         {children}
       </View>
     </View>

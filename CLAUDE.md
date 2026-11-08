@@ -79,6 +79,10 @@ the other reads as a double elevation.
 - A list of pressable rows goes on the screen background, wrapped in
   `ListSection` for its heading.
 - The `surface` class / `SettingsSection` is for static content only.
+- Exception: a diff annotation in `packages/ui` (a comment thread, the comment
+  composer) floats over the code inside the file's raised card, and carries its
+  own `bg-highlight` + `shadow-s` so a selected line's tint does not show
+  through it.
 
 The webapp ships its own palette instead of alouette's default: GitHub-Primer
 hues (green `brand` and `success`, Primer blue, red, amber, cool grays) declared
