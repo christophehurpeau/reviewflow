@@ -15,11 +15,15 @@ import { useColorModePreference } from "./ColorModeProvider.tsx";
 import { LiveIndicator } from "./LiveIndicator.tsx";
 
 const pullRequestsHref = "/";
+const reposHref = "/repos";
 const settingsHref = "/settings";
 
-/** A pull request screen is reached from the list, so it is what the nav marks as current. */
-const sectionOf = (pathname: string): string =>
-  pathname.startsWith(settingsHref) ? settingsHref : pullRequestsHref;
+/** A detail screen is reached from its list, so the list is what the nav marks as current. */
+const sectionOf = (pathname: string): string => {
+  if (pathname.startsWith(settingsHref)) return settingsHref;
+  if (pathname === reposHref || pathname === "/repo") return reposHref;
+  return pullRequestsHref;
+};
 
 /** The bar over every screen: the sections, the live connection, the color mode. */
 export function AppHeader(): ReactNode {
@@ -53,6 +57,9 @@ export function AppHeader(): ReactNode {
       <HeaderNav aria-label="Sections" value={sectionOf(pathname)}>
         <Link asChild href={pullRequestsHref}>
           <HeaderNavItem label="Pull requests" />
+        </Link>
+        <Link asChild href={reposHref}>
+          <HeaderNavItem label="Repositories" />
         </Link>
         <Link asChild href={settingsHref}>
           <HeaderNavItem label="Settings" />

@@ -76,6 +76,8 @@ const makeDeps = (
       notAnalyzed: [],
       unresolvedIn: [],
     })),
+    readHeadBranch: vi.fn(async () => "feature"),
+    readCheckoutBranchDiff: vi.fn(async () => ({ patch: "fake" })),
     ...overrides,
   } as unknown as PullRequestOperations,
 });
@@ -95,6 +97,69 @@ const call = async (
   });
   return routed === null ? null : await routed;
 };
+
+describe("repos", () => {
+  test("lists the configured checkouts with their branch", async () => {
+    const deps = makeDeps();
+    expect(await call(deps, "GET", "/api/repos")).toEqual({
+      status: 200,
+      body: {
+        configPath,
+        repos: [
+          {
+            ownerRepo: "acme/widgets",
+            path: repo,
+            branch: "feature",
+            problem: null,
+          },
+        ],
+      },
+    });
+    expect(deps.operations.readHeadBranch).toHaveBeenCalledWith(repo);
+  });
+
+  test("diffs the configured checkout, never a path from the request", async () => {
+    const deps = makeDeps();
+    const answer = await call(
+      deps,
+      "GET",
+      "/api/repos/diff?repo=acme/widgets&scope=committed&whitespace=hide",
+    );
+    expect(answer).toEqual({ status: 200, body: { patch: "fake" } });
+    expect(deps.operations.readCheckoutBranchDiff).toHaveBeenCalledWith({
+      checkout: repo,
+      scope: "committed",
+      whitespace: "hide",
+    });
+  });
+
+  test("refuses a bad scope or whitespace, and answers git's failure as a 400", async () => {
+    const deps = makeDeps({
+      readCheckoutBranchDiff: vi.fn(async () => {
+        throw new Error("neither origin/main nor main exists");
+      }),
+    });
+    expect(
+      (await call(deps, "GET", "/api/repos/diff?repo=acme/widgets&scope=x"))
+        ?.status,
+    ).toBe(400);
+    expect(
+      (
+        await call(
+          deps,
+          "GET",
+          "/api/repos/diff?repo=acme/widgets&whitespace=x",
+        )
+      )?.status,
+    ).toBe(400);
+    expect(
+      await call(deps, "GET", "/api/repos/diff?repo=acme/widgets"),
+    ).toEqual({
+      status: 400,
+      body: { error: "neither origin/main nor main exists" },
+    });
+  });
+});
 
 describe("routes", () => {
   test("unknown path is not routed", async () => {

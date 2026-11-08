@@ -6,6 +6,10 @@
  * a port; `server.ts` only moves bytes.
  */
 import type {
+  BranchDiffScope,
+  CheckoutBranchDiffResponse,
+  CheckoutRepo,
+  CheckoutReposResponse,
   DiffImpactsResponse,
   DiffReadingOrderResponse,
   DiffStep,
@@ -21,10 +25,16 @@ import type {
   PullRequestRef,
   PullRequestRevisionsResponse,
 } from "@reviewflow/sdk";
-import { isDiffWhitespace, isPullRequestPart } from "@reviewflow/sdk";
+import {
+  isBranchDiffScope,
+  isDiffWhitespace,
+  isPullRequestPart,
+} from "@reviewflow/sdk";
 import { readEditableFile, saveEditableFile } from "@reviewflow/sdk/files";
 import {
+  checkCheckout,
   describeRepoAttachment,
+  readConfig,
   resolveCheckout,
   validateConfigSource,
 } from "./config.ts";
@@ -39,6 +49,8 @@ import { tokenRefusedCode } from "./reviewflowService.ts";
 export const apiRoutes = {
   configFile: "/api/config/file",
   configRepo: "/api/config/repo",
+  repos: "/api/repos",
+  repoDiff: "/api/repos/diff",
   prDetail: "/api/prs/detail",
   prCandidates: "/api/prs/candidates",
   prRevisions: "/api/prs/revisions",
@@ -100,6 +112,12 @@ export interface PullRequestOperations {
     head: string;
     base: string;
   }) => Promise<DiffImpactsResponse>;
+  readHeadBranch: (checkout: string) => Promise<string | null>;
+  readCheckoutBranchDiff: (params: {
+    checkout: string;
+    scope: BranchDiffScope;
+    whitespace: DiffWhitespace;
+  }) => Promise<CheckoutBranchDiffResponse>;
 }
 
 export interface RouteDeps {
@@ -214,6 +232,56 @@ const handleConfigRepo: Handler = async ({ configPath }, request) => {
   const repo = request.query.get("repo") ?? "";
   if (!/^[^/\s]+\/[^/\s]+$/.test(repo)) return bad("repo must be owner/repo");
   return ok(await describeRepoAttachment(configPath, repo));
+};
+
+const handleRepos: Handler = async ({ operations, configPath }, request) => {
+  if (request.method !== "GET") return notAllowed();
+  const { repos } = readConfig(configPath);
+  const entries = Object.entries(repos).toSorted(([left], [right]) =>
+    left.localeCompare(right),
+  );
+  const body: CheckoutReposResponse = {
+    configPath,
+    repos: await Promise.all(
+      entries.map(async ([ownerRepo, path]): Promise<CheckoutRepo> => {
+        const problem = await checkCheckout(ownerRepo, path);
+        const branch =
+          problem === null ? await operations.readHeadBranch(path) : null;
+        return { ownerRepo, path, branch, problem };
+      }),
+    ),
+  };
+  return ok(body);
+};
+
+/**
+ * The checkout is the config's, never the request's: no route authenticates,
+ * so one that diffed whatever path it was handed would read any repository on
+ * the machine.
+ */
+const handleRepoDiff: Handler = async ({ operations, configPath }, request) => {
+  if (request.method !== "GET") return notAllowed();
+  const repo = request.query.get("repo") ?? "";
+  if (!/^[^/\s]+\/[^/\s]+$/.test(repo)) return bad("repo must be owner/repo");
+  const scope = request.query.get("scope") ?? "all";
+  if (!isBranchDiffScope(scope)) return bad("scope must be all or committed");
+  const whitespace = request.query.get("whitespace") ?? "show";
+  if (!isDiffWhitespace(whitespace)) {
+    return bad("whitespace must be show or hide");
+  }
+  const resolved = await resolveCheckout(configPath, repo);
+  if ("refused" in resolved) return bad(resolved.refused.detail);
+  try {
+    return ok(
+      await operations.readCheckoutBranchDiff({
+        checkout: resolved.checkout,
+        scope,
+        whitespace,
+      }),
+    );
+  } catch (error) {
+    return bad(errorMessage(error));
+  }
 };
 
 const handlePrDetail: Handler = async ({ transport, operations }, request) => {
@@ -499,6 +567,8 @@ const handleEvents: Handler = ({ reviewflow }, request) =>
 const handlers: Record<string, Handler> = {
   [apiRoutes.configFile]: handleConfigFile,
   [apiRoutes.configRepo]: handleConfigRepo,
+  [apiRoutes.repos]: handleRepos,
+  [apiRoutes.repoDiff]: handleRepoDiff,
   [apiRoutes.prDetail]: handlePrDetail,
   [apiRoutes.prCandidates]: handlePrCandidates,
   [apiRoutes.prRevisions]: handlePrRevisions,

@@ -7,7 +7,9 @@ import {
 } from "@reviewflow/sdk";
 import {
   createBindingsCache,
+  readCheckoutBranchDiff,
   readFileAtSha,
+  readHeadBranch,
   readImpacts,
   readPullRequestDiff,
   readReadingOrder,
@@ -31,4 +33,7 @@ export const operations: PullRequestOperations = {
   readFileAtSha,
   readReadingOrder,
   readImpacts: (request) => readImpacts({ ...request, cache: bindingsCache }),
+  readHeadBranch,
+  readCheckoutBranchDiff: ({ checkout, scope, whitespace }) =>
+    readCheckoutBranchDiff({ cwd: checkout, scope, whitespace }),
 };
