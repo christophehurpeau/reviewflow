@@ -381,9 +381,9 @@ const transitiveDependencies = (
 };
 
 /**
- * The root first, as `groupDiffPaths` has it; then a package before every
- * package it depends on, directly or through a package the change does not
- * touch. Alphabetical between two unrelated packages, and to break a cycle.
+ * A package before every package it depends on, directly or through a
+ * package the change does not touch. Alphabetical between two unrelated
+ * packages, and to break a cycle. The root last, as `groupDiffPaths` has it.
  */
 export const orderPackages = (
   names: readonly string[],
@@ -401,7 +401,7 @@ export const orderPackages = (
       (other) => other !== name && dependencies.get(other)!.has(name),
     );
 
-  const ordered = names.includes("") ? [""] : [];
+  const ordered: string[] = [];
   while (remaining.size > 0) {
     const sorted = [...remaining].toSorted((left, right) =>
       left.localeCompare(right),
@@ -411,6 +411,7 @@ export const orderPackages = (
     ordered.push(next);
     remaining.delete(next);
   }
+  if (names.includes("")) ordered.push("");
   return ordered;
 };
 

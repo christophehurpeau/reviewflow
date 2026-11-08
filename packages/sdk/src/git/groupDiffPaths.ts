@@ -126,9 +126,9 @@ export const groupDiffPaths = (
     if (group === undefined) groups.set(name, [path]);
     else group.push(path);
   }
-  // The root first: its files (a lockfile, the root manifest, a README) are
-  // what the rest of the change is read against.
+  // The root last: its files (a lockfile, the root manifest, a README) follow
+  // from the packages' changes rather than explain them.
   return [...groups]
-    .toSorted(([left], [right]) => Number(left !== "") - Number(right !== ""))
+    .toSorted(([left], [right]) => Number(left === "") - Number(right === ""))
     .map(([name, groupPaths]) => ({ name, paths: groupPaths }));
 };

@@ -107,7 +107,7 @@ describe("resolveSubpathImport", () => {
 });
 
 describe("orderPackages", () => {
-  it("puts the root first, then a package before what it depends on, even through an untouched package", () => {
+  it("puts a package before what it depends on, even through an untouched package, then the root", () => {
     const dependsOn = new Map([
       ["packages/app", new Set(["packages/ui"])],
       ["packages/ui", new Set(["packages/core"])],
@@ -118,7 +118,7 @@ describe("orderPackages", () => {
         ["packages/sdk", "", ".claude", "packages/app", "packages/ui"],
         dependsOn,
       ),
-    ).toEqual(["", ".claude", "packages/app", "packages/ui", "packages/sdk"]);
+    ).toEqual([".claude", "packages/app", "packages/ui", "packages/sdk", ""]);
   });
 
   it("breaks a cycle alphabetically", () => {

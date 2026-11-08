@@ -34,18 +34,18 @@ const paths = [
 ];
 
 const expected = [
-  { name: "", paths: ["README.md"] },
   { name: ".claude", paths: [".claude/rules/a.md"] },
   {
     name: "apps/resident",
     paths: ["apps/resident/src/b.ts", "apps/resident/src/deep/c.ts"],
   },
   { name: "services/api", paths: ["services/api/src/app/main.py"] },
+  { name: "", paths: ["README.md"] },
 ];
 
 describe("groupDiffPaths", () => {
   /** The shape of a monorepo: a dotted root directory beside a workspace app. */
-  it("groups by the nearest package, else the first directory, else the root, root first", () => {
+  it("groups by the nearest package, else the first directory, else the root, root last", () => {
     const manifests = new Set(["apps/resident", "services/api"]);
 
     expect(
@@ -55,8 +55,8 @@ describe("groupDiffPaths", () => {
 
   it("groups by first directory when no package is known", () => {
     expect(groupDiffPaths(noPackages, ["a/b/c.ts", "a/d.ts", "e.md"])).toEqual([
-      { name: "", paths: ["e.md"] },
       { name: "a", paths: ["a/b/c.ts", "a/d.ts"] },
+      { name: "", paths: ["e.md"] },
     ]);
   });
 });
