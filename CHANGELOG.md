@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.22.0](https://github.com/christophehurpeau/reviewflow/compare/v6.21.0...v6.22.0) (2026-11-08)
+
+### Features
+
+* add the local review app
+* **webapp:** add a compact density option
+* **webapp:** explain why creating a personal token is disabled
+* **webapp:** resolve the system color mode in css
+
+### Bug Fixes
+
+* **deps:** refresh @expo/config-plugins to drop uuid 7.0.3 [security] ([#1245](https://github.com/christophehurpeau/reviewflow/issues/1245))
+* **deps:** update dependency mingo to v7.2.7 ([#1246](https://github.com/christophehurpeau/reviewflow/issues/1246))
+* **deps:** update follow-redirects to 1.16.2 [security] ([#1244](https://github.com/christophehurpeau/reviewflow/issues/1244))
+* **deps:** update joi to 17.13.9 [security] ([#1242](https://github.com/christophehurpeau/reviewflow/issues/1242))
+* **deps:** update node-forge to 1.4.2 [security] ([#1241](https://github.com/christophehurpeau/reviewflow/issues/1241))
+* **deps:** update octokit monorepo ([#1210](https://github.com/christophehurpeau/reviewflow/issues/1210))
+* **deps:** update storybook and @storybook/addon-vitest to v10.6.2 [security] ([#1232](https://github.com/christophehurpeau/reviewflow/issues/1232))
+* **deps:** update vitest to v4.1.12 [security] ([#1240](https://github.com/christophehurpeau/reviewflow/issues/1240))
+
 ## [6.21.0](https://github.com/christophehurpeau/reviewflow/compare/v6.20.0...v6.21.0) (2026-10-18)
 
 ### Features

@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.22.0](https://github.com/christophehurpeau/reviewflow/compare/v6.21.0...v6.22.0) (2026-11-08)
+
+### Features
+
+* **webapp:** add a compact density option
+* **webapp:** explain why creating a personal token is disabled
+* **webapp:** resolve the system color mode in css
+
+### Bug Fixes
+
+* **deps:** update storybook and @storybook/addon-vitest to v10.6.2 [security] ([#1232](https://github.com/christophehurpeau/reviewflow/issues/1232))
+* **deps:** update vitest to v4.1.12 [security] ([#1240](https://github.com/christophehurpeau/reviewflow/issues/1240))
+
 ## [6.21.0](https://github.com/christophehurpeau/reviewflow/compare/v6.20.0...v6.21.0) (2026-10-18)
 
 Version bump for dependency: reviewflow-modules
