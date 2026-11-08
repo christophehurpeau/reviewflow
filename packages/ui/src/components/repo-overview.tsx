@@ -8,10 +8,12 @@ import type {
 import {
   formatRelativeDate,
   pluralOf,
+  pullRefusal,
   pullRequestOfBranch,
   pullRequestsWithoutBranch,
 } from "@reviewflow/sdk";
 import {
+  ActionButton,
   Badge,
   Box,
   Button,
@@ -19,13 +21,13 @@ import {
   EmptyState,
   Icon,
   IndeterminateCircularProgress,
-  PressableListItem,
   SectionTitle,
   Text,
   View,
   WarningMessage,
 } from "alouette";
 import { ArrowsClockwiseRegularIcon } from "alouette-icons/phosphor-icons/ArrowsClockwise";
+import { CloudArrowDownRegularIcon } from "alouette-icons/phosphor-icons/CloudArrowDown";
 import { FolderOpenRegularIcon } from "alouette-icons/phosphor-icons/FolderOpen";
 import { FolderSimpleRegularIcon } from "alouette-icons/phosphor-icons/FolderSimple";
 import { GitBranchRegularIcon } from "alouette-icons/phosphor-icons/GitBranch";
@@ -33,9 +35,14 @@ import { GitPullRequestRegularIcon } from "alouette-icons/phosphor-icons/GitPull
 import type { ReactNode } from "react";
 import { useState } from "react";
 import {
+  PullRequestMetaSeparator,
+  PullRequestRowFrame,
+} from "../board/pull-request-row.tsx";
+import {
   branchTrackParts,
   checkoutSummaryParts,
 } from "../services/checkoutSummary.ts";
+import { errorToMessage } from "../services/errorToMessage.ts";
 import type { CheckoutRead } from "./checkout-view.tsx";
 import { TooltipIconButton } from "./tooltip-icon-button.tsx";
 
@@ -173,11 +180,20 @@ function PullRequestButton({
 
 interface BranchStateBadgesProps {
   branch: CheckoutBranch;
+  worktree: CheckoutWorktree | null;
 }
 
-function BranchStateBadges({ branch }: BranchStateBadgesProps): ReactNode {
+function BranchStateBadges({
+  branch,
+  worktree,
+}: BranchStateBadgesProps): ReactNode {
   return (
     <>
+      {worktree === null ? null : (
+        <Badge accent="brand" variant="outlined">
+          {worktree.main ? "current" : "checked out"}
+        </Badge>
+      )}
       {branch.merged ? (
         <Badge accent="success" variant="outlined">
           merged
@@ -199,16 +215,25 @@ interface BranchRowProps {
   worktree: CheckoutWorktree | null;
   first: boolean;
   onOpenWorktree: (worktree: CheckoutWorktree) => void;
+  onPullWorktree: (worktree: CheckoutWorktree) => Promise<void>;
   onOpenPullRequest: (number: number) => void;
 }
 
-/** A static row: its pull request and its worktree are each a button of their own. */
+/**
+ * Offered on the worktree's status by the rule the server applies before
+ * pulling, so the button never meets a refusal of its own terms.
+ */
+const isPullable = (worktree: CheckoutWorktree | null): boolean =>
+  worktree?.status != null && pullRefusal(worktree.status) === null;
+
+/** A static row: its pull, its pull request and its worktree are each a button of their own. */
 function BranchRow({
   branch,
   pullRequest,
   worktree,
   first,
   onOpenWorktree,
+  onPullWorktree,
   onOpenPullRequest,
 }: BranchRowProps): ReactNode {
   const track = branchTrackParts(branch);
@@ -223,7 +248,7 @@ function BranchRow({
       <View className="min-w-0 flex-1 gap-xxs">
         <View className="flex-row flex-wrap items-center gap-sm">
           <Code className="text-sm">{branch.name}</Code>
-          <BranchStateBadges branch={branch} />
+          <BranchStateBadges branch={branch} worktree={worktree} />
           {track.length === 0 ? null : (
             <Text className="text-xs text-muted">{track.join(" · ")}</Text>
           )}
@@ -232,6 +257,19 @@ function BranchRow({
           {`${branch.lastCommit.subject} · ${formatRelativeDate(branch.lastCommit.committedAt)}`}
         </Text>
       </View>
+      {worktree !== null && isPullable(worktree) ? (
+        <ActionButton
+          text={`Pull ${String(worktree.status?.behind)}`}
+          icon={<CloudArrowDownRegularIcon />}
+          accent="brand"
+          variant="tonal"
+          size="sm"
+          aria-label={`Pull ${branch.name}`}
+          errorMessageVariant="flat"
+          errorToMessage={errorToMessage}
+          onPress={() => onPullWorktree(worktree)}
+        />
+      ) : null}
       {pullRequest === null ? null : (
         <PullRequestButton
           pullRequest={pullRequest}
@@ -259,6 +297,7 @@ interface BranchesSectionProps {
   overview: CheckoutBranchesResponse;
   pullRequests: OpenPullRequest[];
   onOpenWorktree: (worktree: CheckoutWorktree) => void;
+  onPullWorktree: (worktree: CheckoutWorktree) => Promise<void>;
   onOpenPullRequest: (number: number) => void;
 }
 
@@ -267,6 +306,7 @@ function BranchesSection({
   overview,
   pullRequests,
   onOpenWorktree,
+  onPullWorktree,
   onOpenPullRequest,
 }: BranchesSectionProps): ReactNode {
   const [showsAll, setShowsAll] = useState(false);
@@ -298,6 +338,7 @@ function BranchesSection({
               worktree={openableWorktree(branch.worktreePath)}
               first={index === 0}
               onOpenWorktree={onOpenWorktree}
+              onPullWorktree={onPullWorktree}
               onOpenPullRequest={onOpenPullRequest}
             />
           ))}
@@ -336,39 +377,46 @@ const headLabel = (ownerRepo: string, pullRequest: OpenPullRequest): string => {
   return `${headOwner}:${pullRequest.headRefName}`;
 };
 
+/** The board's row, without the repository its screen already names. */
 function PullRequestRow({
   ownerRepo,
   pullRequest,
   onOpen,
 }: PullRequestRowProps): ReactNode {
   return (
-    <PressableListItem
-      role="link"
-      aria-label={`Open pull request #${String(pullRequest.number)}: ${pullRequest.title}`}
+    <PullRequestRowFrame
+      ariaLabel={`Open pull request #${String(pullRequest.number)}: ${pullRequest.title}`}
+      meta={
+        <>
+          <Text className="font-mono text-xs text-muted">
+            {`#${String(pullRequest.number)}`}
+          </Text>
+          <PullRequestMetaSeparator />
+          <Text className="font-mono text-xs text-muted">
+            {headLabel(ownerRepo, pullRequest)}
+          </Text>
+          <PullRequestMetaSeparator />
+          <Text className="text-xs text-muted">
+            {pullRequest.author ?? "ghost"}
+          </Text>
+          <PullRequestMetaSeparator />
+          <Text className="text-xs text-muted">
+            {`updated ${formatRelativeDate(pullRequest.updatedAt)}`}
+          </Text>
+        </>
+      }
+      title={pullRequest.title}
+      titleAside={
+        pullRequest.isDraft ? (
+          <Badge accent="neutral" variant="outlined">
+            draft
+          </Badge>
+        ) : null
+      }
       onPress={() => {
         onOpen(pullRequest.number);
       }}
-    >
-      <View className="gap-xxs">
-        <View className="flex-row items-center gap-sm">
-          <Code className="text-sm">{`#${String(pullRequest.number)}`}</Code>
-          <Text
-            className="min-w-0 flex-1 text-sm font-body-bold"
-            numberOfLines={1}
-          >
-            {pullRequest.title}
-          </Text>
-          {pullRequest.isDraft ? (
-            <Badge accent="neutral" variant="outlined">
-              draft
-            </Badge>
-          ) : null}
-        </View>
-        <Text className="text-xs text-muted" numberOfLines={1}>
-          {`${headLabel(ownerRepo, pullRequest)} · ${pullRequest.author ?? "ghost"} · updated ${formatRelativeDate(pullRequest.updatedAt)}`}
-        </Text>
-      </View>
-    </PressableListItem>
+    />
   );
 }
 
@@ -447,6 +495,8 @@ export interface RepoOverviewProps {
   pulls: CheckoutRead<OpenPullRequestsResponse>;
   onReload: () => void;
   onOpenWorktree: (worktree: CheckoutWorktree) => void;
+  /** a fast-forward pull in that worktree; a rejection is shown under its button */
+  onPullWorktree: (worktree: CheckoutWorktree) => Promise<void>;
   onOpenPullRequest: (number: number) => void;
   /** before the title, e.g. a back button */
   headerStart?: ReactNode;
@@ -461,7 +511,7 @@ export interface RepoOverviewProps {
  * its local branches, with the open pull request of each and the worktree it
  * is checked out in; and the open pull requests no local branch carries.
  * Read-only: what changes the disk comes from the caller, through
- * `renderWorktreeActions`.
+ * `onPullWorktree` and `renderWorktreeActions`.
  */
 export function RepoOverview({
   ownerRepo,
@@ -469,6 +519,7 @@ export function RepoOverview({
   pulls,
   onReload,
   onOpenWorktree,
+  onPullWorktree,
   onOpenPullRequest,
   headerStart,
   notices,
@@ -511,6 +562,7 @@ export function RepoOverview({
           overview={overview}
           pullRequests={pullRequests}
           onOpenWorktree={onOpenWorktree}
+          onPullWorktree={onPullWorktree}
           onOpenPullRequest={onOpenPullRequest}
         />
         <PullRequestsSection

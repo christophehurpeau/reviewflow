@@ -20,6 +20,7 @@ import {
   invalidateRepo,
   readWorktreeRemovalCheck,
   removeWorktree,
+  syncRepo,
   useRepoBranches,
   useRepoPulls,
 } from "#/services/reposApi.ts";
@@ -80,6 +81,18 @@ function RepoOverviewScreen({
     });
   };
 
+  /** git state moved, or may have, whether the pull succeeded or not */
+  const pullWorktree = async (worktree: CheckoutWorktree): Promise<void> => {
+    try {
+      await syncRepo("pull", {
+        ownerRepo,
+        worktree: worktree.main ? null : worktree.path,
+      });
+    } finally {
+      invalidateRepo(client, ownerRepo).catch(() => undefined);
+    }
+  };
+
   const openPullRequest = (number: number): void => {
     rememberPullRequest({ ownerRepo, number });
     router.push({
@@ -120,6 +133,7 @@ function RepoOverviewScreen({
         );
       }}
       onOpenWorktree={openWorktree}
+      onPullWorktree={pullWorktree}
       onOpenPullRequest={openPullRequest}
       onReload={() => {
         // a failed read is the query's error, shown in place

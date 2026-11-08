@@ -31,7 +31,49 @@ const stopRowPress = (event: GestureResponderEvent): void => {
   event.stopPropagation();
 };
 
-const metaSeparator = <Text className="text-xs text-muted">·</Text>;
+export function PullRequestMetaSeparator(): ReactNode {
+  return <Text className="text-xs text-muted">·</Text>;
+}
+
+const metaSeparator = <PullRequestMetaSeparator />;
+
+export interface PullRequestRowFrameProps {
+  ariaLabel: string;
+  onPress: () => void;
+  /** the meta line's items, joined with `PullRequestMetaSeparator` */
+  meta: ReactNode;
+  title: string;
+  /** beside the title, e.g. who it waits on */
+  titleAside?: ReactNode;
+  /** under the title */
+  children?: ReactNode;
+}
+
+/**
+ * The layout every pull request row shares, whatever its source: a meta line,
+ * the title, then what the source adds.
+ */
+export function PullRequestRowFrame({
+  ariaLabel,
+  onPress,
+  meta,
+  title,
+  titleAside,
+  children,
+}: PullRequestRowFrameProps): ReactNode {
+  return (
+    <PressableListItem role="link" aria-label={ariaLabel} onPress={onPress}>
+      <View className="min-w-0 gap-xxs">
+        <View className="flex-row flex-wrap items-center gap-xs">{meta}</View>
+        <View className="flex-row flex-wrap items-baseline gap-xs">
+          <Text className="font-body-bold">{title}</Text>
+          {titleAside}
+        </View>
+        {children}
+      </View>
+    </PressableListItem>
+  );
+}
 
 const statusSeparator = <Text className="text-sm text-muted">·</Text>;
 
@@ -59,7 +101,7 @@ function MetaLine({ pr }: { pr: ReviewflowBoardPr }): ReactNode {
   const flowDate = reviewflowPrFlowDate(pr);
 
   return (
-    <View className="flex-row flex-wrap items-center gap-xs">
+    <>
       <Text className="font-mono text-xs text-muted">
         {`${pr.ownerRepo}#${String(pr.number)}`}
       </Text>
@@ -95,7 +137,7 @@ function MetaLine({ pr }: { pr: ReviewflowBoardPr }): ReactNode {
           <Text className="text-xs text-muted">{flowDate}</Text>
         </>
       )}
-    </View>
+    </>
   );
 }
 
@@ -161,24 +203,21 @@ export function PullRequestRow({
   const extra = renderRowExtra?.(row);
 
   return (
-    <PressableListItem
-      role="link"
-      aria-label={`Open ${pr.ownerRepo}#${String(pr.number)} ${pr.title}`}
+    <PullRequestRowFrame
+      ariaLabel={`Open ${pr.ownerRepo}#${String(pr.number)} ${pr.title}`}
+      meta={<MetaLine pr={pr} />}
+      title={pr.title}
+      titleAside={
+        owners === null ? null : (
+          <Text className="text-sm text-muted">{owners}</Text>
+        )
+      }
       onPress={() => {
         onOpenPullRequest({ ownerRepo: pr.ownerRepo, number: pr.number });
       }}
     >
-      <View className="min-w-0 gap-xxs">
-        <MetaLine pr={pr} />
-        <View className="flex-row flex-wrap items-baseline gap-xs">
-          <Text className="font-body-bold">{pr.title}</Text>
-          {owners === null ? null : (
-            <Text className="text-sm text-muted">{owners}</Text>
-          )}
-        </View>
-        <StatusLine pr={pr} context={context} />
-        {extra === undefined || extra === null ? null : extra}
-      </View>
-    </PressableListItem>
+      <StatusLine pr={pr} context={context} />
+      {extra === undefined || extra === null ? null : extra}
+    </PullRequestRowFrame>
   );
 }
