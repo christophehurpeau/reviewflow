@@ -17,6 +17,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { useDiffPreferences } from "#/services/DiffPreferencesProvider.tsx";
+import type { CheckoutRef } from "#/services/reposApi.ts";
 import {
   invalidateRepo,
   syncRepo,
@@ -53,44 +54,44 @@ const firstTabOf = (
 };
 
 interface RepoSyncProps {
-  ownerRepo: string;
+  checkout: CheckoutRef;
 }
 
 /** Pull and Push, shown once the status (fetched first) says they apply. */
-function RepoSyncButtons({ ownerRepo }: RepoSyncProps): ReactNode {
+function RepoSyncButtons({ checkout }: RepoSyncProps): ReactNode {
   const client = useQueryClient();
-  const { data } = useRepoStatus(ownerRepo, "fetched");
+  const { data } = useRepoStatus(checkout, "fetched");
   if (data === undefined) return null;
   return (
     <CheckoutSyncButtons
       status={data.status}
       hasOrigin={data.hasOrigin}
-      name={ownerRepo}
-      onPull={() => syncRepo("pull", ownerRepo)}
-      onPush={() => syncRepo("push", ownerRepo)}
+      name={checkout.worktree ?? checkout.ownerRepo}
+      onPull={() => syncRepo("pull", checkout)}
+      onPush={() => syncRepo("push", checkout)}
       onDone={() => {
-        invalidateRepo(client, ownerRepo).catch(() => undefined);
+        invalidateRepo(client, checkout.ownerRepo).catch(() => undefined);
       }}
     />
   );
 }
 
 /** A failed fetch degrades: the counts are then as of the previous one, and it says so. */
-function RepoSyncNotice({ ownerRepo }: RepoSyncProps): ReactNode {
-  const { data, error } = useRepoStatus(ownerRepo, "fetched");
+function RepoSyncNotice({ checkout }: RepoSyncProps): ReactNode {
+  const { data, error } = useRepoStatus(checkout, "fetched");
   const problem = error?.message ?? data?.fetchError ?? null;
   if (problem === null) return null;
   return <WarningMessage>{`Could not fetch: ${problem}`}</WarningMessage>;
 }
 
 interface RepoCheckoutProps {
-  ownerRepo: string;
+  checkout: CheckoutRef;
   initialWhitespace: DiffWhitespace;
   back: ReactNode;
 }
 
 function RepoCheckout({
-  ownerRepo,
+  checkout,
   initialWhitespace,
   back,
 }: RepoCheckoutProps): ReactNode {
@@ -98,28 +99,28 @@ function RepoCheckout({
   const [chosenTab, setChosenTab] = useState<CheckoutTab | null>(null);
   const [openSha, setOpenSha] = useState<string | null>(null);
   const [whitespace, setWhitespace] = useState(initialWhitespace);
-  const localStatus = useRepoStatus(ownerRepo, "local");
-  const fetchedStatus = useRepoStatus(ownerRepo, "fetched");
-  const commits = useRepoCommits(ownerRepo);
+  const localStatus = useRepoStatus(checkout, "local");
+  const fetchedStatus = useRepoStatus(checkout, "fetched");
+  const commits = useRepoCommits(checkout);
 
   // decided once: a reload after a commit must not move the reader to another tab
   const tab = chosenTab ?? firstTabOf(localStatus, commits);
   if (chosenTab === null && tab !== null) setChosenTab(tab);
 
   const uncommitted = useRepoDiff({
-    ownerRepo,
+    checkout,
     scope: "uncommitted",
     whitespace,
     enabled: tab === "uncommitted",
   });
   const branch = useRepoDiff({
-    ownerRepo,
+    checkout,
     scope: "committed",
     whitespace,
     enabled: tab === "branch",
   });
   const commitDiff = useCommitDiff({
-    ownerRepo,
+    checkout,
     sha: tab === "history" ? openSha : null,
     whitespace,
   });
@@ -127,7 +128,7 @@ function RepoCheckout({
 
   return (
     <CheckoutView
-      title={ownerRepo}
+      title={checkout.ownerRepo}
       status={status}
       tab={tab}
       diff={readOf(tab === "branch" ? branch : uncommitted)}
@@ -139,11 +140,11 @@ function RepoCheckout({
       }}
       whitespace={whitespace}
       headerStart={back}
-      headerEnd={<RepoSyncButtons ownerRepo={ownerRepo} />}
-      notices={<RepoSyncNotice ownerRepo={ownerRepo} />}
+      headerEnd={<RepoSyncButtons checkout={checkout} />}
+      notices={<RepoSyncNotice checkout={checkout} />}
       onReload={() => {
         // a failed read is the query's error, shown in place
-        invalidateRepo(client, ownerRepo).catch(() => undefined);
+        invalidateRepo(client, checkout.ownerRepo).catch(() => undefined);
       }}
       onTabChange={setChosenTab}
       onWhitespaceToggle={() => {
@@ -153,11 +154,15 @@ function RepoCheckout({
   );
 }
 
-/** One listed checkout: what is uncommitted, its branch against the default branch, its history. */
-export default function RepoPage(): ReactNode {
+/**
+ * One checkout, the listed one or one of its worktrees: what is uncommitted,
+ * its branch against the default branch, its history.
+ */
+export default function CheckoutPage(): ReactNode {
   const router = useRouter();
-  const params = useLocalSearchParams<{ repo?: string }>();
+  const params = useLocalSearchParams<{ repo?: string; worktree?: string }>();
   const ownerRepo = first(params.repo) ?? "";
+  const worktree = first(params.worktree) ?? null;
   const valid = /^[^/\s]+\/[^/\s]+$/.test(ownerRepo);
   const { settings, loaded } = useDiffPreferences();
 
@@ -165,10 +170,10 @@ export default function RepoPage(): ReactNode {
     <IconButton
       icon={<ArrowLeftRegularIcon />}
       size="sm"
-      aria-label="Back to the repositories"
+      aria-label={`Back to ${ownerRepo}`}
       onPress={() => {
         if (router.canGoBack()) router.back();
-        else router.replace("/repos");
+        else router.replace({ pathname: "/repo", params: { repo: ownerRepo } });
       }}
     />
   );
@@ -195,7 +200,9 @@ export default function RepoPage(): ReactNode {
         wordWrap={settings.wordWrap}
       >
         <RepoCheckout
-          ownerRepo={ownerRepo}
+          // another checkout is another screen: its tab and open commit start over
+          key={`${ownerRepo}\n${worktree ?? ""}`}
+          checkout={{ ownerRepo, worktree }}
           initialWhitespace={settings.hideWhitespace ? "hide" : "show"}
           back={back}
         />

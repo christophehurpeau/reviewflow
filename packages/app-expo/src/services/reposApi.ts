@@ -1,11 +1,13 @@
 import type {
   BranchDiffScope,
   CheckoutBranchDiffResponse,
+  CheckoutBranchesResponse,
   CheckoutCommitsResponse,
   CheckoutReposResponse,
   CheckoutSyncResponse,
   CommitDiffResponse,
   DiffWhitespace,
+  OpenPullRequestsResponse,
   RepoPathSuggestionsResponse,
 } from "@reviewflow/sdk";
 import type { QueryClient, UseQueryResult } from "@tanstack/react-query";
@@ -22,8 +24,21 @@ export const useRepos = (): UseQueryResult<CheckoutReposResponse> =>
     refetchOnMount: "always",
   });
 
-interface UseRepoDiffParams {
+/** A listed checkout, or one of its worktrees: what every checkout read names. */
+export interface CheckoutRef {
   ownerRepo: string;
+  /** a path `git worktree list` gave; null: the listed checkout itself */
+  worktree: string | null;
+}
+
+const checkoutQuery = ({
+  ownerRepo,
+  worktree,
+}: CheckoutRef): Record<string, string> =>
+  worktree === null ? { repo: ownerRepo } : { repo: ownerRepo, worktree };
+
+interface UseRepoDiffParams {
+  checkout: CheckoutRef;
   scope: BranchDiffScope;
   whitespace: DiffWhitespace;
   /** false while another tab is shown: nothing is read for it */
@@ -36,17 +51,23 @@ interface UseRepoDiffParams {
  * read, so a whitespace toggle does not blank a long diff.
  */
 export const useRepoDiff = ({
-  ownerRepo,
+  checkout,
   scope,
   whitespace,
   enabled,
 }: UseRepoDiffParams): UseQueryResult<CheckoutBranchDiffResponse> =>
   useQuery({
-    queryKey: ["repoDiff", ownerRepo, scope, whitespace],
+    queryKey: [
+      "repoDiff",
+      checkout.ownerRepo,
+      checkout.worktree,
+      scope,
+      whitespace,
+    ],
     queryFn: ({ signal }) =>
       getJson<CheckoutBranchDiffResponse>(
         "/api/repos/diff",
-        { repo: ownerRepo, scope, whitespace },
+        { ...checkoutQuery(checkout), scope, whitespace },
         signal,
       ),
     placeholderData: keepPreviousData,
@@ -58,20 +79,20 @@ export const useRepoDiff = ({
  * branch's commit count and its base head every tab.
  */
 export const useRepoCommits = (
-  ownerRepo: string,
+  checkout: CheckoutRef,
 ): UseQueryResult<CheckoutCommitsResponse> =>
   useQuery({
-    queryKey: ["repoCommits", ownerRepo],
+    queryKey: ["repoCommits", checkout.ownerRepo, checkout.worktree],
     queryFn: ({ signal }) =>
       getJson<CheckoutCommitsResponse>(
         "/api/repos/commits",
-        { repo: ownerRepo },
+        checkoutQuery(checkout),
         signal,
       ),
   });
 
 interface UseCommitDiffParams {
-  ownerRepo: string;
+  checkout: CheckoutRef;
   /** null: no commit is open, nothing is read */
   sha: string | null;
   whitespace: DiffWhitespace;
@@ -79,16 +100,16 @@ interface UseCommitDiffParams {
 
 /** One commit against its first parent; a commit never changes, so its answer stays. */
 export const useCommitDiff = ({
-  ownerRepo,
+  checkout,
   sha,
   whitespace,
 }: UseCommitDiffParams): UseQueryResult<CommitDiffResponse> =>
   useQuery({
-    queryKey: ["repoCommit", ownerRepo, sha, whitespace],
+    queryKey: ["repoCommit", checkout.ownerRepo, sha, whitespace],
     queryFn: ({ signal }) =>
       getJson<CommitDiffResponse>(
         "/api/repos/commit",
-        { repo: ownerRepo, sha: sha ?? "", whitespace },
+        { ...checkoutQuery(checkout), sha: sha ?? "", whitespace },
         signal,
       ),
     enabled: sha !== null,
@@ -101,32 +122,63 @@ export const useCommitDiff = ({
  * `local`: as of the last fetch, answered at once.
  */
 export const useRepoStatus = (
-  ownerRepo: string,
+  checkout: CheckoutRef,
   source: "fetched" | "local",
 ): UseQueryResult<CheckoutSyncResponse> =>
   useQuery({
-    queryKey: ["repoStatus", ownerRepo, source],
+    queryKey: ["repoStatus", checkout.ownerRepo, checkout.worktree, source],
     queryFn: ({ signal }) =>
       getJson<CheckoutSyncResponse>(
         "/api/repos/status",
         source === "fetched"
-          ? { repo: ownerRepo, fetch: "1" }
-          : { repo: ownerRepo },
+          ? { ...checkoutQuery(checkout), fetch: "1" }
+          : checkoutQuery(checkout),
+        signal,
+      ),
+  });
+
+/** The local branches and the worktrees, from git alone. */
+export const useRepoBranches = (
+  ownerRepo: string,
+): UseQueryResult<CheckoutBranchesResponse> =>
+  useQuery({
+    queryKey: ["repoBranches", ownerRepo],
+    queryFn: ({ signal }) =>
+      getJson<CheckoutBranchesResponse>(
+        "/api/repos/branches",
+        { repo: ownerRepo },
+        signal,
+      ),
+  });
+
+/** The repository's open pull requests, from GitHub: one request. */
+export const useRepoPulls = (
+  ownerRepo: string,
+): UseQueryResult<OpenPullRequestsResponse> =>
+  useQuery({
+    queryKey: ["repoPulls", ownerRepo],
+    queryFn: ({ signal }) =>
+      getJson<OpenPullRequestsResponse>(
+        "/api/repos/pulls",
+        { repo: ownerRepo },
         signal,
       ),
   });
 
 export const syncRepo = async (
   action: "pull" | "push",
-  ownerRepo: string,
+  checkout: CheckoutRef,
 ): Promise<void> => {
   await postJson(
-    `/api/repos/${action}?${new URLSearchParams({ repo: ownerRepo })}`,
+    `/api/repos/${action}?${new URLSearchParams(checkoutQuery(checkout))}`,
     {},
   );
 };
 
-/** What a pull or a push moves: the checkout's status, its diff, its commits and its row. */
+/**
+ * What a pull, a push or a reload moves: every read of the repository's
+ * checkouts, its branches and its row.
+ */
 export const invalidateRepo = async (
   client: QueryClient,
   ownerRepo: string,
@@ -135,6 +187,7 @@ export const invalidateRepo = async (
     client.invalidateQueries({ queryKey: ["repoStatus", ownerRepo] }),
     client.invalidateQueries({ queryKey: ["repoDiff", ownerRepo] }),
     client.invalidateQueries({ queryKey: ["repoCommits", ownerRepo] }),
+    client.invalidateQueries({ queryKey: ["repoBranches", ownerRepo] }),
     client.invalidateQueries({ queryKey: reposQueryKey }),
   ]);
 };

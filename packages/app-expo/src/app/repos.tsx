@@ -1,6 +1,6 @@
 import type { CheckoutRepo } from "@reviewflow/sdk";
 import { formatRelativeDate } from "@reviewflow/sdk";
-import { errorToMessage } from "@reviewflow/ui";
+import { checkoutSummaryParts, errorToMessage } from "@reviewflow/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Badge,
@@ -23,7 +23,7 @@ import { GitBranchRegularIcon } from "alouette-icons/phosphor-icons/GitBranch";
 import { Link, useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { refreshRepos, useRepos } from "#/services/reposApi.ts";
+import { refreshRepos, useRepoStatus, useRepos } from "#/services/reposApi.ts";
 
 interface RepoRowProps {
   repo: CheckoutRepo;
@@ -37,6 +37,33 @@ function UnusableRepoRow({ repo }: RepoRowProps): ReactNode {
       <Text className="font-mono text-xs text-muted">{repo.path}</Text>
       <Text className="text-sm text-muted">{repo.problem}</Text>
     </Box>
+  );
+}
+
+interface RepoRowStatusProps {
+  ownerRepo: string;
+}
+
+/**
+ * What the checkout holds and its last commit, as of the last fetch: read row
+ * by row, so the list shows before every status answered.
+ */
+function RepoRowStatus({ ownerRepo }: RepoRowStatusProps): ReactNode {
+  const { data } = useRepoStatus({ ownerRepo, worktree: null }, "local");
+  if (data === undefined) return null;
+  const { status } = data;
+  const parts = checkoutSummaryParts(status);
+  return (
+    <>
+      {parts.length === 0 ? null : (
+        <Text className="text-sm text-muted">{parts.join(" · ")}</Text>
+      )}
+      {status.commit === null ? null : (
+        <Text className="w-full text-xs text-muted" numberOfLines={1}>
+          {`${status.commit.subject} · ${formatRelativeDate(status.commit.committedAt)}`}
+        </Text>
+      )}
+    </>
   );
 }
 
@@ -63,6 +90,7 @@ function RepoRow({ repo }: RepoRowProps): ReactNode {
               found
             </Badge>
           )}
+          <RepoRowStatus ownerRepo={repo.ownerRepo} />
         </View>
         <Text className="font-mono text-xs text-muted">{repo.path}</Text>
       </View>
@@ -75,7 +103,8 @@ const describeRepoPaths = (repoPaths: string[]): string =>
 
 /**
  * The configured checkouts and the ones found directly under `repoPaths`
- * (marked "found"): each opens its checked-out branch. The found ones come
+ * (marked "found"), each with what it holds against its remote: each opens
+ * its worktrees and branches. The found ones come
  * from the server's last scan; Refresh scans the folders again.
  */
 export default function ReposPage(): ReactNode {

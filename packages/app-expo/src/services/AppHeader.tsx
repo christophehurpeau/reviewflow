@@ -21,7 +21,13 @@ const settingsHref = "/settings";
 /** A detail screen is reached from its list, so the list is what the nav marks as current. */
 const sectionOf = (pathname: string): string => {
   if (pathname.startsWith(settingsHref)) return settingsHref;
-  if (pathname === reposHref || pathname === "/repo") return reposHref;
+  if (
+    pathname === reposHref ||
+    pathname === "/repo" ||
+    pathname === "/checkout"
+  ) {
+    return reposHref;
+  }
   return pullRequestsHref;
 };
 
