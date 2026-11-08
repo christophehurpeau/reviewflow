@@ -1,6 +1,6 @@
 {
   "name": "reviewflow-monorepo",
-  "version": "6.27.0",
+  "version": "6.28.0",
   "private": true,
   "homepage": "https://github.com/christophehurpeau/reviewflow",
   "bugs": {

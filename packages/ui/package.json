@@ -1,6 +1,6 @@
 {
   "name": "@reviewflow/ui",
-  "version": "6.27.0",
+  "version": "6.28.0",
   "description": "react-native pull request screen components. Consumed as SOURCES (no build): exports resolve `default` to ./src/index.ts, which metro transforms like the app's own files; the consuming app's css must @source this package's src so tailwind keeps its classes.",
   "keywords": [
     "alouette",
