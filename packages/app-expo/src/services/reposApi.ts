@@ -1,5 +1,6 @@
 import type {
   BranchDiffScope,
+  BranchPullRequestsResponse,
   CheckoutBranchDiffResponse,
   CheckoutBranchesResponse,
   CheckoutCommitsResponse,
@@ -183,6 +184,33 @@ export const useRepoPulls = (
         signal,
       ),
   });
+
+/**
+ * A local branch's pull requests, open, merged or closed, from GitHub: one
+ * request. Idle without a branch, as on a detached HEAD.
+ */
+export const useBranchPulls = (
+  ownerRepo: string,
+  branch: string | null,
+): UseQueryResult<BranchPullRequestsResponse> =>
+  useQuery({
+    queryKey: ["branchPulls", ownerRepo, branch],
+    queryFn: ({ signal }) =>
+      getJson<BranchPullRequestsResponse>(
+        "/api/repos/branch-pulls",
+        { repo: ownerRepo, branch: branch ?? "" },
+        signal,
+      ),
+    enabled: branch !== null,
+  });
+
+/** GitHub is read again only when the reader asks: a reload, never a pull or a push. */
+export const invalidateBranchPulls = async (
+  client: QueryClient,
+  ownerRepo: string,
+): Promise<void> => {
+  await client.invalidateQueries({ queryKey: ["branchPulls", ownerRepo] });
+};
 
 export const syncRepo = async (
   action: "pull" | "push",

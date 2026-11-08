@@ -1,6 +1,6 @@
 import {
   applyPullRequestEdit,
-  fetchBranchPullRequestHeads,
+  fetchBranchPullRequests,
   fetchOpenPullRequests,
   fetchPullRequestCandidates,
   fetchPullRequestPart,
@@ -10,6 +10,7 @@ import {
 import {
   completeWorktreeRemoval,
   createBindingsCache,
+  linkBranchPullRequests,
   prepareWorktreeRemoval,
   pullCheckout,
   pushCheckout,
@@ -59,7 +60,9 @@ export const operations: PullRequestOperations = {
   readWorktrees,
   readBranches: (checkout) => readBranches({ cwd: checkout }),
   fetchOpenPullRequests,
-  fetchBranchPullRequestHeads,
+  fetchBranchPullRequests,
+  linkBranchPullRequests: ({ checkout, branch, pullRequests }) =>
+    linkBranchPullRequests({ cwd: checkout, branch, pullRequests }),
   readWorktreeRemovalStatus,
   prepareWorktreeRemoval,
   completeWorktreeRemoval,

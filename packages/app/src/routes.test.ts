@@ -27,6 +27,7 @@ import { routeApiRequest } from "./routes.ts";
 
 const sha = "a".repeat(40);
 const other = "b".repeat(40);
+const older = "c".repeat(40);
 const transport = {} satisfies Partial<GitHubTransport> as GitHubTransport;
 
 let root: string;
@@ -104,7 +105,11 @@ const makeDeps = (
     ]),
     readBranches: vi.fn(async () => ({ branches: [] })),
     fetchOpenPullRequests: vi.fn(async () => ({ pullRequests: [] })),
-    fetchBranchPullRequestHeads: vi.fn(async () => [
+    fetchBranchPullRequests: vi.fn(async () => [
+      { number: 7, state: "MERGED", sha: other, commitOids: [other] },
+      { number: 3, state: "MERGED", sha: older, commitOids: [older] },
+    ]),
+    linkBranchPullRequests: vi.fn(async () => [
       { number: 7, state: "MERGED", sha: other },
     ]),
     readWorktreeRemovalStatus: vi.fn(async () => ({ main: false })),
@@ -328,7 +333,42 @@ describe("repos", () => {
     ).toBe(400);
   });
 
-  test("reads what removing a worktree would lose, its pull request heads kept", async () => {
+  test("reads a local branch's own pull requests, refusing a missing branch", async () => {
+    const deps = makeDeps();
+    expect(
+      await call(
+        deps,
+        "GET",
+        "/api/repos/branch-pulls?repo=acme/widgets&branch=feat/x",
+      ),
+    ).toEqual({
+      status: 200,
+      body: { pullRequests: [{ number: 7, state: "MERGED", sha: other }] },
+    });
+    expect(deps.operations.fetchBranchPullRequests).toHaveBeenCalledWith(
+      transport,
+      "acme/widgets",
+      "feat/x",
+    );
+    expect(deps.operations.linkBranchPullRequests).toHaveBeenCalledWith({
+      checkout: repo,
+      branch: "feat/x",
+      pullRequests: [
+        { number: 7, state: "MERGED", sha: other, commitOids: [other] },
+        { number: 3, state: "MERGED", sha: older, commitOids: [older] },
+      ],
+    });
+    expect(
+      (await call(deps, "GET", "/api/repos/branch-pulls?repo=acme/widgets"))
+        ?.status,
+    ).toBe(400);
+    expect(
+      (await call(deps, "GET", "/api/repos/branch-pulls?repo=nope&branch=x"))
+        ?.status,
+    ).toBe(400);
+  });
+
+  test("reads what removing a worktree would lose, every head kept, only the branch's own listed", async () => {
     const deps = makeDeps();
     expect(
       await call(
@@ -346,13 +386,19 @@ describe("repos", () => {
     });
     expect(deps.operations.readWorktreeRemovalStatus).toHaveBeenCalledWith({
       worktree: "/elsewhere/widgets-fix",
-      keptShas: [other],
+      keptShas: [other, older],
     });
+    expect(deps.operations.linkBranchPullRequests).toHaveBeenCalledWith(
+      expect.objectContaining({
+        checkout: "/elsewhere/widgets-fix",
+        branch: "feature",
+      }),
+    );
   });
 
   test("keeps no head when GitHub fails, which errs toward refusing", async () => {
     const deps = makeDeps({
-      fetchBranchPullRequestHeads: vi.fn(async () => {
+      fetchBranchPullRequests: vi.fn(async () => {
         throw new Error("offline");
       }),
     });
@@ -380,7 +426,7 @@ describe("repos", () => {
     ).toEqual({ status: 200, body: { branchError: null } });
     expect(deps.operations.prepareWorktreeRemoval).toHaveBeenCalledWith({
       worktree: "/elsewhere/widgets-fix",
-      keptShas: [other],
+      keptShas: [other, older],
       deleteBranch: true,
     });
     expect(deps.operations.completeWorktreeRemoval).toHaveBeenCalledWith({

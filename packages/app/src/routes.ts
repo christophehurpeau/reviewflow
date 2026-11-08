@@ -7,7 +7,9 @@
  */
 import type {
   BranchDiffScope,
-  BranchPullRequestHead,
+  BranchPullRequest,
+  BranchPullRequestCandidate,
+  BranchPullRequestsResponse,
   CheckoutBranchDiffResponse,
   CheckoutBranchesResponse,
   CheckoutCommitsResponse,
@@ -77,6 +79,7 @@ export const apiRoutes = {
   repoPush: "/api/repos/push",
   repoBranches: "/api/repos/branches",
   repoPulls: "/api/repos/pulls",
+  repoBranchPulls: "/api/repos/branch-pulls",
   repoWorktreeStatus: "/api/repos/worktree-status",
   repoWorktreeRemove: "/api/repos/worktree-remove",
   prDetail: "/api/prs/detail",
@@ -171,11 +174,16 @@ export interface PullRequestOperations {
     transport: GitHubTransport,
     ownerRepo: string,
   ) => Promise<OpenPullRequestsResponse>;
-  fetchBranchPullRequestHeads: (
+  fetchBranchPullRequests: (
     transport: GitHubTransport,
     ownerRepo: string,
     branch: string,
-  ) => Promise<BranchPullRequestHead[]>;
+  ) => Promise<BranchPullRequestCandidate[]>;
+  linkBranchPullRequests: (params: {
+    checkout: string;
+    branch: string;
+    pullRequests: BranchPullRequestCandidate[];
+  }) => Promise<BranchPullRequest[]>;
   readWorktreeRemovalStatus: (params: {
     worktree: string;
     keptShas: string[];
@@ -521,26 +529,60 @@ const handleRepoPulls: Handler = async ({ transport, operations }, request) => {
   return gitAnswer(() => operations.fetchOpenPullRequests(transport, repo));
 };
 
-type BranchPullRequests = Pick<
-  WorktreeRemovalStatusResponse,
-  "pullRequestsError" | "pullRequests"
->;
+/** A local branch's pull requests, a reused name's older ones left out; GitHub's failure is the 400. */
+const handleBranchPulls: Handler = async (deps, request) => {
+  if (request.method !== "GET") return notAllowed();
+  const branch = request.query.get("branch") ?? "";
+  if (branch.trim() === "") return bad("branch must name a local branch");
+  const checkout = await readListedCheckout(deps, request);
+  if (typeof checkout !== "string") return checkout;
+  const ownerRepo = request.query.get("repo") ?? "";
+  return gitAnswer(async (): Promise<BranchPullRequestsResponse> => {
+    const candidates = await deps.operations.fetchBranchPullRequests(
+      deps.transport,
+      ownerRepo,
+      branch,
+    );
+    return {
+      pullRequests: await deps.operations.linkBranchPullRequests({
+        checkout,
+        branch,
+        pullRequests: candidates,
+      }),
+    };
+  });
+};
+
+interface BranchPullRequestHeads {
+  /** null on a detached HEAD */
+  branch: string | null;
+  /**
+   * Every pull request of the branch's name, a reused name's older ones
+   * included: each head's commits are on GitHub whoever's branch it was, so
+   * all of them count as pushed.
+   */
+  heads: BranchPullRequestCandidate[];
+  pullRequestsError: string | null;
+}
 
 /**
  * The pull request heads of the checkout's branch, which GitHub keeps after
  * deleting the branch. GitHub failing proves nothing either way: no head is
  * then kept, and the unpushed count errs toward refusing.
  */
-const readBranchPullRequests = async (
+const readBranchPullRequestHeads = async (
   { transport, operations }: Pick<RouteDeps, "operations" | "transport">,
   ownerRepo: string,
   checkout: string,
-): Promise<BranchPullRequests> => {
+): Promise<BranchPullRequestHeads> => {
   const branch = await operations.readHeadBranch(checkout);
-  if (branch === null) return { pullRequests: [], pullRequestsError: null };
+  if (branch === null) {
+    return { branch, heads: [], pullRequestsError: null };
+  }
   try {
     return {
-      pullRequests: await operations.fetchBranchPullRequestHeads(
+      branch,
+      heads: await operations.fetchBranchPullRequests(
         transport,
         ownerRepo,
         branch,
@@ -548,7 +590,7 @@ const readBranchPullRequests = async (
       pullRequestsError: null,
     };
   } catch (error) {
-    return { pullRequests: [], pullRequestsError: errorMessage(error) };
+    return { branch, heads: [], pullRequestsError: errorMessage(error) };
   }
 };
 
@@ -558,16 +600,22 @@ const handleWorktreeStatus: Handler = async (deps, request) => {
   if (typeof checkout !== "string") return checkout;
   const ownerRepo = request.query.get("repo") ?? "";
   return gitAnswer(async (): Promise<WorktreeRemovalStatusResponse> => {
-    const branchPullRequests = await readBranchPullRequests(
-      deps,
-      ownerRepo,
-      checkout,
-    );
-    const status = await deps.operations.readWorktreeRemovalStatus({
-      worktree: checkout,
-      keptShas: branchPullRequests.pullRequests.map(({ sha }) => sha),
-    });
-    return { status, ...branchPullRequests };
+    const { branch, heads, pullRequestsError } =
+      await readBranchPullRequestHeads(deps, ownerRepo, checkout);
+    const [status, pullRequests] = await Promise.all([
+      deps.operations.readWorktreeRemovalStatus({
+        worktree: checkout,
+        keptShas: heads.map(({ sha }) => sha),
+      }),
+      branch === null
+        ? []
+        : deps.operations.linkBranchPullRequests({
+            checkout,
+            branch,
+            pullRequests: heads,
+          }),
+    ]);
+    return { status, pullRequests, pullRequestsError };
   });
 };
 
@@ -590,14 +638,14 @@ const handleWorktreeRemove: Handler = async (deps, request) => {
     (await request.readJson()) as Partial<WorktreeRemovalRequest> | null;
   const deleteBranch = payload?.deleteBranch === true;
   return gitAnswer(async () => {
-    const { pullRequests } = await readBranchPullRequests(
+    const { heads } = await readBranchPullRequestHeads(
       deps,
       ownerRepo,
       checkout,
     );
     const plan = await deps.operations.prepareWorktreeRemoval({
       worktree: checkout,
-      keptShas: pullRequests.map(({ sha }) => sha),
+      keptShas: heads.map(({ sha }) => sha),
       deleteBranch,
     });
     return deps.operations.completeWorktreeRemoval(plan);
@@ -897,6 +945,7 @@ const handlers: Record<string, Handler> = {
   [apiRoutes.repoPush]: syncHandler("pushCheckout"),
   [apiRoutes.repoBranches]: handleRepoBranches,
   [apiRoutes.repoPulls]: handleRepoPulls,
+  [apiRoutes.repoBranchPulls]: handleBranchPulls,
   [apiRoutes.repoWorktreeStatus]: handleWorktreeStatus,
   [apiRoutes.repoWorktreeRemove]: handleWorktreeRemove,
   [apiRoutes.prDetail]: handlePrDetail,

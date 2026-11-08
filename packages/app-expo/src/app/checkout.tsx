@@ -16,9 +16,14 @@ import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeft";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useState } from "react";
+import {
+  BranchPullRequests,
+  BranchPullRequestsNotice,
+} from "#/services/BranchPullRequests.tsx";
 import { useDiffPreferences } from "#/services/DiffPreferencesProvider.tsx";
 import type { CheckoutRef } from "#/services/reposApi.ts";
 import {
+  invalidateBranchPulls,
   invalidateRepo,
   syncRepo,
   useCommitDiff,
@@ -140,11 +145,30 @@ function RepoCheckout({
       }}
       whitespace={whitespace}
       headerStart={back}
-      headerEnd={<RepoSyncButtons checkout={checkout} />}
-      notices={<RepoSyncNotice checkout={checkout} />}
+      headerEnd={
+        <>
+          <BranchPullRequests
+            ownerRepo={checkout.ownerRepo}
+            branch={status?.branch ?? null}
+          />
+          <RepoSyncButtons checkout={checkout} />
+        </>
+      }
+      notices={
+        <>
+          <RepoSyncNotice checkout={checkout} />
+          <BranchPullRequestsNotice
+            ownerRepo={checkout.ownerRepo}
+            branch={status?.branch ?? null}
+          />
+        </>
+      }
       onReload={() => {
         // a failed read is the query's error, shown in place
         invalidateRepo(client, checkout.ownerRepo).catch(() => undefined);
+        invalidateBranchPulls(client, checkout.ownerRepo).catch(
+          () => undefined,
+        );
       }}
       onTabChange={setChosenTab}
       onWhitespaceToggle={() => {

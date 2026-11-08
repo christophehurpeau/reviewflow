@@ -12,9 +12,14 @@ import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeft";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useState } from "react";
+import {
+  BranchPullRequests,
+  BranchPullRequestsNotice,
+} from "#/services/BranchPullRequests.tsx";
 import { useDiffPreferences } from "#/services/DiffPreferencesProvider.tsx";
 import type { CheckoutRef } from "#/services/reposApi.ts";
 import {
+  invalidateBranchPulls,
   invalidateRepo,
   useCommitDiff,
   useRepoBranches,
@@ -114,9 +119,16 @@ function RepoBranch({
       }}
       whitespace={whitespace}
       headerStart={back}
+      headerEnd={
+        <BranchPullRequests ownerRepo={ownerRepo} branch={branchName} />
+      }
+      notices={
+        <BranchPullRequestsNotice ownerRepo={ownerRepo} branch={branchName} />
+      }
       onReload={() => {
         // a failed read is the query's error, shown in place
         invalidateRepo(client, ownerRepo).catch(() => undefined);
+        invalidateBranchPulls(client, ownerRepo).catch(() => undefined);
       }}
       onTabChange={setTab}
       onWhitespaceToggle={() => {
@@ -128,7 +140,8 @@ function RepoBranch({
 
 /**
  * A local branch no worktree has out, read from the listed checkout: its
- * commits since it left the default branch, and its history.
+ * commits since it left the default branch, its history, and its pull
+ * requests, merged and closed ones included.
  */
 export default function BranchPage(): ReactNode {
   const router = useRouter();
