@@ -8,10 +8,12 @@
 import type {
   BranchDiffScope,
   CheckoutBranchDiffResponse,
+  CheckoutBranchesResponse,
   CheckoutCommitsResponse,
   CheckoutRepo,
   CheckoutReposResponse,
   CheckoutSyncResponse,
+  CheckoutWorktree,
   CommitDiffResponse,
   DiffImpactsResponse,
   DiffReadingOrderResponse,
@@ -20,6 +22,7 @@ import type {
   EditPullRequestRequest,
   EditPullRequestResponse,
   GitHubTransport,
+  OpenPullRequestsResponse,
   PullRequestCandidatesResponse,
   PullRequestDiffResponse,
   PullRequestFileContentsResponse,
@@ -66,6 +69,8 @@ export const apiRoutes = {
   repoStatus: "/api/repos/status",
   repoPull: "/api/repos/pull",
   repoPush: "/api/repos/push",
+  repoBranches: "/api/repos/branches",
+  repoPulls: "/api/repos/pulls",
   prDetail: "/api/prs/detail",
   prCandidates: "/api/prs/candidates",
   prRevisions: "/api/prs/revisions",
@@ -148,6 +153,12 @@ export interface PullRequestOperations {
   }) => Promise<CheckoutSyncResponse>;
   pullCheckout: (checkout: string) => Promise<void>;
   pushCheckout: (checkout: string) => Promise<void>;
+  readWorktrees: (checkout: string) => Promise<CheckoutWorktree[]>;
+  readBranches: (checkout: string) => Promise<CheckoutBranchesResponse>;
+  fetchOpenPullRequests: (
+    transport: GitHubTransport,
+    ownerRepo: string,
+  ) => Promise<OpenPullRequestsResponse>;
 }
 
 export interface RouteDeps {
@@ -301,16 +312,28 @@ const ownerRepoPattern = /^[^/\s]+\/[^/\s]+$/;
 
 /**
  * The listed checkout the request names (`resolveListedCheckout`), or the
- * refusal to answer with.
+ * refusal to answer with. With `worktree`, one of its worktrees instead: only
+ * a path `git worktree list` names, never any path from the request.
  */
 const readListedCheckout = async (
-  configPath: string,
+  { operations, configPath }: Pick<RouteDeps, "configPath" | "operations">,
   request: RouteRequest,
 ): Promise<string | RouteAnswer> => {
   const repo = request.query.get("repo") ?? "";
   if (!ownerRepoPattern.test(repo)) return bad("repo must be owner/repo");
   const resolved = await resolveListedCheckout(configPath, repo);
-  return "refused" in resolved ? bad(resolved.refused) : resolved.checkout;
+  if ("refused" in resolved) return bad(resolved.refused);
+  const worktree = request.query.get("worktree");
+  if (worktree === null || worktree === resolved.checkout) {
+    return resolved.checkout;
+  }
+  const worktrees = await operations
+    .readWorktrees(resolved.checkout)
+    .catch(() => []);
+  const known = worktrees.some(
+    ({ path, prunable }) => path === worktree && !prunable,
+  );
+  return known ? worktree : bad(`${worktree} is not a worktree of ${repo}`);
 };
 
 /** git's failure (a missing base, an unknown commit) is the answer, as a 400. */
@@ -341,7 +364,10 @@ const handleRepoDiff: Handler = async ({ operations, configPath }, request) => {
   }
   const whitespace = readWhitespace(request);
   if (typeof whitespace !== "string") return whitespace;
-  const checkout = await readListedCheckout(configPath, request);
+  const checkout = await readListedCheckout(
+    { operations, configPath },
+    request,
+  );
   if (typeof checkout !== "string") return checkout;
   return gitAnswer(() =>
     operations.readCheckoutBranchDiff({ checkout, scope, whitespace }),
@@ -359,7 +385,10 @@ const handleRepoCommits: Handler = async (
   if (!Number.isInteger(limit) || limit < 1 || limit > maxRecentCommits) {
     return bad(`limit must be between 1 and ${String(maxRecentCommits)}`);
   }
-  const checkout = await readListedCheckout(configPath, request);
+  const checkout = await readListedCheckout(
+    { operations, configPath },
+    request,
+  );
   if (typeof checkout !== "string") return checkout;
   return gitAnswer(() => operations.readRecentCommits({ checkout, limit }));
 };
@@ -373,7 +402,10 @@ const handleRepoCommit: Handler = async (
   if (!isSha(sha)) return bad("sha must be a commit sha");
   const whitespace = readWhitespace(request);
   if (typeof whitespace !== "string") return whitespace;
-  const checkout = await readListedCheckout(configPath, request);
+  const checkout = await readListedCheckout(
+    { operations, configPath },
+    request,
+  );
   if (typeof checkout !== "string") return checkout;
   return gitAnswer(() =>
     operations.readCommitDiff({ checkout, sha, whitespace }),
@@ -389,7 +421,10 @@ const handleRepoStatus: Handler = async (
   request,
 ) => {
   if (request.method !== "GET") return notAllowed();
-  const checkout = await readListedCheckout(configPath, request);
+  const checkout = await readListedCheckout(
+    { operations, configPath },
+    request,
+  );
   if (typeof checkout !== "string") return checkout;
   const fetch = request.query.get("fetch") === "1" ? "always" : "never";
   return gitAnswer(() => operations.readCheckoutSync({ checkout, fetch }));
@@ -400,13 +435,38 @@ const syncHandler =
   (action: "pullCheckout" | "pushCheckout"): Handler =>
   async ({ operations, configPath }, request) => {
     if (request.method !== "POST") return notAllowed();
-    const checkout = await readListedCheckout(configPath, request);
+    const checkout = await readListedCheckout(
+      { operations, configPath },
+      request,
+    );
     if (typeof checkout !== "string") return checkout;
     return gitAnswer(async () => {
       await operations[action](checkout);
       return { path: checkout };
     });
   };
+
+/** The local branches and worktrees, from git alone: no network. */
+const handleRepoBranches: Handler = async (
+  { operations, configPath },
+  request,
+) => {
+  if (request.method !== "GET") return notAllowed();
+  const checkout = await readListedCheckout(
+    { operations, configPath },
+    request,
+  );
+  if (typeof checkout !== "string") return checkout;
+  return gitAnswer(() => operations.readBranches(checkout));
+};
+
+/** GitHub's open pull requests of a repository; GitHub's failure is the 400. */
+const handleRepoPulls: Handler = async ({ transport, operations }, request) => {
+  if (request.method !== "GET") return notAllowed();
+  const repo = request.query.get("repo") ?? "";
+  if (!ownerRepoPattern.test(repo)) return bad("repo must be owner/repo");
+  return gitAnswer(() => operations.fetchOpenPullRequests(transport, repo));
+};
 
 const handlePrDetail: Handler = async ({ transport, operations }, request) => {
   if (request.method !== "GET") return notAllowed();
@@ -699,6 +759,8 @@ const handlers: Record<string, Handler> = {
   [apiRoutes.repoStatus]: handleRepoStatus,
   [apiRoutes.repoPull]: syncHandler("pullCheckout"),
   [apiRoutes.repoPush]: syncHandler("pushCheckout"),
+  [apiRoutes.repoBranches]: handleRepoBranches,
+  [apiRoutes.repoPulls]: handleRepoPulls,
   [apiRoutes.prDetail]: handlePrDetail,
   [apiRoutes.prCandidates]: handlePrCandidates,
   [apiRoutes.prRevisions]: handlePrRevisions,

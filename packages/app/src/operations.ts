@@ -1,5 +1,6 @@
 import {
   applyPullRequestEdit,
+  fetchOpenPullRequests,
   fetchPullRequestCandidates,
   fetchPullRequestPart,
   fetchPullRequestRevisions,
@@ -9,6 +10,7 @@ import {
   createBindingsCache,
   pullCheckout,
   pushCheckout,
+  readBranches,
   readCheckoutBranchDiff,
   readCheckoutSync,
   readCommitDiff,
@@ -18,6 +20,7 @@ import {
   readPullRequestDiff,
   readReadingOrder,
   readRecentCommits,
+  readWorktrees,
 } from "@reviewflow/sdk/git";
 import { appLogger } from "nightingale-app-console";
 import type { PullRequestOperations } from "./routes.ts";
@@ -49,4 +52,7 @@ export const operations: PullRequestOperations = {
     readCheckoutSync({ cwd: checkout, fetch }),
   pullCheckout,
   pushCheckout,
+  readWorktrees,
+  readBranches: (checkout) => readBranches({ cwd: checkout }),
+  fetchOpenPullRequests,
 };

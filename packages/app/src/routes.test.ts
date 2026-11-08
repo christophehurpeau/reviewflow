@@ -97,6 +97,13 @@ const makeDeps = (
     readCheckoutSync: vi.fn(async () => ({ fetchError: null })),
     pullCheckout: vi.fn(async () => undefined),
     pushCheckout: vi.fn(async () => undefined),
+    readWorktrees: vi.fn(async () => [
+      { path: repo, prunable: false },
+      { path: "/elsewhere/widgets-fix", prunable: false },
+      { path: "/elsewhere/gone", prunable: true },
+    ]),
+    readBranches: vi.fn(async () => ({ branches: [] })),
+    fetchOpenPullRequests: vi.fn(async () => ({ pullRequests: [] })),
     ...overrides,
   } as unknown as PullRequestOperations,
 });
@@ -239,6 +246,55 @@ describe("repos", () => {
       scope: "uncommitted",
       whitespace: "hide",
     });
+  });
+
+  test("reads a worktree of a listed checkout, only one git lists", async () => {
+    const deps = makeDeps();
+    await call(
+      deps,
+      "GET",
+      "/api/repos/status?repo=acme/widgets&worktree=/elsewhere/widgets-fix",
+    );
+    expect(deps.operations.readCheckoutSync).toHaveBeenCalledWith({
+      checkout: "/elsewhere/widgets-fix",
+      fetch: "never",
+    });
+    expect(
+      (
+        await call(
+          deps,
+          "GET",
+          "/api/repos/status?repo=acme/widgets&worktree=/etc",
+        )
+      )?.status,
+    ).toBe(400);
+    expect(
+      (
+        await call(
+          deps,
+          "GET",
+          "/api/repos/diff?repo=acme/widgets&worktree=/elsewhere/gone",
+        )
+      )?.status,
+    ).toBe(400);
+  });
+
+  test("reads the branches of a listed checkout and the open pull requests of a repository", async () => {
+    const deps = makeDeps();
+    expect(
+      await call(deps, "GET", "/api/repos/branches?repo=acme/widgets"),
+    ).toEqual({ status: 200, body: { branches: [] } });
+    expect(deps.operations.readBranches).toHaveBeenCalledWith(repo);
+    expect(
+      await call(deps, "GET", "/api/repos/pulls?repo=acme/widgets"),
+    ).toEqual({ status: 200, body: { pullRequests: [] } });
+    expect(deps.operations.fetchOpenPullRequests).toHaveBeenCalledWith(
+      transport,
+      "acme/widgets",
+    );
+    expect(
+      (await call(deps, "GET", "/api/repos/pulls?repo=nope"))?.status,
+    ).toBe(400);
   });
 
   test("refuses a bad scope or whitespace, and answers git's failure as a 400", async () => {
