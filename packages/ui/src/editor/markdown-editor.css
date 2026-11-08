@@ -2,7 +2,8 @@
  * The markdown editor's look, ported from vscode-extension-markdown-beautiful-editor
  * (src/styles/md-inline.css, md-block.css, md-alerts.css, code-tokens.css) with
  * every --vscode-* colour rewritten as an alouette token, so the light and dark
- * themes reach it through the same .light/.dark ancestor as the rest of the app.
+ * themes reach it through the same .light/.dark/.system ancestor as the rest of
+ * the app.
  *
  * Everything is scoped under .markdown-editor: the md-* classes are generic
  * names and must not reach anything else on the page.
@@ -61,6 +62,21 @@
   --md-tok-type: #7ee787;
   --md-tok-function: #d2a8ff;
   --md-tok-invalid: #f85149;
+}
+
+/* the "system" preference never sets .dark: the palette resolves it with this
+   media query, so the dark tokens are repeated here */
+@media (prefers-color-scheme: dark) {
+  .system .markdown-editor {
+    --md-tok-comment: #8b949e;
+    --md-tok-keyword: #ff7b72;
+    --md-tok-string: #a5d6ff;
+    --md-tok-constant: #79c0ff;
+    --md-tok-property: #79c0ff;
+    --md-tok-type: #7ee787;
+    --md-tok-function: #d2a8ff;
+    --md-tok-invalid: #f85149;
+  }
 }
 
 .markdown-editor:hover {
