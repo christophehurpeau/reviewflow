@@ -1,5 +1,5 @@
 import type { ReviewflowConnectionStatus } from "@reviewflow/sdk";
-import { insertCheckoutEntry } from "@reviewflow/sdk";
+import { defaultRepoPath, insertCheckoutEntry } from "@reviewflow/sdk";
 import {
   DiffSettingsSection,
   EditableFile,
@@ -242,6 +242,13 @@ function CheckoutsSection(): ReactNode {
         a checkout whose origin remote is that repository:{" "}
         <Code>{'{ "repos": { "owner/repo": "/absolute/path" } }'}</Code>. A path
         that is missing or names another repository is saved with a warning.
+      </Text>
+      <Text className="text-sm text-muted">
+        A repository missing from <Code>repos</Code> is searched in{" "}
+        <Code>defaultRepoPath</Code> (<Code>{defaultRepoPath}</Code> when
+        unset), as <Code>{"<path>/<repo>"}</Code> or{" "}
+        <Code>{"<path>/<any directory>/<repo>"}</Code>, and used when its origin
+        remote is that repository.
       </Text>
       {file.data === undefined ? (
         <Text className="text-sm text-muted">

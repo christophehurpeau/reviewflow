@@ -3,29 +3,46 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { defaultRepoPath } from "@reviewflow/sdk";
 import {
   describeRepoAttachment,
   expandHome,
+  findCheckoutUnder,
   ownerRepoOfRemote,
-  readConfigRepos,
+  readConfig,
   resolveCheckout,
   validateConfigSource,
 } from "./config.ts";
 
 let root: string;
 let repo: string;
+let reposBase: string;
 let configPath: string;
 
 const git = (cwd: string, ...args: string[]): void => {
   execFileSync("git", args, { cwd, stdio: "ignore" });
 };
 
+const createCheckout = (path: string, origin: string): void => {
+  mkdirSync(path, { recursive: true });
+  git(path, "init", "--quiet");
+  git(path, "remote", "add", "origin", origin);
+};
+
 beforeAll(() => {
   root = mkdtempSync(join(tmpdir(), "reviewflow-app-config-"));
   repo = join(root, "checkout");
-  mkdirSync(repo);
-  git(repo, "init", "--quiet");
-  git(repo, "remote", "add", "origin", "git@github.com:Acme/Widgets.git");
+  createCheckout(repo, "git@github.com:Acme/Widgets.git");
+  reposBase = join(root, "dev");
+  createCheckout(join(reposBase, "gizmos"), "git@github.com:acme/gizmos.git");
+  createCheckout(
+    join(reposBase, "fork", "gadgets"),
+    "git@github.com:someone/gadgets.git",
+  );
+  createCheckout(
+    join(reposBase, "perso", "gadgets"),
+    "git@github.com:acme/gadgets.git",
+  );
   configPath = join(root, "config.json");
 });
 
@@ -34,7 +51,10 @@ afterAll(() => {
 });
 
 const writeConfig = (repos: Record<string, string>): void => {
-  writeFileSync(configPath, JSON.stringify({ repos }));
+  writeFileSync(
+    configPath,
+    JSON.stringify({ defaultRepoPath: reposBase, repos }),
+  );
 };
 
 describe("ownerRepoOfRemote", () => {
@@ -69,15 +89,30 @@ describe("expandHome", () => {
 });
 
 describe("config", () => {
-  test("reads a path under ~ expanded", () => {
-    writeConfig({ "acme/widgets": "~/dev/widgets" });
-    expect(readConfigRepos(configPath)).toEqual({
-      "acme/widgets": join(homedir(), "dev/widgets"),
+  test("reads paths under ~ expanded", () => {
+    writeFileSync(
+      configPath,
+      JSON.stringify({
+        defaultRepoPath: "~/code",
+        repos: { "acme/widgets": "~/dev/widgets" },
+      }),
+    );
+    expect(readConfig(configPath)).toEqual({
+      defaultRepoPath: join(homedir(), "code"),
+      repos: { "acme/widgets": join(homedir(), "dev/widgets") },
     });
   });
 
+  test("defaultRepoPath defaults to ~/dev/", () => {
+    writeFileSync(configPath, JSON.stringify({ repos: {} }));
+    expect(readConfig(configPath).defaultRepoPath).toBe(
+      expandHome(defaultRepoPath),
+    );
+    expect(defaultRepoPath).toBe("~/dev/");
+  });
+
   test("a missing file is no repository, not an error", async () => {
-    expect(readConfigRepos(join(root, "nope.json"))).toEqual({});
+    expect(readConfig(join(root, "nope.json")).repos).toEqual({});
     const refusal = await resolveCheckout(
       join(root, "nope.json"),
       "Acme/Widgets",
@@ -87,7 +122,21 @@ describe("config", () => {
 
   test("a malformed file raises", () => {
     writeFileSync(configPath, "{");
-    expect(() => readConfigRepos(configPath)).toThrow("not valid json");
+    expect(() => readConfig(configPath)).toThrow("not valid json");
+  });
+
+  test("finds a repo missing from the file under defaultRepoPath", async () => {
+    writeConfig({});
+    expect(await resolveCheckout(configPath, "acme/gizmos")).toEqual({
+      checkout: join(reposBase, "gizmos"),
+    });
+  });
+
+  test("an explicit entry wins over defaultRepoPath", async () => {
+    writeConfig({ "acme/gizmos": join(root, "gone") });
+    expect(await resolveCheckout(configPath, "acme/gizmos")).toMatchObject({
+      refused: { reason: "invalidPath" },
+    });
   });
 
   test("resolves a checkout whose origin names the repo, case-insensitively", async () => {
@@ -152,6 +201,27 @@ describe("config", () => {
   });
 });
 
+describe("findCheckoutUnder", () => {
+  test("finds <base>/<repo>, case-insensitively", async () => {
+    expect(await findCheckoutUnder(reposBase, "Acme/Gizmos")).toBe(
+      join(reposBase, "gizmos"),
+    );
+  });
+
+  test("finds <base>/<any>/<repo>, skipping one whose origin is another repo", async () => {
+    expect(await findCheckoutUnder(reposBase, "acme/gadgets")).toBe(
+      join(reposBase, "perso", "gadgets"),
+    );
+  });
+
+  test("finds nothing for an unknown repo or a missing base", async () => {
+    expect(await findCheckoutUnder(reposBase, "acme/other")).toBeNull();
+    expect(
+      await findCheckoutUnder(join(root, "gone"), "acme/gizmos"),
+    ).toBeNull();
+  });
+});
+
 describe("validateConfigSource", () => {
   const source = (repos: unknown): string => JSON.stringify({ repos });
 
@@ -182,6 +252,14 @@ describe("validateConfigSource", () => {
     [source({ "acme/widgets": "" }), "non-empty string"],
     [source({ "acme/widgets": "relative/dir" }), "must be an absolute path"],
     [source({ "acme/widgets": "~other/dir" }), "must be an absolute path"],
+    [
+      '{"repos":{},"defaultRepoPath":3}',
+      '"defaultRepoPath" must be a non-empty',
+    ],
+    [
+      '{"repos":{},"defaultRepoPath":"dev"}',
+      '"defaultRepoPath" must be an absolute',
+    ],
   ])("refuses %s", async (text, message) => {
     expect(await validateConfigSource(text)).toEqual({
       error: expect.stringContaining(message),
@@ -195,6 +273,23 @@ describe("validateConfigSource", () => {
     ).toEqual({
       warnings: [
         `acme/widgets: ${expandHome(missing)} does not exist or is not a directory`,
+      ],
+    });
+  });
+
+  test("accepts a defaultRepoPath, warning when it is not a directory", async () => {
+    expect(
+      await validateConfigSource(
+        JSON.stringify({ defaultRepoPath: reposBase, repos: {} }),
+      ),
+    ).toEqual({ warnings: [] });
+    expect(
+      await validateConfigSource(
+        JSON.stringify({ defaultRepoPath: join(root, "gone"), repos: {} }),
+      ),
+    ).toEqual({
+      warnings: [
+        `defaultRepoPath: ${join(root, "gone")} does not exist or is not a directory`,
       ],
     });
   });

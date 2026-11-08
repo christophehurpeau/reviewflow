@@ -103,13 +103,20 @@ Edit it in Settings → Checkouts (the banner's "Add it in Settings" opens it wi
 the entry already added, unsaved), or by hand. `~/.reviewflow-app/config.json`:
 
 ```json
-{ "repos": { "acme/widgets": "/Users/me/dev/widgets" } }
+{
+  "defaultRepoPath": "~/dev/",
+  "repos": { "acme/widgets": "/Users/me/code/widgets" }
+}
 ```
 
 A path is absolute or starts with `~/` (the home folder). It counts only if it exists and its `remote.origin.url` names that
-repository. A save is refused when the text is not that shape or the file
-changed on disk since the editor opened it (reload, or keep editing); a missing
-path or a checkout of another repository is saved with a warning.
+repository. A repository missing from `repos` is searched in `defaultRepoPath`
+(`~/dev/` when unset): `<path>/<repo>`, then `<path>/<owner>/<repo>`, then
+`<path>/<any directory>/<repo>`, the first whose origin names it. A save is
+refused when the text is not that shape or the file changed on disk since the
+editor opened it (reload, or keep editing); a missing path, a checkout of
+another repository or a `defaultRepoPath` that is not a directory is saved with
+a warning.
 
 ## Environment
 
