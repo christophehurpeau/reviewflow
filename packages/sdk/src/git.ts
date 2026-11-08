@@ -36,6 +36,8 @@ export type {
   CommitDiffParams,
   RecentCommitsParams,
 } from "./git/checkoutCommits.ts";
+export { linkBranchPullRequests } from "./git/branchPullRequests.ts";
+export type { LinkBranchPullRequestsParams } from "./git/branchPullRequests.ts";
 export {
   parseTrack,
   parseWorktreeList,

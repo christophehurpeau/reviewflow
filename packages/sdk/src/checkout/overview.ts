@@ -71,12 +71,41 @@ export interface OpenPullRequestsResponse {
   totalCount: number;
 }
 
-/** A pull request whose head is a given branch, with the commit GitHub keeps for it. */
-export interface BranchPullRequestHead {
+/** A pull request whose head is a given branch, open, merged or closed. */
+export interface BranchPullRequest {
   number: number;
+  title: string;
   state: "CLOSED" | "MERGED" | "OPEN";
+  isDraft: boolean;
   /** the head commit, kept by GitHub after the head branch is deleted */
   sha: string;
+  baseRefName: string;
+  /** null for a deleted account */
+  author: string | null;
+  updatedAt: IsoDateTime;
+  mergedAt: IsoDateTime | null;
+  closedAt: IsoDateTime | null;
+}
+
+/** A pull request whose head is a given branch, with the commit GitHub keeps for it. */
+export type BranchPullRequestHead = Pick<
+  BranchPullRequest,
+  "number" | "sha" | "state"
+>;
+
+/**
+ * A pull request of the branch's name, not yet proven to be this local
+ * branch's: a name is reused once its first branch is merged and deleted.
+ */
+export interface BranchPullRequestCandidate extends BranchPullRequest {
+  /** its last commits, up to GitHub's page; readable even when they were never fetched */
+  commitOids: string[];
+}
+
+/** `GET /api/repos/branch-pulls?repo=<owner/repo>&branch=<name>` — most recently updated first. */
+export interface BranchPullRequestsResponse {
+  /** only those whose head is this local branch, a reused name's older ones left out */
+  pullRequests: BranchPullRequest[];
 }
 
 const sameRepo = (left: string | null, right: string): boolean =>

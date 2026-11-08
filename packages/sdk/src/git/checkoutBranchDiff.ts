@@ -45,7 +45,11 @@ export const readDefaultBranch = async (
   return name === "" ? null : name;
 };
 
-const readCommit = async (cwd: string, ref: string): Promise<string | null> => {
+/** The commit `ref` names, a sha included; null when it names none here. */
+export const readCommit = async (
+  cwd: string,
+  ref: string,
+): Promise<string | null> => {
   const sha = await gitOrNull(cwd, [
     "rev-parse",
     "--verify",

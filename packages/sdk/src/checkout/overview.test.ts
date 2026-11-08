@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { parseOpenPullRequests } from "../github/openPullRequests.ts";
+import {
+  parseBranchPullRequests,
+  parseOpenPullRequests,
+} from "../github/openPullRequests.ts";
 import type { CheckoutBranch, OpenPullRequest } from "./overview.ts";
 import { pullRequestOfBranch, pullRequestsWithoutBranch } from "./overview.ts";
 
@@ -96,6 +99,73 @@ describe("parseOpenPullRequests", () => {
   it("raises GitHub's errors when the repository did not resolve", () => {
     expect(() =>
       parseOpenPullRequests({ data: null, errors: ["Bad credentials"] }),
+    ).toThrow("Bad credentials");
+  });
+});
+
+describe("parseBranchPullRequests", () => {
+  const node = {
+    number: 5,
+    title: "feat: x",
+    state: "MERGED" as const,
+    isDraft: false,
+    updatedAt: "2026-11-08T10:00:00Z",
+    mergedAt: "2026-11-08T10:00:00Z",
+    closedAt: "2026-11-08T10:00:00Z",
+    baseRefName: "main",
+    headRefOid: "abc",
+    headRepository: { nameWithOwner: "Acme/Widgets" },
+    author: null,
+    commits: { nodes: [{ commit: { oid: "def" } }, null] },
+  };
+
+  it("keeps the repository's own heads, with their commits and a deleted author as null", () => {
+    expect(
+      parseBranchPullRequests(
+        {
+          data: {
+            repository: {
+              pullRequests: {
+                nodes: [
+                  node,
+                  {
+                    ...node,
+                    number: 6,
+                    headRepository: { nameWithOwner: "fork/widgets" },
+                  },
+                  { ...node, number: 7, headRepository: null },
+                  null,
+                ],
+              },
+            },
+          },
+          errors: [],
+        },
+        "acme/widgets",
+      ),
+    ).toEqual([
+      {
+        number: 5,
+        title: "feat: x",
+        state: "MERGED",
+        isDraft: false,
+        sha: "abc",
+        baseRefName: "main",
+        author: null,
+        updatedAt: "2026-11-08T10:00:00Z",
+        mergedAt: "2026-11-08T10:00:00Z",
+        closedAt: "2026-11-08T10:00:00Z",
+        commitOids: ["def"],
+      },
+    ]);
+  });
+
+  it("raises GitHub's errors when the repository did not resolve", () => {
+    expect(() =>
+      parseBranchPullRequests(
+        { data: null, errors: ["Bad credentials"] },
+        "acme/widgets",
+      ),
     ).toThrow("Bad credentials");
   });
 });

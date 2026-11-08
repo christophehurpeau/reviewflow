@@ -120,7 +120,7 @@ export interface WorktreeRemovalResult {
  */
 export interface WorktreeRemovalStatusResponse {
   status: WorktreeRemovalStatus;
-  /** the pull requests of its branch; empty on a detached HEAD or when GitHub failed */
+  /** the pull requests of its branch, a reused name's older ones left out; empty on a detached HEAD or when GitHub failed */
   pullRequests: BranchPullRequestHead[];
   /** why GitHub could not be read: its heads then prove nothing, the count errs toward refusing */
   pullRequestsError: string | null;

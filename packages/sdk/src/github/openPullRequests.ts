@@ -1,5 +1,6 @@
 import type {
-  BranchPullRequestHead,
+  BranchPullRequest,
+  BranchPullRequestCandidate,
   OpenPullRequest,
   OpenPullRequestsResponse,
 } from "../checkout/overview.ts";
@@ -83,14 +84,27 @@ export const fetchOpenPullRequests = async (
   );
 };
 
-const branchPullRequestsQuery = `query BranchPullRequests($owner: String!, $name: String!, $branch: String!) {
+/** GitHub's page: a branch is rarely the head of more, the newest kept first. */
+const branchPullRequestsLimit = 20;
+/** the commits read per pull request, enough to find the local tip among a branch's last ones */
+const branchPullRequestCommitsLimit = 100;
+
+const branchPullRequestsQuery = `query BranchPullRequests($owner: String!, $name: String!, $branch: String!, $first: Int!, $commits: Int!) {
   repository(owner: $owner, name: $name) {
-    pullRequests(headRefName: $branch, first: 20, orderBy: { field: UPDATED_AT, direction: DESC }) {
+    pullRequests(headRefName: $branch, first: $first, orderBy: { field: UPDATED_AT, direction: DESC }) {
       nodes {
         number
+        title
         state
+        isDraft
+        updatedAt
+        mergedAt
+        closedAt
+        baseRefName
         headRefOid
         headRepository { nameWithOwner }
+        author { login }
+        commits(last: $commits) { nodes { commit { oid } } }
       }
     }
   }
@@ -98,9 +112,17 @@ const branchPullRequestsQuery = `query BranchPullRequests($owner: String!, $name
 
 interface BranchPullRequestNode {
   number: number;
-  state: BranchPullRequestHead["state"];
+  title: string;
+  state: BranchPullRequest["state"];
+  isDraft: boolean;
+  updatedAt: string;
+  mergedAt: string | null;
+  closedAt: string | null;
+  baseRefName: string;
   headRefOid: string;
   headRepository: { nameWithOwner: string } | null;
+  author: { login: string } | null;
+  commits: { nodes: ({ commit: { oid: string } } | null)[] | null } | null;
 }
 
 export interface BranchPullRequestsData {
@@ -109,10 +131,10 @@ export interface BranchPullRequestsData {
   } | null;
 }
 
-export const parseBranchPullRequestHeads = (
+export const parseBranchPullRequests = (
   { data, errors }: GhGraphqlResult<BranchPullRequestsData>,
   ownerRepo: string,
-): BranchPullRequestHead[] => {
+): BranchPullRequestCandidate[] => {
   const connection = data?.repository?.pullRequests ?? null;
   if (connection === null) {
     throw new Error(errors.length > 0 ? errors.join("; ") : "not found");
@@ -124,30 +146,44 @@ export const parseBranchPullRequestHeads = (
         node.headRepository?.nameWithOwner.toLowerCase() ===
         ownerRepo.toLowerCase(),
     )
-    .map(({ number, state, headRefOid }) => ({
-      number,
-      state,
-      sha: headRefOid,
+    .map((node) => ({
+      number: node.number,
+      title: node.title,
+      state: node.state,
+      isDraft: node.isDraft,
+      sha: node.headRefOid,
+      baseRefName: node.baseRefName,
+      author: node.author?.login ?? null,
+      updatedAt: node.updatedAt,
+      mergedAt: node.mergedAt,
+      closedAt: node.closedAt,
+      commitOids: (node.commits?.nodes ?? [])
+        .filter((commitNode) => commitNode !== null)
+        .map(({ commit }) => commit.oid),
     }));
 };
 
 /**
- * The pull requests whose head is this branch of the repository, open, merged
- * or closed: GitHub keeps each head commit after the branch is deleted, which
- * is what proves a squash-merged branch's commits safe. One GraphQL request.
+ * The pull requests whose head is a branch of this name in the repository,
+ * open, merged or closed, a fork's left out: GitHub keeps each head commit
+ * after the branch is deleted, which is what proves a squash-merged branch's
+ * commits safe. One GraphQL request. A reused name brings its older pull
+ * requests too: `linkBranchPullRequests` tells them apart.
  */
-export const fetchBranchPullRequestHeads = async (
+export const fetchBranchPullRequests = async (
   transport: GitHubTransport,
   ownerRepo: string,
   branch: string,
-): Promise<BranchPullRequestHead[]> => {
+): Promise<BranchPullRequestCandidate[]> => {
   const split = splitOwnerRepo(ownerRepo);
   if (split === null) throw new Error(`${ownerRepo} is not owner/repo`);
-  return parseBranchPullRequestHeads(
+  return parseBranchPullRequests(
     await transport.graphql<BranchPullRequestsData>(branchPullRequestsQuery, {
       owner: split.owner,
       name: split.name,
       branch,
+      first: branchPullRequestsLimit,
+      commits: branchPullRequestCommitsLimit,
     }),
     ownerRepo,
   );
