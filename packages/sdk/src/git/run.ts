@@ -21,6 +21,21 @@ export interface GitOptions {
   exitOneIsAnswer?: boolean;
   /** kills git when the caller no longer wants the answer */
   signal?: AbortSignal;
+  /**
+   * For a command that deletes files, which must never stop partway: killing
+   * `git worktree remove` leaves a directory with half its tracked files gone,
+   * which git then refuses to remove as dirty.
+   *
+   * - **No timeout**, and `maxBuffer`, `network` and `signal` are ignored. On a
+   *   worktree with a populated `node_modules` it outlasts any read timeout.
+   * - **Its own process group**, so a signal sent to the caller's group (Ctrl-C
+   *   in a terminal, a service manager stopping the job) does not reach it:
+   *   past a kill of the caller it still finishes.
+   *
+   * A caller that must also run its own bookkeeping afterwards holds its
+   * shutdown until the promise settles.
+   */
+  uninterruptible?: boolean;
 }
 
 /**
@@ -79,11 +94,49 @@ const isExitOneAnswer = (error: unknown): error is { stdout: string } =>
   error.stdout !== "";
 
 /**
+ * `execFile` forwards a fixed list of options to `spawn`, and `detached` is not
+ * on it.
+ */
+const runUninterruptible = async (
+  cwd: string,
+  args: string[],
+): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const child = spawn("git", args, {
+      cwd,
+      env,
+      detached: true,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.setEncoding("utf8").on("data", (chunk: string) => {
+      stdout += chunk;
+    });
+    child.stderr.setEncoding("utf8").on("data", (chunk: string) => {
+      stderr += chunk;
+    });
+    child.on("error", reject);
+    child.on("close", (code) => {
+      if (code === 0) {
+        resolve(stdout);
+        return;
+      }
+      reject(
+        Object.assign(new Error(`git exited with ${String(code)}`), {
+          stderr,
+        }),
+      );
+    });
+  });
+
+/**
  * git reads are on-demand: nothing here caches, and every call names the repository it ran in so a failure is actionable.
  *
  * `execFile` with an argument array and no shell, which is what makes a branch
  * name safe to pass through: nothing here is ever interpolated into a command
- * line.  *
+ * line.
+ *
  * The message keeps only one stderr line on purpose (`reasonLine`): it is
  * rendered to the user verbatim, and the rest is
  * hints.
@@ -95,6 +148,7 @@ export const git = async (
 ): Promise<string> => {
   const timeout = options.network ? networkTimeoutMs : timeoutMs;
   try {
+    if (options.uninterruptible) return await runUninterruptible(cwd, args);
     const { stdout } = await execFileAsync("git", args, {
       cwd,
       timeout,

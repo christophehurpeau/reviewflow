@@ -2,9 +2,38 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { catFiles } from "./run.ts";
+import { catFiles, git } from "./run.ts";
 import type { GitRepoFixture } from "./test/gitRepo.ts";
 import { createGitRepo } from "./test/gitRepo.ts";
+
+describe("git uninterruptible", () => {
+  let repo: GitRepoFixture | undefined;
+
+  afterEach(() => {
+    repo?.remove();
+    repo = undefined;
+  });
+
+  it("answers git's stdout", async () => {
+    repo = createGitRepo();
+    await expect(
+      git(repo.path, ["rev-parse", "--is-inside-work-tree"], {
+        uninterruptible: true,
+      }),
+    ).resolves.toBe("true\n");
+  });
+
+  it("fails with git's reason and the command", async () => {
+    repo = createGitRepo();
+    await expect(
+      git(repo.path, ["rev-parse", "--verify", "no-such-ref"], {
+        uninterruptible: true,
+      }),
+    ).rejects.toThrow(
+      `git rev-parse --verify no-such-ref failed in ${repo.path}: fatal: Needed a single revision`,
+    );
+  });
+});
 
 describe("catFiles", () => {
   let repo: GitRepoFixture | undefined;
