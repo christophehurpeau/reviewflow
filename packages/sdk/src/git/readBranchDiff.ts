@@ -1,6 +1,10 @@
 import { lstat } from "node:fs/promises";
 import { join } from "node:path";
-import type { DiffOmittedFile, DiffWhitespace } from "../diff/types.ts";
+import type {
+  BranchDiffScope,
+  DiffOmittedFile,
+  DiffWhitespace,
+} from "../diff/types.ts";
 import { git } from "./run.ts";
 
 /**
@@ -288,12 +292,6 @@ const readUntrackedDiff = async (
   }
   return { patches, paths, omitted };
 };
-
-/**
- * `committed`: the merge base to `head`. `all`: the merge base to the working
- * tree, which adds the staged and unstaged changes and the untracked files.
- */
-export type BranchDiffScope = "all" | "committed";
 
 export interface BranchDiff {
   patch: string;

@@ -9,12 +9,23 @@ export {
   parseNumstat,
   readBranchDiff,
 } from "./git/readBranchDiff.ts";
+export type { BranchDiffScope } from "./diff/types.ts";
 export type {
   BranchDiff,
-  BranchDiffScope,
   DiffLimits,
   NumstatEntry,
 } from "./git/readBranchDiff.ts";
+export {
+  readCheckoutBranchDiff,
+  readDefaultBranch,
+  readHeadBranch,
+  readHeadSha,
+  resolveDiffBase,
+} from "./git/checkoutBranchDiff.ts";
+export type {
+  CheckoutBranchDiffParams,
+  ResolvedDiffBase,
+} from "./git/checkoutBranchDiff.ts";
 export {
   groupDiffPaths,
   noPackages,

@@ -26,6 +26,62 @@ export interface DiffOmittedFile {
 }
 
 /**
+ * `committed`: the merge base to `head`. `all`: the merge base to the working
+ * tree, which adds the staged and unstaged changes and the untracked files.
+ */
+export type BranchDiffScope = "all" | "committed";
+
+export const isBranchDiffScope = (value: unknown): value is BranchDiffScope =>
+  value === "all" || value === "committed";
+
+/** What a checkout's branch is diffed against. */
+export interface BranchDiffBase {
+  /** the branch name, e.g. the repository's default branch */
+  name: string;
+  /** `origin/<name>` when that remote-tracking ref exists, `<name>` otherwise */
+  ref: string;
+  sha: string;
+}
+
+/**
+ * What a checked-out branch changed since it left its base. Nothing is fetched
+ * first: the base is as fresh as the last fetch, which is why its ref and sha
+ * travel with the patch.
+ */
+export interface CheckoutBranchDiffResponse {
+  scope: BranchDiffScope;
+  whitespace: DiffWhitespace;
+  /** null on a detached HEAD */
+  branch: string | null;
+  headSha: string;
+  base: BranchDiffBase;
+  mergeBase: string;
+  /** a unified diff, `a/` and `b/` prefixes, the omitted files left out */
+  patch: string;
+  omitted: DiffOmittedFile[];
+  /** untracked files in `patch`; always 0 under `committed` */
+  untrackedCount: number;
+  /** every file in `patch`, once: the root's group first, then in patch order */
+  groups: DiffGroup[];
+}
+
+/** A checkout the app's config names, and the branch it has out. */
+export interface CheckoutRepo {
+  ownerRepo: string;
+  path: string;
+  /** null on a detached HEAD, or when `problem` is set */
+  branch: string | null;
+  /** why the path cannot be used (missing, not this repository); null when it can */
+  problem: string | null;
+}
+
+/** `GET /api/repos` — every configured checkout, by `owner/repo`. */
+export interface CheckoutReposResponse {
+  repos: CheckoutRepo[];
+  configPath: string;
+}
+
+/**
  * The files of one package: the nearest directory above them holding a
  * manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`,
  * `Gemfile`…), the repo root excepted. A file in no package goes under
