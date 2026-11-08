@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.25.0](https://github.com/christophehurpeau/reviewflow/compare/v6.24.0...v6.25.0) (2026-11-08)
+
+### Features
+
+* **app:** find checkouts under defaultRepoPath, ~/dev/ by default
+* **app:** settings in cards, two columns on a large screen
+* **ui:** custom diff font
+* **ui:** diff settings section, used by the app's settings
+* **ui:** reviewflow code theme by role, GitHub-like, also in the editors
+* **ui:** reviewflow diff theme and alouette mono font, both by default
+* **ui:** tooltips on icon buttons, default tab by viewer role
+
+Version bump for dependency: @reviewflow/sdk
+Version bump for dependency: @reviewflow/ui
+
+
 ## [6.24.0](https://github.com/christophehurpeau/reviewflow/compare/v6.23.0...v6.24.0) (2026-11-08)
 
 ### Features

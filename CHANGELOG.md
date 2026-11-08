@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.25.0](https://github.com/christophehurpeau/reviewflow/compare/v6.24.0...v6.25.0) (2026-11-08)
+
+### Features
+
+* **app:** find checkouts under defaultRepoPath, ~/dev/ by default
+* **app:** settings in cards, two columns on a large screen
+* **sdk:** put the root group last in the diff
+* **ui:** browse the diff's files as a tree beside it
+* **ui:** custom diff font
+* **ui:** diff settings section, used by the app's settings
+* **ui:** reading order list as tree rows, like the file tree
+* **ui:** reviewflow code theme by role, GitHub-like, also in the editors
+* **ui:** reviewflow diff theme and alouette mono font, both by default
+* **ui:** tooltips on icon buttons, default tab by viewer role
+
+### Bug Fixes
+
+* **ui:** added and deleted lines of the reviewflow theme between pierre's and too light
+* **ui:** diff comments raised on a highlight ground
+* **ui:** lighter added and deleted lines in the reviewflow theme
+* **ui:** lighter changed lines in the reviewflow theme
+* **ui:** reviewflow theme modified color in the accent's ink, like the file lists
+* **ui:** reviewflow theme's changed lines at 6% light, 15% dark
+* **ui:** reviewflow theme's changed lines through pierre's mix, not mixed twice
+
 ## [6.24.0](https://github.com/christophehurpeau/reviewflow/compare/v6.23.0...v6.24.0) (2026-11-08)
 
 ### Features
