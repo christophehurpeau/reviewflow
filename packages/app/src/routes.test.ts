@@ -104,6 +104,12 @@ const makeDeps = (
     ]),
     readBranches: vi.fn(async () => ({ branches: [] })),
     fetchOpenPullRequests: vi.fn(async () => ({ pullRequests: [] })),
+    fetchBranchPullRequestHeads: vi.fn(async () => [
+      { number: 7, state: "MERGED", sha: other },
+    ]),
+    readWorktreeRemovalStatus: vi.fn(async () => ({ main: false })),
+    prepareWorktreeRemoval: vi.fn(async () => ({ path: "plan" })),
+    completeWorktreeRemoval: vi.fn(async () => ({ branchError: null })),
     ...overrides,
   } as unknown as PullRequestOperations,
 });
@@ -295,6 +301,107 @@ describe("repos", () => {
     expect(
       (await call(deps, "GET", "/api/repos/pulls?repo=nope"))?.status,
     ).toBe(400);
+  });
+
+  test("reads what removing a worktree would lose, its pull request heads kept", async () => {
+    const deps = makeDeps();
+    expect(
+      await call(
+        deps,
+        "GET",
+        "/api/repos/worktree-status?repo=acme/widgets&worktree=/elsewhere/widgets-fix",
+      ),
+    ).toEqual({
+      status: 200,
+      body: {
+        status: { main: false },
+        pullRequests: [{ number: 7, state: "MERGED", sha: other }],
+        pullRequestsError: null,
+      },
+    });
+    expect(deps.operations.readWorktreeRemovalStatus).toHaveBeenCalledWith({
+      worktree: "/elsewhere/widgets-fix",
+      keptShas: [other],
+    });
+  });
+
+  test("keeps no head when GitHub fails, which errs toward refusing", async () => {
+    const deps = makeDeps({
+      fetchBranchPullRequestHeads: vi.fn(async () => {
+        throw new Error("offline");
+      }),
+    });
+    const answer = await call(
+      deps,
+      "GET",
+      "/api/repos/worktree-status?repo=acme/widgets&worktree=/elsewhere/widgets-fix",
+    );
+    expect(answer?.body).toMatchObject({ pullRequestsError: "offline" });
+    expect(deps.operations.readWorktreeRemovalStatus).toHaveBeenCalledWith({
+      worktree: "/elsewhere/widgets-fix",
+      keptShas: [],
+    });
+  });
+
+  test("removes only a named worktree git lists, on a POST, its refusal as a 400", async () => {
+    const deps = makeDeps();
+    expect(
+      await call(
+        deps,
+        "POST",
+        "/api/repos/worktree-remove?repo=acme/widgets&worktree=/elsewhere/widgets-fix",
+        { deleteBranch: true },
+      ),
+    ).toEqual({ status: 200, body: { branchError: null } });
+    expect(deps.operations.prepareWorktreeRemoval).toHaveBeenCalledWith({
+      worktree: "/elsewhere/widgets-fix",
+      keptShas: [other],
+      deleteBranch: true,
+    });
+    expect(deps.operations.completeWorktreeRemoval).toHaveBeenCalledWith({
+      path: "plan",
+    });
+
+    expect(
+      (await call(deps, "POST", "/api/repos/worktree-remove?repo=acme/widgets"))
+        ?.status,
+    ).toBe(400);
+    expect(
+      (
+        await call(
+          deps,
+          "POST",
+          "/api/repos/worktree-remove?repo=acme/widgets&worktree=/etc",
+        )
+      )?.status,
+    ).toBe(400);
+    expect(
+      (
+        await call(
+          deps,
+          "GET",
+          "/api/repos/worktree-remove?repo=acme/widgets&worktree=/elsewhere/widgets-fix",
+        )
+      )?.status,
+    ).toBe(405);
+
+    const refusing = makeDeps({
+      prepareWorktreeRemoval: vi.fn(async () => {
+        throw new Error("1 untracked file: git would refuse");
+      }),
+    });
+    expect(
+      await call(
+        refusing,
+        "POST",
+        "/api/repos/worktree-remove?repo=acme/widgets&worktree=/elsewhere/widgets-fix",
+        {},
+      ),
+    ).toEqual({
+      status: 400,
+      body: { error: "1 untracked file: git would refuse" },
+    });
+    expect(refusing.operations.completeWorktreeRemoval).not.toHaveBeenCalled();
   });
 
   test("refuses a bad scope or whitespace, and answers git's failure as a 400", async () => {

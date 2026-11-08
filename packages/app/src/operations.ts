@@ -1,5 +1,6 @@
 import {
   applyPullRequestEdit,
+  fetchBranchPullRequestHeads,
   fetchOpenPullRequests,
   fetchPullRequestCandidates,
   fetchPullRequestPart,
@@ -7,7 +8,9 @@ import {
   parsePullRequestEdit,
 } from "@reviewflow/sdk";
 import {
+  completeWorktreeRemoval,
   createBindingsCache,
+  prepareWorktreeRemoval,
   pullCheckout,
   pushCheckout,
   readBranches,
@@ -20,6 +23,7 @@ import {
   readPullRequestDiff,
   readReadingOrder,
   readRecentCommits,
+  readWorktreeRemovalStatus,
   readWorktrees,
 } from "@reviewflow/sdk/git";
 import { appLogger } from "nightingale-app-console";
@@ -55,4 +59,8 @@ export const operations: PullRequestOperations = {
   readWorktrees,
   readBranches: (checkout) => readBranches({ cwd: checkout }),
   fetchOpenPullRequests,
+  fetchBranchPullRequestHeads,
+  readWorktreeRemovalStatus,
+  prepareWorktreeRemoval,
+  completeWorktreeRemoval,
 };

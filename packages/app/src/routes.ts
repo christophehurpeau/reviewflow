@@ -7,6 +7,7 @@
  */
 import type {
   BranchDiffScope,
+  BranchPullRequestHead,
   CheckoutBranchDiffResponse,
   CheckoutBranchesResponse,
   CheckoutCommitsResponse,
@@ -31,6 +32,10 @@ import type {
   PullRequestRef,
   PullRequestRevisionsResponse,
   RepoPathSuggestionsResponse,
+  WorktreeRemovalRequest,
+  WorktreeRemovalResult,
+  WorktreeRemovalStatus,
+  WorktreeRemovalStatusResponse,
 } from "@reviewflow/sdk";
 import {
   isBranchDiffScope,
@@ -38,6 +43,7 @@ import {
   isPullRequestPart,
 } from "@reviewflow/sdk";
 import { readEditableFile, saveEditableFile } from "@reviewflow/sdk/files";
+import type { WorktreeRemovalPlan } from "@reviewflow/sdk/git";
 import {
   checkCheckout,
   describeRepoAttachment,
@@ -71,6 +77,8 @@ export const apiRoutes = {
   repoPush: "/api/repos/push",
   repoBranches: "/api/repos/branches",
   repoPulls: "/api/repos/pulls",
+  repoWorktreeStatus: "/api/repos/worktree-status",
+  repoWorktreeRemove: "/api/repos/worktree-remove",
   prDetail: "/api/prs/detail",
   prCandidates: "/api/prs/candidates",
   prRevisions: "/api/prs/revisions",
@@ -159,6 +167,24 @@ export interface PullRequestOperations {
     transport: GitHubTransport,
     ownerRepo: string,
   ) => Promise<OpenPullRequestsResponse>;
+  fetchBranchPullRequestHeads: (
+    transport: GitHubTransport,
+    ownerRepo: string,
+    branch: string,
+  ) => Promise<BranchPullRequestHead[]>;
+  readWorktreeRemovalStatus: (params: {
+    worktree: string;
+    keptShas: string[];
+  }) => Promise<WorktreeRemovalStatus>;
+  /** throws the first refusal; resolves with what `completeWorktreeRemoval` runs */
+  prepareWorktreeRemoval: (params: {
+    worktree: string;
+    keptShas: string[];
+    deleteBranch: boolean;
+  }) => Promise<WorktreeRemovalPlan>;
+  completeWorktreeRemoval: (
+    plan: WorktreeRemovalPlan,
+  ) => Promise<WorktreeRemovalResult>;
 }
 
 export interface RouteDeps {
@@ -468,6 +494,89 @@ const handleRepoPulls: Handler = async ({ transport, operations }, request) => {
   return gitAnswer(() => operations.fetchOpenPullRequests(transport, repo));
 };
 
+type BranchPullRequests = Pick<
+  WorktreeRemovalStatusResponse,
+  "pullRequestsError" | "pullRequests"
+>;
+
+/**
+ * The pull request heads of the checkout's branch, which GitHub keeps after
+ * deleting the branch. GitHub failing proves nothing either way: no head is
+ * then kept, and the unpushed count errs toward refusing.
+ */
+const readBranchPullRequests = async (
+  { transport, operations }: Pick<RouteDeps, "operations" | "transport">,
+  ownerRepo: string,
+  checkout: string,
+): Promise<BranchPullRequests> => {
+  const branch = await operations.readHeadBranch(checkout);
+  if (branch === null) return { pullRequests: [], pullRequestsError: null };
+  try {
+    return {
+      pullRequests: await operations.fetchBranchPullRequestHeads(
+        transport,
+        ownerRepo,
+        branch,
+      ),
+      pullRequestsError: null,
+    };
+  } catch (error) {
+    return { pullRequests: [], pullRequestsError: errorMessage(error) };
+  }
+};
+
+const handleWorktreeStatus: Handler = async (deps, request) => {
+  if (request.method !== "GET") return notAllowed();
+  const checkout = await readListedCheckout(deps, request);
+  if (typeof checkout !== "string") return checkout;
+  const ownerRepo = request.query.get("repo") ?? "";
+  return gitAnswer(async (): Promise<WorktreeRemovalStatusResponse> => {
+    const branchPullRequests = await readBranchPullRequests(
+      deps,
+      ownerRepo,
+      checkout,
+    );
+    const status = await deps.operations.readWorktreeRemovalStatus({
+      worktree: checkout,
+      keptShas: branchPullRequests.pullRequests.map(({ sha }) => sha),
+    });
+    return { status, ...branchPullRequests };
+  });
+};
+
+/**
+ * The app's one destructive command, so the worktree must be named, be one
+ * `git worktree list` gives for a listed repository, and not be the main
+ * checkout; every refusal is read again here, after the press. Answered once
+ * git is done: the removal is uninterruptible, so a client that leaves does not
+ * stop it halfway.
+ */
+const handleWorktreeRemove: Handler = async (deps, request) => {
+  if (request.method !== "POST") return notAllowed();
+  if (request.query.get("worktree") === null) {
+    return bad("worktree must name the worktree to remove");
+  }
+  const checkout = await readListedCheckout(deps, request);
+  if (typeof checkout !== "string") return checkout;
+  const ownerRepo = request.query.get("repo") ?? "";
+  const payload =
+    (await request.readJson()) as Partial<WorktreeRemovalRequest> | null;
+  const deleteBranch = payload?.deleteBranch === true;
+  return gitAnswer(async () => {
+    const { pullRequests } = await readBranchPullRequests(
+      deps,
+      ownerRepo,
+      checkout,
+    );
+    const plan = await deps.operations.prepareWorktreeRemoval({
+      worktree: checkout,
+      keptShas: pullRequests.map(({ sha }) => sha),
+      deleteBranch,
+    });
+    return deps.operations.completeWorktreeRemoval(plan);
+  });
+};
+
 const handlePrDetail: Handler = async ({ transport, operations }, request) => {
   if (request.method !== "GET") return notAllowed();
   const read = readRef(request);
@@ -761,6 +870,8 @@ const handlers: Record<string, Handler> = {
   [apiRoutes.repoPush]: syncHandler("pushCheckout"),
   [apiRoutes.repoBranches]: handleRepoBranches,
   [apiRoutes.repoPulls]: handleRepoPulls,
+  [apiRoutes.repoWorktreeStatus]: handleWorktreeStatus,
+  [apiRoutes.repoWorktreeRemove]: handleWorktreeRemove,
   [apiRoutes.prDetail]: handlePrDetail,
   [apiRoutes.prCandidates]: handlePrCandidates,
   [apiRoutes.prRevisions]: handlePrRevisions,
