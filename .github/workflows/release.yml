@@ -78,3 +78,8 @@ jobs:
           POB_GIT_HOOKS: 0
           YARN_ENABLE_IMMUTABLE_INSTALLS: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to npm
+        if: github.ref == 'refs/heads/main' && !inputs.dry-run
+        run: |
+          pnpm -r publish --no-git-checks --provenance
