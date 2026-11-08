@@ -64,7 +64,7 @@ interface PullRequestBodyProps {
   ownerRepo: string;
   number: number;
   headerStart?: ReactNode;
-  tab: PullRequestTab;
+  tab?: PullRequestTab;
   onTabChange: (tab: PullRequestTab) => void;
   openCommit?: string | null;
   onOpenCommitChange?: (oid: string | null) => void;
@@ -204,8 +204,11 @@ function PullRequestBody({
 export interface PullRequestScreenProps {
   ownerRepo: string;
   number: number;
-  /** the tab shown; controlled, so an app can keep it in its url */
-  tab: PullRequestTab;
+  /**
+   * The tab shown; controlled, so an app can keep it in its url. Absent: the
+   * first tab, Review for a reviewer and Conversation for the author.
+   */
+  tab?: PullRequestTab;
   onTabChange: (tab: PullRequestTab) => void;
   /**
    * The commit whose diff is open on the Commits tab, by oid. Absent: the

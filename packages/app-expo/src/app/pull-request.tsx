@@ -66,9 +66,9 @@ export default function PullRequestPage(): ReactNode {
   const ownerRepo = first(params.repo) ?? "";
   const number = Number(first(params.number) ?? "");
   const tabParam = first(params.tab);
-  const tab: PullRequestTab = isPullRequestTab(tabParam)
+  const tab: PullRequestTab | undefined = isPullRequestTab(tabParam)
     ? tabParam
-    : "timeline";
+    : undefined;
   const commit = first(params.commit) ?? null;
   const valid =
     /^[^/\s]+\/[^/\s]+$/.test(ownerRepo) &&

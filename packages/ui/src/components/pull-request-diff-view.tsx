@@ -7,7 +7,6 @@ import type {
 import {
   AccentScope,
   Code,
-  IconButton,
   IndeterminateCircularProgress,
   IndeterminateLinearProgress,
   InfoMessage,
@@ -65,6 +64,7 @@ import type {
   PullRequestDiffReview,
 } from "./pull-request-diff-viewer.tsx";
 import { cssVariableOf, scrollToTopOf } from "./scroll-parent.ts";
+import { TooltipIconButton } from "./tooltip-icon-button.tsx";
 
 const PullRequestDiffViewer = lazy(
   () => import("./pull-request-diff-viewer.tsx"),
@@ -282,8 +282,18 @@ export function PullRequestDiffView({
     return "none";
   })();
   const [requestedAsideView, setRequestedAsideView] =
-    useState<AsideView>("tree");
-  const asideView: AsideView = diffTreeAvailable ? requestedAsideView : "list";
+    useState<AsideView | null>(null);
+  const asideView = ((): AsideView => {
+    if (!diffTreeAvailable) return "list";
+    if (requestedAsideView !== null) return requestedAsideView;
+    return ordered ? "list" : "tree";
+  })();
+  const listTab = (
+    <Tab
+      value="list"
+      label={readingOrder.available ? "Reading order" : "Workspaces"}
+    />
+  );
   const treeFiles = useMemo(
     () => (shownDiff === null ? [] : diffTreeFilesOf(shownDiff)),
     [shownDiff],
@@ -343,7 +353,7 @@ export function PullRequestDiffView({
           {toolbarStart}
         </View>
         <View className="flex-row items-center gap-xs">
-          <IconButton
+          <TooltipIconButton
             icon={
               diffStyle === "split" ? (
                 <RowsRegularIcon />
@@ -360,7 +370,7 @@ export function PullRequestDiffView({
             }}
           />
           {readingOrder.available ? (
-            <IconButton
+            <TooltipIconButton
               icon={<TreeStructureRegularIcon />}
               size="sm"
               accent={ordered ? "brand" : "neutral"}
@@ -372,6 +382,7 @@ export function PullRequestDiffView({
               }
               onPress={() => {
                 setFileOrder(ordered ? "packages" : "reading");
+                setRequestedAsideView(null);
               }}
             />
           ) : null}
@@ -382,13 +393,13 @@ export function PullRequestDiffView({
             }
             onToggle={whitespace.toggle}
           />
-          <IconButton
+          <TooltipIconButton
             icon={<ArrowsOutLineVerticalRegularIcon />}
             size="sm"
             aria-label="Open every file"
             onPress={collapse.expandAll}
           />
-          <IconButton
+          <TooltipIconButton
             icon={<ArrowsInLineVerticalRegularIcon />}
             size="sm"
             aria-label="Close every file"
@@ -429,13 +440,9 @@ export function PullRequestDiffView({
                       setRequestedAsideView(value as AsideView);
                     }}
                   >
+                    {ordered ? listTab : null}
                     <Tab value="tree" label="Tree" />
-                    <Tab
-                      value="list"
-                      label={
-                        readingOrder.available ? "Reading order" : "Workspaces"
-                      }
-                    />
+                    {ordered ? null : listTab}
                   </Tabs>
                 ) : null}
                 {aside && asideView === "tree" ? (

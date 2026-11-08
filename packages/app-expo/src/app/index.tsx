@@ -87,7 +87,7 @@ export default function HomePage(): ReactNode {
               <Button
                 text="Open a pull request"
                 icon={<MagnifyingGlassRegularIcon />}
-                accent="brand"
+                accent="info"
                 size="sm"
                 onPress={() => {
                   setOpening(true);

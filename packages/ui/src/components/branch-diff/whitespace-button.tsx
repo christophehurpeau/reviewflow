@@ -1,7 +1,7 @@
 import type { DiffWhitespace } from "@reviewflow/sdk";
-import { IconButton } from "alouette";
 import { ParagraphRegularIcon } from "alouette-icons/phosphor-icons/Paragraph";
 import type { ReactNode } from "react";
+import { TooltipIconButton } from "../tooltip-icon-button.tsx";
 
 interface WhitespaceButtonProps {
   whitespace: DiffWhitespace;
@@ -16,7 +16,7 @@ export function WhitespaceButton({
   onToggle,
 }: WhitespaceButtonProps): ReactNode {
   return (
-    <IconButton
+    <TooltipIconButton
       icon={<ParagraphRegularIcon />}
       size="sm"
       accent={whitespace === "hide" ? "brand" : "neutral"}

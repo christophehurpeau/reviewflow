@@ -1163,7 +1163,8 @@ function PullRequestActions({ detail, onEdited }: EditableProps): ReactNode {
 export interface PullRequestPanelProps extends CandidatesProps {
   /** why the editors stay read-only, when GitHub refused what they offer */
   candidatesError: string | null;
-  tab: PullRequestTab;
+  /** absent: the first tab, Review for a reviewer and Conversation for the author */
+  tab?: PullRequestTab;
   onTabChange: (tab: PullRequestTab) => void;
   /** the commit whose diff is open on the Commits tab; absent: the tab holds it */
   openCommit?: string | null;
@@ -1183,7 +1184,7 @@ export function PullRequestPanel({
   candidates,
   candidatesError,
   onEdited,
-  tab,
+  tab: tabProp,
   onTabChange,
   openCommit,
   onOpenCommitChange,
@@ -1194,6 +1195,7 @@ export function PullRequestPanel({
     "checks",
   ).value;
   const viewerIsAuthor = isViewerAuthor(detail);
+  const tab = tabProp ?? (viewerIsAuthor ? "timeline" : "review");
   const reviewTab = (
     <Tab
       value="review"

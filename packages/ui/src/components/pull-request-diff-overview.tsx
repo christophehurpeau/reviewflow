@@ -358,7 +358,7 @@ function TreeWorkspaceRow({
   const label = name === "" ? "Root" : name;
   const counts = countsOf(files, tests);
   return (
-    <View className="bg-screen web:sticky web:top-0 web:z-[1]">
+    <View className="bg-screen web:sticky mt-xs web:top-0 web:z-[1]">
       <PressableBox
         ref={rowRef}
         variant="soft"
@@ -457,8 +457,8 @@ function TreeFileRow({
         onPress={onPress ?? undefined}
       >
         <IndentGuides level={level} />
-        <FileTypeIcon path={path} test={isAttachablePath(path)} size={14} />
-        <Text numberOfLines={1} className="min-w-0 shrink text-sm">
+        <FileTypeIcon path={path} test={isAttachablePath(path)} size={12} />
+        <Text numberOfLines={1} className="min-w-0 shrink text-xs">
           <Text
             accent={accent}
             className={((): string => {
@@ -744,61 +744,63 @@ export function PullRequestDiffOverview({
       role="region"
       aria-label="Changes overview"
     >
-      <View className="flex-row items-baseline gap-xs">
-        <Text className="font-heading-bold text-lg text-sharp">Changes</Text>
-        <Text className="text-sm text-muted">
-          {`in ${pluralOf(workspaces.length, "workspace")}`}
-        </Text>
-      </View>
-      {aside ? (
-        <OverviewTree
-          workspaces={workspaces}
-          statuses={statuses}
-          viewedPaths={new Set(viewedPaths)}
-          currentPath={currentPath}
-          onFilePress={onFilePress}
-        />
-      ) : (
-        workspaces.map(({ name, files, tests, names }) => (
-          <View key={name} className="gap-sm">
-            <View className="gap-xxs">
-              <View className="flex-row items-center gap-xs">
-                <Icon
-                  icon={<PackageDuotoneIcon />}
-                  size={20}
-                  className="text-accent"
-                />
-                <Text className="shrink font-heading-bold text-base text-sharp">
-                  {name === "" ? "Root" : name}
+      <View>
+        <View className="flex-row items-baseline gap-xs">
+          <Text className="font-heading-bold text-lg text-sharp">Changes</Text>
+          <Text className="text-sm text-muted">
+            {`in ${pluralOf(workspaces.length, "workspace")}`}
+          </Text>
+        </View>
+        {aside ? (
+          <OverviewTree
+            workspaces={workspaces}
+            statuses={statuses}
+            viewedPaths={new Set(viewedPaths)}
+            currentPath={currentPath}
+            onFilePress={onFilePress}
+          />
+        ) : (
+          workspaces.map(({ name, files, tests, names }) => (
+            <View key={name} className="gap-sm">
+              <View className="gap-xxs">
+                <View className="flex-row items-center gap-xs">
+                  <Icon
+                    icon={<PackageDuotoneIcon />}
+                    size={20}
+                    className="text-accent"
+                  />
+                  <Text className="shrink font-heading-bold text-base text-sharp">
+                    {name === "" ? "Root" : name}
+                  </Text>
+                </View>
+                <Text className="pl-[28px] text-xs text-muted">
+                  {countsOf(files, tests)}
                 </Text>
               </View>
-              <Text className="pl-[28px] text-xs text-muted">
-                {countsOf(files, tests)}
-              </Text>
+              {showNames && names.length > 0 ? (
+                <View className="flex-row flex-wrap gap-xs">
+                  {names.map(({ path, entry, shown }) => (
+                    <OverviewChip
+                      key={path}
+                      path={path}
+                      label={labelOf(name, path, null)}
+                      entry={entry}
+                      status={shown ? (statuses.get(path) ?? null) : null}
+                      onPress={
+                        shown
+                          ? () => {
+                              onFilePress(path);
+                            }
+                          : null
+                      }
+                    />
+                  ))}
+                </View>
+              ) : null}
             </View>
-            {showNames && names.length > 0 ? (
-              <View className="flex-row flex-wrap gap-xs">
-                {names.map(({ path, entry, shown }) => (
-                  <OverviewChip
-                    key={path}
-                    path={path}
-                    label={labelOf(name, path, null)}
-                    entry={entry}
-                    status={shown ? (statuses.get(path) ?? null) : null}
-                    onPress={
-                      shown
-                        ? () => {
-                            onFilePress(path);
-                          }
-                        : null
-                    }
-                  />
-                ))}
-              </View>
-            ) : null}
-          </View>
-        ))
-      )}
+          ))
+        )}
+      </View>
       {showNames ? null : (
         <Text className="text-xs text-muted">
           {`Names are left out past ${String(maxOverviewNames)}.`}

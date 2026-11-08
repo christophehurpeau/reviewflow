@@ -10,7 +10,6 @@ import { formatRelativeDate, pluralOf } from "@reviewflow/sdk";
 import {
   Button,
   Code,
-  IconButton,
   InfoMessage,
   Menu,
   MenuItem,
@@ -54,6 +53,7 @@ import {
   PullRequestPartPending,
   PullRequestPartReading,
 } from "./pull-request-part-notice.tsx";
+import { TooltipIconButton } from "./tooltip-icon-button.tsx";
 
 type Scope = "all" | "since";
 
@@ -130,7 +130,7 @@ function ByCommitButton({
   onToggle,
 }: ByCommitButtonProps): ReactNode {
   return (
-    <IconButton
+    <TooltipIconButton
       icon={<GitCommitRegularIcon />}
       size="sm"
       accent={byCommit ? "brand" : "neutral"}
@@ -173,7 +173,7 @@ function CommitStepper({
   if (commit === undefined) return null;
   return (
     <View className="min-w-0 shrink flex-row items-center gap-xs">
-      <IconButton
+      <TooltipIconButton
         icon={<CaretLeftRegularIcon />}
         size="sm"
         accent="neutral"
@@ -207,7 +207,7 @@ function CommitStepper({
           />
         ))}
       </Menu>
-      <IconButton
+      <TooltipIconButton
         icon={<CaretRightRegularIcon />}
         size="sm"
         accent="neutral"
