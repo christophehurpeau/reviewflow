@@ -1,3 +1,5 @@
+import type { PullRequestCommit } from "../api/pullRequest.ts";
+
 /**
  * `show` is git's plain diff. `hide` is `git diff -w`, GitHub's "Hide
  * whitespace": a line whose only change is whitespace is not a change.
@@ -69,16 +71,48 @@ export interface CheckoutBranchDiffResponse {
 export interface CheckoutRepo {
   ownerRepo: string;
   path: string;
+  /** false: not in the config, found directly under its `defaultRepoPath` */
+  configured: boolean;
   /** null on a detached HEAD, or when `problem` is set */
   branch: string | null;
   /** why the path cannot be used (missing, not this repository); null when it can */
   problem: string | null;
 }
 
-/** `GET /api/repos` — every configured checkout, by `owner/repo`. */
+/**
+ * `GET /api/repos` — the configured checkouts, then the ones found directly
+ * under `defaultRepoPath`, by `owner/repo`.
+ */
 export interface CheckoutReposResponse {
   repos: CheckoutRepo[];
   configPath: string;
+  defaultRepoPath: string;
+}
+
+/** A commit of a checkout, as git has it: the author is git's name, with no avatar. */
+export interface CheckoutCommit extends PullRequestCommit {
+  /** since the branch left its base: what the branch's diff carries */
+  onBranch: boolean;
+}
+
+/** `GET /api/repos/commits` — the last commits of HEAD, newest first. */
+export interface CheckoutCommitsResponse {
+  /** null on a detached HEAD */
+  branch: string | null;
+  /** null when the base cannot be found: no commit is then marked on the branch */
+  base: BranchDiffBase | null;
+  commits: CheckoutCommit[];
+}
+
+/** `GET /api/repos/commit` — one commit against its first parent. */
+export interface CommitDiffResponse {
+  sha: string;
+  /** null for a root commit, diffed against the empty tree */
+  parentSha: string | null;
+  whitespace: DiffWhitespace;
+  patch: string;
+  omitted: DiffOmittedFile[];
+  groups: DiffGroup[];
 }
 
 /**

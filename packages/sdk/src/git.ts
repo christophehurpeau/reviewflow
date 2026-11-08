@@ -27,6 +27,27 @@ export type {
   ResolvedDiffBase,
 } from "./git/checkoutBranchDiff.ts";
 export {
+  defaultRecentCommits,
+  readCommitDiff,
+  readRecentCommits,
+} from "./git/checkoutCommits.ts";
+export type {
+  CommitDiffParams,
+  RecentCommitsParams,
+} from "./git/checkoutCommits.ts";
+export {
+  parseStatusV2,
+  pullCheckout,
+  pushCheckout,
+  readCheckoutStatus,
+  readCheckoutSync,
+} from "./git/checkoutSync.ts";
+export type {
+  CheckoutFetch,
+  ReadCheckoutSyncParams,
+  StatusV2,
+} from "./git/checkoutSync.ts";
+export {
   groupDiffPaths,
   noPackages,
   packagesAtTree,
