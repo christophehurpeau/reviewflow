@@ -46,6 +46,8 @@ export {
 export type { CollapsedFiles } from "./components/branch-diff/use-collapsed-files.ts";
 export { useCollapsedFiles } from "./components/branch-diff/use-collapsed-files.ts";
 export { WhitespaceButton } from "./components/branch-diff/whitespace-button.tsx";
+export type { DiffDisplaySettings } from "./components/diff-settings-section.tsx";
+export { DiffSettingsSection } from "./components/diff-settings-section.tsx";
 export { CopyableCodeBlock } from "./components/copyable-code-block.tsx";
 export { PullRequestReviewDraftProvider } from "./services/PullRequestReviewDraftProvider.tsx";
 export type { DraftStore } from "./services/PullRequestDraftsProvider.tsx";

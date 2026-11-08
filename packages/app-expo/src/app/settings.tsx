@@ -1,6 +1,10 @@
 import type { ReviewflowConnectionStatus } from "@reviewflow/sdk";
 import { insertCheckoutEntry } from "@reviewflow/sdk";
-import { EditableFile, errorToMessage } from "@reviewflow/ui";
+import {
+  DiffSettingsSection,
+  EditableFile,
+  errorToMessage,
+} from "@reviewflow/ui";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ActionButton,
@@ -21,6 +25,7 @@ import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeft";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useState } from "react";
+import { useDiffPreferences } from "#/services/DiffPreferencesProvider.tsx";
 import { LiveIndicator } from "#/services/LiveIndicator.tsx";
 import type { ConfigFile } from "#/services/configApi.ts";
 import {
@@ -151,7 +156,7 @@ function CheckoutsSection(): ReactNode {
   );
 }
 
-/** The reviewflow connection: url, token, current status, and forgetting it. */
+/** The reviewflow connection (url, token, status, forgetting it), the checkouts, and how diffs render. */
 export default function SettingsPage(): ReactNode {
   const router = useRouter();
   const client = useQueryClient();
@@ -159,6 +164,7 @@ export default function SettingsPage(): ReactNode {
   const [url, setUrl] = useState<string | null>(null);
   const [token, setToken] = useState("");
   const [confirmForget, setConfirmForget] = useState(false);
+  const diffPreferences = useDiffPreferences();
 
   const shownUrl = url ?? status.data?.url ?? defaultReviewflowUrl;
 
@@ -239,6 +245,11 @@ export default function SettingsPage(): ReactNode {
         </View>
 
         <CheckoutsSection />
+
+        <DiffSettingsSection
+          settings={diffPreferences.settings}
+          onChange={diffPreferences.change}
+        />
       </View>
       <WarningAlertDialog
         visible={confirmForget}

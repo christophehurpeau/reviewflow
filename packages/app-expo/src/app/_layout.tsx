@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { AppHeader } from "#/services/AppHeader.tsx";
 import { ColorModeProvider } from "#/services/ColorModeProvider.tsx";
 import { DensityProvider } from "#/services/DensityProvider.tsx";
+import { DiffPreferencesProvider } from "#/services/DiffPreferencesProvider.tsx";
 import { LiveEvents } from "#/services/liveEvents.tsx";
 import { themeVariables } from "#/themeVariables.ts";
 
@@ -19,15 +20,17 @@ export default function RootLayout(): ReactNode {
     <AlouetteProvider themeVariables={themeVariables}>
       <ColorModeProvider>
         <DensityProvider>
-          <QueryClientProvider client={queryClient}>
-            <LiveEvents />
-            <View className="min-h-0 flex-1 bg-screen">
-              <AppHeader />
-              <View className="min-h-0 flex-1">
-                <Slot />
+          <DiffPreferencesProvider>
+            <QueryClientProvider client={queryClient}>
+              <LiveEvents />
+              <View className="min-h-0 flex-1 bg-screen">
+                <AppHeader />
+                <View className="min-h-0 flex-1">
+                  <Slot />
+                </View>
               </View>
-            </View>
-          </QueryClientProvider>
+            </QueryClientProvider>
+          </DiffPreferencesProvider>
         </DensityProvider>
       </ColorModeProvider>
     </AlouetteProvider>

@@ -17,6 +17,7 @@ import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeft";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import { useDiffPreferences } from "#/services/DiffPreferencesProvider.tsx";
 import { createLocalDraftStore } from "#/services/draftStore.ts";
 import { createPullRequestDataSource } from "#/services/pullRequestDataSource.tsx";
 import { rememberPullRequest } from "#/services/recentPullRequests.ts";
@@ -55,6 +56,7 @@ export default function PullRequestPage(): ReactNode {
     isDiffFileOrder,
     "packages",
   );
+  const diffPreferences = useDiffPreferences();
   const params = useLocalSearchParams<{
     repo?: string;
     number?: string;
@@ -102,6 +104,9 @@ export default function PullRequestPage(): ReactNode {
     });
   };
 
+  // the whitespace preference is read once, when the screen mounts
+  if (valid && !diffPreferences.loaded) return null;
+
   return (
     // the diff keeps its toolbar in view under the nearest vertical scroller
     <ScreenScrollView>
@@ -117,6 +122,11 @@ export default function PullRequestPage(): ReactNode {
               slots={slots}
               draftStore={draftStore}
               diffFileOrder={diffFileOrder}
+              diffTheme={diffPreferences.settings.theme}
+              diffWordWrap={diffPreferences.settings.wordWrap}
+              initialWhitespace={
+                diffPreferences.settings.hideWhitespace ? "hide" : "show"
+              }
               openCommit={commit}
               onDiffFileOrderChange={setDiffFileOrder}
               onOpenCommitChange={(oid) => {
