@@ -8,8 +8,11 @@
 import type {
   BranchDiffScope,
   CheckoutBranchDiffResponse,
+  CheckoutCommitsResponse,
   CheckoutRepo,
   CheckoutReposResponse,
+  CheckoutSyncResponse,
+  CommitDiffResponse,
   DiffImpactsResponse,
   DiffReadingOrderResponse,
   DiffStep,
@@ -34,8 +37,10 @@ import { readEditableFile, saveEditableFile } from "@reviewflow/sdk/files";
 import {
   checkCheckout,
   describeRepoAttachment,
+  listCheckouts,
   readConfig,
   resolveCheckout,
+  resolveListedCheckout,
   validateConfigSource,
 } from "./config.ts";
 import { credentialsUnreadableCode } from "./credentials/store.ts";
@@ -51,6 +56,11 @@ export const apiRoutes = {
   configRepo: "/api/config/repo",
   repos: "/api/repos",
   repoDiff: "/api/repos/diff",
+  repoCommits: "/api/repos/commits",
+  repoCommit: "/api/repos/commit",
+  repoStatus: "/api/repos/status",
+  repoPull: "/api/repos/pull",
+  repoPush: "/api/repos/push",
   prDetail: "/api/prs/detail",
   prCandidates: "/api/prs/candidates",
   prRevisions: "/api/prs/revisions",
@@ -118,6 +128,21 @@ export interface PullRequestOperations {
     scope: BranchDiffScope;
     whitespace: DiffWhitespace;
   }) => Promise<CheckoutBranchDiffResponse>;
+  readRecentCommits: (params: {
+    checkout: string;
+    limit: number;
+  }) => Promise<CheckoutCommitsResponse>;
+  readCommitDiff: (params: {
+    checkout: string;
+    sha: string;
+    whitespace: DiffWhitespace;
+  }) => Promise<CommitDiffResponse>;
+  readCheckoutSync: (params: {
+    checkout: string;
+    fetch: "always" | "never";
+  }) => Promise<CheckoutSyncResponse>;
+  pullCheckout: (checkout: string) => Promise<void>;
+  pushCheckout: (checkout: string) => Promise<void>;
 }
 
 export interface RouteDeps {
@@ -236,53 +261,133 @@ const handleConfigRepo: Handler = async ({ configPath }, request) => {
 
 const handleRepos: Handler = async ({ operations, configPath }, request) => {
   if (request.method !== "GET") return notAllowed();
-  const { repos } = readConfig(configPath);
-  const entries = Object.entries(repos).toSorted(([left], [right]) =>
-    left.localeCompare(right),
-  );
+  const { defaultRepoPath } = readConfig(configPath);
+  const listed = await listCheckouts(configPath);
   const body: CheckoutReposResponse = {
     configPath,
+    defaultRepoPath,
     repos: await Promise.all(
-      entries.map(async ([ownerRepo, path]): Promise<CheckoutRepo> => {
-        const problem = await checkCheckout(ownerRepo, path);
+      listed.map(async (checkout): Promise<CheckoutRepo> => {
+        const problem = await checkCheckout(checkout.ownerRepo, checkout.path);
         const branch =
-          problem === null ? await operations.readHeadBranch(path) : null;
-        return { ownerRepo, path, branch, problem };
+          problem === null
+            ? await operations.readHeadBranch(checkout.path)
+            : null;
+        return { ...checkout, branch, problem };
       }),
     ),
   };
   return ok(body);
 };
 
+const ownerRepoPattern = /^[^/\s]+\/[^/\s]+$/;
+
 /**
- * The checkout is the config's, never the request's: no route authenticates,
- * so one that diffed whatever path it was handed would read any repository on
- * the machine.
+ * The listed checkout the request names (`resolveListedCheckout`), or the
+ * refusal to answer with.
  */
-const handleRepoDiff: Handler = async ({ operations, configPath }, request) => {
-  if (request.method !== "GET") return notAllowed();
+const readListedCheckout = async (
+  configPath: string,
+  request: RouteRequest,
+): Promise<string | RouteAnswer> => {
   const repo = request.query.get("repo") ?? "";
-  if (!/^[^/\s]+\/[^/\s]+$/.test(repo)) return bad("repo must be owner/repo");
-  const scope = request.query.get("scope") ?? "all";
-  if (!isBranchDiffScope(scope)) return bad("scope must be all or committed");
-  const whitespace = request.query.get("whitespace") ?? "show";
-  if (!isDiffWhitespace(whitespace)) {
-    return bad("whitespace must be show or hide");
-  }
-  const resolved = await resolveCheckout(configPath, repo);
-  if ("refused" in resolved) return bad(resolved.refused.detail);
+  if (!ownerRepoPattern.test(repo)) return bad("repo must be owner/repo");
+  const resolved = await resolveListedCheckout(configPath, repo);
+  return "refused" in resolved ? bad(resolved.refused) : resolved.checkout;
+};
+
+/** git's failure (a missing base, an unknown commit) is the answer, as a 400. */
+const gitAnswer = async (
+  read: () => Promise<unknown>,
+): Promise<RouteAnswer> => {
   try {
-    return ok(
-      await operations.readCheckoutBranchDiff({
-        checkout: resolved.checkout,
-        scope,
-        whitespace,
-      }),
-    );
+    return ok(await read());
   } catch (error) {
     return bad(errorMessage(error));
   }
 };
+
+const readWhitespace = (
+  request: RouteRequest,
+): DiffWhitespace | RouteAnswer => {
+  const whitespace = request.query.get("whitespace") ?? "show";
+  return isDiffWhitespace(whitespace)
+    ? whitespace
+    : bad("whitespace must be show or hide");
+};
+
+const handleRepoDiff: Handler = async ({ operations, configPath }, request) => {
+  if (request.method !== "GET") return notAllowed();
+  const scope = request.query.get("scope") ?? "all";
+  if (!isBranchDiffScope(scope)) return bad("scope must be all or committed");
+  const whitespace = readWhitespace(request);
+  if (typeof whitespace !== "string") return whitespace;
+  const checkout = await readListedCheckout(configPath, request);
+  if (typeof checkout !== "string") return checkout;
+  return gitAnswer(() =>
+    operations.readCheckoutBranchDiff({ checkout, scope, whitespace }),
+  );
+};
+
+const maxRecentCommits = 100;
+
+const handleRepoCommits: Handler = async (
+  { operations, configPath },
+  request,
+) => {
+  if (request.method !== "GET") return notAllowed();
+  const limit = Number(request.query.get("limit") ?? "30");
+  if (!Number.isInteger(limit) || limit < 1 || limit > maxRecentCommits) {
+    return bad(`limit must be between 1 and ${String(maxRecentCommits)}`);
+  }
+  const checkout = await readListedCheckout(configPath, request);
+  if (typeof checkout !== "string") return checkout;
+  return gitAnswer(() => operations.readRecentCommits({ checkout, limit }));
+};
+
+const handleRepoCommit: Handler = async (
+  { operations, configPath },
+  request,
+) => {
+  if (request.method !== "GET") return notAllowed();
+  const sha = request.query.get("sha") ?? "";
+  if (!isSha(sha)) return bad("sha must be a commit sha");
+  const whitespace = readWhitespace(request);
+  if (typeof whitespace !== "string") return whitespace;
+  const checkout = await readListedCheckout(configPath, request);
+  if (typeof checkout !== "string") return checkout;
+  return gitAnswer(() =>
+    operations.readCommitDiff({ checkout, sha, whitespace }),
+  );
+};
+
+/**
+ * `fetch=1` fetches first, so behind counts what the remote has now; a failed
+ * fetch degrades into `fetchError`, never a refusal.
+ */
+const handleRepoStatus: Handler = async (
+  { operations, configPath },
+  request,
+) => {
+  if (request.method !== "GET") return notAllowed();
+  const checkout = await readListedCheckout(configPath, request);
+  if (typeof checkout !== "string") return checkout;
+  const fetch = request.query.get("fetch") === "1" ? "always" : "never";
+  return gitAnswer(() => operations.readCheckoutSync({ checkout, fetch }));
+};
+
+/** Pull and Push refuse what the buttons hide, and git's own refusal is the 400. */
+const syncHandler =
+  (action: "pullCheckout" | "pushCheckout"): Handler =>
+  async ({ operations, configPath }, request) => {
+    if (request.method !== "POST") return notAllowed();
+    const checkout = await readListedCheckout(configPath, request);
+    if (typeof checkout !== "string") return checkout;
+    return gitAnswer(async () => {
+      await operations[action](checkout);
+      return { path: checkout };
+    });
+  };
 
 const handlePrDetail: Handler = async ({ transport, operations }, request) => {
   if (request.method !== "GET") return notAllowed();
@@ -569,6 +674,11 @@ const handlers: Record<string, Handler> = {
   [apiRoutes.configRepo]: handleConfigRepo,
   [apiRoutes.repos]: handleRepos,
   [apiRoutes.repoDiff]: handleRepoDiff,
+  [apiRoutes.repoCommits]: handleRepoCommits,
+  [apiRoutes.repoCommit]: handleRepoCommit,
+  [apiRoutes.repoStatus]: handleRepoStatus,
+  [apiRoutes.repoPull]: syncHandler("pullCheckout"),
+  [apiRoutes.repoPush]: syncHandler("pushCheckout"),
   [apiRoutes.prDetail]: handlePrDetail,
   [apiRoutes.prCandidates]: handlePrCandidates,
   [apiRoutes.prRevisions]: handlePrRevisions,

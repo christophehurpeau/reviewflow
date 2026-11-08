@@ -1,5 +1,6 @@
 import type { CheckoutRepo } from "@reviewflow/sdk";
 import {
+  Badge,
   Box,
   Button,
   Code,
@@ -52,6 +53,11 @@ function RepoRow({ repo }: RepoRowProps): ReactNode {
             <Icon icon={<GitBranchRegularIcon />} size={14} />
             <Code className="text-sm">{repo.branch ?? "detached HEAD"}</Code>
           </View>
+          {repo.configured ? null : (
+            <Badge accent="info" variant="outlined">
+              found
+            </Badge>
+          )}
         </View>
         <Text className="font-mono text-xs text-muted">{repo.path}</Text>
       </View>
@@ -59,7 +65,10 @@ function RepoRow({ repo }: RepoRowProps): ReactNode {
   );
 }
 
-/** The configured checkouts: each opens its checked-out branch's diff. */
+/**
+ * The configured checkouts, then the ones found directly under
+ * `defaultRepoPath` (marked "found"): each opens its checked-out branch.
+ */
 export default function ReposPage(): ReactNode {
   const { data, error, isPending } = useRepos();
 
@@ -75,9 +84,9 @@ export default function ReposPage(): ReactNode {
           <View className="items-center gap-m">
             <EmptyState
               icon={<FolderSimpleRegularIcon />}
-              title="No repository configured"
+              title="No repository found"
             >
-              {`Map owner/repo to a checkout in ${data.configPath} to see its branch here.`}
+              {`No git checkout of a GitHub repository is directly under ${data.defaultRepoPath}, and ${data.configPath} maps none.`}
             </EmptyState>
             <Link asChild href="/settings">
               <Button text="Open Settings" accent="brand" role="link" />

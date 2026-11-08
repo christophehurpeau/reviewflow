@@ -31,22 +31,36 @@ const transport = {} satisfies Partial<GitHubTransport> as GitHubTransport;
 
 let root: string;
 let repo: string;
+let checkouts: string;
+let discovered: string;
 let configPath: string;
+
+const initCheckout = (path: string, origin: string): void => {
+  mkdirSync(path, { recursive: true });
+  execFileSync("git", ["init", "--quiet"], { cwd: path });
+  execFileSync("git", ["remote", "add", "origin", origin], { cwd: path });
+};
 
 beforeAll(() => {
   root = mkdtempSync(join(tmpdir(), "reviewflow-app-routes-"));
   repo = join(root, "checkout");
-  mkdirSync(repo);
-  execFileSync("git", ["init", "--quiet"], { cwd: repo });
-  execFileSync(
-    "git",
-    ["remote", "add", "origin", "https://github.com/acme/widgets.git"],
-    { cwd: repo },
+  initCheckout(repo, "https://github.com/acme/widgets.git");
+  // the directory searched for checkouts the config does not name, never the user's own
+  checkouts = join(root, "checkouts");
+  discovered = join(checkouts, "gadgets");
+  initCheckout(discovered, "git@github.com:acme/gadgets.git");
+  initCheckout(
+    join(checkouts, "widgets-copy"),
+    "https://github.com/acme/widgets",
   );
+  mkdirSync(join(checkouts, "notes"));
   configPath = join(root, "config.json");
   writeFileSync(
     configPath,
-    JSON.stringify({ repos: { "acme/widgets": repo } }),
+    JSON.stringify({
+      defaultRepoPath: checkouts,
+      repos: { "acme/widgets": repo },
+    }),
   );
 });
 
@@ -78,6 +92,11 @@ const makeDeps = (
     })),
     readHeadBranch: vi.fn(async () => "feature"),
     readCheckoutBranchDiff: vi.fn(async () => ({ patch: "fake" })),
+    readRecentCommits: vi.fn(async () => ({ commits: [] })),
+    readCommitDiff: vi.fn(async () => ({ patch: "commit" })),
+    readCheckoutSync: vi.fn(async () => ({ fetchError: null })),
+    pullCheckout: vi.fn(async () => undefined),
+    pushCheckout: vi.fn(async () => undefined),
     ...overrides,
   } as unknown as PullRequestOperations,
 });
@@ -99,16 +118,25 @@ const call = async (
 };
 
 describe("repos", () => {
-  test("lists the configured checkouts with their branch", async () => {
+  test("lists the configured checkouts, then the ones found under defaultRepoPath", async () => {
     const deps = makeDeps();
     expect(await call(deps, "GET", "/api/repos")).toEqual({
       status: 200,
       body: {
         configPath,
+        defaultRepoPath: checkouts,
         repos: [
+          {
+            ownerRepo: "acme/gadgets",
+            path: discovered,
+            configured: false,
+            branch: "feature",
+            problem: null,
+          },
           {
             ownerRepo: "acme/widgets",
             path: repo,
+            configured: true,
             branch: "feature",
             problem: null,
           },
@@ -116,6 +144,85 @@ describe("repos", () => {
       },
     });
     expect(deps.operations.readHeadBranch).toHaveBeenCalledWith(repo);
+  });
+
+  test("diffs a discovered checkout, and refuses a repository it does not list", async () => {
+    const deps = makeDeps();
+    await call(deps, "GET", "/api/repos/diff?repo=ACME/gadgets");
+    expect(deps.operations.readCheckoutBranchDiff).toHaveBeenCalledWith({
+      checkout: discovered,
+      scope: "all",
+      whitespace: "show",
+    });
+    expect(
+      (await call(deps, "GET", "/api/repos/diff?repo=acme/other"))?.status,
+    ).toBe(400);
+  });
+
+  test("reads a listed checkout's status, fetching only when asked", async () => {
+    const deps = makeDeps();
+    await call(deps, "GET", "/api/repos/status?repo=acme/widgets");
+    await call(deps, "GET", "/api/repos/status?repo=acme/widgets&fetch=1");
+    expect(deps.operations.readCheckoutSync).toHaveBeenNthCalledWith(1, {
+      checkout: repo,
+      fetch: "never",
+    });
+    expect(deps.operations.readCheckoutSync).toHaveBeenNthCalledWith(2, {
+      checkout: repo,
+      fetch: "always",
+    });
+  });
+
+  test("pulls and pushes a listed checkout on a POST, git's refusal as a 400", async () => {
+    const deps = makeDeps({
+      pushCheckout: vi.fn(async () => {
+        throw new Error("widgets has nothing to push");
+      }),
+    });
+    expect(
+      await call(deps, "POST", "/api/repos/pull?repo=acme/widgets"),
+    ).toEqual({ status: 200, body: { path: repo } });
+    expect(deps.operations.pullCheckout).toHaveBeenCalledWith(repo);
+    expect(
+      await call(deps, "POST", "/api/repos/push?repo=acme/widgets"),
+    ).toEqual({ status: 400, body: { error: "widgets has nothing to push" } });
+    expect(
+      (await call(deps, "GET", "/api/repos/pull?repo=acme/widgets"))?.status,
+    ).toBe(405);
+    expect(
+      (await call(deps, "POST", "/api/repos/pull?repo=acme/other"))?.status,
+    ).toBe(400);
+  });
+
+  test("reads the recent commits and one commit's diff of a listed checkout", async () => {
+    const deps = makeDeps();
+    expect(
+      await call(deps, "GET", "/api/repos/commits?repo=acme/widgets&limit=5"),
+    ).toEqual({ status: 200, body: { commits: [] } });
+    expect(deps.operations.readRecentCommits).toHaveBeenCalledWith({
+      checkout: repo,
+      limit: 5,
+    });
+    expect(
+      await call(
+        deps,
+        "GET",
+        `/api/repos/commit?repo=acme/widgets&sha=${sha}&whitespace=hide`,
+      ),
+    ).toEqual({ status: 200, body: { patch: "commit" } });
+    expect(deps.operations.readCommitDiff).toHaveBeenCalledWith({
+      checkout: repo,
+      sha,
+      whitespace: "hide",
+    });
+    expect(
+      (await call(deps, "GET", "/api/repos/commits?repo=acme/widgets&limit=0"))
+        ?.status,
+    ).toBe(400);
+    expect(
+      (await call(deps, "GET", "/api/repos/commit?repo=acme/widgets&sha=nope"))
+        ?.status,
+    ).toBe(400);
   });
 
   test("diffs the configured checkout, never a path from the request", async () => {

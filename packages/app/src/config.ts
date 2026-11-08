@@ -243,6 +243,103 @@ export const resolveCheckout = async (
   return { checkout: path };
 };
 
+export interface ListedCheckout {
+  ownerRepo: string;
+  path: string;
+  /** false: found directly under `defaultRepoPath` */
+  configured: boolean;
+}
+
+/** `owner/repo` of a directory's origin; null when it is no checkout of a GitHub repository. */
+const ownerRepoOfDirectory = async (path: string): Promise<string | null> => {
+  const url = await readOriginUrl(path);
+  return url === null ? null : ownerRepoOfRemote(url);
+};
+
+/**
+ * The checkouts directly under `base`, one per repository: a directory named
+ * after its repository before any other clone of it, then the first by name.
+ * Only the first level is read, so a directory of checkouts costs one git
+ * call per entry and nothing deeper.
+ */
+const discoverCheckoutsUnder = async (
+  base: string,
+): Promise<{ ownerRepo: string; path: string }[]> => {
+  const directories = await readDirectories(base);
+  const entries = directories.toSorted((left, right) =>
+    left.name.localeCompare(right.name),
+  );
+  const found = await Promise.all(
+    entries.map(async (entry) => {
+      const path = join(base, entry.name);
+      const ownerRepo = await ownerRepoOfDirectory(path);
+      return ownerRepo === null ? null : { ownerRepo, path, name: entry.name };
+    }),
+  );
+  const byRepo = new Map<string, { ownerRepo: string; path: string }>();
+  for (const checkout of found) {
+    if (checkout === null) continue;
+    const key = checkout.ownerRepo.toLowerCase();
+    const repoName = checkout.ownerRepo.split("/")[1] ?? "";
+    const named = checkout.name.toLowerCase() === repoName.toLowerCase();
+    if (!byRepo.has(key) || named) {
+      byRepo.set(key, { ownerRepo: checkout.ownerRepo, path: checkout.path });
+    }
+  }
+  return [...byRepo.values()];
+};
+
+/**
+ * Every checkout the app can show: the config's `repos`, then the checkouts
+ * found directly under `defaultRepoPath` whose repository the config does not
+ * name, by `owner/repo`. A configured path is listed even when it is unusable,
+ * so the list says what to fix.
+ */
+export const listCheckouts = async (
+  configPath: string,
+): Promise<ListedCheckout[]> => {
+  const config = readConfig(configPath);
+  const configured = Object.entries(config.repos).map(([ownerRepo, path]) => ({
+    ownerRepo,
+    path,
+    configured: true,
+  }));
+  const known = new Set(
+    configured.map(({ ownerRepo }) => ownerRepo.toLowerCase()),
+  );
+  const found = await discoverCheckoutsUnder(config.defaultRepoPath);
+  const discovered = found
+    .filter(({ ownerRepo }) => !known.has(ownerRepo.toLowerCase()))
+    .map((checkout) => ({ ...checkout, configured: false }));
+  return [...configured, ...discovered].toSorted((left, right) =>
+    left.ownerRepo.localeCompare(right.ownerRepo),
+  );
+};
+
+/**
+ * The listed checkout of `ownerRepo`, usable; refused otherwise. A route that
+ * reads a checkout takes it from here, never from the request: no route
+ * authenticates, so one that read whatever path it was handed would read any
+ * repository on the machine.
+ */
+export const resolveListedCheckout = async (
+  configPath: string,
+  ownerRepo: string,
+): Promise<{ checkout: string } | { refused: string }> => {
+  const wanted = ownerRepo.toLowerCase();
+  const checkouts = await listCheckouts(configPath);
+  const listed = checkouts.find(
+    (checkout) => checkout.ownerRepo.toLowerCase() === wanted,
+  );
+  if (listed === undefined) {
+    return {
+      refused: `${ownerRepo} is neither configured nor a checkout directly under defaultRepoPath`,
+    };
+  }
+  const problem = await checkCheckout(listed.ownerRepo, listed.path);
+  return problem === null ? { checkout: listed.path } : { refused: problem };
+};
+
 export type RepoAttachmentStatus = "attached" | "invalidPath" | "notConfigured";
 
 export interface RepoAttachment {
