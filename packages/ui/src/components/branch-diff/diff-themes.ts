@@ -16,13 +16,15 @@ export { diffThemeOptions, diffThemes } from "@reviewflow/sdk";
  */
 const reviewflowChangeMix = { light: 10, dark: 16 };
 
-const changeBackground = (base: string): string =>
-  `light-dark(color-mix(in lab, var(--diffs-bg) ${String(100 - reviewflowChangeMix.light)}%, var(${base})), color-mix(in lab, var(--diffs-bg) ${String(100 - reviewflowChangeMix.dark)}%, var(${base})))`;
-
-/** For a pierre file's `unsafeCSS`: its added and deleted lines' background. */
+/**
+ * For a pierre file's `unsafeCSS`: its added and deleted lines' background.
+ * Through the percentages pierre mixes a line with (`--mix-light`,
+ * `--mix-dark`), not `--diffs-bg-addition-override`: pierre mixes that one
+ * with the background again, as the color it mixes towards.
+ */
 export const changeBackgroundCSS = (theme: DiffTheme): string =>
   theme === "reviewflow"
-    ? `:host { --diffs-bg-addition-override: ${changeBackground("--diffs-addition-base")}; --diffs-bg-deletion-override: ${changeBackground("--diffs-deletion-base")}; }`
+    ? `:host [data-line], :host [data-no-newline] { --mix-light: ${String(100 - reviewflowChangeMix.light)}%; --mix-dark: ${String(100 - reviewflowChangeMix.dark)}%; }`
     : "";
 
 let reviewflowThemesRegistered = false;
