@@ -47,7 +47,8 @@
     "tsc": "tsc"
   },
   "dependencies": {
-    "@reviewflow/sdk": "workspace:*"
+    "@reviewflow/sdk": "workspace:*",
+    "nightingale-app-console": "18.2.0"
   },
   "devDependencies": {
     "@pob/rollup-esbuild": "11.4.0",

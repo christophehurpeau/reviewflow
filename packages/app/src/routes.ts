@@ -29,7 +29,7 @@ import {
   validateConfigSource,
 } from "./config.ts";
 import { credentialsUnreadableCode } from "./credentials/store.ts";
-import { errorMessage } from "./log.ts";
+import { errorMessage } from "./errorMessage.ts";
 import type {
   ReviewflowService,
   SetReviewflowTokenRequest,

@@ -18,9 +18,10 @@ import {
   readReviewflowStream,
   withAccountBoard,
 } from "@reviewflow/sdk";
+import { appLogger } from "nightingale-app-console";
 import type { CredentialStore } from "./credentials/store.ts";
+import { errorMessage } from "./errorMessage.ts";
 import { createEventHub, formatEvent } from "./eventStream.ts";
-import { errorMessage, log } from "./log.ts";
 import {
   normaliseReviewflowUrl,
   readReviewflowConnection,
@@ -72,6 +73,8 @@ export interface ReviewflowServiceOptions {
   now?: () => Date;
 }
 
+const logger = appLogger.child("reviewflow", "Reviewflow");
+
 const refused = (message: string): Error =>
   Object.assign(new Error(message), { code: tokenRefusedCode });
 
@@ -83,11 +86,7 @@ export const createReviewflowService = ({
       url,
       token,
       signal,
-      logger: {
-        warn: (message, { error }) => {
-          log("warn", message, { error: errorMessage(error) });
-        },
-      },
+      logger,
     }),
   now = () => new Date(),
 }: ReviewflowServiceOptions = {}): ReviewflowService => {
@@ -169,7 +168,7 @@ export const createReviewflowService = ({
       emitBoard();
     },
     onBoardError: (account, message) => {
-      log("warn", "reviewflow board read failed", { account, error: message });
+      logger.warn("reviewflow board read failed", { account, error: message });
     },
     onPullRequestChanged: (change: PullRequestChange) => {
       hub.broadcast("pullRequestChanged", change);
@@ -179,12 +178,9 @@ export const createReviewflowService = ({
       emitStatus();
     },
     onLog: ({ level, message, error, fields }) => {
-      log(
-        level,
+      logger[level](
         message,
-        error === undefined
-          ? fields
-          : { ...fields, error: errorMessage(error) },
+        error === undefined ? fields : { ...fields, error },
       );
     },
   });

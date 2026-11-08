@@ -7,8 +7,8 @@ import {
   writeFileSync,
 } from "node:fs";
 import { dirname, join } from "node:path";
+import { appLogger } from "nightingale-app-console";
 import { credentialsPath } from "../config.ts";
-import { errorMessage, log } from "../log.ts";
 
 /**
  * The app's secrets, in one 0600 file in a 0700 home. The token is the only
@@ -53,6 +53,8 @@ export interface CredentialKey {
 }
 
 export const credentialKeyBytes = 32;
+const logger = appLogger.child("credentials", "Credentials");
+
 const cipherName = "aes-256-gcm";
 const ivBytes = 12;
 
@@ -218,9 +220,9 @@ export const createFileCredentialStore = (
       try {
         writeDocument(path, encrypt(credentials, keyFor(path, key)));
       } catch (error) {
-        log("warn", "could not encrypt the credentials file", {
+        logger.warn("could not encrypt the credentials file", {
           path,
-          error: errorMessage(error),
+          error,
         });
       }
       return credentials;

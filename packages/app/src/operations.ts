@@ -12,11 +12,13 @@ import {
   readPullRequestDiff,
   readReadingOrder,
 } from "@reviewflow/sdk/git";
-import { errorMessage, log } from "./log.ts";
+import { appLogger } from "nightingale-app-console";
 import type { PullRequestOperations } from "./routes.ts";
 
 /** Parsed bindings by blob, kept for the life of the server: stepping through commits parses only what differs. */
 const bindingsCache = createBindingsCache();
+
+const editLogger = appLogger.child("edit", "Edit");
 
 export const operations: PullRequestOperations = {
   fetchPullRequestPart,
@@ -24,20 +26,7 @@ export const operations: PullRequestOperations = {
   fetchPullRequestRevisions,
   parsePullRequestEdit,
   editPullRequest: (transport, request) =>
-    applyPullRequestEdit(transport, request, {
-      logger: {
-        warn: (message, context) => {
-          log("warn", message, {
-            context: { ...context, error: errorMessage(context.error) },
-          });
-        },
-        error: (message, context) => {
-          log("error", message, {
-            context: { ...context, error: errorMessage(context.error) },
-          });
-        },
-      },
-    }),
+    applyPullRequestEdit(transport, request, { logger: editLogger }),
   readPullRequestDiff,
   readFileAtSha,
   readReadingOrder,

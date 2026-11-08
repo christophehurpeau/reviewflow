@@ -1,11 +1,13 @@
 import { env } from "node:process";
+import { appLogger } from "nightingale-app-console";
 import { configPathOf } from "./config.ts";
 import { createGhTransport } from "./githubTransport.ts";
-import { log } from "./log.ts";
 import { operations } from "./operations.ts";
 import { createReviewflowService } from "./reviewflowService.ts";
 import { createAppServer } from "./server.ts";
 import { defaultDistDirectory } from "./static.ts";
+
+const logger = appLogger.child("server", "Server");
 
 const defaultPort = 7450;
 const host = "127.0.0.1";
@@ -40,13 +42,13 @@ const server = createAppServer({
 });
 
 server.on("error", (error) => {
-  log("error", "server failed", { error: error.message });
+  logger.error("server failed", { error });
   process.exitCode = 1;
 });
 
 // loopback only: the server writes to GitHub as the user
 server.listen(port, host, () => {
-  log("info", "reviewflow app server listening", {
+  logger.info("reviewflow app server listening", {
     url: `http://${host}:${String(port)}`,
     configPath,
   });

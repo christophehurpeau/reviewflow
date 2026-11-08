@@ -1,6 +1,7 @@
 import type { IncomingMessage, Server, ServerResponse } from "node:http";
 import { createServer } from "node:http";
-import { errorMessage, log } from "./log.ts";
+import { appLogger } from "nightingale-app-console";
+import { errorMessage } from "./errorMessage.ts";
 import { bodyTooLargeCode, readBody } from "./readBody.ts";
 import { judgeRequest } from "./requestGuard.ts";
 import type { RouteDeps } from "./routes.ts";
@@ -12,6 +13,8 @@ export interface AppServerOptions extends RouteDeps {
   /** trust the expo dev server's origins (`REVIEWFLOW_APP_DEV=1`) */
   allowDevOrigins?: boolean;
 }
+
+const logger = appLogger.child("server", "Server");
 
 const preflightMaxAgeSeconds = 600;
 
@@ -43,7 +46,7 @@ export const handleRequest = async (
     allowDevOrigins: options.allowDevOrigins === true,
   });
   if (!verdict.allowed) {
-    log("warn", "request refused", {
+    logger.warn("request refused", {
       method,
       path: url.pathname,
       reason: verdict.reason,
@@ -118,7 +121,7 @@ export const handleRequest = async (
       }
       writeJson(response, answer.status, answer.body);
       if (answer.status >= 400) {
-        log("warn", "request failed", {
+        logger.warn("request failed", {
           method,
           path: url.pathname,
           status: answer.status,
@@ -144,11 +147,11 @@ export const handleRequest = async (
     let status = 500;
     if (tooLarge) status = 413;
     else if (errorMessage(error) === "body is not json") status = 400;
-    log("error", "request failed", {
+    logger.error("request failed", {
       method,
       path: url.pathname,
       status,
-      error: errorMessage(error),
+      error,
     });
     if (!response.headersSent) {
       writeJson(response, status, { error: errorMessage(error) });
@@ -162,7 +165,7 @@ export const handleRequest = async (
 export const createAppServer = (options: AppServerOptions): Server =>
   createServer((request, response) => {
     handleRequest(options, request, response).catch((error: unknown) => {
-      log("error", "request crashed", { error: errorMessage(error) });
+      logger.error("request crashed", { error });
       response.destroy();
     });
   });

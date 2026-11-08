@@ -50,6 +50,9 @@ importers:
       '@reviewflow/sdk':
         specifier: workspace:*
         version: link:../sdk
+      nightingale-app-console:
+        specifier: 18.2.0
+        version: 18.2.0
     devDependencies:
       '@pob/rollup-esbuild':
         specifier: 11.4.0
@@ -6774,6 +6777,10 @@ packages:
   new-find-package-json@2.0.0:
     resolution: {integrity: sha512-lDcBsjBSMlj3LXH2v/FW3txlh2pYTjmbOXPYJD93HI5EwuLzI11tdHSIpUMmfq/IOsldj4Ps8M8flhm+pCK4Ew==}
     engines: {node: '>=12.22.0'}
+
+  nightingale-app-console@18.2.0:
+    resolution: {integrity: sha512-QrAKF8i73hi9amEKa1EtNSvxmKbyJNuSF3PQm0LQpTc8C8IxPTXNKUSJFrRlcxIm2V1Ece62RXRiMjR6I+6/1g==}
+    engines: {node: '>=22.18.0'}
 
   nightingale-levels@18.2.0:
     resolution: {integrity: sha512-kl3OKYQCWjcTvlTDgwBq2QcRajmEyD5VV9jf2sHF27SOgY/Fhf2YxSzeqFO6u+GSyU1uNMD9xg2N04949022aA==}
@@ -14727,6 +14734,11 @@ snapshots:
       debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
+
+  nightingale-app-console@18.2.0:
+    dependencies:
+      '@types/node': 24.12.4
+      nightingale: 18.2.0
 
   nightingale-levels@18.2.0: {}
 
