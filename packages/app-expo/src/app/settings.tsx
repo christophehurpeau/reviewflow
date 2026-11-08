@@ -1,9 +1,12 @@
-import type { ReviewflowConnectionStatus } from "@reviewflow/sdk";
+import type {
+  RepoPathSuggestion,
+  ReviewflowConnectionStatus,
+} from "@reviewflow/sdk";
 import {
-  defaultRepoPath,
+  defaultRepoPaths,
   insertCheckoutEntry,
-  readDefaultRepoPathSetting,
-  writeDefaultRepoPathSetting,
+  readRepoPathsSetting,
+  writeRepoPathsSetting,
 } from "@reviewflow/sdk";
 import {
   DiffSettingsSection,
@@ -19,8 +22,6 @@ import {
   Button,
   Code,
   ErrorMessage,
-  FormEditableItem,
-  FormField,
   FormItem,
   IconButton,
   InputPassword,
@@ -43,6 +44,7 @@ import {
   readConfigFile,
   saveConfigFile,
 } from "#/services/configApi.ts";
+import { readRepoPathSuggestions, reposQueryKey } from "#/services/reposApi.ts";
 import {
   forgetToken,
   readStatus,
@@ -192,20 +194,17 @@ function ConnectionSection(): ReactNode {
   );
 }
 
-interface RepositoriesFolderValues {
-  path: string;
-}
-
 /**
- * Writes `defaultRepoPath` through the same save as the editor, against the
- * text last read: a file changed since is refused, not overwritten.
+ * Writes `repoPaths` through the same save as the editor, against the text
+ * last read: a file changed since is refused, not overwritten. The repository
+ * list is read again, since its folders changed.
  */
-const saveDefaultRepoPath = async (
+const saveRepoPaths = async (
   client: QueryClient,
   file: ConfigFile,
-  path: string,
+  paths: readonly string[],
 ): Promise<string[]> => {
-  const source = writeDefaultRepoPathSetting(file.source, path);
+  const source = writeRepoPathsSetting(file.source, paths);
   if (source === null) {
     throw new Error("config.json is not a json object: fix it in the editor");
   }
@@ -215,70 +214,160 @@ const saveDefaultRepoPath = async (
     await client.invalidateQueries({ queryKey: configFileKey });
     throw new Error("config.json changed on disk since it was read: try again");
   }
+  await client.invalidateQueries({ queryKey: reposQueryKey });
   return result.warnings;
 };
 
-interface RepositoriesFolderItemProps {
-  file: ConfigFile;
+interface FolderRowProps {
+  path: string;
+  children: ReactNode;
 }
 
-/** `defaultRepoPath` as a field, shown with the built-in default when unset. */
-function RepositoriesFolderItem({
-  file,
-}: RepositoriesFolderItemProps): ReactNode {
-  const client = useQueryClient();
-  const [warnings, setWarnings] = useState<string[]>([]);
-  const configured = readDefaultRepoPathSetting(file.source);
+function FolderRow({ path, children }: FolderRowProps): ReactNode {
+  return (
+    <View className="flex-row flex-wrap items-center gap-xs">
+      <Text className="min-w-0 flex-1 font-mono text-sm">{path}</Text>
+      {children}
+    </View>
+  );
+}
+
+interface RepositoriesFoldersDiscoveryProps {
+  onAdd: (path: string) => Promise<void>;
+}
+
+/**
+ * The folders under the home directory holding checkouts that `repoPaths`
+ * does not list, read when asked: the scan starts a git process per checkout.
+ */
+function RepositoriesFoldersDiscovery({
+  onAdd,
+}: RepositoriesFoldersDiscoveryProps): ReactNode {
+  const [suggestions, setSuggestions] = useState<RepoPathSuggestion[] | null>(
+    null,
+  );
 
   return (
     <View className="gap-xs">
-      <FormEditableItem<RepositoriesFolderValues>
-        label="Repositories folder"
-        summary={
-          <Text className="font-mono text-sm">
-            {configured ?? defaultRepoPath}
-            {configured === undefined ? (
-              <Text className="font-body text-muted"> (default)</Text>
-            ) : null}
+      <View className="flex-row">
+        <ActionButton
+          text={suggestions === null ? "Autodiscover" : "Autodiscover again"}
+          accent="neutral"
+          size="sm"
+          errorMessageVariant="flat"
+          errorToMessage={errorToMessage}
+          onPress={async () => {
+            const answer = await readRepoPathSuggestions();
+            setSuggestions(answer.suggestions);
+          }}
+        />
+      </View>
+      {suggestions?.length === 0 ? (
+        <Text className="text-sm text-muted">
+          No other folder of checkouts found in the usual places of the home
+          directory (~/dev, ~/code, ~/src, ~/projects… and their subfolders).
+        </Text>
+      ) : null}
+      {suggestions?.map((suggestion) => (
+        <FolderRow key={suggestion.path} path={suggestion.path}>
+          <Text className="text-sm text-muted">
+            {suggestion.checkouts === 1
+              ? "1 checkout"
+              : `${String(suggestion.checkouts)} checkouts`}
           </Text>
-        }
-        editAriaLabel="Edit the repositories folder"
-        cancelLabel="Cancel"
-        submitLabel="Save"
-        submitErrorToMessage={errorToMessage}
-        defaultValues={{ path: configured ?? "" }}
-        render={({ control }) => (
-          <View className="gap-xs">
-            <Text className="text-sm text-muted">
-              An absolute path or <Code>~/path</Code>. Empty uses{" "}
-              <Code>{defaultRepoPath}</Code>.
-            </Text>
-            <FormField
-              control={control}
-              name="path"
-              label="Folder"
-              render={({ field, labelId, describedBy, invalid, required }) => (
-                <InputText
-                  ref={field.ref}
-                  value={field.value}
-                  placeholder={defaultRepoPath}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  aria-labelledby={labelId}
-                  aria-describedby={describedBy}
-                  aria-required={required}
-                  invalid={invalid}
-                  onChangeText={field.onChange}
-                  onBlur={field.onBlur}
-                />
-              )}
-            />
-          </View>
-        )}
-        onSubmit={async ({ path }) => {
-          setWarnings(await saveDefaultRepoPath(client, file, path));
-        }}
-      />
+          <ActionButton
+            text="Add"
+            size="sm"
+            errorMessageVariant="flat"
+            errorToMessage={errorToMessage}
+            onPress={async () => {
+              await onAdd(suggestion.path);
+              setSuggestions((current) =>
+                (current ?? []).filter(({ path }) => path !== suggestion.path),
+              );
+            }}
+          />
+        </FolderRow>
+      ))}
+    </View>
+  );
+}
+
+interface RepositoriesFoldersProps {
+  file: ConfigFile;
+}
+
+/** `repoPaths`: the folders listed, each removable, one typed or discovered added. */
+function RepositoriesFolders({ file }: RepositoriesFoldersProps): ReactNode {
+  const client = useQueryClient();
+  const [warnings, setWarnings] = useState<string[]>([]);
+  const [typed, setTyped] = useState("");
+  const configured = readRepoPathsSetting(file.source);
+  const paths = configured ?? defaultRepoPaths;
+
+  const save = async (next: readonly string[]): Promise<void> => {
+    setWarnings(await saveRepoPaths(client, file, next));
+  };
+  const add = (path: string): Promise<void> => save([...paths, path]);
+
+  return (
+    <View className="gap-s">
+      <View className="gap-xxs">
+        <Text className="font-body-bold">Repositories folders</Text>
+        <Text className="text-sm text-muted">
+          Searched in order for the checkouts directly under them; the first
+          folder holding a repository wins.
+          {configured === undefined ? " Unset, the default applies." : null}
+        </Text>
+      </View>
+      {paths.length === 0 ? (
+        <Text className="text-sm text-muted">
+          No folder: only the checkouts of <Code>repos</Code> are listed.
+        </Text>
+      ) : null}
+      {paths.map((path) => (
+        <FolderRow key={path} path={path}>
+          <ActionButton
+            text="Remove"
+            accent="neutral"
+            variant="soft"
+            size="sm"
+            errorMessageVariant="flat"
+            errorToMessage={errorToMessage}
+            onPress={() => save(paths.filter((other) => other !== path))}
+          />
+        </FolderRow>
+      ))}
+      <View className="flex-row flex-wrap items-end gap-xs">
+        <View className="min-w-0 flex-1">
+          <FormItem
+            label="Add a folder"
+            render={({ labelId }) => (
+              <InputText
+                value={typed}
+                placeholder="~/code/"
+                autoCapitalize="none"
+                autoCorrect={false}
+                aria-labelledby={labelId}
+                onChangeText={setTyped}
+              />
+            )}
+          />
+        </View>
+        <ActionButton
+          text="Add"
+          disabledReason={
+            typed.trim() === "" ? "Type an absolute path or ~/path" : null
+          }
+          errorMessageVariant="flat"
+          errorToMessage={errorToMessage}
+          onPress={async () => {
+            await add(typed);
+            setTyped("");
+          }}
+        />
+      </View>
+      <RepositoriesFoldersDiscovery onAdd={add} />
       {warnings.map((warning) => (
         <WarningMessage key={warning}>{warning}</WarningMessage>
       ))}
@@ -348,10 +437,12 @@ function CheckoutsSection(): ReactNode {
       </Text>
       <Text className="text-sm text-muted">
         A repository missing from <Code>repos</Code> is searched in the
-        repositories folder (<Code>defaultRepoPath</Code>), as{" "}
+        repositories folders (<Code>repoPaths</Code>), as{" "}
         <Code>{"<path>/<repo>"}</Code> or{" "}
         <Code>{"<path>/<any directory>/<repo>"}</Code>, and used when its origin
-        remote is that repository.
+        remote is that repository. The Repositories screen lists the checkouts
+        directly under them, scanned once and kept in{" "}
+        <Code>cache/repositories.json</Code> until refreshed.
       </Text>
       {file.data === undefined ? (
         <Text className="text-sm text-muted">
@@ -361,7 +452,7 @@ function CheckoutsSection(): ReactNode {
         </Text>
       ) : (
         <>
-          <RepositoriesFolderItem file={file.data} />
+          <RepositoriesFolders file={file.data} />
           <CheckoutsEditor file={file.data} add={add} />
         </>
       )}

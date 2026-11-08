@@ -104,28 +104,38 @@ the entry already added, unsaved), or by hand. `~/.reviewflow-app/config.json`:
 
 ```json
 {
-  "defaultRepoPath": "~/dev/",
+  "repoPaths": ["~/dev/", "~/work/"],
   "repos": { "acme/widgets": "/Users/me/code/widgets" }
 }
 ```
 
 A path is absolute or starts with `~/` (the home folder). It counts only if it exists and its `remote.origin.url` names that
-repository. A repository missing from `repos` is searched in `defaultRepoPath`
-(`~/dev/` when unset, editable as "Repositories folder" in Settings → Checkouts): `<path>/<repo>`, then `<path>/<owner>/<repo>`, then
-`<path>/<any directory>/<repo>`, the first whose origin names it. A save is
-refused when the text is not that shape or the file changed on disk since the
-editor opened it (reload, or keep editing); a missing path, a checkout of
-another repository or a `defaultRepoPath` that is not a directory is saved with
-a warning.
+repository. A repository missing from `repos` is searched in `repoPaths`, folder by folder
+(`["~/dev/"]` when unset; the former `"defaultRepoPath": "~/dev/"` still reads
+as a one-folder list and is rewritten as `repoPaths` on the next save from
+Settings): `<path>/<repo>`, then `<path>/<owner>/<repo>`, then
+`<path>/<any directory>/<repo>`, the first whose origin names it. Settings →
+Checkouts → "Repositories folders" adds and removes folders; "Autodiscover"
+offers the usual folders of the home directory (`~/dev`, `~/code`, `~/src`,
+`~/projects`… and their subfolders, never `~/Documents`, `~/Desktop` or
+`~/Downloads`) that hold checkouts. A save is refused when the text is not that
+shape or the file changed on disk since the editor opened it (reload, or keep
+editing); a missing path, a checkout of another repository or a folder that is
+not a directory is saved with a warning.
+
+The Repositories screen lists the checkouts directly under `repoPaths`. The
+scan is cached in `~/.reviewflow-app/cache/repositories.json`, read again until
+`repoPaths` changes or the screen's refresh button scans anew: a checkout
+cloned since the last scan shows only after a refresh.
 
 ## Environment
 
-| Variable                            | Read by | Default                 | Meaning                                            |
-| ----------------------------------- | ------- | ----------------------- | -------------------------------------------------- |
-| `REVIEWFLOW_APP_PORT`               | server  | `7450`                  | port, bound on 127.0.0.1 only                      |
-| `REVIEWFLOW_APP_HOME`               | server  | `~/.reviewflow-app`     | folder of `config.json` and `credentials.json`     |
-| `REVIEWFLOW_APP_DEV`                | server  | unset                   | `1` trusts the expo dev server origin (`:8085`)    |
-| `EXPO_PUBLIC_REVIEWFLOW_APP_SERVER` | app     | `http://127.0.0.1:7450` | server url in dev (`expo start`) and native builds |
+| Variable                            | Read by | Default                 | Meaning                                               |
+| ----------------------------------- | ------- | ----------------------- | ----------------------------------------------------- |
+| `REVIEWFLOW_APP_PORT`               | server  | `7450`                  | port, bound on 127.0.0.1 only                         |
+| `REVIEWFLOW_APP_HOME`               | server  | `~/.reviewflow-app`     | folder of `config.json`, `credentials.json`, `cache/` |
+| `REVIEWFLOW_APP_DEV`                | server  | unset                   | `1` trusts the expo dev server origin (`:8085`)       |
+| `EXPO_PUBLIC_REVIEWFLOW_APP_SERVER` | app     | `http://127.0.0.1:7450` | server url in dev (`expo start`) and native builds    |
 
 The exported app uses its own origin; a dev build uses the variable above. The
 server refuses requests whose `Host` is not loopback or whose `Origin` is not

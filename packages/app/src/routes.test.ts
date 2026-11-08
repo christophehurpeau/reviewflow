@@ -58,7 +58,7 @@ beforeAll(() => {
   writeFileSync(
     configPath,
     JSON.stringify({
-      defaultRepoPath: checkouts,
+      repoPaths: [checkouts],
       repos: { "acme/widgets": repo },
     }),
   );
@@ -118,13 +118,14 @@ const call = async (
 };
 
 describe("repos", () => {
-  test("lists the configured checkouts, then the ones found under defaultRepoPath", async () => {
+  test("lists the configured checkouts and the ones found under repoPaths", async () => {
     const deps = makeDeps();
-    expect(await call(deps, "GET", "/api/repos")).toEqual({
+    expect(await call(deps, "GET", "/api/repos?refresh=1")).toEqual({
       status: 200,
       body: {
         configPath,
-        defaultRepoPath: checkouts,
+        repoPaths: [checkouts],
+        scannedAt: expect.any(String),
         repos: [
           {
             ownerRepo: "acme/gadgets",
@@ -691,5 +692,12 @@ describe("routes", () => {
     expect(
       (await call(makeDeps(), "GET", "/api/config/repo?repo=nope"))?.status,
     ).toBe(400);
+  });
+
+  test("config/repo-paths/suggestions is read only", async () => {
+    expect(
+      (await call(makeDeps(), "POST", "/api/config/repo-paths/suggestions"))
+        ?.status,
+    ).toBe(405);
   });
 });

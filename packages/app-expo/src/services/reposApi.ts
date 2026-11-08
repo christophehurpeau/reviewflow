@@ -6,6 +6,7 @@ import type {
   CheckoutSyncResponse,
   CommitDiffResponse,
   DiffWhitespace,
+  RepoPathSuggestionsResponse,
 } from "@reviewflow/sdk";
 import type { QueryClient, UseQueryResult } from "@tanstack/react-query";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
@@ -132,3 +133,16 @@ export const invalidateRepo = async (
     client.invalidateQueries({ queryKey: reposQueryKey }),
   ]);
 };
+
+/** Scans the repositories folders again, past the server's cache, and shows the answer. */
+export const refreshRepos = async (client: QueryClient): Promise<void> => {
+  const answer = await getJson<CheckoutReposResponse>("/api/repos", {
+    refresh: "1",
+  });
+  client.setQueryData(reposQueryKey, answer);
+};
+
+/** The folders of the home directory holding checkouts that `repoPaths` does not list. */
+export const readRepoPathSuggestions =
+  (): Promise<RepoPathSuggestionsResponse> =>
+    getJson<RepoPathSuggestionsResponse>("/api/config/repo-paths/suggestions");

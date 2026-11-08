@@ -7,7 +7,7 @@ import { isAbsolute, join } from "node:path";
 import { env } from "node:process";
 import { promisify } from "node:util";
 import type { DiffRefusal } from "@reviewflow/sdk";
-import { defaultRepoPath } from "@reviewflow/sdk";
+import { defaultRepoPaths } from "@reviewflow/sdk";
 import type { FileValidation } from "@reviewflow/sdk/files";
 
 const execFileAsync = promisify(execFile);
@@ -31,8 +31,8 @@ export const expandHome = (path: string): string =>
 export interface AppConfig {
   /** `owner/repo` to its checkout, expanded */
   repos: Record<string, string>;
-  /** the directory a repository missing from `repos` is searched in, expanded */
-  defaultRepoPath: string;
+  /** the directories a repository missing from `repos` is searched in, in order, expanded */
+  repoPaths: string[];
 }
 
 const readRepos = (
@@ -55,23 +55,40 @@ const readRepos = (
   return result;
 };
 
-const readDefaultRepoPath = (configPath: string, path: unknown): string => {
-  if (path === undefined) return expandHome(defaultRepoPath);
-  if (typeof path !== "string") {
+const builtInRepoPaths = (): string[] => defaultRepoPaths.map(expandHome);
+
+/** `repoPaths`, else the legacy `defaultRepoPath` as one folder, else the built-in default. */
+const readRepoPaths = (
+  configPath: string,
+  object: { repoPaths?: unknown; defaultRepoPath?: unknown },
+): string[] => {
+  const { repoPaths, defaultRepoPath } = object;
+  if (repoPaths !== undefined) {
+    if (
+      !Array.isArray(repoPaths) ||
+      !repoPaths.every((path) => typeof path === "string")
+    ) {
+      throw new TypeError(`${configPath}: "repoPaths" must be a list of paths`);
+    }
+    return repoPaths.map(expandHome);
+  }
+  if (defaultRepoPath === undefined) return builtInRepoPaths();
+  if (typeof defaultRepoPath !== "string") {
     throw new TypeError(`${configPath}: "defaultRepoPath" must be a path`);
   }
-  return expandHome(path);
+  return [expandHome(defaultRepoPath)];
 };
 
 /**
- * `{ "defaultRepoPath": "~/dev/", "repos": { "owner/repo": "/absolute/path" } }`,
- * paths under `~/` returned expanded. A missing file means no repository is
+ * `{ "repoPaths": ["~/dev/"], "repos": { "owner/repo": "/absolute/path" } }`,
+ * paths under `~/` returned expanded; the legacy `"defaultRepoPath": "~/dev/"`
+ * reads as a one-folder `repoPaths`. A missing file means no repository is
  * configured, which is a state and not an error; an unreadable or malformed
  * file raises, so the user sees why nothing resolves.
  */
 export const readConfig = (configPath: string): AppConfig => {
   if (!existsSync(configPath)) {
-    return { repos: {}, defaultRepoPath: expandHome(defaultRepoPath) };
+    return { repos: {}, repoPaths: builtInRepoPaths() };
   }
   let parsed: unknown;
   try {
@@ -84,11 +101,15 @@ export const readConfig = (configPath: string): AppConfig => {
   }
   const object =
     typeof parsed === "object" && parsed !== null
-      ? (parsed as { repos?: unknown; defaultRepoPath?: unknown })
+      ? (parsed as {
+          repos?: unknown;
+          repoPaths?: unknown;
+          defaultRepoPath?: unknown;
+        })
       : {};
   return {
     repos: readRepos(configPath, object.repos),
-    defaultRepoPath: readDefaultRepoPath(configPath, object.defaultRepoPath),
+    repoPaths: readRepoPaths(configPath, object),
   };
 };
 
@@ -154,7 +175,7 @@ const findPath = (
   return key === undefined ? null : (repos[key] ?? null);
 };
 
-const readDirectories = async (path: string): Promise<Dirent[]> => {
+export const readDirectories = async (path: string): Promise<Dirent[]> => {
   try {
     const entries = await readdir(path, { withFileTypes: true });
     return entries.filter(
@@ -207,9 +228,23 @@ export const findCheckoutUnder = async (
   return null;
 };
 
+const findCheckoutUnderAny = async (
+  bases: string[],
+  ownerRepo: string,
+): Promise<string | null> => {
+  for (const base of bases) {
+    const found = await findCheckoutUnder(base, ownerRepo);
+    if (found !== null) return found;
+  }
+  return null;
+};
+
+const describeRepoPaths = (repoPaths: string[]): string =>
+  repoPaths.length === 0 ? "no repositories folder" : repoPaths.join(", ");
+
 /**
  * The checkout `repos` names for `ownerRepo`; without one, the first found
- * under `defaultRepoPath` (see `findCheckoutUnder`).
+ * under `repoPaths`, folder by folder (see `findCheckoutUnder`).
  */
 export const resolveCheckout = async (
   configPath: string,
@@ -218,14 +253,14 @@ export const resolveCheckout = async (
   const config = readConfig(configPath);
   const path = findPath(config.repos, ownerRepo);
   if (path === null) {
-    const found = await findCheckoutUnder(config.defaultRepoPath, ownerRepo);
+    const found = await findCheckoutUnderAny(config.repoPaths, ownerRepo);
     if (found !== null) return { checkout: found };
     return {
       refused: {
         reason: "notConfigured",
         ownerRepo,
         configPath,
-        detail: `no checkout is configured for ${ownerRepo}, and none whose origin is ${ownerRepo} was found under ${config.defaultRepoPath}`,
+        detail: `no checkout is configured for ${ownerRepo}, and none whose origin is ${ownerRepo} was found under ${describeRepoPaths(config.repoPaths)}`,
       },
     };
   }
@@ -243,28 +278,28 @@ export const resolveCheckout = async (
   return { checkout: path };
 };
 
-export interface ListedCheckout {
-  ownerRepo: string;
-  path: string;
-  /** false: found directly under `defaultRepoPath` */
-  configured: boolean;
-}
-
 /** `owner/repo` of a directory's origin; null when it is no checkout of a GitHub repository. */
 const ownerRepoOfDirectory = async (path: string): Promise<string | null> => {
+  // a directory without `.git` costs no git process: most of a folder's entries are no checkout
+  if (!existsSync(join(path, ".git"))) return null;
   const url = await readOriginUrl(path);
   return url === null ? null : ownerRepoOfRemote(url);
 };
+
+export interface FoundCheckout {
+  ownerRepo: string;
+  path: string;
+}
 
 /**
  * The checkouts directly under `base`, one per repository: a directory named
  * after its repository before any other clone of it, then the first by name.
  * Only the first level is read, so a directory of checkouts costs one git
- * call per entry and nothing deeper.
+ * call per checkout and nothing deeper.
  */
-const discoverCheckoutsUnder = async (
+export const discoverCheckoutsUnder = async (
   base: string,
-): Promise<{ ownerRepo: string; path: string }[]> => {
+): Promise<FoundCheckout[]> => {
   const directories = await readDirectories(base);
   const entries = directories.toSorted((left, right) =>
     left.name.localeCompare(right.name),
@@ -276,7 +311,7 @@ const discoverCheckoutsUnder = async (
       return ownerRepo === null ? null : { ownerRepo, path, name: entry.name };
     }),
   );
-  const byRepo = new Map<string, { ownerRepo: string; path: string }>();
+  const byRepo = new Map<string, FoundCheckout>();
   for (const checkout of found) {
     if (checkout === null) continue;
     const key = checkout.ownerRepo.toLowerCase();
@@ -287,57 +322,6 @@ const discoverCheckoutsUnder = async (
     }
   }
   return [...byRepo.values()];
-};
-
-/**
- * Every checkout the app can show: the config's `repos`, then the checkouts
- * found directly under `defaultRepoPath` whose repository the config does not
- * name, by `owner/repo`. A configured path is listed even when it is unusable,
- * so the list says what to fix.
- */
-export const listCheckouts = async (
-  configPath: string,
-): Promise<ListedCheckout[]> => {
-  const config = readConfig(configPath);
-  const configured = Object.entries(config.repos).map(([ownerRepo, path]) => ({
-    ownerRepo,
-    path,
-    configured: true,
-  }));
-  const known = new Set(
-    configured.map(({ ownerRepo }) => ownerRepo.toLowerCase()),
-  );
-  const found = await discoverCheckoutsUnder(config.defaultRepoPath);
-  const discovered = found
-    .filter(({ ownerRepo }) => !known.has(ownerRepo.toLowerCase()))
-    .map((checkout) => ({ ...checkout, configured: false }));
-  return [...configured, ...discovered].toSorted((left, right) =>
-    left.ownerRepo.localeCompare(right.ownerRepo),
-  );
-};
-
-/**
- * The listed checkout of `ownerRepo`, usable; refused otherwise. A route that
- * reads a checkout takes it from here, never from the request: no route
- * authenticates, so one that read whatever path it was handed would read any
- * repository on the machine.
- */
-export const resolveListedCheckout = async (
-  configPath: string,
-  ownerRepo: string,
-): Promise<{ checkout: string } | { refused: string }> => {
-  const wanted = ownerRepo.toLowerCase();
-  const checkouts = await listCheckouts(configPath);
-  const listed = checkouts.find(
-    (checkout) => checkout.ownerRepo.toLowerCase() === wanted,
-  );
-  if (listed === undefined) {
-    return {
-      refused: `${ownerRepo} is neither configured nor a checkout directly under defaultRepoPath`,
-    };
-  }
-  const problem = await checkCheckout(listed.ownerRepo, listed.path);
-  return problem === null ? { checkout: listed.path } : { refused: problem };
 };
 
 export type RepoAttachmentStatus = "attached" | "invalidPath" | "notConfigured";
@@ -381,19 +365,18 @@ export const describeRepoAttachment = async (
 
 const ownerRepoPattern = /^[^/\s]+\/[^/\s]+$/;
 
-const configKeys = new Set(["defaultRepoPath", "repos"]);
+const configKeys = new Set(["repoPaths", "defaultRepoPath", "repos"]);
 
-const validateDefaultRepoPath = (
-  path: unknown,
-): { error: string } | { warning: string | null } => {
-  if (path === undefined) return { warning: null };
+type FolderCheck = { error: string } | { warning: string | null };
+
+const validateFolder = (label: string, path: unknown): FolderCheck => {
   if (typeof path !== "string" || path.trim() === "") {
-    return { error: '"defaultRepoPath" must be a non-empty string' };
+    return { error: `${label} must be a non-empty string` };
   }
   const expanded = expandHome(path);
   if (!isAbsolute(expanded)) {
     return {
-      error: `"defaultRepoPath" must be an absolute path or start with "~/", got "${path}"`,
+      error: `${label} must be an absolute path or start with "~/", got "${path}"`,
     };
   }
   let isDirectory = false;
@@ -405,19 +388,52 @@ const validateDefaultRepoPath = (
   return {
     warning: isDirectory
       ? null
-      : `defaultRepoPath: ${expanded} does not exist or is not a directory`,
+      : `${label}: ${expanded} does not exist or is not a directory`,
+  };
+};
+
+/** The warnings of `repoPaths` (or the legacy `defaultRepoPath`), or the error refusing them. */
+const validateRepoPaths = (
+  object: Record<string, unknown>,
+): { error: string } | { warnings: string[] } => {
+  if ("repoPaths" in object && "defaultRepoPath" in object) {
+    return {
+      error:
+        '"defaultRepoPath" is the former one-folder form of "repoPaths": keep only "repoPaths"',
+    };
+  }
+  const { repoPaths } = object;
+  const checks = ((): FolderCheck[] => {
+    if ("defaultRepoPath" in object) {
+      return [validateFolder('"defaultRepoPath"', object.defaultRepoPath)];
+    }
+    if (repoPaths === undefined) return [];
+    if (!Array.isArray(repoPaths)) {
+      return [{ error: '"repoPaths" must be a list of folders' }];
+    }
+    return repoPaths.map((path, index) =>
+      validateFolder(`repoPaths[${String(index)}]`, path),
+    );
+  })();
+  const refused = checks.find((check) => "error" in check);
+  if (refused !== undefined) return refused;
+  return {
+    warnings: checks
+      .map((check) => ("warning" in check ? check.warning : null))
+      .filter((warning): warning is string => warning !== null),
   };
 };
 
 /**
  * What a save of the config file is checked with. Refused, nothing written:
  * text that is not json, anything but
- * `{ "defaultRepoPath": "~/dev/", "repos": { "owner/repo": "/absolute/path" } }`
- * (paths absolute or `"~/path"`; `defaultRepoPath` optional)
- * (an unknown key is refused too, so a typo like "repo" is caught rather than
- * ignored). Only warned, the file is saved: a path that is not a git checkout,
- * or whose origin names another repository, or a `defaultRepoPath` that is
- * not a directory, since it may be on a disk that is not mounted yet.
+ * `{ "repoPaths": ["~/dev/"], "repos": { "owner/repo": "/absolute/path" } }`
+ * (paths absolute or `"~/path"`; `repoPaths` optional, or the legacy
+ * `"defaultRepoPath": "~/dev/"` instead, never both) (an unknown key is
+ * refused too, so a typo like "repo" is caught rather than ignored). Only
+ * warned, the file is saved: a path that is not a git checkout, or whose
+ * origin names another repository, or a folder of `repoPaths` that is not a
+ * directory, since it may be on a disk that is not mounted yet.
  */
 export const validateConfigSource = async (
   source: string,
@@ -437,11 +453,11 @@ export const validateConfigSource = async (
   const unknownKey = Object.keys(object).find((key) => !configKeys.has(key));
   if (unknownKey !== undefined) {
     return {
-      error: `unknown key "${unknownKey}": the keys are "defaultRepoPath" and "repos"`,
+      error: `unknown key "${unknownKey}": the keys are "repoPaths" and "repos"`,
     };
   }
-  const defaultRepoPathCheck = validateDefaultRepoPath(object.defaultRepoPath);
-  if ("error" in defaultRepoPathCheck) return defaultRepoPathCheck;
+  const repoPathsCheck = validateRepoPaths(object);
+  if ("error" in repoPathsCheck) return repoPathsCheck;
   const repos = object.repos;
   if (typeof repos !== "object" || repos === null || Array.isArray(repos)) {
     return {
@@ -474,7 +490,7 @@ export const validateConfigSource = async (
     }),
   );
   return {
-    warnings: [defaultRepoPathCheck.warning, ...problems].filter(
+    warnings: [...repoPathsCheck.warnings, ...problems].filter(
       (problem): problem is string => problem !== null,
     ),
   };

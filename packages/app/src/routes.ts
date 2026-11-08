@@ -27,6 +27,7 @@ import type {
   PullRequestPartResponse,
   PullRequestRef,
   PullRequestRevisionsResponse,
+  RepoPathSuggestionsResponse,
 } from "@reviewflow/sdk";
 import {
   isBranchDiffScope,
@@ -37,13 +38,16 @@ import { readEditableFile, saveEditableFile } from "@reviewflow/sdk/files";
 import {
   checkCheckout,
   describeRepoAttachment,
-  listCheckouts,
   readConfig,
   resolveCheckout,
-  resolveListedCheckout,
   validateConfigSource,
 } from "./config.ts";
 import { credentialsUnreadableCode } from "./credentials/store.ts";
+import {
+  listCheckouts,
+  resolveListedCheckout,
+  suggestRepoPaths,
+} from "./discovery.ts";
 import { errorMessage } from "./errorMessage.ts";
 import type {
   ReviewflowService,
@@ -54,6 +58,7 @@ import { tokenRefusedCode } from "./reviewflowService.ts";
 export const apiRoutes = {
   configFile: "/api/config/file",
   configRepo: "/api/config/repo",
+  configRepoPathSuggestions: "/api/config/repo-paths/suggestions",
   repos: "/api/repos",
   repoDiff: "/api/repos/diff",
   repoCommits: "/api/repos/commits",
@@ -259,15 +264,27 @@ const handleConfigRepo: Handler = async ({ configPath }, request) => {
   return ok(await describeRepoAttachment(configPath, repo));
 };
 
+/** The folders under the home directory that `repoPaths` could add: scanned on each call. */
+const handleRepoPathSuggestions: Handler = async ({ configPath }, request) => {
+  if (request.method !== "GET") return notAllowed();
+  const { repoPaths } = readConfig(configPath);
+  const body: RepoPathSuggestionsResponse = {
+    suggestions: await suggestRepoPaths({ repoPaths }),
+  };
+  return ok(body);
+};
+
 const handleRepos: Handler = async ({ operations, configPath }, request) => {
   if (request.method !== "GET") return notAllowed();
-  const { defaultRepoPath } = readConfig(configPath);
-  const listed = await listCheckouts(configPath);
+  const listing = await listCheckouts(configPath, {
+    refresh: request.query.get("refresh") === "1",
+  });
   const body: CheckoutReposResponse = {
     configPath,
-    defaultRepoPath,
+    repoPaths: listing.repoPaths,
+    scannedAt: listing.scannedAt,
     repos: await Promise.all(
-      listed.map(async (checkout): Promise<CheckoutRepo> => {
+      listing.checkouts.map(async (checkout): Promise<CheckoutRepo> => {
         const problem = await checkCheckout(checkout.ownerRepo, checkout.path);
         const branch =
           problem === null
@@ -672,6 +689,7 @@ const handleEvents: Handler = ({ reviewflow }, request) =>
 const handlers: Record<string, Handler> = {
   [apiRoutes.configFile]: handleConfigFile,
   [apiRoutes.configRepo]: handleConfigRepo,
+  [apiRoutes.configRepoPathSuggestions]: handleRepoPathSuggestions,
   [apiRoutes.repos]: handleRepos,
   [apiRoutes.repoDiff]: handleRepoDiff,
   [apiRoutes.repoCommits]: handleRepoCommits,

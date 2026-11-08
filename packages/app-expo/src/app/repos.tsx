@@ -1,4 +1,7 @@
 import type { CheckoutRepo } from "@reviewflow/sdk";
+import { formatRelativeDate } from "@reviewflow/sdk";
+import { errorToMessage } from "@reviewflow/ui";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Badge,
   Box,
@@ -7,18 +10,20 @@ import {
   EmptyState,
   ErrorMessage,
   Icon,
+  IconButton,
   IndeterminateCircularProgress,
   PressableListItem,
   ScreenScrollView,
-  SectionTitle,
   Text,
   View,
 } from "alouette";
+import { ArrowsClockwiseRegularIcon } from "alouette-icons/phosphor-icons/ArrowsClockwise";
 import { FolderSimpleRegularIcon } from "alouette-icons/phosphor-icons/FolderSimple";
 import { GitBranchRegularIcon } from "alouette-icons/phosphor-icons/GitBranch";
 import { Link, useRouter } from "expo-router";
 import type { ReactNode } from "react";
-import { useRepos } from "#/services/reposApi.ts";
+import { useState } from "react";
+import { refreshRepos, useRepos } from "#/services/reposApi.ts";
 
 interface RepoRowProps {
   repo: CheckoutRepo;
@@ -65,28 +70,72 @@ function RepoRow({ repo }: RepoRowProps): ReactNode {
   );
 }
 
+const describeRepoPaths = (repoPaths: string[]): string =>
+  repoPaths.length === 0 ? "no repositories folder" : repoPaths.join(", ");
+
 /**
- * The configured checkouts, then the ones found directly under
- * `defaultRepoPath` (marked "found"): each opens its checked-out branch.
+ * The configured checkouts and the ones found directly under `repoPaths`
+ * (marked "found"): each opens its checked-out branch. The found ones come
+ * from the server's last scan; Refresh scans the folders again.
  */
 export default function ReposPage(): ReactNode {
+  const client = useQueryClient();
   const { data, error, isPending } = useRepos();
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState<unknown>(null);
+
+  const refresh = (): void => {
+    setRefreshing(true);
+    setRefreshError(null);
+    refreshRepos(client)
+      .catch((error_: unknown) => {
+        setRefreshError(error_);
+      })
+      .finally(() => {
+        setRefreshing(false);
+      });
+  };
 
   return (
     <ScreenScrollView>
-      <View className="page-container gap-m py-l">
-        <SectionTitle icon={<FolderSimpleRegularIcon />}>
-          Repositories
-        </SectionTitle>
+      <View className="page-container gap-l py-l">
+        <View className="flex-row flex-wrap items-center gap-m">
+          <Text
+            role="heading"
+            aria-level={1}
+            className="min-w-0 flex-1 font-heading-extrabold text-3xl xl:text-4xl"
+          >
+            Repositories
+          </Text>
+          <View className="flex-row items-center gap-xs">
+            {data === undefined ? null : (
+              <Text className="text-xs text-muted">
+                {`Folders scanned ${formatRelativeDate(data.scannedAt)}`}
+              </Text>
+            )}
+            <IconButton
+              icon={<ArrowsClockwiseRegularIcon />}
+              size="sm"
+              variant="soft"
+              accent="neutral"
+              aria-label="Scan the repositories folders again"
+              disabledReason={refreshing ? "Scanning…" : null}
+              onPress={refresh}
+            />
+          </View>
+        </View>
         {isPending ? <IndeterminateCircularProgress loading /> : null}
         {error === null ? null : <ErrorMessage>{error.message}</ErrorMessage>}
+        {refreshError === null ? null : (
+          <ErrorMessage>{errorToMessage(refreshError)}</ErrorMessage>
+        )}
         {data?.repos.length === 0 ? (
           <View className="items-center gap-m">
             <EmptyState
               icon={<FolderSimpleRegularIcon />}
               title="No repository found"
             >
-              {`No git checkout of a GitHub repository is directly under ${data.defaultRepoPath}, and ${data.configPath} maps none.`}
+              {`No git checkout of a GitHub repository is directly under ${describeRepoPaths(data.repoPaths)}, and ${data.configPath} maps none.`}
             </EmptyState>
             <Link asChild href="/settings">
               <Button text="Open Settings" accent="brand" role="link" />

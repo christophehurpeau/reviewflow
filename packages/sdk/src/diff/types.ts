@@ -71,7 +71,7 @@ export interface CheckoutBranchDiffResponse {
 export interface CheckoutRepo {
   ownerRepo: string;
   path: string;
-  /** false: not in the config, found directly under its `defaultRepoPath` */
+  /** false: not in the config, found directly under one of its `repoPaths` */
   configured: boolean;
   /** null on a detached HEAD, or when `problem` is set */
   branch: string | null;
@@ -80,13 +80,29 @@ export interface CheckoutRepo {
 }
 
 /**
- * `GET /api/repos` — the configured checkouts, then the ones found directly
- * under `defaultRepoPath`, by `owner/repo`.
+ * `GET /api/repos` (`?refresh=1` scans the folders again) — the configured
+ * checkouts and the ones found directly under `repoPaths`, by `owner/repo`.
  */
 export interface CheckoutReposResponse {
   repos: CheckoutRepo[];
   configPath: string;
-  defaultRepoPath: string;
+  /** expanded */
+  repoPaths: string[];
+  /** when the folders were scanned: the found checkouts are cached until a refresh or a change of `repoPaths` */
+  scannedAt: string;
+}
+
+/** A folder holding checkouts that `repoPaths` does not list yet. */
+export interface RepoPathSuggestion {
+  /** as it would be written in `repoPaths`: `~/…` under the home directory */
+  path: string;
+  /** the checkouts of GitHub repositories directly under it */
+  checkouts: number;
+}
+
+/** `GET /api/config/repo-paths/suggestions` */
+export interface RepoPathSuggestionsResponse {
+  suggestions: RepoPathSuggestion[];
 }
 
 /** A commit of a checkout, as git has it: the author is git's name, with no avatar. */

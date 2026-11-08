@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { defaultRepoPath } from "@reviewflow/sdk";
+import { defaultRepoPaths } from "@reviewflow/sdk";
 import {
   describeRepoAttachment,
   expandHome,
@@ -53,7 +53,7 @@ afterAll(() => {
 const writeConfig = (repos: Record<string, string>): void => {
   writeFileSync(
     configPath,
-    JSON.stringify({ defaultRepoPath: reposBase, repos }),
+    JSON.stringify({ repoPaths: [join(root, "empty"), reposBase], repos }),
   );
 };
 
@@ -93,22 +93,41 @@ describe("config", () => {
     writeFileSync(
       configPath,
       JSON.stringify({
-        defaultRepoPath: "~/code",
+        repoPaths: ["~/code", "/work"],
         repos: { "acme/widgets": "~/dev/widgets" },
       }),
     );
     expect(readConfig(configPath)).toEqual({
-      defaultRepoPath: join(homedir(), "code"),
+      repoPaths: [join(homedir(), "code"), "/work"],
       repos: { "acme/widgets": join(homedir(), "dev/widgets") },
     });
   });
 
-  test("defaultRepoPath defaults to ~/dev/", () => {
+  test("repoPaths defaults to ~/dev/", () => {
     writeFileSync(configPath, JSON.stringify({ repos: {} }));
-    expect(readConfig(configPath).defaultRepoPath).toBe(
-      expandHome(defaultRepoPath),
-    );
-    expect(defaultRepoPath).toBe("~/dev/");
+    expect(readConfig(configPath).repoPaths).toEqual([expandHome("~/dev/")]);
+    expect(defaultRepoPaths).toEqual(["~/dev/"]);
+  });
+
+  test("reads the legacy defaultRepoPath as one folder", () => {
+    writeFileSync(configPath, JSON.stringify({ defaultRepoPath: "~/code" }));
+    expect(readConfig(configPath).repoPaths).toEqual([join(homedir(), "code")]);
+  });
+
+  test("an empty repoPaths searches no folder", async () => {
+    writeFileSync(configPath, JSON.stringify({ repoPaths: [] }));
+    expect(readConfig(configPath).repoPaths).toEqual([]);
+    expect(await resolveCheckout(configPath, "acme/gizmos")).toMatchObject({
+      refused: {
+        reason: "notConfigured",
+        detail: expect.stringContaining("no repositories folder"),
+      },
+    });
+  });
+
+  test("a repoPaths that is not a list of paths raises", () => {
+    writeFileSync(configPath, JSON.stringify({ repoPaths: "~/dev" }));
+    expect(() => readConfig(configPath)).toThrow("must be a list of paths");
   });
 
   test("a missing file is no repository, not an error", async () => {
@@ -125,14 +144,14 @@ describe("config", () => {
     expect(() => readConfig(configPath)).toThrow("not valid json");
   });
 
-  test("finds a repo missing from the file under defaultRepoPath", async () => {
+  test("finds a repo missing from the file under any of repoPaths", async () => {
     writeConfig({});
     expect(await resolveCheckout(configPath, "acme/gizmos")).toEqual({
       checkout: join(reposBase, "gizmos"),
     });
   });
 
-  test("an explicit entry wins over defaultRepoPath", async () => {
+  test("an explicit entry wins over repoPaths", async () => {
     writeConfig({ "acme/gizmos": join(root, "gone") });
     expect(await resolveCheckout(configPath, "acme/gizmos")).toMatchObject({
       refused: { reason: "invalidPath" },
@@ -260,6 +279,16 @@ describe("validateConfigSource", () => {
       '{"repos":{},"defaultRepoPath":"dev"}',
       '"defaultRepoPath" must be an absolute',
     ],
+    ['{"repos":{},"repoPaths":"~/dev"}', '"repoPaths" must be a list'],
+    [
+      '{"repos":{},"repoPaths":["~/dev", ""]}',
+      "repoPaths[1] must be a non-empty",
+    ],
+    ['{"repos":{},"repoPaths":["dev"]}', "repoPaths[0] must be an absolute"],
+    [
+      '{"repos":{},"repoPaths":["~/dev"],"defaultRepoPath":"~/dev"}',
+      'keep only "repoPaths"',
+    ],
   ])("refuses %s", async (text, message) => {
     expect(await validateConfigSource(text)).toEqual({
       error: expect.stringContaining(message),
@@ -277,7 +306,27 @@ describe("validateConfigSource", () => {
     });
   });
 
-  test("accepts a defaultRepoPath, warning when it is not a directory", async () => {
+  test("accepts repoPaths, warning for each folder that is not a directory", async () => {
+    expect(
+      await validateConfigSource(
+        JSON.stringify({ repoPaths: [reposBase], repos: {} }),
+      ),
+    ).toEqual({ warnings: [] });
+    expect(
+      await validateConfigSource(
+        JSON.stringify({
+          repoPaths: [reposBase, join(root, "gone")],
+          repos: {},
+        }),
+      ),
+    ).toEqual({
+      warnings: [
+        `repoPaths[1]: ${join(root, "gone")} does not exist or is not a directory`,
+      ],
+    });
+  });
+
+  test("accepts the legacy defaultRepoPath, warning when it is not a directory", async () => {
     expect(
       await validateConfigSource(
         JSON.stringify({ defaultRepoPath: reposBase, repos: {} }),
@@ -289,7 +338,7 @@ describe("validateConfigSource", () => {
       ),
     ).toEqual({
       warnings: [
-        `defaultRepoPath: ${join(root, "gone")} does not exist or is not a directory`,
+        `"defaultRepoPath": ${join(root, "gone")} does not exist or is not a directory`,
       ],
     });
   });
