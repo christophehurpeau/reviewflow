@@ -82,8 +82,6 @@ export interface ReviewflowPrDetail {
   unresolvedThreads: number | null;
   mergeable: ReviewflowMergeable;
   closedAt: string | null;
-  /** the last push, review or comment; null from a reviewflow that predates it */
-  lastActivityAt: string | null;
   /** the last conversation comment created, edited or deleted */
   commentActivityAt: string | null;
   /** the last review submitted, whatever its verdict */
@@ -351,7 +349,6 @@ export const readPrDetail = (value: unknown): ReviewflowPrDetail => {
     mergeable:
       enumOrNull<ReviewflowMergeable>(value.mergeable, mergeables) ?? "unknown",
     closedAt: stringOrNull(flowDates.closedAt),
-    lastActivityAt: stringOrNull(value.lastActivityAt),
     commentActivityAt: stringOrNull(flowDates.lastCommentActivityAt),
     reviewActivityAt: stringOrNull(flowDates.lastReviewSubmittedAt),
     reviewCommentActivityAt: stringOrNull(

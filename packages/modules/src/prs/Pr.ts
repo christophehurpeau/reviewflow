@@ -85,8 +85,6 @@ export interface PrSummary {
   unresolvedThreads: number | null;
   openedAt?: Date;
   approvedAt?: Date;
-  /** the last push, review or comment, or the last write of a document older than those dates */
-  lastActivityAt?: Date;
   /** set on a closed pull request only: a reopened one keeps its old date in mongo */
   closedAt?: Date;
   /** absent on a pull request closed before reviewflow recorded merges */

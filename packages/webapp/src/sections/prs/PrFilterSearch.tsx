@@ -30,7 +30,7 @@ export function PrFilterSearch({
   }
 
   return (
-    <View className="md:max-w-[480px]">
+    <View className="md:w-[360px]">
       <InputText
         aria-label="Search pull requests"
         placeholder="Search by title, number or branch"

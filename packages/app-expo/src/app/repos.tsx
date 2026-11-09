@@ -1,6 +1,10 @@
 import type { CheckoutRepo } from "@reviewflow/sdk";
 import { formatRelativeDate } from "@reviewflow/sdk";
-import { checkoutSummaryParts, errorToMessage } from "@reviewflow/ui";
+import {
+  FilterMenu,
+  checkoutSummaryParts,
+  errorToMessage,
+} from "@reviewflow/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Badge,
@@ -18,11 +22,13 @@ import {
   View,
 } from "alouette";
 import { ArrowsClockwiseRegularIcon } from "alouette-icons/phosphor-icons/ArrowsClockwise";
+import { BuildingsRegularIcon } from "alouette-icons/phosphor-icons/Buildings";
 import { FolderSimpleRegularIcon } from "alouette-icons/phosphor-icons/FolderSimple";
 import { GitBranchRegularIcon } from "alouette-icons/phosphor-icons/GitBranch";
-import { Link, useRouter } from "expo-router";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useState } from "react";
+import { filterReposByOwner, listRepoOwners } from "#/services/repoOwners.ts";
 import { refreshRepos, useRepoStatus, useRepos } from "#/services/reposApi.ts";
 
 interface RepoRowProps {
@@ -108,8 +114,16 @@ const describeRepoPaths = (repoPaths: string[]): string =>
  * from the server's last scan; Refresh scans the folders again.
  */
 export default function ReposPage(): ReactNode {
+  const router = useRouter();
+  const params = useLocalSearchParams<{ account?: string }>();
   const client = useQueryClient();
   const { data, error, isPending } = useRepos();
+  const owners = listRepoOwners(data?.repos ?? []);
+  // an unknown account is dropped, so a stale link still lists something
+  const selectedOwner =
+    params.account !== undefined && owners.includes(params.account)
+      ? params.account
+      : null;
   const [refreshing, setRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState<unknown>(null);
 
@@ -172,10 +186,32 @@ export default function ReposPage(): ReactNode {
           </View>
         ) : null}
         {data === undefined || data.repos.length === 0 ? null : (
-          <View className="gap-xs">
-            {data.repos.map((repo) => (
-              <RepoRow key={repo.ownerRepo} repo={repo} />
-            ))}
+          <View className="gap-sm">
+            {owners.length > 1 ? (
+              <View className="flex-row">
+                <FilterMenu
+                  label="Account"
+                  allLabel="All accounts"
+                  icon={<BuildingsRegularIcon />}
+                  options={owners.map((owner) => ({
+                    label: owner,
+                    value: owner,
+                  }))}
+                  value={selectedOwner}
+                  onChange={(account) => {
+                    router.replace({
+                      pathname: "/repos",
+                      params: account === null ? {} : { account },
+                    });
+                  }}
+                />
+              </View>
+            ) : null}
+            <View className="gap-xs">
+              {filterReposByOwner(data.repos, selectedOwner).map((repo) => (
+                <RepoRow key={repo.ownerRepo} repo={repo} />
+              ))}
+            </View>
           </View>
         )}
       </View>

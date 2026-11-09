@@ -10,7 +10,7 @@ const accounts = [
 const options = {
   repos: ["acme/api", "elax/reviewflow"],
   authors: ["ada", "frank"],
-  labels: ["bug", "cleanup"],
+  labels: [":green_heart: checks/fail", "cleanup"],
 };
 
 const meta = {
@@ -57,8 +57,7 @@ export const VariantsStory: StoryObj<typeof PrsFilters> = {
             checks: "failed",
             search: "retry",
             review: "approved",
-            label: "bug",
-            inactive: "14",
+            label: ":green_heart: checks/fail",
           }}
         />
       </Story.Section>

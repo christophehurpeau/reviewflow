@@ -24,7 +24,6 @@ const pr = (overrides: Partial<PrSummary> = {}): PrSummary => ({
   statusLinks: [],
   labels: [{ id: 1, name: "bug" }],
   reviewState: "requested",
-  lastActivityAt: new Date("2026-01-20T00:00:00Z"),
   approvedBy: [],
   changesRequestedBy: [],
   requestedReviewers: [],
@@ -107,20 +106,6 @@ describe("matchesPrFilters", () => {
     expect(matchesPrFilters(pr(), { label: "feature" })).toBe(false);
   });
 
-  it("keeps what had no activity for at least that many days", () => {
-    const now = new Date("2026-01-27T00:00:00Z");
-
-    expect(matchesPrFilters(pr(), { inactive: "7" }, now)).toBe(true);
-    expect(matchesPrFilters(pr(), { inactive: "14" }, now)).toBe(false);
-    expect(
-      matchesPrFilters(
-        pr({ lastActivityAt: undefined }),
-        { inactive: "7" },
-        now,
-      ),
-    ).toBe(false);
-  });
-
   it("requires every filter to match", () => {
     expect(matchesPrFilters(pr(), { repo: "acme/api", author: "linus" })).toBe(
       false,
@@ -141,7 +126,6 @@ describe("url parameters", () => {
         draft: "maybe",
         checks: "green",
         review: "none",
-        inactive: "3",
       }),
     ).toEqual({});
   });
@@ -155,7 +139,6 @@ describe("url parameters", () => {
       search: "retry",
       review: "changesRequested",
       label: "bug",
-      inactive: "30",
     } as const;
 
     expect(parsePrFilters(toPrFilterParams("open", filters))).toEqual(filters);

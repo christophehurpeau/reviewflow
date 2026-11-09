@@ -3,50 +3,45 @@ import type {
   PrDraftFilter,
   PrFilterOptions,
   PrFilters,
-  PrInactiveFilter,
   PrReviewFilter,
   PrStateFilter,
 } from "@reviewflow/modules";
 import { hasActivePrFilters, parsePrFilters } from "@reviewflow/modules";
 import type { SelectOption } from "alouette";
 import { Button, Tab, Tabs, View } from "alouette";
+import { CheckCircleRegularIcon } from "alouette-icons/phosphor-icons/CheckCircle";
+import { EyeRegularIcon } from "alouette-icons/phosphor-icons/Eye";
+import { GitBranchRegularIcon } from "alouette-icons/phosphor-icons/GitBranch";
+import { PencilSimpleLineRegularIcon } from "alouette-icons/phosphor-icons/PencilSimpleLine";
+import { TagRegularIcon } from "alouette-icons/phosphor-icons/Tag";
+import { UserRegularIcon } from "alouette-icons/phosphor-icons/User";
+import { XRegularIcon } from "alouette-icons/phosphor-icons/X";
 import type { ReactNode } from "react";
+import { emojify } from "#/services/emojify.ts";
+import { PrFilterMenu } from "./PrFilterMenu.tsx";
 import { PrFilterSearch } from "./PrFilterSearch.tsx";
-import { PrFilterSelect, allFilterValue } from "./PrFilterSelect.tsx";
 import { PrsAccountFilter } from "./PrsAccountFilter.tsx";
 import type { PrAccount } from "./prAccounts.ts";
 
 const draftOptions: SelectOption[] = [
-  { label: "All", value: allFilterValue },
   { label: "Draft", value: "draft" },
   { label: "Ready for review", value: "ready" },
 ];
 
 const checksOptions: SelectOption[] = [
-  { label: "All", value: allFilterValue },
   { label: "Success", value: "success" },
   { label: "Failed", value: "failed" },
   { label: "None", value: "none" },
 ];
 
 const reviewOptions: SelectOption[] = [
-  { label: "All", value: allFilterValue },
   { label: "Approved", value: "approved" },
-  { label: "Changes requested", value: "changesRequested" },
+  { label: "Needs changes", value: "changesRequested" },
   { label: "Waiting", value: "requested" },
 ];
 
-const inactiveOptions: SelectOption[] = [
-  { label: "All", value: allFilterValue },
-  { label: "7 days", value: "7" },
-  { label: "14 days", value: "14" },
-  { label: "30 days", value: "30" },
-];
-
-const toOptions = (allLabel: string, values: string[]): SelectOption[] => [
-  { label: allLabel, value: allFilterValue },
-  ...values.map((value) => ({ label: value, value })),
-];
+const toOptions = (values: string[]): SelectOption[] =>
+  values.map((value) => ({ label: value, value }));
 
 const toDraftFilter = (value: string | undefined): PrDraftFilter | undefined =>
   parsePrFilters({ draft: value }).draft;
@@ -58,10 +53,6 @@ const toChecksFilter = (
 const toReviewFilter = (
   value: string | undefined,
 ): PrReviewFilter | undefined => parsePrFilters({ review: value }).review;
-
-const toInactiveFilter = (
-  value: string | undefined,
-): PrInactiveFilter | undefined => parsePrFilters({ inactive: value }).inactive;
 
 interface PrsFiltersProps {
   accounts: PrAccount[];
@@ -85,91 +76,102 @@ export function PrsFilters({
   onFiltersChange,
 }: PrsFiltersProps): ReactNode {
   return (
-    <View className="gap-m">
-      <Tabs
-        aria-label="Pull request state"
-        value={state}
-        onValueChange={(next) => {
-          onStateChange(next === "closed" ? "closed" : "open");
-        }}
-      >
-        <Tab value="open" label="Open" />
-        <Tab value="closed" label="Closed" />
-      </Tabs>
-      <PrFilterSearch
-        value={filters.search}
-        onChange={(search) => {
-          onFiltersChange({ ...filters, search });
-        }}
-      />
-      <View className="flex-row flex-wrap items-end gap-m">
+    <View className="gap-sm">
+      <View className="gap-sm md:flex-row md:items-center md:justify-between">
+        <View className="flex-row">
+          <Tabs
+            aria-label="Pull request state"
+            value={state}
+            onValueChange={(next) => {
+              onStateChange(next === "closed" ? "closed" : "open");
+            }}
+          >
+            <Tab value="open" label="Open" />
+            <Tab value="closed" label="Closed" />
+          </Tabs>
+        </View>
+        <PrFilterSearch
+          value={filters.search}
+          onChange={(search) => {
+            onFiltersChange({ ...filters, search });
+          }}
+        />
+      </View>
+      <View className="flex-row flex-wrap items-center gap-xs">
         <PrsAccountFilter
           accounts={accounts}
           selectedAccountLogin={selectedAccountLogin}
           onSelectAccountLogin={onSelectAccountLogin}
         />
-        <PrFilterSelect
+        <PrFilterMenu
           label="Repository"
-          options={toOptions("All repositories", options.repos)}
+          allLabel="All repositories"
+          icon={<GitBranchRegularIcon />}
+          options={toOptions(options.repos)}
           value={filters.repo}
+          valueLabel={filters.repo?.split("/").at(-1)}
           onValueChange={(repo) => {
             onFiltersChange({ ...filters, repo });
           }}
         />
-        <PrFilterSelect
+        <PrFilterMenu
           label="Author"
-          options={toOptions("All authors", options.authors)}
+          allLabel="All authors"
+          icon={<UserRegularIcon />}
+          options={toOptions(options.authors)}
           value={filters.author}
           onValueChange={(author) => {
             onFiltersChange({ ...filters, author });
           }}
         />
-        <PrFilterSelect
-          label="Draft"
-          options={draftOptions}
-          value={filters.draft}
-          onValueChange={(draft) => {
-            onFiltersChange({ ...filters, draft: toDraftFilter(draft) });
-          }}
-        />
-        <PrFilterSelect
-          label="Checks"
-          options={checksOptions}
-          value={filters.checks}
-          onValueChange={(checks) => {
-            onFiltersChange({ ...filters, checks: toChecksFilter(checks) });
-          }}
-        />
-        <PrFilterSelect
+        <PrFilterMenu
           label="Review"
+          allLabel="Any review state"
+          icon={<EyeRegularIcon />}
           options={reviewOptions}
           value={filters.review}
           onValueChange={(review) => {
             onFiltersChange({ ...filters, review: toReviewFilter(review) });
           }}
         />
-        <PrFilterSelect
+        <PrFilterMenu
+          label="Checks"
+          allLabel="Any checks"
+          icon={<CheckCircleRegularIcon />}
+          options={checksOptions}
+          value={filters.checks}
+          onValueChange={(checks) => {
+            onFiltersChange({ ...filters, checks: toChecksFilter(checks) });
+          }}
+        />
+        <PrFilterMenu
           label="Label"
-          options={toOptions("All labels", options.labels)}
+          allLabel="All labels"
+          icon={<TagRegularIcon />}
+          options={options.labels.map((label) => ({
+            label: emojify(label),
+            value: label,
+          }))}
           value={filters.label}
           onValueChange={(label) => {
             onFiltersChange({ ...filters, label });
           }}
         />
-        <PrFilterSelect
-          label="Inactive for"
-          options={inactiveOptions}
-          value={filters.inactive}
-          onValueChange={(inactive) => {
-            onFiltersChange({
-              ...filters,
-              inactive: toInactiveFilter(inactive),
-            });
+        <PrFilterMenu
+          label="Draft"
+          allLabel="Drafts and ready"
+          icon={<PencilSimpleLineRegularIcon />}
+          options={draftOptions}
+          value={filters.draft}
+          onValueChange={(draft) => {
+            onFiltersChange({ ...filters, draft: toDraftFilter(draft) });
           }}
         />
         {hasActivePrFilters(filters) ? (
           <Button
-            text="Clear filters"
+            text="Clear"
+            icon={<XRegularIcon />}
+            size="sm"
             variant="soft"
             accent="neutral"
             onPress={() => {

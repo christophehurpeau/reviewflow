@@ -61,12 +61,7 @@ export interface PrDetailChecks extends PrChecksSummary {
  */
 export interface PrDetail extends Omit<
   PrSummary,
-  | "approvedAt"
-  | "checks"
-  | "closedAt"
-  | "isMerged"
-  | "lastActivityAt"
-  | "openedAt"
+  "approvedAt" | "checks" | "closedAt" | "isMerged" | "openedAt"
 > {
   accountId: number;
   repoId: number;
@@ -104,9 +99,6 @@ export interface PrDetail extends Omit<
 
   /** where it sits on the caller's board, in board order; empty when on none */
   myBuckets: PrBucket[];
-
-  /** the last push, review or comment; the last write for a document older than those dates */
-  lastActivityAt: string | null;
 
   /** last reviewflow write */
   updatedAt: string;

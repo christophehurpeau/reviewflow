@@ -135,7 +135,6 @@ export const createToPrDetail = (
       approvedAt,
       closedAt,
       isMerged,
-      lastActivityAt,
       ...summary
     } = toPrSummary(pr);
 
@@ -178,8 +177,6 @@ export const createToPrDetail = (
           query.test(pr as unknown as Record<string, unknown>),
         )
         .map(([bucket]) => bucket),
-
-      lastActivityAt: toIso(lastActivityAt),
 
       updatedAt: pr.updated.toISOString(),
     };

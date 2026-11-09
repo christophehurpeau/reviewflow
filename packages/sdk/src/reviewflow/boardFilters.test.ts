@@ -38,7 +38,6 @@ const pr = (overrides: Partial<ReviewflowBoardPr> = {}): ReviewflowBoardPr => ({
   approvedAt: null,
   closedAt: null,
   labels: ["bug"],
-  lastActivityAt: "2026-01-20T00:00:00.000Z",
   unresolvedThreads: null,
   mergeable: "mergeable",
   updatedAt: "2026-11-06T09:30:00.000Z",
@@ -142,17 +141,6 @@ describe("matchesBoardFilters, on what the row says", () => {
       false,
     );
   });
-
-  it("keeps what had no activity for at least that many days", () => {
-    const now = new Date("2026-01-27T00:00:00.000Z");
-
-    expect(matchesBoardFilters(pr(), filtersOf({ inactive: "7" }), now)).toBe(
-      true,
-    );
-    expect(matchesBoardFilters(pr(), filtersOf({ inactive: "14" }), now)).toBe(
-      false,
-    );
-  });
 });
 
 describe("url parameters", () => {
@@ -163,7 +151,6 @@ describe("url parameters", () => {
         draft: "maybe",
         checks: "green",
         review: "none",
-        inactive: "3",
       }),
     ).toEqual(defaultBoardFilters);
   });
@@ -179,7 +166,6 @@ describe("url parameters", () => {
       search: "retry",
       review: "approved",
       label: "bug",
-      inactive: "14",
     };
 
     expect(parseBoardFilters(toBoardFilterParams(filters))).toEqual(filters);

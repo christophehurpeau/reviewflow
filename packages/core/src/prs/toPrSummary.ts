@@ -121,23 +121,6 @@ const selectRequestedReviewers = (
       reviewedBefore,
   );
 
-/** what people did: reviewflow also writes the document for its own bookkeeping */
-const selectLastActivityAt = ({
-  flowDates,
-  updated,
-}: ReviewflowPr): Date | undefined => {
-  const dates = [
-    flowDates?.openedAt,
-    flowDates?.readyAt,
-    flowDates?.lastPushedAt,
-    flowDates?.lastReviewSubmittedAt,
-    flowDates?.lastCommentActivityAt,
-    flowDates?.lastReviewCommentActivityAt,
-  ].filter((date) => date !== undefined);
-  if (dates.length === 0) return updated;
-  return new Date(Math.max(...dates.map((date) => date.getTime())));
-};
-
 export const toPrSummary = (pr: ReviewflowPr): PrSummary => ({
   _id: pr._id,
   orgLogin: pr.account.login,
@@ -175,7 +158,6 @@ export const toPrSummary = (pr: ReviewflowPr): PrSummary => ({
   unresolvedThreads: pr.unresolvedThreads?.length ?? null,
   openedAt: pr.flowDates?.openedAt,
   approvedAt: pr.flowDates?.approvedAt,
-  lastActivityAt: selectLastActivityAt(pr),
   closedAt: pr.isClosed ? pr.flowDates?.closedAt : undefined,
   isMerged: pr.isMerged,
 });

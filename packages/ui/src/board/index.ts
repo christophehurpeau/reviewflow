@@ -11,3 +11,5 @@ export {
 } from "./pull-request-board.tsx";
 export type { BoardRowInfo, PullRequestRowProps } from "./pull-request-row.tsx";
 export { PullRequestRow } from "./pull-request-row.tsx";
+export type { FilterMenuProps } from "./board-filters.tsx";
+export { FilterMenu } from "./board-filters.tsx";

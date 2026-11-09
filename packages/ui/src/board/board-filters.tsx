@@ -3,7 +3,6 @@ import type {
   BoardDraftFilter,
   BoardFilterOptions,
   BoardFilters,
-  BoardInactiveFilter,
   BoardReviewFilter,
 } from "@reviewflow/sdk";
 import {
@@ -11,36 +10,48 @@ import {
   hasActiveBoardFilters,
   withBoardFilterAccount,
 } from "@reviewflow/sdk";
-import type { SelectOption } from "alouette";
+import type { SVGIconElement, SelectOption } from "alouette";
 import {
   Button,
   Icon,
   InputText,
-  Select,
+  Menu,
+  MenuItem,
   Tab,
   Tabs,
-  Text,
   View,
 } from "alouette";
+import { BuildingsRegularIcon } from "alouette-icons/phosphor-icons/Buildings";
+import { CheckCircleRegularIcon } from "alouette-icons/phosphor-icons/CheckCircle";
+import { EyeRegularIcon } from "alouette-icons/phosphor-icons/Eye";
+import { GitBranchRegularIcon } from "alouette-icons/phosphor-icons/GitBranch";
 import { MagnifyingGlassRegularIcon } from "alouette-icons/phosphor-icons/MagnifyingGlass";
+import { PencilSimpleLineRegularIcon } from "alouette-icons/phosphor-icons/PencilSimpleLine";
+import { TagRegularIcon } from "alouette-icons/phosphor-icons/Tag";
+import { UserRegularIcon } from "alouette-icons/phosphor-icons/User";
+import { XRegularIcon } from "alouette-icons/phosphor-icons/X";
 import type { ReactNode } from "react";
-import { useEffect, useId, useRef, useState } from "react";
-
-/** cannot be a GitHub login nor an `owner/name`, and `null` cannot be a select value */
-const allValue = "__all__";
+import { useEffect, useRef, useState } from "react";
+import { emojify } from "../services/emojify.ts";
 
 const draftOptions: SelectOption[] = [
-  { label: "All", value: allValue },
   { label: "Draft", value: "draft" },
   { label: "Ready for review", value: "ready" },
 ];
 
 const checksOptions: SelectOption[] = [
-  { label: "All", value: allValue },
   { label: "Success", value: "success" },
   { label: "Failed", value: "failed" },
   { label: "None", value: "none" },
 ];
+
+const reviewOptions: SelectOption[] = [
+  { label: "Approved", value: "approved" },
+  { label: "Needs changes", value: "changesRequested" },
+  { label: "Waiting", value: "requested" },
+];
+
+const searchDebounceMs = 300;
 
 const isDraftFilter = (
   value: string | null,
@@ -55,22 +66,6 @@ const isChecksFilter = (
   value === "failed" ||
   value === "none";
 
-const reviewOptions: SelectOption[] = [
-  { label: "All", value: allValue },
-  { label: "Approved", value: "approved" },
-  { label: "Changes requested", value: "changesRequested" },
-  { label: "Waiting", value: "requested" },
-];
-
-const inactiveOptions: SelectOption[] = [
-  { label: "All", value: allValue },
-  { label: "7 days", value: "7" },
-  { label: "14 days", value: "14" },
-  { label: "30 days", value: "30" },
-];
-
-const searchDebounceMs = 300;
-
 const isReviewFilter = (
   value: string | null,
 ): value is BoardReviewFilter | null =>
@@ -79,45 +74,69 @@ const isReviewFilter = (
   value === "changesRequested" ||
   value === "requested";
 
-const isInactiveFilter = (
-  value: string | null,
-): value is BoardInactiveFilter | null =>
-  value === null || value === "7" || value === "14" || value === "30";
+const toOptions = (values: string[]): SelectOption[] =>
+  values.map((value) => ({ label: value, value }));
 
-const toOptions = (allLabel: string, values: string[]): SelectOption[] => [
-  { label: allLabel, value: allValue },
-  ...values.map((value) => ({ label: value, value })),
-];
-
-interface FilterSelectProps {
+export interface FilterMenuProps {
   label: string;
+  /** names the "no filter" row */
+  allLabel: string;
+  icon: SVGIconElement;
   options: SelectOption[];
   value: string | null;
+  /** what the pill says of the value, its option's label otherwise */
+  valueLabel?: string;
   onChange: (value: string | null) => void;
 }
 
-function FilterSelect({
+/** A pill naming the filter, or its value once set, opening the choices. */
+export function FilterMenu({
   label,
+  allLabel,
+  icon,
   options,
   value,
+  valueLabel,
   onChange,
-}: FilterSelectProps): ReactNode {
-  const labelId = useId();
+}: FilterMenuProps): ReactNode {
+  if (options.length === 0) return null;
+
+  const selectedLabel =
+    valueLabel ?? options.find((option) => option.value === value)?.label;
 
   return (
-    <View className="min-w-[160px] flex-1 gap-xs md:max-w-[240px]">
-      <Text id={labelId} className="text-sm text-muted">
-        {label}
-      </Text>
-      <Select
-        aria-labelledby={labelId}
-        options={options}
-        value={value ?? allValue}
-        onValueChange={(next) => {
-          onChange(next === allValue ? null : next);
+    <Menu
+      label={label}
+      align="start"
+      render={(triggerProps) => (
+        <Button
+          text={value === null ? label : `${label}: ${String(selectedLabel)}`}
+          icon={icon}
+          size="sm"
+          variant={value === null ? "outlined" : "tonal"}
+          accent={value === null ? "neutral" : "brand"}
+          {...triggerProps}
+        />
+      )}
+    >
+      <MenuItem
+        label={allLabel}
+        checked={value === null}
+        onPress={() => {
+          onChange(null);
         }}
       />
-    </View>
+      {options.map((option) => (
+        <MenuItem
+          key={option.value}
+          label={option.label}
+          checked={option.value === value}
+          onPress={() => {
+            onChange(option.value);
+          }}
+        />
+      ))}
+    </Menu>
   );
 }
 
@@ -143,7 +162,7 @@ function FilterSearch({ value, onChange }: FilterSearchProps): ReactNode {
   }
 
   return (
-    <View className="md:max-w-[480px]">
+    <View className="md:w-[360px]">
       <InputText
         aria-label="Search pull requests"
         placeholder="Search by title, number or branch"
@@ -172,7 +191,7 @@ export interface BoardFiltersBarProps {
   onChange: (filters: BoardFilters) => void;
 }
 
-/** Open or closed, then what narrows the rows of that view. */
+/** Open or closed and the search on one line, then what narrows the rows as pills. */
 export function BoardFiltersBar({
   filters,
   accounts,
@@ -180,96 +199,112 @@ export function BoardFiltersBar({
   onChange,
 }: BoardFiltersBarProps): ReactNode {
   return (
-    <View className="gap-m">
-      <Tabs
-        aria-label="Pull request state"
-        value={filters.state}
-        onValueChange={(state) => {
-          onChange({
-            ...filters,
-            state: state === "closed" ? "closed" : "open",
-          });
-        }}
-      >
-        <Tab value="open" label="Open" />
-        <Tab value="closed" label="Closed" />
-      </Tabs>
-      <FilterSearch
-        value={filters.search}
-        onChange={(search) => {
-          onChange({ ...filters, search });
-        }}
-      />
-      <View className="flex-row flex-wrap items-end gap-m">
+    <View className="gap-sm">
+      <View className="gap-sm md:flex-row md:items-center md:justify-between">
+        <View className="flex-row">
+          <Tabs
+            aria-label="Pull request state"
+            value={filters.state}
+            onValueChange={(state) => {
+              onChange({
+                ...filters,
+                state: state === "closed" ? "closed" : "open",
+              });
+            }}
+          >
+            <Tab value="open" label="Open" />
+            <Tab value="closed" label="Closed" />
+          </Tabs>
+        </View>
+        <FilterSearch
+          value={filters.search}
+          onChange={(search) => {
+            onChange({ ...filters, search });
+          }}
+        />
+      </View>
+      <View className="flex-row flex-wrap items-center gap-xs">
         {accounts.length > 1 ? (
-          <FilterSelect
+          <FilterMenu
             label="Account"
-            options={toOptions("All accounts", accounts)}
+            allLabel="All accounts"
+            icon={<BuildingsRegularIcon />}
+            options={toOptions(accounts)}
             value={filters.account}
             onChange={(account) => {
               onChange(withBoardFilterAccount(filters, account));
             }}
           />
         ) : null}
-        <FilterSelect
+        <FilterMenu
           label="Repository"
-          options={toOptions("All repositories", options.repos)}
+          allLabel="All repositories"
+          icon={<GitBranchRegularIcon />}
+          options={toOptions(options.repos)}
           value={filters.repo}
+          valueLabel={filters.repo?.split("/").at(-1)}
           onChange={(repo) => {
             onChange({ ...filters, repo });
           }}
         />
-        <FilterSelect
+        <FilterMenu
           label="Author"
-          options={toOptions("All authors", options.authors)}
+          allLabel="All authors"
+          icon={<UserRegularIcon />}
+          options={toOptions(options.authors)}
           value={filters.author}
           onChange={(author) => {
             onChange({ ...filters, author });
           }}
         />
-        <FilterSelect
-          label="Draft"
-          options={draftOptions}
-          value={filters.draft}
-          onChange={(draft) => {
-            if (isDraftFilter(draft)) onChange({ ...filters, draft });
-          }}
-        />
-        <FilterSelect
-          label="Checks"
-          options={checksOptions}
-          value={filters.checks}
-          onChange={(checks) => {
-            if (isChecksFilter(checks)) onChange({ ...filters, checks });
-          }}
-        />
-        <FilterSelect
+        <FilterMenu
           label="Review"
+          allLabel="Any review state"
+          icon={<EyeRegularIcon />}
           options={reviewOptions}
           value={filters.review}
           onChange={(review) => {
             if (isReviewFilter(review)) onChange({ ...filters, review });
           }}
         />
-        <FilterSelect
+        <FilterMenu
+          label="Checks"
+          allLabel="Any checks"
+          icon={<CheckCircleRegularIcon />}
+          options={checksOptions}
+          value={filters.checks}
+          onChange={(checks) => {
+            if (isChecksFilter(checks)) onChange({ ...filters, checks });
+          }}
+        />
+        <FilterMenu
           label="Label"
-          options={toOptions("All labels", options.labels)}
+          allLabel="All labels"
+          icon={<TagRegularIcon />}
+          options={options.labels.map((label) => ({
+            label: emojify(label),
+            value: label,
+          }))}
           value={filters.label}
           onChange={(label) => {
             onChange({ ...filters, label });
           }}
         />
-        <FilterSelect
-          label="Inactive for"
-          options={inactiveOptions}
-          value={filters.inactive}
-          onChange={(inactive) => {
-            if (isInactiveFilter(inactive)) onChange({ ...filters, inactive });
+        <FilterMenu
+          label="Draft"
+          allLabel="Drafts and ready"
+          icon={<PencilSimpleLineRegularIcon />}
+          options={draftOptions}
+          value={filters.draft}
+          onChange={(draft) => {
+            if (isDraftFilter(draft)) onChange({ ...filters, draft });
           }}
         />
         {hasActiveBoardFilters(filters) ? (
           <Button
-            text="Clear filters"
+            text="Clear"
+            icon={<XRegularIcon />}
+            size="sm"
             variant="soft"
             accent="neutral"
             onPress={() => {

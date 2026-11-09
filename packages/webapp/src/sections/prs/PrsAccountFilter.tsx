@@ -1,6 +1,6 @@
-import type { SelectOption } from "alouette";
+import { BuildingsRegularIcon } from "alouette-icons/phosphor-icons/Buildings";
 import type { ReactNode } from "react";
-import { PrFilterSelect, allFilterValue } from "./PrFilterSelect.tsx";
+import { PrFilterMenu } from "./PrFilterMenu.tsx";
 import type { PrAccount } from "./prAccounts.ts";
 
 interface PrsAccountFilterProps {
@@ -16,18 +16,12 @@ export function PrsAccountFilter({
 }: PrsAccountFilterProps): ReactNode {
   if (accounts.length < 2) return null;
 
-  const options: SelectOption[] = [
-    { label: "All accounts", value: allFilterValue },
-    ...accounts.map((account) => ({
-      label: account.login,
-      value: account.login,
-    })),
-  ];
-
   return (
-    <PrFilterSelect
+    <PrFilterMenu
       label="Account"
-      options={options}
+      allLabel="All accounts"
+      icon={<BuildingsRegularIcon />}
+      options={accounts.map(({ login }) => ({ label: login, value: login }))}
       value={selectedAccountLogin}
       onValueChange={onSelectAccountLogin}
     />

@@ -76,7 +76,6 @@ export default function HomePage(): ReactNode {
     search?: string;
     review?: string;
     label?: string;
-    inactive?: string;
   }>();
   const [opening, setOpening] = useState(false);
   const client = useQueryClient();

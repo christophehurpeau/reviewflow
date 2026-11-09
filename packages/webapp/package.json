@@ -45,6 +45,7 @@
     "expo-linking": "57.0.5",
     "expo-router": "57.0.12",
     "expo-web-browser": "57.0.2",
+    "gemoji": "8.1.0",
     "lightningcss": "1.33.0",
     "liwi-resources-client": "15.0.0",
     "liwi-resources-void-client": "15.0.0",

@@ -9,8 +9,6 @@ export type BoardStateFilter = "closed" | "open";
 export type BoardDraftFilter = "draft" | "ready";
 export type BoardChecksFilter = "failed" | "none" | "success";
 export type BoardReviewFilter = Exclude<ReviewflowReviewState, "none">;
-/** days without a push, a review or a comment */
-export type BoardInactiveFilter = "7" | "14" | "30";
 
 export interface BoardFilters {
   state: BoardStateFilter;
@@ -24,7 +22,6 @@ export interface BoardFilters {
   search: string | null;
   review: BoardReviewFilter | null;
   label: string | null;
-  inactive: BoardInactiveFilter | null;
 }
 
 export const defaultBoardFilters: BoardFilters = {
@@ -37,7 +34,6 @@ export const defaultBoardFilters: BoardFilters = {
   search: null,
   review: null,
   label: null,
-  inactive: null,
 };
 
 export type BoardFilterParams = Partial<Record<keyof BoardFilters, string>>;
@@ -47,8 +43,6 @@ export interface BoardFilterOptions {
   authors: string[];
   labels: string[];
 }
-
-const dayInMs = 24 * 60 * 60 * 1000;
 
 const checksConclusions: Record<BoardChecksFilter, ReviewflowChecksConclusion> =
   {
@@ -66,9 +60,6 @@ const isDraftFilter = (value: string): value is BoardDraftFilter =>
 const isReviewFilter = (value: string): value is BoardReviewFilter =>
   value === "approved" || value === "changesRequested" || value === "requested";
 
-const isInactiveFilter = (value: string): value is BoardInactiveFilter =>
-  value === "7" || value === "14" || value === "30";
-
 /** a value no longer understood is dropped, so a stale link still shows something */
 export const parseBoardFilters = ({
   state,
@@ -80,7 +71,6 @@ export const parseBoardFilters = ({
   search,
   review,
   label,
-  inactive,
 }: BoardFilterParams): BoardFilters => ({
   state: state === "closed" ? "closed" : "open",
   account: account || null,
@@ -91,8 +81,6 @@ export const parseBoardFilters = ({
   search: search || null,
   review: review !== undefined && isReviewFilter(review) ? review : null,
   label: label || null,
-  inactive:
-    inactive !== undefined && isInactiveFilter(inactive) ? inactive : null,
 });
 
 /** the filters written as url parameters, the defaults left out */
@@ -125,27 +113,9 @@ const matchesSearch = (
   );
 };
 
-const isInactiveFor = (
-  { lastActivityAt }: ReviewflowBoardPr,
-  days: BoardInactiveFilter,
-  now: Date,
-): boolean =>
-  now.getTime() - new Date(lastActivityAt).getTime() >= Number(days) * dayInMs;
-
 export const matchesBoardFilters = (
   pr: ReviewflowBoardPr,
-  {
-    account,
-    repo,
-    author,
-    draft,
-    checks,
-    search,
-    review,
-    label,
-    inactive,
-  }: BoardFilters,
-  now: Date = new Date(),
+  { account, repo, author, draft, checks, search, review, label }: BoardFilters,
 ): boolean => {
   if (
     account !== null &&
@@ -165,8 +135,7 @@ export const matchesBoardFilters = (
   }
   if (search !== null && !matchesSearch(pr, search)) return false;
   if (review !== null && pr.reviewState !== review) return false;
-  if (label !== null && !pr.labels.includes(label)) return false;
-  return inactive === null || isInactiveFor(pr, inactive, now);
+  return label === null || pr.labels.includes(label);
 };
 
 const sortedUnique = (values: (string | null)[]): string[] =>

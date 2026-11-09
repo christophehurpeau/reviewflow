@@ -74,7 +74,6 @@ const detail = (
   unresolvedThreads: null,
   mergeable: "mergeable",
   closedAt: null,
-  lastActivityAt: null,
   commentActivityAt: null,
   reviewActivityAt: null,
   reviewCommentActivityAt: null,

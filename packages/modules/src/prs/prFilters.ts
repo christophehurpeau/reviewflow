@@ -4,8 +4,6 @@ export type PrStateFilter = "closed" | "open";
 export type PrDraftFilter = "draft" | "ready";
 export type PrChecksFilter = "failed" | "none" | "success";
 export type PrReviewFilter = Exclude<PrReviewState, "none">;
-/** days without a push, a review or a comment */
-export type PrInactiveFilter = "7" | "14" | "30";
 
 /** the filters applied to rows already loaded; the account is a query parameter instead */
 export interface PrFilters {
@@ -18,7 +16,6 @@ export interface PrFilters {
   search?: string;
   review?: PrReviewFilter;
   label?: string;
-  inactive?: PrInactiveFilter;
 }
 
 export type PrFilterParams = Partial<Record<keyof PrFilters | "state", string>>;
@@ -28,8 +25,6 @@ export interface PrFilterOptions {
   authors: string[];
   labels: string[];
 }
-
-const dayInMs = 24 * 60 * 60 * 1000;
 
 const checksConclusions: Record<PrChecksFilter, PrCheckConclusion> = {
   success: "passed",
@@ -46,9 +41,6 @@ const isDraftFilter = (value: string): value is PrDraftFilter =>
 const isReviewFilter = (value: string): value is PrReviewFilter =>
   value === "approved" || value === "changesRequested" || value === "requested";
 
-const isInactiveFilter = (value: string): value is PrInactiveFilter =>
-  value === "7" || value === "14" || value === "30";
-
 export const parsePrStateFilter = (value: string | undefined): PrStateFilter =>
   value === "closed" ? "closed" : "open";
 
@@ -61,7 +53,6 @@ export const parsePrFilters = ({
   search,
   review,
   label,
-  inactive,
 }: PrFilterParams): PrFilters => ({
   repo: repo || undefined,
   author: author || undefined,
@@ -70,8 +61,6 @@ export const parsePrFilters = ({
   search: search || undefined,
   review: review !== undefined && isReviewFilter(review) ? review : undefined,
   label: label || undefined,
-  inactive:
-    inactive !== undefined && isInactiveFilter(inactive) ? inactive : undefined,
 });
 
 export const hasActivePrFilters = ({
@@ -82,16 +71,13 @@ export const hasActivePrFilters = ({
   search,
   review,
   label,
-  inactive,
 }: PrFilters): boolean =>
-  Boolean(
-    repo ?? author ?? draft ?? checks ?? search ?? review ?? label ?? inactive,
-  );
+  Boolean(repo ?? author ?? draft ?? checks ?? search ?? review ?? label);
 
 /** the filters written as url parameters, the defaults left out */
 export const toPrFilterParams = (
   state: PrStateFilter,
-  { repo, author, draft, checks, search, review, label, inactive }: PrFilters,
+  { repo, author, draft, checks, search, review, label }: PrFilters,
 ): Record<string, string> => ({
   ...(state === "closed" ? { state } : {}),
   ...(repo ? { repo } : {}),
@@ -101,7 +87,6 @@ export const toPrFilterParams = (
   ...(search ? { search } : {}),
   ...(review ? { review } : {}),
   ...(label ? { label } : {}),
-  ...(inactive ? { inactive } : {}),
 });
 
 const matchesSearch = (
@@ -116,18 +101,9 @@ const matchesSearch = (
   );
 };
 
-const isInactiveFor = (
-  { lastActivityAt }: PrSummary,
-  days: PrInactiveFilter,
-  now: Date,
-): boolean =>
-  lastActivityAt !== undefined &&
-  now.getTime() - lastActivityAt.getTime() >= Number(days) * dayInMs;
-
 export const matchesPrFilters = (
   pr: PrSummary,
-  { repo, author, draft, checks, search, review, label, inactive }: PrFilters,
-  now: Date = new Date(),
+  { repo, author, draft, checks, search, review, label }: PrFilters,
 ): boolean => {
   if (repo && `${pr.orgLogin}/${pr.repoName}` !== repo) return false;
   if (author && pr.creator?.login !== author) return false;
@@ -137,8 +113,7 @@ export const matchesPrFilters = (
   }
   if (search && !matchesSearch(pr, search)) return false;
   if (review && pr.reviewState !== review) return false;
-  if (label && !pr.labels.some(({ name }) => name === label)) return false;
-  return !inactive || isInactiveFor(pr, inactive, now);
+  return !label || pr.labels.some(({ name }) => name === label);
 };
 
 const sortedUnique = (values: (string | undefined)[]): string[] =>

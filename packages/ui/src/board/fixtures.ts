@@ -40,7 +40,6 @@ const pr = (
   approvedAt: null,
   closedAt: null,
   labels: [],
-  lastActivityAt: fetchedAt,
   unresolvedThreads: null,
   mergeable: "mergeable",
   updatedAt: fetchedAt,
@@ -61,7 +60,7 @@ const groups: ReviewflowBoardGroup[] = [
           pr(482, "Cache the cart totals per session"),
           pr(490, "Drop the legacy checkout route", {
             author: "linus",
-            labels: ["cleanup"],
+            labels: [":broom: cleanup"],
             statusLinks: [
               {
                 name: "ticket",

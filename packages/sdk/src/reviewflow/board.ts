@@ -56,8 +56,6 @@ export interface ReviewflowBoardPr {
   /** can outlive a reopening: only meaningful with a closed or merged `state` */
   closedAt: string | null;
   labels: string[];
-  /** the last push, review or comment, reviewflow's last write when it cannot tell */
-  lastActivityAt: string;
   unresolvedThreads: number | null;
   mergeable: ReviewflowMergeable;
   /** reviewflow's last write */
@@ -129,7 +127,6 @@ export const toBoardPr = (pr: ReviewflowPrDetail): ReviewflowBoardPr => ({
   approvedAt: pr.approvedAt,
   closedAt: pr.closedAt,
   labels: pr.labels,
-  lastActivityAt: pr.lastActivityAt ?? pr.updatedAt,
   unresolvedThreads: pr.unresolvedThreads,
   mergeable: pr.mergeable,
   updatedAt: pr.updatedAt,

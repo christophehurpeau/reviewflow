@@ -29,7 +29,6 @@ export default function PrsPage(): ReactNode {
     search?: string;
     review?: string;
     label?: string;
-    inactive?: string;
   }>();
   const accountLogin = params.account;
   const state = parsePrStateFilter(params.state);

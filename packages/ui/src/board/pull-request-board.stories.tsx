@@ -99,7 +99,11 @@ export const FiltersActiveStory: StoryObj<typeof PullRequestBoard> = {
   name: "PullRequestBoard Filters active",
   render: () => (
     <FilteredBoard
-      initial={{ search: "legacy", review: "requested", label: "cleanup" }}
+      initial={{
+        search: "legacy",
+        review: "requested",
+        label: ":broom: cleanup",
+      }}
     />
   ),
 };
