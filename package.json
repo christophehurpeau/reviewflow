@@ -41,7 +41,7 @@
     "mongodb-memory-server": "11.3.0",
     "tsrs": "0.22.0-ts7.1.0-beta",
     "typescript": "npm:@typescript/typescript6@6.0.2",
-    "vite": "8.3.5",
+    "vite": "8.3.6",
     "vitest": "5.1.0"
   },
   "commitlint": {
