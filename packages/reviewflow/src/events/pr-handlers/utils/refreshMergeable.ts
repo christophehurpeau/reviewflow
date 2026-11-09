@@ -9,7 +9,10 @@ import {
   markMergeConflictAsDone,
   syncMergeConflictSlackMessage,
 } from "../actions/mergeConflictSlackMessage.ts";
-import { getMergeableFromPullRequest } from "./createPullRequestContext.ts";
+import {
+  getInitialFlowDatesFromPullRequest,
+  getMergeableFromPullRequest,
+} from "./createPullRequestContext.ts";
 import { fetchPr } from "./fetchPr.ts";
 
 export type MergeableRefreshTarget = { baseRef: string } | { prNumber: number };
@@ -120,16 +123,82 @@ interface RefreshOptions<EventName extends EventsWithRepository> {
   repoContext: RepoContext;
 }
 
+/**
+ * github does not guarantee a webhook: a `pull_request.closed` it never sends
+ * leaves the pull request open here for good. Its merge still pushes the base,
+ * which is what scheduled this refresh, so a pull request stored open on this
+ * base that github no longer lists as open is read again, and stored closed
+ * when it is.
+ */
+const storeMissedClosings = async <EventName extends EventsWithRepository>(
+  { context, appContext, repoContext }: RefreshOptions<EventName>,
+  baseRef: string,
+  openPrNumbers: ReadonlySet<number>,
+): Promise<void> => {
+  const storedOpenPrs = await appContext.mongoStores.prs.findAll({
+    "account.id": repoContext.accountEmbed.id,
+    "repo.id": repoContext.repoEmbed.id,
+    baseRef,
+    isClosed: false,
+  });
+
+  await Promise.all(
+    storedOpenPrs
+      .filter(({ pr }) => !openPrNumbers.has(pr.number))
+      .map((storedPr) =>
+        repoContext.lockPullRequest("closed-refresh", storedPr.pr, async () => {
+          const pullRequest = await fetchPr(context, storedPr.pr.number);
+          // retargeted to another base, still open
+          if (!pullRequest.closed_at) return;
+
+          await Promise.all([
+            appContext.mongoStores.prs.partialUpdateByKey(storedPr._id, {
+              $set: {
+                isClosed: true,
+                isMerged: pullRequest.merged,
+                ...(storedPr.flowDates
+                  ? { "flowDates.closedAt": new Date(pullRequest.closed_at) }
+                  : {
+                      flowDates:
+                        getInitialFlowDatesFromPullRequest(pullRequest),
+                    }),
+              },
+            }),
+            markMergeConflictAsDone(appContext, repoContext, pullRequest.id),
+          ]);
+          context.log.info(
+            { prNumber: storedPr.pr.number, merged: pullRequest.merged },
+            "closed without a pull_request.closed webhook: stored closed",
+          );
+        }),
+      ),
+  );
+};
+
 /** @returns the numbers of the pull requests whose `mergeable` is still unknown */
 const refreshBaseMergeable = async <EventName extends EventsWithRepository>(
-  { context, appContext, repoContext }: RefreshOptions<EventName>,
+  options: RefreshOptions<EventName>,
   baseRef: string,
   onlyPrNumbers: ReadonlySet<number> | undefined,
 ): Promise<Set<number>> => {
+  const { context, appContext, repoContext } = options;
   const openPullRequests = await fetchOpenPullRequestsMergeable(
     context,
     baseRef,
   );
+  if (!onlyPrNumbers) {
+    // the open pull requests' `mergeable` does not depend on it
+    await storeMissedClosings(
+      options,
+      baseRef,
+      new Set(openPullRequests.map(({ number }) => number)),
+    ).catch((error: unknown) => {
+      context.log.error(
+        { err: error, baseRef },
+        "storing missed closings failed",
+      );
+    });
+  }
   const pullRequests = openPullRequests.filter(
     ({ number }) => !onlyPrNumbers || onlyPrNumbers.has(number),
   );

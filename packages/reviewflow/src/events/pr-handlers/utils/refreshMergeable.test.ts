@@ -65,6 +65,8 @@ const createOptions = () => {
   repoId += 1;
   const graphql = vi.fn();
   const partialUpdateMany = vi.fn(() => Promise.resolve());
+  const partialUpdateByKey = vi.fn(() => Promise.resolve());
+  const findAll = vi.fn<() => Promise<unknown[]>>(() => Promise.resolve([]));
   const log = { info: vi.fn(), error: vi.fn() };
   const context = {
     octokit: { graphql },
@@ -72,7 +74,7 @@ const createOptions = () => {
     log,
   } as any;
   const appContext = {
-    mongoStores: { prs: { partialUpdateMany } },
+    mongoStores: { prs: { partialUpdateMany, partialUpdateByKey, findAll } },
   } as unknown as AppContext;
   const repoContext = {
     repoEmbed: { id: repoId, name: "reviewflow-test" },
@@ -88,6 +90,8 @@ const createOptions = () => {
     options: { context, appContext, repoContext },
     graphql,
     partialUpdateMany,
+    partialUpdateByKey,
+    findAll,
     log,
   };
 };
@@ -222,6 +226,132 @@ describe("scheduleMergeableRefresh on a base branch", () => {
       { err: error, key: `${repoId}:main` },
       "mergeable refresh failed",
     );
+  });
+});
+
+describe("scheduleMergeableRefresh closing what github never sent", () => {
+  const storedOpenPr = (number: number, flowDates?: object) => ({
+    _id: `pr-${number}`,
+    pr: { number },
+    flowDates,
+  });
+
+  it("stores closed a pull request stored open that github no longer lists as open", async () => {
+    const { options, graphql, findAll, partialUpdateByKey } = createOptions();
+    graphql.mockResolvedValue(page([[1, "MERGEABLE"]]));
+    findAll.mockResolvedValue([
+      storedOpenPr(1),
+      storedOpenPr(7, { createdAt: new Date(0), openedAt: new Date(0) }),
+    ]);
+    vi.mocked(fetchPr).mockResolvedValue({
+      id: 700,
+      number: 7,
+      merged: true,
+      closed_at: "2026-11-09T09:58:13Z",
+    } as any);
+
+    scheduleMergeableRefresh(options, { baseRef: "main" });
+    await advance(10_000);
+
+    expect(findAll).toHaveBeenCalledWith({
+      "account.id": 1,
+      "repo.id": repoId,
+      baseRef: "main",
+      isClosed: false,
+    });
+    expect(fetchPr).toHaveBeenCalledExactlyOnceWith(options.context, 7);
+    expect(partialUpdateByKey).toHaveBeenCalledExactlyOnceWith("pr-7", {
+      $set: {
+        isClosed: true,
+        isMerged: true,
+        "flowDates.closedAt": new Date("2026-11-09T09:58:13Z"),
+      },
+    });
+    expect(markMergeConflictAsDone).toHaveBeenCalledWith(
+      options.appContext,
+      options.repoContext,
+      700,
+    );
+  });
+
+  it("writes the whole flow dates of a pull request that has none", async () => {
+    const { options, graphql, findAll, partialUpdateByKey } = createOptions();
+    graphql.mockResolvedValue(page([]));
+    findAll.mockResolvedValue([storedOpenPr(7)]);
+    vi.mocked(fetchPr).mockResolvedValue({
+      id: 700,
+      number: 7,
+      merged: false,
+      draft: false,
+      created_at: "2026-11-01T00:00:00Z",
+      closed_at: "2026-11-09T09:58:13Z",
+    } as any);
+
+    scheduleMergeableRefresh(options, { baseRef: "main" });
+    await advance(10_000);
+
+    expect(partialUpdateByKey).toHaveBeenCalledExactlyOnceWith("pr-7", {
+      $set: {
+        isClosed: true,
+        isMerged: false,
+        flowDates: {
+          createdAt: new Date("2026-11-01T00:00:00Z"),
+          openedAt: new Date("2026-11-01T00:00:00Z"),
+          readyAt: new Date("2026-11-01T00:00:00Z"),
+          closedAt: new Date("2026-11-09T09:58:13Z"),
+        },
+      },
+    });
+  });
+
+  it("leaves open a pull request retargeted to another base", async () => {
+    const { options, graphql, findAll, partialUpdateByKey } = createOptions();
+    graphql.mockResolvedValue(page([]));
+    findAll.mockResolvedValue([storedOpenPr(7)]);
+    vi.mocked(fetchPr).mockResolvedValue({
+      id: 700,
+      number: 7,
+      closed_at: null,
+    } as any);
+
+    scheduleMergeableRefresh(options, { baseRef: "main" });
+    await advance(10_000);
+
+    expect(fetchPr).toHaveBeenCalledTimes(1);
+    expect(partialUpdateByKey).not.toHaveBeenCalled();
+  });
+
+  it("still stores the open pull requests' mergeable when the read fails", async () => {
+    const { options, graphql, findAll, partialUpdateMany, log } =
+      createOptions();
+    const error = new Error("boom");
+    graphql.mockResolvedValue(page([[1, "MERGEABLE"]]));
+    findAll.mockResolvedValue([storedOpenPr(7)]);
+    vi.mocked(fetchPr).mockRejectedValue(error);
+
+    scheduleMergeableRefresh(options, { baseRef: "main" });
+    await advance(10_000);
+
+    expect(log.error).toHaveBeenCalledWith(
+      { err: error, baseRef: "main" },
+      "storing missed closings failed",
+    );
+    expect(partialUpdateMany).toHaveBeenCalledWith(
+      { "account.id": 1, "repo.id": repoId, "pr.number": 1 },
+      { $set: { mergeable: "mergeable" } },
+    );
+  });
+
+  it("looks for them on the first attempt only", async () => {
+    const { options, graphql, findAll } = createOptions();
+    graphql.mockResolvedValue(page([[1, "UNKNOWN"]]));
+
+    scheduleMergeableRefresh(options, { baseRef: "main" });
+    await advance(10_000);
+    await advance(30_000);
+
+    expect(graphql).toHaveBeenCalledTimes(2);
+    expect(findAll).toHaveBeenCalledTimes(1);
   });
 });
 
