@@ -375,6 +375,9 @@ async function initRepoContext<
 
     clearWaitingToReschedule(pr.number);
     rescheduleContext.log.info(pr, "reschedule", { time });
+    // the context of the event that scheduled it, never the one that created
+    // this repo context: that one's `repo()` keeps the owner and name the
+    // repository had then, which a rename hands to another repository
     const { log } = rescheduleContext;
     const timeout = setTimeout(
       () => {
@@ -384,13 +387,13 @@ async function initRepoContext<
             { log, eventName: "reschedule", prNumber: pr.number },
             async () => {
               const [pullRequest, reviewflowPrContext] = await Promise.all([
-                fetchPr(context, pr.number),
+                fetchPr(rescheduleContext, pr.number),
                 getReviewflowPrContext(pr, rescheduleContext, repoContext),
               ]);
 
               await tryToAutomergeFromReschedule({
                 pullRequest,
-                context,
+                context: rescheduleContext,
                 repoContext,
                 reviewflowPrContext,
                 user,
