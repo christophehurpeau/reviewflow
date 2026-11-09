@@ -18,6 +18,7 @@ export function PrsAccountFilter({
 
   return (
     <PrFilterMenu
+      valueOnly
       label="Account"
       allLabel="All accounts"
       icon={<BuildingsRegularIcon />}

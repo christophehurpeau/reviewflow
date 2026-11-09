@@ -190,6 +190,7 @@ export default function ReposPage(): ReactNode {
             {owners.length > 1 ? (
               <View className="flex-row">
                 <FilterMenu
+                  valueOnly
                   label="Account"
                   allLabel="All accounts"
                   icon={<BuildingsRegularIcon />}

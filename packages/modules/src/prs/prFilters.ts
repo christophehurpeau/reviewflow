@@ -137,11 +137,11 @@ export const buildPrFilterOptions = (
   ]),
 });
 
-/** A repository of another account can only match nothing. */
+/** Repositories are picked within an account: another account, or none, forgets it. */
 export const prFiltersForAccount = (
   filters: PrFilters,
   accountLogin: string | undefined,
 ): PrFilters =>
-  accountLogin === undefined || filters.repo?.startsWith(`${accountLogin}/`)
+  accountLogin !== undefined && filters.repo?.startsWith(`${accountLogin}/`)
     ? filters
     : { ...filters, repo: undefined };

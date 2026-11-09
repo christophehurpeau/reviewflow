@@ -168,7 +168,7 @@ export const buildBoardFilterOptions = (
   };
 };
 
-/** Selects an account; a repository of another one could only match nothing. */
+/** Selects an account; repositories are picked within one, so another or none forgets it. */
 export const withBoardFilterAccount = (
   filters: BoardFilters,
   account: string | null,
@@ -176,9 +176,9 @@ export const withBoardFilterAccount = (
   ...filters,
   account,
   repo:
-    account === null ||
-    (filters.repo !== null &&
-      accountOfOwnerRepo(filters.repo) === account.toLowerCase())
+    account !== null &&
+    filters.repo !== null &&
+    accountOfOwnerRepo(filters.repo) === account.toLowerCase()
       ? filters.repo
       : null,
 });

@@ -43,6 +43,12 @@ const reviewOptions: SelectOption[] = [
 const toOptions = (values: string[]): SelectOption[] =>
   values.map((value) => ({ label: value, value }));
 
+/** repositories are offered within an account, which already names their owner */
+const toRepoOption = (ownerRepo: string): SelectOption => ({
+  label: ownerRepo.slice(ownerRepo.indexOf("/") + 1),
+  value: ownerRepo,
+});
+
 const toDraftFilter = (value: string | undefined): PrDraftFilter | undefined =>
   parsePrFilters({ draft: value }).draft;
 
@@ -103,17 +109,20 @@ export function PrsFilters({
           selectedAccountLogin={selectedAccountLogin}
           onSelectAccountLogin={onSelectAccountLogin}
         />
-        <PrFilterMenu
-          label="Repository"
-          allLabel="All repositories"
-          icon={<GitBranchRegularIcon />}
-          options={toOptions(options.repos)}
-          value={filters.repo}
-          valueLabel={filters.repo?.split("/").at(-1)}
-          onValueChange={(repo) => {
-            onFiltersChange({ ...filters, repo });
-          }}
-        />
+        {selectedAccountLogin !== undefined ||
+        accounts.length < 2 ||
+        filters.repo !== undefined ? (
+          <PrFilterMenu
+            label="Repository"
+            allLabel="All repositories"
+            icon={<GitBranchRegularIcon />}
+            options={options.repos.map(toRepoOption)}
+            value={filters.repo}
+            onValueChange={(repo) => {
+              onFiltersChange({ ...filters, repo });
+            }}
+          />
+        ) : null}
         <PrFilterMenu
           label="Author"
           allLabel="All authors"

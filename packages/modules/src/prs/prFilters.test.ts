@@ -190,10 +190,15 @@ describe("prFiltersForAccount", () => {
     ).toEqual({ repo: undefined, author: "ada" });
   });
 
-  it("keeps a repository of that account, and any on all accounts", () => {
+  it("forgets a repository once no account is selected", () => {
+    expect(prFiltersForAccount({ repo: "acme/api" }, undefined)).toEqual({
+      repo: undefined,
+    });
+  });
+
+  it("keeps a repository of that account", () => {
     const filters = { repo: "acme/api" };
 
     expect(prFiltersForAccount(filters, "acme")).toBe(filters);
-    expect(prFiltersForAccount(filters, undefined)).toBe(filters);
   });
 });

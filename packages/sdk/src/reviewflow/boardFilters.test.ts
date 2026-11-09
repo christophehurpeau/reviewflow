@@ -220,8 +220,11 @@ describe("withBoardFilterAccount", () => {
     );
   });
 
-  it("keeps a repository of that account, and any on all accounts", () => {
+  it("forgets a repository once no account is selected", () => {
+    expect(withBoardFilterAccount(filters, null).repo).toBe(null);
+  });
+
+  it("keeps a repository of that account", () => {
     expect(withBoardFilterAccount(filters, "acme").repo).toBe("acme/api");
-    expect(withBoardFilterAccount(filters, null).repo).toBe("acme/api");
   });
 });

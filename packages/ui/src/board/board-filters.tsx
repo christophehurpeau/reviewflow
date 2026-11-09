@@ -77,6 +77,12 @@ const isReviewFilter = (
 const toOptions = (values: string[]): SelectOption[] =>
   values.map((value) => ({ label: value, value }));
 
+/** repositories are offered within an account, which already names their owner */
+const toRepoOption = (ownerRepo: string): SelectOption => ({
+  label: ownerRepo.slice(ownerRepo.indexOf("/") + 1),
+  value: ownerRepo,
+});
+
 export interface FilterMenuProps {
   label: string;
   /** names the "no filter" row */
@@ -84,8 +90,8 @@ export interface FilterMenuProps {
   icon: SVGIconElement;
   options: SelectOption[];
   value: string | null;
-  /** what the pill says of the value, its option's label otherwise */
-  valueLabel?: string;
+  /** the value says what it filters on: the pill drops the filter's name */
+  valueOnly?: boolean;
   onChange: (value: string | null) => void;
 }
 
@@ -96,13 +102,16 @@ export function FilterMenu({
   icon,
   options,
   value,
-  valueLabel,
+  valueOnly = false,
   onChange,
 }: FilterMenuProps): ReactNode {
   if (options.length === 0) return null;
 
-  const selectedLabel =
-    valueLabel ?? options.find((option) => option.value === value)?.label;
+  const selectedLabel = options.find((option) => option.value === value)?.label;
+  const pillText = ((): string | undefined => {
+    if (value === null) return label;
+    return valueOnly ? selectedLabel : `${label}: ${String(selectedLabel)}`;
+  })();
 
   return (
     <Menu
@@ -110,7 +119,7 @@ export function FilterMenu({
       align="start"
       render={(triggerProps) => (
         <Button
-          text={value === null ? label : `${label}: ${String(selectedLabel)}`}
+          text={pillText}
           icon={icon}
           size="sm"
           variant={value === null ? "outlined" : "tonal"}
@@ -226,6 +235,7 @@ export function BoardFiltersBar({
       <View className="flex-row flex-wrap items-center gap-xs">
         {accounts.length > 1 ? (
           <FilterMenu
+            valueOnly
             label="Account"
             allLabel="All accounts"
             icon={<BuildingsRegularIcon />}
@@ -236,17 +246,20 @@ export function BoardFiltersBar({
             }}
           />
         ) : null}
-        <FilterMenu
-          label="Repository"
-          allLabel="All repositories"
-          icon={<GitBranchRegularIcon />}
-          options={toOptions(options.repos)}
-          value={filters.repo}
-          valueLabel={filters.repo?.split("/").at(-1)}
-          onChange={(repo) => {
-            onChange({ ...filters, repo });
-          }}
-        />
+        {filters.account !== null ||
+        accounts.length < 2 ||
+        filters.repo !== null ? (
+          <FilterMenu
+            label="Repository"
+            allLabel="All repositories"
+            icon={<GitBranchRegularIcon />}
+            options={options.repos.map(toRepoOption)}
+            value={filters.repo}
+            onChange={(repo) => {
+              onChange({ ...filters, repo });
+            }}
+          />
+        ) : null}
         <FilterMenu
           label="Author"
           allLabel="All authors"

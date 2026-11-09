@@ -9,8 +9,8 @@ interface PrFilterMenuProps {
   icon: SVGIconElement;
   options: SelectOption[];
   value: string | undefined;
-  /** what the pill says of the value, its option's label otherwise */
-  valueLabel?: string;
+  /** the value says what it filters on: the pill drops the filter's name */
+  valueOnly?: boolean;
   onValueChange: (value: string | undefined) => void;
 }
 
@@ -21,13 +21,16 @@ export function PrFilterMenu({
   icon,
   options,
   value,
-  valueLabel,
+  valueOnly = false,
   onValueChange,
 }: PrFilterMenuProps): ReactNode {
   if (options.length === 0) return null;
 
-  const selectedLabel =
-    valueLabel ?? options.find((option) => option.value === value)?.label;
+  const selectedLabel = options.find((option) => option.value === value)?.label;
+  const pillText = ((): string | undefined => {
+    if (value === undefined) return label;
+    return valueOnly ? selectedLabel : `${label}: ${selectedLabel}`;
+  })();
 
   return (
     <Menu
@@ -35,7 +38,7 @@ export function PrFilterMenu({
       align="start"
       render={(triggerProps) => (
         <Button
-          text={value === undefined ? label : `${label}: ${selectedLabel}`}
+          text={pillText}
           icon={icon}
           size="sm"
           variant={value === undefined ? "outlined" : "tonal"}
