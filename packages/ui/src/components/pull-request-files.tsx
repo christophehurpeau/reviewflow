@@ -10,6 +10,7 @@ import { formatRelativeDate, pluralOf } from "@reviewflow/sdk";
 import {
   Button,
   Code,
+  ConfirmationMessage,
   InfoMessage,
   Menu,
   MenuItem,
@@ -241,6 +242,8 @@ interface CommitByCommit {
   /** why the reader cannot turn it on */
   disabledReason: string | null;
   on: boolean;
+  /** on by default, the reader has not toggled it */
+  automatic: boolean;
   /** the default is not known yet: decided before the diff shows, so it does not swap under the reader */
   waiting: boolean;
   /** why the commits' files could not be read, once the reader asked for them */
@@ -314,6 +317,7 @@ const useCommitByCommit = ({
     disabledReason:
       toRead?.kind === "unavailable" ? toRead.reason : missingCheckout,
     on,
+    automatic: on && requested === null,
     waiting:
       readable !== null &&
       wanted !== false &&
@@ -361,7 +365,10 @@ const useCommitByCommit = ({
  * commit too is reviewed on what it shares with the pull request's diff
  * (`CommitFileAnchoring`). With "since your last review", only the commits
  * pushed since are stepped through. Off without a local checkout: from
- * GitHub, telling the default would cost a request a commit.
+ * GitHub, telling the default would cost a request a commit. Turned on by
+ * default over more than one commit, it says so in a confirmation message
+ * above the diff: the reader did not ask for it, and the stepper alone is
+ * easy to miss.
  */
 export interface PullRequestFilesTabProps {
   detail: PullRequestDetailResponse;
@@ -377,6 +384,7 @@ export function PullRequestFiles({
   const isAuthor = isViewerAuthor(detail);
   const [requested, setRequested] = useState<Scope>("all");
   const [viewedError, setViewedError] = useState<string | null>(null);
+  const [byCommitNoticeDismissed, setByCommitNoticeDismissed] = useState(false);
   const dataSource = usePullRequestDataSource();
   const files = dataSource.usePart(pullRequest, "files");
   const timeline = dataSource.usePart(pullRequest, "timeline");
@@ -423,6 +431,18 @@ export function PullRequestFiles({
         <PullRequestPartReading reading={files.reading || timeline.reading} />
       )}
       <MovedOnNotice movedOn={movedOn} follow={follow} />
+      {byCommit.automatic &&
+      byCommit.stepped.length > 1 &&
+      !byCommitNoticeDismissed ? (
+        <ConfirmationMessage
+          dismissIconAriaLabel="Dismiss"
+          onDismiss={() => {
+            setByCommitNoticeDismissed(true);
+          }}
+        >
+          {`Read commit by commit: no two commits change the same file, so each of the ${String(byCommit.stepped.length)} commits is reviewed as part of the pull request. The commit button in the toolbar shows every change at once.`}
+        </ConfirmationMessage>
+      ) : null}
       {byCommit.error === null ? null : (
         <WarningMessage>
           {`The commits' files could not be read: ${byCommit.error}`}
