@@ -283,6 +283,16 @@ export function PullRequestMergeButton({
           confirmText={mergeMethodLabel(method)}
           confirmDisabled={commit !== null && commit.draft.title.trim() === ""}
           errorToMessage={errorToMessage}
+          content={
+            commit === null ? undefined : (
+              <MergeCommitMessageFields
+                value={commit.draft}
+                onChange={(draft) => {
+                  setCommit({ ...commit, draft });
+                }}
+              />
+            )
+          }
           onConfirm={async () => {
             const commitMessage = editedCommitMessage(commit);
             await onEdit({
@@ -297,19 +307,7 @@ export function PullRequestMergeButton({
             setConfirming(false);
           }}
         >
-          <View className="gap-m">
-            <Text>
-              {`#${String(pullRequest.number)} goes into ${pullRequest.baseRef} on GitHub, under your login.`}
-            </Text>
-            {commit === null ? null : (
-              <MergeCommitMessageFields
-                value={commit.draft}
-                onChange={(draft) => {
-                  setCommit({ ...commit, draft });
-                }}
-              />
-            )}
-          </View>
+          {`#${String(pullRequest.number)} goes into ${pullRequest.baseRef} on GitHub, under your login.`}
         </QuestionAlertDialog>
       )}
     </>

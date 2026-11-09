@@ -14,7 +14,6 @@ import {
   FormItem,
   InputText,
   QuestionAlertDialog,
-  Text,
   TextArea,
   View,
 } from "alouette";
@@ -179,6 +178,11 @@ export function SuggestionActions({
         confirmText="Commit changes"
         confirmDisabled={message === null || message.headline.trim() === ""}
         errorToMessage={errorToMessage}
+        content={
+          message === null ? undefined : (
+            <CommitMessageFields value={message} onChange={setMessage} />
+          )
+        }
         onConfirm={async () => {
           if (message === null) return;
           await batch.commit(committing, message);
@@ -188,14 +192,7 @@ export function SuggestionActions({
           setMessage(null);
         }}
       >
-        <View className="gap-m">
-          <Text>
-            {`One commit on ${pullRequest.headRef}, on GitHub, under your login.`}
-          </Text>
-          {message === null ? null : (
-            <CommitMessageFields value={message} onChange={setMessage} />
-          )}
-        </View>
+        {`One commit on ${pullRequest.headRef}, on GitHub, under your login.`}
       </QuestionAlertDialog>
     </View>
   );
