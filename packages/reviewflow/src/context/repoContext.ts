@@ -116,6 +116,22 @@ export interface RescheduleOnChecksUpdatedOptions {
   pullRequestLabels?: PullRequestLabels;
 }
 
+export interface LockPullRequestOptions {
+  /**
+   * The log of the event the lock is taken for: the repo context outlives the
+   * event that created it, and logging through that one stamps every line with
+   * its delivery id.
+   */
+  log: ProbotEvent<any>["log"];
+  eventName: string;
+  pullRequest: PullRequestDataMinimumData;
+}
+
+interface LockPROptions extends Omit<LockPullRequestOptions, "pullRequest"> {
+  /** `-1` serializes every reschedule of the repository */
+  prNumber: number;
+}
+
 interface RepoContextWithoutTeamContext {
   appContext: AppContext;
   repoFullName: string;
@@ -127,8 +143,7 @@ interface RepoContextWithoutTeamContext {
   shouldIgnore: boolean;
 
   lockPullRequest: (
-    eventName: string,
-    pullRequest: PullRequestDataMinimumData,
+    options: LockPullRequestOptions,
     callback: () => Promise<void> | void,
   ) => Promise<void>;
 
@@ -296,8 +311,7 @@ async function initRepoContext<
   };
 
   const lockPR = (
-    eventName: string,
-    prNumber: number,
+    { log, eventName, prNumber }: LockPROptions,
     callback: () => Promise<void> | void,
   ): Promise<void> =>
     new Promise((resolve, reject) => {
@@ -315,32 +329,31 @@ async function initRepoContext<
         repo: fullName,
         prNumber,
       };
-      context.log.debug(logInfos, "lock: try to lock pr");
+      log.debug(logInfos, "lock: try to lock pr");
       // oxlint-disable-next-line typescript/no-misused-promises
       lock(String(prNumber), async (createReleaseCallback) => {
         const release = createReleaseCallback(() => {});
-        context.log.info(logInfos, "lock: lock pr acquired");
+        log.info(logInfos, "lock: lock pr acquired");
         try {
           await callback();
         } catch (error) {
-          context.log.info(logInfos, "lock: release pr (with error)");
+          log.info(logInfos, "lock: release pr (with error)");
           release();
           // oxlint-disable-next-line typescript/prefer-promise-reject-errors
           reject(error);
           return;
         }
-        context.log.info(logInfos, "lock: release pr");
+        log.info(logInfos, "lock: release pr");
         release();
         resolve();
       });
     });
 
   const lockPullRequest = (
-    eventName: string,
-    pullRequest: PullRequestDataMinimumData,
+    { log, eventName, pullRequest }: LockPullRequestOptions,
     callback: () => Promise<void> | void,
   ): Promise<void> => {
-    return lockPR(eventName, pullRequest.number, callback);
+    return lockPR({ log, eventName, prNumber: pullRequest.number }, callback);
   };
 
   const reschedule = async (
@@ -362,26 +375,30 @@ async function initRepoContext<
 
     clearWaitingToReschedule(pr.number);
     rescheduleContext.log.info(pr, "reschedule", { time });
+    const { log } = rescheduleContext;
     const timeout = setTimeout(
       () => {
         // oxlint-disable-next-line typescript/no-floating-promises
-        lockPR("reschedule", -1, () => {
-          return lockPR("reschedule", pr.number, async () => {
-            const [pullRequest, reviewflowPrContext] = await Promise.all([
-              fetchPr(context, pr.number),
-              getReviewflowPrContext(pr, rescheduleContext, repoContext),
-            ]);
+        lockPR({ log, eventName: "reschedule", prNumber: -1 }, () => {
+          return lockPR(
+            { log, eventName: "reschedule", prNumber: pr.number },
+            async () => {
+              const [pullRequest, reviewflowPrContext] = await Promise.all([
+                fetchPr(context, pr.number),
+                getReviewflowPrContext(pr, rescheduleContext, repoContext),
+              ]);
 
-            await tryToAutomergeFromReschedule({
-              pullRequest,
-              context,
-              repoContext,
-              reviewflowPrContext,
-              user,
-              fromRescheduleTime: time,
-              fromRescheduleAttempt: attempt,
-            });
-          });
+              await tryToAutomergeFromReschedule({
+                pullRequest,
+                context,
+                repoContext,
+                reviewflowPrContext,
+                user,
+                fromRescheduleTime: time,
+                fromRescheduleAttempt: attempt,
+              });
+            },
+          );
         });
       },
       time === "long+timeout" ? 60_000 * 10 /* 10 min */ : 10_000 /* 10s */,

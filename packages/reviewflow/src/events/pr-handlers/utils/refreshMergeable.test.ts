@@ -79,11 +79,8 @@ const createOptions = () => {
   const repoContext = {
     repoEmbed: { id: repoId, name: "reviewflow-test" },
     accountEmbed: { id: 1 },
-    lockPullRequest: (
-      _eventName: string,
-      _pr: unknown,
-      callback: () => Promise<void>,
-    ) => callback(),
+    lockPullRequest: (_options: unknown, callback: () => Promise<void>) =>
+      callback(),
   } as unknown as RepoContext;
 
   return {

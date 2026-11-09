@@ -105,8 +105,11 @@ export const createPullRequestHandler = <
       const options: CreatePrContextOptions = res as CreatePrContextOptions;
 
       await repoContext.lockPullRequest(
-        `${context.name}:${context.payload.action}`,
-        pullRequest,
+        {
+          log: context.log,
+          eventName: `${context.name}:${context.payload.action}`,
+          pullRequest,
+        },
         async () => {
           /*
            * When repo are ignored, only slack notifications are sent.
@@ -165,8 +168,11 @@ export const createPullRequestsHandler = <
       await Promise.all(
         prs.map((pr) =>
           repoContext.lockPullRequest(
-            `${context.name}:${(context.payload as any).action}`,
-            pr,
+            {
+              log: context.log,
+              eventName: `${context.name}:${(context.payload as any).action}`,
+              pullRequest: pr,
+            },
             async () => {
               const reviewflowPrContext = repoContext.shouldIgnore
                 ? null

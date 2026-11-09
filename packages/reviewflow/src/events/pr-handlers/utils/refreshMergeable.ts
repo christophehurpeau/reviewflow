@@ -146,31 +146,38 @@ const storeMissedClosings = async <EventName extends EventsWithRepository>(
     storedOpenPrs
       .filter(({ pr }) => !openPrNumbers.has(pr.number))
       .map((storedPr) =>
-        repoContext.lockPullRequest("closed-refresh", storedPr.pr, async () => {
-          const pullRequest = await fetchPr(context, storedPr.pr.number);
-          // retargeted to another base, still open
-          if (!pullRequest.closed_at) return;
+        repoContext.lockPullRequest(
+          {
+            log: context.log,
+            eventName: "closed-refresh",
+            pullRequest: storedPr.pr,
+          },
+          async () => {
+            const pullRequest = await fetchPr(context, storedPr.pr.number);
+            // retargeted to another base, still open
+            if (!pullRequest.closed_at) return;
 
-          await Promise.all([
-            appContext.mongoStores.prs.partialUpdateByKey(storedPr._id, {
-              $set: {
-                isClosed: true,
-                isMerged: pullRequest.merged,
-                ...(storedPr.flowDates
-                  ? { "flowDates.closedAt": new Date(pullRequest.closed_at) }
-                  : {
-                      flowDates:
-                        getInitialFlowDatesFromPullRequest(pullRequest),
-                    }),
-              },
-            }),
-            markMergeConflictAsDone(appContext, repoContext, pullRequest.id),
-          ]);
-          context.log.info(
-            { prNumber: storedPr.pr.number, merged: pullRequest.merged },
-            "closed without a pull_request.closed webhook: stored closed",
-          );
-        }),
+            await Promise.all([
+              appContext.mongoStores.prs.partialUpdateByKey(storedPr._id, {
+                $set: {
+                  isClosed: true,
+                  isMerged: pullRequest.merged,
+                  ...(storedPr.flowDates
+                    ? { "flowDates.closedAt": new Date(pullRequest.closed_at) }
+                    : {
+                        flowDates:
+                          getInitialFlowDatesFromPullRequest(pullRequest),
+                      }),
+                },
+              }),
+              markMergeConflictAsDone(appContext, repoContext, pullRequest.id),
+            ]);
+            context.log.info(
+              { prNumber: storedPr.pr.number, merged: pullRequest.merged },
+              "closed without a pull_request.closed webhook: stored closed",
+            );
+          },
+        ),
       ),
   );
 };
@@ -207,24 +214,27 @@ const refreshBaseMergeable = async <EventName extends EventsWithRepository>(
     pullRequests
       .filter(({ mergeable }) => mergeable !== "unknown")
       .map((pr) =>
-        repoContext.lockPullRequest("mergeable-refresh", pr, async () => {
-          await storeMergeable(
-            appContext,
-            repoContext,
-            pr.number,
-            pr.mergeable,
-          );
-          if (pr.mergeable === "mergeable") {
-            await markMergeConflictAsDone(appContext, repoContext, pr.id);
-            return;
-          }
-          // the message needs the owner, assignees and link: only conflicting pull requests pay this read
-          const pullRequest = await fetchPr(context, pr.number);
-          await syncMergeConflictSlackMessage(appContext, repoContext, {
-            pullRequest,
-            mergeable: pr.mergeable,
-          });
-        }),
+        repoContext.lockPullRequest(
+          { log: context.log, eventName: "mergeable-refresh", pullRequest: pr },
+          async () => {
+            await storeMergeable(
+              appContext,
+              repoContext,
+              pr.number,
+              pr.mergeable,
+            );
+            if (pr.mergeable === "mergeable") {
+              await markMergeConflictAsDone(appContext, repoContext, pr.id);
+              return;
+            }
+            // the message needs the owner, assignees and link: only conflicting pull requests pay this read
+            const pullRequest = await fetchPr(context, pr.number);
+            await syncMergeConflictSlackMessage(appContext, repoContext, {
+              pullRequest,
+              mergeable: pr.mergeable,
+            });
+          },
+        ),
       ),
   );
 
@@ -245,8 +255,11 @@ const refreshPullRequestMergeable = async <
   const unknownPrNumbers = new Set<number>();
 
   await repoContext.lockPullRequest(
-    "mergeable-refresh",
-    { number: prNumber },
+    {
+      log: context.log,
+      eventName: "mergeable-refresh",
+      pullRequest: { number: prNumber },
+    },
     async () => {
       const pullRequest = await fetchPr(context, prNumber);
       const mergeable =
