@@ -37,7 +37,8 @@ interface OpenPullRequestsMergeableQueryResult {
       pageInfo: { hasNextPage: boolean; endCursor: string | null };
       nodes: {
         number: number;
-        databaseId: number;
+        /** a `BigInt`, serialized as a string */
+        fullDatabaseId: string;
         mergeable: GraphqlMergeable;
       }[];
     };
@@ -54,7 +55,7 @@ query openPullRequestsMergeable($owner: String!, $repo: String!, $baseRefName: S
       }
       nodes {
         number
-        databaseId
+        fullDatabaseId
         mergeable
       }
     }
@@ -86,13 +87,18 @@ const fetchOpenPullRequestsMergeable = async <
 
   do {
     const { repository } = await fetchPage(after);
-    if (!repository) break;
+    // a partial list would read as closings to `storeMissedClosings`
+    if (!repository) {
+      const { owner, repo } = context.repo();
+      throw new Error(`repository ${owner}/${repo} not found`);
+    }
 
     const { nodes, pageInfo } = repository.pullRequests;
     pullRequests.push(
       ...nodes.map((node) => ({
         number: node.number,
-        id: node.databaseId,
+        // stays a number like the rest api's `id`: safe up to 2^53
+        id: Number(node.fullDatabaseId),
         mergeable: graphqlMergeableToPrMergeable[node.mergeable],
       })),
     );

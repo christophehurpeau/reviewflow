@@ -44,7 +44,7 @@ const page = (
       pageInfo: { hasNextPage: endCursor !== null, endCursor },
       nodes: nodes.map(([number, mergeable]) => ({
         number,
-        databaseId: number * 100,
+        fullDatabaseId: String(number * 100),
         mergeable,
       })),
     },
@@ -209,6 +209,27 @@ describe("scheduleMergeableRefresh on a base branch", () => {
       expect.objectContaining({ after: "cursor-1" }),
     );
     expect(partialUpdateMany).toHaveBeenCalledTimes(2);
+  });
+
+  it("stores nothing when a page has no repository", async () => {
+    const { options, graphql, partialUpdateMany, findAll, log } =
+      createOptions();
+    graphql
+      .mockResolvedValueOnce(page([[1, "MERGEABLE"]], "cursor-1"))
+      .mockResolvedValueOnce({ repository: null });
+
+    scheduleMergeableRefresh(options, { baseRef: "main" });
+    await advance(10_000);
+
+    expect(findAll).not.toHaveBeenCalled();
+    expect(partialUpdateMany).not.toHaveBeenCalled();
+    expect(log.error).toHaveBeenCalledWith(
+      {
+        err: new Error("repository reviewflow/reviewflow-test not found"),
+        key: `${repoId}:main`,
+      },
+      "mergeable refresh failed",
+    );
   });
 
   it("logs a failed read instead of throwing", async () => {
