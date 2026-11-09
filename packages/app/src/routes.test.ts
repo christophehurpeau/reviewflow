@@ -20,7 +20,10 @@ import {
   test,
   vi,
 } from "vitest";
-import type { GitHubTransport } from "@reviewflow/sdk";
+import type {
+  CheckoutBranchesResponse,
+  GitHubTransport,
+} from "@reviewflow/sdk";
 import type { ReviewflowService } from "./reviewflowService.ts";
 import type { PullRequestOperations, RouteDeps } from "./routes.ts";
 import { routeApiRequest } from "./routes.ts";
@@ -366,6 +369,112 @@ describe("repos", () => {
       (await call(deps, "GET", "/api/repos/branch-pulls?repo=nope&branch=x"))
         ?.status,
     ).toBe(400);
+  });
+
+  describe("settled pull requests", () => {
+    const merged = {
+      found: true,
+      pr: {
+        number: 7,
+        title: "Merged",
+        headSha: other,
+        baseRef: "main",
+        state: "merged",
+        author: "alice",
+        updatedAt: "2026-11-01T10:00:00.000Z",
+        closedAt: "2026-11-01T09:00:00.000Z",
+      },
+    };
+    const reused = {
+      found: true,
+      pr: { ...merged.pr, number: 3, headSha: older, state: "closed" },
+    };
+    const open = {
+      found: true,
+      pr: { ...merged.pr, number: 9, state: "open" },
+    };
+
+    const withReviewflow = (
+      lookup: ReviewflowService["lookup"],
+    ): RouteDeps => ({
+      ...makeDeps({
+        readBranches: vi.fn(
+          async () =>
+            ({
+              branches: [
+                { name: "feat/merged" },
+                { name: "feat/reused" },
+                { name: "feat/open" },
+                { name: "feat/none" },
+              ],
+            }) as unknown as CheckoutBranchesResponse,
+        ),
+        linkBranchPullRequests: vi.fn<
+          PullRequestOperations["linkBranchPullRequests"]
+        >(async ({ branch, pullRequests }) =>
+          branch === "feat/reused"
+            ? []
+            : pullRequests.map(({ commitOids: _, ...pr }) => pr),
+        ),
+      }),
+      // oxlint-disable-next-line typescript/consistent-type-assertions
+      reviewflow: { lookup } as ReviewflowService,
+    });
+
+    test("names the merged or closed pull request reviewflow records for each local branch, proven the branch's", async () => {
+      const lookup = vi.fn(async () => [
+        merged,
+        reused,
+        open,
+        { found: false, reason: "noPr" },
+      ]) as unknown as ReviewflowService["lookup"];
+      const deps = withReviewflow(lookup);
+
+      const answer = await call(
+        deps,
+        "GET",
+        "/api/repos/settled-pulls?repo=acme/widgets",
+      );
+
+      expect(lookup).toHaveBeenCalledWith([
+        { ownerRepo: "acme/widgets", headRef: "feat/merged" },
+        { ownerRepo: "acme/widgets", headRef: "feat/reused" },
+        { ownerRepo: "acme/widgets", headRef: "feat/open" },
+        { ownerRepo: "acme/widgets", headRef: "feat/none" },
+      ]);
+      expect(deps.operations.linkBranchPullRequests).toHaveBeenCalledTimes(2);
+      expect(answer).toEqual({
+        status: 200,
+        body: {
+          connected: true,
+          branches: [
+            {
+              branch: "feat/merged",
+              pullRequest: {
+                number: 7,
+                title: "Merged",
+                state: "MERGED",
+                isDraft: false,
+                sha: other,
+                baseRefName: "main",
+                author: "alice",
+                updatedAt: "2026-11-01T10:00:00.000Z",
+                mergedAt: "2026-11-01T09:00:00.000Z",
+                closedAt: "2026-11-01T09:00:00.000Z",
+              },
+            },
+          ],
+        },
+      });
+    });
+
+    test("asks nothing without a reviewflow token", async () => {
+      const deps = withReviewflow(vi.fn(async () => null));
+      expect(
+        await call(deps, "GET", "/api/repos/settled-pulls?repo=acme/widgets"),
+      ).toEqual({ status: 200, body: { connected: false, branches: [] } });
+      expect(deps.operations.linkBranchPullRequests).not.toHaveBeenCalled();
+    });
   });
 
   test("reads what removing a worktree would lose, every head kept, only the branch's own listed", async () => {

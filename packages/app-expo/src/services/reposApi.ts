@@ -10,6 +10,7 @@ import type {
   DiffWhitespace,
   OpenPullRequestsResponse,
   RepoPathSuggestionsResponse,
+  SettledBranchPullRequestsResponse,
   WorktreeRemovalRequest,
   WorktreeRemovalResult,
   WorktreeRemovalStatusResponse,
@@ -180,6 +181,20 @@ export const useRepoPulls = (
     queryFn: ({ signal }) =>
       getJson<OpenPullRequestsResponse>(
         "/api/repos/pulls",
+        { repo: ownerRepo },
+        signal,
+      ),
+  });
+
+/** The merged or closed pull request of each local branch, from reviewflow: one request, nothing asked without a token. */
+export const useRepoSettledPulls = (
+  ownerRepo: string,
+): UseQueryResult<SettledBranchPullRequestsResponse> =>
+  useQuery({
+    queryKey: ["repoSettledPulls", ownerRepo],
+    queryFn: ({ signal }) =>
+      getJson<SettledBranchPullRequestsResponse>(
+        "/api/repos/settled-pulls",
         { repo: ownerRepo },
         signal,
       ),

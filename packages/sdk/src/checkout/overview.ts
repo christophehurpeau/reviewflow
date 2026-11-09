@@ -108,6 +108,22 @@ export interface BranchPullRequestsResponse {
   pullRequests: BranchPullRequest[];
 }
 
+export interface SettledBranchPullRequest {
+  branch: string;
+  pullRequest: BranchPullRequest;
+}
+
+/**
+ * `GET /api/repos/settled-pulls?repo=<owner/repo>` — the local branches whose
+ * newest pull request reviewflow records as merged or closed, proven this
+ * local branch's as `branch-pulls` proves them. Read from reviewflow alone.
+ */
+export interface SettledBranchPullRequestsResponse {
+  /** false without a reviewflow token: nothing was asked */
+  connected: boolean;
+  branches: SettledBranchPullRequest[];
+}
+
 const sameRepo = (left: string | null, right: string): boolean =>
   left !== null && left.toLowerCase() === right.toLowerCase();
 

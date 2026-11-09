@@ -5,6 +5,8 @@ import type {
   ReviewflowBoardSnapshot,
   ReviewflowClient,
   ReviewflowConnectionStatus,
+  ReviewflowLookupResult,
+  ReviewflowLookupTarget,
   ReviewflowPrResponse,
   ReviewflowStreamEvent,
   ReviewflowStreamState,
@@ -55,6 +57,10 @@ export interface ReviewflowService {
   board: (refresh: boolean) => Promise<ReviewflowBoardResponse>;
   /** read from reviewflow at each call, never kept */
   pr: (ref: PullRequestRef) => Promise<ReviewflowPrResponse>;
+  /** the newest pull request of each branch, in `targets` order; null without a token */
+  lookup: (
+    targets: ReviewflowLookupTarget[],
+  ) => Promise<ReviewflowLookupResult[] | null>;
   /** an `/api/events` connection; returns how it is closed */
   subscribe: (write: (chunk: string) => void) => () => void;
   close: () => void;
@@ -282,6 +288,19 @@ export const createReviewflowService = ({
       const client = createClient({ url: stored.url, token: stored.token });
       try {
         return { pr: await client.pr(ownerRepo, number) };
+      } catch (error) {
+        throw new Error(withoutToken(errorMessage(error), stored.token), {
+          cause: error,
+        });
+      }
+    },
+
+    lookup: async (targets) => {
+      const { stored } = connection();
+      if (stored === null) return null;
+      const client = createClient({ url: stored.url, token: stored.token });
+      try {
+        return await client.lookup(targets);
       } catch (error) {
         throw new Error(withoutToken(errorMessage(error), stored.token), {
           cause: error,

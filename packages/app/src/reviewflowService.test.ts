@@ -365,6 +365,39 @@ describe("pr", () => {
   });
 });
 
+describe("lookup", () => {
+  const targets = [{ ownerRepo: "acme/storefront", headRef: "feat/x" }];
+
+  test("is null without a token, reviewflow not asked", async () => {
+    const { service, client } = setup();
+    expect(await service.lookup(targets)).toBeNull();
+    expect(client.lookup).not.toHaveBeenCalled();
+  });
+
+  test("answers reviewflow's results, in the targets' order", async () => {
+    const { service, client } = setup({
+      lookup: vi.fn(async () => [{ found: true as const, pr: detail() }]),
+    });
+    await service.setToken({ url, token });
+    expect(await service.lookup(targets)).toEqual([
+      { found: true, pr: detail() },
+    ]);
+    expect(client.lookup).toHaveBeenCalledWith(targets);
+  });
+
+  test("fails with the reason, never the token", async () => {
+    const { service } = setup({
+      lookup: async () => {
+        throw fail(`reviewflow answered 503 ${token}`);
+      },
+    });
+    await service.setToken({ url, token });
+    const read = service.lookup(targets);
+    await expect(read).rejects.toThrow(/503/);
+    await expect(read).rejects.not.toThrow(token);
+  });
+});
+
 describe("events", () => {
   test("a connection gets the status first, and starts the follow", async () => {
     const { service, stream } = setup();

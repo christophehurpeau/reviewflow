@@ -1,9 +1,11 @@
 import type {
+  BranchPullRequest,
   CheckoutBranch,
   CheckoutBranchesResponse,
   CheckoutWorktree,
   OpenPullRequest,
   OpenPullRequestsResponse,
+  SettledBranchPullRequest,
 } from "@reviewflow/sdk";
 import {
   formatRelativeDate,
@@ -43,6 +45,7 @@ import {
   checkoutSummaryParts,
 } from "../services/checkoutSummary.ts";
 import { errorToMessage } from "../services/errorToMessage.ts";
+import { BranchPullRequestButtons } from "./branch-pull-request-buttons.tsx";
 import type { CheckoutRead } from "./checkout-view.tsx";
 import { TooltipIconButton } from "./tooltip-icon-button.tsx";
 
@@ -210,6 +213,8 @@ function BranchStateBadges({
 interface BranchRowProps {
   branch: CheckoutBranch;
   pullRequest: OpenPullRequest | null;
+  /** its merged or closed one, shown when it has no open one */
+  settledPullRequest: BranchPullRequest | null;
   /** the worktree it is checked out in, openable; null when none */
   worktree: CheckoutWorktree | null;
   onOpenWorktree: (worktree: CheckoutWorktree) => void;
@@ -233,6 +238,7 @@ const isPullable = (worktree: CheckoutWorktree | null): boolean =>
 function BranchRow({
   branch,
   pullRequest,
+  settledPullRequest,
   worktree,
   onOpenWorktree,
   onOpenBranch,
@@ -241,7 +247,8 @@ function BranchRow({
 }: BranchRowProps): ReactNode {
   const track = branchTrackParts(branch);
   const pullable = worktree !== null && isPullable(worktree);
-  const hasActions = pullable || pullRequest !== null;
+  const shownSettled = pullRequest === null ? settledPullRequest : null;
+  const hasActions = pullable || pullRequest !== null || shownSettled !== null;
   return (
     <PressableListItem
       role="link"
@@ -269,6 +276,12 @@ function BranchRow({
             {pullRequest === null ? null : (
               <PullRequestButton
                 pullRequest={pullRequest}
+                onOpen={onOpenPullRequest}
+              />
+            )}
+            {shownSettled === null ? null : (
+              <BranchPullRequestButtons
+                pullRequests={[shownSettled]}
                 onOpen={onOpenPullRequest}
               />
             )}
@@ -300,6 +313,7 @@ interface BranchesSectionProps {
   ownerRepo: string;
   overview: CheckoutBranchesResponse;
   pullRequests: OpenPullRequest[];
+  settledPullRequests: SettledBranchPullRequest[];
   onOpenWorktree: (worktree: CheckoutWorktree) => void;
   onOpenBranch: (branch: string) => void;
   onPullWorktree: (worktree: CheckoutWorktree) => Promise<void>;
@@ -310,6 +324,7 @@ function BranchesSection({
   ownerRepo,
   overview,
   pullRequests,
+  settledPullRequests,
   onOpenWorktree,
   onOpenBranch,
   onPullWorktree,
@@ -341,6 +356,11 @@ function BranchesSection({
                 ownerRepo,
                 branch.name,
               )}
+              settledPullRequest={
+                settledPullRequests.find(
+                  (settled) => settled.branch === branch.name,
+                )?.pullRequest ?? null
+              }
               worktree={openableWorktree(branch.worktreePath)}
               onOpenWorktree={onOpenWorktree}
               onOpenBranch={onOpenBranch}
@@ -499,6 +519,8 @@ export interface RepoOverviewProps {
   branches: CheckoutRead<CheckoutBranchesResponse>;
   /** the open pull requests, from GitHub: a failure only loses the pull request buttons */
   pulls: CheckoutRead<OpenPullRequestsResponse>;
+  /** the merged or closed pull request of local branches, e.g. from reviewflow; shown on a branch with no open one */
+  settledPullRequests?: SettledBranchPullRequest[];
   onReload: () => void;
   onOpenWorktree: (worktree: CheckoutWorktree) => void;
   /** a local branch no worktree has out, read from the listed checkout */
@@ -525,6 +547,7 @@ export function RepoOverview({
   ownerRepo,
   branches,
   pulls,
+  settledPullRequests = [],
   onReload,
   onOpenWorktree,
   onOpenBranch,
@@ -569,6 +592,7 @@ export function RepoOverview({
           ownerRepo={ownerRepo}
           overview={overview}
           pullRequests={pullRequests}
+          settledPullRequests={settledPullRequests}
           onOpenWorktree={onOpenWorktree}
           onOpenBranch={onOpenBranch}
           onPullWorktree={onPullWorktree}

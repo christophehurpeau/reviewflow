@@ -23,6 +23,7 @@ import {
   syncRepo,
   useRepoBranches,
   useRepoPulls,
+  useRepoSettledPulls,
 } from "#/services/reposApi.ts";
 
 const first = (value: string[] | string | undefined): string | undefined =>
@@ -70,6 +71,7 @@ function RepoOverviewScreen({
   const client = useQueryClient();
   const branches = useRepoBranches(ownerRepo);
   const pulls = useRepoPulls(ownerRepo);
+  const settledPulls = useRepoSettledPulls(ownerRepo);
   const [removal, setRemoval] = useState<WorktreeRemovalResult | null>(null);
 
   const openWorktree = (worktree: CheckoutWorktree): void => {
@@ -110,6 +112,7 @@ function RepoOverviewScreen({
       ownerRepo={ownerRepo}
       branches={readOf(branches)}
       pulls={readOf(pulls)}
+      settledPullRequests={settledPulls.data?.branches ?? []}
       headerStart={back}
       notices={
         removal === null ? null : (
@@ -144,6 +147,7 @@ function RepoOverviewScreen({
         // a failed read is the query's error, shown in place
         invalidateRepo(client, ownerRepo).catch(() => undefined);
         pulls.refetch().catch(() => undefined);
+        settledPulls.refetch().catch(() => undefined);
       }}
     />
   );

@@ -34,6 +34,7 @@ import type {
   PullRequestRef,
   PullRequestRevisionsResponse,
   RepoPathSuggestionsResponse,
+  SettledBranchPullRequestsResponse,
   WorktreeRemovalRequest,
   WorktreeRemovalResult,
   WorktreeRemovalStatus,
@@ -65,6 +66,7 @@ import type {
   SetReviewflowTokenRequest,
 } from "./reviewflowService.ts";
 import { tokenRefusedCode } from "./reviewflowService.ts";
+import { settledCandidateOf } from "./settledPullRequests.ts";
 
 export const apiRoutes = {
   configFile: "/api/config/file",
@@ -80,6 +82,7 @@ export const apiRoutes = {
   repoBranches: "/api/repos/branches",
   repoPulls: "/api/repos/pulls",
   repoBranchPulls: "/api/repos/branch-pulls",
+  repoSettledPulls: "/api/repos/settled-pulls",
   repoWorktreeStatus: "/api/repos/worktree-status",
   repoWorktreeRemove: "/api/repos/worktree-remove",
   prDetail: "/api/prs/detail",
@@ -553,6 +556,40 @@ const handleBranchPulls: Handler = async (deps, request) => {
   });
 };
 
+/**
+ * reviewflow's newest pull request of every local branch, one lookup for all,
+ * kept when merged or closed and proven the branch's: a reused name's older
+ * one is left out. No GitHub fallback: without a token, nothing is asked.
+ */
+const handleRepoSettledPulls: Handler = async (deps, request) => {
+  if (request.method !== "GET") return notAllowed();
+  const checkout = await readListedCheckout(deps, request);
+  if (typeof checkout !== "string") return checkout;
+  const ownerRepo = request.query.get("repo") ?? "";
+  return gitAnswer(async (): Promise<SettledBranchPullRequestsResponse> => {
+    const { branches } = await deps.operations.readBranches(checkout);
+    const results = await deps.reviewflow.lookup(
+      branches.map(({ name }) => ({ ownerRepo, headRef: name })),
+    );
+    if (results === null) return { connected: false, branches: [] };
+    const settled = await Promise.all(
+      branches.map(async ({ name }, index) => {
+        const result = results[index];
+        const candidate =
+          result === undefined ? null : settledCandidateOf(result);
+        if (candidate === null) return [];
+        const linked = await deps.operations.linkBranchPullRequests({
+          checkout,
+          branch: name,
+          pullRequests: [candidate],
+        });
+        return linked.map((pullRequest) => ({ branch: name, pullRequest }));
+      }),
+    );
+    return { connected: true, branches: settled.flat() };
+  });
+};
+
 interface BranchPullRequestHeads {
   /** null on a detached HEAD */
   branch: string | null;
@@ -946,6 +983,7 @@ const handlers: Record<string, Handler> = {
   [apiRoutes.repoBranches]: handleRepoBranches,
   [apiRoutes.repoPulls]: handleRepoPulls,
   [apiRoutes.repoBranchPulls]: handleBranchPulls,
+  [apiRoutes.repoSettledPulls]: handleRepoSettledPulls,
   [apiRoutes.repoWorktreeStatus]: handleWorktreeStatus,
   [apiRoutes.repoWorktreeRemove]: handleWorktreeRemove,
   [apiRoutes.prDetail]: handlePrDetail,
