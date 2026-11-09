@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.30.0](https://github.com/christophehurpeau/reviewflow/compare/v6.29.0...v6.30.0) (2026-11-09)
+
+### Features
+
+* filter pull request views and add a closed view ([#1262](https://github.com/christophehurpeau/reviewflow/issues/1262))
+
+Version bump for dependency: @reviewflow/modules
+
+
 ## [6.22.0](https://github.com/christophehurpeau/reviewflow/compare/v6.21.0...v6.22.0) (2026-11-08)
 
 ### Features
