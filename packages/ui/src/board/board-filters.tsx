@@ -21,10 +21,10 @@ import {
   Tabs,
   View,
 } from "alouette";
+import { BookBookmarkRegularIcon } from "alouette-icons/phosphor-icons/BookBookmark";
 import { BuildingsRegularIcon } from "alouette-icons/phosphor-icons/Buildings";
 import { CheckCircleRegularIcon } from "alouette-icons/phosphor-icons/CheckCircle";
 import { EyeRegularIcon } from "alouette-icons/phosphor-icons/Eye";
-import { GitBranchRegularIcon } from "alouette-icons/phosphor-icons/GitBranch";
 import { MagnifyingGlassRegularIcon } from "alouette-icons/phosphor-icons/MagnifyingGlass";
 import { PencilSimpleLineRegularIcon } from "alouette-icons/phosphor-icons/PencilSimpleLine";
 import { TagRegularIcon } from "alouette-icons/phosphor-icons/Tag";
@@ -252,7 +252,7 @@ export function BoardFiltersBar({
           <FilterMenu
             label="Repository"
             allLabel="All repositories"
-            icon={<GitBranchRegularIcon />}
+            icon={<BookBookmarkRegularIcon />}
             options={options.repos.map(toRepoOption)}
             value={filters.repo}
             onChange={(repo) => {

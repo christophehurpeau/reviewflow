@@ -9,9 +9,9 @@ import type {
 import { hasActivePrFilters, parsePrFilters } from "@reviewflow/modules";
 import type { SelectOption } from "alouette";
 import { Button, Tab, Tabs, View } from "alouette";
+import { BookBookmarkRegularIcon } from "alouette-icons/phosphor-icons/BookBookmark";
 import { CheckCircleRegularIcon } from "alouette-icons/phosphor-icons/CheckCircle";
 import { EyeRegularIcon } from "alouette-icons/phosphor-icons/Eye";
-import { GitBranchRegularIcon } from "alouette-icons/phosphor-icons/GitBranch";
 import { PencilSimpleLineRegularIcon } from "alouette-icons/phosphor-icons/PencilSimpleLine";
 import { TagRegularIcon } from "alouette-icons/phosphor-icons/Tag";
 import { UserRegularIcon } from "alouette-icons/phosphor-icons/User";
@@ -115,7 +115,7 @@ export function PrsFilters({
           <PrFilterMenu
             label="Repository"
             allLabel="All repositories"
-            icon={<GitBranchRegularIcon />}
+            icon={<BookBookmarkRegularIcon />}
             options={options.repos.map(toRepoOption)}
             value={filters.repo}
             onValueChange={(repo) => {
