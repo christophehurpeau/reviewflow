@@ -186,6 +186,12 @@ interface PullRequestDiffViewProps {
  *
  * Hiding whitespace is refused while a comment is being written: its line may
  * leave the patch, and the comment with it.
+ *
+ * The review is the range's: its commit anchorings, its right-only side. A
+ * diff read for another range (the commit stepped from, the scope switched
+ * from) is never rendered under it, which would badge, mark and anchor its
+ * files as this range's: the loader stands in until this range's diff is
+ * read. A whitespace toggle keeps the range, so its previous diff stays.
  */
 export function PullRequestDiffView({
   range,
@@ -201,11 +207,21 @@ export function PullRequestDiffView({
   // a JS breakpoint rather than `xl:` classes: the sticky offset is the measured toolbar's
   const aside = useCurrentBreakpointNameFiltered(["base", "wide"]) === "wide";
   const whitespace = useWhitespaceToggle();
-  const { diff, error, loading, step, refused } = usePullRequestDiff(
+  const { diff, cached, error, loading, step, refused } = usePullRequestDiff(
     range,
     whitespace.whitespace,
   );
-  const shownDiff = useDeferredValue(diff);
+  const rangeKey = `${range.base}..${range.head}`;
+  // a cached diff is a previous request's: only an answer tells which range it is
+  const [answered, setAnswered] = useState<{
+    diff: PullRequestDiffResponse;
+    rangeKey: string;
+  } | null>(null);
+  if (diff !== null && !cached && answered?.diff !== diff) {
+    setAnswered({ diff, rangeKey });
+  }
+  const deferred = useDeferredValue(answered);
+  const shownDiff = deferred?.rangeKey === rangeKey ? deferred.diff : null;
   const collapse = usePullRequestCollapse();
   const draft = usePullRequestReviewDraft();
   // a commit's composer; the pull request's lives with the draft, which pins the range
@@ -320,7 +336,9 @@ export function PullRequestDiffView({
         <View className="absolute inset-x-l bottom-0 h-0.5">
           <IndeterminateLinearProgress
             loading={
-              loading || (ordered && readingOrder.reading) || shownDiff !== diff
+              loading ||
+              (ordered && readingOrder.reading) ||
+              deferred !== answered
             }
             size="xs"
           />

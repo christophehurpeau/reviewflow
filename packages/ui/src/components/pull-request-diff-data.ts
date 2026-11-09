@@ -21,6 +21,8 @@ export interface PullRequestDiffTarget extends PullRequestRef {
 
 interface DiffState {
   diff: PullRequestDiffResponse | null;
+  /** `diff` is a previous request's, kept while this one loads: another range's, or another whitespace's */
+  cached: boolean;
   error: string | null;
   loading: boolean;
   /** what a read in progress is waiting on, when the source says */
@@ -38,11 +40,11 @@ export const usePullRequestDiff = (
   whitespace: DiffWhitespace,
 ): DiffState => {
   const { useDiff } = usePullRequestDataSource();
-  const { value, error, reading, step, refused } = useDiff(
+  const { value, cached, error, reading, step, refused } = useDiff(
     { ownerRepo, number },
     { head, base, whitespace },
   );
-  return { diff: value, error, loading: reading, step, refused };
+  return { diff: value, cached, error, loading: reading, step, refused };
 };
 
 const useAlwaysAttached = (): RepositoryAttachment => ({
