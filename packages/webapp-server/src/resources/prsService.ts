@@ -1,4 +1,5 @@
 import {
+  buildClosedPrsQuery,
   buildPrBucketQuery,
   buildPullRequestUrl,
   reviewedWithReviewer,
@@ -136,10 +137,11 @@ export const createPrsService = (
         );
 
         const createQuery = (scope: PrBucketAccount[] | undefined) => {
-          const { criteria, sort } = buildPrBucketQuery(bucket, {
-            userId: user.id,
-            accounts: scope ?? [],
-          });
+          const context = { userId: user.id, accounts: scope ?? [] };
+          const { criteria, sort } =
+            bucket === "closed"
+              ? buildClosedPrsQuery(context)
+              : buildPrBucketQuery(bucket, context);
           return mongoStores.prs.createQueryCollection({
             criteria: scope ? criteria : matchNothing,
             sort,

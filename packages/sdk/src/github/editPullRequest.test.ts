@@ -213,6 +213,69 @@ describe("editPullRequest", () => {
     ghRest.mockResolvedValue(null);
   });
 
+  describe("startReview", () => {
+    const edit = { kind: "startReview" } as const;
+
+    it("is an edit that takes nothing", () => {
+      expect(parsePullRequestEdit(edit)).toEqual(edit);
+    });
+
+    it("comments, then asks for the viewer's own review again", async () => {
+      ghGraphql.mockResolvedValue({
+        data: { viewer: { login: "ada" } },
+        errors: [],
+      });
+
+      await expect(editPullRequest(transport, { ...ref, edit })).resolves.toBe(
+        null,
+      );
+
+      expect(ghRest.mock.calls).toEqual([
+        [
+          {
+            method: "POST",
+            path: "repos/acme/app/pulls/12/reviews",
+            body: { event: "COMMENT", body: "I started the review" },
+          },
+        ],
+        [
+          {
+            method: "POST",
+            path: "repos/acme/app/pulls/12/requested_reviewers",
+            body: { reviewers: ["ada"] },
+          },
+        ],
+      ]);
+    });
+
+    it("fails when the review is refused, asking nothing more", async () => {
+      ghRest.mockRejectedValue(new Error("refused"));
+
+      await expect(
+        editPullRequest(transport, { ...ref, edit }),
+      ).rejects.toThrow("refused");
+
+      expect(ghGraphql).not.toHaveBeenCalled();
+    });
+
+    it("succeeds and logs when asking again is refused", async () => {
+      const logger = { warn: vi.fn(), error: vi.fn() };
+      ghGraphql.mockResolvedValue({
+        data: { viewer: { login: "ada" } },
+        errors: [],
+      });
+      ghRest
+        .mockResolvedValueOnce(null)
+        .mockRejectedValueOnce(new Error("no push access"));
+
+      await expect(
+        editPullRequest(transport, { ...ref, edit }, { logger }),
+      ).resolves.toBe(null);
+
+      expect(logger.warn).toHaveBeenCalledOnce();
+    });
+  });
+
   it("adds labels in one request and removes each by its encoded name", async () => {
     await editPullRequest(transport, {
       ...ref,

@@ -39,7 +39,8 @@ export const pullRequestPartsStaleAfter = (
     case "resolveThread": {
       return ["timeline"];
     }
-    case "review": {
+    case "review":
+    case "startReview": {
       // the header's verdicts and merge state, and the files' "since my last review"
       return ["detail", "timeline", "files"];
     }
@@ -84,6 +85,7 @@ export const pullRequestEditMovesBoard = (edit: PullRequestEdit): boolean => {
     case "merge":
     case "review":
     case "reviewers":
+    case "startReview":
     case "state":
     case "updateBranch": {
       return true;

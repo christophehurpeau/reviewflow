@@ -7,7 +7,21 @@ export type PrBucket =
   | "requested-reviews"
   | "waiting-for-review";
 
+/** what `queryMyPrs` lists: a bucket of the board, or the closed pull requests */
+export type MyPrsList = PrBucket | "closed";
+
 export type PrCheckConclusion = "failed" | "in-progress" | "passed" | "unknown";
+
+export type PrReviewState =
+  | "approved"
+  | "changesRequested"
+  | "none"
+  | "requested";
+
+export interface PrLabel {
+  id: number;
+  name: string;
+}
 
 export interface PrUserSummary {
   id: number;
@@ -48,11 +62,15 @@ export interface PrSummary {
   number: number;
   title: string;
   url: string;
+  headRef: string | null;
   isDraft: boolean;
   checks: PrChecksSummary;
   /** reviewflow's own pull request lint (title, commits), failing independently of the checks */
   lintFailed: boolean;
   statusLinks: PrStatusLink[];
+  labels: PrLabel[];
+  /** `null` when reviewflow cannot know it */
+  reviewState: PrReviewState | null;
   approvedBy: PrUserSummary[];
   changesRequestedBy: PrUserSummary[];
   /** asked for a review they have not given on this pull request before */
@@ -67,4 +85,8 @@ export interface PrSummary {
   unresolvedThreads: number | null;
   openedAt?: Date;
   approvedAt?: Date;
+  /** set on a closed pull request only: a reopened one keeps its old date in mongo */
+  closedAt?: Date;
+  /** absent on a pull request closed before reviewflow recorded merges */
+  isMerged?: boolean;
 }

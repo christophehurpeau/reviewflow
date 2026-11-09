@@ -163,9 +163,17 @@ export const reviewflowPrOwners = (
 };
 
 export const reviewflowPrFlowDate = (
-  { openedAt, approvedAt }: Pick<ReviewflowBoardPr, "approvedAt" | "openedAt">,
+  {
+    state,
+    openedAt,
+    approvedAt,
+    closedAt,
+  }: Pick<ReviewflowBoardPr, "approvedAt" | "closedAt" | "openedAt" | "state">,
   options?: FormatRelativeDateOptions,
 ): string | null => {
+  if (closedAt !== null && state !== "open" && state !== "draft") {
+    return `${state === "merged" ? "merged" : "closed"} ${formatRelativeDate(closedAt, options)}`;
+  }
   if (approvedAt !== null) {
     return `approved ${formatRelativeDate(approvedAt, options)}`;
   }

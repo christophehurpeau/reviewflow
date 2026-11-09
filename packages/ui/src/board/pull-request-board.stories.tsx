@@ -1,6 +1,9 @@
+import type { BoardFilters } from "@reviewflow/sdk";
+import { defaultBoardFilters } from "@reviewflow/sdk";
 import type { Meta, StoryObj } from "@storybook/react-native";
 import { Button, ScreenScrollView, Text, View } from "alouette";
-import type { JSX } from "react";
+import type { JSX, ReactNode } from "react";
+import { useState } from "react";
 import { fn } from "storybook/test";
 import * as fixtures from "./fixtures.ts";
 import type { MockBoardOptions } from "./mockDataSource.tsx";
@@ -68,6 +71,54 @@ export const NotConfiguredStory: StoryObj<typeof PullRequestBoard> = {
 export const EmptyStory: StoryObj<typeof PullRequestBoard> = {
   name: "PullRequestBoard Empty",
   render: () => render({ board: { value: fixtures.emptyBoardResponse } }),
+};
+
+function FilteredBoard({
+  initial,
+}: {
+  initial: Partial<BoardFilters>;
+}): ReactNode {
+  const [value, setValue] = useState<BoardFilters>({
+    ...defaultBoardFilters,
+    ...initial,
+  });
+  return render({}, { filtering: { value, onChange: setValue } });
+}
+
+export const FiltersStory: StoryObj<typeof PullRequestBoard> = {
+  name: "PullRequestBoard Filters",
+  render: () => <FilteredBoard initial={{}} />,
+};
+
+export const FiltersNoMatchStory: StoryObj<typeof PullRequestBoard> = {
+  name: "PullRequestBoard Filters without a match",
+  render: () => <FilteredBoard initial={{ author: "nobody" }} />,
+};
+
+export const FiltersActiveStory: StoryObj<typeof PullRequestBoard> = {
+  name: "PullRequestBoard Filters active",
+  render: () => (
+    <FilteredBoard
+      initial={{
+        search: "legacy",
+        review: "requested",
+        label: ":broom: cleanup",
+      }}
+    />
+  ),
+};
+
+export const ClosedStory: StoryObj<typeof PullRequestBoard> = {
+  name: "PullRequestBoard Closed",
+  render: () => <FilteredBoard initial={{ state: "closed" }} />,
+};
+
+export const ReviewStartedStory: StoryObj<typeof PullRequestBoard> = {
+  name: "PullRequestBoard Review started",
+  render: () =>
+    render({
+      startedReviews: [{ ownerRepo: "acme/storefront", number: 482 }],
+    }),
 };
 
 export const ExtraSectionStory: StoryObj<typeof PullRequestBoard> = {

@@ -128,6 +128,13 @@ export interface ReviewflowGroup {
   buckets: ReviewflowBucket[];
 }
 
+export interface ReviewflowClosedPrs {
+  /** every match in reviewflow; `prs` stops at the first page */
+  total: number;
+  /** most recently closed first */
+  prs: ReviewflowPrDetail[];
+}
+
 export interface ReviewflowClient {
   me: () => Promise<ReviewflowMe>;
   /** same order as `targets`, whatever their number */
@@ -136,6 +143,8 @@ export interface ReviewflowClient {
   ) => Promise<ReviewflowLookupResult[]>;
   /** one account's board, with up to `maxExtraPagesPerBucket` more pages per bucket */
   board: (account: string) => Promise<ReviewflowGroup[]>;
+  /** `account` null spans every account the token reads */
+  closedPrs: (account: string | null) => Promise<ReviewflowClosedPrs>;
   /** null when reviewflow never handled it, or the token cannot read its owner */
   pr: (ownerRepo: string, number: number) => Promise<ReviewflowPrDetail | null>;
 }
@@ -535,6 +544,23 @@ export const createReviewflowClient = ({
         }),
       );
       return answers.flat();
+    },
+
+    closedPrs: async (account) => {
+      const query =
+        account === null
+          ? ""
+          : `?${new URLSearchParams({ account }).toString()}`;
+      const body = await request(`/closed-prs/v1${query}`);
+      if (!isRecord(body) || !Array.isArray(body.prs)) {
+        throw fail(
+          "reviewflow returned closed pull requests the client cannot read",
+        );
+      }
+      return {
+        total: numberOr(body.total, body.prs.length),
+        prs: body.prs.map(readPrDetail),
+      };
     },
 
     pr: async (ownerRepo, number) => {

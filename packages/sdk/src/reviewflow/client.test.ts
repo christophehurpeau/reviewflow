@@ -240,6 +240,31 @@ describe("readPrDetail", () => {
 });
 
 describe("createReviewflowClient", () => {
+  it("reads the closed pull requests, of every account without one", async () => {
+    const { fetch, calls } = fakeFetch(() => json({ total: 3, prs: [] }));
+
+    await expect(client(fetch).closedPrs(null)).resolves.toEqual({
+      total: 3,
+      prs: [],
+    });
+    await client(fetch).closedPrs("acme");
+
+    expect(calls[0]).toMatchObject({
+      url: "https://rf.example/api/closed-prs/v1",
+    });
+    expect(calls[1]).toMatchObject({
+      url: "https://rf.example/api/closed-prs/v1?account=acme",
+    });
+  });
+
+  it("fails on closed pull requests it cannot read", async () => {
+    const { fetch } = fakeFetch(() => json({ total: 3 }));
+
+    await expect(client(fetch).closedPrs(null)).rejects.toThrow(
+      "closed pull requests",
+    );
+  });
+
   it("sends the token as a bearer", async () => {
     const { fetch, calls } = fakeFetch(() =>
       json({

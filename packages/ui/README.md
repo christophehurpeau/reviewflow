@@ -87,7 +87,7 @@ Every hook answers with a `PullRequestReadState` (`value`, `cached`,
 `reading`, `error`); the payload types come from `@reviewflow/sdk`, so a
 source is usually `fetchPullRequestPart` and `readPullRequestDiff` from the sdk
 behind your own cache and server. The board takes a `BoardDataSource`
-(`useBoard`, `useReviewflowStatus`, `refresh`) through
+(`useBoard`, `useReviewflowStatus`, `useClosedPullRequests`, `startReview`, `useStartedReviews`, `refresh`) through
 `BoardDataSourceProvider`. `PullRequestSlotsProvider` (or the `slots` prop)
 replaces the markdown editor or adds an action to the "no checkout" notice.
 

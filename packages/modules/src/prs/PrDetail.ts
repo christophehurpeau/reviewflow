@@ -6,12 +6,6 @@ export type PrState = "closed" | "draft" | "merged" | "open";
 /** github computes it after each push: `unknown` until it has, or once the base moved */
 export type PrMergeable = "conflicting" | "mergeable" | "unknown";
 
-export type PrReviewState =
-  | "approved"
-  | "changesRequested"
-  | "none"
-  | "requested";
-
 export type PrReviewerState =
   | "approved"
   | "changesRequested"
@@ -60,11 +54,6 @@ export interface PrDetailChecks extends PrChecksSummary {
   statuses: PrCommitStatus[];
 }
 
-export interface PrLabel {
-  id: number;
-  name: string;
-}
-
 /**
  * One pull request as the read api returns it: dates are ISO 8601 strings in
  * UTC, and a field reviewflow cannot know for an old document is `null`.
@@ -72,14 +61,13 @@ export interface PrLabel {
  */
 export interface PrDetail extends Omit<
   PrSummary,
-  "approvedAt" | "checks" | "openedAt"
+  "approvedAt" | "checks" | "closedAt" | "isMerged" | "openedAt"
 > {
   accountId: number;
   repoId: number;
   /** "owner/name" */
   ownerRepo: string;
 
-  headRef: string | null;
   baseRef: string | null;
   headSha: string | null;
   /** base branch tip as of the last update of the pull request, not the merge base */
@@ -89,7 +77,6 @@ export interface PrDetail extends Omit<
 
   state: PrState | null;
   mergeable: PrMergeable;
-  labels: PrLabel[];
 
   flowDates: {
     createdAt: string | null;
@@ -105,7 +92,6 @@ export interface PrDetail extends Omit<
     lastBodyEditedAt: string | null;
   };
 
-  reviewState: PrReviewState | null;
   /** people asked or having reviewed, the author excluded; teams are in `requestedTeams` */
   reviewers: PrReviewer[];
 

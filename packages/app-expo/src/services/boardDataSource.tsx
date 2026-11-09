@@ -1,11 +1,16 @@
+import type { PullRequestRef } from "@reviewflow/sdk";
 import type { BoardDataSource, BoardReadState } from "@reviewflow/ui";
 import { errorToMessage } from "@reviewflow/ui";
 import { useQuery } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
+import { postJson } from "./api.ts";
 import {
   boardQueryKey,
+  closedQueryKey,
   readBoard,
+  readClosedPullRequests,
   readStatus,
+  startedReviewsQueryKey,
   statusQueryKey,
 } from "./reviewflowApi.ts";
 
@@ -34,6 +39,32 @@ const useBoard: BoardDataSource["useBoard"] = () => {
   );
 };
 
+const useClosedPullRequests: BoardDataSource["useClosedPullRequests"] = ({
+  account,
+  enabled,
+}) =>
+  stateOf(
+    useQuery({
+      queryKey: [...closedQueryKey, account],
+      queryFn: () => readClosedPullRequests(account),
+      enabled,
+    }),
+  );
+
+const noStartedReviews: PullRequestRef[] = [];
+
+/**
+ * In the query cache so it outlives the screen. A row can only leave the
+ * requested reviews once started, so an entry never has to be forgotten.
+ */
+const useStartedReviews: BoardDataSource["useStartedReviews"] = () =>
+  useQuery({
+    queryKey: startedReviewsQueryKey,
+    initialData: noStartedReviews,
+    enabled: false,
+    gcTime: Number.POSITIVE_INFINITY,
+  }).data;
+
 /**
  * The board over the app server. The live events (see `liveEvents.ts`) write
  * into the same query keys, so a component reading through these hooks
@@ -44,8 +75,18 @@ export const createBoardDataSource = (
 ): BoardDataSource => ({
   useBoard,
   useReviewflowStatus,
+  useClosedPullRequests,
+  useStartedReviews,
+  startReview: async (ref) => {
+    await postJson("/api/prs/edit", { ...ref, edit: { kind: "startReview" } });
+    client.setQueryData<PullRequestRef[]>(
+      startedReviewsQueryKey,
+      (started = noStartedReviews) => [...started, ref],
+    );
+  },
   refresh: async () => {
     try {
+      await client.invalidateQueries({ queryKey: closedQueryKey });
       // the failure is held by the query, which `useBoard` reports
       await client.fetchQuery({
         queryKey: boardQueryKey,

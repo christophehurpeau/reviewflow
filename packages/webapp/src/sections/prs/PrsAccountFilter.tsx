@@ -1,12 +1,7 @@
-import type { SelectOption } from "alouette";
-import { Select, Text, View } from "alouette";
+import { BuildingsRegularIcon } from "alouette-icons/phosphor-icons/Buildings";
 import type { ReactNode } from "react";
+import { PrFilterMenu } from "./PrFilterMenu.tsx";
 import type { PrAccount } from "./prAccounts.ts";
-
-/** `undefined` cannot be a select value, so "every account" needs one of its own. */
-const allAccountsValue = "all";
-
-const labelId = "prs-account-filter-label";
 
 interface PrsAccountFilterProps {
   accounts: PrAccount[];
@@ -21,27 +16,15 @@ export function PrsAccountFilter({
 }: PrsAccountFilterProps): ReactNode {
   if (accounts.length < 2) return null;
 
-  const options: SelectOption[] = [
-    { label: "All accounts", value: allAccountsValue },
-    ...accounts.map((account) => ({
-      label: account.login,
-      value: account.login,
-    })),
-  ];
-
   return (
-    <View className="gap-xs md:max-w-[320px]">
-      <Text id={labelId} className="font-body text-sm text-muted">
-        Account
-      </Text>
-      <Select
-        aria-labelledby={labelId}
-        options={options}
-        value={selectedAccountLogin ?? allAccountsValue}
-        onValueChange={(value) => {
-          onSelectAccountLogin(value === allAccountsValue ? undefined : value);
-        }}
-      />
-    </View>
+    <PrFilterMenu
+      valueOnly
+      label="Account"
+      allLabel="All accounts"
+      icon={<BuildingsRegularIcon />}
+      options={accounts.map(({ login }) => ({ label: login, value: login }))}
+      value={selectedAccountLogin}
+      onValueChange={onSelectAccountLogin}
+    />
   );
 }

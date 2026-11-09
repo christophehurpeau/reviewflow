@@ -572,6 +572,7 @@ export type PullRequestEdit =
   | { kind: "resolveThread"; threadId: string; resolved: boolean }
   | { kind: "state"; state: "closed" | "open" }
   | { kind: "title"; title: string }
+  | { kind: "startReview" }
   | { kind: "updateBranch"; expectedHeadSha: string }
   | { kind: "viewed"; path: string; viewed: boolean };
 

@@ -133,6 +133,8 @@ export const createToPrDetail = (
       checks: summaryChecks,
       openedAt,
       approvedAt,
+      closedAt,
+      isMerged,
       ...summary
     } = toPrSummary(pr);
 
@@ -142,7 +144,6 @@ export const createToPrDetail = (
       repoId: pr.repo.id,
       ownerRepo: `${pr.account.login}/${pr.repo.name}`,
 
-      headRef: pr.headRef ?? null,
       baseRef: pr.baseRef ?? null,
       headSha: pr.headSha ?? null,
       baseSha: pr.baseSha ?? null,
@@ -150,7 +151,6 @@ export const createToPrDetail = (
 
       state: toState(pr),
       mergeable: pr.mergeable ?? "unknown",
-      labels: pr.labels?.map(({ id, name }) => ({ id, name })) ?? [],
 
       flowDates: {
         createdAt: toIso(pr.flowDates?.createdAt),
@@ -168,7 +168,6 @@ export const createToPrDetail = (
         lastBodyEditedAt: toIso(pr.flowDates?.lastBodyEditedAt),
       },
 
-      reviewState: pr.reviewState ?? null,
       reviewers: toReviewers(pr),
 
       checks: toDetailChecks(readPrChecksAndStatuses(pr)),

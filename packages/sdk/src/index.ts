@@ -37,6 +37,7 @@ export * from "./reviewflow/client.ts";
 export * from "./reviewflow/stream.ts";
 export * from "./reviewflow/board.ts";
 export * from "./reviewflow/boardFacts.ts";
+export * from "./reviewflow/boardFilters.ts";
 export * from "./reviewflow/follow.ts";
 export type * from "./reviewflow/status.ts";
 export { defaultRepoPaths } from "./config/defaultRepoPaths.ts";

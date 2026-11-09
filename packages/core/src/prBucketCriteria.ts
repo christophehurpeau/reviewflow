@@ -174,6 +174,25 @@ export const buildPrBucketQuery = (
   }
 };
 
+/**
+ * The pull requests the user took part in, once closed: unlike a pending
+ * request, having reviewed one is what still ties them to it afterwards.
+ */
+export const buildClosedPrsQuery = (
+  context: PrBucketContext,
+): PrBucketQuery => ({
+  criteria: {
+    ...accountIdsCriteria(context.accounts),
+    isClosed: true,
+    $or: [
+      { "assignees.id": context.userId },
+      { "creator.id": context.userId },
+      { "reviews.reviewed.id": context.userId },
+    ],
+  },
+  sort: { "flowDates.closedAt": -1, created: -1 },
+});
+
 export interface PrStreamScopeOptions {
   /** closed pull requests the user owns stay in scope when closed since then */
   closedSince?: Date;

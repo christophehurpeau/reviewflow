@@ -13,6 +13,7 @@ import type {
 } from "@reviewflow/sdk";
 import {
   AccentScope,
+  ActionButton,
   ExternalLinkText,
   PressableListItem,
   Text,
@@ -23,6 +24,7 @@ import type { ReactNode } from "react";
 import type { GestureResponderEvent } from "react-native";
 import { linkInRow } from "../components/link-in-row.ts";
 import { isSafeUrl } from "../markdown-github/safe-url.ts";
+import { errorToMessage } from "../services/errorToMessage.ts";
 
 /**
  * Following a link from inside the pressable row must not also press the row.
@@ -47,6 +49,8 @@ export interface PullRequestRowFrameProps {
   titleAside?: ReactNode;
   /** under the title */
   children?: ReactNode;
+  /** the row's own buttons, which take their press for themselves */
+  actions?: ReactNode;
 }
 
 /**
@@ -60,9 +64,16 @@ export function PullRequestRowFrame({
   title,
   titleAside,
   children,
+  actions,
 }: PullRequestRowFrameProps): ReactNode {
   return (
-    <PressableListItem role="link" aria-label={ariaLabel} onPress={onPress}>
+    <PressableListItem
+      // a link row would nest the action's button inside it
+      role={actions === undefined ? "link" : "listitem"}
+      aria-label={ariaLabel}
+      actions={actions}
+      onPress={onPress}
+    >
       <View className="min-w-0 gap-xxs">
         <View className="flex-row flex-wrap items-center gap-xs">{meta}</View>
         <View className="flex-row flex-wrap items-baseline gap-xs">
@@ -90,6 +101,30 @@ export interface PullRequestRowProps {
   onOpenPullRequest: (ref: PullRequestRef) => void;
   /** Extra content under the status line (an app's own badges, say). */
   renderRowExtra?: (row: BoardRowInfo) => ReactNode;
+  /** Shows the Start review button; must reject on failure, the button renders the message. */
+  onStartReview?: (ref: PullRequestRef) => Promise<void>;
+}
+
+interface StartReviewButtonProps {
+  onStartReview: () => Promise<void>;
+}
+
+function StartReviewButton({
+  onStartReview,
+}: StartReviewButtonProps): ReactNode {
+  return (
+    <ActionButton
+      text="Start review"
+      size="sm"
+      errorToMessage={errorToMessage}
+      // the row is already a raised surface, so the failure message is flat
+      errorMessageVariant="flat"
+      onPress={(event) => {
+        stopRowPress(event);
+        return onStartReview();
+      }}
+    />
+  );
 }
 
 /**
@@ -192,8 +227,10 @@ export function PullRequestRow({
   viewer,
   onOpenPullRequest,
   renderRowExtra,
+  onStartReview,
 }: PullRequestRowProps): ReactNode {
   const { pr } = row;
+  const ref: PullRequestRef = { ownerRepo: pr.ownerRepo, number: pr.number };
   const context: ReviewflowRowContext = {
     bucketKey: row.bucketKey,
     groupKey: row.groupKey,
@@ -212,8 +249,13 @@ export function PullRequestRow({
           <Text className="text-sm text-muted">{owners}</Text>
         )
       }
+      actions={
+        onStartReview === undefined ? undefined : (
+          <StartReviewButton onStartReview={() => onStartReview(ref)} />
+        )
+      }
       onPress={() => {
-        onOpenPullRequest({ ownerRepo: pr.ownerRepo, number: pr.number });
+        onOpenPullRequest(ref);
       }}
     >
       <StatusLine pr={pr} context={context} />

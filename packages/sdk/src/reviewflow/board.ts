@@ -53,6 +53,9 @@ export interface ReviewflowBoardPr {
   changes: ReviewflowPrChanges | null;
   openedAt: string | null;
   approvedAt: string | null;
+  /** can outlive a reopening: only meaningful with a closed or merged `state` */
+  closedAt: string | null;
+  labels: string[];
   unresolvedThreads: number | null;
   mergeable: ReviewflowMergeable;
   /** reviewflow's last write */
@@ -89,6 +92,14 @@ export interface ReviewflowBoardResponse {
   viewer: string | null;
 }
 
+/** `GET /api/reviewflow/closed`: empty without a token */
+export interface ReviewflowClosedPullRequestsResponse {
+  /** every match in reviewflow; `prs` stops at the first page */
+  total: number;
+  prs: ReviewflowBoardPr[];
+  viewer: string | null;
+}
+
 export const toBoardPr = (pr: ReviewflowPrDetail): ReviewflowBoardPr => ({
   id: pr.id,
   ownerRepo: pr.ownerRepo,
@@ -114,6 +125,8 @@ export const toBoardPr = (pr: ReviewflowPrDetail): ReviewflowBoardPr => ({
   changes: pr.changes,
   openedAt: pr.openedAt,
   approvedAt: pr.approvedAt,
+  closedAt: pr.closedAt,
+  labels: pr.labels,
   unresolvedThreads: pr.unresolvedThreads,
   mergeable: pr.mergeable,
   updatedAt: pr.updatedAt,

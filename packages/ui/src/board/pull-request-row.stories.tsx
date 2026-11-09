@@ -55,6 +55,24 @@ export const RowVariantsStory: StoryObj<typeof PullRequestRow> = {
           />
         </Story.Section>
       ))}
+      <Story.Section title="with the Start review button">
+        <PullRequestRow
+          row={prs[0]!}
+          viewer="grace"
+          onOpenPullRequest={fn()}
+          onStartReview={fn(() => Promise.resolve())}
+        />
+      </Story.Section>
+      <Story.Section title="Start review refused by GitHub">
+        <PullRequestRow
+          row={prs[0]!}
+          viewer="grace"
+          onOpenPullRequest={fn()}
+          onStartReview={fn(() =>
+            Promise.reject(new Error("Can not review this pull request")),
+          )}
+        />
+      </Story.Section>
     </Story>
   ),
 };

@@ -24,6 +24,7 @@ import {
   parsePage,
   readBoard,
   readBucketPage,
+  readClosedPrs,
   resolveBoardAccounts,
 } from "./board.ts";
 import type { GetRelayState } from "./health.ts";
@@ -201,6 +202,13 @@ export default function apiRouter(
     res.json(
       await readBucketPage(mongoStores, auth, { bucket, account, page }),
     );
+  });
+
+  router.get("/closed-prs/v1", async (req, res) => {
+    const auth = apiAuthOf(res);
+    const account = queryParam(req, "account");
+
+    res.json(await readClosedPrs(mongoStores, auth, account));
   });
 
   router.get("/stream/v1", async (req, res) => {

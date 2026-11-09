@@ -1,4 +1,5 @@
 import type { PullRequestRef } from "@reviewflow/sdk";
+import { parseBoardFilters, toBoardFilterParams } from "@reviewflow/sdk";
 import { BoardDataSourceProvider, PullRequestBoard } from "@reviewflow/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -11,7 +12,7 @@ import {
 } from "alouette";
 import { ClockCounterClockwiseRegularIcon } from "alouette-icons/phosphor-icons/ClockCounterClockwise";
 import { MagnifyingGlassRegularIcon } from "alouette-icons/phosphor-icons/MagnifyingGlass";
-import { Link, useRouter } from "expo-router";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { OpenPullRequestModal } from "#/services/OpenPullRequestModal.tsx";
@@ -65,6 +66,17 @@ function RecentPullRequests({
 
 export default function HomePage(): ReactNode {
   const router = useRouter();
+  const params = useLocalSearchParams<{
+    state?: string;
+    account?: string;
+    repo?: string;
+    author?: string;
+    draft?: string;
+    checks?: string;
+    search?: string;
+    review?: string;
+    label?: string;
+  }>();
   const [opening, setOpening] = useState(false);
   const client = useQueryClient();
   const boardSource = useMemo(() => createBoardDataSource(client), [client]);
@@ -83,6 +95,15 @@ export default function HomePage(): ReactNode {
       <View className="page-container gap-xl py-l">
         <BoardDataSourceProvider value={boardSource}>
           <PullRequestBoard
+            filtering={{
+              value: parseBoardFilters(params),
+              onChange: (filters) => {
+                router.replace({
+                  pathname: "/",
+                  params: toBoardFilterParams(filters),
+                });
+              },
+            }}
             actions={
               <Button
                 text="Open a pull request"

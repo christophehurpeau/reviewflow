@@ -150,6 +150,35 @@ const get = (app: express.Express, url: string) =>
 const errorOf = (body: string) =>
   (JSON.parse(body) as { error: { code: string } }).error.code;
 
+describe("GET /api/closed-prs/v1", () => {
+  it("reads the closed pull requests of the accounts the token reads", async () => {
+    const { app, calls } = createApp("t-closed-all");
+
+    const response = await get(app, "/api/closed-prs/v1");
+
+    expect(response.status).toBe(200);
+    expect(JSON.parse(response.body)).toEqual({ total: 0, prs: [] });
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toMatchObject({
+      criteria: { isClosed: true, "account.id": { $in: [42, 1] } },
+      sort: { "flowDates.closedAt": -1, created: -1, _id: -1 },
+      skipped: 0,
+      limit: 100,
+    });
+  });
+
+  it("narrows to one account, refusing one the token cannot read", async () => {
+    const { app, calls } = createApp("t-closed-account");
+
+    await get(app, "/api/closed-prs/v1?account=elax");
+    expect(calls[0]!.criteria["account.id"]).toEqual({ $in: [1] });
+
+    const forbidden = await get(app, "/api/closed-prs/v1?account=acme");
+    expect(forbidden.status).toBe(403);
+    expect(errorOf(forbidden.body)).toBe("forbidden");
+  });
+});
+
 describe("GET /api/board/v1", () => {
   it("returns the groups and buckets in display order, without a cursor", async () => {
     const { app } = createApp("t-board-order");

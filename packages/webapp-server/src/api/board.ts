@@ -1,9 +1,14 @@
 import type {
   MongoStores,
   PrBucketAccount,
+  PrBucketQuery,
   ReviewflowPr,
 } from "@reviewflow/core";
-import { buildPrBucketQuery, createToPrDetail } from "@reviewflow/core";
+import {
+  buildClosedPrsQuery,
+  buildPrBucketQuery,
+  createToPrDetail,
+} from "@reviewflow/core";
 import type { PrBucket, PrBucketGroup, PrDetail } from "@reviewflow/modules";
 import {
   prBucketDisplay,
@@ -96,16 +101,12 @@ export interface BoardReader {
   accounts: PrBucketAccount[];
 }
 
-/** one page of one bucket, with the bucket's membership and order from core */
-export const readBoardBucket = async (
+const readPrsPage = async (
   mongoStores: MongoStores,
-  reader: BoardReader,
-  bucket: PrBucket,
+  { criteria, sort }: PrBucketQuery,
   offset: number,
   toPrDetail: (pr: ReviewflowPr) => PrDetail,
-): Promise<BoardBucket> => {
-  const { criteria, sort } = buildPrBucketQuery(bucket, reader);
-
+): Promise<{ total: number; prs: PrDetail[] }> => {
   const [total, prs] = await Promise.all([
     mongoStores.prs.count(criteria),
     mongoStores.prs
@@ -120,12 +121,30 @@ export const readBoardBucket = async (
       .fetch(({ result }) => result),
   ]);
 
+  return { total, prs: prs.map((pr) => toPrDetail(pr)) };
+};
+
+/** one page of one bucket, with the bucket's membership and order from core */
+export const readBoardBucket = async (
+  mongoStores: MongoStores,
+  reader: BoardReader,
+  bucket: PrBucket,
+  offset: number,
+  toPrDetail: (pr: ReviewflowPr) => PrDetail,
+): Promise<BoardBucket> => {
+  const { total, prs } = await readPrsPage(
+    mongoStores,
+    buildPrBucketQuery(bucket, reader),
+    offset,
+    toPrDetail,
+  );
+
   const nextOffset = offset + boardPageSize;
   return {
     key: bucket,
     title: prBucketDisplay[bucket].title,
     total,
-    prs: prs.map((pr) => toPrDetail(pr)),
+    prs,
     nextPage: nextOffset < total ? encodePage(nextOffset) : null,
   };
 };
@@ -174,6 +193,23 @@ export const readBucketPage = async (
     reader,
     bucket,
     page,
+    createToPrDetail(reader),
+  );
+};
+
+export const readClosedPrs = async (
+  mongoStores: MongoStores,
+  auth: ApiAuth,
+  account: string | undefined,
+): Promise<{ total: number; prs: PrDetail[] }> => {
+  const reader = {
+    userId: auth.user.id,
+    accounts: await resolveBoardAccounts(mongoStores, auth, account),
+  };
+  return readPrsPage(
+    mongoStores,
+    buildClosedPrsQuery(reader),
+    0,
     createToPrDetail(reader),
   );
 };
