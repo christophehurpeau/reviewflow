@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.29.0](https://github.com/christophehurpeau/reviewflow/compare/v6.28.0...v6.29.0) (2026-11-09)
+
+### Features
+
+* **app:** show a local branch's merged or closed pull request in the repository list, from reviewflow
+* **ui:** branch pull request buttons, merged and closed ones included
+* **ui:** say when commit by commit is turned on by default
+
+### Bug Fixes
+
+* **deps:** update dependency @lezer/highlight to v1.2.5 ([#1254](https://github.com/christophehurpeau/reviewflow/issues/1254))
+* **sdk:** name an ignored directory once before a worktree removal, regenerable ones unread
+* **ui:** never render another range's diff under the commit stepped to
+
+Version bump for dependency: @reviewflow/sdk
+
+
 ## [6.28.0](https://github.com/christophehurpeau/reviewflow/compare/v6.27.0...v6.28.0) (2026-11-08)
 
 ### Features

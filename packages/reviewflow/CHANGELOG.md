@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.29.0](https://github.com/christophehurpeau/reviewflow/compare/v6.28.0...v6.29.0) (2026-11-09)
+
+### Bug Fixes
+
+* read open pull requests' fullDatabaseId and never return a partial list
+* **reviewflow:** log a pull request lock with the event that takes it
+* **reviewflow:** run a reschedule with the event that scheduled it
+* **reviewflow:** store closed the pull requests github sent no closed webhook for
+
+Version bump for dependency: @reviewflow/core
+
+
 ## [6.22.0](https://github.com/christophehurpeau/reviewflow/compare/v6.21.0...v6.22.0) (2026-11-08)
 
 ### Bug Fixes

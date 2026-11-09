@@ -1,6 +1,6 @@
 {
   "name": "@reviewflow/app",
-  "version": "6.27.0",
+  "version": "6.29.0",
   "description": "reviewflow app: review any GitHub pull request locally (npx @reviewflow/app), a loopback server on 127.0.0.1:7450 over your gh login serving the expo app",
   "homepage": "https://github.com/christophehurpeau/reviewflow",
   "license": "ISC",

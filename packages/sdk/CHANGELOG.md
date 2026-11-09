@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.29.0](https://github.com/christophehurpeau/reviewflow/compare/v6.28.0...v6.29.0) (2026-11-09)
+
+### Features
+
+* **app:** show a local branch's merged or closed pull request in the repository list, from reviewflow
+* **sdk:** a branch's pull requests in every state, a reused name's older ones left out
+
+### Bug Fixes
+
+* **sdk:** name an ignored directory once before a worktree removal, regenerable ones unread
+* **sdk:** read a pending review request as review required in the gh pr query
+
 ## [6.27.0](https://github.com/christophehurpeau/reviewflow/compare/v6.26.0...v6.27.0) (2026-11-08)
 
 ### Features

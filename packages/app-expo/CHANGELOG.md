@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.29.0](https://github.com/christophehurpeau/reviewflow/compare/v6.28.0...v6.29.0) (2026-11-09)
+
+### Features
+
+* **app:** show a branch's pull requests, merged ones included, on the branch and checkout screens
+* **app:** show a local branch's merged or closed pull request in the repository list, from reviewflow
+
+Version bump for dependency: @reviewflow/sdk
+Version bump for dependency: @reviewflow/ui
+
+
 ## [6.28.0](https://github.com/christophehurpeau/reviewflow/compare/v6.27.0...v6.28.0) (2026-11-08)
 
 Version bump for dependency: @reviewflow/ui
