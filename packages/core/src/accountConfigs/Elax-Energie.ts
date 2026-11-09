@@ -14,7 +14,7 @@ const config: Config<never> = {
   parsePR: {
     title: [
       {
-        excludeRepositoryNames: ["elax-dagster"],
+        excludeRepositoryNames: ["elax-dagster", "cowork-plugins"],
         regExp: /\s([A-Z][\dA-Z]+-(\d+)|\[no (ticket|issue)\])$/,
         status: "notion-ticket",
         createStatusInfo: (match, prInfo, isPrFromBot, repositoryName) => {
