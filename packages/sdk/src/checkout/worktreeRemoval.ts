@@ -36,13 +36,37 @@ export interface WorktreeRemovalStatus {
    */
   processesInside: number | null;
   /**
-   * Ignored files, relative to the worktree, not symlinks, that the main
+   * Ignored paths, relative to the worktree, not symlinks, that the main
    * checkout does not have: `git worktree remove` deletes them without asking
    * and nothing else holds a copy. A warning, not a refusal: an ignored file is
-   * usually ignored because it is disposable.
+   * usually ignored because it is disposable. Directories and files first,
+   * then the regenerable directories, each group by path.
    */
-  localOnlyIgnored: string[];
+  localOnlyIgnored: LocalOnlyIgnored[];
 }
+
+export interface LocalOnlyIgnoredFile {
+  kind: "file";
+  path: string;
+}
+
+/** An ignored directory git lists as one entry; the regenerable ones inside are entries of their own, not counted. */
+export interface LocalOnlyIgnoredDirectory {
+  kind: "directory";
+  path: string;
+  files: number;
+}
+
+/** A directory named like a dependency, cache or build output (`node_modules`, `Pods`…): named, never walked. */
+export interface LocalOnlyIgnoredRegenerable {
+  kind: "regenerable";
+  path: string;
+}
+
+export type LocalOnlyIgnored =
+  | LocalOnlyIgnoredDirectory
+  | LocalOnlyIgnoredFile
+  | LocalOnlyIgnoredRegenerable;
 
 const fileCount = (count: number, kind: string): string | null =>
   count === 0 ? null : `${String(count)} ${kind} file${count === 1 ? "" : "s"}`;

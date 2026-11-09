@@ -25,7 +25,10 @@ describe("worktreeRemovalRefusals", () => {
   it("lets a clean worktree go, ignored files and an unknown process count included", () => {
     expect(
       worktreeRemovalRefusals(
-        status({ localOnlyIgnored: ["plan.md"], processesInside: null }),
+        status({
+          localOnlyIgnored: [{ kind: "file", path: "plan.md" }],
+          processesInside: null,
+        }),
       ),
     ).toEqual([]);
     expect(worktreeRemovalRefusal(status({}))).toBeNull();

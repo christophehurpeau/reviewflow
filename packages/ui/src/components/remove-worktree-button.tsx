@@ -1,8 +1,9 @@
 import type {
+  LocalOnlyIgnored,
   WorktreeRemovalResult,
   WorktreeRemovalStatus,
 } from "@reviewflow/sdk";
-import { worktreeRemovalRefusals } from "@reviewflow/sdk";
+import { pluralOf, worktreeRemovalRefusals } from "@reviewflow/sdk";
 import {
   Button,
   Checkbox,
@@ -20,18 +21,44 @@ import { errorToMessage } from "../services/errorToMessage.ts";
 
 const visibleIgnored = 10;
 
-export interface IgnoredFilesProps {
-  paths: string[];
+interface IgnoredEntryProps {
+  entry: LocalOnlyIgnored;
 }
 
 /**
- * Not a guard: an ignored file is usually disposable, so the reader decides.
  * Each path is prefixed `./` because a bare `~/…` (an agent writing to an
  * unexpanded home path) reads as the home directory.
  */
-export function IgnoredFiles({ paths }: IgnoredFilesProps): ReactNode {
-  if (paths.length === 0) return null;
-  const hidden = paths.length - visibleIgnored;
+function IgnoredEntry({ entry }: IgnoredEntryProps): ReactNode {
+  if (entry.kind === "file") return <Code>{`./${entry.path}`}</Code>;
+  if (entry.kind === "directory") {
+    return (
+      <View className="flex-row flex-wrap items-center gap-xs">
+        <Code>{`./${entry.path}/`}</Code>
+        <Text className="text-sm text-muted">
+          {pluralOf(entry.files, "file")}
+        </Text>
+      </View>
+    );
+  }
+  return (
+    <View className="flex-row flex-wrap items-center gap-xs">
+      <Code>{`./${entry.path}/`}</Code>
+      <Text className="text-sm text-muted">
+        dependencies or build output, not read
+      </Text>
+    </View>
+  );
+}
+
+export interface IgnoredFilesProps {
+  entries: LocalOnlyIgnored[];
+}
+
+/** Not a guard: an ignored file is usually disposable, so the reader decides. */
+export function IgnoredFiles({ entries }: IgnoredFilesProps): ReactNode {
+  if (entries.length === 0) return null;
+  const hidden = entries.length - visibleIgnored;
   return (
     <View className="gap-xxs">
       <WarningMessage variant="flat">
@@ -39,8 +66,8 @@ export function IgnoredFiles({ paths }: IgnoredFilesProps): ReactNode {
         real files and not symlinks, and the main checkout has no copy. Move
         them out first if you need them.
       </WarningMessage>
-      {paths.slice(0, visibleIgnored).map((path) => (
-        <Code key={path}>{`./${path}`}</Code>
+      {entries.slice(0, visibleIgnored).map((entry) => (
+        <IgnoredEntry key={entry.path} entry={entry} />
       ))}
       {hidden > 0 ? (
         <Text className="text-sm text-muted">{`and ${String(hidden)} more`}</Text>
@@ -83,7 +110,7 @@ export function WorktreeRemovalMessages({
       {check.notice === null ? null : (
         <Text className="text-sm text-muted">{check.notice}</Text>
       )}
-      <IgnoredFiles paths={check.status.localOnlyIgnored} />
+      <IgnoredFiles entries={check.status.localOnlyIgnored} />
     </>
   );
 }

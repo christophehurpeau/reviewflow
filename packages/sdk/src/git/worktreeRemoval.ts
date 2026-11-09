@@ -1,10 +1,11 @@
 import { execFile } from "node:child_process";
 import { existsSync, realpathSync } from "node:fs";
 import { lstat, readdir } from "node:fs/promises";
-import { dirname, isAbsolute, join, relative } from "node:path";
+import { dirname, isAbsolute, join, relative, sep } from "node:path";
 import { pid } from "node:process";
 import { promisify } from "node:util";
 import type {
+  LocalOnlyIgnored,
   WorktreeRemovalResult,
   WorktreeRemovalStatus,
 } from "../checkout/worktreeRemoval.ts";
@@ -158,20 +159,86 @@ export const countProcessesInside = async (
 
 const ignoredPrefix = "!! ";
 
-/** A directory git collapsed to one entry, named file by file. */
-const listFiles = async (
+/**
+ * Directory names that hold dependencies, caches or build outputs: what they
+ * hold is downloaded or generated again, so they are named and never walked
+ * (an expo prebuild's `ios/Pods` alone is some 20,000 files).
+ */
+const regenerableDirectoryNames = new Set([
+  ".cache",
+  ".expo",
+  ".gradle",
+  ".next",
+  ".turbo",
+  "build",
+  "coverage",
+  "DerivedData",
+  "dist",
+  "node_modules",
+  "Pods",
+]);
+
+/** The path down to its first regenerable directory, null when none of its directories is one. */
+const regenerableAncestor = (relativePath: string): string | null => {
+  const segments = relativePath.split(sep);
+  const index = segments.findIndex((segment) =>
+    regenerableDirectoryNames.has(segment),
+  );
+  return index === -1 ? null : segments.slice(0, index + 1).join(sep);
+};
+
+interface DirectoryWalk {
+  files: number;
+  regenerable: string[];
+}
+
+const emptyWalk: DirectoryWalk = { files: 0, regenerable: [] };
+
+/** Counts the files under a directory, stopping at a regenerable directory, which it names instead. */
+const walkDirectory = async (
   worktree: string,
   relativeDirectory: string,
-): Promise<string[]> => {
+): Promise<DirectoryWalk> => {
   const entries = await readdir(join(worktree, relativeDirectory), {
-    recursive: true,
     withFileTypes: true,
   }).catch(() => []);
-  return entries
-    .filter((entry) => entry.isFile())
-    .map((entry) => relative(worktree, join(entry.parentPath, entry.name)))
-    .toSorted();
+  const walks = await Promise.all(
+    entries.map(async (entry): Promise<DirectoryWalk> => {
+      const path = join(relativeDirectory, entry.name);
+      if (entry.isFile()) return { files: 1, regenerable: [] };
+      if (!entry.isDirectory()) return emptyWalk;
+      if (regenerableDirectoryNames.has(entry.name)) {
+        return { files: 0, regenerable: [path] };
+      }
+      return walkDirectory(worktree, path);
+    }),
+  );
+  return {
+    files: walks.reduce((total, walk) => total + walk.files, 0),
+    regenerable: walks.flatMap((walk) => walk.regenerable),
+  };
 };
+
+const toRegenerable = (path: string): LocalOnlyIgnored => ({
+  kind: "regenerable",
+  path,
+});
+
+const describeIgnoredDirectory = async (
+  worktree: string,
+  relativeDirectory: string,
+): Promise<LocalOnlyIgnored[]> => {
+  const { files, regenerable } = await walkDirectory(
+    worktree,
+    relativeDirectory,
+  );
+  const directory: LocalOnlyIgnored[] =
+    files === 0 ? [] : [{ kind: "directory", path: relativeDirectory, files }];
+  return [...directory, ...regenerable.map(toRegenerable)];
+};
+
+const byPath = (a: LocalOnlyIgnored, b: LocalOnlyIgnored): number =>
+  a.path.localeCompare(b.path);
 
 /**
  * Compared by existence, not content: git collapses an ignored directory to one
@@ -182,7 +249,7 @@ const listFiles = async (
 const listLocalOnlyIgnored = async (
   worktree: string,
   mainCheckout: string,
-): Promise<string[]> => {
+): Promise<LocalOnlyIgnored[]> => {
   const porcelain = await git(worktree, [
     "status",
     "--porcelain",
@@ -192,19 +259,31 @@ const listLocalOnlyIgnored = async (
   const ignored = porcelain
     .split("\0")
     .filter((entry) => entry.startsWith(ignoredPrefix))
-    .map((entry) => entry.slice(ignoredPrefix.length));
+    .map((entry) => entry.slice(ignoredPrefix.length).replace(/\/$/, ""));
   const localOnly = await Promise.all(
-    ignored.map(async (relativePath): Promise<string[]> => {
+    ignored.map(async (relativePath): Promise<LocalOnlyIgnored[]> => {
       // gone between the status and this read: nothing left to lose
       const entry = await lstat(join(worktree, relativePath)).catch(() => null);
       if (entry === null || entry.isSymbolicLink()) return [];
       if (existsSync(join(mainCheckout, relativePath))) return [];
-      return entry.isDirectory()
-        ? listFiles(worktree, relativePath)
-        : [relativePath];
+      const regenerable = regenerableAncestor(relativePath);
+      if (regenerable !== null) return [toRegenerable(regenerable)];
+      if (entry.isDirectory()) {
+        return describeIgnoredDirectory(worktree, relativePath);
+      }
+      return [{ kind: "file", path: relativePath }];
     }),
   );
-  return localOnly.flat();
+  const entries = localOnly.flat();
+  const regenerablePaths = new Set(
+    entries
+      .filter((entry) => entry.kind === "regenerable")
+      .map((entry) => entry.path),
+  );
+  return [
+    ...entries.filter((entry) => entry.kind !== "regenerable").toSorted(byPath),
+    ...[...regenerablePaths].map(toRegenerable).toSorted(byPath),
+  ];
 };
 
 export interface ReadWorktreeRemovalStatusParams {

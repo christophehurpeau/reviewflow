@@ -120,9 +120,12 @@ describe("readWorktreeRemovalStatus", () => {
     ).resolves.toMatchObject({ unpushedCommits: 0 });
   });
 
-  it("names the ignored files that exist only in this worktree", async () => {
+  it("names the ignored paths that exist only in this worktree, a directory as one entry", async () => {
     const worktree = addWorktree("linked", "feat");
-    writeFileSync(join(worktree, ".gitignore"), "*.local\ncache/\nnotes/\n");
+    writeFileSync(
+      join(worktree, ".gitignore"),
+      "*.local\ncache/\nnotes/\nnode_modules/\nios/\n",
+    );
     repo.git(["add", ".gitignore"], worktree);
     repo.git(["commit", "--quiet", "-m", "chore: ignore"], worktree);
     repo.git(["update-ref", "refs/remotes/origin/feat", "feat"]);
@@ -133,13 +136,23 @@ describe("readWorktreeRemovalStatus", () => {
     mkdirSync(join(worktree, "cache"));
     writeFileSync(join(worktree, "cache", "entry"), "regenerable");
     mkdirSync(join(worktree, "notes", "deep"), { recursive: true });
+    writeFileSync(join(worktree, "notes", "top.md"), "only here");
     writeFileSync(join(worktree, "notes", "deep", "plan.md"), "only here");
+    mkdirSync(join(worktree, "node_modules", "pkg"), { recursive: true });
+    writeFileSync(join(worktree, "node_modules", "pkg", "index.js"), "");
+    mkdirSync(join(worktree, "ios", "App"), { recursive: true });
+    writeFileSync(join(worktree, "ios", "App", "main.swift"), "");
+    mkdirSync(join(worktree, "ios", "Pods", "Lib"), { recursive: true });
+    writeFileSync(join(worktree, "ios", "Pods", "Lib", "a.m"), "");
 
     const status = await readWorktreeRemovalStatus({ worktree });
 
-    expect(status.localOnlyIgnored.toSorted()).toEqual([
-      join("notes", "deep", "plan.md"),
-      "plan.local",
+    expect(status.localOnlyIgnored).toEqual([
+      { kind: "directory", path: "ios", files: 1 },
+      { kind: "directory", path: "notes", files: 2 },
+      { kind: "file", path: "plan.local" },
+      { kind: "regenerable", path: join("ios", "Pods") },
+      { kind: "regenerable", path: "node_modules" },
     ]);
   });
 });
