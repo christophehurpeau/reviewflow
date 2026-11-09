@@ -2,6 +2,7 @@ import type {
   ReviewflowBoardGroup,
   ReviewflowBoardPr,
   ReviewflowBoardResponse,
+  ReviewflowClosedPullRequestsResponse,
   ReviewflowConnectionStatus,
 } from "@reviewflow/sdk";
 import type { PullRequestBoardExtraSection } from "./pull-request-board.tsx";
@@ -37,6 +38,9 @@ const pr = (
   changes: { changedFiles: 4, additions: 120, deletions: 18 },
   openedAt: "2026-11-04T10:00:00.000Z",
   approvedAt: null,
+  closedAt: null,
+  labels: [],
+  lastActivityAt: fetchedAt,
   unresolvedThreads: null,
   mergeable: "mergeable",
   updatedAt: fetchedAt,
@@ -57,6 +61,7 @@ const groups: ReviewflowBoardGroup[] = [
           pr(482, "Cache the cart totals per session"),
           pr(490, "Drop the legacy checkout route", {
             author: "linus",
+            labels: ["cleanup"],
             statusLinks: [
               {
                 name: "ticket",
@@ -183,3 +188,21 @@ export const extraSections: PullRequestBoardExtraSection[] = [
     ],
   },
 ];
+
+export const closedResponse: ReviewflowClosedPullRequestsResponse = {
+  total: 245,
+  viewer: "grace",
+  prs: [
+    pr(440, "Stop retrying declined payments", {
+      state: "merged",
+      closedAt: "2026-11-05T17:20:00.000Z",
+    }),
+    pr(437, "Try a second payment provider", {
+      state: "closed",
+      author: "linus",
+      checksConclusion: "failed",
+      failedChecks: ["e2e"],
+      closedAt: "2026-11-03T11:05:00.000Z",
+    }),
+  ],
+};

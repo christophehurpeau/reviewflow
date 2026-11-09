@@ -1,12 +1,7 @@
 import type { SelectOption } from "alouette";
-import { Select, Text, View } from "alouette";
 import type { ReactNode } from "react";
+import { PrFilterSelect, allFilterValue } from "./PrFilterSelect.tsx";
 import type { PrAccount } from "./prAccounts.ts";
-
-/** `undefined` cannot be a select value, so "every account" needs one of its own. */
-const allAccountsValue = "all";
-
-const labelId = "prs-account-filter-label";
 
 interface PrsAccountFilterProps {
   accounts: PrAccount[];
@@ -22,7 +17,7 @@ export function PrsAccountFilter({
   if (accounts.length < 2) return null;
 
   const options: SelectOption[] = [
-    { label: "All accounts", value: allAccountsValue },
+    { label: "All accounts", value: allFilterValue },
     ...accounts.map((account) => ({
       label: account.login,
       value: account.login,
@@ -30,18 +25,11 @@ export function PrsAccountFilter({
   ];
 
   return (
-    <View className="gap-xs md:max-w-[320px]">
-      <Text id={labelId} className="font-body text-sm text-muted">
-        Account
-      </Text>
-      <Select
-        aria-labelledby={labelId}
-        options={options}
-        value={selectedAccountLogin ?? allAccountsValue}
-        onValueChange={(value) => {
-          onSelectAccountLogin(value === allAccountsValue ? undefined : value);
-        }}
-      />
-    </View>
+    <PrFilterSelect
+      label="Account"
+      options={options}
+      value={selectedAccountLogin}
+      onValueChange={onSelectAccountLogin}
+    />
   );
 }

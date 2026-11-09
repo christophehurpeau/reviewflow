@@ -2,6 +2,7 @@ export type { BoardDataSource, BoardReadState } from "./dataSource.ts";
 export { BoardDataSourceProvider, useBoardDataSource } from "./dataSource.ts";
 export type {
   PullRequestBoardExtraSection,
+  PullRequestBoardFiltering,
   PullRequestBoardProps,
 } from "./pull-request-board.tsx";
 export {

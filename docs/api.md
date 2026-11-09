@@ -2,7 +2,7 @@
 
 A read-only HTTP API on the reviewflow webapp server, for tools that follow your pull requests from outside the webapp (vigie, scripts).
 
-> **Status:** early. `GET /api/me/v1`, `GET /api/board/v1`, `GET /api/board-bucket/v1`, `GET /api/pr/v1/<owner>/<repo>/<number>`, `POST /api/prs-lookup/v1`, `GET /api/stream/v1`, `GET /api/health/v1` and `GET /api/health` are available.
+> **Status:** early. `GET /api/me/v1`, `GET /api/board/v1`, `GET /api/board-bucket/v1`, `GET /api/closed-prs/v1`, `GET /api/pr/v1/<owner>/<repo>/<number>`, `POST /api/prs-lookup/v1`, `GET /api/stream/v1`, `GET /api/health/v1` and `GET /api/health` are available.
 
 ## Authentication
 
@@ -51,7 +51,7 @@ A token never carries your GitHub credentials, and nothing in this API calls Git
   | 500    | `internal`        | unexpected server failure                                            |
   | 503    | `unavailable`     | the server cannot serve it now; retry after the `Retry-After` header |
 
-- Conditional requests: a successful `GET` of a pull request, the board or a board bucket carries a weak `ETag`, a hash of the response body. Send it back as `If-None-Match` to get `304 Not Modified` with no body when nothing changed, and keep your copy. A `304` still counts against the rate limits and still authenticates the token. The `ETag` is per reader: the same pull request has a different one for each user, because `myBuckets` depends on who asks, so never share one between tokens of different users. Errors, `POST /api/prs-lookup/v1`, `GET /api/me/v1` (its `serverTime` changes on every call, so its `ETag` never helps) and `GET /api/health/v1` are not conditional: no usable `ETag`, no `304`.
+- Conditional requests: a successful `GET` of a pull request, the board, a board bucket or the closed pull requests carries a weak `ETag`, a hash of the response body. Send it back as `If-None-Match` to get `304 Not Modified` with no body when nothing changed, and keep your copy. A `304` still counts against the rate limits and still authenticates the token. The `ETag` is per reader: the same pull request has a different one for each user, because `myBuckets` depends on who asks, so never share one between tokens of different users. Errors, `POST /api/prs-lookup/v1`, `GET /api/me/v1` (its `serverTime` changes on every call, so its `ETag` never helps) and `GET /api/health/v1` are not conditional: no usable `ETag`, no `304`.
 
 ## Rate limits
 
@@ -86,6 +86,7 @@ Every endpoint returning pull requests returns this object. Everything but `myBu
 | `checks`                                                                                      | object                                                            | `conclusion` (`passed`, `failed`, `in-progress`, `unknown`), `runningCount`, `failedNames`, and the counts `passed`, `failed`, `pending`; `checkRuns` (`{ name, status, conclusion, title, detailsUrl }`, `title` being GitHub's `output.title`) and `statuses` (`{ context, state, description, targetUrl }`), sorted by name, with GitHub's values, `null` where reviewflow had not recorded the field yet                                                                                                                                                   |
 | `lintFailed`, `statusLinks`, `changes`                                                        |                                                                   | reviewflow's title and commit lint, linked statuses, changed files and lines                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `myBuckets`                                                                                   | string[]                                                          | where it sits on your board, in board order; empty when on none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `lastActivityAt`                                                                              | string \| null                                                    | the last push, review or comment; the last write for an older pull request whose dates are unknown                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `updatedAt`                                                                                   | string                                                            | last time reviewflow wrote it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 Dates are ISO 8601 strings in UTC.
@@ -97,6 +98,7 @@ Dates are ISO 8601 strings in UTC.
 | `GET /api/me/v1`                         | your user, the accounts the token reaches, the token's name | available |
 | `GET /api/board/v1?account=<login>`      | your pull requests board, grouped like the webapp           | available |
 | `GET /api/board-bucket/v1`               | one board bucket, paginated                                 | available |
+| `GET /api/closed-prs/v1?account=<login>` | your most recently closed pull requests                     | available |
 | `POST /api/prs-lookup/v1`                | pull requests by repository and branch, up to 200 at once   | available |
 | `GET /api/pr/v1/<owner>/<repo>/<number>` | one pull request                                            | available |
 | `GET /api/health/v1`                     | server health, unauthenticated                              | available |
@@ -241,6 +243,27 @@ The response is one bucket of the board response: `{ key, title, total, prs, nex
 - Conditional: `ETag` / `If-None-Match`, see [conventions](#conventions). `total` and the rows are in the hash, so any change to the bucket changes it.
 
 Errors: as for the board, and `400 badRequest` when `bucket` is missing or unknown, or `page` is not a token this API issued.
+
+### `GET /api/closed-prs/v1`
+
+The 100 most recently closed or merged pull requests you created, are assigned to, or reviewed.
+
+```http
+GET /api/closed-prs/v1?account=acme
+Authorization: Bearer rfp_…
+```
+
+```json
+{
+  "total": 245,
+  "prs": [{ "_id": "6718f0c2a1b2c3d4e5f60718", "state": "merged" }]
+}
+```
+
+- `account` is as for the board. Omitted, the list spans every account the token reads.
+- `prs` holds [pull request objects](#pull-request-shape), `flowDates.closedAt` descending. `total` counts every match, so it can exceed the 100 returned.
+
+Errors: as for the board. Conditional: `ETag` / `If-None-Match`, see [conventions](#conventions).
 
 ### `GET /api/pr/v1/<owner>/<repo>/<number>`
 

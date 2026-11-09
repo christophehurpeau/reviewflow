@@ -74,6 +74,7 @@ const detail = (
   unresolvedThreads: null,
   mergeable: "mergeable",
   closedAt: null,
+  lastActivityAt: null,
   commentActivityAt: null,
   reviewActivityAt: null,
   reviewCommentActivityAt: null,
@@ -143,6 +144,7 @@ const setup = (client: Partial<ReviewflowClient> = {}) => {
     board: vi.fn(async (account: string) =>
       groupsOf(account === "acme" ? [detail()] : []),
     ),
+    closedPrs: vi.fn(async () => ({ total: 0, prs: [] })),
     pr: vi.fn(async () => null),
     ...client,
   };
@@ -362,6 +364,32 @@ describe("pr", () => {
     const read = service.pr({ ownerRepo: "acme/storefront", number: 1 });
     await expect(read).rejects.toThrow(/503/);
     await expect(read).rejects.not.toThrow(token);
+  });
+});
+
+describe("closedPullRequests", () => {
+  test("is empty without a token and reads nothing", async () => {
+    const { service, client } = setup();
+
+    expect(await service.closedPullRequests(null)).toEqual({
+      total: 0,
+      prs: [],
+      viewer: null,
+    });
+    expect(client.closedPrs).not.toHaveBeenCalled();
+  });
+
+  test("answers board rows, for the account asked", async () => {
+    const { service, client } = setup({
+      closedPrs: vi.fn(async () => ({ total: 7, prs: [detail()] })),
+    });
+    await service.setToken({ url: "https://rf.example", token: "rfp_x" });
+
+    const answer = await service.closedPullRequests("acme");
+
+    expect(client.closedPrs).toHaveBeenCalledWith("acme");
+    expect(answer).toMatchObject({ total: 7, viewer: "me" });
+    expect(answer.prs).toHaveLength(1);
   });
 });
 

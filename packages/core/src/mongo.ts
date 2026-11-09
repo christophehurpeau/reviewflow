@@ -454,6 +454,12 @@ export default function init(): InitializedMongoStores {
       "account.id": 1,
       "reviews.teamReviewRequested.id": 1,
     });
+    // the closed list: most recently closed first, within the accounts read
+    await coll.createIndex({
+      "account.id": 1,
+      isClosed: 1,
+      "flowDates.closedAt": -1,
+    });
     // remove with no activity for 12 * 30 days
     await coll.deleteMany({
       updated: { $lt: new Date(Date.now() - 12 * 30 * 24 * 60 * 60 * 1000) },

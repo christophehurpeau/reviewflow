@@ -401,3 +401,29 @@ describe("toPrSummary unresolvedThreads", () => {
     ).toBe(2);
   });
 });
+
+describe("lastActivityAt", () => {
+  it("is the latest thing people did on the pull request", () => {
+    const summary = toPrSummary(
+      buildPr({
+        updated: new Date("2026-03-01T00:00:00Z"),
+        flowDates: {
+          createdAt: new Date("2026-01-01T00:00:00Z"),
+          openedAt: new Date("2026-01-01T00:00:00Z"),
+          lastPushedAt: new Date("2026-01-05T00:00:00Z"),
+          lastCommentActivityAt: new Date("2026-01-09T00:00:00Z"),
+        },
+      }),
+    );
+
+    expect(summary.lastActivityAt).toEqual(new Date("2026-01-09T00:00:00Z"));
+  });
+
+  it("falls back on the last write of a document without dates", () => {
+    const updated = new Date("2026-03-01T00:00:00Z");
+
+    expect(
+      toPrSummary(buildPr({ updated, flowDates: undefined })).lastActivityAt,
+    ).toEqual(updated);
+  });
+});

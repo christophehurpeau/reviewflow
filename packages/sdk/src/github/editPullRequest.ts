@@ -167,6 +167,9 @@ export const parsePullRequestEdit = (
   if (typeof value !== "object" || value === null) return "edit is required";
   const edit = value as Record<string, unknown>;
   switch (edit.kind) {
+    case "startReview": {
+      return { kind: "startReview" };
+    }
     case "title": {
       if (typeof edit.title !== "string" || edit.title.trim() === "") {
         return "a title cannot be empty";
@@ -376,6 +379,45 @@ export interface EditLogger {
   warn: (message: string, context: EditLogContext) => void;
   error: (message: string, context: EditLogContext) => void;
 }
+
+/** what the reviewer's colleagues read, the same words as reviewflow's webapp */
+const startReviewBody = "I started the review";
+
+/**
+ * GitHub retires the pending review request as a side effect of the review
+ * submission: asking again in the same breath is undone by it landing after.
+ */
+const retireRequestSettleMs = 100;
+
+const viewerLoginQuery = "query ViewerLogin { viewer { login } }";
+
+/**
+ * A comment review leaves a standing approval standing: asking for their own
+ * review again is what puts it back in play. Best effort, since it needs push
+ * access a reviewer does not necessarily have, and the review is posted by now.
+ */
+const requestOwnReviewAgain = async (
+  transport: GitHubTransport,
+  pullPath: string,
+  logger: EditLogger | undefined,
+): Promise<void> => {
+  await new Promise((resolve) => {
+    setTimeout(resolve, retireRequestSettleMs);
+  });
+  try {
+    const { data } = await transport.graphql<{ viewer: { login: string } }>(
+      viewerLoginQuery,
+    );
+    if (data === null) throw new Error("the viewer could not be read");
+    await transport.rest({
+      method: "POST",
+      path: `${pullPath}/requested_reviewers`,
+      body: { reviewers: [data.viewer.login] },
+    });
+  } catch (error) {
+    logger?.warn("could not request the review again", { error });
+  }
+};
 
 export interface EditPullRequestOptions {
   logger?: EditLogger;
@@ -648,6 +690,15 @@ export const editPullRequest = async (
               }),
         },
       });
+      return null;
+    }
+    case "startReview": {
+      await transport.rest({
+        method: "POST",
+        path: `${pullPath}/reviews`,
+        body: { event: "COMMENT", body: startReviewBody },
+      });
+      await requestOwnReviewAgain(transport, pullPath, options.logger);
       return null;
     }
     case "updateBranch": {

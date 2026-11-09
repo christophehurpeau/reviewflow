@@ -1,8 +1,10 @@
 import type {
+  PrFilters,
   PrSummary,
   QueryMyPrsParams,
   ReviewRequestVerb,
 } from "@reviewflow/modules";
+import { matchesPrFilters } from "@reviewflow/modules";
 import { PressableListItem, Text, View } from "alouette";
 import type { Accent, SVGIconElement } from "alouette";
 import type { ReactNode } from "react";
@@ -22,9 +24,13 @@ export type PrBucketResource = ResourceResult<PrSummary[], QueryMyPrsParams>;
 export const hasBucketContent = (
   prs: PrBucketResource,
   pending: boolean,
+  filters: PrFilters = {},
 ): boolean => {
   if (pending || !prs.fetched) return true;
-  return prs.error !== undefined || prs.data.length > 0;
+  return (
+    prs.error !== undefined ||
+    prs.data.some((pr) => matchesPrFilters(pr, filters))
+  );
 };
 
 interface PrBucketSectionProps {
@@ -33,6 +39,7 @@ interface PrBucketSectionProps {
   accent?: Accent;
   prs: PrBucketResource;
   pending?: boolean;
+  filters?: PrFilters;
   /** off where the section title already states it */
   showDraft?: boolean;
   /** off where the section is about something other than the checks */
@@ -73,6 +80,7 @@ export function PrBucketSection({
   accent,
   prs,
   pending = false,
+  filters = {},
   showDraft,
   showPassedChecks,
   showReRequests,
@@ -81,7 +89,7 @@ export function PrBucketSection({
   onSelectPr,
   renderAction,
 }: PrBucketSectionProps): ReactNode {
-  if (!hasBucketContent(prs, pending)) return null;
+  if (!hasBucketContent(prs, pending, filters)) return null;
 
   return (
     <ListSection title={title} icon={icon} accent={accent}>
@@ -90,34 +98,38 @@ export function PrBucketSection({
         pending={pending}
         loading={<SkeletonList rows={2} />}
       >
-        {(prList) => (
-          <View>
-            <View role="list" className="gap-xs">
-              {prList.map((pr) => (
-                <PressableListItem
-                  key={pr._id}
-                  // a button row would nest the action's button inside it
-                  role="listitem"
-                  aria-label={`Open ${pr.orgLogin}/${pr.repoName}#${pr.number} ${pr.title}`}
-                  actions={renderAction?.(pr)}
-                  onPress={() => {
-                    onSelectPr(pr);
-                  }}
-                >
-                  <PrRow
-                    pr={pr}
-                    showDraft={showDraft}
-                    showPassedChecks={showPassedChecks}
-                    showReRequests={showReRequests}
-                    reviewRequestVerb={reviewRequestVerb}
-                    currentUserLogin={currentUserLogin}
-                  />
-                </PressableListItem>
-              ))}
+        {(prList) => {
+          const shownPrs = prList.filter((pr) => matchesPrFilters(pr, filters));
+
+          return (
+            <View>
+              <View role="list" className="gap-xs">
+                {shownPrs.map((pr) => (
+                  <PressableListItem
+                    key={pr._id}
+                    // a button row would nest the action's button inside it
+                    role="listitem"
+                    aria-label={`Open ${pr.orgLogin}/${pr.repoName}#${pr.number} ${pr.title}`}
+                    actions={renderAction?.(pr)}
+                    onPress={() => {
+                      onSelectPr(pr);
+                    }}
+                  >
+                    <PrRow
+                      pr={pr}
+                      showDraft={showDraft}
+                      showPassedChecks={showPassedChecks}
+                      showReRequests={showReRequests}
+                      reviewRequestVerb={reviewRequestVerb}
+                      currentUserLogin={currentUserLogin}
+                    />
+                  </PressableListItem>
+                ))}
+              </View>
+              <TruncatedCount prs={prs} shown={shownPrs.length} />
             </View>
-            <TruncatedCount prs={prs} shown={prList.length} />
-          </View>
-        )}
+          );
+        }}
       </ResourceView>
     </ListSection>
   );

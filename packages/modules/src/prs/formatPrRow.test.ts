@@ -17,6 +17,9 @@ const createPrSummary = (overrides: Partial<PrSummary> = {}): PrSummary => ({
   checks: { conclusion: "unknown", runningCount: 0, failedNames: [] },
   lintFailed: false,
   statusLinks: [],
+  headRef: null,
+  labels: [],
+  reviewState: null,
   approvedBy: [],
   changesRequestedBy: [],
   requestedReviewers: [],
@@ -60,6 +63,18 @@ describe("formatPrFlowDate", () => {
 
   it("says nothing without a date", () => {
     expect(formatPrFlowDate({})).toBeUndefined();
+  });
+
+  it("prefers how a closed pull request ended", () => {
+    const dates = {
+      openedAt: new Date("2020-01-01T00:00:00Z"),
+      approvedAt: new Date("2020-01-02T00:00:00Z"),
+      closedAt: new Date("2020-01-03T00:00:00Z"),
+    };
+
+    expect(formatPrFlowDate({ ...dates, isMerged: true })).toMatch(/^merged /);
+    expect(formatPrFlowDate({ ...dates, isMerged: false })).toMatch(/^closed /);
+    expect(formatPrFlowDate(dates)).toMatch(/^closed /);
   });
 });
 

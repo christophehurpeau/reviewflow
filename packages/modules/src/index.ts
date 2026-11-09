@@ -12,6 +12,7 @@ export type * from "./prs/PrsService.ts";
 export * from "./prs/formatFailedCheckNames.ts";
 export * from "./prs/formatPrRow.ts";
 export * from "./prs/prBucketDisplay.ts";
+export * from "./prs/prFilters.ts";
 export * from "./prs/selectPrOwners.ts";
 export type * from "./repositories/RepositoriesService.ts";
 export type * from "./users/UsersService.ts";

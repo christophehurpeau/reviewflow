@@ -4,6 +4,7 @@ import type {
   ReviewflowBoardResponse,
   ReviewflowBoardSnapshot,
   ReviewflowClient,
+  ReviewflowClosedPullRequestsResponse,
   ReviewflowConnectionStatus,
   ReviewflowLookupResult,
   ReviewflowLookupTarget,
@@ -18,6 +19,7 @@ import {
   createReviewflowFollower,
   readAccountBoards,
   readReviewflowStream,
+  toBoardPr,
   withAccountBoard,
 } from "@reviewflow/sdk";
 import { appLogger } from "nightingale-app-console";
@@ -55,6 +57,10 @@ export interface ReviewflowService {
   clearToken: () => ReviewflowConnectionStatus;
   /** held in memory; read from reviewflow when empty or when `refresh` */
   board: (refresh: boolean) => Promise<ReviewflowBoardResponse>;
+  /** read from reviewflow at each call, never kept; `account` null spans every account */
+  closedPullRequests: (
+    account: string | null,
+  ) => Promise<ReviewflowClosedPullRequestsResponse>;
   /** read from reviewflow at each call, never kept */
   pr: (ref: PullRequestRef) => Promise<ReviewflowPrResponse>;
   /** the newest pull request of each branch, in `targets` order; null without a token */
@@ -280,6 +286,24 @@ export const createReviewflowService = ({
         await boardRead.done;
       }
       return boardResponse();
+    },
+
+    closedPullRequests: async (account) => {
+      const { stored } = connection();
+      if (stored === null) return { total: 0, prs: [], viewer: null };
+      const client = createClient({ url: stored.url, token: stored.token });
+      try {
+        const { total, prs } = await client.closedPrs(account);
+        return {
+          total,
+          prs: prs.map((pr) => toBoardPr(pr)),
+          viewer: stored.login,
+        };
+      } catch (error) {
+        throw new Error(withoutToken(errorMessage(error), stored.token), {
+          cause: error,
+        });
+      }
     },
 
     pr: async ({ ownerRepo, number }) => {

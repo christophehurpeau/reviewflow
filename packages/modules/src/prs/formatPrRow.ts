@@ -62,23 +62,33 @@ export const formatPrChanges = ({
 }: PrChangesSummary): string =>
   `${pluralize(changedFiles, "file")} (+${additions} −${deletions})`;
 
-export const formatPrFlowDate = ({
-  approvedAt,
-  openedAt,
-}: Pick<PrSummary, "approvedAt" | "openedAt">): string | undefined => {
-  const date = approvedAt ?? openedAt;
-  if (!date) return undefined;
+type PrFlowDates = Pick<
+  PrSummary,
+  "approvedAt" | "closedAt" | "isMerged" | "openedAt"
+>;
 
-  return `${approvedAt ? "approved" : "opened"} ${date.toLocaleDateString(
-    "en-US",
-    {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-    },
-  )}`;
+const selectPrFlowDate = ({
+  approvedAt,
+  closedAt,
+  isMerged,
+  openedAt,
+}: PrFlowDates): { verb: string; date: Date } | undefined => {
+  if (closedAt) return { verb: isMerged ? "merged" : "closed", date: closedAt };
+  if (approvedAt) return { verb: "approved", date: approvedAt };
+  return openedAt ? { verb: "opened", date: openedAt } : undefined;
+};
+
+export const formatPrFlowDate = (dates: PrFlowDates): string | undefined => {
+  const flowDate = selectPrFlowDate(dates);
+  if (!flowDate) return undefined;
+
+  return `${flowDate.verb} ${flowDate.date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+  })}`;
 };
 
 interface FormatLoginsOptions {

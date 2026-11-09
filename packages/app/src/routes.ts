@@ -96,6 +96,7 @@ export const apiRoutes = {
   reviewflowStatus: "/api/reviewflow/status",
   reviewflowToken: "/api/reviewflow/token",
   reviewflowBoard: "/api/reviewflow/board",
+  reviewflowClosed: "/api/reviewflow/closed",
   reviewflowPr: "/api/reviewflow/pr",
   events: "/api/events",
 } as const;
@@ -946,6 +947,22 @@ const handleReviewflowBoard: Handler = async ({ reviewflow }, request) => {
   }
 };
 
+const handleReviewflowClosed: Handler = async ({ reviewflow }, request) => {
+  if (request.method !== "GET") return notAllowed();
+  try {
+    return ok(
+      await reviewflow.closedPullRequests(request.query.get("account") || null),
+    );
+  } catch (error) {
+    return (
+      credentialsFailure(error) ?? {
+        status: 502,
+        body: { error: errorMessage(error) },
+      }
+    );
+  }
+};
+
 const handleReviewflowPr: Handler = async ({ reviewflow }, request) => {
   if (request.method !== "GET") return notAllowed();
   const read = readRef(request);
@@ -997,6 +1014,7 @@ const handlers: Record<string, Handler> = {
   [apiRoutes.reviewflowStatus]: handleReviewflowStatus,
   [apiRoutes.reviewflowToken]: handleReviewflowToken,
   [apiRoutes.reviewflowBoard]: handleReviewflowBoard,
+  [apiRoutes.reviewflowClosed]: handleReviewflowClosed,
   [apiRoutes.reviewflowPr]: handleReviewflowPr,
   [apiRoutes.events]: handleEvents,
 };

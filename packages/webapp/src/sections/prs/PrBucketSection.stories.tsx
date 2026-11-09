@@ -8,24 +8,31 @@ import type { PrBucketResource } from "#/sections/prs/PrBucketSection.tsx";
 import { PrBucketSection } from "#/sections/prs/PrBucketSection.tsx";
 import { Story } from "#storybook/Story.tsx";
 
-const buildPr = (number: number, title: string): PrSummary => ({
+const buildPr = (
+  number: number,
+  title: string,
+  creatorLogin = "frank",
+): PrSummary => ({
   _id: `pr-${number}`,
   orgLogin: "elax",
   repoName: "reviewflow",
   number,
   title,
   url: `https://github.com/elax/reviewflow/pull/${number}`,
+  headRef: `feat/${number}`,
   isDraft: false,
   checks: { conclusion: "passed", runningCount: 0, failedNames: [] },
   lintFailed: false,
   statusLinks: [],
+  labels: [],
+  reviewState: "requested",
   approvedBy: [],
   changesRequestedBy: [],
   requestedReviewers: [],
   requestedTeams: [],
   reRequestedReviewers: [],
   assignees: [],
-  creator: { id: 9, login: "frank" },
+  creator: { id: 9, login: creatorLogin },
   changes: { changedFiles: 5, additions: 120, deletions: 8 },
   unresolvedThreads: null,
   openedAt: new Date("2026-01-05T15:04:00Z"),
@@ -132,6 +139,24 @@ export const VariantsStory: StoryObj<typeof PrBucketSection> = {
           icon={<EyeRegularIcon />}
           accent="danger"
           prs={loaded(prs)}
+          onSelectPr={fn()}
+        />
+      </Story.Section>
+      <Story.Section title="filtered, among the rows loaded">
+        <PrBucketSection
+          title="Requested reviews"
+          icon={<EyeRegularIcon />}
+          prs={loaded([...prs, buildPr(420, "Rename a repository", "linus")])}
+          filters={{ author: "linus" }}
+          onSelectPr={fn()}
+        />
+      </Story.Section>
+      <Story.Section title="filtered, no row left: the section leaves the page">
+        <PrBucketSection
+          title="Requested reviews"
+          icon={<EyeRegularIcon />}
+          prs={loaded(prs)}
+          filters={{ checks: "failed" }}
           onSelectPr={fn()}
         />
       </Story.Section>

@@ -82,6 +82,8 @@ export interface ReviewflowPrDetail {
   unresolvedThreads: number | null;
   mergeable: ReviewflowMergeable;
   closedAt: string | null;
+  /** the last push, review or comment; null from a reviewflow that predates it */
+  lastActivityAt: string | null;
   /** the last conversation comment created, edited or deleted */
   commentActivityAt: string | null;
   /** the last review submitted, whatever its verdict */
@@ -128,6 +130,13 @@ export interface ReviewflowGroup {
   buckets: ReviewflowBucket[];
 }
 
+export interface ReviewflowClosedPrs {
+  /** every match in reviewflow; `prs` stops at the first page */
+  total: number;
+  /** most recently closed first */
+  prs: ReviewflowPrDetail[];
+}
+
 export interface ReviewflowClient {
   me: () => Promise<ReviewflowMe>;
   /** same order as `targets`, whatever their number */
@@ -136,6 +145,8 @@ export interface ReviewflowClient {
   ) => Promise<ReviewflowLookupResult[]>;
   /** one account's board, with up to `maxExtraPagesPerBucket` more pages per bucket */
   board: (account: string) => Promise<ReviewflowGroup[]>;
+  /** `account` null spans every account the token reads */
+  closedPrs: (account: string | null) => Promise<ReviewflowClosedPrs>;
   /** null when reviewflow never handled it, or the token cannot read its owner */
   pr: (ownerRepo: string, number: number) => Promise<ReviewflowPrDetail | null>;
 }
@@ -340,6 +351,7 @@ export const readPrDetail = (value: unknown): ReviewflowPrDetail => {
     mergeable:
       enumOrNull<ReviewflowMergeable>(value.mergeable, mergeables) ?? "unknown",
     closedAt: stringOrNull(flowDates.closedAt),
+    lastActivityAt: stringOrNull(value.lastActivityAt),
     commentActivityAt: stringOrNull(flowDates.lastCommentActivityAt),
     reviewActivityAt: stringOrNull(flowDates.lastReviewSubmittedAt),
     reviewCommentActivityAt: stringOrNull(
@@ -535,6 +547,23 @@ export const createReviewflowClient = ({
         }),
       );
       return answers.flat();
+    },
+
+    closedPrs: async (account) => {
+      const query =
+        account === null
+          ? ""
+          : `?${new URLSearchParams({ account }).toString()}`;
+      const body = await request(`/closed-prs/v1${query}`);
+      if (!isRecord(body) || !Array.isArray(body.prs)) {
+        throw fail(
+          "reviewflow returned closed pull requests the client cannot read",
+        );
+      }
+      return {
+        total: numberOr(body.total, body.prs.length),
+        prs: body.prs.map(readPrDetail),
+      };
     },
 
     pr: async (ownerRepo, number) => {

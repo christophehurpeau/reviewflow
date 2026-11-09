@@ -181,19 +181,67 @@ describe("reviewflowPrFlowDate", () => {
   it("prefers the approval to the opening", () => {
     expect(
       reviewflowPrFlowDate(
-        { openedAt: "2026-10-01T09:00:00", approvedAt: "2026-10-18T09:00:00" },
+        {
+          state: "open",
+          openedAt: "2026-10-01T09:00:00",
+          approvedAt: "2026-10-18T09:00:00",
+          closedAt: null,
+        },
         { now, locale: "en-GB" },
       ),
     ).toBe("approved today 09:00");
     expect(
       reviewflowPrFlowDate(
-        { openedAt: "2026-10-18T09:00:00", approvedAt: null },
+        {
+          state: "open",
+          openedAt: "2026-10-18T09:00:00",
+          approvedAt: null,
+          closedAt: null,
+        },
         { now, locale: "en-GB" },
       ),
     ).toBe("opened today 09:00");
-    expect(reviewflowPrFlowDate({ openedAt: null, approvedAt: null })).toBe(
-      null,
+    expect(
+      reviewflowPrFlowDate({
+        state: "open",
+        openedAt: null,
+        approvedAt: null,
+        closedAt: null,
+      }),
+    ).toBe(null);
+  });
+
+  it("says how a closed pull request ended", () => {
+    const closed = {
+      openedAt: "2026-10-01T09:00:00",
+      approvedAt: "2026-10-02T09:00:00",
+      closedAt: "2026-10-18T09:00:00",
+    };
+    const options = { now, locale: "en-GB" };
+
+    expect(reviewflowPrFlowDate({ ...closed, state: "merged" }, options)).toBe(
+      "merged today 09:00",
     );
+    expect(reviewflowPrFlowDate({ ...closed, state: "closed" }, options)).toBe(
+      "closed today 09:00",
+    );
+    expect(reviewflowPrFlowDate({ ...closed, state: null }, options)).toBe(
+      "closed today 09:00",
+    );
+  });
+
+  it("ignores the closing date of a reopened pull request", () => {
+    expect(
+      reviewflowPrFlowDate(
+        {
+          state: "open",
+          openedAt: "2026-10-18T09:00:00",
+          approvedAt: null,
+          closedAt: "2026-10-10T09:00:00",
+        },
+        { now, locale: "en-GB" },
+      ),
+    ).toBe("opened today 09:00");
   });
 });
 

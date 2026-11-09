@@ -192,6 +192,7 @@ export const reviewflowPr: ReviewflowPrDetail = {
   unresolvedThreads: 1,
   mergeable: "mergeable",
   closedAt: null,
+  lastActivityAt: null,
   commentActivityAt: null,
   reviewActivityAt: null,
   reviewCommentActivityAt: null,

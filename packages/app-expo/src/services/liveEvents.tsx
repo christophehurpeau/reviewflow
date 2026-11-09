@@ -8,7 +8,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import { useEffect, useSyncExternalStore } from "react";
 import { partsKey, reviewflowPrKey } from "./pullRequestKeys.ts";
-import { boardQueryKey, statusQueryKey } from "./reviewflowApi.ts";
+import {
+  boardQueryKey,
+  closedQueryKey,
+  statusQueryKey,
+} from "./reviewflowApi.ts";
 import { serverBaseUrl } from "./serverBaseUrl.ts";
 
 /**
@@ -79,6 +83,7 @@ const invalidateParts = (
  */
 const resyncAfterGap = (client: QueryClient): void => {
   client.invalidateQueries({ queryKey: boardQueryKey }).catch(() => undefined);
+  client.invalidateQueries({ queryKey: closedQueryKey }).catch(() => undefined);
   client
     .invalidateQueries({
       predicate: ({ queryKey }) =>
@@ -118,6 +123,10 @@ export const startLiveEvents = (client: QueryClient): (() => void) => {
     next.addEventListener("board", (event) => {
       const board = parse<ReviewflowBoardResponse>(event);
       if (board !== null) client.setQueryData(boardQueryKey, board);
+      // a pull request leaving the board is one entering the closed list
+      client
+        .invalidateQueries({ queryKey: closedQueryKey })
+        .catch(() => undefined);
     });
     next.addEventListener("reviewflowStatus", (event) => {
       const status = parse<ReviewflowConnectionStatus>(event);

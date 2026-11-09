@@ -1,5 +1,6 @@
 import type {
   ReviewflowBoardResponse,
+  ReviewflowClosedPullRequestsResponse,
   ReviewflowConnectionStatus,
 } from "@reviewflow/sdk";
 import type { QueryClient } from "@tanstack/react-query";
@@ -7,11 +8,21 @@ import { getJson, requestJson } from "./api.ts";
 
 export const boardQueryKey = ["reviewflow", "board"] as const;
 export const statusQueryKey = ["reviewflow", "status"] as const;
+export const closedQueryKey = ["reviewflow", "closed"] as const;
+export const startedReviewsQueryKey = ["reviewflow", "startedReviews"] as const;
 
 export const readBoard = (refresh: boolean): Promise<ReviewflowBoardResponse> =>
   getJson<ReviewflowBoardResponse>(
     "/api/reviewflow/board",
     refresh ? { refresh: "1" } : undefined,
+  );
+
+export const readClosedPullRequests = (
+  account: string | null,
+): Promise<ReviewflowClosedPullRequestsResponse> =>
+  getJson<ReviewflowClosedPullRequestsResponse>(
+    "/api/reviewflow/closed",
+    account === null ? undefined : { account },
   );
 
 export const readStatus = (): Promise<ReviewflowConnectionStatus> =>
@@ -30,6 +41,8 @@ export const saveToken = (
     client.setQueryData(statusQueryKey, status);
     // the board of a previous token must not outlive it
     client.removeQueries({ queryKey: boardQueryKey });
+    client.removeQueries({ queryKey: closedQueryKey });
+    client.removeQueries({ queryKey: startedReviewsQueryKey });
     return status;
   });
 
@@ -42,5 +55,7 @@ export const forgetToken = (
   ).then((status) => {
     client.setQueryData(statusQueryKey, status);
     client.removeQueries({ queryKey: boardQueryKey });
+    client.removeQueries({ queryKey: closedQueryKey });
+    client.removeQueries({ queryKey: startedReviewsQueryKey });
     return status;
   });

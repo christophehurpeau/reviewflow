@@ -50,6 +50,7 @@ const detail = (
   unresolvedThreads: 0,
   mergeable: "mergeable",
   closedAt: null,
+  lastActivityAt: null,
   commentActivityAt: null,
   reviewActivityAt: null,
   reviewCommentActivityAt: null,

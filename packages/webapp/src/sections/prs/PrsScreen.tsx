@@ -1,16 +1,25 @@
 import type {
   OrgSummary,
   PrBucket,
+  PrFilters,
+  PrStateFilter,
   PrSummary,
   UserSummary,
 } from "@reviewflow/modules";
-import { prBucketGroupTitles } from "@reviewflow/modules";
-import { ExternalLinkButton, InfoMessage, View } from "alouette";
+import {
+  buildPrFilterOptions,
+  hasActivePrFilters,
+  prBucketGroupTitles,
+} from "@reviewflow/modules";
+import { EmptyState, ExternalLinkButton, InfoMessage, View } from "alouette";
 import { BarricadeRegularIcon } from "alouette-icons/phosphor-icons/Barricade";
 import { CheckCircleRegularIcon } from "alouette-icons/phosphor-icons/CheckCircle";
 import { ClockRegularIcon } from "alouette-icons/phosphor-icons/Clock";
 import { EyeRegularIcon } from "alouette-icons/phosphor-icons/Eye";
 import { EyeglassesRegularIcon } from "alouette-icons/phosphor-icons/Eyeglasses";
+import { FunnelRegularIcon } from "alouette-icons/phosphor-icons/Funnel";
+import { GitMergeRegularIcon } from "alouette-icons/phosphor-icons/GitMerge";
+import { TrayRegularIcon } from "alouette-icons/phosphor-icons/Tray";
 import { WarningRegularIcon } from "alouette-icons/phosphor-icons/Warning";
 import { XCircleRegularIcon } from "alouette-icons/phosphor-icons/XCircle";
 import type { ReactNode } from "react";
@@ -24,8 +33,8 @@ import { getScreenLiveUpdatesPausedBy } from "#/services/getScreenLiveUpdatesPau
 import type { PrBucketResource } from "./PrBucketSection.tsx";
 import { PrBucketSection, hasBucketContent } from "./PrBucketSection.tsx";
 import { PrGroupSection } from "./PrGroupSection.tsx";
-import { PrsAccountFilter } from "./PrsAccountFilter.tsx";
 import { PrsEmptyState } from "./PrsEmptyState.tsx";
+import { PrsFilters } from "./PrsFilters.tsx";
 import { buildPrAccounts } from "./prAccounts.ts";
 
 const installUrl = `https://github.com/apps/${reviewflowName}/installations/new`;
@@ -35,12 +44,64 @@ interface PrsScreenProps {
   orgs: ResourceResult<OrgSummary[], Record<string, never>>;
   selectedAccountLogin: string | undefined;
   prsByBucket: Record<PrBucket, PrBucketResource>;
+  closedPrs: PrBucketResource;
   /** the account filter is still unresolved, so no bucket has been queried yet */
   pending: boolean;
+  state: PrStateFilter;
+  filters: PrFilters;
   onSelectAccountLogin: (accountLogin: string | undefined) => void;
+  onStateChange: (state: PrStateFilter) => void;
+  onFiltersChange: (filters: PrFilters) => void;
   onSelectPr: (pr: PrSummary) => void;
   /** must reject on failure: the row's button renders the message itself */
   onStartReview: (pr: PrSummary) => Promise<void>;
+}
+
+function PrsNoMatch(): ReactNode {
+  return (
+    <EmptyState icon={<FunnelRegularIcon />} title="No match">
+      No pull request matches these filters.
+    </EmptyState>
+  );
+}
+
+interface PrsClosedListProps {
+  closedPrs: PrBucketResource;
+  pending: boolean;
+  filters: PrFilters;
+  currentUserLogin: string | undefined;
+  onSelectPr: (pr: PrSummary) => void;
+}
+
+function PrsClosedList({
+  closedPrs,
+  pending,
+  filters,
+  currentUserLogin,
+  onSelectPr,
+}: PrsClosedListProps): ReactNode {
+  if (hasBucketContent(closedPrs, pending, filters)) {
+    return (
+      <PrBucketSection
+        title="Closed pull requests"
+        icon={<GitMergeRegularIcon />}
+        prs={closedPrs}
+        pending={pending}
+        filters={filters}
+        showPassedChecks={false}
+        currentUserLogin={currentUserLogin}
+        onSelectPr={onSelectPr}
+      />
+    );
+  }
+  if (hasActivePrFilters(filters)) return <PrsNoMatch />;
+
+  return (
+    <EmptyState icon={<TrayRegularIcon />} title="No closed pull requests">
+      The pull requests you created, are assigned to or reviewed are listed here
+      once closed.
+    </EmptyState>
+  );
 }
 
 export function PrsScreen({
@@ -48,8 +109,13 @@ export function PrsScreen({
   orgs,
   selectedAccountLogin,
   prsByBucket,
+  closedPrs,
   pending,
+  state,
+  filters,
   onSelectAccountLogin,
+  onStateChange,
+  onFiltersChange,
   onSelectPr,
   onStartReview,
 }: PrsScreenProps): ReactNode {
@@ -62,14 +128,26 @@ export function PrsScreen({
   const drafts = prsByBucket.drafts;
 
   const hasPrsRequestingAttention =
-    hasBucketContent(reReviewsRequested, pending) ||
-    hasBucketContent(requestedReviews, pending) ||
-    hasBucketContent(readyToMerge, pending) ||
-    hasBucketContent(changesRequested, pending);
+    hasBucketContent(reReviewsRequested, pending, filters) ||
+    hasBucketContent(requestedReviews, pending, filters) ||
+    hasBucketContent(readyToMerge, pending, filters) ||
+    hasBucketContent(changesRequested, pending, filters);
   const hasPrsInProgress =
-    hasBucketContent(waitingForReview, pending) ||
-    hasBucketContent(missingReviewRequest, pending) ||
-    hasBucketContent(drafts, pending);
+    hasBucketContent(waitingForReview, pending, filters) ||
+    hasBucketContent(missingReviewRequest, pending, filters) ||
+    hasBucketContent(drafts, pending, filters);
+  const hasOpenPrs = hasPrsRequestingAttention || hasPrsInProgress;
+  const openEmptyState = hasActivePrFilters(filters) ? (
+    <PrsNoMatch />
+  ) : (
+    <PrsEmptyState />
+  );
+
+  const shownResources =
+    state === "closed" ? [closedPrs] : Object.values(prsByBucket);
+  const loadedPrs = shownResources.flatMap((resource) =>
+    resource.fetched ? resource.data : [],
+  );
 
   return (
     <Screen
@@ -77,7 +155,7 @@ export function PrsScreen({
       liveUpdatesPausedBy={getScreenLiveUpdatesPausedBy([
         me,
         orgs,
-        ...Object.values(prsByBucket),
+        ...shownResources,
       ])}
     >
       <ResourceView resource={me}>
@@ -105,15 +183,30 @@ export function PrsScreen({
 
               return (
                 <View className="gap-l">
-                  <PrsAccountFilter
+                  <PrsFilters
                     accounts={accounts}
                     selectedAccountLogin={selectedAccountLogin}
+                    state={state}
+                    filters={filters}
+                    options={buildPrFilterOptions(loadedPrs, filters)}
                     onSelectAccountLogin={onSelectAccountLogin}
+                    onStateChange={onStateChange}
+                    onFiltersChange={onFiltersChange}
                   />
 
-                  {!hasPrsRequestingAttention && !hasPrsInProgress ? (
-                    <PrsEmptyState />
-                  ) : (
+                  {state === "closed" ? (
+                    <PrsClosedList
+                      closedPrs={closedPrs}
+                      pending={pending}
+                      filters={filters}
+                      currentUserLogin={user?.login}
+                      onSelectPr={onSelectPr}
+                    />
+                  ) : null}
+
+                  {state === "open" && !hasOpenPrs ? openEmptyState : null}
+
+                  {state === "open" && hasOpenPrs ? (
                     <Columns>
                       {hasPrsRequestingAttention ? (
                         <PrGroupSection
@@ -125,6 +218,7 @@ export function PrsScreen({
                             accent="brand"
                             prs={reReviewsRequested}
                             pending={pending}
+                            filters={filters}
                             showReRequests={false}
                             reviewRequestVerb="requested"
                             currentUserLogin={user?.login}
@@ -136,6 +230,7 @@ export function PrsScreen({
                             accent="brand"
                             prs={requestedReviews}
                             pending={pending}
+                            filters={filters}
                             reviewRequestVerb="requested"
                             currentUserLogin={user?.login}
                             renderAction={(pr) => (
@@ -151,6 +246,7 @@ export function PrsScreen({
                             accent="success"
                             prs={readyToMerge}
                             pending={pending}
+                            filters={filters}
                             reviewRequestVerb="requested"
                             currentUserLogin={user?.login}
                             onSelectPr={onSelectPr}
@@ -161,6 +257,7 @@ export function PrsScreen({
                             accent="danger"
                             prs={changesRequested}
                             pending={pending}
+                            filters={filters}
                             showPassedChecks={false}
                             reviewRequestVerb="requested"
                             currentUserLogin={user?.login}
@@ -179,6 +276,7 @@ export function PrsScreen({
                             accent="warning"
                             prs={missingReviewRequest}
                             pending={pending}
+                            filters={filters}
                             currentUserLogin={user?.login}
                             onSelectPr={onSelectPr}
                           />
@@ -187,6 +285,7 @@ export function PrsScreen({
                             icon={<BarricadeRegularIcon />}
                             prs={drafts}
                             pending={pending}
+                            filters={filters}
                             showDraft={false}
                             showPassedChecks={false}
                             currentUserLogin={user?.login}
@@ -197,13 +296,14 @@ export function PrsScreen({
                             icon={<ClockRegularIcon />}
                             prs={waitingForReview}
                             pending={pending}
+                            filters={filters}
                             currentUserLogin={user?.login}
                             onSelectPr={onSelectPr}
                           />
                         </PrGroupSection>
                       ) : null}
                     </Columns>
-                  )}
+                  ) : null}
                 </View>
               );
             }}

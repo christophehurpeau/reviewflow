@@ -1,5 +1,7 @@
 import type {
+  PullRequestRef,
   ReviewflowBoardResponse,
+  ReviewflowClosedPullRequestsResponse,
   ReviewflowConnectionStatus,
 } from "@reviewflow/sdk";
 import { createContext, use } from "react";
@@ -27,6 +29,18 @@ export interface BoardDataSource {
   useBoard: () => BoardReadState<ReviewflowBoardResponse>;
   /** Whether a reviewflow token is configured. `value` is null until known. */
   useReviewflowStatus: () => BoardReadState<ReviewflowConnectionStatus>;
+  /** The closed pull requests of one account, or of them all with `account` null; read only while `enabled`. */
+  useClosedPullRequests: (params: {
+    account: string | null;
+    enabled: boolean;
+  }) => BoardReadState<ReviewflowClosedPullRequestsResponse>;
+  /** Rejects when GitHub refuses: the button pressed renders the message. */
+  startReview: (ref: PullRequestRef) => Promise<void>;
+  /**
+   * The reviews `startReview` started: the board hears of one only once GitHub's
+   * webhook went through reviewflow, and a second press would comment again.
+   */
+  useStartedReviews: () => PullRequestRef[];
   /** Reads the board from reviewflow again; never rejects, a failure is `useBoard().error`. */
   refresh: () => Promise<void>;
 }

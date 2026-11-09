@@ -1,14 +1,26 @@
-import type { PullRequestRef, ReviewflowBoardPr } from "@reviewflow/sdk";
+import type {
+  BoardFilters,
+  PullRequestRef,
+  ReviewflowBoardPr,
+} from "@reviewflow/sdk";
+import {
+  buildBoardFilterOptions,
+  defaultBoardFilters,
+  hasActiveBoardFilters,
+  matchesBoardFilters,
+} from "@reviewflow/sdk";
 import type { Accent, SVGIconElement } from "alouette";
 import { EmptyState, IconButton, Text, View, WarningMessage } from "alouette";
 import { ArrowsClockwiseRegularIcon } from "alouette-icons/phosphor-icons/ArrowsClockwise";
 import { ConfettiRegularIcon } from "alouette-icons/phosphor-icons/Confetti";
+import { FunnelRegularIcon } from "alouette-icons/phosphor-icons/Funnel";
 import { PlugsRegularIcon } from "alouette-icons/phosphor-icons/Plugs";
 import { TrayRegularIcon } from "alouette-icons/phosphor-icons/Tray";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { errorToMessage } from "../services/errorToMessage.ts";
 import { formatDataAge } from "../services/formatDataAge.ts";
+import { BoardFiltersBar } from "./board-filters.tsx";
 import { BoardBucketSection } from "./bucket-section.tsx";
 import { useBoardDataSource } from "./dataSource.ts";
 import type { BoardRowInfo } from "./pull-request-row.tsx";
@@ -32,6 +44,15 @@ export interface PullRequestBoardExtraSection {
 /** The `groupKey` {@link BoardRowInfo} reports for the rows of an extra section. */
 export const extraSectionGroupKey = "extra";
 
+/** The `groupKey` {@link BoardRowInfo} reports for the rows of the closed view. */
+export const closedSectionGroupKey = "closed";
+
+/** The filters are the app's to keep, in its url for instance. */
+export interface PullRequestBoardFiltering {
+  value: BoardFilters;
+  onChange: (filters: BoardFilters) => void;
+}
+
 export interface PullRequestBoardProps {
   /** Pressing a row; the app routes to its pull request screen. */
   onOpenPullRequest: (ref: PullRequestRef) => void;
@@ -47,6 +68,8 @@ export interface PullRequestBoardProps {
    * "Connect reviewflow" prompt and a read error stay above them.
    */
   extraSections?: PullRequestBoardExtraSection[];
+  /** Shows the filters and the closed view; without it, the board lists every open pull request. */
+  filtering?: PullRequestBoardFiltering;
   /** The screen's own actions, at the end of the board's heading whatever the board's state. */
   actions?: ReactNode;
   /** What the refresh button says it does; `Refresh from reviewflow` by default. */
@@ -75,6 +98,7 @@ export function PullRequestBoard({
   renderConnect,
   renderRowExtra,
   extraSections,
+  filtering,
   actions,
   refreshLabel = "Refresh from reviewflow",
 }: PullRequestBoardProps): ReactNode {
@@ -85,7 +109,17 @@ export function PullRequestBoard({
 
   const notConfigured = status.value?.configured === false;
   const data = board.value?.board ?? null;
-  const busy = refreshing || board.reading;
+  const filters = filtering?.value ?? defaultBoardFilters;
+  const closedView = filters.state === "closed";
+  const closed = source.useClosedPullRequests({
+    account: filters.account,
+    enabled: closedView && !notConfigured,
+  });
+  const busy = refreshing || board.reading || closed.reading;
+  const readError = closedView ? closed.error : board.error;
+  const filtersActive = hasActiveBoardFilters(filters);
+  const matches = (pr: ReviewflowBoardPr): boolean =>
+    matchesBoardFilters(pr, filters);
 
   const refresh = (): void => {
     setRefreshing(true);
@@ -98,13 +132,31 @@ export function PullRequestBoard({
     data?.groups
       .map((group) => ({
         ...group,
-        buckets: group.buckets.filter((bucket) => bucket.prs.length > 0),
+        buckets: group.buckets
+          .map((bucket) => ({ ...bucket, prs: bucket.prs.filter(matches) }))
+          .filter((bucket) => bucket.prs.length > 0),
       }))
       .filter((group) => group.buckets.length > 0) ?? [];
 
-  const extras = (extraSections ?? []).filter(
-    (section) => section.rows.length > 0,
+  const extras = (extraSections ?? [])
+    .map((section) => ({ ...section, rows: section.rows.filter(matches) }))
+    .filter((section) => section.rows.length > 0);
+
+  const loadedPrs = closedView
+    ? (closed.value?.prs ?? [])
+    : [
+        ...(data?.groups.flatMap((group) =>
+          group.buckets.flatMap((bucket) => bucket.prs),
+        ) ?? []),
+        ...(extraSections ?? []).flatMap((section) => section.rows),
+      ];
+
+  const noMatch = (
+    <EmptyState icon={<FunnelRegularIcon />} title="No match">
+      No pull request matches these filters.
+    </EmptyState>
   );
+
   const extrasBody =
     extras.length === 0 ? null : (
       <View className="gap-l">
@@ -143,6 +195,39 @@ export function PullRequestBoard({
         </View>
       );
     }
+    if (closedView) {
+      if (closed.value === null) {
+        return closed.error === null ? <BoardLoading /> : null;
+      }
+      const closedRows = closed.value.prs.filter(matches);
+      if (closedRows.length === 0) {
+        return filtersActive ? (
+          noMatch
+        ) : (
+          <EmptyState
+            icon={<TrayRegularIcon />}
+            title="No closed pull requests"
+          >
+            The pull requests you created, are assigned to or reviewed are
+            listed here once closed.
+          </EmptyState>
+        );
+      }
+      return (
+        <BoardBucketSection
+          bucket={{
+            key: closedSectionGroupKey,
+            title: "Closed pull requests",
+            total: closed.value.total,
+            prs: closedRows,
+          }}
+          groupKey={closedSectionGroupKey}
+          viewer={closed.value.viewer}
+          renderRowExtra={renderRowExtra}
+          onOpenPullRequest={onOpenPullRequest}
+        />
+      );
+    }
     if (extrasBody !== null && groups.length === 0) return extrasBody;
     if (board.value === null) {
       if (board.error !== null) return null;
@@ -156,6 +241,7 @@ export function PullRequestBoard({
       );
     }
     if (groups.length === 0) {
+      if (filtersActive) return noMatch;
       return (
         <EmptyState icon={<ConfettiRegularIcon />} title="Nothing to review">
           Nothing is waiting for you, and none of your pull requests are in
@@ -211,7 +297,7 @@ export function PullRequestBoard({
           Pull requests
         </Text>
         <View className="flex-row items-center gap-xs">
-          {notConfigured || data === null ? null : (
+          {notConfigured || closedView || data === null ? null : (
             <Text className="text-xs text-muted">
               {`${board.cached === true ? "Cached, updated" : "Updated"} ${formatDataAge(data.fetchedAt)}`}
             </Text>
@@ -230,8 +316,16 @@ export function PullRequestBoard({
           {actions}
         </View>
       </View>
-      {notConfigured || board.error === null ? null : (
-        <WarningMessage>{errorToMessage(board.error)}</WarningMessage>
+      {filtering === undefined || notConfigured ? null : (
+        <BoardFiltersBar
+          filters={filters}
+          accounts={status.value?.accounts ?? []}
+          options={buildBoardFilterOptions(loadedPrs, filters)}
+          onChange={filtering.onChange}
+        />
+      )}
+      {notConfigured || readError === null ? null : (
+        <WarningMessage>{errorToMessage(readError)}</WarningMessage>
       )}
       {body}
     </View>

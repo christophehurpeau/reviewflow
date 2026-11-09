@@ -10,6 +10,7 @@ import { PencilSimpleLineRegularIcon } from "alouette-icons/phosphor-icons/Penci
 import { UserPlusRegularIcon } from "alouette-icons/phosphor-icons/UserPlus";
 import { UsersRegularIcon } from "alouette-icons/phosphor-icons/Users";
 import type { ReactNode } from "react";
+import { useBoardDataSource } from "./dataSource.ts";
 import type { BoardRowInfo } from "./pull-request-row.tsx";
 import { PullRequestRow } from "./pull-request-row.tsx";
 
@@ -37,6 +38,9 @@ const accents: Partial<Record<string, Accent>> = {
   "waiting-for-review": "info",
 };
 
+/** a review asked again has been started before: the bucket whose rows start one */
+const startReviewBucket = "requested-reviews";
+
 export interface BoardBucketSectionProps {
   bucket: ReviewflowBoardBucket;
   groupKey: string;
@@ -63,6 +67,13 @@ export function BoardBucketSection({
   accent,
 }: BoardBucketSectionProps): ReactNode {
   const shown = bucket.prs.length;
+  const { startReview, useStartedReviews } = useBoardDataSource();
+  const startedReviews = useStartedReviews();
+  // once started on GitHub: a refusal stays on the row, next to its button
+  const startReviewAndOpen = async (ref: PullRequestRef): Promise<void> => {
+    await startReview(ref);
+    onOpenPullRequest(ref);
+  };
 
   return (
     <View className="gap-xs">
@@ -81,6 +92,15 @@ export function BoardBucketSection({
             viewer={viewer}
             renderRowExtra={renderRowExtra}
             onOpenPullRequest={onOpenPullRequest}
+            onStartReview={
+              bucket.key === startReviewBucket &&
+              !startedReviews.some(
+                ({ ownerRepo, number }) =>
+                  ownerRepo === pr.ownerRepo && number === pr.number,
+              )
+                ? startReviewAndOpen
+                : undefined
+            }
           />
         ))}
       </View>

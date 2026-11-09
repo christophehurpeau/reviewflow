@@ -121,6 +121,23 @@ const selectRequestedReviewers = (
       reviewedBefore,
   );
 
+/** what people did: reviewflow also writes the document for its own bookkeeping */
+const selectLastActivityAt = ({
+  flowDates,
+  updated,
+}: ReviewflowPr): Date | undefined => {
+  const dates = [
+    flowDates?.openedAt,
+    flowDates?.readyAt,
+    flowDates?.lastPushedAt,
+    flowDates?.lastReviewSubmittedAt,
+    flowDates?.lastCommentActivityAt,
+    flowDates?.lastReviewCommentActivityAt,
+  ].filter((date) => date !== undefined);
+  if (dates.length === 0) return updated;
+  return new Date(Math.max(...dates.map((date) => date.getTime())));
+};
+
 export const toPrSummary = (pr: ReviewflowPr): PrSummary => ({
   _id: pr._id,
   orgLogin: pr.account.login,
@@ -128,10 +145,13 @@ export const toPrSummary = (pr: ReviewflowPr): PrSummary => ({
   number: pr.pr.number,
   title: pr.title,
   url: buildPullRequestUrl(pr),
+  headRef: pr.headRef ?? null,
   isDraft: pr.isDraft,
   checks: toChecksSummary(readPrChecksAndStatuses(pr)),
   lintFailed: hasLintFailure(pr),
   statusLinks: toStatusLinks(pr),
+  labels: pr.labels?.map(({ id, name }) => ({ id, name })) ?? [],
+  reviewState: pr.reviewState ?? null,
   approvedBy: toUserSummaries(pr.reviews?.approved),
   changesRequestedBy: toUserSummaries(pr.reviews?.changesRequested),
   requestedReviewers: toUserSummaries(selectRequestedReviewers(pr, false)),
@@ -155,4 +175,7 @@ export const toPrSummary = (pr: ReviewflowPr): PrSummary => ({
   unresolvedThreads: pr.unresolvedThreads?.length ?? null,
   openedAt: pr.flowDates?.openedAt,
   approvedAt: pr.flowDates?.approvedAt,
+  lastActivityAt: selectLastActivityAt(pr),
+  closedAt: pr.isClosed ? pr.flowDates?.closedAt : undefined,
+  isMerged: pr.isMerged,
 });

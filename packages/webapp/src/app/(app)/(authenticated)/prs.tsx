@@ -1,3 +1,10 @@
+import type { PrFilters, PrStateFilter } from "@reviewflow/modules";
+import {
+  parsePrFilters,
+  parsePrStateFilter,
+  prFiltersForAccount,
+  toPrFilterParams,
+} from "@reviewflow/modules";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useResource } from "react-liwi";
@@ -12,9 +19,21 @@ const openPr = (url: string): void => {
 
 export default function PrsPage(): ReactNode {
   const router = useRouter();
-  const { account: accountLogin } = useLocalSearchParams<{
+  const params = useLocalSearchParams<{
     account?: string;
+    state?: string;
+    repo?: string;
+    author?: string;
+    draft?: string;
+    checks?: string;
+    search?: string;
+    review?: string;
+    label?: string;
+    inactive?: string;
   }>();
+  const accountLogin = params.account;
+  const state = parsePrStateFilter(params.state);
+  const filters = parsePrFilters(params);
   const { orgsService, prsService, usersService } = useReviewflowServices();
 
   const me = useResource(usersService.queries.queryMe, { subscribe: true }, []);
@@ -34,10 +53,34 @@ export default function PrsPage(): ReactNode {
       : undefined;
   const pending = accountLogin !== undefined && !(me.fetched && orgs.fetched);
 
+  const accountId = selectedAccount?.id ?? null;
   const prsByBucket = useMyPrsByBucket({
-    accountId: selectedAccount?.id ?? null,
-    skip: pending,
+    accountId,
+    skip: pending || state === "closed",
   });
+  const closedPrs = useResource(
+    prsService.queries.queryMyPrs,
+    {
+      params: { accountId, bucket: "closed" },
+      subscribe: true,
+      skip: pending || state === "open",
+    },
+    [accountId, pending, state],
+  );
+
+  const showPrs = (next: {
+    login: string | undefined;
+    state: PrStateFilter;
+    filters: PrFilters;
+  }): void => {
+    router.replace({
+      pathname: "/prs",
+      params: {
+        ...(next.login ? { account: next.login } : {}),
+        ...toPrFilterParams(next.state, next.filters),
+      },
+    });
+  };
 
   return (
     <PrsScreen
@@ -45,11 +88,30 @@ export default function PrsPage(): ReactNode {
       orgs={orgs}
       selectedAccountLogin={selectedAccount?.login}
       prsByBucket={prsByBucket}
+      closedPrs={closedPrs}
       pending={pending}
+      state={state}
+      filters={filters}
       onSelectAccountLogin={(login) => {
-        router.replace(
-          login ? { pathname: "/prs", params: { account: login } } : "/prs",
-        );
+        showPrs({
+          login,
+          state,
+          filters: prFiltersForAccount(filters, login),
+        });
+      }}
+      onStateChange={(nextState) => {
+        showPrs({
+          login: selectedAccount?.login,
+          state: nextState,
+          filters,
+        });
+      }}
+      onFiltersChange={(nextFilters) => {
+        showPrs({
+          login: selectedAccount?.login,
+          state,
+          filters: nextFilters,
+        });
       }}
       onSelectPr={(pr) => {
         openPr(pr.url);

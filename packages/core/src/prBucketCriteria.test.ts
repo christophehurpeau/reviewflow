@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Query } from "mingo";
-import { buildPrBucketQuery } from "./prBucketCriteria.ts";
+import { buildClosedPrsQuery, buildPrBucketQuery } from "./prBucketCriteria.ts";
 
 // mongo criteria are typed as a partial model, dotted paths and $or are not in it
 const criteriaOf = (...args: Parameters<typeof buildPrBucketQuery>): any =>
@@ -421,5 +421,45 @@ describe("buildPrBucketQuery", () => {
         created: -1,
       });
     }
+  });
+});
+
+describe("buildClosedPrsQuery", () => {
+  const closedPr = (overrides: Record<string, unknown>) => ({
+    account: { id: 1 },
+    isClosed: true,
+    ...overrides,
+  });
+  const matches = (pr: Record<string, unknown>): boolean =>
+    new Query(buildClosedPrsQuery(withTeams).criteria).test(pr);
+
+  it("matches what the user created, is assigned to or reviewed", () => {
+    expect(matches(closedPr({ creator: { id: 42 } }))).toBe(true);
+    expect(matches(closedPr({ assignees: [{ id: 42 }] }))).toBe(true);
+    expect(matches(closedPr({ reviews: { reviewed: [{ id: 42 }] } }))).toBe(
+      true,
+    );
+  });
+
+  it("leaves out a request the user never answered", () => {
+    expect(
+      matches(closedPr({ reviews: { reviewRequested: [{ id: 42 }] } })),
+    ).toBe(false);
+  });
+
+  it("leaves out open pull requests and other accounts", () => {
+    expect(matches(closedPr({ creator: { id: 42 }, isClosed: false }))).toBe(
+      false,
+    );
+    expect(matches(closedPr({ creator: { id: 42 }, account: { id: 2 } }))).toBe(
+      false,
+    );
+  });
+
+  it("lists the most recently closed first", () => {
+    expect(buildClosedPrsQuery(withTeams).sort).toEqual({
+      "flowDates.closedAt": -1,
+      created: -1,
+    });
   });
 });
