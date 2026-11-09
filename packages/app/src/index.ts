@@ -12,13 +12,6 @@ const logger = appLogger.child("server", "Server");
 const defaultPort = 7450;
 const host = "127.0.0.1";
 
-// the credentials key lives in the macOS login keychain
-if (process.platform !== "darwin") {
-  throw new Error(
-    `the reviewflow app currently runs on macOS only, not on ${process.platform}. Please open an issue if you want to run it on another platform.`,
-  );
-}
-
 const readPort = (): number => {
   const raw = env.REVIEWFLOW_APP_PORT;
   if (raw === undefined || raw === "") return defaultPort;

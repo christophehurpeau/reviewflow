@@ -45,7 +45,7 @@ instead of being rendered by github.com.
 npx @reviewflow/app   # http://127.0.0.1:7450
 ```
 
-It needs macOS, node 24.14.1 or later and the
+It runs on macOS and Linux, with node 24.14.1 or later and the
 [GitHub CLI](https://cli.github.com) logged in (`gh auth login`).
 
 Connected to reviewflow, it follows your pull requests in real time: the home
