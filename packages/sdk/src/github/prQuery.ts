@@ -39,6 +39,7 @@ export const prFields = `fragment prFields on PullRequest {
   state
   isDraft
   reviewDecision
+  reviewRequests(first: 1) { totalCount }
   mergedAt
   mergeable
   headRefOid
@@ -125,6 +126,8 @@ export interface GhPullRequest {
   state: string;
   isDraft: boolean;
   reviewDecision: string | null;
+  /** pending only: GitHub drops a request once its reviewer submits a review */
+  reviewRequests: { totalCount: number };
   mergedAt: string | null;
   mergeable: string;
   headRefOid: string;
@@ -229,6 +232,28 @@ const reviewDecisions = new Map<string, PrReviewDecision>([
   ["REVIEW_REQUIRED", "reviewRequired"],
 ]);
 
+/**
+ * reviewflow's precedence (`toReviewState`): changes requested, then a pending
+ * review request, then GitHub's decision. GitHub answers `APPROVED` as soon as
+ * the required approvals are in, with other reviewers still asked, and `null`
+ * on a repository that requires no review, whoever was asked — both would put
+ * a pull request somebody is still reviewing in the operator's hands.
+ */
+const toReviewDecision = ({
+  reviewDecision,
+  reviewRequests,
+}: Pick<
+  GhPullRequest,
+  "reviewDecision" | "reviewRequests"
+>): PrReviewDecision => {
+  const decision =
+    reviewDecision === null
+      ? null
+      : (reviewDecisions.get(reviewDecision) ?? null);
+  if (decision === "changesRequested") return decision;
+  return reviewRequests.totalCount > 0 ? "reviewRequired" : decision;
+};
+
 const mergeables = new Map<string, PrMergeable>([
   ["CONFLICTING", "conflicting"],
   ["MERGEABLE", "mergeable"],
@@ -258,10 +283,7 @@ export const toFetchedPr = (
     target,
     number: pullRequest.number,
     state,
-    reviewDecision:
-      pullRequest.reviewDecision === null
-        ? null
-        : (reviewDecisions.get(pullRequest.reviewDecision) ?? null),
+    reviewDecision: toReviewDecision(pullRequest),
     mergeable: mergeables.get(pullRequest.mergeable) ?? "unknown",
     mergedAt: pullRequest.mergedAt,
     headSha: pullRequest.headRefOid,

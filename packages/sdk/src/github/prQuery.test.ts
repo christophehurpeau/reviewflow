@@ -20,6 +20,7 @@ const pullRequest = ({
   state = "OPEN",
   isDraft = false,
   reviewDecision = null,
+  pendingReviewRequests = 0,
   mergedAt = null,
   mergeable = "UNKNOWN",
   headRefOid = "0123456789abcdef0123456789abcdef01234567",
@@ -32,6 +33,7 @@ const pullRequest = ({
   state?: string;
   isDraft?: boolean;
   reviewDecision?: string | null;
+  pendingReviewRequests?: number;
   mergedAt?: string | null;
   mergeable?: string;
   headRefOid?: string;
@@ -44,6 +46,7 @@ const pullRequest = ({
   state,
   isDraft,
   reviewDecision,
+  reviewRequests: { totalCount: pendingReviewRequests },
   mergedAt,
   mergeable,
   headRefOid,
@@ -163,6 +166,18 @@ describe("parsePrQueryResponse", () => {
     expect(
       parseOne(pullRequest({ reviewDecision: "BRAND_NEW" }))[0]?.reviewDecision,
     ).toBeNull();
+  });
+
+  it("reads a pending review request as a review still required, as reviewflow does", () => {
+    const decisionOf = (
+      reviewDecision: string | null,
+    ): string | null | undefined =>
+      parseOne(pullRequest({ reviewDecision, pendingReviewRequests: 2 }))[0]
+        ?.reviewDecision;
+
+    expect(decisionOf("APPROVED")).toBe("reviewRequired");
+    expect(decisionOf(null)).toBe("reviewRequired");
+    expect(decisionOf("CHANGES_REQUESTED")).toBe("changesRequested");
   });
 
   it("sums the rollup aggregates over check runs and status contexts", () => {
