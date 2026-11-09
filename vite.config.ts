@@ -1,5 +1,17 @@
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
+
+// A hook run from a linked worktree (pre-push) exports GIT_DIR and the like:
+// inherited by the workers, they point the tests' git calls in their temporary
+// checkouts at this repository instead, which `git init` then turns bare.
+for (const name of execFileSync("git", ["rev-parse", "--local-env-vars"], {
+  encoding: "utf8",
+})
+  .split("\n")
+  .filter(Boolean)) {
+  Reflect.deleteProperty(process.env, name);
+}
 
 // projects do not inherit the root test options, each one repeats what it needs
 const testTimeout = 30_000;
