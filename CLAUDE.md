@@ -37,6 +37,11 @@ embeds the `app-expo` web export at pack time), never the webapp. Every
 package is named `@reviewflow/<directory>`. The app family (`app`,
 `app-expo`, `sdk`, `ui`) shares no code with the webapp, `core` or `modules`:
 it reaches reviewflow only through its public api, with a user's api token.
+When data is available from both, the app reads it from the reviewflow api
+rather than through `gh`: its rate limit does not spend the user's GitHub
+quota, its data is synced from webhooks, and its endpoints can be extended for
+the app's needs ([docs/api.md](docs/api.md)). `gh` is for what reviewflow does
+not hold, or when no reviewflow token is set.
 
 ## Technology
 
