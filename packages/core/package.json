@@ -22,7 +22,8 @@
       "node": {
         "import": "./build/index-node.mjs"
       }
-    }
+    },
+    "./tests": "./src/tests/testMongoStores.ts"
   },
   "scripts": {
     "build": "pnpm run clean:build && rollup --config rollup.config.mjs",

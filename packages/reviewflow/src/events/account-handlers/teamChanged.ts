@@ -16,6 +16,8 @@ export default function teamChanged(app: Probot, appContext: AppContext): void {
         context.octokit.paginate,
         context.payload.organization,
       );
+      // the config's teams are matched on the GitHub team name
+      await accountContext.updateGithubTeamMembers();
     },
   );
 }

@@ -2,6 +2,37 @@ import type { MongoStores, OrgTeamEmbed } from "@reviewflow/core";
 import type { OctokitPaginate, OctokitRestCompat } from "../../../octokit.ts";
 import { syncTeamMembers } from "./syncTeamMembers.ts";
 
+const staleTeamEmbed = (team: OrgTeamEmbed) => ({
+  $elemMatch: {
+    id: team.id,
+    $or: [{ name: { $ne: team.name } }, { slug: { $ne: team.slug } }],
+  },
+});
+
+const propagateTeamEmbed = async (
+  mongoStores: MongoStores,
+  orgId: number,
+  team: OrgTeamEmbed,
+): Promise<void> => {
+  await Promise.all([
+    mongoStores.orgMembers.partialUpdateMany(
+      { "org.id": orgId, teams: staleTeamEmbed(team) },
+      { $set: { "teams.$.name": team.name, "teams.$.slug": team.slug } },
+      { touchUpdated: false },
+    ),
+    mongoStores.userDmSettings.partialUpdateMany(
+      { orgId, silentTeams: staleTeamEmbed(team) },
+      {
+        $set: {
+          "silentTeams.$.name": team.name,
+          "silentTeams.$.slug": team.slug,
+        },
+      },
+      { touchUpdated: false },
+    ),
+  ]);
+};
+
 export const syncTeams = async (
   mongoStores: MongoStores,
   octokitRest: OctokitRestCompat,
@@ -21,19 +52,23 @@ export const syncTeams = async (
   )) {
     await Promise.all(
       data.map(async (team) => {
-        teamIds.push(team.id);
-        teamEmbeds.push({
+        const teamEmbed: OrgTeamEmbed = {
           id: team.id,
           name: team.name,
           slug: team.slug,
-        });
-        return mongoStores.orgTeams.upsertOne({
-          _id: team.id,
-          org: orgEmbed,
-          name: team.name,
-          slug: team.slug,
-          description: team.description,
-        });
+        };
+        teamIds.push(team.id);
+        teamEmbeds.push(teamEmbed);
+        await Promise.all([
+          mongoStores.orgTeams.upsertOne({
+            _id: team.id,
+            org: orgEmbed,
+            name: team.name,
+            slug: team.slug,
+            description: team.description,
+          }),
+          propagateTeamEmbed(mongoStores, org.id, teamEmbed),
+        ]);
       }),
     );
   }
@@ -49,6 +84,12 @@ export const syncTeams = async (
         "org.id": org.id,
       },
       { $pull: { teams: { id: { $not: { $in: teamIds } } } } },
+      { touchUpdated: false },
+    ),
+
+    mongoStores.userDmSettings.partialUpdateMany(
+      { orgId: org.id },
+      { $pull: { silentTeams: { id: { $not: { $in: teamIds } } } } },
       { touchUpdated: false },
     ),
   ]);
