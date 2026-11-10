@@ -92,6 +92,16 @@ function CommentView({ thread, comment, onEdit }: CommentViewProps): ReactNode {
   );
 }
 
+/** Who resolved the thread, as GitHub names them beside the fold. */
+function ResolvedBy({ thread }: { thread: PullRequestThread }): ReactNode {
+  if (thread.resolvedBy === null) return null;
+  return (
+    <Text className="text-sm text-muted">
+      {`by ${thread.resolvedBy.login}`}
+    </Text>
+  );
+}
+
 interface ThreadAnnotationProps {
   thread: PullRequestThread;
   onEdit: EditPullRequest;
@@ -116,8 +126,9 @@ export function ThreadAnnotation({
           <Badge accent="success" size="sm">
             Resolved
           </Badge>
+          <ResolvedBy thread={thread} />
           <Text className="text-sm text-muted">
-            {`${first?.author.login ?? "thread"}, ${pluralOf(thread.commentsTotal, "comment")}`}
+            {`${thread.resolvedBy === null ? "" : "· "}${first?.author.login ?? "thread"}, ${pluralOf(thread.commentsTotal, "comment")}`}
           </Text>
           <Button
             size="sm"
@@ -140,6 +151,7 @@ export function ThreadAnnotation({
           <Badge accent="success" size="sm">
             Resolved
           </Badge>
+          <ResolvedBy thread={thread} />
           <Button
             size="sm"
             accent="neutral"

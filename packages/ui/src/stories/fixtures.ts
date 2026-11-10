@@ -244,6 +244,7 @@ export const timeline: PullRequestTimelineResponse = {
       originalLine: 4,
       originalStartLine: null,
       resolved: false,
+      resolvedBy: null,
       outdated: false,
       viewerCanResolve: true,
       viewerCanUnresolve: true,

@@ -141,6 +141,8 @@ export interface PullRequestThread {
   originalLine: number | null;
   originalStartLine: number | null;
   resolved: boolean;
+  /** who marked the thread resolved; null when unresolved or the account is gone */
+  resolvedBy: PullRequestPerson | null;
   outdated: boolean;
   viewerCanResolve: boolean;
   viewerCanUnresolve: boolean;

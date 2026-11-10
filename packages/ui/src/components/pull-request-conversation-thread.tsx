@@ -89,6 +89,11 @@ export function Thread({ editing, thread }: ThreadProps): ReactNode {
             resolved
           </Badge>
         ) : null}
+        {thread.resolvedBy === null ? null : (
+          <Text className="text-sm text-muted">
+            {`by ${thread.resolvedBy.login}`}
+          </Text>
+        )}
         {thread.resolved ? (
           <Button
             text={open ? "Hide" : "Show"}

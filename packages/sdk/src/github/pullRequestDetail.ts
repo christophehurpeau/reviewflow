@@ -225,6 +225,7 @@ export const pullRequestTimelineQuery = pullRequestQuery({
         nodes {
           id
           isResolved
+          resolvedBy { login avatarUrl }
           isOutdated
           path
           line
@@ -358,6 +359,7 @@ interface GhReview extends GhComment {
 interface GhReviewThread {
   id: string;
   isResolved: boolean;
+  resolvedBy: GhActor | null;
   isOutdated: boolean;
   path: string;
   line: number | null;
@@ -747,6 +749,10 @@ const toThreadItem = (
     originalLine: thread.originalLine,
     originalStartLine: thread.originalStartLine,
     resolved: thread.isResolved,
+    resolvedBy:
+      thread.isResolved && thread.resolvedBy !== null
+        ? toPerson(thread.resolvedBy)
+        : null,
     outdated: thread.isOutdated,
     viewerCanResolve: thread.viewerCanResolve,
     viewerCanUnresolve: thread.viewerCanUnresolve,

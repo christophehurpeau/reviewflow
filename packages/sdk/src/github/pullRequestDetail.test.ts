@@ -371,6 +371,7 @@ describe("parsePullRequestDetail", () => {
           {
             id: "T1",
             isResolved: false,
+            resolvedBy: null,
             isOutdated: true,
             path: "src/a.ts",
             line: null,
@@ -414,6 +415,7 @@ describe("parsePullRequestDetail", () => {
       startSide: null,
       originalLine: 4,
       originalStartLine: null,
+      resolvedBy: null,
       outdated: true,
       viewerCanResolve: true,
       viewerCanUnresolve: false,
