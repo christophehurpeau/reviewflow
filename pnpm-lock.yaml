@@ -225,7 +225,7 @@ importers:
         version: link:../modules
       '@sentry/node':
         specifier: 11.8.0
-        version: 11.8.0(@babel/core@7.29.13(supports-color@8.1.1))
+        version: 11.8.0(@babel/core@7.29.13(supports-color@8.1.1))(rollup@4.67.3)
       emoji-regex:
         specifier: 10.6.0
         version: 10.6.0
@@ -506,7 +506,7 @@ importers:
         version: 2.0.0
       '@storybook/react-native':
         specifier: 10.6.0
-        version: 10.6.0(197c135665ae35db19fd183d63e626e9)
+        version: 10.6.0(1d40c029a7e539cf657a01de7f6f570b)
       '@types/react':
         specifier: 19.2.18
         version: 19.2.18
@@ -716,8 +716,8 @@ importers:
         specifier: 8.0.0
         version: 8.0.0
       cookie:
-        specifier: 0.7.2
-        version: 0.7.2
+        specifier: 2.0.2
+        version: 2.0.2
       cookie-parser:
         specifier: 1.4.7
         version: 1.4.7
@@ -2791,7 +2791,11 @@ packages:
     engines: {node: ^22.23.4 || ^24.22.1 || >=26.13.0}
     hasBin: true
     peerDependencies:
+      rollup: 4.67.3
       typescript: ^4.0.3 || ^5.0.0 || ^6.0.0 || ^7.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
 
   '@pob/rollup@8.7.0':
     resolution: {integrity: sha512-3KvDRoPwhRRiIWLrr3ienqec9f83HVjMR3Pi51BSr37L0vkJGOtx2L38MADOuZHQzo38qWqUpGcOncuX/1IvaQ==}
@@ -3256,14 +3260,29 @@ packages:
   '@rollup/plugin-node-resolve@16.0.3':
     resolution: {integrity: sha512-lUYM3UBGuM93CnMPG1YocWu7X802BrNF3jW2zny5gQyLQgRFJhV1Sq0Zi74+dh/6NBx1DxFC4b4GXg9wUCG5Qg==}
     engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^2.78.0||^3.0.0||^4.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
 
   '@rollup/plugin-replace@6.0.3':
     resolution: {integrity: sha512-J4RZarRvQAm5IF0/LwUUg+obsm+xZhYnbMXmXROyoSE1ATJe3oXSb9L5MMppdxP2ylNSjv6zFBwKYjcKMucVfA==}
     engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
 
   '@rollup/plugin-run@3.1.0':
     resolution: {integrity: sha512-k2daijcVA8RAG1PXUFtIAOmb9ifiMv6Kth3Y9OhZ8/W+j8eTgZkVsOmBQD11HaeY1rYqRb0aLjX4e2V9bpS01Q==}
     engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^2.0.0||^3.0.0||^4.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
 
   '@rollup/pluginutils@5.4.0':
     resolution: {integrity: sha512-MfPp06CjRLfXQ3wY0R8vJDYBy/MvVcc9OulEfR0B8Iv9ko+GCNaRZ+EpJYFl27LhKsZK0o420sYCRHCjfCgeUg==}
@@ -3427,9 +3446,12 @@ packages:
     engines: {node: '>=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0'}
     peerDependencies:
       '@babel/core': ^7.18.5
+      rollup: '>=3.2.0'
       webpack: '>=5.1.0'
     peerDependenciesMeta:
       '@babel/core':
+        optional: true
+      rollup:
         optional: true
       webpack:
         optional: true
@@ -4989,6 +5011,10 @@ packages:
     resolution: {integrity: sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w==}
     engines: {node: '>= 0.6'}
 
+  cookie@2.0.2:
+    resolution: {integrity: sha512-SL0cVuEdETEp7pN0FuZb01toc3vnODEfVUCooxG1SJN0yIirh7JMb9X9bvfCFf0vzzbT68RdbKDHYTiWy7a7iw==}
+    engines: {node: '>=22'}
+
   core-js-compat@3.51.0:
     resolution: {integrity: sha512-52r6fkXgxv4GLMjmFcMWRx7X9bw071xTTdrDcdyPGRqU2oE+9pCG0bAOMifSBdLw0JRBZKEF0q3B55qPlLuE8g==}
     engines: {node: '>=6.4.0'}
@@ -5563,6 +5589,7 @@ packages:
     resolution: {integrity: sha512-sVgXaMjh5uapBvBkik3QibxbKI2g1zNtNeHntjRfixWAI3tlQZbaK4ACdInY4+jUBVymkf8u9BXJUaSes9jdtA==}
     hasBin: true
     peerDependencies:
+      '@expo/dom-webview': '*'
       '@expo/metro-runtime': '*'
       react: '*'
       react-dom: '*'
@@ -5570,6 +5597,8 @@ packages:
       react-native-web: '*'
       react-native-webview: '*'
     peerDependenciesMeta:
+      '@expo/dom-webview':
+        optional: true
       '@expo/metro-runtime':
         optional: true
       react-dom:
@@ -10526,9 +10555,9 @@ snapshots:
   '@pob/rollup-esbuild@11.4.0(@typescript/typescript6@6.0.2)(supports-color@8.1.1)':
     dependencies:
       '@pob/rollup': 8.7.0
-      '@rollup/plugin-node-resolve': 16.0.3
-      '@rollup/plugin-replace': 6.0.3
-      '@rollup/plugin-run': 3.1.0
+      '@rollup/plugin-node-resolve': 16.0.3(@rollup/wasm-node@4.67.3)
+      '@rollup/plugin-replace': 6.0.3(@rollup/wasm-node@4.67.3)
+      '@rollup/plugin-run': 3.1.0(@rollup/wasm-node@4.67.3)
       esbuild: 0.28.2
       rollup: '@rollup/wasm-node@4.67.3'
       rollup-config-external-dependencies: 3.0.1
@@ -10995,24 +11024,27 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@rollup/plugin-node-resolve@16.0.3':
+  '@rollup/plugin-node-resolve@16.0.3(@rollup/wasm-node@4.67.3)':
     dependencies:
       '@rollup/pluginutils': 5.4.0(@rollup/wasm-node@4.67.3)
       '@types/resolve': 1.20.2
       deepmerge: 4.3.1
       is-module: 1.0.0
       resolve: 1.22.12
+    optionalDependencies:
       rollup: '@rollup/wasm-node@4.67.3'
 
-  '@rollup/plugin-replace@6.0.3':
+  '@rollup/plugin-replace@6.0.3(@rollup/wasm-node@4.67.3)':
     dependencies:
       '@rollup/pluginutils': 5.4.0(@rollup/wasm-node@4.67.3)
       magic-string: 0.30.21
+    optionalDependencies:
       rollup: '@rollup/wasm-node@4.67.3'
 
-  '@rollup/plugin-run@3.1.0':
+  '@rollup/plugin-run@3.1.0(@rollup/wasm-node@4.67.3)':
     dependencies:
       '@types/node': 14.18.30
+    optionalDependencies:
       rollup: '@rollup/wasm-node@4.67.3'
 
   '@rollup/pluginutils@5.4.0(@rollup/wasm-node@4.67.3)':
@@ -11116,18 +11148,18 @@ snapshots:
       '@napi-rs/lzma-linux-x64-gnu': 1.5.1
       fsevents: 2.3.3
 
-  '@sentry/bundler-plugins@11.8.0(@babel/core@7.29.13(supports-color@8.1.1))':
+  '@sentry/bundler-plugins@11.8.0(@babel/core@7.29.13(supports-color@8.1.1))(rollup@4.67.3)':
     dependencies:
       '@sentry/core': 11.8.0
       dotenv: 17.4.2
       glob: 13.0.6
       magic-string: 1.4.5
       oxc-parser: 0.152.0
-      rollup: '@rollup/wasm-node@4.67.3'
       sentry: 0.45.0
       supports-color: 8.1.1
     optionalDependencies:
       '@babel/core': 7.29.13(supports-color@8.1.1)
+      rollup: 4.67.3
 
   '@sentry/conventions@0.27.0': {}
 
@@ -11135,10 +11167,10 @@ snapshots:
     dependencies:
       '@sentry/conventions': 0.27.0
 
-  '@sentry/node@11.8.0(@babel/core@7.29.13(supports-color@8.1.1))':
+  '@sentry/node@11.8.0(@babel/core@7.29.13(supports-color@8.1.1))(rollup@4.67.3)':
     dependencies:
       '@opentelemetry/api': 1.9.1
-      '@sentry/bundler-plugins': 11.8.0(@babel/core@7.29.13(supports-color@8.1.1))
+      '@sentry/bundler-plugins': 11.8.0(@babel/core@7.29.13(supports-color@8.1.1))(rollup@4.67.3)
       '@sentry/conventions': 0.27.0
       '@sentry/core': 11.8.0
       '@sentry/opentelemetry': 11.8.0(@opentelemetry/api@1.9.1)
@@ -11146,6 +11178,7 @@ snapshots:
       '@sentry/server-utils': 11.8.0
     transitivePeerDependencies:
       - '@babel/core'
+      - rollup
       - webpack
 
   '@sentry/opentelemetry@11.8.0(@opentelemetry/api@1.9.1)':
@@ -11340,29 +11373,6 @@ snapshots:
       - supports-color
       - typescript
 
-  '@storybook/react-native-ui@10.6.0(0183048e3bc28bf30a326eaa0edadbfb)':
-    dependencies:
-      '@gorhom/bottom-sheet': 5.2.14(5f3ac989b3aa7b2687279d23eca816b2)
-      '@gorhom/portal': 1.0.14(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
-      '@nozbe/microfuzz': 1.0.0
-      '@storybook/react': 10.6.6(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(@typescript/typescript6@6.0.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(storybook@10.6.6(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(supports-color@8.1.1)
-      '@storybook/react-native-theming': 10.6.0(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
-      '@storybook/react-native-ui-common': 10.6.0(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(@typescript/typescript6@6.0.2)(react-dom@19.2.8(react@19.2.8))(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(storybook@10.6.6(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(supports-color@8.1.1)
-      polished: 4.3.1
-      react: 19.2.8
-      react-native: 0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6)
-      react-native-gesture-handler: 2.32.0(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
-      react-native-reanimated: 4.5.1(react-native-worklets@0.10.3(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@8.1.1))(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
-      react-native-safe-area-context: 5.8.0(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
-      react-native-svg: 15.15.5(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
-      storybook: 10.6.6(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6)
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@types/react-dom'
-      - react-dom
-      - supports-color
-      - typescript
-
   '@storybook/react-native-ui@10.6.0(375800e156f12d93996a3674cd8ad688)':
     dependencies:
       '@gorhom/bottom-sheet': 5.2.14(7b5aab59e0fd2932ae8abcc48672b0e4)
@@ -11376,6 +11386,29 @@ snapshots:
       react-native: 0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6)
       react-native-gesture-handler: 2.32.0(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
       react-native-reanimated: 4.5.3(react-native-worklets@0.10.3(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@8.1.1))(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
+      react-native-safe-area-context: 5.8.0(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
+      react-native-svg: 15.15.5(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
+      storybook: 10.6.6(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6)
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/react-dom'
+      - react-dom
+      - supports-color
+      - typescript
+
+  '@storybook/react-native-ui@10.6.0(58973d5a7b412c23e49860cf8e9a52c4)':
+    dependencies:
+      '@gorhom/bottom-sheet': 5.2.14(5f3ac989b3aa7b2687279d23eca816b2)
+      '@gorhom/portal': 1.0.14(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
+      '@nozbe/microfuzz': 1.0.0
+      '@storybook/react': 10.6.6(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(@typescript/typescript6@6.0.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(storybook@10.6.6(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(supports-color@8.1.1)
+      '@storybook/react-native-theming': 10.6.0(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
+      '@storybook/react-native-ui-common': 10.6.0(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(@typescript/typescript6@6.0.2)(react-dom@19.2.8(react@19.2.8))(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(storybook@10.6.6(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(supports-color@8.1.1)
+      polished: 4.3.1
+      react: 19.2.8
+      react-native: 0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6)
+      react-native-gesture-handler: 2.32.0(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
+      react-native-reanimated: 4.5.1(react-native-worklets@0.10.3(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@8.1.1))(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
       react-native-safe-area-context: 5.8.0(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
       react-native-svg: 15.15.5(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
       storybook: 10.6.6(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6)
@@ -11406,12 +11439,12 @@ snapshots:
       - supports-color
       - typescript
 
-  '@storybook/react-native@10.6.0(197c135665ae35db19fd183d63e626e9)':
+  '@storybook/react-native@10.6.0(1d40c029a7e539cf657a01de7f6f570b)':
     dependencies:
       '@storybook/mcp': 10.6.1(@typescript/typescript6@6.0.2)
       '@storybook/react': 10.6.6(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(@typescript/typescript6@6.0.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(storybook@10.6.6(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(supports-color@8.1.1)
       '@storybook/react-native-theming': 10.6.0(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
-      '@storybook/react-native-ui': 10.6.0(0183048e3bc28bf30a326eaa0edadbfb)
+      '@storybook/react-native-ui': 10.6.0(58973d5a7b412c23e49860cf8e9a52c4)
       '@storybook/react-native-ui-common': 10.6.0(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(@typescript/typescript6@6.0.2)(react-dom@19.2.8(react@19.2.8))(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(storybook@10.6.6(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(utf-8-validate@6.0.6))(supports-color@8.1.1)
       '@tmcp/adapter-valibot': 0.1.6(tmcp@1.20.0(@typescript/typescript6@6.0.2))(valibot@1.5.0(@typescript/typescript6@6.0.2))
       '@tmcp/transport-http': 0.8.6(tmcp@1.20.0(@typescript/typescript6@6.0.2))
@@ -12758,6 +12791,8 @@ snapshots:
   cookie-signature@1.2.2: {}
 
   cookie@0.7.2: {}
+
+  cookie@2.0.2: {}
 
   core-js-compat@3.51.0:
     dependencies:
