@@ -63,6 +63,7 @@ import {
 /* eslint-disable-next-line import-x/no-unresolved */ // oxlint-disable-next-line import/extensions
 import { DiffWorkerPool } from "./branch-diff/diff-worker-pool";
 import { reviewflowSelectionColors } from "./branch-diff/reviewflow-diff-selection.ts";
+import { fileOfPath } from "./diff-file-of-path.ts";
 import type { CommitFileAnchoring } from "./pull-request-commit-files.ts";
 import type {
   AnnotationGroup,
@@ -1454,12 +1455,22 @@ export interface DiffViewerProps {
   collapse: PullRequestCollapse;
   /** absent: the unchanged lines between hunks cannot be unfolded */
   loadFiles?: FileDiffContentsLoader;
+  /**
+   * Set: that file alone, without its group's heading, named as `groups` name
+   * it (after any rename). A path the patch does not carry renders nothing:
+   * a file the diff left out is in its `omitted`. Absent: every file.
+   */
+  path?: string;
 }
 
 /**
  * A read-only diff of any patch, with the pull request's file chrome and no
  * pull request: a branch against its base, a working tree. Default export of
  * `@reviewflow/ui/diff-viewer`, to be loaded lazily like the pull request's.
+ *
+ * The patch is parsed once, whatever `path` is: showing another file of the
+ * same patch picks it among the parsed files, so only that file is rendered
+ * and highlighted.
  */
 function DiffViewer({
   patch,
@@ -1472,28 +1483,50 @@ function DiffViewer({
   stickyTop,
   collapse,
   loadFiles,
+  path,
 }: DiffViewerProps): ReactNode {
-  const fileGroups = useMemo(
-    () =>
-      groupFiles(
-        parsePatchFiles(patch).flatMap((parsed) => parsed.files),
-        groups,
-      ),
-    [patch, groups],
+  const files = useMemo(
+    () => parsePatchFiles(patch).flatMap((parsed) => parsed.files),
+    [patch],
   );
+  const fileGroups = useMemo(() => groupFiles(files, groups), [files, groups]);
+  const shownFile = path === undefined ? undefined : fileOfPath(files, path);
   return (
     <DiffWorkerPool theme={theme}>
-      <ReadOnlyFiles
-        groups={fileGroups}
-        diffStyle={diffStyle}
-        theme={theme}
-        themeType={themeType}
-        fontFamily={fontFamily}
-        wordWrap={wordWrap}
-        stickyTop={stickyTop}
-        collapse={collapse}
-        loadFiles={loadFiles}
-      />
+      {path === undefined ? (
+        <ReadOnlyFiles
+          groups={fileGroups}
+          diffStyle={diffStyle}
+          theme={theme}
+          themeType={themeType}
+          fontFamily={fontFamily}
+          wordWrap={wordWrap}
+          stickyTop={stickyTop}
+          collapse={collapse}
+          loadFiles={loadFiles}
+        />
+      ) : null}
+      {shownFile === undefined ? null : (
+        <DiffFile
+          key={shownFile.name}
+          file={shownFile}
+          diffStyle={diffStyle}
+          theme={theme}
+          themeType={themeType}
+          fontFamily={fontFamily}
+          wordWrap={wordWrap}
+          stickyTop={stickyTop}
+          loadFiles={loadFiles}
+          entry={false}
+          collapsed={collapse.isCollapsed(shownFile.name, false)}
+          onToggleCollapsed={() => {
+            collapse.set(
+              shownFile.name,
+              !collapse.isCollapsed(shownFile.name, false),
+            );
+          }}
+        />
+      )}
     </DiffWorkerPool>
   );
 }

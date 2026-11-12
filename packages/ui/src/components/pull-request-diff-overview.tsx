@@ -5,7 +5,6 @@ import type {
   DiffReadingOrderResponse,
 } from "@reviewflow/sdk";
 import { isAttachablePath, pluralOf, subjectsOf } from "@reviewflow/sdk";
-import type { Accent } from "alouette";
 import { Icon, PressableBox, Text, View } from "alouette";
 import { CaretDownRegularIcon } from "alouette-icons/phosphor-icons/CaretDown";
 import { CaretRightRegularIcon } from "alouette-icons/phosphor-icons/CaretRight";
@@ -23,6 +22,10 @@ import {
   workspaceIdOf,
 } from "./pull-request-diff-overview-tree.ts";
 import type { DiffTreeFileStatus } from "./pull-request-diff-tree-files.ts";
+import {
+  statusAccents,
+  statusLetters,
+} from "./pull-request-diff-tree-files.ts";
 import { revealWithinScrollParent } from "./scroll-parent.ts";
 
 /** Past this many names over the range, the rows carry their counts only. */
@@ -229,21 +232,6 @@ const splitLabel = (label: string): { name: string; directory: string } => {
     name: label.slice(slash + 1),
     directory: label.slice(0, Math.max(slash, 0)),
   };
-};
-
-/** The tree's git colors where the diff theme has none (`PullRequestDiffTree`). */
-const statusAccents: Record<DiffTreeFileStatus, Accent> = {
-  added: "success",
-  modified: "info",
-  renamed: "warning",
-  deleted: "danger",
-};
-
-const statusLetters: Record<DiffTreeFileStatus, string> = {
-  added: "A",
-  modified: "M",
-  renamed: "R",
-  deleted: "D",
 };
 
 const countsOf = (files: number, tests: number): string =>

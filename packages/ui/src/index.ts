@@ -37,6 +37,10 @@ export type {
   CheckoutViewProps,
 } from "./components/checkout-view.tsx";
 export { CheckoutView } from "./components/checkout-view.tsx";
+export type { ChangedFilesTreeProps } from "./components/changed-files-tree.tsx";
+export { ChangedFilesTree } from "./components/changed-files-tree.tsx";
+export type { DiffTreeFile as ChangedFile } from "./components/pull-request-diff-tree-files.ts";
+export { changedFilesOf } from "./components/pull-request-diff-tree-files.ts";
 export type { BranchPullRequestButtonsProps } from "./components/branch-pull-request-buttons.tsx";
 export { BranchPullRequestButtons } from "./components/branch-pull-request-buttons.tsx";
 export type { RepoOverviewProps } from "./components/repo-overview.tsx";

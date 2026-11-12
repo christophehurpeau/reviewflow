@@ -12,20 +12,28 @@ import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { DiffTheme } from "./branch-diff/diff-themes.ts";
 import { diffThemeNames } from "./branch-diff/diff-themes.ts";
+import { omissionLabel } from "./omitted-files.tsx";
 import type { DiffTreeFile } from "./pull-request-diff-tree-files.ts";
+import { isOmittedFile } from "./pull-request-diff-tree-files.ts";
 
 export interface PullRequestDiffTreeProps {
-  files: DiffTreeFile[];
+  files: readonly DiffTreeFile[];
   viewedPaths: readonly string[];
   /** the diff's highlighting theme, whose git colors the statuses take */
   theme: DiffTheme;
-  /** brings the file into view in the diff */
+  /** brings the file into view in the diff, or shows it */
   onFilePress: (path: string) => void;
+  /**
+   * Set: the selection is the caller's, the file shown, and stays on it.
+   * Absent: a press selects nothing, so pressing the same file again calls
+   * `onFilePress` again (a diff scrolled away from it goes back).
+   */
+  selectedPath?: string | null;
 }
 
 interface DecorationData {
   viewedPaths: ReadonlySet<string>;
-  omittedPaths: ReadonlySet<string>;
+  filesByPath: ReadonlyMap<string, DiffTreeFile>;
 }
 
 type CustomProperties = CSSProperties & Record<`--${string}`, string>;
@@ -132,15 +140,70 @@ const gitStatusOf = (files: readonly DiffTreeFile[]): GitStatusEntry[] =>
     status === null ? [] : [{ path, status }],
   );
 
+const countsOf = ({
+  additions,
+  deletions,
+}: DiffTreeFile): FileTreeRowDecoration | null => {
+  if (additions == null || deletions == null) return null;
+  const added = `+${String(additions)}`;
+  const removed = `\u2212${String(deletions)}`;
+  return {
+    text: `${added} ${removed}`,
+    title: `${String(additions)} added, ${String(deletions)} removed`,
+    parts: [
+      {
+        text: added,
+        color: "var(--trees-theme-git-added-fg, var(--tree-success))",
+      },
+      { text: " " },
+      {
+        text: removed,
+        color: "var(--trees-theme-git-deleted-fg, var(--tree-danger))",
+      },
+    ],
+  };
+};
+
+/** Left out, else viewed, else the line counts when the file carries them. */
 const decorationOf = (
   path: string,
-  { viewedPaths, omittedPaths }: DecorationData,
+  { viewedPaths, filesByPath }: DecorationData,
 ): FileTreeRowDecoration | null => {
-  if (omittedPaths.has(path)) {
-    return { text: "left out", title: "Not in the diff: listed above it" };
+  const file = filesByPath.get(path);
+  if (file !== undefined && isOmittedFile(file)) {
+    return {
+      text: "left out",
+      title:
+        file.omitted === undefined
+          ? "Not in the diff: listed above it"
+          : `Not in the diff: ${omissionLabel(file.omitted)}`,
+    };
   }
   if (viewedPaths.has(path)) return { text: "viewed", title: "Marked viewed" };
-  return null;
+  return file === undefined ? null : countsOf(file);
+};
+
+/**
+ * Only `selectedPath` selected, `syncing` raised meanwhile so the selection
+ * listener does not take it for a press. Nothing when uncontrolled.
+ */
+const syncSelection = (
+  model: FileTreeModel | null,
+  selectedPath: string | null | undefined,
+  syncing: { current: boolean },
+): void => {
+  if (model === null || selectedPath === undefined) return;
+  syncing.current = true;
+  try {
+    for (const path of model.getSelectedPaths()) {
+      if (path !== selectedPath) model.getItem(path)?.deselect();
+    }
+    if (selectedPath === null) return;
+    const item = model.getItem(selectedPath);
+    if (item !== null && !item.isSelected()) item.select();
+  } finally {
+    syncing.current = false;
+  }
 };
 
 /**
@@ -148,33 +211,49 @@ const decorationOf = (
  * each file's git status and viewed mark on its row. Web only (DOM in a shadow
  * root), loaded lazily as the diff viewer is.
  *
- * The model is created once and fed through its methods. Selecting a file
- * scrolls the diff to it and is undone at once, so pressing the same file
- * again scrolls again. The row decorations have no setter: they read the
- * latest data from a ref, and resetting the git status repaints them.
+ * Fills its parent's width and height: the rows are virtualized, so the
+ * parent needs a bounded height. No key is listened to outside the tree: its
+ * keyboard navigation and search answer only while it has the focus.
+ *
+ * The model is created once and fed through its methods. Uncontrolled,
+ * selecting a file scrolls the diff to it and is undone at once, so pressing
+ * the same file again scrolls again. Controlled (`selectedPath`), a file
+ * press leaves that file alone selected, a folder press puts the selection
+ * back on `selectedPath`, and the selection follows `selectedPath` whenever
+ * it changes. The row decorations have no setter: they
+ * read the latest data from a ref, and resetting the git status repaints them.
  */
 function PullRequestDiffTree({
   files,
   viewedPaths: viewedList,
   theme,
   onFilePress,
+  selectedPath,
 }: PullRequestDiffTreeProps): ReactNode {
   const mode = useCurrentMode();
   const gitColors = useThemeGitColors(diffThemeNames(theme)[mode]);
   const paths = files.map(({ path }) => path);
   const pathsKey = paths.join("\n");
   const repaintKey = [
-    ...files.map(({ path, status }) => `${status ?? "omitted"} ${path}`),
+    ...files.map(
+      ({ path, status, omitted, additions, deletions }) =>
+        `${status ?? "omitted"} ${omitted ?? ""} ${String(additions)} ${String(deletions)} ${path}`,
+    ),
     ...viewedList,
   ].join("\n");
   const viewedPaths = new Set(viewedList);
-  const omittedPaths = new Set(
-    files.filter(({ status }) => status === null).map(({ path }) => path),
-  );
-  const latest = useRef({ files, onFilePress, viewedPaths, omittedPaths });
+  const filesByPath = new Map(files.map((file) => [file.path, file]));
+  const latest = useRef({
+    files,
+    onFilePress,
+    viewedPaths,
+    filesByPath,
+    selectedPath,
+  });
   const filePaths = useRef(new Set(paths));
   const modelRef = useRef<FileTreeModel | null>(null);
   const appliedPathsKey = useRef(pathsKey);
+  const syncing = useRef(false);
 
   const { model } = useFileTree({
     paths,
@@ -188,7 +267,29 @@ function PullRequestDiffTree({
     renderRowDecoration: ({ item }) =>
       item.kind === "file" ? decorationOf(item.path, latest.current) : null,
     onSelectionChange: (selected) => {
+      if (syncing.current) return;
       const path = selected.at(-1);
+      const controlled = latest.current.selectedPath !== undefined;
+      if (controlled) {
+        const pressedFile =
+          path !== undefined && filePaths.current.has(path) ? path : null;
+        if (
+          pressedFile !== null &&
+          pressedFile !== latest.current.selectedPath
+        ) {
+          latest.current.onFilePress(pressedFile);
+        }
+        // the pressed file alone until the caller's answer renders; a folder
+        // press puts the caller's selection back
+        queueMicrotask(() => {
+          syncSelection(
+            modelRef.current,
+            pressedFile ?? latest.current.selectedPath,
+            syncing,
+          );
+        });
+        return;
+      }
       if (path === undefined || !filePaths.current.has(path)) return;
       latest.current.onFilePress(path);
       queueMicrotask(() => {
@@ -199,7 +300,13 @@ function PullRequestDiffTree({
 
   useEffect(() => {
     modelRef.current = model;
-    latest.current = { files, onFilePress, viewedPaths, omittedPaths };
+    latest.current = {
+      files,
+      onFilePress,
+      viewedPaths,
+      filesByPath,
+      selectedPath,
+    };
     filePaths.current = new Set(paths);
   });
 
@@ -210,7 +317,13 @@ function PullRequestDiffTree({
       model.resetPaths(current.map(({ path }) => path));
     }
     model.setGitStatus(gitStatusOf(current));
+    // a reset may drop the selected row: it is selected again once it is back
+    syncSelection(model, latest.current.selectedPath, syncing);
   }, [model, pathsKey, repaintKey]);
+
+  useEffect(() => {
+    syncSelection(model, selectedPath, syncing);
+  }, [model, selectedPath]);
 
   return (
     <CapturedAccent accent="brand">
