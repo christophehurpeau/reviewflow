@@ -135,6 +135,7 @@ export const buildPrBucketQuery = (
     case "changes-requested":
       return {
         criteria: buildOwnedCriteria(context, {
+          isDraft: false,
           "reviews.changesRequested": someReviews,
         }),
         sort: { created: -1 },
