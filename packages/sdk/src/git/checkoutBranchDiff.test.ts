@@ -72,6 +72,15 @@ describe("readCheckoutBranchDiff", () => {
     });
     expect(diff.untrackedCount).toBe(0);
     expect(diff.groups).toEqual([{ name: "", paths: ["a.txt"] }]);
+    expect(diff.files).toEqual([
+      {
+        path: "a.txt",
+        previousPath: null,
+        status: "modified",
+        additions: 1,
+        deletions: 0,
+      },
+    ]);
     expect(diff.patch).toContain("+b");
   });
 
@@ -88,6 +97,22 @@ describe("readCheckoutBranchDiff", () => {
     expect(diff.mergeBase).toBeNull();
     expect(diff.untrackedCount).toBe(1);
     expect(diff.groups).toEqual([{ name: "", paths: ["a.txt", "new.txt"] }]);
+    expect(diff.files).toEqual([
+      {
+        path: "a.txt",
+        previousPath: null,
+        status: "modified",
+        additions: 1,
+        deletions: 0,
+      },
+      {
+        path: "new.txt",
+        previousPath: null,
+        status: "added",
+        additions: 1,
+        deletions: 0,
+      },
+    ]);
     expect(diff.patch).toContain("+c");
     expect(diff.patch).not.toContain("+b");
   });
