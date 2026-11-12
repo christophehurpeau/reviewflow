@@ -90,6 +90,7 @@ function PrsClosedList({
         filters={filters}
         showPassedChecks={false}
         currentUserLogin={currentUserLogin}
+        dayOf={(pr) => pr.closedAt}
         onSelectPr={onSelectPr}
       />
     );
