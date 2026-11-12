@@ -24,6 +24,8 @@ export {
   PullRequestPanel,
   isPullRequestTab,
 } from "./components/pull-request-panel.tsx";
+export type { PullRequestSideCardProps } from "./components/pull-request-side-card.tsx";
+export { PullRequestSideCard } from "./components/pull-request-side-card.tsx";
 export { PullRequestTimeline } from "./components/pull-request-timeline.tsx";
 export { PullRequestFiles } from "./components/pull-request-files.tsx";
 export { PullRequestReview } from "./components/pull-request-review.tsx";

@@ -91,6 +91,40 @@ behind your own cache and server. The board takes a `BoardDataSource`
 `BoardDataSourceProvider`. `PullRequestSlotsProvider` (or the `slots` prop)
 replaces the markdown editor or adds an action to the "no checkout" notice.
 
+## A pull request in a side column
+
+`PullRequestSideCard` is the screen's status, merge, checks and reviewers in
+one fluid column, for a panel beside something else. It takes its data as
+props and needs no provider of this package; it draws no surface and does not
+scroll. `onEdit` writes one edit and reads the pull request again before
+resolving:
+
+```tsx
+import { pullRequestPartsStaleAfter } from "@reviewflow/sdk";
+import { PullRequestSideCard } from "@reviewflow/ui";
+
+const detail = usePart(ref, "detail").value;
+const checks = usePart(ref, "checks");
+const summary = useSummary(ref); // optional: reviewflow's review status
+const candidates = useCandidates(ref).value; // optional: offers asking reviewers
+
+detail === null ? null : (
+  <PullRequestSideCard
+    detail={detail}
+    checks={checks}
+    summary={summary}
+    candidates={candidates}
+    onEdit={async (change) => {
+      await edit(ref, change);
+      await reload(
+        ref,
+        pullRequestPartsStaleAfter(change, detail.pullRequest.id),
+      );
+    }}
+  />
+);
+```
+
 ## A diff in a side column
 
 `ChangedFilesTree` lists the files of one diff, each with its status and line
