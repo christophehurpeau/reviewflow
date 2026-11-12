@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.32.0](https://github.com/christophehurpeau/reviewflow/compare/v6.31.0...v6.32.0) (2026-11-12)
+
+### Features
+
+* split the closed pull requests by day
+* **ui:** add a pull request card for a side column
+* **ui:** export a changed files tree and render one file of a diff
+
+Version bump for dependency: @reviewflow/sdk
+
+
 ## [6.31.0](https://github.com/christophehurpeau/reviewflow/compare/v6.30.1...v6.31.0) (2026-11-12)
 
 ### Features
