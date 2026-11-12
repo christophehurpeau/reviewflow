@@ -42,8 +42,10 @@ export { BranchPullRequestButtons } from "./components/branch-pull-request-butto
 export type { RepoOverviewProps } from "./components/repo-overview.tsx";
 export { RepoOverview } from "./components/repo-overview.tsx";
 export type {
+  CloseProcessesOption,
   IgnoredFilesProps,
   RemoveWorktreeButtonProps,
+  RemoveWorktreeOptions,
   WorktreeRemovalCheck,
   WorktreeRemovalMessagesProps,
 } from "./components/remove-worktree-button.tsx";

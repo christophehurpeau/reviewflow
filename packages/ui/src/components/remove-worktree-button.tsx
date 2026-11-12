@@ -125,13 +125,35 @@ const unread: CheckState = { check: null, error: null };
 const branchDetails =
   "Only the local branch: git refuses while it is unmerged, and the remote is never touched.";
 
+/**
+ * A host that can end the processes running inside the worktree itself offers
+ * it as a box under the refusals, with its own wording.
+ */
+export interface CloseProcessesOption {
+  label: string;
+  /** under the box, like the branch box's */
+  details?: string;
+}
+
+/** What the confirmation asked for beyond the branch; only passed with a `closeProcessesOption`. */
+export interface RemoveWorktreeOptions {
+  /** the host ends the processes inside before its server reads the refusals again */
+  closeProcesses: boolean;
+}
+
 export interface RemoveWorktreeButtonProps {
   /** named before git answers anything */
   path: string;
   /** read on every opening: an answer kept from the last one could let a changed worktree through */
   readCheck: () => Promise<WorktreeRemovalCheck>;
-  /** runs the removal; the server reads every refusal again first */
-  onRemove: (deleteBranch: boolean) => Promise<WorktreeRemovalResult>;
+  /**
+   * runs the removal; the server reads every refusal again first. `options`
+   * is passed only with a `closeProcessesOption`.
+   */
+  onRemove: (
+    deleteBranch: boolean,
+    options?: RemoveWorktreeOptions,
+  ) => Promise<WorktreeRemovalResult>;
   /** after the removal, the branch's refusal included */
   onRemoved: (result: WorktreeRemovalResult) => void;
   /** why the button cannot be pressed at all */
@@ -151,6 +173,12 @@ export interface RemoveWorktreeButtonProps {
    * inline content only, as it renders in the dialog's description `Text`.
    */
   description?: ReactNode;
+  /**
+   * Offers to end the processes inside, unchecked, when the read counts any:
+   * checked, they no longer disable the confirm button, every other refusal
+   * still does, and the server's own refusal shows in place. None unless set.
+   */
+  closeProcessesOption?: CloseProcessesOption;
 }
 
 const defaultDescription =
@@ -160,7 +188,8 @@ const defaultDescription =
  * Removes a worktree after a confirmation that reads what it would lose.
  * Its confirm button stays disabled until that read proves no uncommitted file, no commit
  * only here, no lock and no process inside; an unread or failed read disables
- * it too, since nothing is proven. A `WarningAlertDialog`: one of the buttons
+ * it too, since nothing is proven. A host's `closeProcessesOption` lifts the
+ * process one alone, once checked. A `WarningAlertDialog`: one of the buttons
  * deletes files, and the icon says so before the copy is read.
  */
 export function RemoveWorktreeButton({
@@ -175,20 +204,30 @@ export function RemoveWorktreeButton({
   title = "Remove this worktree?",
   confirmText = "Remove",
   description = defaultDescription,
+  closeProcessesOption,
 }: RemoveWorktreeButtonProps): ReactNode {
   const [confirming, setConfirming] = useState(false);
   const [read, setRead] = useState<CheckState>(unread);
   const [pickedDeleteBranch, setPickedDeleteBranch] = useState<boolean | null>(
     null,
   );
+  const [pickedCloseProcesses, setPickedCloseProcesses] = useState(false);
   // an answer to an earlier opening must not land in this one
   const opening = useRef(0);
   const { check } = read;
   const branch = check?.status.branch ?? null;
   const deleteBranch =
     pickedDeleteBranch ?? (branch !== null && check?.branchSpent === true);
+  const offersCloseProcesses =
+    closeProcessesOption !== undefined &&
+    (check?.status.processesInside ?? 0) > 0;
+  const closeProcesses = offersCloseProcesses && pickedCloseProcesses;
+  // the host ends them before its server reads the status again, so only the other refusals count here
   const removable =
-    check !== null && worktreeRemovalRefusals(check.status).length === 0;
+    check !== null &&
+    worktreeRemovalRefusals(
+      closeProcesses ? { ...check.status, processesInside: 0 } : check.status,
+    ).length === 0;
 
   const open = (): void => {
     opening.current += 1;
@@ -196,6 +235,7 @@ export function RemoveWorktreeButton({
     setConfirming(true);
     setRead(unread);
     setPickedDeleteBranch(null);
+    setPickedCloseProcesses(false);
     readCheck().then(
       (answer) => {
         if (opening.current === current) {
@@ -257,6 +297,20 @@ export function RemoveWorktreeButton({
           <View className="gap-sm">
             <Code>{path}</Code>
             {body}
+            {offersCloseProcesses ? (
+              <View className="gap-xxs">
+                <Checkbox
+                  label={closeProcessesOption.label}
+                  checked={pickedCloseProcesses}
+                  onValueChange={setPickedCloseProcesses}
+                />
+                {closeProcessesOption.details === undefined ? null : (
+                  <Text className="text-sm text-muted">
+                    {closeProcessesOption.details}
+                  </Text>
+                )}
+              </View>
+            ) : null}
             {branch === null || check === null ? null : (
               <View className="gap-xxs">
                 <Checkbox
@@ -270,7 +324,9 @@ export function RemoveWorktreeButton({
           </View>
         }
         onConfirm={async () => {
-          const result = await onRemove(deleteBranch);
+          const result = await (closeProcessesOption === undefined
+            ? onRemove(deleteBranch)
+            : onRemove(deleteBranch, { closeProcesses }));
           close();
           onRemoved(result);
         }}
