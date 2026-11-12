@@ -377,6 +377,7 @@ describe("buildPrBucketQuery", () => {
     for (const bucket of [
       "requested-reviews",
       "re-requested-reviews",
+      "ready-to-merge",
       "opened-missing-review-request",
       "waiting-for-review",
     ] as const) {
