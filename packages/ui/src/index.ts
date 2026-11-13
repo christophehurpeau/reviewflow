@@ -24,6 +24,8 @@ export {
   PullRequestPanel,
   isPullRequestTab,
 } from "./components/pull-request-panel.tsx";
+export type { PullRequestSideCardProps } from "./components/pull-request-side-card.tsx";
+export { PullRequestSideCard } from "./components/pull-request-side-card.tsx";
 export { PullRequestTimeline } from "./components/pull-request-timeline.tsx";
 export { PullRequestFiles } from "./components/pull-request-files.tsx";
 export { PullRequestReview } from "./components/pull-request-review.tsx";
@@ -37,13 +39,19 @@ export type {
   CheckoutViewProps,
 } from "./components/checkout-view.tsx";
 export { CheckoutView } from "./components/checkout-view.tsx";
+export type { ChangedFilesTreeProps } from "./components/changed-files-tree.tsx";
+export { ChangedFilesTree } from "./components/changed-files-tree.tsx";
+export type { DiffTreeFile as ChangedFile } from "./components/pull-request-diff-tree-files.ts";
+export { changedFilesOf } from "./components/pull-request-diff-tree-files.ts";
 export type { BranchPullRequestButtonsProps } from "./components/branch-pull-request-buttons.tsx";
 export { BranchPullRequestButtons } from "./components/branch-pull-request-buttons.tsx";
 export type { RepoOverviewProps } from "./components/repo-overview.tsx";
 export { RepoOverview } from "./components/repo-overview.tsx";
 export type {
+  CloseProcessesOption,
   IgnoredFilesProps,
   RemoveWorktreeButtonProps,
+  RemoveWorktreeOptions,
   WorktreeRemovalCheck,
   WorktreeRemovalMessagesProps,
 } from "./components/remove-worktree-button.tsx";

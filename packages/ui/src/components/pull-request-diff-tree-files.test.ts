@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  changedFilesOf,
   diffTreeFilesOf,
   fileStatusesOf,
 } from "./pull-request-diff-tree-files.ts";
@@ -75,5 +76,67 @@ describe("diffTreeFilesOf", () => {
       { path: "src/unreadable.ts", status: "modified" },
       { path: "assets/logo.png", status: null },
     ]);
+  });
+});
+
+describe("changedFilesOf", () => {
+  const groups = [{ name: "", paths: ["src/changed.ts", "src/moved.ts"] }];
+
+  it("takes the git stats when the diff carries them, with why a file is left out", () => {
+    expect(
+      changedFilesOf({
+        patch,
+        groups,
+        omitted: [{ path: "assets/logo.png", reason: "binary" }],
+        files: [
+          {
+            path: "src/changed.ts",
+            previousPath: null,
+            status: "modified",
+            additions: 2,
+            deletions: 1,
+          },
+          {
+            path: "src/moved.ts",
+            previousPath: "src/old.ts",
+            status: "renamed",
+            additions: 0,
+            deletions: 0,
+          },
+          {
+            path: "assets/logo.png",
+            previousPath: null,
+            status: "added",
+            additions: null,
+            deletions: null,
+          },
+        ],
+      }),
+    ).toEqual([
+      {
+        path: "src/changed.ts",
+        status: "modified",
+        additions: 2,
+        deletions: 1,
+      },
+      { path: "src/moved.ts", status: "renamed", additions: 0, deletions: 0 },
+      {
+        path: "assets/logo.png",
+        status: "added",
+        omitted: "binary",
+        additions: null,
+        deletions: null,
+      },
+    ]);
+  });
+
+  it("reads the patch's headers when the diff has no stats", () => {
+    const diff = {
+      patch,
+      groups,
+      omitted: [{ path: "assets/logo.png", reason: "binary" as const }],
+    };
+
+    expect(changedFilesOf(diff)).toEqual(diffTreeFilesOf(diff));
   });
 });

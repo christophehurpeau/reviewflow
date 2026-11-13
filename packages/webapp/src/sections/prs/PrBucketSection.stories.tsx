@@ -43,6 +43,24 @@ const prs = [
   buildPr(415, "Scope the slack home sweep to its own org"),
 ];
 
+const closedPrs: PrSummary[] = [
+  {
+    ...buildPr(421, "Drop the legacy slack token"),
+    closedAt: new Date("2026-11-12T16:20:00Z"),
+    isMerged: true,
+  },
+  {
+    ...buildPr(418, "Batch the team embed updates"),
+    closedAt: new Date("2026-11-12T09:05:00Z"),
+    isMerged: true,
+  },
+  {
+    ...buildPr(409, "Try a second webhook queue"),
+    closedAt: new Date("2026-11-10T14:40:00Z"),
+    isMerged: false,
+  },
+];
+
 type WithoutQuery<Resource> = Resource extends unknown
   ? Omit<Resource, "query" | "queryInfo">
   : never;
@@ -166,6 +184,16 @@ export const VariantsStory: StoryObj<typeof PrBucketSection> = {
           icon={<EyeRegularIcon />}
           prs={loaded(prs)}
           renderAction={() => <StartReviewButton onStartReview={fn()} />}
+          onSelectPr={fn()}
+        />
+      </Story.Section>
+      <Story.Section title="rows split by day">
+        <PrBucketSection
+          title="Closed pull requests"
+          icon={<EyeRegularIcon />}
+          prs={loaded(closedPrs)}
+          showPassedChecks={false}
+          dayOf={(pr) => pr.closedAt}
           onSelectPr={fn()}
         />
       </Story.Section>

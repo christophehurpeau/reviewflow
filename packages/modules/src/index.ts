@@ -11,6 +11,7 @@ export type * from "./prs/PrDetail.ts";
 export type * from "./prs/PrsService.ts";
 export * from "./prs/formatFailedCheckNames.ts";
 export * from "./prs/formatPrRow.ts";
+export * from "./prs/groupByDay.ts";
 export * from "./prs/prBucketDisplay.ts";
 export * from "./prs/prFilters.ts";
 export * from "./prs/selectPrOwners.ts";

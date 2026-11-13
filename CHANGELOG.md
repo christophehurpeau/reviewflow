@@ -3,6 +3,32 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.32.0](https://github.com/christophehurpeau/reviewflow/compare/v6.31.0...v6.32.0) (2026-11-12)
+
+### Features
+
+* **sdk:** count the passed, failed and pending checks of a pull request
+* **sdk:** report each file's status and line counts in a checkout diff
+* split the closed pull requests by day
+* **ui:** add a pull request card for a side column
+* **ui:** export a changed files tree and render one file of a diff
+
+### Bug Fixes
+
+* exclude draft pull requests from changes requested
+* exclude draft pull requests from ready to merge
+
+## [6.31.0](https://github.com/christophehurpeau/reviewflow/compare/v6.30.1...v6.31.0) (2026-11-12)
+
+### Features
+
+* **ui:** let a host offer to close the processes inside a worktree before removing it
+* **ui:** show who resolved a review thread
+
+### Bug Fixes
+
+* **reviewflow:** propagate team renames and deletions to their embeds
+
 ## [6.30.1](https://github.com/christophehurpeau/reviewflow/compare/v6.30.0...v6.30.1) (2026-11-09)
 
 ### Bug Fixes

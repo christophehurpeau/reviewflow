@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.32.0](https://github.com/christophehurpeau/reviewflow/compare/v6.31.0...v6.32.0) (2026-11-12)
+
+### Features
+
+* **sdk:** count the passed, failed and pending checks of a pull request
+* **sdk:** report each file's status and line counts in a checkout diff
+
+## [6.31.0](https://github.com/christophehurpeau/reviewflow/compare/v6.30.1...v6.31.0) (2026-11-12)
+
+### Features
+
+* **ui:** show who resolved a review thread
+
 ## [6.30.0](https://github.com/christophehurpeau/reviewflow/compare/v6.29.0...v6.30.0) (2026-11-09)
 
 ### Features

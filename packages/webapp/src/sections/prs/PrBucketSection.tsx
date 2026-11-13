@@ -4,7 +4,7 @@ import type {
   QueryMyPrsParams,
   ReviewRequestVerb,
 } from "@reviewflow/modules";
-import { matchesPrFilters } from "@reviewflow/modules";
+import { groupByDay, matchesPrFilters } from "@reviewflow/modules";
 import { PressableListItem, Text, View } from "alouette";
 import type { Accent, SVGIconElement } from "alouette";
 import type { ReactNode } from "react";
@@ -54,6 +54,8 @@ interface PrBucketSectionProps {
   onSelectPr: (pr: PrSummary) => void;
   /** the section's own control on each row, if it has one */
   renderAction?: (pr: PrSummary) => ReactNode;
+  /** splits the rows under a heading per day of this date, in their order */
+  dayOf?: (pr: PrSummary) => Date | undefined;
 }
 
 interface TruncatedCountProps {
@@ -88,8 +90,31 @@ export function PrBucketSection({
   currentUserLogin,
   onSelectPr,
   renderAction,
+  dayOf,
 }: PrBucketSectionProps): ReactNode {
   if (!hasBucketContent(prs, pending, filters)) return null;
+
+  const renderRow = (pr: PrSummary): ReactNode => (
+    <PressableListItem
+      key={pr._id}
+      // a button row would nest the action's button inside it
+      role="listitem"
+      aria-label={`Open ${pr.orgLogin}/${pr.repoName}#${pr.number} ${pr.title}`}
+      actions={renderAction?.(pr)}
+      onPress={() => {
+        onSelectPr(pr);
+      }}
+    >
+      <PrRow
+        pr={pr}
+        showDraft={showDraft}
+        showPassedChecks={showPassedChecks}
+        showReRequests={showReRequests}
+        reviewRequestVerb={reviewRequestVerb}
+        currentUserLogin={currentUserLogin}
+      />
+    </PressableListItem>
+  );
 
   return (
     <ListSection title={title} icon={icon} accent={accent}>
@@ -103,29 +128,24 @@ export function PrBucketSection({
 
           return (
             <View>
-              <View role="list" className="gap-xs">
-                {shownPrs.map((pr) => (
-                  <PressableListItem
-                    key={pr._id}
-                    // a button row would nest the action's button inside it
-                    role="listitem"
-                    aria-label={`Open ${pr.orgLogin}/${pr.repoName}#${pr.number} ${pr.title}`}
-                    actions={renderAction?.(pr)}
-                    onPress={() => {
-                      onSelectPr(pr);
-                    }}
-                  >
-                    <PrRow
-                      pr={pr}
-                      showDraft={showDraft}
-                      showPassedChecks={showPassedChecks}
-                      showReRequests={showReRequests}
-                      reviewRequestVerb={reviewRequestVerb}
-                      currentUserLogin={currentUserLogin}
-                    />
-                  </PressableListItem>
-                ))}
-              </View>
+              {dayOf === undefined ? (
+                <View role="list" className="gap-xs">
+                  {shownPrs.map(renderRow)}
+                </View>
+              ) : (
+                <View className="gap-m">
+                  {groupByDay(shownPrs, dayOf).map(({ day, items }) => (
+                    <View key={day} className="gap-xs">
+                      <Text className="text-xs font-body-bold text-muted">
+                        {day}
+                      </Text>
+                      <View role="list" className="gap-xs">
+                        {items.map(renderRow)}
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
               <TruncatedCount prs={prs} shown={shownPrs.length} />
             </View>
           );

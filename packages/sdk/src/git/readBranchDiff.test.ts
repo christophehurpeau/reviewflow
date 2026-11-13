@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   defaultDiffLimits,
   parseNumstat,
+  parseRawNumstat,
   readBranchDiff,
 } from "./readBranchDiff.ts";
 import type { GitRepoFixture } from "./test/gitRepo.ts";
@@ -368,6 +369,227 @@ describe("readBranchDiff under the workingTree scope", () => {
     await expect(
       readBranchDiff({ cwd: repo.path, mergeBase: rev("HEAD"), head: "-p" }),
     ).rejects.toThrow("not a revision: -p");
+  });
+});
+
+describe("readBranchDiff's files", () => {
+  it("gives each committed file its status and counts, the omitted ones too", async () => {
+    commitFile("edited.txt", "a\nb\n");
+    commitFile("gone.txt", "gone\n");
+    commitFile("old name.txt", "same\n".repeat(20));
+    commitFile("image.bin", "\0one");
+    const diff = await readBranch(() => {
+      write("edited.txt", "a\nc\nd\n");
+      repo.git(["rm", "--quiet", "gone.txt"]);
+      repo.git(["mv", "old name.txt", "new name.txt"]);
+      write("new name.txt", `${"same\n".repeat(20)}more\n`);
+      write(":colon.txt", "x\n");
+      write("image.bin", "\0two");
+      write("added.bin", Buffer.from([0, 1, 2, 0]));
+      repo.git(["add", "-A"]);
+      repo.commit();
+    });
+
+    expect(diff.files).toEqual([
+      {
+        path: ":colon.txt",
+        previousPath: null,
+        status: "added",
+        additions: 1,
+        deletions: 0,
+      },
+      {
+        path: "edited.txt",
+        previousPath: null,
+        status: "modified",
+        additions: 2,
+        deletions: 1,
+      },
+      {
+        path: "gone.txt",
+        previousPath: null,
+        status: "deleted",
+        additions: 0,
+        deletions: 1,
+      },
+      {
+        path: "new name.txt",
+        previousPath: "old name.txt",
+        status: "renamed",
+        additions: 1,
+        deletions: 0,
+      },
+      {
+        path: "added.bin",
+        previousPath: null,
+        status: "added",
+        additions: null,
+        deletions: null,
+      },
+      {
+        path: "image.bin",
+        previousPath: null,
+        status: "modified",
+        additions: null,
+        deletions: null,
+      },
+    ]);
+    expect(diff.files.map(({ path }) => path)).toEqual([
+      ...diff.paths,
+      ...diff.omitted.map(({ path }) => path),
+    ]);
+  });
+
+  it("counts a file left out for its whitespace without hiding it", async () => {
+    commitFile("indented.ts", "if (a) {\nb();\n}\n");
+    commitFile("mixed.ts", "one\ntwo\n");
+    const diff = await readBranch(
+      () => {
+        write("indented.ts", "if (a) {\n  b();\n}\n");
+        write("mixed.ts", "one  \nthree\n");
+        repo.git(["add", "-A"]);
+        repo.commit();
+      },
+      { whitespace: "hide" },
+    );
+
+    expect(diff.files).toEqual([
+      {
+        path: "mixed.ts",
+        previousPath: null,
+        status: "modified",
+        additions: 1,
+        deletions: 1,
+      },
+      {
+        path: "indented.ts",
+        previousPath: null,
+        status: "modified",
+        additions: 1,
+        deletions: 1,
+      },
+    ]);
+  });
+
+  it("adds the working tree's files, an untracked one as added", async () => {
+    commitFile("tracked.txt", "one\n");
+    commitFile("removed.txt", "bye\n");
+    const mergeBase = rev("HEAD");
+    write("tracked.txt", "one\ntwo\nthree\n");
+    repo.git(["rm", "--quiet", "removed.txt"]);
+    write("notes/untracked.txt", "a\nb\n");
+    write("untracked.bin", Buffer.from([0, 1, 2, 0]));
+    write("z-unread.txt", "never read\n");
+
+    const diff = await readBranchDiff({
+      cwd: repo.path,
+      mergeBase,
+      scope: "workingTree",
+      limits: { ...defaultDiffLimits, maxUntrackedFiles: 2 },
+    });
+
+    expect(diff.files).toEqual([
+      {
+        path: "removed.txt",
+        previousPath: null,
+        status: "deleted",
+        additions: 0,
+        deletions: 1,
+      },
+      {
+        path: "tracked.txt",
+        previousPath: null,
+        status: "modified",
+        additions: 2,
+        deletions: 0,
+      },
+      {
+        path: "notes/untracked.txt",
+        previousPath: null,
+        status: "added",
+        additions: 2,
+        deletions: 0,
+      },
+      {
+        path: "untracked.bin",
+        previousPath: null,
+        status: "added",
+        additions: null,
+        deletions: null,
+      },
+      {
+        path: "z-unread.txt",
+        previousPath: null,
+        status: "added",
+        additions: null,
+        deletions: null,
+      },
+    ]);
+    expect(diff.omitted).toEqual([
+      { path: "untracked.bin", reason: "binary" },
+      { path: "z-unread.txt", reason: "budget" },
+    ]);
+  });
+});
+
+describe("parseRawNumstat", () => {
+  it("joins each numstat record to its raw status, a rename's both paths kept", () => {
+    expect(
+      parseRawNumstat(
+        [
+          ":000000 100644 0000000 1111111 A",
+          ":odd.txt",
+          ":100644 100644 2222222 2222222 R100",
+          "old.txt",
+          "new.txt",
+          ":100644 120000 3333333 4444444 T",
+          "link",
+          "1\t0\t:odd.txt",
+          "0\t0\t",
+          "old.txt",
+          "new.txt",
+          "-\t-\tlink",
+          "",
+        ].join("\0"),
+      ),
+    ).toEqual([
+      {
+        path: ":odd.txt",
+        paths: [":odd.txt"],
+        lines: 1,
+        stat: {
+          path: ":odd.txt",
+          previousPath: null,
+          status: "added",
+          additions: 1,
+          deletions: 0,
+        },
+      },
+      {
+        path: "new.txt",
+        paths: ["old.txt", "new.txt"],
+        lines: 0,
+        stat: {
+          path: "new.txt",
+          previousPath: "old.txt",
+          status: "renamed",
+          additions: 0,
+          deletions: 0,
+        },
+      },
+      {
+        path: "link",
+        paths: ["link"],
+        lines: null,
+        stat: {
+          path: "link",
+          previousPath: null,
+          status: "modified",
+          additions: null,
+          deletions: null,
+        },
+      },
+    ]);
   });
 });
 

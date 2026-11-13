@@ -5,17 +5,11 @@ import { CaretDownRegularIcon } from "alouette-icons/phosphor-icons/CaretDown";
 import { CaretUpRegularIcon } from "alouette-icons/phosphor-icons/CaretUp";
 import type { ReactNode } from "react";
 import { formatDataAge } from "../services/formatDataAge.ts";
+import { groupByDay } from "../services/groupByDay.ts";
 import { PersonAvatar } from "./pull-request-conversation-person.tsx";
 import { TooltipIconButton } from "./tooltip-icon-button.tsx";
 
 const shortSha = (oid: string): string => oid.slice(0, 7);
-
-const dayOf = (commit: PullRequestCommit): string =>
-  new Date(commit.committedAt).toLocaleDateString([], {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
 
 interface CommitRowProps<Commit extends PullRequestCommit> {
   commit: Commit;
@@ -68,31 +62,25 @@ export function CommitList<Commit extends PullRequestCommit>({
   onOpen,
   renderExtra,
 }: CommitListProps<Commit>): ReactNode {
-  const days = new Map<string, Commit[]>();
-  for (const commit of commits) {
-    const day = dayOf(commit);
-    const ofDay = days.get(day);
-    if (ofDay === undefined) days.set(day, [commit]);
-    else ofDay.push(commit);
-  }
-
   return (
     <View className="gap-m">
-      {[...days].map(([day, ofDay]) => (
-        <View key={day} className="gap-xs">
-          <Text className="text-xs font-body-bold text-muted">{day}</Text>
-          {ofDay.map((commit) => (
-            <CommitRow
-              key={commit.oid}
-              commit={commit}
-              extra={renderExtra?.(commit)}
-              onOpen={() => {
-                onOpen(commit.oid);
-              }}
-            />
-          ))}
-        </View>
-      ))}
+      {groupByDay(commits, (commit) => commit.committedAt).map(
+        ({ day, items }) => (
+          <View key={day} className="gap-xs">
+            <Text className="text-xs font-body-bold text-muted">{day}</Text>
+            {items.map((commit) => (
+              <CommitRow
+                key={commit.oid}
+                commit={commit}
+                extra={renderExtra?.(commit)}
+                onOpen={() => {
+                  onOpen(commit.oid);
+                }}
+              />
+            ))}
+          </View>
+        ),
+      )}
     </View>
   );
 }

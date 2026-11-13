@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.32.0](https://github.com/christophehurpeau/reviewflow/compare/v6.31.0...v6.32.0) (2026-11-12)
+
+### Bug Fixes
+
+* exclude draft pull requests from changes requested
+* exclude draft pull requests from ready to merge
+
+Version bump for dependency: @reviewflow/modules
+
+
+## [6.31.0](https://github.com/christophehurpeau/reviewflow/compare/v6.30.1...v6.31.0) (2026-11-12)
+
+### Bug Fixes
+
+* **reviewflow:** propagate team renames and deletions to their embeds
+
 ## [6.30.0](https://github.com/christophehurpeau/reviewflow/compare/v6.29.0...v6.30.0) (2026-11-09)
 
 ### Features

@@ -1,28 +1,21 @@
 import type {
-  PrStatus,
   PullRequestCandidatesResponse,
   PullRequestDetail,
   PullRequestDetailResponse,
   PullRequestEdit,
-  PullRequestReviewState,
   PullRequestSummary,
 } from "@reviewflow/sdk";
-import { pluralOf, prStatusLabels, reviewflowPrStatus } from "@reviewflow/sdk";
-import type { Accent } from "alouette";
+import { pluralOf, reviewflowPrStatus } from "@reviewflow/sdk";
 import {
   AccentScope,
   ActionButton,
-  Badge,
   Box,
   Button,
   Checkbox,
   CheckboxGroup,
-  Code,
-  ErrorMessage,
   FormEditableSection,
   FormField,
   Icon,
-  IconButton,
   InputText,
   Tab,
   Tabs,
@@ -30,23 +23,25 @@ import {
   View,
   WarningMessage,
 } from "alouette";
-import { ArrowClockwiseRegularIcon } from "alouette-icons/phosphor-icons/ArrowClockwise";
 import { ChatCircleDotsRegularIcon } from "alouette-icons/phosphor-icons/ChatCircleDots";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { usePullRequestDataSource } from "../dataSource.ts";
-import { usePrStatusAccent } from "../prStatus.ts";
 import { emojify } from "../services/emojify.ts";
 import { errorToMessage } from "../services/errorToMessage.ts";
 import { formatDataAge } from "../services/formatDataAge.ts";
 import { isViewerAuthor } from "../services/isViewerAuthor.ts";
 import { LabelPill } from "./label-pill.tsx";
 import {
+  PullRequestConvertToDraft,
+  PullRequestReadyForReview,
+} from "./pull-request-actions-draft.tsx";
+import {
   PullRequestMergeButton,
   PullRequestMergeStatus,
   PullRequestReopen,
 } from "./pull-request-actions-merge.tsx";
-import { CheckLine } from "./pull-request-checks.tsx";
+import { CheckLine, PullRequestChecksSummary } from "./pull-request-checks.tsx";
 import { PullRequestCommits } from "./pull-request-commits.tsx";
 import { PersonAvatar } from "./pull-request-conversation-person.tsx";
 import {
@@ -54,8 +49,11 @@ import {
   PullRequestPartPending,
   PullRequestPartReading,
 } from "./pull-request-part-notice.tsx";
+import { ReadOnlySection } from "./pull-request-read-only-section.tsx";
 import { RepoName } from "./pull-request-repo-name.tsx";
 import { PullRequestReview } from "./pull-request-review.tsx";
+import { Reviewers } from "./pull-request-reviewers.tsx";
+import { MergeLine } from "./pull-request-status-line.tsx";
 import { PullRequestTimeline } from "./pull-request-timeline.tsx";
 
 /**
@@ -139,57 +137,6 @@ function TitleText({ number, title }: TitleTextProps): ReactNode {
       </Text>
       {emojify(title)}
     </Text>
-  );
-}
-
-interface MergeLineProps {
-  /** null when the source does not know enough to say */
-  status: PrStatus | null;
-  author: string | null;
-  baseRef: string | null;
-  headRef: string | null;
-  /** what follows the branches: sizes and age, which only GitHub's read has */
-  children?: ReactNode;
-}
-
-/** Badge aligns itself to the start: in a row, that is the top, not the center. */
-function CenteredBadge({ children }: { children: ReactNode }): ReactNode {
-  return <View className="justify-center">{children}</View>;
-}
-
-function StatusBadge({ status }: { status: PrStatus }): ReactNode {
-  return (
-    <CenteredBadge>
-      <Badge accent={usePrStatusAccent(status)}>{prStatusLabels[status]}</Badge>
-    </CenteredBadge>
-  );
-}
-
-function MergeLine({
-  status,
-  author,
-  baseRef,
-  headRef,
-  children,
-}: MergeLineProps): ReactNode {
-  return (
-    <View className="flex-row flex-wrap items-center gap-xs">
-      {status === null ? null : <StatusBadge status={status} />}
-      <Text className="text-sm font-body-bold">
-        {author ?? "unknown author"}
-      </Text>
-      {baseRef === null || headRef === null ? null : (
-        <>
-          <Text className="text-xs text-muted">
-            {status === "merged" ? "merged into" : "wants to merge into"}
-          </Text>
-          <Code className="text-sm">{baseRef}</Code>
-          <Text className="text-xs text-muted">from</Text>
-          <Code className="text-sm">{headRef}</Code>
-        </>
-      )}
-      {children}
-    </View>
   );
 }
 
@@ -307,40 +254,13 @@ function Surface({ title, children }: SurfaceProps): ReactNode {
   );
 }
 
-/**
- * The passing checks are a count: what needs reading is what failed or has
- * not finished, and a list of forty green lines buries it.
- */
 function Checks({
   pullRequest,
 }: {
   pullRequest: PullRequestDetail;
 }): ReactNode {
-  const { value, error } = usePullRequestDataSource().usePart(
-    pullRequest,
-    "checks",
-  );
-  if (value === null) {
-    return <PullRequestPartPending error={error} what="the checks" />;
-  }
-  const { checks, checksTotal } = value;
-  if (checksTotal === 0) {
-    return <Text className="text-sm text-muted">no checks</Text>;
-  }
-  const unsettled = checks.filter((check) => check.outcome !== "passed");
-  const passed = checks.length - unsettled.length;
-  const unlisted = checksTotal - checks.length;
-
-  return (
-    <View className="gap-xs">
-      {unsettled.map((check) => (
-        <CheckLine key={check.name} check={check} />
-      ))}
-      <Text className="text-sm text-muted">
-        {`${String(passed)} passing${unlisted > 0 ? `, ${String(unlisted)} more not listed` : ""}`}
-      </Text>
-    </View>
-  );
+  const checks = usePullRequestDataSource().usePart(pullRequest, "checks");
+  return <PullRequestChecksSummary checks={checks} />;
 }
 
 /** Above every tab: a conflict is the one thing that blocks the merge whatever is being read. */
@@ -411,29 +331,7 @@ function Status({ detail, onEdited }: EditableProps): ReactNode {
   return (
     <View className="gap-sm">
       <Text className="font-heading-bold text-xl">Status</Text>
-      {pullRequest.state === "draft" && pullRequest.viewerCanUpdate ? (
-        <View className="items-start gap-xs">
-          <Text className="text-sm">
-            This pull request is still a work in progress.
-          </Text>
-          <ActionButton
-            text="Ready for review"
-            accent="brand"
-            variant="tonal"
-            size="sm"
-            errorToMessage={errorToMessage}
-            onPress={async () => {
-              const edit: PullRequestEdit = { kind: "draft", draft: false };
-              await editAndRefresh(edit);
-            }}
-          />
-        </View>
-      ) : null}
-      {pullRequest.state === "draft" && !pullRequest.viewerCanUpdate ? (
-        <Text className="text-sm">
-          This pull request is still a work in progress.
-        </Text>
-      ) : null}
+      <PullRequestReadyForReview detail={detail} onEdit={editAndRefresh} />
       <Checks pullRequest={pullRequest} />
       <UnresolvedThreads pullRequest={pullRequest} />
       <PullRequestMergeStatus detail={detail} onEdit={editAndRefresh} />
@@ -483,477 +381,6 @@ function ChecksTab({
 interface CandidatesProps extends EditableProps {
   /** what the editors offer; null until GitHub answered, the editors read-only */
   candidates: PullRequestCandidatesResponse | null;
-}
-
-const reviewStateLabel = (state: PullRequestReviewState): string => {
-  switch (state) {
-    case "approved":
-      return "approved";
-    case "changesRequested":
-      return "changes requested";
-    case "commented":
-      return "commented";
-    case "dismissed":
-      return "dismissed";
-    case "pending":
-      return "pending";
-    default: {
-      const unlabelled: never = state;
-      return unlabelled;
-    }
-  }
-};
-
-const reviewStateAccent = (state: PullRequestReviewState): Accent => {
-  if (state === "approved") return "success";
-  if (state === "changesRequested") return "danger";
-  return "info";
-};
-
-const userValue = (login: string): string => `user:${login}`;
-const teamValue = (slug: string): string => `team:${slug}`;
-
-const requestedValues = (pullRequest: PullRequestDetail): string[] =>
-  pullRequest.requestedReviewers.map((reviewer) =>
-    reviewer.kind === "user"
-      ? userValue(reviewer.login)
-      : teamValue(reviewer.slug),
-  );
-
-/** What the selection changed, in the request's terms. */
-const reviewersEdit = (
-  pullRequest: PullRequestDetail,
-  selected: string[],
-): PullRequestEdit => {
-  const before = new Set(requestedValues(pullRequest));
-  const after = new Set(selected);
-  const added = selected.filter((value) => !before.has(value));
-  const removed = [...before].filter((value) => !after.has(value));
-  const names = (values: string[], prefix: string): string[] =>
-    values
-      .filter((value) => value.startsWith(prefix))
-      .map((value) => value.slice(prefix.length));
-
-  return {
-    kind: "reviewers",
-    add: names(added, "user:"),
-    remove: names(removed, "user:"),
-    addTeams: names(added, "team:"),
-    removeTeams: names(removed, "team:"),
-  };
-};
-
-interface ReviewerLineProps {
-  name: string;
-  avatarUrl: string | null;
-  /** null: asked, not answered yet — or asked again since */
-  state: PullRequestReviewState | null;
-  /** asks the reviewer again; absent where the gesture is not offered */
-  onRerequest?: () => Promise<void>;
-}
-
-function RerequestButton({
-  name,
-  onRerequest,
-}: {
-  name: string;
-  onRerequest: () => Promise<void>;
-}): ReactNode {
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
-  return (
-    <>
-      <IconButton
-        icon={<ArrowClockwiseRegularIcon />}
-        aria-label={`Re-request a review from ${name}`}
-        variant="soft"
-        size="sm"
-        disabled={pending}
-        onPress={() => {
-          setPending(true);
-          setError(null);
-          onRerequest()
-            .catch((error_: unknown) => {
-              setError(errorToMessage(error_));
-            })
-            .finally(() => {
-              setPending(false);
-            });
-        }}
-      />
-      {error === null ? null : (
-        <View className="basis-full">
-          <ErrorMessage>{error}</ErrorMessage>
-        </View>
-      )}
-    </>
-  );
-}
-
-function ReviewerLine({
-  name,
-  avatarUrl,
-  state,
-  onRerequest,
-}: ReviewerLineProps): ReactNode {
-  return (
-    <View className="flex-row flex-wrap items-center gap-xs">
-      <PersonAvatar person={{ login: name, avatarUrl }} />
-      <Text className="min-w-0 flex-1 text-sm" numberOfLines={1}>
-        {name}
-      </Text>
-      <CenteredBadge>
-        {state === null ? (
-          <Badge accent="warning" size="sm">
-            awaiting
-          </Badge>
-        ) : (
-          <Badge accent={reviewStateAccent(state)} size="sm">
-            {reviewStateLabel(state)}
-          </Badge>
-        )}
-      </CenteredBadge>
-      {onRerequest === undefined ? null : (
-        <RerequestButton name={name} onRerequest={onRerequest} />
-      )}
-    </View>
-  );
-}
-
-/**
- * GitHub's reviewers list: each person once — awaiting when asked (again),
- * else their latest review — teams as asked.
- */
-function ReviewersSummary({
-  detail,
-  candidates,
-  onEdit,
-}: {
-  detail: PullRequestDetailResponse;
-  candidates: PullRequestCandidatesResponse | null;
-  onEdit: (edit: PullRequestEdit) => Promise<void>;
-}): ReactNode {
-  const { pullRequest, viewer } = detail;
-  // a review carries only a login: its avatar is the candidate lists'
-  const avatarOf = (login: string): string | null =>
-    [
-      ...(candidates?.suggestedReviewers ?? []),
-      ...(candidates?.reviewerCandidates ?? []),
-      ...(candidates?.assigneeCandidates ?? []),
-    ].find((person) => person.login === login)?.avatarUrl ?? null;
-  const requestedLogins = new Set(
-    pullRequest.requestedReviewers.flatMap((reviewer) =>
-      reviewer.kind === "user" ? [reviewer.login] : [],
-    ),
-  );
-  const answered = pullRequest.reviews.filter(
-    (review) => !requestedLogins.has(review.author),
-  );
-  if (pullRequest.requestedReviewers.length === 0 && answered.length === 0) {
-    return <Text className="text-sm text-muted">No reviews</Text>;
-  }
-
-  return (
-    <View className="gap-xxs">
-      {answered.map((review) => (
-        <ReviewerLine
-          key={review.author}
-          name={review.author}
-          avatarUrl={avatarOf(review.author)}
-          state={review.state}
-          onRerequest={
-            pullRequest.viewerCanUpdate &&
-            review.author !== viewer &&
-            pullRequest.state !== "merged"
-              ? async () => {
-                  await onEdit({
-                    kind: "reviewers",
-                    add: [review.author],
-                    remove: [],
-                    addTeams: [],
-                    removeTeams: [],
-                  });
-                }
-              : undefined
-          }
-        />
-      ))}
-      {pullRequest.requestedReviewers.map((reviewer) =>
-        reviewer.kind === "user" ? (
-          <ReviewerLine
-            key={userValue(reviewer.login)}
-            name={reviewer.login}
-            avatarUrl={reviewer.avatarUrl}
-            state={null}
-          />
-        ) : (
-          <ReviewerLine
-            key={teamValue(reviewer.slug)}
-            name={reviewer.name}
-            avatarUrl={null}
-            state={null}
-          />
-        ),
-      )}
-    </View>
-  );
-}
-
-interface ReviewersValues {
-  members: string[];
-  teams: string[];
-}
-
-/** Past this many people, the groups are tabs rather than stacked. */
-const maxStackedReviewers = 5;
-
-type ReviewerGroup = "members" | "teams";
-
-const isReviewerGroup = (value: string): value is ReviewerGroup =>
-  value === "members" || value === "teams";
-
-interface ReviewerGroupsProps {
-  tabbed: boolean;
-  /** each group's field, null when it offers no one */
-  members: ReactNode;
-  teams: ReactNode;
-}
-
-function ReviewerGroups({
-  tabbed,
-  members,
-  teams,
-}: ReviewerGroupsProps): ReactNode {
-  const [tab, setTab] = useState<ReviewerGroup>(() =>
-    members === null ? "teams" : "members",
-  );
-
-  if (!tabbed) {
-    return (
-      <View className="gap-m">
-        {members}
-        {teams}
-      </View>
-    );
-  }
-
-  return (
-    <View className="gap-m">
-      <Tabs
-        aria-label="Reviewer groups"
-        value={tab}
-        onValueChange={(next) => {
-          if (isReviewerGroup(next)) setTab(next);
-        }}
-      >
-        {members === null ? null : <Tab value="members" label="Members" />}
-        {teams === null ? null : <Tab value="teams" label="Teams" />}
-      </Tabs>
-      {tab === "members" ? members : teams}
-    </View>
-  );
-}
-
-interface MemberCheckboxesProps {
-  title: string | null;
-  logins: string[];
-}
-
-function MemberCheckboxes({ title, logins }: MemberCheckboxesProps): ReactNode {
-  if (logins.length === 0) return null;
-  return (
-    <View className="gap-xxs">
-      {title === null ? null : (
-        <Text className="font-body-bold text-xs text-muted">{title}</Text>
-      )}
-      {logins.map((login) => (
-        <Checkbox key={login} value={userValue(login)} label={login} />
-      ))}
-    </View>
-  );
-}
-
-function ReadOnlySection({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}): ReactNode {
-  return (
-    <View className="gap-sm">
-      <Text className="font-heading-bold text-xl">{title}</Text>
-      {children}
-    </View>
-  );
-}
-
-/**
- * Members: GitHub's suggestions grouped first, then anyone else already asked,
- * then the repository's assignable users; those already asked lead each group.
- * Teams: those already asked, then the rest.
- */
-function Reviewers({
-  detail,
-  candidates,
-  onEdited,
-}: CandidatesProps): ReactNode {
-  const { pullRequest } = detail;
-  const editAndRefresh = useEditAndRefresh({ detail, onEdited });
-  const suggestedLogins = (candidates?.suggestedReviewers ?? []).map(
-    ({ login }) => login,
-  );
-  const reviewerCandidates = candidates?.reviewerCandidates ?? [];
-  const teamCandidates = candidates?.teamCandidates ?? [];
-  const requestedLogins = pullRequest.requestedReviewers.flatMap((reviewer) =>
-    reviewer.kind === "user" ? [reviewer.login] : [],
-  );
-  const requestedTeams = pullRequest.requestedReviewers.flatMap((reviewer) =>
-    reviewer.kind === "team" ? [reviewer] : [],
-  );
-  const requestedSuggested = requestedLogins.filter((login) =>
-    suggestedLogins.includes(login),
-  );
-  const requestedMembers = requestedLogins.filter(
-    (login) => !suggestedLogins.includes(login),
-  );
-  const teams = [
-    ...requestedTeams,
-    ...teamCandidates.filter(
-      ({ slug }) => !requestedTeams.some((team) => team.slug === slug),
-    ),
-  ];
-  const suggested = [
-    ...requestedSuggested,
-    ...suggestedLogins.filter((login) => !requestedLogins.includes(login)),
-  ];
-  const otherMembers = [
-    ...requestedMembers,
-    ...reviewerCandidates
-      .map(({ login }) => login)
-      .filter(
-        (login) =>
-          !requestedLogins.includes(login) && !suggestedLogins.includes(login),
-      ),
-  ];
-  const memberCount = suggested.length + otherMembers.length;
-
-  if (!pullRequest.viewerCanUpdate || candidates === null) {
-    return (
-      <ReadOnlySection title="Reviewers">
-        <ReviewersSummary
-          detail={detail}
-          candidates={candidates}
-          onEdit={editAndRefresh}
-        />
-      </ReadOnlySection>
-    );
-  }
-
-  return (
-    <FormEditableSection<ReviewersValues>
-      title="Reviewers"
-      editAriaLabel="Edit the requested reviewers"
-      cancelLabel="Cancel"
-      submitLabel="Save"
-      submitErrorToMessage={errorToMessage}
-      defaultValues={{
-        members: requestedLogins.map(userValue),
-        teams: requestedTeams.map(({ slug }) => teamValue(slug)),
-      }}
-      render={({ control }) => (
-        <ReviewerGroups
-          tabbed={memberCount > maxStackedReviewers}
-          members={
-            memberCount === 0 ? null : (
-              <FormField
-                control={control}
-                name="members"
-                label="Members"
-                render={({ field, labelId }) => (
-                  <CheckboxGroup
-                    values={field.value}
-                    aria-labelledby={labelId}
-                    onValuesChange={field.onChange}
-                  >
-                    <View className="gap-sm">
-                      <MemberCheckboxes title="Suggested" logins={suggested} />
-                      <MemberCheckboxes
-                        title={suggested.length === 0 ? null : "Others"}
-                        logins={otherMembers}
-                      />
-                    </View>
-                  </CheckboxGroup>
-                )}
-              />
-            )
-          }
-          teams={
-            teams.length === 0 ? null : (
-              <FormField
-                control={control}
-                name="teams"
-                label="Teams"
-                render={({ field, labelId }) => (
-                  <CheckboxGroup
-                    values={field.value}
-                    aria-labelledby={labelId}
-                    onValuesChange={field.onChange}
-                  >
-                    <View className="gap-xxs">
-                      {teams.map((team) => (
-                        <Checkbox
-                          key={team.slug}
-                          value={teamValue(team.slug)}
-                          label={team.name}
-                        />
-                      ))}
-                    </View>
-                  </CheckboxGroup>
-                )}
-              />
-            )
-          }
-        />
-      )}
-      onSubmit={async ({ members: selectedMembers, teams: selectedTeams }) => {
-        const edit = reviewersEdit(pullRequest, [
-          ...selectedMembers,
-          ...selectedTeams,
-        ]);
-        await editAndRefresh(edit);
-      }}
-    >
-      <ReviewersSummary
-        detail={detail}
-        candidates={candidates}
-        onEdit={editAndRefresh}
-      />
-    </FormEditableSection>
-  );
-}
-
-/** Where GitHub puts it: under the reviewers, the rare way back. */
-function ConvertToDraft({ detail, onEdited }: EditableProps): ReactNode {
-  const { pullRequest } = detail;
-  const editAndRefresh = useEditAndRefresh({ detail, onEdited });
-  if (pullRequest.state !== "open" || !pullRequest.viewerCanUpdate) return null;
-  return (
-    <View className="flex-row flex-wrap items-center gap-xs">
-      <Text className="text-xs text-muted">Still in progress?</Text>
-      <ActionButton
-        text="Convert to draft"
-        accent="neutral"
-        variant="tonal"
-        size="sm"
-        errorToMessage={errorToMessage}
-        onPress={async () => {
-          const edit: PullRequestEdit = { kind: "draft", draft: true };
-          await editAndRefresh(edit);
-        }}
-      />
-    </View>
-  );
 }
 
 interface AssigneesValues {
@@ -1125,6 +552,7 @@ function Labels({ detail, candidates, onEdited }: CandidatesProps): ReactNode {
 
 /** The status, then GitHub's sidebar order: reviewers, assignees, labels. */
 function Sidebar({ detail, candidates, onEdited }: CandidatesProps): ReactNode {
+  const editAndRefresh = useEditAndRefresh({ detail, onEdited });
   return (
     <View className="gap-xxl md:w-[296px] md:shrink-0">
       <Status detail={detail} onEdited={onEdited} />
@@ -1133,9 +561,9 @@ function Sidebar({ detail, candidates, onEdited }: CandidatesProps): ReactNode {
         <Reviewers
           detail={detail}
           candidates={candidates}
-          onEdited={onEdited}
+          onEdit={editAndRefresh}
         />
-        <ConvertToDraft detail={detail} onEdited={onEdited} />
+        <PullRequestConvertToDraft detail={detail} onEdit={editAndRefresh} />
       </View>
 
       <Assignees detail={detail} candidates={candidates} onEdited={onEdited} />

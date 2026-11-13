@@ -2,7 +2,7 @@ import type { DiffOmittedFile } from "@reviewflow/sdk";
 import { Code, Text, View } from "alouette";
 import type { ReactNode } from "react";
 
-const omissionLabel = (reason: DiffOmittedFile["reason"]): string => {
+export const omissionLabel = (reason: DiffOmittedFile["reason"]): string => {
   if (reason === "binary") return "binary";
   if (reason === "tooLarge") return "too large";
   if (reason === "whitespace") return "only whitespace changed";

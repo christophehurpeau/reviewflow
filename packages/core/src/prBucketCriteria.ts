@@ -123,6 +123,7 @@ export const buildPrBucketQuery = (
     case "ready-to-merge":
       return {
         criteria: buildOwnedCriteria(context, {
+          isDraft: false,
           "reviews.teamReviewRequested": emptyReviews,
           "reviews.reviewRequested": emptyReviews,
           "reviews.changesRequested": emptyReviews,
@@ -134,6 +135,7 @@ export const buildPrBucketQuery = (
     case "changes-requested":
       return {
         criteria: buildOwnedCriteria(context, {
+          isDraft: false,
           "reviews.changesRequested": someReviews,
         }),
         sort: { created: -1 },

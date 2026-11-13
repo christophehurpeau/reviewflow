@@ -37,6 +37,33 @@ export type BranchDiffScope = "committed" | "uncommitted";
 export const isBranchDiffScope = (value: unknown): value is BranchDiffScope =>
   value === "committed" || value === "uncommitted";
 
+/**
+ * What a change did to a file, as git's `--raw` letter names it. A type change
+ * (a file becoming a symlink) and an unmerged path are `modified`.
+ */
+export type DiffFileStatus = "added" | "deleted" | "modified" | "renamed";
+
+/**
+ * One file of a diff, whether its patch carries it or leaves it out: its
+ * status and line counts come from git, never from the patch text.
+ */
+export interface DiffFileStat {
+  /** as the patch names it, after any rename */
+  path: string;
+  /** the path before a rename; null for any other status */
+  previousPath: string | null;
+  status: DiffFileStatus;
+  /**
+   * Lines added, as `--numstat` counts them under the diff's whitespace
+   * setting; a file left out for its whitespace is counted without it. null
+   * when no line is counted: a binary file, or an untracked one left out
+   * before it was read.
+   */
+  additions: number | null;
+  /** lines removed, null when `additions` is */
+  deletions: number | null;
+}
+
 /** What a checkout's branch is diffed against. */
 export interface BranchDiffBase {
   /** the branch name, e.g. the repository's default branch */
@@ -67,6 +94,11 @@ export interface CheckoutBranchDiffResponse {
   untrackedCount: number;
   /** every file in `patch`, once: the root's group first, then in patch order */
   groups: DiffGroup[];
+  /**
+   * Every file of `patch` in its order, then every file of `omitted` in its
+   * order, each once. Absent from a server older than this field.
+   */
+  files?: DiffFileStat[];
 }
 
 /** A checkout the app's config names, and the branch it has out. */

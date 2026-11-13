@@ -1,4 +1,9 @@
-import type { PullRequestRef, ReviewflowBoardBucket } from "@reviewflow/sdk";
+import type {
+  IsoDateTime,
+  PullRequestRef,
+  ReviewflowBoardBucket,
+  ReviewflowBoardPr,
+} from "@reviewflow/sdk";
 import type { Accent, SVGIconElement } from "alouette";
 import { SectionTitle, Text, View } from "alouette";
 import { ArrowsClockwiseRegularIcon } from "alouette-icons/phosphor-icons/ArrowsClockwise";
@@ -10,6 +15,7 @@ import { PencilSimpleLineRegularIcon } from "alouette-icons/phosphor-icons/Penci
 import { UserPlusRegularIcon } from "alouette-icons/phosphor-icons/UserPlus";
 import { UsersRegularIcon } from "alouette-icons/phosphor-icons/Users";
 import type { ReactNode } from "react";
+import { groupByDay } from "../services/groupByDay.ts";
 import { useBoardDataSource } from "./dataSource.ts";
 import type { BoardRowInfo } from "./pull-request-row.tsx";
 import { PullRequestRow } from "./pull-request-row.tsx";
@@ -51,6 +57,8 @@ export interface BoardBucketSectionProps {
   icon?: SVGIconElement;
   /** Replaces the accent looked up from a reviewflow bucket key. */
   accent?: Accent;
+  /** Splits the rows under a heading per day of this date, in their order. */
+  dayOf?: (pr: ReviewflowBoardPr) => IsoDateTime | null;
 }
 
 /**
@@ -65,6 +73,7 @@ export function BoardBucketSection({
   renderRowExtra,
   icon,
   accent,
+  dayOf,
 }: BoardBucketSectionProps): ReactNode {
   const shown = bucket.prs.length;
   const { startReview, useStartedReviews } = useBoardDataSource();
@@ -75,6 +84,25 @@ export function BoardBucketSection({
     onOpenPullRequest(ref);
   };
 
+  const renderRow = (pr: ReviewflowBoardPr): ReactNode => (
+    <PullRequestRow
+      key={pr.id}
+      row={{ pr, bucketKey: bucket.key, groupKey }}
+      viewer={viewer}
+      renderRowExtra={renderRowExtra}
+      onOpenPullRequest={onOpenPullRequest}
+      onStartReview={
+        bucket.key === startReviewBucket &&
+        !startedReviews.some(
+          ({ ownerRepo, number }) =>
+            ownerRepo === pr.ownerRepo && number === pr.number,
+        )
+          ? startReviewAndOpen
+          : undefined
+      }
+    />
+  );
+
   return (
     <View className="gap-xs">
       <SectionTitle
@@ -84,26 +112,18 @@ export function BoardBucketSection({
       >
         {bucket.title}
       </SectionTitle>
-      <View className="gap-xs">
-        {bucket.prs.map((pr) => (
-          <PullRequestRow
-            key={pr.id}
-            row={{ pr, bucketKey: bucket.key, groupKey }}
-            viewer={viewer}
-            renderRowExtra={renderRowExtra}
-            onOpenPullRequest={onOpenPullRequest}
-            onStartReview={
-              bucket.key === startReviewBucket &&
-              !startedReviews.some(
-                ({ ownerRepo, number }) =>
-                  ownerRepo === pr.ownerRepo && number === pr.number,
-              )
-                ? startReviewAndOpen
-                : undefined
-            }
-          />
-        ))}
-      </View>
+      {dayOf === undefined ? (
+        <View className="gap-xs">{bucket.prs.map(renderRow)}</View>
+      ) : (
+        <View className="gap-m">
+          {groupByDay(bucket.prs, dayOf).map(({ day, items }) => (
+            <View key={day} className="gap-xs">
+              <Text className="text-xs font-body-bold text-muted">{day}</Text>
+              {items.map(renderRow)}
+            </View>
+          ))}
+        </View>
+      )}
       {bucket.total > shown ? (
         <Text className="text-sm text-muted">
           {`Showing ${String(shown)} of ${String(bucket.total)}`}

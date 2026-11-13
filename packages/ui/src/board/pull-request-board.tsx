@@ -223,6 +223,7 @@ export function PullRequestBoard({
           }}
           groupKey={closedSectionGroupKey}
           viewer={closed.value.viewer}
+          dayOf={(pr) => pr.closedAt}
           renderRowExtra={renderRowExtra}
           onOpenPullRequest={onOpenPullRequest}
         />
