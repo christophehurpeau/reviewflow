@@ -57,7 +57,7 @@
     "liwi-store": "14.1.0",
     "lock": "1.1.0",
     "nightingale-logger": "18.2.0",
-    "probot": "14.3.2",
+    "probot": "14.3.7",
     "slackify-markdown": "5.0.0"
   },
   "devDependencies": {
