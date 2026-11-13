@@ -25,7 +25,7 @@ nodeLinker: hoisted
 overrides:
   # the native linux-x64 binary of rollup 4.67 crashes with SIGILL on the
   # production server cpu (Xeon E3-1245 V2, x86-64-v2, no AVX2)
-  rollup: npm:@rollup/wasm-node@4.67.3
+  rollup: npm:@rollup/wasm-node@4.68.2
 packages:
   - packages/*
 savePrefix: ""
