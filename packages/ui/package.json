@@ -85,7 +85,7 @@
     "@pierre/diffs": "1.5.2",
     "@pierre/trees": "1.0.0-beta.6",
     "@reviewflow/sdk": "workspace:*",
-    "@tanstack/markdown": "0.0.13",
+    "@tanstack/markdown": "0.0.16",
     "alouette-icons": "12.0.0",
     "gemoji": "8.1.0",
     "htmlparser2": "12.0.0"
