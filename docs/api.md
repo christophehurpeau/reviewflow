@@ -305,7 +305,7 @@ Conditional: `ETag` / `If-None-Match`, see [conventions](#conventions). Differen
 
 ### `POST /api/prs-lookup/v1`
 
-The newest pull request of each `(repository, head branch)`, for up to 200 branches in one request. Meant for a tool that tracks branches, not pull requests.
+The pull requests of each `(repository, head branch)`, newest first, for up to 200 branches in one request. Meant for a tool that tracks branches, not pull requests.
 
 ```http
 POST /api/prs-lookup/v1
@@ -320,18 +320,22 @@ Content-Type: application/json
   "results": [
     {
       "found": true,
-      "pr": { "_id": "6718f0c2a1b2c3d4e5f60718", "number": 412 }
+      "pr": { "_id": "6718f0c2a1b2c3d4e5f60718", "number": 412 },
+      "prs": [
+        { "_id": "6718f0c2a1b2c3d4e5f60718", "number": 412 },
+        { "_id": "66f1a0b9c8d7e6f5a4b3c2d1", "number": 377 }
+      ]
     },
     { "found": false, "reason": "noPr" }
   ]
 }
 ```
 
-`results` has one entry per target, in the same order. `pr` is the [pull request object](#pull-request-shape), `myBuckets` computed for you.
+`results` has one entry per target, in the same order. `pr` is the newest [pull request object](#pull-request-shape), `myBuckets` computed for you; `prs` holds it first, then the branch's older pull requests, at most 5. A branch routinely has several: one merged and then a second opened from the same name, or two open against different bases.
 
 - `ownerRepo` is the repository the pull request targets, and is case-insensitive; `headRef` is the branch name, case-sensitive.
 - Only pull requests whose head branch lives in that repository match: a fork pushing a branch with the same name is not a match.
-- The newest pull request is the one with the highest number, open or closed.
+- Newest means the highest number, open or closed.
 - An empty `targets` returns an empty `results`. Identical targets are looked up once.
 - Not conditional: a `POST` carries no `ETag` and is never answered `304`, whatever `If-None-Match` it sends. To poll cheaply, resolve the branches to pull request numbers once, then poll `GET /api/pr/v1/...`, which is.
 

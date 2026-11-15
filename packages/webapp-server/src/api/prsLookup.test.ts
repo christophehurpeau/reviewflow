@@ -181,6 +181,9 @@ describe("POST /api/prs-lookup/v1", () => {
       pr: { number: 13, ownerRepo: "elax/api" },
     });
     expect(json.results[1]).toMatchObject({ found: true, pr: { number: 12 } });
+    expect(
+      json.results[1].prs.map(({ number }: { number: number }) => number),
+    ).toEqual([12, 11, 10]);
     expect(json.results[2]).toEqual({ found: false, reason: "noPr" });
     expect(json.results[3]).toEqual({ found: false, reason: "forbidden" });
     expect(json).not.toHaveProperty("cursor");

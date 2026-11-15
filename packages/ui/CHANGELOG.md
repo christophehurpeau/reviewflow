@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.33.0](https://github.com/christophehurpeau/reviewflow/compare/v6.32.0...v6.33.0) (2026-11-15)
+
+### Bug Fixes
+
+* **deps:** update dependency @pierre/trees to v1.0.0 ([#1267](https://github.com/christophehurpeau/reviewflow/issues/1267))
+
+Version bump for dependency: @reviewflow/sdk
+
+
 ## [6.32.0](https://github.com/christophehurpeau/reviewflow/compare/v6.31.0...v6.32.0) (2026-11-12)
 
 ### Features

@@ -1,6 +1,6 @@
 {
   "name": "@reviewflow/webapp-server",
-  "version": "6.32.0",
+  "version": "6.33.0",
   "private": true,
   "description": "serves the reviewflow webapp, its oauth flows and its resources websocket",
   "homepage": "https://github.com/christophehurpeau/reviewflow",
@@ -40,7 +40,7 @@
     "cookie": "0.7.2",
     "cookie-parser": "1.4.7",
     "dotenv": "17.4.2",
-    "express": "5.2.1",
+    "express": "5.3.0",
     "jsonwebtoken": "9.0.3",
     "liwi-mongo": "15.2.0",
     "liwi-resources-client": "15.2.0",
