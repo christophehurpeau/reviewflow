@@ -32,14 +32,14 @@
     "watch": "pnpm -r --parallel --filter \"!*-example\" run watch"
   },
   "devDependencies": {
-    "@pob/eslint-config": "68.4.0",
-    "@pob/eslint-config-typescript-react": "68.5.0",
-    "@pob/root": "28.8.0",
+    "@pob/eslint-config": "68.5.0",
+    "@pob/eslint-config-typescript-react": "68.6.1",
+    "@pob/root": "28.8.1",
     "@typescript/native": "npm:typescript@7.0.2",
     "@vitest/coverage-v8": "5.1.0",
     "eslint": "10.14.0",
     "mongodb-memory-server": "11.3.0",
-    "tsrs": "0.22.0-ts7.1.0-beta",
+    "tsrs": "0.25.0-ts7.1.0-beta",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.3.8",
     "vitest": "5.1.0"
