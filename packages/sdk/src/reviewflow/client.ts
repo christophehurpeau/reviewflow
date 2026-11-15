@@ -113,7 +113,13 @@ export interface ReviewflowLookupTarget {
 
 export type ReviewflowLookupResult =
   | { found: false; reason: "forbidden" | "noPr" | "notTracked" }
-  | { found: true; pr: ReviewflowPrDetail };
+  | {
+      found: true;
+      /** the newest, `prs[0]` */
+      pr: ReviewflowPrDetail;
+      /** every pull request of the head branch, newest first */
+      prs: ReviewflowPrDetail[];
+    };
 
 export interface ReviewflowBucket {
   key: string;
@@ -363,7 +369,12 @@ const lookupReasons = new Set<string>(["forbidden", "noPr", "notTracked"]);
 
 const readLookupResult = (value: unknown): ReviewflowLookupResult => {
   if (isRecord(value) && value.found === true) {
-    return { found: true, pr: readPrDetail(value.pr) };
+    const prs = Array.isArray(value.prs) ? value.prs.map(readPrDetail) : [];
+    const [pr] = prs;
+    if (!pr) {
+      throw fail("reviewflow returned a lookup the client cannot read");
+    }
+    return { found: true, pr, prs };
   }
   if (
     isRecord(value) &&

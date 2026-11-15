@@ -41,7 +41,7 @@
   "dependencies": {
     "@reviewflow/modules": "workspace:*",
     "@sentry/node": "11.8.0",
-    "emoji-regex": "10.6.0",
+    "emoji-regex": "11.0.0",
     "gemoji": "8.1.0",
     "liwi-mongo": "15.0.0",
     "liwi-store": "14.1.0",
@@ -58,7 +58,7 @@
     "@typescript/native": "npm:typescript@7.0.2",
     "tsrs": "0.22.0-ts7.1.0-beta",
     "typescript": "npm:@typescript/typescript6@6.0.2",
-    "vite": "8.3.6",
+    "vite": "8.3.8",
     "vitest": "5.1.0"
   },
   "engines": {

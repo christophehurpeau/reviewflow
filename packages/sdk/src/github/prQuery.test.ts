@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PrQuery, PrQueryData, PrQueryTarget } from "./prQuery.ts";
-import { buildPrQuery, parsePrQueryResponse } from "./prQuery.ts";
+import { buildPrQuery, parsePrQueryResponse, prsPerBranch } from "./prQuery.ts";
 
 const target = (overrides: Partial<PrQueryTarget> = {}): PrQueryTarget => ({
   branchId: "branch-1",
@@ -22,6 +22,7 @@ const pullRequest = ({
   reviewDecision = null,
   pendingReviewRequests = 0,
   mergedAt = null,
+  closedAt = null,
   mergeable = "UNKNOWN",
   headRefOid = "0123456789abcdef0123456789abcdef01234567",
   baseRefName = "main",
@@ -35,6 +36,7 @@ const pullRequest = ({
   reviewDecision?: string | null;
   pendingReviewRequests?: number;
   mergedAt?: string | null;
+  closedAt?: string | null;
   mergeable?: string;
   headRefOid?: string;
   baseRefName?: string;
@@ -48,6 +50,7 @@ const pullRequest = ({
   reviewDecision,
   reviewRequests: { totalCount: pendingReviewRequests },
   mergedAt,
+  closedAt,
   mergeable,
   headRefOid,
   baseRefName,
@@ -107,13 +110,21 @@ describe("buildPrQuery", () => {
   });
 
   /**
-   * The whole point of the aliasing: the rate limit is charged on the `first`
-   * arguments, so the board must never ask for more than the one PR it shows.
+   * The rate limit charges every nested connection once per node of its
+   * parent, so only the branch's own connection reads several pull requests:
+   * everything inside one pull request asks for a single node.
    */
-  it("never asks a connection for more than one node", () => {
+  it("asks a branch for a bounded number of pull requests, and one node of anything inside them", () => {
     const { query } = build([target(), target({ branch: "feature/two" })]);
+    const branchConnection = new RegExp(
+      `pullRequests\\(headRefName: [^,]+, first: ${String(prsPerBranch)},`,
+      "gu",
+    );
 
-    expect(query).not.toMatch(/first:\s*(?!1\b)\d+/u);
+    expect(query.match(branchConnection)).toHaveLength(2);
+    expect(query.replace(branchConnection, "")).not.toMatch(
+      /first:\s*(?!1\b)\d+/u,
+    );
     expect(query).not.toMatch(/last:\s*(?!1\b)\d+/u);
   });
 
@@ -305,6 +316,46 @@ describe("parsePrQueryResponse", () => {
     expect(found).toHaveLength(1);
     expect(found[0]?.number).toBe(11);
     expect(found[0]?.target.taskId).toBe("task-1");
+  });
+
+  it("produces every pull request of a branch, newest first as GitHub sends them", () => {
+    const { targetsByAlias } = build([target()]);
+
+    const found = parsePrQueryResponse(
+      data({
+        r0: {
+          [firstAlias(targetsByAlias)]: {
+            nodes: [
+              pullRequest({ number: 12 }),
+              pullRequest({
+                number: 9,
+                state: "MERGED",
+                mergedAt: "2026-11-01T10:00:00Z",
+                closedAt: "2026-11-01T10:00:00Z",
+              }),
+            ],
+          },
+        },
+      }),
+      targetsByAlias,
+    );
+
+    expect(found.map(({ number, state }) => ({ number, state }))).toEqual([
+      { number: 12, state: "open" },
+      { number: 9, state: "merged" },
+    ]);
+    expect(
+      found.every(({ target: { branchId } }) => branchId === "branch-1"),
+    ).toBe(true);
+  });
+
+  it("keeps when a pull request was closed, null while it is open", () => {
+    expect(
+      parseOne(
+        pullRequest({ state: "CLOSED", closedAt: "2026-11-02T08:00:00Z" }),
+      )[0]?.closedAt,
+    ).toBe("2026-11-02T08:00:00Z");
+    expect(parseOne(pullRequest())[0]?.closedAt).toBeNull();
   });
 
   it("produces nothing when the whole query failed", () => {

@@ -4,11 +4,7 @@ import type {
   PrState,
 } from "../types/entities.ts";
 
-/**
- * One branch to ask GitHub about — a task's current branch, which is the only
- * branch a PR is wanted for (a task has N branches over time and only the
- * latest one is live).
- */
+/** One branch to ask GitHub about, for every pull request opened from it. */
 export interface PrQueryTarget {
   branchId: string;
   taskId: string;
@@ -24,10 +20,18 @@ export interface PrQuery {
 }
 
 /**
+ * How many pull requests are read per head branch, newest first. One branch can
+ * hold several that all matter: one merged and then a second opened from the
+ * same name, or two open against different bases. Bounded because the GraphQL
+ * rate limit charges every nested connection once per node of its parent.
+ */
+export const prsPerBranch = 5;
+
+/**
  * Every branch is one aliased field in one document, so the whole board costs a
- * single HTTP request and — because every connection is asked for `first: 1` —
- * a single point of the GraphQL rate limit. A query per PR would be one request
- * and one point *each*, which is the thing this exists to avoid.
+ * single HTTP request and a cost that grows with `prsPerBranch` rather than with
+ * the number of pull requests. A query per PR would be one request and one point
+ * *each*, which is the thing this exists to avoid.
  *
  * The counts come off `checkRunCountsByState` / `statusContextCountsByState`
  * rather than off the context nodes: those are aggregates GitHub computes, so
@@ -41,6 +45,7 @@ export const prFields = `fragment prFields on PullRequest {
   reviewDecision
   reviewRequests(first: 1) { totalCount }
   mergedAt
+  closedAt
   mergeable
   headRefOid
   baseRefName
@@ -99,9 +104,7 @@ export const buildPrQuery = (targets: PrQueryTarget[]): PrQuery | null => {
     };
     const branchFields = branches.map(
       ({ alias, branch }) =>
-        // Newest first: a branch that had a closed PR and then a new one is
-        // described by the new one, and `first: 1` is what keeps the cost flat.
-        `    ${alias}: pullRequests(headRefName: ${JSON.stringify(branch)}, first: 1, orderBy: { field: CREATED_AT, direction: DESC }) { nodes { ...prFields } }`,
+        `    ${alias}: pullRequests(headRefName: ${JSON.stringify(branch)}, first: ${String(prsPerBranch)}, orderBy: { field: CREATED_AT, direction: DESC }) { nodes { ...prFields } }`,
     );
     return [
       `  r${String(repoIndex)}: repository(owner: ${JSON.stringify(owner)}, name: ${JSON.stringify(name)}) {`,
@@ -129,6 +132,8 @@ export interface GhPullRequest {
   /** pending only: GitHub drops a request once its reviewer submits a review */
   reviewRequests: { totalCount: number };
   mergedAt: string | null;
+  /** set on a merged pull request too, at the time it merged */
+  closedAt: string | null;
   mergeable: string;
   headRefOid: string;
   baseRefName: string;
@@ -266,6 +271,8 @@ export interface FetchedPr extends CheckCounts {
   reviewDecision: PrReviewDecision;
   mergeable: PrMergeable;
   mergedAt: string | null;
+  /** when it was closed or merged; null while open */
+  closedAt: string | null;
   /** always set by GitHub; null only from a reviewflow document that lacks it */
   headSha: string | null;
   /** null only from a reviewflow server that predates `baseRef` */
@@ -286,6 +293,7 @@ export const toFetchedPr = (
     reviewDecision: toReviewDecision(pullRequest),
     mergeable: mergeables.get(pullRequest.mergeable) ?? "unknown",
     mergedAt: pullRequest.mergedAt,
+    closedAt: pullRequest.closedAt,
     headSha: pullRequest.headRefOid,
     baseRef: pullRequest.baseRefName,
     ...countChecks(pullRequest),
@@ -293,9 +301,9 @@ export const toFetchedPr = (
 };
 
 /**
- * Only the aliases that both resolved and carry a pull request produce a row. A
- * branch with no PR is not an absence to record — it is the normal state of a
- * worktree whose work has not been pushed for review yet.
+ * One row per pull request of every alias that resolved, newest first within a
+ * branch. A branch with no PR is not an absence to record — it is the normal
+ * state of a worktree whose work has not been pushed for review yet.
  */
 export const parsePrQueryResponse = (
   data: PrQueryData | null,
@@ -308,11 +316,12 @@ export const parsePrQueryResponse = (
     if (!repository) continue;
     for (const [alias, connection] of Object.entries(repository)) {
       const target = targetsByAlias.get(alias);
-      const pullRequest = connection?.nodes?.[0];
-      if (!target || !pullRequest) continue;
-
-      const fetched = toFetchedPr(target, pullRequest);
-      if (fetched !== null) found.push(fetched);
+      if (!target) continue;
+      for (const pullRequest of connection?.nodes ?? []) {
+        if (!pullRequest) continue;
+        const fetched = toFetchedPr(target, pullRequest);
+        if (fetched !== null) found.push(fetched);
+      }
     }
   }
 
