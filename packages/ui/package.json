@@ -1,6 +1,6 @@
 {
   "name": "@reviewflow/ui",
-  "version": "6.32.0",
+  "version": "6.33.0",
   "description": "react-native pull request screen components. Consumed as SOURCES (no build): exports resolve `default` to ./src/index.ts, which metro transforms like the app's own files; the consuming app's css must @source this package's src so tailwind keeps its classes.",
   "keywords": [
     "alouette",
@@ -82,7 +82,7 @@
     "@lezer/common": "1.5.5",
     "@lezer/highlight": "1.2.5",
     "@lezer/markdown": "1.7.2",
-    "@pierre/diffs": "1.5.2",
+    "@pierre/diffs": "1.6.4",
     "@pierre/trees": "1.0.0",
     "@reviewflow/sdk": "workspace:*",
     "@tanstack/markdown": "0.0.13",
@@ -102,6 +102,7 @@
     "react-native": "0.86.2",
     "react-native-safe-area-context": "5.8.0",
     "react-native-svg": "15.15.5",
+    "shiki": "4.6.0",
     "storybook": "10.6.6",
     "typescript": "npm:@typescript/typescript6@6.0.2"
   },

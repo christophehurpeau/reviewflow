@@ -403,11 +403,13 @@ describe("lookup", () => {
 
   test("answers reviewflow's results, in the targets' order", async () => {
     const { service, client } = setup({
-      lookup: vi.fn(async () => [{ found: true as const, pr: detail() }]),
+      lookup: vi.fn(async () => [
+        { found: true as const, pr: detail(), prs: [detail()] },
+      ]),
     });
     await service.setToken({ url, token });
     expect(await service.lookup(targets)).toEqual([
-      { found: true, pr: detail() },
+      { found: true, pr: detail(), prs: [detail()] },
     ]);
     expect(client.lookup).toHaveBeenCalledWith(targets);
   });
