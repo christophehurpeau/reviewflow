@@ -28,12 +28,14 @@ import {
   readWorktrees,
 } from "@reviewflow/sdk/git";
 import { appLogger } from "nightingale-app-console";
+import { cloneWithGh } from "./clone.ts";
 import type { PullRequestOperations } from "./routes.ts";
 
 /** Parsed bindings by blob, kept for the life of the server: stepping through commits parses only what differs. */
 const bindingsCache = createBindingsCache();
 
 const editLogger = appLogger.child("edit", "Edit");
+const cloneLogger = appLogger.child("clone", "Clone");
 
 export const operations: PullRequestOperations = {
   fetchPullRequestPart,
@@ -66,4 +68,14 @@ export const operations: PullRequestOperations = {
   readWorktreeRemovalStatus,
   prepareWorktreeRemoval,
   completeWorktreeRemoval,
+  cloneRepository: async (plan) => {
+    cloneLogger.info("cloning", { ...plan });
+    try {
+      await cloneWithGh(plan);
+    } catch (error) {
+      cloneLogger.warn("clone failed", { ...plan, error });
+      throw error;
+    }
+    cloneLogger.success("cloned", { ...plan });
+  },
 };

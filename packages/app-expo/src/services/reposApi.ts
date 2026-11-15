@@ -6,6 +6,8 @@ import type {
   CheckoutCommitsResponse,
   CheckoutReposResponse,
   CheckoutSyncResponse,
+  CloneRepositoryRequest,
+  CloneRepositoryResponse,
   CommitDiffResponse,
   DiffWhitespace,
   OpenPullRequestsResponse,
@@ -19,6 +21,7 @@ import type { WorktreeRemovalCheck } from "@reviewflow/ui";
 import type { QueryClient, UseQueryResult } from "@tanstack/react-query";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getJson, postJson } from "./api.ts";
+import { repoAttachmentKey } from "./configApi.ts";
 
 export const reposQueryKey = ["repos"] as const;
 
@@ -299,3 +302,39 @@ export const refreshRepos = async (client: QueryClient): Promise<void> => {
 export const readRepoPathSuggestions =
   (): Promise<RepoPathSuggestionsResponse> =>
     getJson<RepoPathSuggestionsResponse>("/api/config/repo-paths/suggestions");
+
+/** What a pull request screen reads from the checkout, refused while there was none. */
+const checkoutReads = new Set<unknown>([
+  "diff",
+  "diffs",
+  "readingOrder",
+  "impacts",
+]);
+
+/**
+ * Clones into one of the repositories folders, answered once git is done;
+ * the listing, the banner and the refused reads of the repository's pull
+ * requests are then read again.
+ */
+export const cloneRepository = async (
+  client: QueryClient,
+  request: CloneRepositoryRequest,
+): Promise<CloneRepositoryResponse> => {
+  const answer = await postJson<CloneRepositoryResponse>(
+    "/api/repos/clone",
+    request,
+  );
+  await Promise.all([
+    client.invalidateQueries({ queryKey: reposQueryKey }),
+    client.invalidateQueries({
+      queryKey: repoAttachmentKey(request.ownerRepo),
+    }),
+    client.invalidateQueries({
+      predicate: ({ queryKey }) =>
+        queryKey[0] === "pullRequest" &&
+        queryKey[1] === request.ownerRepo &&
+        checkoutReads.has(queryKey[3]),
+    }),
+  ]);
+  return answer;
+};

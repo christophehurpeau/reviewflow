@@ -1,4 +1,8 @@
-import type { PullRequestSlots, PullRequestTab } from "@reviewflow/ui";
+import type {
+  PullRequestSlots,
+  PullRequestTab,
+  RepositoryRefusalReason,
+} from "@reviewflow/ui";
 import {
   PullRequestDataSourceProvider,
   PullRequestScreen,
@@ -15,10 +19,12 @@ import {
   View,
 } from "alouette";
 import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeft";
+import { DownloadSimpleRegularIcon } from "alouette-icons/phosphor-icons/DownloadSimple";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { mergedAccent } from "#/mergedAccent.ts";
+import { CloneRepositoryModal } from "#/services/CloneRepositoryModal.tsx";
 import { useDiffPreferences } from "#/services/DiffPreferencesProvider.tsx";
 import { createLocalDraftStore } from "#/services/draftStore.ts";
 import { createPullRequestDataSource } from "#/services/pullRequestDataSource.tsx";
@@ -29,24 +35,49 @@ import { useStoredPreference } from "#/services/useStoredPreference.ts";
 const first = (value: string[] | string | undefined): string | undefined =>
   Array.isArray(value) ? value[0] : value;
 
+interface RepositoryActionsProps {
+  ownerRepo: string;
+  reason: RepositoryRefusalReason;
+  onClone: () => void;
+}
+
 /**
  * Where a missing or wrong checkout is fixed: Settings, with the entry already
- * in the editor. A merged pull request is violet.
+ * in the editor; or, when none is configured, a clone into a repositories
+ * folder. A configured entry that fails its check is only fixed in Settings:
+ * it wins over any clone.
  */
-const slots: PullRequestSlots = {
-  prStatusAccents: { merged: mergedAccent },
-  renderRepositoryAction: (ownerRepo) => (
+function RepositoryActions({
+  ownerRepo,
+  reason,
+  onClone,
+}: RepositoryActionsProps): ReactNode {
+  const settings = (
     <Link asChild href={{ pathname: "/settings", params: { add: ownerRepo } }}>
       <Button
         text="Add it in Settings"
         accent="neutral"
-        variant="tonal"
+        variant={reason === "notConfigured" ? "soft" : "tonal"}
         size="sm"
         role="link"
       />
     </Link>
-  ),
-};
+  );
+  if (reason !== "notConfigured") return settings;
+  return (
+    <View className="flex-row flex-wrap gap-xs">
+      <Button
+        text="Clone"
+        icon={<DownloadSimpleRegularIcon />}
+        accent="neutral"
+        variant="tonal"
+        size="sm"
+        onPress={onClone}
+      />
+      {settings}
+    </View>
+  );
+}
 
 /** The route: parses and validates the url, owns tab and open commit, wires the data source. */
 interface RepoLinkProps {
@@ -78,6 +109,23 @@ export default function PullRequestPage(): ReactNode {
   );
   const diffPreferences = useDiffPreferences();
   const repos = useRepos();
+  const [cloneOpen, setCloneOpen] = useState(false);
+  // a merged pull request is violet
+  const slots = useMemo(
+    (): PullRequestSlots => ({
+      prStatusAccents: { merged: mergedAccent },
+      renderRepositoryAction: (repo, reason) => (
+        <RepositoryActions
+          ownerRepo={repo}
+          reason={reason}
+          onClone={() => {
+            setCloneOpen(true);
+          }}
+        />
+      ),
+    }),
+    [],
+  );
   const params = useLocalSearchParams<{
     repo?: string;
     number?: string;
@@ -171,6 +219,14 @@ export default function PullRequestPage(): ReactNode {
               }}
             />
           </View>
+          {/* outside the banner: a Message wraps its content in a Text, which every Text of the modal would inherit from */}
+          <CloneRepositoryModal
+            ownerRepo={ownerRepo}
+            visible={cloneOpen}
+            onClose={() => {
+              setCloneOpen(false);
+            }}
+          />
         </PullRequestDataSourceProvider>
       ) : (
         <View className="mx-auto w-full max-w-[1200px] gap-m px-l pt-l">

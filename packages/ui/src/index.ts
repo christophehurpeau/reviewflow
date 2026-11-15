@@ -14,7 +14,11 @@ export {
   PullRequestDataSourceProvider,
   usePullRequestDataSource,
 } from "./dataSource.ts";
-export type { MarkdownEditorProps, PullRequestSlots } from "./slots.tsx";
+export type {
+  MarkdownEditorProps,
+  PullRequestSlots,
+  RepositoryRefusalReason,
+} from "./slots.tsx";
 export { PullRequestSlotsProvider, usePullRequestSlots } from "./slots.tsx";
 export type { PullRequestScreenProps } from "./components/pull-request-screen.tsx";
 export { PullRequestScreen } from "./components/pull-request-screen.tsx";

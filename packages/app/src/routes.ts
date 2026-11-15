@@ -17,6 +17,8 @@ import type {
   CheckoutReposResponse,
   CheckoutSyncResponse,
   CheckoutWorktree,
+  CloneRepositoryRequest,
+  CloneRepositoryResponse,
   CommitDiffResponse,
   DiffImpactsResponse,
   DiffReadingOrderResponse,
@@ -47,6 +49,8 @@ import {
 } from "@reviewflow/sdk";
 import { readEditableFile, saveEditableFile } from "@reviewflow/sdk/files";
 import type { WorktreeRemovalPlan } from "@reviewflow/sdk/git";
+import type { ClonePlan } from "./clone.ts";
+import { planClone } from "./clone.ts";
 import {
   checkCheckout,
   describeRepoAttachment,
@@ -73,6 +77,7 @@ export const apiRoutes = {
   configRepo: "/api/config/repo",
   configRepoPathSuggestions: "/api/config/repo-paths/suggestions",
   repos: "/api/repos",
+  repoClone: "/api/repos/clone",
   repoDiff: "/api/repos/diff",
   repoCommits: "/api/repos/commits",
   repoCommit: "/api/repos/commit",
@@ -201,6 +206,7 @@ export interface PullRequestOperations {
   completeWorktreeRemoval: (
     plan: WorktreeRemovalPlan,
   ) => Promise<WorktreeRemovalResult>;
+  cloneRepository: (plan: ClonePlan) => Promise<void>;
 }
 
 export interface RouteDeps {
@@ -350,6 +356,53 @@ const handleRepos: Handler = async ({ operations, configPath }, request) => {
   return ok(body);
 };
 
+/** git's failure (a missing base, an unknown commit) is the answer, as a 400. */
+const gitAnswer = async (
+  read: () => Promise<unknown>,
+): Promise<RouteAnswer> => {
+  try {
+    return ok(await read());
+  } catch (error) {
+    return bad(errorMessage(error));
+  }
+};
+
+/** A second press while the first clone runs would race it into the same directory. */
+const cloningTargets = new Set<string>();
+
+/**
+ * Clones into one of `repoPaths` (`planClone`), then scans the folders again
+ * so the listing and every route reading a listed checkout see it. Answered
+ * once the clone is done; it goes on if the client leaves.
+ */
+const handleRepoClone: Handler = async (
+  { operations, configPath },
+  request,
+) => {
+  if (request.method !== "POST") return notAllowed();
+  const payload =
+    (await request.readJson()) as Partial<CloneRepositoryRequest> | null;
+  const plan = planClone({
+    repoPaths: readConfig(configPath).repoPaths,
+    ownerRepo: payload?.ownerRepo,
+    folder: payload?.folder,
+  });
+  if ("refused" in plan) return bad(plan.refused);
+  if (cloningTargets.has(plan.target)) {
+    return bad(`${plan.ownerRepo} is already being cloned into ${plan.target}`);
+  }
+  cloningTargets.add(plan.target);
+  try {
+    return await gitAnswer(async (): Promise<CloneRepositoryResponse> => {
+      await operations.cloneRepository(plan);
+      await listCheckouts(configPath, { refresh: true });
+      return { ownerRepo: plan.ownerRepo, path: plan.target };
+    });
+  } finally {
+    cloningTargets.delete(plan.target);
+  }
+};
+
 const ownerRepoPattern = /^[^/\s]+\/[^/\s]+$/;
 
 /**
@@ -376,17 +429,6 @@ const readListedCheckout = async (
     ({ path, prunable }) => path === worktree && !prunable,
   );
   return known ? worktree : bad(`${worktree} is not a worktree of ${repo}`);
-};
-
-/** git's failure (a missing base, an unknown commit) is the answer, as a 400. */
-const gitAnswer = async (
-  read: () => Promise<unknown>,
-): Promise<RouteAnswer> => {
-  try {
-    return ok(await read());
-  } catch (error) {
-    return bad(errorMessage(error));
-  }
 };
 
 const readWhitespace = (
@@ -991,6 +1033,7 @@ const handlers: Record<string, Handler> = {
   [apiRoutes.configRepo]: handleConfigRepo,
   [apiRoutes.configRepoPathSuggestions]: handleRepoPathSuggestions,
   [apiRoutes.repos]: handleRepos,
+  [apiRoutes.repoClone]: handleRepoClone,
   [apiRoutes.repoDiff]: handleRepoDiff,
   [apiRoutes.repoCommits]: handleRepoCommits,
   [apiRoutes.repoCommit]: handleRepoCommit,

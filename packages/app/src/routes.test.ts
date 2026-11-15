@@ -118,6 +118,7 @@ const makeDeps = (
     readWorktreeRemovalStatus: vi.fn(async () => ({ main: false })),
     prepareWorktreeRemoval: vi.fn(async () => ({ path: "plan" })),
     completeWorktreeRemoval: vi.fn(async () => ({ branchError: null })),
+    cloneRepository: vi.fn(async () => undefined),
     ...overrides,
   } as unknown as PullRequestOperations,
 });
@@ -582,6 +583,60 @@ describe("repos", () => {
       body: { error: "1 untracked file: git would refuse" },
     });
     expect(refusing.operations.completeWorktreeRemoval).not.toHaveBeenCalled();
+  });
+
+  test("clones into a configured folder on a POST, then lists the folders again", async () => {
+    const deps = makeDeps();
+    expect(
+      await call(deps, "POST", "/api/repos/clone", {
+        ownerRepo: "acme/tools",
+        folder: checkouts,
+      }),
+    ).toEqual({
+      status: 200,
+      body: { ownerRepo: "acme/tools", path: join(checkouts, "tools") },
+    });
+    expect(deps.operations.cloneRepository).toHaveBeenCalledWith({
+      ownerRepo: "acme/tools",
+      target: join(checkouts, "tools"),
+    });
+    expect((await call(deps, "GET", "/api/repos/clone"))?.status).toBe(405);
+  });
+
+  test("refuses a clone outside repoPaths or over a directory, and answers gh's failure as a 400", async () => {
+    const deps = makeDeps();
+    expect(
+      (
+        await call(deps, "POST", "/api/repos/clone", {
+          ownerRepo: "acme/tools",
+          folder: root,
+        })
+      )?.status,
+    ).toBe(400);
+    expect(
+      (
+        await call(deps, "POST", "/api/repos/clone", {
+          ownerRepo: "acme/gadgets",
+          folder: checkouts,
+        })
+      )?.status,
+    ).toBe(400);
+    expect(deps.operations.cloneRepository).not.toHaveBeenCalled();
+
+    const failing = makeDeps({
+      cloneRepository: vi.fn(async () => {
+        throw new Error("gh repo clone acme/tools failed: not found");
+      }),
+    });
+    expect(
+      await call(failing, "POST", "/api/repos/clone", {
+        ownerRepo: "acme/tools",
+        folder: checkouts,
+      }),
+    ).toEqual({
+      status: 400,
+      body: { error: "gh repo clone acme/tools failed: not found" },
+    });
   });
 
   test("refuses a bad scope or whitespace, and answers git's failure as a 400", async () => {
