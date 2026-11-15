@@ -233,11 +233,11 @@ importers:
         specifier: 8.1.0
         version: 8.1.0
       liwi-mongo:
-        specifier: 15.0.0
-        version: 15.0.0
+        specifier: 15.2.0
+        version: 15.2.0
       liwi-store:
-        specifier: 14.1.0
-        version: 14.1.0
+        specifier: 15.1.0
+        version: 15.1.0
       mingo:
         specifier: 7.2.7
         version: 7.2.7
@@ -282,11 +282,11 @@ importers:
   packages/modules:
     dependencies:
       liwi-mongo:
-        specifier: 15.0.0
-        version: 15.0.0
+        specifier: 15.2.0
+        version: 15.2.0
       liwi-resources-client:
-        specifier: 15.0.0
-        version: 15.0.0
+        specifier: 15.2.0
+        version: 15.2.0
     devDependencies:
       '@pob/rollup-esbuild':
         specifier: 11.4.0
@@ -349,17 +349,17 @@ importers:
         specifier: 7.0.2
         version: 7.0.2
       liwi-mongo:
-        specifier: 15.0.0
-        version: 15.0.0
+        specifier: 15.2.0
+        version: 15.2.0
       liwi-resources-server:
-        specifier: 15.0.0
-        version: 15.0.0
+        specifier: 15.2.0
+        version: 15.2.0
       liwi-resources-websocket-server:
-        specifier: 15.0.0
-        version: 15.0.0
+        specifier: 15.2.0
+        version: 15.2.0
       liwi-store:
-        specifier: 14.1.0
-        version: 14.1.0
+        specifier: 15.1.0
+        version: 15.1.0
       lock:
         specifier: 1.1.0
         version: 1.1.0
@@ -389,11 +389,11 @@ importers:
         specifier: npm:typescript@7.0.2
         version: typescript@7.0.2
       liwi-resources-client:
-        specifier: 15.0.0
-        version: 15.0.0
+        specifier: 15.2.0
+        version: 15.2.0
       liwi-resources-websocket-client-node:
-        specifier: 15.0.0
-        version: 15.0.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+        specifier: 15.2.0
+        version: 15.2.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       nock:
         specifier: 14.0.17
         version: 14.0.17
@@ -413,8 +413,8 @@ importers:
   packages/sdk:
     dependencies:
       oxc-parser:
-        specifier: 0.127.0
-        version: 0.127.0
+        specifier: 0.158.0
+        version: 0.158.0
     devDependencies:
       '@pob/rollup-esbuild':
         specifier: 11.4.0
@@ -592,14 +592,14 @@ importers:
         specifier: 1.33.0
         version: 1.33.0
       liwi-resources-client:
-        specifier: 15.0.0
-        version: 15.0.0
+        specifier: 15.2.0
+        version: 15.2.0
       liwi-resources-void-client:
-        specifier: 15.0.0
-        version: 15.0.0
+        specifier: 15.2.0
+        version: 15.2.0
       liwi-resources-websocket-client:
-        specifier: 15.0.0
-        version: 15.0.0
+        specifier: 15.2.0
+        version: 15.2.0
       nativewind:
         specifier: 5.0.0-rc.0
         version: 5.0.0-rc.0(react-native-css@3.1.0-rc.0(@expo/metro-config@57.0.8(@typescript/typescript6@6.0.2)(bufferutil@4.1.0)(expo@57.0.12)(supports-color@8.1.1)(utf-8-validate@6.0.6))(lightningcss@1.33.0)(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)(supports-color@8.1.1))(tailwindcss@4.3.3)
@@ -610,8 +610,8 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       react-liwi:
-        specifier: 15.0.0
-        version: 15.0.0(react@19.2.8)
+        specifier: 15.2.0
+        version: 15.2.0(react@19.2.8)
       react-native:
         specifier: 0.86.2
         version: 0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6)
@@ -734,23 +734,23 @@ importers:
         specifier: 9.0.3
         version: 9.0.3
       liwi-mongo:
-        specifier: 15.0.0
-        version: 15.0.0
+        specifier: 15.2.0
+        version: 15.2.0
       liwi-resources-client:
-        specifier: 15.0.0
-        version: 15.0.0
+        specifier: 15.2.0
+        version: 15.2.0
       liwi-resources-server:
-        specifier: 15.0.0
-        version: 15.0.0
+        specifier: 15.2.0
+        version: 15.2.0
       liwi-resources-websocket-client-node:
-        specifier: 15.0.0
-        version: 15.0.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+        specifier: 15.2.0
+        version: 15.2.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       liwi-resources-websocket-server:
-        specifier: 15.0.0
-        version: 15.0.0
+        specifier: 15.2.0
+        version: 15.2.0
       liwi-store:
-        specifier: 14.1.0
-        version: 14.1.0
+        specifier: 15.1.0
+        version: 15.1.0
       nightingale-logger:
         specifier: 18.2.0
         version: 18.2.0
@@ -2085,6 +2085,12 @@ packages:
     cpu: [arm]
     os: [android]
 
+  '@oxc-parser/binding-android-arm-eabi@0.158.0':
+    resolution: {integrity: sha512-eZ4sHtg/u9mzPaRPWXZ7MmJ3tSFYPDCoDrnAJEXBOIQfdAy0TnzlaJx7nq0HZwE8DkYLQg6GqGZlcjaJrnijKg==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm]
+    os: [android]
+
   '@oxc-parser/binding-android-arm64@0.127.0':
     resolution: {integrity: sha512-b5jtVTH6AU5CJXHNdj7Jj9IEiR9yVjjnwHzPJhGyHGPdcsZSzBCkS9GBbV33niRMvKthDwQRFRJfI4a+k4PvYg==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -2093,6 +2099,12 @@ packages:
 
   '@oxc-parser/binding-android-arm64@0.152.0':
     resolution: {integrity: sha512-iYFcExATJNZ0rZj0o02THbD1Nc9jAW0nVgIQPee6ejbSASpbZXlIMw8jxtpzaG14JQTWwGSZ6U5dEtRJXE6V3Q==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm64]
+    os: [android]
+
+  '@oxc-parser/binding-android-arm64@0.158.0':
+    resolution: {integrity: sha512-Jqfn2GRXFkEukYBke/d1Hc9a3gB/qA3YRZ1u0D6HecjoOc3d9QvB7YFWyaLDWc139pfH+fIMIeOQ2SNOe1mnvQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [android]
@@ -2109,6 +2121,12 @@ packages:
     cpu: [arm64]
     os: [darwin]
 
+  '@oxc-parser/binding-darwin-arm64@0.158.0':
+    resolution: {integrity: sha512-C3/Sl4HE0DE5r64UWBljMTua5aFh14/Urc6o45gK7J8HWjEttJJP26M0bK2eSWcas2zpJZrJlcvwyIxR7YqSZA==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm64]
+    os: [darwin]
+
   '@oxc-parser/binding-darwin-x64@0.127.0':
     resolution: {integrity: sha512-JL6Xb5IwPQT8rUzlpsX7E+AgfcdNklXNPFp8pjCQQ5MQOQo5rtEB2ui+3Hgg9Sn7Y9Egj6YOLLiHhLpdAe12Aw==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -2117,6 +2135,12 @@ packages:
 
   '@oxc-parser/binding-darwin-x64@0.152.0':
     resolution: {integrity: sha512-Y3U2okryWTs7hDld6UhjJwLNf8/do+x4g4C+1U5SiGwrTLwbO83WJYJA8+l9iFSilWBgnfpd/+U76tfeNxUHzA==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [x64]
+    os: [darwin]
+
+  '@oxc-parser/binding-darwin-x64@0.158.0':
+    resolution: {integrity: sha512-IlU6PMqlk2pbqiidJ1dU5moOeVtzQf4x1n8fXixupLUixA6Sdd3a5WHclvGEZhJom4SjSan0EIpPQkXl9TnjeA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [darwin]
@@ -2133,6 +2157,12 @@ packages:
     cpu: [x64]
     os: [freebsd]
 
+  '@oxc-parser/binding-freebsd-x64@0.158.0':
+    resolution: {integrity: sha512-0uQD/66qKMzcz99yudx7yPWdPziXXl4S4bMxyOwXFPQ6F53Vr2DYM8Tfl9gd/32R2FXlAIqK9g8aNfwJEa0/Kg==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [x64]
+    os: [freebsd]
+
   '@oxc-parser/binding-linux-arm-gnueabihf@0.127.0':
     resolution: {integrity: sha512-Av+D1MIqzV0YMGPT9we2SIZaMKD7Cxs4CvXSx/yxaWHewZjYEjScpOf5igc8IILASViw4WTnjlwUdI1KzVtDHQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -2141,6 +2171,12 @@ packages:
 
   '@oxc-parser/binding-linux-arm-gnueabihf@0.152.0':
     resolution: {integrity: sha512-MLzsRRbdfmdzo6JEhbC1yKU9ItfvM8tEf18HM32jCiNYZEz6J3bRBRl3cTkKR0vBdrk9ZVlcARXtwHccs+epDA==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm]
+    os: [linux]
+
+  '@oxc-parser/binding-linux-arm-gnueabihf@0.158.0':
+    resolution: {integrity: sha512-B5ZAgT/cwKVtGa14Z3PEgim8hBTAK//uX/QpwdO2ZKGMqLFDq8myV3jDU1FAGJ0aPZ24SC8X362kKrpFOYmbHg==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm]
     os: [linux]
@@ -2157,6 +2193,12 @@ packages:
     cpu: [arm]
     os: [linux]
 
+  '@oxc-parser/binding-linux-arm-musleabihf@0.158.0':
+    resolution: {integrity: sha512-ZLuYVsBUejzfdFmOlY9yW+g/iCInw+pirfTu+eMk27wFcpyCG6yfTmS/qzzvKARI/VmoUdaXmEcDNUm9hdq5Cg==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm]
+    os: [linux]
+
   '@oxc-parser/binding-linux-arm64-gnu@0.127.0':
     resolution: {integrity: sha512-qdOfTcT6SY8gsJrrV92uyEUyjqMGPpIB5JZUG6QN5dukYd+7/j0kX6MwK1DgQj39jtUYixxPiaRUiEN1+0CXgQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -2166,6 +2208,13 @@ packages:
 
   '@oxc-parser/binding-linux-arm64-gnu@0.152.0':
     resolution: {integrity: sha512-9Bb8GyzZ2uSLzRDZ27usaKokr07mxiBe2dDF5b6bd2janmaJTT1gL51UfP7AU30yFiXrJvcRyFKREAgKwZYs0w==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@oxc-parser/binding-linux-arm64-gnu@0.158.0':
+    resolution: {integrity: sha512-QHKIX2SW3pnUFfhAKU8P9t36QlkGGfxgodwoKkp+pQNZmA/PF3DbkA8OgUHoeCIE0aFL1t9Sse+2wr6+zohdRA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [linux]
@@ -2185,6 +2234,13 @@ packages:
     os: [linux]
     libc: [musl]
 
+  '@oxc-parser/binding-linux-arm64-musl@0.158.0':
+    resolution: {integrity: sha512-Z57mkQZMjUHh0KxxjmZLNUpqJUT5lPYYpihAOudh4PnQC79Kq7Ujy8KJsmsbla3rU0xV4aCpUKDCfVx0wnYn+Q==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
   '@oxc-parser/binding-linux-ppc64-gnu@0.127.0':
     resolution: {integrity: sha512-zALjmZYgxFLHjXeudcDF0xFGNydTAtkAeXAr2EuC17ywCyFxcmQra4w0BMde0Yi/re4Bi4iwEoEXtYN7l6eBLQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -2194,6 +2250,13 @@ packages:
 
   '@oxc-parser/binding-linux-ppc64-gnu@0.152.0':
     resolution: {integrity: sha512-Lf1OL2lMTqwDMFC6jnRb30B+WYHKV0XT+bPHcFM6xHtNVwxpobiTzUIvKH6a0LWpvfwyru8Yu6zCGHqqFHH+gg==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [ppc64]
+    os: [linux]
+    libc: [glibc]
+
+  '@oxc-parser/binding-linux-ppc64-gnu@0.158.0':
+    resolution: {integrity: sha512-jl6537qMp3Tb2D0J1oYzU/xzvYOM7ZDBf4Dhg8WvgkV+wgept/r2rX30PdWTE5gNo6QdHkOTz7le+9yldU1VwQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [ppc64]
     os: [linux]
@@ -2213,6 +2276,13 @@ packages:
     os: [linux]
     libc: [glibc]
 
+  '@oxc-parser/binding-linux-riscv64-gnu@0.158.0':
+    resolution: {integrity: sha512-BFwDkCZ2K6VuSfBlKLItXkTYMN/8SAcFpZgBohU6qjlq4HrRKBqOXW/J0ViwZ4BHZuNFxgrhUXcM3hcalZnQaA==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [riscv64]
+    os: [linux]
+    libc: [glibc]
+
   '@oxc-parser/binding-linux-riscv64-musl@0.127.0':
     resolution: {integrity: sha512-7IcC4Ao02oGpfnjt+X/oF4U2mllo2qoSkw5xxiXNKL9MCTsTiAC6616beOuehdxGcnz1bRoPC1RQ2f1GQDdN+g==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -2222,6 +2292,13 @@ packages:
 
   '@oxc-parser/binding-linux-riscv64-musl@0.152.0':
     resolution: {integrity: sha512-d2LqHNNNqdH185sRK5dPKWZu201JrNu9/CRFuVEuT+ht7n/QaVblEMWT9MALQPrDWYvhG10P+NSKJFquDWZ09w==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [riscv64]
+    os: [linux]
+    libc: [musl]
+
+  '@oxc-parser/binding-linux-riscv64-musl@0.158.0':
+    resolution: {integrity: sha512-3YcZPBhpDhD9BUWQct+70To5wJhY36pvn+gA04ArMCdREd76EIXB14IgYsDsRqIgOXSXT1okMpHA6UEamM/QQg==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [riscv64]
     os: [linux]
@@ -2241,6 +2318,13 @@ packages:
     os: [linux]
     libc: [glibc]
 
+  '@oxc-parser/binding-linux-s390x-gnu@0.158.0':
+    resolution: {integrity: sha512-C+HBtM/aauGsp1sRuKHnB6yqrFCfGzGgS/3b/Alwz+bGIgOCm6DiNnFEnA14MOQ1YA63ikjpmTN7LPb505pkCQ==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [s390x]
+    os: [linux]
+    libc: [glibc]
+
   '@oxc-parser/binding-linux-x64-gnu@0.127.0':
     resolution: {integrity: sha512-MYCguB9RvBvlSd6gbuNI7QwiLoCCAlGnlRJFPrzLI6U1/9wkC/WK6LtBAUln55H1Ctqw45PWmqrobKoMhsYQzQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -2250,6 +2334,13 @@ packages:
 
   '@oxc-parser/binding-linux-x64-gnu@0.152.0':
     resolution: {integrity: sha512-ltgrSF6L+yPTVsIdaAyqKq3zTqzj/1VlNbxWZuxAe8flR3sWdyNsKvdXukoO8/ucJbLickhmieRBge+o/e8Ugw==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@oxc-parser/binding-linux-x64-gnu@0.158.0':
+    resolution: {integrity: sha512-COR5cFRE6DqmxZGE9QCJG1X7uUYxNdSYkMR7J9igRLnZqZ8ki6kJIa5S4czYHeIjdNyYn4vo1CsK3rQsK5sjrA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [linux]
@@ -2269,6 +2360,13 @@ packages:
     os: [linux]
     libc: [musl]
 
+  '@oxc-parser/binding-linux-x64-musl@0.158.0':
+    resolution: {integrity: sha512-lF8YZdySxTjYnHfitZpbFWpyyxDchZj+TIyvDnzH3AGZlUvyrsu7BeORPdf05cLFwiyb+RPqAae4EJ7uu5xAhg==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
   '@oxc-parser/binding-openharmony-arm64@0.127.0':
     resolution: {integrity: sha512-Gld0ajrFTUXNtdw20fVBuTQx66FA75nIVg+//pPfR3sXkuABB4mTBhl3r9JNzrJpgW//qiwxf0nWXUWGJSL3UQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -2277,6 +2375,12 @@ packages:
 
   '@oxc-parser/binding-openharmony-arm64@0.152.0':
     resolution: {integrity: sha512-jbhoMCslVxzRCRNQ8TSHxjYdSKRvk8O6ciLVDkahJvmyHDzBqba/bMQHM6ULKj/rgHNNbSzlIiakdx8SEfkJzA==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm64]
+    os: [openharmony]
+
+  '@oxc-parser/binding-openharmony-arm64@0.158.0':
+    resolution: {integrity: sha512-m2HMKQgNNatcwOeCDCewrW5gvmHE61WFKl2J4KHiCGNpJb6ZI8n3T/JzwxFkt8kY3E27fJwvHM6t3WIEgtPiAA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [openharmony]
@@ -2298,6 +2402,12 @@ packages:
     cpu: [arm64]
     os: [win32]
 
+  '@oxc-parser/binding-win32-arm64-msvc@0.158.0':
+    resolution: {integrity: sha512-Kksc5jIB7cE9vgoePyIQ8sRkXA4kAfO5oDEI6X+JJMGGTRnvtGafQniLXAHur9XU+5hUgMOGoZcyA8L+JvBu6g==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm64]
+    os: [win32]
+
   '@oxc-parser/binding-win32-ia32-msvc@0.127.0':
     resolution: {integrity: sha512-0cwxKO7KHQQQfo4Uf4B2SQrhgm+cJaP9OvFFhx52Tkg4bezsacu83GB2/In5bC415Ueeym+kXdnge/57rbSfTw==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -2306,6 +2416,12 @@ packages:
 
   '@oxc-parser/binding-win32-ia32-msvc@0.152.0':
     resolution: {integrity: sha512-1X9oganvVsunRH0lH10UU05N+H9atpX6WsOybByUjwnfcd3h/0tYwvuv16XuHglrIUOnxV2TodbLVEwwafd64g==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [ia32]
+    os: [win32]
+
+  '@oxc-parser/binding-win32-ia32-msvc@0.158.0':
+    resolution: {integrity: sha512-HhxU9z7t6gqSh7UslTwD/wha5U2uD44Ss7GKtrBSJfG061iDrJ1Qk63N0Dzh3clax9pjJgYFnMpQRt72Q1bP8w==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [ia32]
     os: [win32]
@@ -2322,6 +2438,12 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@oxc-parser/binding-win32-x64-msvc@0.158.0':
+    resolution: {integrity: sha512-/SLN0ot62iL6XhmsWyLdU+37vjVCgDP96sOqeCPIFov63odr4DPv9vgq+lIkZMBMOxpWsSMcwDfpERsRAyCl8A==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [x64]
+    os: [win32]
+
   '@oxc-project/types@0.127.0':
     resolution: {integrity: sha512-aIYXQBo4lCbO4z0R3FHeucQHpF46l2LbMdxRvqvuRuW2OxdnSkcng5B8+K12spgLDj93rtN3+J2Vac/TIO+ciQ==}
 
@@ -2330,6 +2452,9 @@ packages:
 
   '@oxc-project/types@0.156.0':
     resolution: {integrity: sha512-1Duyg48TdJNdyhEB8Xn1L36bT9Pv6GUtlKjHxOys8xkaF/rQq3XJE+bAurSK/AgIz5mGFsb77cn9Pb20+WCScw==}
+
+  '@oxc-project/types@0.158.0':
+    resolution: {integrity: sha512-xZ66qA4WmLbTLlxH3mqMd8f9UKbaOzOT0ATwFf4DH/14pMgpUrtqtjyYzOQmgfl2a0iRAAMbQ9G1th/67jRzGw==}
 
   '@oxc-resolver/binding-android-arm-eabi@11.21.2':
     resolution: {integrity: sha512-xQoCRv+gKax9KTdwdaQNnAFOai8neay7g3jExDIORzhbrejwGSJaZNTdOJHR5ziLg2joMxOCMOFMo4zuxza2uQ==}
@@ -5612,8 +5737,8 @@ packages:
   extend@3.0.2:
     resolution: {integrity: sha512-fjquC59cD7CyW6urNXK0FBufkZcoiGG80wTuPujX590cB5Ttln20E2UB4S/WARVqhXffZl2LNgS+gQdPIIim/g==}
 
-  extended-json@14.0.0:
-    resolution: {integrity: sha512-7Fxn+mujoBk41T2SHUvIkuGoR1/ryg30KsNiGHXvJE48cQbQ3/eZNWePTVdHQDx1lDLvRwpdIqf1dPK7EDr8MA==}
+  extended-json@15.0.2:
+    resolution: {integrity: sha512-yKDuJFGyMIjR9qsnwEK9OxIUt+JLyuX+dgQofSA0LnEW1QDHBKQ/9LS2US5TZA3jyc4wz+HgZWbHC8M/CqNJHg==}
     engines: {node: '>=22.18.0'}
 
   fast-copy@4.1.2:
@@ -6280,44 +6405,44 @@ packages:
     engines: {node: '>=22.22.1'}
     hasBin: true
 
-  liwi-mongo@15.0.0:
-    resolution: {integrity: sha512-u4BG/TzgH3uVeRZJ6slx1TAb8FOJeOywIvdgCO5hs3Y9r7Z0Y6lUOal6wYLhQt3uRFpqtnNUHBROSLifXFUf+w==}
+  liwi-mongo@15.2.0:
+    resolution: {integrity: sha512-fhrGS4NbXd4/Rdkmme4Uikf/RlUuh/Lt9Q+3mtDA4iC2MVD88Dh5VZSWTjHgBUNKT2PHsFdfJmoo6oIk9v+Xjg==}
     engines: {node: '>=22.18.0'}
 
-  liwi-resources-client@15.0.0:
-    resolution: {integrity: sha512-ukA8y72B1ls0FMW0BbzvCrwcd8F8ORtUtAcVxHc5aDYnzpMUfJy5uBdqgjIEpMUfWcLrl9knNebVPJTj6cEVpA==}
+  liwi-resources-client@15.2.0:
+    resolution: {integrity: sha512-aSDXXz1k3qz+aotV2/Kefh0oGqqEOrDxyrDNG5/Qc/rTIaIVWr5ZGtqF0T+RnQSktIRydygTqaHfIa7ertOxFg==}
     engines: {node: '>=22.18.0'}
 
-  liwi-resources-server@15.0.0:
-    resolution: {integrity: sha512-IrxA3HpgtrkTyPWbwY2rPQe+AdqiAt2GQGM/uPAJj44g62xTt5B6LhmA8ZV754Z3zH59ezRYKnlnKpw2RXxHbg==}
+  liwi-resources-server@15.2.0:
+    resolution: {integrity: sha512-A+5E2c0t/0aon6fSpZ+hVz9L7DFQ5ZOnamk/q79k9m6+hySfUt2h5ywOM/pCK1ARQBKwtaN5F7T6nCShp8I3LQ==}
     engines: {node: '>=22.18.0'}
 
-  liwi-resources-void-client@15.0.0:
-    resolution: {integrity: sha512-fk4Ux6scVTkJHLl1OqEJSGDa8O5sLLOdI4c33SnEhiJjBZpGtXRl3KtHip19ds4cuG3QQxjGeM+1BYvF9oR/ug==}
+  liwi-resources-void-client@15.2.0:
+    resolution: {integrity: sha512-0Q+IChVqUa8ahM6plAsV9ZkBX8mhg2n+Iq44lMYdBwn40Kfe7etAbVJtACkqVWbGAC1HJjRi7tPjNBzvFSqAmw==}
     engines: {node: '>=22.18.0'}
 
-  liwi-resources-websocket-client-node@15.0.0:
-    resolution: {integrity: sha512-qmx6bXdw3TJpn7n5qbCpkSRPBonTi9lpwLreMDjFV3ttoMJ3L3epA/AtcDF6X1YWyPK80tRAxY7Mkx027URuIg==}
+  liwi-resources-websocket-client-node@15.2.0:
+    resolution: {integrity: sha512-+Gpj87CatoF0tJg1cw9JjPyVX8nu/JUvDbnH04dQr6lLV0wRWkurhpdKqjHKjX8G11pcP4YcN5HpBCR1/n/yNw==}
     engines: {node: '>=22.18.0'}
 
-  liwi-resources-websocket-client@15.0.0:
-    resolution: {integrity: sha512-76owFngVP8p9Og2jgv0PuxC3xjraWt8pJWWhDoabYLgAuwifEwwy+tcgK9wdYuW4mCsQwpkNcigVLAonIAc+dg==}
+  liwi-resources-websocket-client@15.2.0:
+    resolution: {integrity: sha512-L2k7HoExsTy+oFoq8rotom/tuviT9Qbd0WJjZTHfinPM3erIZ/ntIkISY0Uv34jpOIApCZkkxF7KgS1VY4rMRw==}
     engines: {node: '>=22.18.0'}
 
-  liwi-resources-websocket-server@15.0.0:
-    resolution: {integrity: sha512-PNyIL2ZC3ltX7txdjFVKXdGV1rWa4mHoFTuYJvmkJnt/WwrH3Br+8RJiq3JfjNGiaTwoidUSTAcKVinHdZ2alg==}
+  liwi-resources-websocket-server@15.2.0:
+    resolution: {integrity: sha512-uyvMVEv+kIqsS6QeFtr2qgGSQD2W/0nKbGA+x2ovlAVNX45dt2FwmqJVa5/gVwNYGPMaWPJnfuKkFSQjaW0nQQ==}
     engines: {node: '>=22.18.0'}
 
-  liwi-resources@15.0.0:
-    resolution: {integrity: sha512-xEPxFQ24to1SXfE7isR7/Q1SnrZNKbd+FV9tCG/GNa23DBPeNT78nXuRiNm9JnCsL1JevC8Ej3gY5TfA9z6eiA==}
+  liwi-resources@15.2.0:
+    resolution: {integrity: sha512-anU+70bbuYl6UddI0j151Rshj9rJtOWiIAqCOXBOuxkITfGfDmiq6VV4GyI9hkHRWJBVyTPp3CFULRc0lKp6Pw==}
     engines: {node: '>=22.18.0'}
 
-  liwi-store@14.1.0:
-    resolution: {integrity: sha512-55GyoJNtA6Ihb1Phud7MrgCAYNO/ABsxRumAHsbXgsVINF5bLKwbcKJbYuP9lLWNb5Rq9BDodD0qkj+fnyzMDQ==}
+  liwi-store@15.1.0:
+    resolution: {integrity: sha512-cFyJd8OO+zvHJNx52Nap7D8BPS1JjRiQWlXRRCqoJeL4hWqHQl/tLw6JnvXQhCdNypU97CJ4m2b4U0sEgiu8QQ==}
     engines: {node: '>=22.18.0'}
 
-  liwi-subscribe-store@15.0.0:
-    resolution: {integrity: sha512-rF2yu/4ocjGVK9hzBCnrn5xipcIfg45zG2F5muynFStF4RPnvfNx3Umt8qQ4nWJ2gTBsO+uY5oJiVsHWz+wuTQ==}
+  liwi-subscribe-store@15.1.0:
+    resolution: {integrity: sha512-61/wGxIGLWWCw8WUk3tR6jwQNO9jb6lXYRqWUgW3uq1KrYYon7SSbqb4K1Vpm0Y4BcUm7o6Ia81KNELnOFRWdQ==}
     engines: {node: '>=22.18.0'}
 
   load-json-file@7.0.1:
@@ -6969,6 +7094,10 @@ packages:
     resolution: {integrity: sha512-ZztsZgaCWmPeKYMdoTT5e0oV/oxD1NeLWNR3kAtr/G707cUPYaaozRlVDHLCGnszHJRszN9mJwmPNpqgwloC0A==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
+  oxc-parser@0.158.0:
+    resolution: {integrity: sha512-BKmaZZXp667kLC8Od/ivIkbw6yaxTSqw8ViI1Tvl21E6r+6NLdwDmo43LpL2Ebt/PDMu1d4tcdBucMSor+cL1g==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+
   oxc-resolver@11.21.2:
     resolution: {integrity: sha512-w5tLwYN3Zo24w5EeWJjJWZOwhYqTtC8PS2B1tIt7BZUuqTIcU07sQValbDw+rq7+AuAGzOHklgK+ifsy4lpXfw==}
 
@@ -7302,8 +7431,8 @@ packages:
   react-is@19.2.8:
     resolution: {integrity: sha512-s5un28nYxKJw5gvUHyW5PCC28CvBqLu9r3cWgzHT4Vo/5fqqkFcdRYsGcKf50WMPpjjFZS5d76fn3YCo2njKwQ==}
 
-  react-liwi@15.0.0:
-    resolution: {integrity: sha512-i94ByifIztsNCh1/JuTU6QZq3NPPQPvHhHuD0hrXK1pQXAOgDz9IpycVYjSDvMsrjioe4IlYMLEcJtGN0hVtoA==}
+  react-liwi@15.2.0:
+    resolution: {integrity: sha512-9cR0vqV5GyFZglIbgCIkv6dQfvabac7YvKqamM0sWqxorT35F0/Dmw37o0EEi8YOCEFLk5SPAg0aSVwM2FU+oQ==}
     engines: {node: '>=22.18.0'}
     peerDependencies:
       react: ^19.0.0
@@ -10152,10 +10281,16 @@ snapshots:
   '@oxc-parser/binding-android-arm-eabi@0.152.0':
     optional: true
 
+  '@oxc-parser/binding-android-arm-eabi@0.158.0':
+    optional: true
+
   '@oxc-parser/binding-android-arm64@0.127.0':
     optional: true
 
   '@oxc-parser/binding-android-arm64@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-android-arm64@0.158.0':
     optional: true
 
   '@oxc-parser/binding-darwin-arm64@0.127.0':
@@ -10164,10 +10299,16 @@ snapshots:
   '@oxc-parser/binding-darwin-arm64@0.152.0':
     optional: true
 
+  '@oxc-parser/binding-darwin-arm64@0.158.0':
+    optional: true
+
   '@oxc-parser/binding-darwin-x64@0.127.0':
     optional: true
 
   '@oxc-parser/binding-darwin-x64@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-darwin-x64@0.158.0':
     optional: true
 
   '@oxc-parser/binding-freebsd-x64@0.127.0':
@@ -10176,10 +10317,16 @@ snapshots:
   '@oxc-parser/binding-freebsd-x64@0.152.0':
     optional: true
 
+  '@oxc-parser/binding-freebsd-x64@0.158.0':
+    optional: true
+
   '@oxc-parser/binding-linux-arm-gnueabihf@0.127.0':
     optional: true
 
   '@oxc-parser/binding-linux-arm-gnueabihf@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-linux-arm-gnueabihf@0.158.0':
     optional: true
 
   '@oxc-parser/binding-linux-arm-musleabihf@0.127.0':
@@ -10188,10 +10335,16 @@ snapshots:
   '@oxc-parser/binding-linux-arm-musleabihf@0.152.0':
     optional: true
 
+  '@oxc-parser/binding-linux-arm-musleabihf@0.158.0':
+    optional: true
+
   '@oxc-parser/binding-linux-arm64-gnu@0.127.0':
     optional: true
 
   '@oxc-parser/binding-linux-arm64-gnu@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-linux-arm64-gnu@0.158.0':
     optional: true
 
   '@oxc-parser/binding-linux-arm64-musl@0.127.0':
@@ -10200,10 +10353,16 @@ snapshots:
   '@oxc-parser/binding-linux-arm64-musl@0.152.0':
     optional: true
 
+  '@oxc-parser/binding-linux-arm64-musl@0.158.0':
+    optional: true
+
   '@oxc-parser/binding-linux-ppc64-gnu@0.127.0':
     optional: true
 
   '@oxc-parser/binding-linux-ppc64-gnu@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-linux-ppc64-gnu@0.158.0':
     optional: true
 
   '@oxc-parser/binding-linux-riscv64-gnu@0.127.0':
@@ -10212,10 +10371,16 @@ snapshots:
   '@oxc-parser/binding-linux-riscv64-gnu@0.152.0':
     optional: true
 
+  '@oxc-parser/binding-linux-riscv64-gnu@0.158.0':
+    optional: true
+
   '@oxc-parser/binding-linux-riscv64-musl@0.127.0':
     optional: true
 
   '@oxc-parser/binding-linux-riscv64-musl@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-linux-riscv64-musl@0.158.0':
     optional: true
 
   '@oxc-parser/binding-linux-s390x-gnu@0.127.0':
@@ -10224,10 +10389,16 @@ snapshots:
   '@oxc-parser/binding-linux-s390x-gnu@0.152.0':
     optional: true
 
+  '@oxc-parser/binding-linux-s390x-gnu@0.158.0':
+    optional: true
+
   '@oxc-parser/binding-linux-x64-gnu@0.127.0':
     optional: true
 
   '@oxc-parser/binding-linux-x64-gnu@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-linux-x64-gnu@0.158.0':
     optional: true
 
   '@oxc-parser/binding-linux-x64-musl@0.127.0':
@@ -10236,10 +10407,16 @@ snapshots:
   '@oxc-parser/binding-linux-x64-musl@0.152.0':
     optional: true
 
+  '@oxc-parser/binding-linux-x64-musl@0.158.0':
+    optional: true
+
   '@oxc-parser/binding-openharmony-arm64@0.127.0':
     optional: true
 
   '@oxc-parser/binding-openharmony-arm64@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-openharmony-arm64@0.158.0':
     optional: true
 
   '@oxc-parser/binding-wasm32-wasi@0.127.0':
@@ -10255,10 +10432,16 @@ snapshots:
   '@oxc-parser/binding-win32-arm64-msvc@0.152.0':
     optional: true
 
+  '@oxc-parser/binding-win32-arm64-msvc@0.158.0':
+    optional: true
+
   '@oxc-parser/binding-win32-ia32-msvc@0.127.0':
     optional: true
 
   '@oxc-parser/binding-win32-ia32-msvc@0.152.0':
+    optional: true
+
+  '@oxc-parser/binding-win32-ia32-msvc@0.158.0':
     optional: true
 
   '@oxc-parser/binding-win32-x64-msvc@0.127.0':
@@ -10267,11 +10450,16 @@ snapshots:
   '@oxc-parser/binding-win32-x64-msvc@0.152.0':
     optional: true
 
+  '@oxc-parser/binding-win32-x64-msvc@0.158.0':
+    optional: true
+
   '@oxc-project/types@0.127.0': {}
 
   '@oxc-project/types@0.152.0': {}
 
   '@oxc-project/types@0.156.0': {}
+
+  '@oxc-project/types@0.158.0': {}
 
   '@oxc-resolver/binding-android-arm-eabi@11.21.2':
     optional: true
@@ -13409,7 +13597,7 @@ snapshots:
 
   extend@3.0.2: {}
 
-  extended-json@14.0.0: {}
+  extended-json@15.0.2: {}
 
   fast-copy@4.1.2: {}
 
@@ -14026,10 +14214,10 @@ snapshots:
     optionalDependencies:
       yaml: 2.9.1
 
-  liwi-mongo@15.0.0:
+  liwi-mongo@15.2.0:
     dependencies:
-      liwi-store: 14.1.0
-      liwi-subscribe-store: 15.0.0
+      liwi-store: 15.1.0
+      liwi-subscribe-store: 15.1.0
       mingo: 7.2.7
       mongodb: 7.7.0
       nightingale-logger: 18.2.0
@@ -14042,62 +14230,62 @@ snapshots:
       - snappy
       - socks
 
-  liwi-resources-client@15.0.0:
+  liwi-resources-client@15.2.0:
     dependencies:
-      extended-json: 14.0.0
-      liwi-resources: 15.0.0
-      liwi-store: 14.1.0
+      extended-json: 15.0.2
+      liwi-resources: 15.2.0
+      liwi-store: 15.1.0
       nightingale-logger: 18.2.0
 
-  liwi-resources-server@15.0.0:
+  liwi-resources-server@15.2.0:
     dependencies:
-      extended-json: 14.0.0
-      liwi-resources: 15.0.0
-      liwi-store: 14.1.0
+      extended-json: 15.0.2
+      liwi-resources: 15.2.0
+      liwi-store: 15.1.0
       nightingale-logger: 18.2.0
 
-  liwi-resources-void-client@15.0.0:
+  liwi-resources-void-client@15.2.0:
     dependencies:
-      liwi-resources-client: 15.0.0
-      liwi-resources-server: 15.0.0
+      liwi-resources-client: 15.2.0
+      liwi-resources-server: 15.2.0
 
-  liwi-resources-websocket-client-node@15.0.0(bufferutil@4.1.0)(utf-8-validate@6.0.6):
+  liwi-resources-websocket-client-node@15.2.0(bufferutil@4.1.0)(utf-8-validate@6.0.6):
     dependencies:
-      liwi-resources-client: 15.0.0
-      liwi-resources-websocket-client: 15.0.0
+      liwi-resources-client: 15.2.0
+      liwi-resources-websocket-client: 15.2.0
       ws: 8.22.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  liwi-resources-websocket-client@15.0.0:
+  liwi-resources-websocket-client@15.2.0:
     dependencies:
       backo2: 1.0.2
-      extended-json: 14.0.0
-      liwi-resources-client: 15.0.0
+      extended-json: 15.0.2
+      liwi-resources-client: 15.2.0
       nightingale-logger: 18.2.0
 
-  liwi-resources-websocket-server@15.0.0:
+  liwi-resources-websocket-server@15.2.0:
     dependencies:
-      extended-json: 14.0.0
-      liwi-resources-server: 15.0.0
-      liwi-store: 14.1.0
+      extended-json: 15.0.2
+      liwi-resources-server: 15.2.0
+      liwi-store: 15.1.0
       nightingale-logger: 18.2.0
       ws: 8.22.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
     optionalDependencies:
       bufferutil: 4.1.0
       utf-8-validate: 6.0.6
 
-  liwi-resources@15.0.0:
+  liwi-resources@15.2.0:
     dependencies:
-      extended-json: 14.0.0
-      liwi-store: 14.1.0
+      extended-json: 15.0.2
+      liwi-store: 15.1.0
 
-  liwi-store@14.1.0: {}
+  liwi-store@15.1.0: {}
 
-  liwi-subscribe-store@15.0.0:
+  liwi-subscribe-store@15.1.0:
     dependencies:
-      liwi-store: 14.1.0
+      liwi-store: 15.1.0
 
   load-json-file@7.0.1: {}
 
@@ -15020,6 +15208,30 @@ snapshots:
       '@oxc-parser/binding-win32-ia32-msvc': 0.152.0
       '@oxc-parser/binding-win32-x64-msvc': 0.152.0
 
+  oxc-parser@0.158.0:
+    dependencies:
+      '@oxc-project/types': 0.158.0
+    optionalDependencies:
+      '@oxc-parser/binding-android-arm-eabi': 0.158.0
+      '@oxc-parser/binding-android-arm64': 0.158.0
+      '@oxc-parser/binding-darwin-arm64': 0.158.0
+      '@oxc-parser/binding-darwin-x64': 0.158.0
+      '@oxc-parser/binding-freebsd-x64': 0.158.0
+      '@oxc-parser/binding-linux-arm-gnueabihf': 0.158.0
+      '@oxc-parser/binding-linux-arm-musleabihf': 0.158.0
+      '@oxc-parser/binding-linux-arm64-gnu': 0.158.0
+      '@oxc-parser/binding-linux-arm64-musl': 0.158.0
+      '@oxc-parser/binding-linux-ppc64-gnu': 0.158.0
+      '@oxc-parser/binding-linux-riscv64-gnu': 0.158.0
+      '@oxc-parser/binding-linux-riscv64-musl': 0.158.0
+      '@oxc-parser/binding-linux-s390x-gnu': 0.158.0
+      '@oxc-parser/binding-linux-x64-gnu': 0.158.0
+      '@oxc-parser/binding-linux-x64-musl': 0.158.0
+      '@oxc-parser/binding-openharmony-arm64': 0.158.0
+      '@oxc-parser/binding-win32-arm64-msvc': 0.158.0
+      '@oxc-parser/binding-win32-ia32-msvc': 0.158.0
+      '@oxc-parser/binding-win32-x64-msvc': 0.158.0
+
   oxc-resolver@11.21.2:
     optionalDependencies:
       '@oxc-resolver/binding-android-arm-eabi': 11.21.2
@@ -15422,10 +15634,10 @@ snapshots:
 
   react-is@19.2.8: {}
 
-  react-liwi@15.0.0(react@19.2.8):
+  react-liwi@15.2.0(react@19.2.8):
     dependencies:
-      liwi-resources-client: 15.0.0
-      liwi-store: 14.1.0
+      liwi-resources-client: 15.2.0
+      liwi-store: 15.1.0
       mingo: 7.2.7
       nightingale-logger: 18.2.0
       react: 19.2.8
