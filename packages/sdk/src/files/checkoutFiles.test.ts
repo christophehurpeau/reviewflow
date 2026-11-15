@@ -82,6 +82,18 @@ describe("listCheckoutFiles", () => {
   });
 });
 
+describe("listCheckoutFiles with a worktree inside the checkout", () => {
+  it("does not list the nested worktree as a file", async () => {
+    const { path, git } = createRepo();
+    git(["worktree", "add", "--quiet", "-b", "feat/x", ".claude/worktrees/x"]);
+
+    const { paths, statuses } = await listCheckoutFiles(path);
+
+    expect(paths.filter((listed) => listed.endsWith("/"))).toEqual([]);
+    expect(Object.keys(statuses)).toEqual([]);
+  });
+});
+
 describe("parseCheckoutStatuses", () => {
   it("keeps a path with spaces whole", () => {
     expect(parseCheckoutStatuses(" M a b.ts\0?? c d/e.ts\0")).toEqual({

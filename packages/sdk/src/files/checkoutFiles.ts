@@ -51,6 +51,14 @@ const statusOfLetters = (letters: string): CheckoutFileStatus => {
   return "modified";
 };
 
+/**
+ * git names a nested repository it does not descend into — a worktree checked
+ * out inside the checkout (`.claude/worktrees/<slug>`), a clone — as an
+ * untracked directory, its path ending in `/`. It is not a file to list.
+ */
+const isFilePath = (path: string): boolean =>
+  path !== "" && !path.endsWith("/");
+
 /** `git status --porcelain=v1 -z --no-renames`: `XY path\0` per entry, no rename pairs. */
 export const parseCheckoutStatuses = (
   output: string,
@@ -58,7 +66,7 @@ export const parseCheckoutStatuses = (
   Object.fromEntries(
     output
       .split("\0")
-      .filter((entry) => entry.length > 3)
+      .filter((entry) => entry.length > 3 && isFilePath(entry.slice(3)))
       .map((entry) => [entry.slice(3), statusOfLetters(entry.slice(0, 2))]),
   );
 
@@ -96,7 +104,7 @@ export const listCheckoutFiles = async (
   // an unmerged path is listed once per stage; a deletion staged with `git rm`
   // is in the status only
   const paths = new Set([
-    ...present.split("\0").filter((path) => path !== ""),
+    ...present.split("\0").filter(isFilePath),
     ...Object.keys(statuses),
   ]);
   return { paths: [...paths].toSorted(), statuses };
