@@ -34,8 +34,10 @@ import type { NumstatEntry } from "./readBranchDiff.ts";
 import { catFiles, git } from "./run.ts";
 
 /**
- * Past this many TypeScript files at `head`, nothing is analyzed. Measured on
- * this repository (see `docs/app-review-overview-impacts.md`).
+ * Past this many TypeScript files at `head`, nothing is analyzed. Measured cold
+ * at about 0.2 ms per file (1.3 s for a 7,400-file monorepo, one commit
+ * range). This bound, about 2.7 times that tree, is not measured: 4 to 5 s
+ * cold by extrapolation.
  */
 export const maxTypescriptFiles = 20_000;
 
