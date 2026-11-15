@@ -1,5 +1,8 @@
+import { readFileSync, writeFileSync } from "node:fs";
 import type { AccentName, PaletteSpec } from "alouette/theme-generator";
 import { writeTheme } from "alouette/theme-generator";
+
+const themeVariablesPath = "src/themeVariables.ts";
 
 // Hues fitted (in OKLCH) on GitHub Primer's own scales, so reviewflow reads as
 // a companion to the GitHub UI it augments: green brand and success, Primer
@@ -15,3 +18,12 @@ const githubPalette: Partial<Record<AccentName, PaletteSpec>> = {
 };
 
 writeTheme({ outDir: "src", overrides: githubPalette });
+// alouette 25 writes a camelcase directive no rule reports, which oxlint
+// rejects as unused; alouette 26 no longer writes it.
+writeFileSync(
+  themeVariablesPath,
+  readFileSync(themeVariablesPath, "utf8").replace(
+    "/* oxlint-disable eslint-js/camelcase */\n",
+    "",
+  ),
+);
