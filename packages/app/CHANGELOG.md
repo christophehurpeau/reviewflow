@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.34.1](https://github.com/christophehurpeau/reviewflow/compare/v6.34.0...v6.34.1) (2026-11-15)
+
+Version bump for dependency: @reviewflow/sdk
+
+
 ## [6.34.0](https://github.com/christophehurpeau/reviewflow/compare/v6.33.0...v6.34.0) (2026-11-15)
 
 ### Features
