@@ -2,10 +2,11 @@ import { realpathSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  listWorktrees,
   parseTrack,
   parseWorktreeList,
   readBranches,
-  readWorktrees,
+  readWorktreeStatuses,
 } from "./checkoutBranches.ts";
 import type { GitRepoFixture } from "./test/gitRepo.ts";
 import { createGitRepo } from "./test/gitRepo.ts";
@@ -93,23 +94,17 @@ describe("parseTrack", () => {
   });
 });
 
-describe("readWorktrees", () => {
-  it("lists the main checkout first, then a linked worktree with its status", async () => {
+describe("listWorktrees", () => {
+  it("lists the main checkout first, then a linked worktree", async () => {
     repo = createGitRepo();
     const linked = join(repo.path, "..", "linked");
     repo.git(["worktree", "add", "--quiet", "-b", "fix", linked]);
-    writeFileSync(join(linked, "dirty.txt"), "x\n");
 
-    const worktrees = await readWorktrees(repo.path);
+    const worktrees = await listWorktrees(repo.path);
 
     expect(worktrees).toMatchObject([
       { path: repo.path, main: true, branch: "main", prunable: false },
-      {
-        path: realpathSync(linked),
-        main: false,
-        branch: "fix",
-        status: { untracked: 1 },
-      },
+      { path: realpathSync(linked), main: false, branch: "fix" },
     ]);
   });
 
@@ -120,10 +115,40 @@ describe("readWorktrees", () => {
     const linked = join(repo.path, "..", "from-bare");
     repo.git(["worktree", "add", "--quiet", "-b", "fix", linked], bare);
 
-    const worktrees = await readWorktrees(bare);
+    const worktrees = await listWorktrees(bare);
 
     expect(worktrees).toMatchObject([
       { path: realpathSync(linked), main: false, branch: "fix" },
+    ]);
+  });
+});
+
+describe("readWorktreeStatuses", () => {
+  it("reads each worktree's status and head commit", async () => {
+    repo = createGitRepo();
+    const linked = join(repo.path, "..", "linked");
+    repo.git(["worktree", "add", "--quiet", "-b", "fix", linked]);
+    writeFileSync(join(linked, "dirty.txt"), "x\n");
+
+    const { statuses } = await readWorktreeStatuses(repo.path);
+
+    expect(statuses).toMatchObject([
+      {
+        path: repo.path,
+        status: {
+          branch: "main",
+          untracked: 0,
+          commit: { subject: "chore: commit" },
+        },
+      },
+      {
+        path: realpathSync(linked),
+        status: {
+          branch: "fix",
+          untracked: 1,
+          commit: { subject: "chore: commit" },
+        },
+      },
     ]);
   });
 });
@@ -159,6 +184,17 @@ describe("readBranches", () => {
     expect(branches.find(({ name }) => name === "main")).toMatchObject({
       merged: false,
     });
+  });
+
+  it("takes the base from origin/HEAD, as the remote-tracking branch", async () => {
+    repo = createGitRepo();
+    const clone = join(repo.path, "..", "clone");
+    repo.git(["clone", "--quiet", repo.path, clone]);
+
+    const { base, branches } = await readBranches({ cwd: clone });
+
+    expect(base).toMatchObject({ name: "main", ref: "origin/main" });
+    expect(branches.map(({ name }) => name)).toEqual(["main"]);
   });
 
   it("marks nothing merged when the base does not exist", async () => {

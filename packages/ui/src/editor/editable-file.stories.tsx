@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-native";
 import { Box, Button, Text } from "alouette";
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { expect, userEvent, within } from "storybook/test";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import { Story } from "../stories/Story.tsx";
 import type {
   EditableFileProps,
@@ -159,6 +159,59 @@ export const RefetchedWhileEditingStory: Story_ = {
     await expect(canvas.getByRole("button", { name: "Save" })).toHaveAttribute(
       "aria-disabled",
       "true",
+    );
+  },
+};
+
+/**
+ * The save's own write read back before the save answers, as a host that sets
+ * its cache from the answer and then refreshes other reads does.
+ */
+function ReadBackDuringSaveCase(): ReactNode {
+  const [source, setSource] = useState(config);
+  const [answer, setAnswer] = useState<(() => void) | null>(null);
+  return (
+    <Box className="surface surface-sm gap-xs">
+      <Button
+        text="Answer the save"
+        onPress={() => {
+          answer?.();
+        }}
+      />
+      <EditableFile
+        language="json"
+        aria-label="config.json"
+        source={source}
+        initialValue={edited}
+        onSave={(saved) => {
+          setSource(saved);
+          return new Promise((resolve) => {
+            setAnswer(() => () => {
+              resolve({ status: "saved", source: saved, warnings: [] });
+            });
+          });
+        }}
+      />
+    </Box>
+  );
+}
+
+export const ReadBackDuringSaveStory: Story_ = {
+  name: "EditableFile Read back during its save",
+  render: () => <ReadBackDuringSaveCase />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(await canvas.findByRole("button", { name: "Save" }));
+    await waitFor(async () => {
+      await expect(
+        canvas.getByRole("button", { name: "Save" }),
+      ).toHaveAttribute("aria-disabled", "true");
+    });
+    await expect(
+      canvas.queryByText("The file changed on disk since it was opened."),
+    ).toBeNull();
+    await userEvent.click(
+      canvas.getByRole("button", { name: "Answer the save" }),
     );
   },
 };

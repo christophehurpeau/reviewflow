@@ -5,7 +5,6 @@ import {
   AccentScope,
   IconButton,
   ScopedTheme,
-  Separator,
   Tooltip,
   View,
   useCurrentTheme,
@@ -26,10 +25,12 @@ import { TextStrikethroughRegularIcon } from "alouette-icons/phosphor-icons/Text
 import type { ReactNode } from "react";
 import { useEffect, useEffectEvent, useRef } from "react";
 import { setLineType, toggleInlineFormat } from "./commands.ts";
+import { editorFrameClasses } from "./editorFrame.ts";
 import {
   changeBetween,
   externalUpdate,
   markdownEditorExtensions,
+  saveShortcut,
 } from "./extensions.ts";
 import "./markdown-editor.css";
 import "./code-token-colors.css";
@@ -72,14 +73,26 @@ function FormatButton({
 
 function FormatToolbar({
   viewRef,
+  inset,
 }: {
   viewRef: { current: EditorView | null };
+  /**
+   * Inside the editor's surface (`fill`), lined up with the text rather than
+   * the gutter: the text starts at 56px (`markdown-editor-fill`'s fixed 52px
+   * gutter and the line's 4px), less the ~8px between a small icon button's
+   * edge and its glyph.
+   */
+  inset: boolean;
 }): ReactNode {
   return (
     <View
       role="toolbar"
       aria-label="Formatting"
-      className="flex-row flex-wrap items-center gap-xxs"
+      className={
+        inset
+          ? "flex-row flex-wrap items-center gap-xxs pt-xxs pr-xs pl-[48px]"
+          : "flex-row flex-wrap items-center gap-xxs"
+      }
     >
       <FormatButton
         icon={<TextHOneRegularIcon />}
@@ -129,7 +142,8 @@ function FormatToolbar({
         command={setLineType("code")}
         viewRef={viewRef}
       />
-      <Separator vertical className="h-[20px]" />
+      {/* the line formats apart from the inline ones by space, not a rule */}
+      <View aria-hidden className="w-sm" />
       <FormatButton
         icon={<TextBRegularIcon />}
         label="Bold (⌘B)"
@@ -178,6 +192,15 @@ export interface MarkdownEditorFieldProps {
   emoji?: boolean;
   /** read at mount, like `readOnly` */
   autoFocus?: boolean;
+  /** numbers the lines in a gutter; read at mount, like `readOnly` */
+  lineNumbers?: boolean;
+  /**
+   * Takes the height of its parent and scrolls inside, rather than growing
+   * with its content for the page to scroll (`CodeEditor`'s `fill`).
+   */
+  fill?: boolean;
+  /** ⌘S / Ctrl+S in the editor; unset, the key is the browser's */
+  onSaveShortcut?: () => void;
 }
 
 interface LinkInkScopeProps {
@@ -229,10 +252,18 @@ export function MarkdownEditor({
   compact = false,
   emoji = false,
   autoFocus = false,
+  lineNumbers = false,
+  fill = false,
+  onSaveShortcut,
 }: MarkdownEditorFieldProps): ReactNode {
   const hostRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const emitChange = useEffectEvent((next: string) => onChange?.(next));
+  const emitSave = useEffectEvent((): boolean => {
+    if (onSaveShortcut === undefined) return false;
+    onSaveShortcut();
+    return true;
+  });
   // a remount for `readOnly` starts from the value of that render, not the first
   const readValue = useEffectEvent(() => value);
   const autoFocusRef = useRef(autoFocus);
@@ -253,10 +284,12 @@ export function MarkdownEditor({
         markdownEditorExtensions({
           readOnly,
           emoji,
+          lineNumbers,
           onChange: (next) => {
             emitChange(next);
           },
         }),
+        saveShortcut(() => emitSave()),
         EditorView.contentAttributes.of({ "aria-label": ariaLabel }),
       ],
     });
@@ -266,7 +299,7 @@ export function MarkdownEditor({
       view.destroy();
       viewRef.current = null;
     };
-  }, [readOnly, ariaLabel, emoji]);
+  }, [readOnly, ariaLabel, emoji, lineNumbers]);
 
   useEffect(() => {
     const view = viewRef.current;
@@ -276,19 +309,26 @@ export function MarkdownEditor({
     view.dispatch({ changes, annotations: externalUpdate.of(true) });
   }, [value]);
 
+  const columnClassName = [
+    "gap-xs",
+    fill ? "min-h-0 flex-1" : null,
+    className ?? null,
+  ]
+    .filter((name) => name !== null)
+    .join(" ");
+
   return (
-    <View
-      className={className === undefined ? "gap-xs" : `gap-xs ${className}`}
-    >
-      {readOnly ? null : <FormatToolbar viewRef={viewRef} />}
+    <View className={columnClassName}>
+      {readOnly ? null : <FormatToolbar viewRef={viewRef} inset={fill} />}
       <LinkInkScope>
         <div
           ref={hostRef}
-          className={(() => {
-            if (readOnly) return "markdown-editor markdown-editor-readonly";
-            if (compact) return "markdown-editor markdown-editor-compact";
-            return "markdown-editor";
-          })()}
+          className={editorFrameClasses({
+            code: false,
+            readOnly,
+            compact,
+            fill,
+          })}
         />
       </LinkInkScope>
     </View>

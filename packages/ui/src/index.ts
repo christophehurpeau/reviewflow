@@ -47,10 +47,23 @@ export type { ChangedFilesTreeProps } from "./components/changed-files-tree.tsx"
 export { ChangedFilesTree } from "./components/changed-files-tree.tsx";
 export type { DiffTreeFile as ChangedFile } from "./components/pull-request-diff-tree-files.ts";
 export { changedFilesOf } from "./components/pull-request-diff-tree-files.ts";
+export type {
+  CheckoutFileEditorProps,
+  CheckoutFiles,
+  CheckoutFileTreeProps,
+  CheckoutFileView,
+} from "./components/checkout-files.tsx";
+export {
+  CheckoutFileEditor,
+  CheckoutFileTree,
+} from "./components/checkout-files.tsx";
 export type { BranchPullRequestButtonsProps } from "./components/branch-pull-request-buttons.tsx";
 export { BranchPullRequestButtons } from "./components/branch-pull-request-buttons.tsx";
-export type { RepoOverviewProps } from "./components/repo-overview.tsx";
-export { RepoOverview } from "./components/repo-overview.tsx";
+export type {
+  RepoSelection,
+  RepoSidebarProps,
+} from "./components/repo-sidebar.tsx";
+export { RepoSidebar } from "./components/repo-sidebar.tsx";
 export type {
   CloseProcessesOption,
   IgnoredFilesProps,
@@ -125,6 +138,7 @@ export type { MarkdownEditorFieldProps } from "./editor/markdown-editor.tsx";
 export { CodeEditor } from "./editor/code-editor.tsx";
 export type { CodeEditorProps } from "./editor/code-editor.tsx";
 export type { CodeLanguage } from "./editor/codeEditorExtensions.ts";
+export { codeLanguageOfPath } from "./editor/codeEditorExtensions.ts";
 export { EditableFile } from "./editor/editable-file.tsx";
 export type {
   EditableFileProps,

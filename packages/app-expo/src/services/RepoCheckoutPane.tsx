@@ -4,23 +4,22 @@ import type {
   DiffWhitespace,
 } from "@reviewflow/sdk";
 import type { CheckoutRead, CheckoutTab } from "@reviewflow/ui";
-import {
-  CheckoutSyncButtons,
-  CheckoutView,
-  DiffSettingsProvider,
-} from "@reviewflow/ui";
+import { CheckoutSyncButtons, CheckoutView } from "@reviewflow/ui";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
-import { ErrorMessage, IconButton, View, WarningMessage } from "alouette";
-import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeft";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { WarningMessage } from "alouette";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import {
   BranchPullRequests,
   BranchPullRequestsNotice,
 } from "#/services/BranchPullRequests.tsx";
-import { useDiffPreferences } from "#/services/DiffPreferencesProvider.tsx";
+import {
+  saveRepoFile,
+  useRepoFile,
+  useRepoFileAtHead,
+  useRepoFiles,
+} from "#/services/filesApi.ts";
 import type { CheckoutRef } from "#/services/reposApi.ts";
 import {
   invalidateBranchPulls,
@@ -31,9 +30,6 @@ import {
   useRepoDiff,
   useRepoStatus,
 } from "#/services/reposApi.ts";
-
-const first = (value: string[] | string | undefined): string | undefined =>
-  Array.isArray(value) ? value[0] : value;
 
 const readOf = <Value,>(query: UseQueryResult<Value>): CheckoutRead<Value> => ({
   value: query.data ?? null,
@@ -89,17 +85,28 @@ function RepoSyncNotice({ checkout }: RepoSyncProps): ReactNode {
   return <WarningMessage>{`Could not fetch: ${problem}`}</WarningMessage>;
 }
 
-interface RepoCheckoutProps {
+interface RepoCheckoutPaneProps {
   checkout: CheckoutRef;
   initialWhitespace: DiffWhitespace;
-  back: ReactNode;
+  /** before the title, e.g. a back button on a narrow screen */
+  headerStart?: ReactNode;
+  /** opens one of the branch's pull requests in place; its own screen unless set */
+  onOpenPullRequest?: (number: number) => void;
+  /** after pull and push, e.g. the worktree's removal */
+  headerExtra?: ReactNode;
 }
 
-function RepoCheckout({
+/**
+ * One checkout, the listed one or one of its worktrees: what is uncommitted,
+ * its branch against the default branch, its history and its files.
+ */
+export function RepoCheckoutPane({
   checkout,
   initialWhitespace,
-  back,
-}: RepoCheckoutProps): ReactNode {
+  headerStart,
+  headerExtra,
+  onOpenPullRequest,
+}: RepoCheckoutPaneProps): ReactNode {
   const client = useQueryClient();
   const [chosenTab, setChosenTab] = useState<CheckoutTab | null>(null);
   const [openSha, setOpenSha] = useState<string | null>(null);
@@ -112,17 +119,19 @@ function RepoCheckout({
   const tab = chosenTab ?? firstTabOf(localStatus, commits);
   if (chosenTab === null && tab !== null) setChosenTab(tab);
 
+  // every tab is read with the screen, whichever opens first: switching to one
+  // shows its answer at once instead of starting a git read then
   const uncommitted = useRepoDiff({
     checkout,
     scope: "uncommitted",
     whitespace,
-    enabled: tab === "uncommitted",
+    enabled: true,
   });
   const branch = useRepoDiff({
     checkout,
     scope: "committed",
     whitespace,
-    enabled: tab === "branch",
+    enabled: true,
   });
   const commitDiff = useCommitDiff({
     checkout,
@@ -130,6 +139,15 @@ function RepoCheckout({
     whitespace,
   });
   const status = fetchedStatus.data?.status ?? localStatus.data?.status ?? null;
+
+  const [openPath, setOpenPath] = useState<string | null>(null);
+  const files = useRepoFiles(checkout, true);
+  const openFile = useRepoFile(checkout, tab === "files" ? openPath : null);
+  // read with the file, so switching to its diff shows at once
+  const openFileAtHead = useRepoFileAtHead(
+    checkout,
+    tab === "files" ? openPath : null,
+  );
 
   return (
     <CheckoutView
@@ -143,15 +161,26 @@ function RepoCheckout({
         diff: readOf(commitDiff),
         onOpenChange: setOpenSha,
       }}
+      files={{
+        paths: readOf(files),
+        selectedPath: openPath,
+        onSelect: setOpenPath,
+        file: readOf(openFile),
+        onSave: (path, source, expectedSource) =>
+          saveRepoFile(client, checkout, path, source, expectedSource),
+        fileAtHead: readOf(openFileAtHead),
+      }}
       whitespace={whitespace}
-      headerStart={back}
+      headerStart={headerStart}
       headerEnd={
         <>
           <BranchPullRequests
             ownerRepo={checkout.ownerRepo}
             branch={status?.branch ?? null}
+            onOpen={onOpenPullRequest}
           />
           <RepoSyncButtons checkout={checkout} />
+          {headerExtra}
         </>
       }
       notices={
@@ -166,6 +195,9 @@ function RepoCheckout({
       onReload={() => {
         // a failed read is the query's error, shown in place
         invalidateRepo(client, checkout.ownerRepo).catch(() => undefined);
+        client
+          .invalidateQueries({ queryKey: ["repoFiles", checkout.ownerRepo] })
+          .catch(() => undefined);
         invalidateBranchPulls(client, checkout.ownerRepo).catch(
           () => undefined,
         );
@@ -175,62 +207,5 @@ function RepoCheckout({
         setWhitespace(whitespace === "show" ? "hide" : "show");
       }}
     />
-  );
-}
-
-/**
- * One checkout, the listed one or one of its worktrees: what is uncommitted,
- * its branch against the default branch, its history.
- */
-export default function CheckoutPage(): ReactNode {
-  const router = useRouter();
-  const params = useLocalSearchParams<{ repo?: string; worktree?: string }>();
-  const ownerRepo = first(params.repo) ?? "";
-  const worktree = first(params.worktree) ?? null;
-  const valid = /^[^/\s]+\/[^/\s]+$/.test(ownerRepo);
-  const { settings, loaded } = useDiffPreferences();
-
-  const back = (
-    <IconButton
-      icon={<ArrowLeftRegularIcon />}
-      size="sm"
-      aria-label={`Back to ${ownerRepo}`}
-      onPress={() => {
-        if (router.canGoBack()) router.back();
-        else router.replace({ pathname: "/repo", params: { repo: ownerRepo } });
-      }}
-    />
-  );
-
-  if (!valid) {
-    return (
-      <View className="mx-auto w-full max-w-[1200px] gap-m px-l pt-l">
-        <View className="flex-row">{back}</View>
-        <ErrorMessage>
-          This address is not a repository: it needs ?repo=owner/repo.
-        </ErrorMessage>
-      </View>
-    );
-  }
-  // the whitespace preference is read once, when the screen mounts
-  if (!loaded) return null;
-
-  return (
-    <View className="mx-auto min-h-0 w-full max-w-[1800px] flex-1">
-      <DiffSettingsProvider
-        theme={settings.theme}
-        font={settings.font}
-        customFont={settings.customFont}
-        wordWrap={settings.wordWrap}
-      >
-        <RepoCheckout
-          // another checkout is another screen: its tab and open commit start over
-          key={`${ownerRepo}\n${worktree ?? ""}`}
-          checkout={{ ownerRepo, worktree }}
-          initialWhitespace={settings.hideWhitespace ? "hide" : "show"}
-          back={back}
-        />
-      </DiffSettingsProvider>
-    </View>
   );
 }

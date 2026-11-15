@@ -1,6 +1,11 @@
 import { cssLanguage } from "@codemirror/lang-css";
 import { htmlLanguage } from "@codemirror/lang-html";
-import { javascriptLanguage } from "@codemirror/lang-javascript";
+import {
+  javascriptLanguage,
+  jsxLanguage,
+  tsxLanguage,
+  typescriptLanguage,
+} from "@codemirror/lang-javascript";
 import { jsonLanguage } from "@codemirror/lang-json";
 import { yamlLanguage } from "@codemirror/lang-yaml";
 import type { TagStyle } from "@codemirror/language";
@@ -59,6 +64,10 @@ const scopedLanguages = [
   cssLanguage,
   htmlLanguage,
   javascriptLanguage,
+  // each dialect is a language of its own: a style scoped to javascript does not reach them
+  jsxLanguage,
+  typescriptLanguage,
+  tsxLanguage,
   jsonLanguage,
   yamlLanguage,
 ];

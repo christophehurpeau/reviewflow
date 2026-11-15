@@ -11,3 +11,16 @@ export type {
   SaveEditableFileResult,
   ValidateEditableFile,
 } from "./files/editableFile.ts";
+export {
+  listCheckoutFiles,
+  parseCheckoutStatuses,
+  maxCheckoutFileBytes,
+  readCheckoutFile,
+  readCheckoutFileAtHead,
+  resolveCheckoutPath,
+  saveCheckoutFile,
+} from "./files/checkoutFiles.ts";
+export type {
+  CheckoutRoots,
+  ResolvedCheckoutPath,
+} from "./files/checkoutFiles.ts";

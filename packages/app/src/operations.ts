@@ -8,9 +8,16 @@ import {
   parsePullRequestEdit,
 } from "@reviewflow/sdk";
 import {
+  listCheckoutFiles,
+  readCheckoutFile,
+  readCheckoutFileAtHead,
+  saveCheckoutFile,
+} from "@reviewflow/sdk/files";
+import {
   completeWorktreeRemoval,
   createBindingsCache,
   linkBranchPullRequests,
+  listWorktrees,
   prepareWorktreeRemoval,
   pullCheckout,
   pushCheckout,
@@ -25,7 +32,8 @@ import {
   readReadingOrder,
   readRecentCommits,
   readWorktreeRemovalStatus,
-  readWorktrees,
+  readWorktreeStatuses,
+  watchCheckout,
 } from "@reviewflow/sdk/git";
 import { appLogger } from "nightingale-app-console";
 import { cloneWithGh } from "./clone.ts";
@@ -59,15 +67,21 @@ export const operations: PullRequestOperations = {
     readCheckoutSync({ cwd: checkout, fetch }),
   pullCheckout,
   pushCheckout,
-  readWorktrees,
+  listWorktrees,
+  readWorktreeStatuses,
   readBranches: (checkout) => readBranches({ cwd: checkout }),
   fetchOpenPullRequests,
   fetchBranchPullRequests,
-  linkBranchPullRequests: ({ checkout, branch, pullRequests }) =>
-    linkBranchPullRequests({ cwd: checkout, branch, pullRequests }),
+  linkBranchPullRequests: ({ checkout, ...params }) =>
+    linkBranchPullRequests({ cwd: checkout, ...params }),
   readWorktreeRemovalStatus,
   prepareWorktreeRemoval,
   completeWorktreeRemoval,
+  listCheckoutFiles,
+  readCheckoutFile,
+  readCheckoutFileAtHead,
+  saveCheckoutFile,
+  watchCheckout,
   cloneRepository: async (plan) => {
     cloneLogger.info("cloning", { ...plan });
     try {

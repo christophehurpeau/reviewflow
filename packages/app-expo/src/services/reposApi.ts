@@ -6,6 +6,7 @@ import type {
   CheckoutCommitsResponse,
   CheckoutReposResponse,
   CheckoutSyncResponse,
+  CheckoutWorktreeStatusesResponse,
   CloneRepositoryRequest,
   CloneRepositoryResponse,
   CommitDiffResponse,
@@ -161,6 +162,29 @@ export const useRepoStatus = (
       ),
   });
 
+/**
+ * The local status a mounted screen reads for `checkout`, never read from
+ * here: it follows that screen's reads, including those a change triggers.
+ */
+export const useCachedRepoStatus = (
+  checkout: CheckoutRef | null,
+): CheckoutSyncResponse | undefined =>
+  useQuery({
+    queryKey: [
+      "repoStatus",
+      checkout?.ownerRepo ?? "",
+      checkout?.worktree ?? null,
+      "local",
+    ],
+    queryFn: ({ signal }) =>
+      getJson<CheckoutSyncResponse>(
+        "/api/repos/status",
+        checkout === null ? {} : checkoutQuery(checkout),
+        signal,
+      ),
+    enabled: false,
+  }).data;
+
 /** The local branches and the worktrees, from git alone. */
 export const useRepoBranches = (
   ownerRepo: string,
@@ -170,6 +194,20 @@ export const useRepoBranches = (
     queryFn: ({ signal }) =>
       getJson<CheckoutBranchesResponse>(
         "/api/repos/branches",
+        { repo: ownerRepo },
+        signal,
+      ),
+  });
+
+/** What each worktree holds, read apart from the branches: one git call per worktree. */
+export const useRepoWorktreeStatuses = (
+  ownerRepo: string,
+): UseQueryResult<CheckoutWorktreeStatusesResponse> =>
+  useQuery({
+    queryKey: ["repoWorktreeStatuses", ownerRepo],
+    queryFn: ({ signal }) =>
+      getJson<CheckoutWorktreeStatusesResponse>(
+        "/api/repos/worktree-statuses",
         { repo: ownerRepo },
         signal,
       ),
@@ -286,6 +324,7 @@ export const invalidateRepo = async (
     client.invalidateQueries({ queryKey: ["repoDiff", ownerRepo] }),
     client.invalidateQueries({ queryKey: ["repoCommits", ownerRepo] }),
     client.invalidateQueries({ queryKey: ["repoBranches", ownerRepo] }),
+    client.invalidateQueries({ queryKey: ["repoWorktreeStatuses", ownerRepo] }),
     client.invalidateQueries({ queryKey: reposQueryKey }),
   ]);
 };

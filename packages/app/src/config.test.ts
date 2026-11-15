@@ -1,10 +1,17 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { defaultRepoPaths } from "@reviewflow/sdk";
 import {
+  checkCheckout,
   describeRepoAttachment,
   expandHome,
   findCheckoutUnder,
@@ -217,6 +224,36 @@ describe("config", () => {
       status: "notConfigured",
       detail: expect.stringContaining("not valid json"),
     });
+  });
+});
+
+describe("checkCheckout", () => {
+  test("accepts a checkout whose origin names the repository", async () => {
+    expect(await checkCheckout("acme/widgets", repo)).toBeNull();
+  });
+
+  test("reports a repository without origin", async () => {
+    const path = join(root, "no-origin");
+    mkdirSync(path);
+    git(path, "init", "--quiet");
+    expect(await checkCheckout("acme/widgets", path)).toBe(
+      `${path} has no remote.origin.url (is it a git checkout?)`,
+    );
+  });
+
+  test("reports git's failure rather than a missing origin", async () => {
+    const path = join(root, "unreadable-config");
+    createCheckout(path, "git@github.com:acme/widgets.git");
+    const config = join(path, ".git", "config");
+    chmodSync(config, 0o000);
+    try {
+      const problem = await checkCheckout("acme/widgets", path);
+      expect(problem).toContain(
+        `git config --get remote.origin.url failed in ${path}`,
+      );
+    } finally {
+      chmodSync(config, 0o644);
+    }
   });
 });
 
