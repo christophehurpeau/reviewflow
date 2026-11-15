@@ -40,6 +40,7 @@ describe("opened", (): void => {
   });
 
   test("edits the pull request when pull request is opened", async (): Promise<void> => {
+    let editedComment: unknown;
     const scope = nock("https://api.github.com")
       .get("/repos/reviewflow/reviewflow-test/issues/30/comments")
       .times(1)
@@ -49,18 +50,13 @@ describe("opened", (): void => {
         "/repos/reviewflow/reviewflow-test/issues/30/comments",
         '{"body":"This will be auto filled by reviewflow."}',
       )
-      .reply(200, (uri, body) => body)
+      .reply(200, async (request: Request) => request.json())
 
-      .patch("/repos/reviewflow/reviewflow-test/issues/comments/1", (body) => {
-        expect(body).toEqual({
-          body: commentBodyV2InitialAfterEditSimple.replace(
-            /christophehurpeau\/reviewflow/g,
-            "reviewflow/reviewflow-test",
-          ),
-        });
-        return true;
+      .patch("/repos/reviewflow/reviewflow-test/issues/comments/1")
+      .reply(200, async (request: Request) => {
+        editedComment = await request.json();
+        return editedComment;
       })
-      .reply(200, (uri, body) => body)
 
       .get("/repos/reviewflow/reviewflow-test/pulls/30/commits?per_page=100")
       .reply(200, pullRequestCommits)
@@ -121,6 +117,12 @@ describe("opened", (): void => {
         pullRequestOpened.payload as unknown as ProbotEvent<"pull_request.opened">["payload"],
     });
 
+    expect(editedComment).toEqual({
+      body: commentBodyV2InitialAfterEditSimple.replace(
+        /christophehurpeau\/reviewflow/g,
+        "reviewflow/reviewflow-test",
+      ),
+    });
     expect(insertOnePr).toHaveBeenCalledWith(
       expect.objectContaining({
         labels: [],
