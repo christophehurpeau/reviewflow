@@ -54,7 +54,7 @@
     "liwi-mongo": "15.2.0",
     "liwi-resources-server": "15.2.0",
     "liwi-resources-websocket-server": "15.2.0",
-    "liwi-store": "14.1.0",
+    "liwi-store": "15.1.0",
     "lock": "1.1.0",
     "nightingale-logger": "18.2.0",
     "probot": "14.3.2",

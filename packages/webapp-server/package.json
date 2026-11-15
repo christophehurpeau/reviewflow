@@ -47,7 +47,7 @@
     "liwi-resources-server": "15.2.0",
     "liwi-resources-websocket-client-node": "15.2.0",
     "liwi-resources-websocket-server": "15.2.0",
-    "liwi-store": "14.1.0",
+    "liwi-store": "15.1.0",
     "nightingale-logger": "18.2.0",
     "simple-oauth2": "5.1.0"
   },
