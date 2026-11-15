@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.34.0](https://github.com/christophehurpeau/reviewflow/compare/v6.33.0...v6.34.0) (2026-11-15)
+
+### Features
+
+* **deps:** update liwi to v15.2.0 ([#1269](https://github.com/christophehurpeau/reviewflow/issues/1269))
+
 ## [6.32.0](https://github.com/christophehurpeau/reviewflow/compare/v6.31.0...v6.32.0) (2026-11-12)
 
 ### Features

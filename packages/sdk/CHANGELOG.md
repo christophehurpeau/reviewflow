@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.34.0](https://github.com/christophehurpeau/reviewflow/compare/v6.33.0...v6.34.0) (2026-11-15)
+
+### Features
+
+* **app:** clone a repository without checkout into a repositories folder
+* **app:** repository workspace with live updates and a files editor
+* **deps:** update dependency oxc-parser to v0.158.0 ([#1272](https://github.com/christophehurpeau/reviewflow/issues/1272))
+
+### Performance Improvements
+
+* **sdk:** skip the pull request head check merge-base already makes
+
 ## [6.33.0](https://github.com/christophehurpeau/reviewflow/compare/v6.32.0...v6.33.0) (2026-11-15)
 
 ### Features
