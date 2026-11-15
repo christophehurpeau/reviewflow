@@ -227,8 +227,8 @@ importers:
         specifier: 11.8.0
         version: 11.8.0(@babel/core@7.29.13(supports-color@8.1.1))(rollup@4.67.3)
       emoji-regex:
-        specifier: 10.6.0
-        version: 10.6.0
+        specifier: 11.0.0
+        version: 11.0.0
       gemoji:
         specifier: 8.1.0
         version: 8.1.0
@@ -5232,8 +5232,8 @@ packages:
   electron-to-chromium@1.5.477:
     resolution: {integrity: sha512-PN++F4zWZoVDGWinxMnSCpVqKhqFOJfLXxdU8bYJKudAEsHL/XKVITOKWVbfMt1r276Mi9RDLU9VHx9uKJ4RMQ==}
 
-  emoji-regex@10.6.0:
-    resolution: {integrity: sha512-toUI84YS5YmxW219erniWD0CIVOo46xGKColeNQRgOzDorgBi1v4D71/OFzgD9GO2UGKIv1C3Sp8DAn0+j5w7A==}
+  emoji-regex@11.0.0:
+    resolution: {integrity: sha512-2qQtc7syPcJmvF7BfKxBvwgvhzDth6u3q23+Jr4JOQUcmMGgmj7B4/ePZ2DmOhrrb77S8kMNHq2kilVASysfqA==}
 
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -12971,7 +12971,7 @@ snapshots:
 
   electron-to-chromium@1.5.477: {}
 
-  emoji-regex@10.6.0: {}
+  emoji-regex@11.0.0: {}
 
   emoji-regex@8.0.0: {}
 
