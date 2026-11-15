@@ -289,13 +289,49 @@ describe("createReviewflowClient", () => {
     });
   });
 
+  it("reads every pull request of a branch, the newest as `pr`", async () => {
+    const { fetch } = fakeFetch(() =>
+      json({
+        results: [
+          {
+            found: true,
+            prs: [
+              prDetail({ headRef: "feat/a", number: 12 }),
+              prDetail({ headRef: "feat/a", number: 9 }),
+            ],
+          },
+        ],
+      }),
+    );
+
+    const [result] = await client(fetch).lookup([
+      { ownerRepo: "o/r", headRef: "feat/a" },
+    ]);
+
+    expect(result).toMatchObject({
+      found: true,
+      pr: { number: 12 },
+      prs: [{ number: 12 }, { number: 9 }],
+    });
+  });
+
+  it("refuses a found result with no pull request", async () => {
+    const { fetch } = fakeFetch(() =>
+      json({ results: [{ found: true, prs: [] }] }),
+    );
+
+    await expect(
+      client(fetch).lookup([{ ownerRepo: "o/r", headRef: "feat/a" }]),
+    ).rejects.toThrow("reviewflow returned a lookup the client cannot read");
+  });
+
   it("splits a lookup past 200 targets and keeps the order", async () => {
     const { fetch, calls } = fakeFetch((_path, body) => {
       const { targets } = body as { targets: { headRef: string }[] };
       return json({
         results: targets.map(({ headRef }) =>
           headRef === "b-250"
-            ? { found: true, pr: prDetail({ headRef }) }
+            ? { found: true, prs: [prDetail({ headRef })] }
             : { found: false, reason: "noPr" },
         ),
       });

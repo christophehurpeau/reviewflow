@@ -13,6 +13,9 @@ import { resolveRepository } from "./resolveRepository.ts";
 
 export const maxLookupTargets = 200;
 
+/** how many pull requests of one head branch `prs` carries, newest first */
+export const maxPrsPerTarget = 5;
+
 export interface LookupTarget {
   ownerRepo: string;
   headRef: string;
@@ -20,7 +23,13 @@ export interface LookupTarget {
 
 export type LookupResult =
   | { found: false; reason: "forbidden" | "noPr" | "notTracked" }
-  | { found: true; pr: PrDetail };
+  | {
+      found: true;
+      /** the newest, `prs[0]` */
+      pr: PrDetail;
+      /** every pull request of the head branch, newest first, at most `maxPrsPerTarget` */
+      prs: PrDetail[];
+    };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -61,13 +70,8 @@ const notFound = (
  * Newest = highest pull request number: numbers only grow in a repository,
  * whereas dates can be missing on old documents.
  */
-const newest = (prs: ReviewflowPr[]): ReviewflowPr | undefined => {
-  let best: ReviewflowPr | undefined;
-  for (const pr of prs) {
-    if (!best || pr.pr.number > best.pr.number) best = pr;
-  }
-  return best;
-};
+const newestFirst = (prs: ReviewflowPr[]): ReviewflowPr[] =>
+  prs.toSorted((a, b) => b.pr.number - a.pr.number).slice(0, maxPrsPerTarget);
 
 /**
  * Pull requests of `ownerRepo` whose head branch is `headRef`, in the same
@@ -176,9 +180,9 @@ export const lookupPrs = async (
         pr.headRepoFullName?.toLowerCase() ===
         repository.fullName.toLowerCase(),
     );
-    const pr = newest(ownBranch);
+    const [newest, ...older] = newestFirst(ownBranch);
 
-    if (!pr) {
+    if (!newest) {
       return notFound((await lookup.incomplete()) ? "notTracked" : "noPr");
     }
 
@@ -190,7 +194,8 @@ export const lookupPrs = async (
       });
       toPrDetails.set(account.id, toPrDetail);
     }
-    return { found: true, pr: toPrDetail(pr) };
+    const pr = toPrDetail(newest);
+    return { found: true, pr, prs: [pr, ...older.map(toPrDetail)] };
   };
 
   return Promise.all(
