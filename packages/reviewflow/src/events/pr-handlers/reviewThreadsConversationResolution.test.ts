@@ -100,8 +100,10 @@ describe("review threads and conversation resolution", (): void => {
     nock("https://api.github.com")
       .persist()
       .post(/\/statuses\//)
-      .reply(200, (_uri, body) => {
-        statuses.push(body as { state: string; description: string });
+      .reply(200, async (request: Request) => {
+        statuses.push(
+          (await request.json()) as { state: string; description: string },
+        );
         return {};
       });
     nock("https://api.github.com")
