@@ -127,8 +127,8 @@ interface MatchedImport {
 
 /**
  * The import a barrel-form re-export (`import d from "./d"; export { d }`)
- * passes on. For a default import the parser reports the local name as the
- * imported one, where the module's export is `default`.
+ * passes on. Matched by position: for a default import, the export entry names
+ * it `default` while the import entry carries no name.
  */
 const matchImport = (
   { result }: Parsed,
@@ -138,16 +138,17 @@ const matchImport = (
   const statement = result.module.staticImports.find(
     ({ moduleRequest: request }) => request.start === moduleRequest?.start,
   );
-  const entries = statement?.entries ?? [];
-  const asDefault = entries.find(
-    (entry) =>
-      kindOf(entry.importName) === "Default" && entry.localName.value === name,
-  );
-  if (asDefault !== undefined) {
-    return { name: "default", local: asDefault.localName.value };
-  }
-  const named = entries.find((entry) => entry.importName.name === name);
-  return { name, local: named?.localName.value ?? null };
+  const imported =
+    importName.start === null
+      ? undefined
+      : statement?.entries.find(
+          (entry) => entry.importName.start === importName.start,
+        );
+  if (imported === undefined) return { name, local: null };
+  return {
+    name: nameOf(imported.importName) ?? "*",
+    local: imported.localName.value,
+  };
 };
 
 interface AstNode {
