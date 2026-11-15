@@ -21,6 +21,11 @@ export default defineConfig({
       "@reviewflow/ui": path.join(dirname, "../ui/src/index.ts"),
     },
   },
+  // only a web worker imports it, so the dependency scan misses it: found
+  // mid-run, vite re-optimizes and reloads, and stories still loading fail
+  optimizeDeps: {
+    include: ["@pierre/diffs/worker/worker-portable.js"],
+  },
   test: {
     name: "app-expo-storybook",
     browser: {
