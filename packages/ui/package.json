@@ -82,7 +82,7 @@
     "@lezer/common": "1.5.5",
     "@lezer/highlight": "1.2.5",
     "@lezer/markdown": "1.7.2",
-    "@pierre/diffs": "1.5.2",
+    "@pierre/diffs": "1.6.4",
     "@pierre/trees": "1.0.0",
     "@reviewflow/sdk": "workspace:*",
     "@tanstack/markdown": "0.0.13",
