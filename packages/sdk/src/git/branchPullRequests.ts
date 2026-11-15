@@ -64,11 +64,11 @@ const sharesOwnCommits = async ({
   defaultBranch,
   pullRequest,
 }: OwnWorkParams): Promise<boolean> => {
-  if ((await readCommit(cwd, pullRequest.sha)) === null) return false;
   const base = await readBaseSha(cwd, [
     ...new Set([pullRequest.baseRefName, defaultBranch]),
   ]);
   if (base === null) return false;
+  // fails, as a head never fetched does, when the pull request's head is not here
   const mergeBase = await gitOrNull(cwd, ["merge-base", tip, pullRequest.sha]);
   if (mergeBase === null) return false;
   return !(await isAncestor(cwd, mergeBase.trim(), base));
