@@ -1,10 +1,10 @@
-import type { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
 import type { BasicUser } from "@reviewflow/core";
 import type { RepoContext } from "../../context/repoContext";
+import type { RestEndpointMethodTypes } from "../../octokit.ts";
 
 export const checkIfUserIsBot = (
   repoContext: RepoContext,
-  user: BasicUser,
+  user: Pick<BasicUser, "login" | "type">,
 ): boolean => {
   if (user.type === "Bot") return true;
   if (user.login.endsWith("-bot")) return true;

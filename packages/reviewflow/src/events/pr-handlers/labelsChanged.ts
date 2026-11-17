@@ -1,6 +1,7 @@
 import type { Probot } from "probot";
 import type { AppContext } from "../../context/AppContext.ts";
 import type { LabelResponse } from "../../context/initRepoLabels.ts";
+import { toLabelResponse } from "../../context/initRepoLabels.ts";
 import type { ProbotEvent } from "../probot-types.ts";
 import { disableGithubAutoMerge } from "./actions/enableGithubAutoMerge.ts";
 import { tryToAutomerge } from "./actions/tryToAutomerge.ts";
@@ -64,8 +65,9 @@ export default function labelsChanged(
             labels: labelNames,
           }),
         );
-        await updateReviewflowPrLabels({ ...persistLabels, labels: data });
-        return data;
+        const labels = data.map(toLabelResponse);
+        await updateReviewflowPrLabels({ ...persistLabels, labels });
+        return labels;
       };
 
       const updateBranchLabel = repoContext.labels["merge/update-branch"];

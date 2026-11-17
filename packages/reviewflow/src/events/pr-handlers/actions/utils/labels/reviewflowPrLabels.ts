@@ -3,7 +3,7 @@ import type { AppContext } from "../../../../../context/AppContext.ts";
 import type { PullRequestLabels } from "../../../utils/PullRequestData.ts";
 
 export const toLabelEmbeds = (labels: PullRequestLabels): LabelEmbed[] =>
-  labels.map(({ id, name }) => ({ id, name }));
+  labels.map(({ id, name }) => ({ id: Number(id), name }));
 
 const hasSameLabelIds = (
   labels: LabelEmbed[] | undefined,

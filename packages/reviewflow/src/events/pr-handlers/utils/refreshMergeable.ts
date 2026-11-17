@@ -176,7 +176,11 @@ const storeMissedClosings = async <EventName extends EventsWithRepository>(
                       }),
                 },
               }),
-              markMergeConflictAsDone(appContext, repoContext, pullRequest.id),
+              markMergeConflictAsDone(
+                appContext,
+                repoContext,
+                Number(pullRequest.id),
+              ),
             ]);
             context.log.info(
               { prNumber: storedPr.pr.number, merged: pullRequest.merged },

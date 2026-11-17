@@ -1,5 +1,5 @@
-import type { RestEndpointMethodTypes } from "@octokit/rest";
 import type { EventsWithRepository } from "../../../context/repoContext.ts";
+import type { RestEndpointMethodTypes } from "../../../octokit.ts";
 import { checkIfIsThisBot } from "../../../utils/github/isBotUser.ts";
 import type { ProbotEvent } from "../../probot-types.ts";
 import { defaultCommentBody } from "../actions/utils/body/updateBody.ts";

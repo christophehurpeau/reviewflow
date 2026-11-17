@@ -42,14 +42,15 @@ export const getReviewsState = async <EventName extends EventsWithRepository>(
     ({ data: reviews }) => {
       reviews.forEach((review) => {
         if (!review.user) return;
-        let reviewer = reviewersById.get(review.user.id);
+        const userId = Number(review.user.id);
+        let reviewer = reviewersById.get(userId);
         if (!reviewer) {
           reviewer = {
-            id: review.user.id,
+            id: userId,
             login: review.user.login,
             type: review.user.type,
           };
-          reviewersById.set(review.user.id, reviewer);
+          reviewersById.set(userId, reviewer);
         }
 
         // `review` records that they reviewed at all, its date only their last
@@ -74,13 +75,14 @@ export const getReviewsState = async <EventName extends EventsWithRepository>(
   // override state if review is requested since
   const requestedReviewers = pullRequest.requested_reviewers || [];
   requestedReviewers.filter(ExcludesFalsy).forEach((rr) => {
-    const reviewer = reviewersById.get(rr.id);
+    const reviewerId = Number(rr.id);
+    const reviewer = reviewersById.get(reviewerId);
     if (reviewer) {
       reviewer.state = "REVIEW_REQUESTED";
     } else {
       // never reviewed anything, so `review` stays absent rather than empty
-      reviewersById.set(rr.id, {
-        id: rr.id,
+      reviewersById.set(reviewerId, {
+        id: reviewerId,
         login: (rr as any).login,
         type: (rr as any).type,
         state: "REVIEW_REQUESTED",
@@ -91,7 +93,7 @@ export const getReviewsState = async <EventName extends EventsWithRepository>(
   return {
     reviewersWithState: [...reviewersById.values()],
     requestedReviewers: requestedReviewers.filter(ExcludesFalsy).map((rr) => ({
-      id: rr.id,
+      id: Number(rr.id),
       login: (rr as any).login,
       type: (rr as any).type,
     })),

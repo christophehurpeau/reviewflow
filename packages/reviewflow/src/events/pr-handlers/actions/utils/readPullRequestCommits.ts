@@ -1,5 +1,5 @@
-import type { RestEndpointMethodTypes } from "@octokit/rest";
 import type { EventsWithRepository } from "../../../../context/repoContext";
+import type { RestEndpointMethodTypes } from "../../../../octokit.ts";
 import type { ProbotEvent } from "../../../probot-types";
 import type { PullRequestData } from "../../utils/PullRequestData";
 
