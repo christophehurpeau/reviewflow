@@ -28,8 +28,7 @@
     "test:coverage:generate": "TZ=UTC POB_VITEST_COVERAGE=json vitest run --coverage",
     "test:watch": "TZ=UTC vitest --watch",
     "tsc": "tsrs -b",
-    "tsc:go": "tsc -b",
-    "watch": "pnpm -r --parallel --filter \"!*-example\" run watch"
+    "tsc:go": "tsc -b"
   },
   "devDependencies": {
     "@pob/eslint-config": "68.6.0",
