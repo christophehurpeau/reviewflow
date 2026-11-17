@@ -489,8 +489,8 @@ importers:
         specifier: workspace:*
         version: link:../sdk
       '@tanstack/markdown':
-        specifier: 0.0.13
-        version: 0.0.13(react@19.2.8)
+        specifier: 0.0.16
+        version: 0.0.16(react@19.2.8)
       alouette-icons:
         specifier: 12.0.0
         version: 12.0.0(react-native-svg@15.15.5(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8))(react-native@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.13(supports-color@8.1.1))(bufferutil@4.1.0)(supports-color@8.1.1)(utf-8-validate@6.0.6))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8)(supports-color@8.1.1)(utf-8-validate@6.0.6))(react@19.2.8)
@@ -3917,8 +3917,8 @@ packages:
   '@tailwindcss/postcss@4.3.3':
     resolution: {integrity: sha512-JTSZZGQi1AyKirbLN3azmjVzef92tcX7h+iSqPdaeStyFpGpDlKvvpxeOE8njhbUanbRwr3z8DyzhICWnMtQeg==}
 
-  '@tanstack/markdown@0.0.13':
-    resolution: {integrity: sha512-ZSQP2ulBvlPzdpZeRheBJnaELo7e4ET/D/XrfgweHyqhhLMN5vUJJAUl7ufSRd7GlfO/vwdzjKPh0E0JwqJkDA==}
+  '@tanstack/markdown@0.0.16':
+    resolution: {integrity: sha512-2fGZd4VMBwV85lH5AA+Iad9DXU4/Cz+sb/P3honzrh/zqqoSYV/rXuJrG4cC7XJcpofhjbOWBL74AHf4WZrqTw==}
     peerDependencies:
       octane: '>=0.1.12'
       react: '>=18'
@@ -11775,7 +11775,7 @@ snapshots:
       postcss: 8.5.32
       tailwindcss: 4.3.3
 
-  '@tanstack/markdown@0.0.13(react@19.2.8)':
+  '@tanstack/markdown@0.0.16(react@19.2.8)':
     optionalDependencies:
       react: 19.2.8
 
