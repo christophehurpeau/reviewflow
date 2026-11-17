@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  rollup: npm:@rollup/wasm-node@4.68.2
+  rollup: npm:@rollup/wasm-node@4.68.3
 
 importers:
 
@@ -1925,6 +1925,13 @@ packages:
     os: [linux]
     libc: [glibc]
 
+  '@napi-rs/lzma-linux-x64-gnu@1.5.3':
+    resolution: {integrity: sha512-cqF0sRTngwVgnH0y7OV/5zWKWZomMYY71t3gzjtmJou4oPoWQHjxmO1Jo5E3GqUg2bPk+Fp3DcRw1xLAeKs1cg==}
+    engines: {node: ^22.20 || ^24.12 || >=25}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
   '@napi-rs/wasm-runtime@1.2.6':
     resolution: {integrity: sha512-mRyDmEw9/fCDXCGfL1sbgIw/GUK0PVxRW4YwgPN61F3LQ+fSyoBFarJVzgGyhF6kRzEQZ0FejDqm4WLXSeqQmw==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=23.5.0}
@@ -3561,8 +3568,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@rollup/wasm-node@4.68.2':
-    resolution: {integrity: sha512-OK7T631dhV4wT7VKFgTE36okpWwhFl/Gh9sHBasClr7LC53Y7g9qzFEygNVDxsTsiBxFcKhKOsx63u/MdW6JTQ==}
+  '@rollup/wasm-node@4.68.3':
+    resolution: {integrity: sha512-EwvxiJMWY4KKw+yZoCRGUoRj1Rh34sTSJ8tR8VtFlxzhDcWOSQEy6i2I2/dMAdxpbj5ibOCv+ng1nuC0zzsbvg==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
@@ -10103,6 +10110,9 @@ snapshots:
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     optional: true
 
+  '@napi-rs/lzma-linux-x64-gnu@1.5.3':
+    optional: true
+
   '@napi-rs/wasm-runtime@1.2.6(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)':
     dependencies:
       '@emnapi/core': 1.10.0
@@ -10756,20 +10766,20 @@ snapshots:
   '@pob/rollup-esbuild@11.4.0(@typescript/typescript6@6.0.2)(supports-color@8.1.1)':
     dependencies:
       '@pob/rollup': 8.7.0
-      '@rollup/plugin-node-resolve': 16.0.3(@rollup/wasm-node@4.68.2)
-      '@rollup/plugin-replace': 6.0.3(@rollup/wasm-node@4.68.2)
-      '@rollup/plugin-run': 3.1.0(@rollup/wasm-node@4.68.2)
+      '@rollup/plugin-node-resolve': 16.0.3(@rollup/wasm-node@4.68.3)
+      '@rollup/plugin-replace': 6.0.3(@rollup/wasm-node@4.68.3)
+      '@rollup/plugin-run': 3.1.0(@rollup/wasm-node@4.68.3)
       esbuild: 0.28.2
-      rollup: '@rollup/wasm-node@4.68.2'
+      rollup: '@rollup/wasm-node@4.68.3'
       rollup-config-external-dependencies: 3.0.1
-      rollup-plugin-esbuild: 6.2.1(@rollup/wasm-node@4.68.2)(esbuild@0.28.2)(supports-color@8.1.1)
+      rollup-plugin-esbuild: 6.2.1(@rollup/wasm-node@4.68.3)(esbuild@0.28.2)(supports-color@8.1.1)
       typescript: '@typescript/typescript6@6.0.2'
     transitivePeerDependencies:
       - supports-color
 
   '@pob/rollup@8.7.0':
     dependencies:
-      rollup: '@rollup/wasm-node@4.68.2'
+      rollup: '@rollup/wasm-node@4.68.3'
 
   '@pob/root@28.7.0':
     dependencies:
@@ -11240,36 +11250,36 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@rollup/plugin-node-resolve@16.0.3(@rollup/wasm-node@4.68.2)':
+  '@rollup/plugin-node-resolve@16.0.3(@rollup/wasm-node@4.68.3)':
     dependencies:
-      '@rollup/pluginutils': 5.4.0(@rollup/wasm-node@4.68.2)
+      '@rollup/pluginutils': 5.4.0(@rollup/wasm-node@4.68.3)
       '@types/resolve': 1.20.2
       deepmerge: 4.3.1
       is-module: 1.0.0
       resolve: 1.22.12
     optionalDependencies:
-      rollup: '@rollup/wasm-node@4.68.2'
+      rollup: '@rollup/wasm-node@4.68.3'
 
-  '@rollup/plugin-replace@6.0.3(@rollup/wasm-node@4.68.2)':
+  '@rollup/plugin-replace@6.0.3(@rollup/wasm-node@4.68.3)':
     dependencies:
-      '@rollup/pluginutils': 5.4.0(@rollup/wasm-node@4.68.2)
+      '@rollup/pluginutils': 5.4.0(@rollup/wasm-node@4.68.3)
       magic-string: 0.30.21
     optionalDependencies:
-      rollup: '@rollup/wasm-node@4.68.2'
+      rollup: '@rollup/wasm-node@4.68.3'
 
-  '@rollup/plugin-run@3.1.0(@rollup/wasm-node@4.68.2)':
+  '@rollup/plugin-run@3.1.0(@rollup/wasm-node@4.68.3)':
     dependencies:
       '@types/node': 14.18.30
     optionalDependencies:
-      rollup: '@rollup/wasm-node@4.68.2'
+      rollup: '@rollup/wasm-node@4.68.3'
 
-  '@rollup/pluginutils@5.4.0(@rollup/wasm-node@4.68.2)':
+  '@rollup/pluginutils@5.4.0(@rollup/wasm-node@4.68.3)':
     dependencies:
       '@types/estree': 1.0.10
       estree-walker: 2.0.2
       picomatch: 4.0.7
     optionalDependencies:
-      rollup: '@rollup/wasm-node@4.68.2'
+      rollup: '@rollup/wasm-node@4.68.3'
 
   '@rollup/pluginutils@5.4.0(rollup@4.67.3)':
     dependencies:
@@ -11357,11 +11367,11 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.67.3':
     optional: true
 
-  '@rollup/wasm-node@4.68.2':
+  '@rollup/wasm-node@4.68.3':
     dependencies:
       '@types/estree': 1.0.10
     optionalDependencies:
-      '@napi-rs/lzma-linux-x64-gnu': 1.5.1
+      '@napi-rs/lzma-linux-x64-gnu': 1.5.3
       fsevents: 2.3.3
 
   '@sentry/bundler-plugins@11.8.0(@babel/core@7.29.13(supports-color@8.1.1))(rollup@4.67.3)':
@@ -16079,13 +16089,13 @@ snapshots:
 
   rollup-config-external-dependencies@3.0.1: {}
 
-  rollup-plugin-esbuild@6.2.1(@rollup/wasm-node@4.68.2)(esbuild@0.28.2)(supports-color@8.1.1):
+  rollup-plugin-esbuild@6.2.1(@rollup/wasm-node@4.68.3)(esbuild@0.28.2)(supports-color@8.1.1):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       es-module-lexer: 1.7.0
       esbuild: 0.28.2
       get-tsconfig: 4.14.0
-      rollup: '@rollup/wasm-node@4.68.2'
+      rollup: '@rollup/wasm-node@4.68.3'
       unplugin-utils: 0.2.5
     transitivePeerDependencies:
       - supports-color
