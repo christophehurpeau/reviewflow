@@ -22,7 +22,7 @@ minimumReleaseAgeExclude:
   - react-liwi
 nodeLinker: hoisted
 overrides:
-  rollup: npm:@rollup/wasm-node@4.68.2
+  rollup: npm:@rollup/wasm-node@4.68.3
 packages:
   - packages/*
 savePrefix: ""
