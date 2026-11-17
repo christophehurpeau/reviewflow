@@ -23,7 +23,8 @@ export function RepositoryAttachmentBanner({
 }: RepositoryAttachmentBannerProps): ReactNode {
   const { renderRepositoryAction } = usePullRequestSlots();
   if (attachment.status === "attached") return null;
-  const shownAction = action ?? renderRepositoryAction?.(ownerRepo);
+  const shownAction =
+    action ?? renderRepositoryAction?.(ownerRepo, attachment.status);
   return (
     <WarningMessage>
       <View className="gap-xs">

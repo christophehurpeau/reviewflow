@@ -72,7 +72,7 @@ describe("repository transferred without receiving the webhook", (): void => {
       .reply(200, { id: 1, body: "" })
 
       .patch("/repos/reviewflow/reviewflow-test/issues/comments/1")
-      .reply(200, (uri, body) => body)
+      .reply(200, async (request: Request) => request.json())
 
       .get("/repos/reviewflow/reviewflow-test/pulls/30/commits?per_page=100")
       .reply(200, pullRequestCommits)

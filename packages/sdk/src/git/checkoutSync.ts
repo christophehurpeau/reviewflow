@@ -7,8 +7,8 @@ import { pullRefusal, pushRefusal } from "../checkout/sync.ts";
 import { git, gitOrNull } from "./run.ts";
 
 export interface StatusV2 extends Omit<CheckoutStatus, "commit" | "path"> {
-  /** false on a branch with no commit yet (`branch.oid (initial)`) */
-  hasCommit: boolean;
+  /** null on a branch with no commit yet (`branch.oid (initial)`) */
+  headSha: string | null;
 }
 
 const headerValue = (line: string, key: string): string | null =>
@@ -24,7 +24,7 @@ const headerValue = (line: string, key: string): string | null =>
 export const parseStatusV2 = (stdout: string): StatusV2 => {
   const status: StatusV2 = {
     branch: null,
-    hasCommit: true,
+    headSha: null,
     upstream: null,
     ahead: null,
     behind: null,
@@ -35,7 +35,7 @@ export const parseStatusV2 = (stdout: string): StatusV2 => {
   for (const line of stdout.split("\n")) {
     if (line.startsWith("# ")) {
       const oid = headerValue(line, "branch.oid");
-      if (oid !== null) status.hasCommit = oid !== "(initial)";
+      if (oid !== null) status.headSha = oid === "(initial)" ? null : oid;
       const head = headerValue(line, "branch.head");
       if (head !== null) status.branch = head === "(detached)" ? null : head;
       const upstream = headerValue(line, "branch.upstream");
@@ -56,36 +56,60 @@ export const parseStatusV2 = (stdout: string): StatusV2 => {
   return status;
 };
 
-const readHeadCommit = async (
+/**
+ * The commits `shas` name, by full sha, in one git call: every git started
+ * costs its startup, which an endpoint security agent can make hundreds of
+ * milliseconds, and serializes across the machine.
+ */
+export const readHeadCommits = async (
   cwd: string,
-): Promise<CheckoutHeadCommit | null> => {
+  shas: string[],
+): Promise<Map<string, CheckoutHeadCommit>> => {
+  const unique = [...new Set(shas)];
+  if (unique.length === 0) return new Map();
   const stdout = await gitOrNull(cwd, [
     "log",
-    "-1",
-    "--format=%h%x00%s%x00%cI",
+    "--no-walk=unsorted",
+    "--format=%H%x00%h%x00%s%x00%cI",
     "--no-patch",
+    ...unique,
   ]);
-  const [shortSha, subject, committedAt] = (stdout?.trim() ?? "").split("\0");
-  if (!shortSha || subject === undefined || !committedAt) return null;
-  return {
-    shortSha,
-    subject,
-    committedAt: new Date(committedAt).toISOString(),
-  };
+  const commits = new Map<string, CheckoutHeadCommit>();
+  for (const line of (stdout ?? "").split("\n")) {
+    const [sha, shortSha, subject, committedAt] = line.split("\0");
+    if (!sha || !shortSha || subject === undefined || !committedAt) continue;
+    commits.set(sha, {
+      shortSha,
+      subject,
+      committedAt: new Date(committedAt).toISOString(),
+    });
+  }
+  return commits;
 };
+
+export const readStatusV2 = async (cwd: string): Promise<StatusV2> =>
+  parseStatusV2(await git(cwd, ["status", "--porcelain=v2", "--branch"]));
+
+export const toCheckoutStatus = (
+  cwd: string,
+  { headSha, ...status }: StatusV2,
+  commits: Map<string, CheckoutHeadCommit>,
+): CheckoutStatus => ({
+  path: cwd,
+  ...status,
+  commit: headSha === null ? null : (commits.get(headSha) ?? null),
+});
 
 /** One checkout's status: two git calls, read on request and never cached. */
 export const readCheckoutStatus = async (
   cwd: string,
 ): Promise<CheckoutStatus> => {
-  const { hasCommit, ...status } = parseStatusV2(
-    await git(cwd, ["status", "--porcelain=v2", "--branch"]),
+  const status = await readStatusV2(cwd);
+  const commits = await readHeadCommits(
+    cwd,
+    status.headSha === null ? [] : [status.headSha],
   );
-  return {
-    path: cwd,
-    ...status,
-    commit: hasCommit ? await readHeadCommit(cwd) : null,
-  };
+  return toCheckoutStatus(cwd, status, commits);
 };
 
 const messageOf = (error: unknown): string =>

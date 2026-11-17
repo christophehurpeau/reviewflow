@@ -1,16 +1,13 @@
-import { execFile } from "node:child_process";
 import type { Dirent } from "node:fs";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import { homedir } from "node:os";
 import { isAbsolute, join } from "node:path";
 import { env } from "node:process";
-import { promisify } from "node:util";
 import type { DiffRefusal } from "@reviewflow/sdk";
 import { defaultRepoPaths } from "@reviewflow/sdk";
 import type { FileValidation } from "@reviewflow/sdk/files";
-
-const execFileAsync = promisify(execFile);
+import { git } from "@reviewflow/sdk/git";
 
 export const configHome = (): string => {
   const override = env.REVIEWFLOW_APP_HOME;
@@ -126,16 +123,23 @@ export const ownerRepoOfRemote = (url: string): string | null => {
   return match === null ? null : `${match[1]}/${match[2]}`;
 };
 
-const readOriginUrl = async (path: string): Promise<string | null> => {
+type OriginUrl = { url: string | null } | { failure: string };
+
+/** `git config --get` exits 1 when the key is unset: any other failure is git's, not the checkout's. */
+const isUnsetKey = (error: unknown): boolean =>
+  error instanceof Error &&
+  typeof error.cause === "object" &&
+  error.cause !== null &&
+  "code" in error.cause &&
+  error.cause.code === 1;
+
+const readOriginUrl = async (path: string): Promise<OriginUrl> => {
   try {
-    const { stdout } = await execFileAsync(
-      "git",
-      ["-C", path, "config", "--get", "remote.origin.url"],
-      { timeout: 10_000 },
-    );
-    return stdout.trim() || null;
-  } catch {
-    return null;
+    const stdout = await git(path, ["config", "--get", "remote.origin.url"]);
+    return { url: stdout.trim() || null };
+  } catch (error) {
+    if (isUnsetKey(error)) return { url: null };
+    return { failure: error instanceof Error ? error.message : String(error) };
   }
 };
 
@@ -152,7 +156,9 @@ export const checkCheckout = async (
   }
   if (!isDirectory) return `${path} does not exist or is not a directory`;
 
-  const url = await readOriginUrl(path);
+  const origin = await readOriginUrl(path);
+  if ("failure" in origin) return origin.failure;
+  const { url } = origin;
   if (url === null) {
     return `${path} has no remote.origin.url (is it a git checkout?)`;
   }
@@ -282,8 +288,12 @@ export const resolveCheckout = async (
 const ownerRepoOfDirectory = async (path: string): Promise<string | null> => {
   // a directory without `.git` costs no git process: most of a folder's entries are no checkout
   if (!existsSync(join(path, ".git"))) return null;
-  const url = await readOriginUrl(path);
-  return url === null ? null : ownerRepoOfRemote(url);
+  const origin = await readOriginUrl(path);
+  if ("failure" in origin) {
+    console.warn(`skipping ${path}: ${origin.failure}`);
+    return null;
+  }
+  return origin.url === null ? null : ownerRepoOfRemote(origin.url);
 };
 
 export interface FoundCheckout {

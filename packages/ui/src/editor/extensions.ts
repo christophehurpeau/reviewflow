@@ -17,13 +17,20 @@ import {
 } from "@codemirror/search";
 import type { Extension } from "@codemirror/state";
 import { Annotation, EditorState, Prec } from "@codemirror/state";
-import { EditorView, drawSelection, keymap } from "@codemirror/view";
+import {
+  EditorView,
+  drawSelection,
+  highlightActiveLineGutter,
+  keymap,
+  lineNumbers,
+} from "@codemirror/view";
 import { GFM } from "@lezer/markdown";
 import { codeHighlighting } from "./codeHighlight.ts";
 import { formattingKeymap } from "./commands.ts";
 import { markdownDecorations } from "./decorations.ts";
 import { emojiCompletion } from "./emojiCompletion.ts";
 import { frontmatter } from "./frontmatter.ts";
+import { headingGutter } from "./headingGutter.ts";
 
 /**
  * Bundled statically: `lang-markdown` already depends on `lang-html`, which
@@ -100,10 +107,29 @@ export const changeBetween = (
   };
 };
 
+/**
+ * A gutter numbering the lines, the current one marked: for a file under git,
+ * where a line number is how a diff, a review comment or a stack trace points.
+ */
+export const lineNumberGutter: Extension = [
+  lineNumbers(),
+  highlightActiveLineGutter(),
+];
+
+/**
+ * ⌘S / Ctrl+S saves, ahead of every other binding. `run` answers whether it
+ * handled the key: true keeps the browser's own Save Page dialog from opening,
+ * false (no save wired) lets it through.
+ */
+export const saveShortcut = (run: () => boolean): Extension =>
+  Prec.highest(keymap.of([{ key: "Mod-s", run }]));
+
 interface MarkdownEditorExtensionsOptions {
   readOnly: boolean;
   /** `:shortcode:` completion, for a body GitHub renders */
   emoji: boolean;
+  /** `lineNumberGutter` */
+  lineNumbers: boolean;
   onChange: (value: string) => void;
 }
 
@@ -114,8 +140,10 @@ interface MarkdownEditorExtensionsOptions {
 export const markdownEditorExtensions = ({
   readOnly,
   emoji,
+  lineNumbers: numbered,
   onChange,
 }: MarkdownEditorExtensionsOptions): Extension[] => [
+  ...(numbered ? [lineNumberGutter, headingGutter] : []),
   markdownLanguage(),
   codeHighlighting,
   markdownDecorations,

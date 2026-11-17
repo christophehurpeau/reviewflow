@@ -30,6 +30,10 @@
 
   /* the --md-tok-* colors are generated, in code-token-colors.css */
 
+  /* the type, as variables: the gutter sizes its rows from them (see gutter) */
+  --md-font-size: 0.9375rem;
+  --md-line-height: 1.7;
+
   /* fills a column the caller grew; the editor still sizes to its content, and
      the page — the app layout is the scroll container — scrolls a long one */
   display: flex;
@@ -41,8 +45,8 @@
   background: var(--color-highlight);
   color: var(--color-sharp);
   font-family: var(--font-body);
-  font-size: 0.9375rem;
-  line-height: 1.7;
+  font-size: var(--md-font-size);
+  line-height: var(--md-line-height);
   transition: border-color 150ms ease-in;
 }
 
@@ -67,10 +71,11 @@
 /* the code editor shares the frame, the palette and the shell; only the type
    and the height differ */
 .markdown-editor-code {
+  --md-font-size: 0.875rem;
+  --md-line-height: 1.5;
+
   min-height: 160px;
   font-family: var(--font-mono);
-  font-size: 0.875rem;
-  line-height: 1.5;
 }
 
 .markdown-editor-code .cm-editor .cm-line {
@@ -97,6 +102,87 @@
   line-height: inherit;
 }
 
+/* fill: the editor is the pane, not a field in it — no frame of its own, its
+   column's whole height, and CodeMirror's scroller scrolling inside, so the
+   header, the toolbar and the gutter stay put and a long file never scrolls
+   the page */
+.markdown-editor-fill {
+  flex-basis: 0;
+  min-height: 0;
+  border: none;
+  border-radius: 0;
+  /* the text on the highlight ground, the toolbar above it on the surface's:
+     the two grounds part them, no separator */
+  background: var(--color-highlight);
+}
+
+.markdown-editor-fill .cm-editor {
+  height: 100%;
+  min-height: 0;
+}
+
+.markdown-editor-fill .cm-scroller {
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-muted) transparent;
+}
+
+/* gutter (`lineNumberGutter`). Every rule goes through .cm-editor: CodeMirror's
+   base theme (`.ͼ2 .cm-gutters`, a grey fill and border) is injected after
+   this sheet and wins a two-class tie. The numbers are mono, smaller and
+   muted, on the editor's own ground: their ink and the space after them set
+   them off, no separator. A row's line height is the line's own (`--md-*`),
+   so the number sits on the text rather than at the top of a taller box. */
+.markdown-editor .cm-editor .cm-gutters {
+  border-right: none;
+  background: transparent;
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.markdown-editor .cm-editor .cm-lineNumbers .cm-gutterElement {
+  min-width: 3ch;
+  padding: 0 12px 0 16px;
+  line-height: calc(var(--md-font-size) * var(--md-line-height));
+}
+
+.markdown-editor .cm-editor .cm-gutterElement.cm-activeLineGutter {
+  background: transparent;
+  color: var(--color-sharp);
+}
+
+/* a heading's number takes its line's padding and line height (`headingGutter`,
+   the sizes of .md-h1 to .md-h6 below) */
+.markdown-editor .cm-editor .cm-lineNumbers .cm-gutterElement.md-gutter-h1 {
+  padding-top: calc(var(--md-font-size) * 1.75 * 0.5);
+  line-height: calc(var(--md-font-size) * 1.75 * var(--md-line-height));
+}
+
+.markdown-editor .cm-editor .cm-lineNumbers .cm-gutterElement.md-gutter-h2 {
+  padding-top: calc(var(--md-font-size) * 1.45 * 0.4);
+  line-height: calc(var(--md-font-size) * 1.45 * var(--md-line-height));
+}
+
+.markdown-editor .cm-editor .cm-lineNumbers .cm-gutterElement.md-gutter-h3 {
+  padding-top: calc(var(--md-font-size) * 1.25 * 0.3);
+  line-height: calc(var(--md-font-size) * 1.25 * var(--md-line-height));
+}
+
+.markdown-editor .cm-editor .cm-lineNumbers .cm-gutterElement.md-gutter-h4 {
+  padding-top: calc(var(--md-font-size) * 1.1 * 0.2);
+  line-height: calc(var(--md-font-size) * 1.1 * var(--md-line-height));
+}
+
+.markdown-editor .cm-editor .cm-lineNumbers .cm-gutterElement.md-gutter-h5 {
+  padding-top: calc(var(--md-font-size) * 0.15);
+}
+
+.markdown-editor .cm-editor .cm-lineNumbers .cm-gutterElement.md-gutter-h6 {
+  padding-top: calc(var(--md-font-size) * 0.1);
+}
+
 /* Through .cm-editor: CodeMirror injects its base theme as `.ͼ1 .cm-content`
    and `.ͼ1 .cm-line` after this sheet, and a two-class rule loses that tie.
    The inset is on the content rather than the lines, so a block's background
@@ -116,6 +202,27 @@
 
 .markdown-editor-readonly .cm-editor .cm-line {
   padding: 0;
+}
+
+/* fill: the surface around it is the margin, the gutter's numbers the left
+   edge — the text starts a few pixels after them, the first line just under
+   the toolbar, as in an IDE */
+.markdown-editor-fill .cm-editor .cm-content {
+  padding: 4px 0;
+}
+
+.markdown-editor-fill .cm-editor .cm-line {
+  padding: 0 12px 0 4px;
+}
+
+/* a fixed width up to four digits, so the toolbar above can line up with the
+   text by a constant rather than a measure: 52px of gutter plus the line's
+   4px is where the text starts (MarkdownEditor's inset toolbar) */
+.markdown-editor-fill .cm-editor .cm-lineNumbers .cm-gutterElement {
+  box-sizing: border-box;
+  min-width: 52px;
+  padding-right: 8px;
+  padding-left: 12px;
 }
 
 .markdown-editor .cm-cursor,

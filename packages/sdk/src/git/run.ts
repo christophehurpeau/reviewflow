@@ -4,7 +4,7 @@ import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
 
-const timeoutMs = 10_000;
+const timeoutMs = 30_000;
 const networkTimeoutMs = 60_000;
 const defaultMaxBuffer = 4 * 1024 * 1024;
 const batchMaxBuffer = 256 * 1024 * 1024;

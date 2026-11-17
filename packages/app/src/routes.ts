@@ -13,10 +13,18 @@ import type {
   CheckoutBranchDiffResponse,
   CheckoutBranchesResponse,
   CheckoutCommitsResponse,
+  CheckoutFileAtHead,
+  CheckoutFileRead,
+  CheckoutFileSaveRequest,
+  CheckoutFileSaveResponse,
+  CheckoutFilesResponse,
   CheckoutRepo,
   CheckoutReposResponse,
   CheckoutSyncResponse,
   CheckoutWorktree,
+  CheckoutWorktreeStatusesResponse,
+  CloneRepositoryRequest,
+  CloneRepositoryResponse,
   CommitDiffResponse,
   DiffImpactsResponse,
   DiffReadingOrderResponse,
@@ -45,8 +53,11 @@ import {
   isDiffWhitespace,
   isPullRequestPart,
 } from "@reviewflow/sdk";
+import type { CheckoutRoots } from "@reviewflow/sdk/files";
 import { readEditableFile, saveEditableFile } from "@reviewflow/sdk/files";
-import type { WorktreeRemovalPlan } from "@reviewflow/sdk/git";
+import type { RepoChange, WorktreeRemovalPlan } from "@reviewflow/sdk/git";
+import type { ClonePlan } from "./clone.ts";
+import { planClone } from "./clone.ts";
 import {
   checkCheckout,
   describeRepoAttachment,
@@ -61,6 +72,7 @@ import {
   suggestRepoPaths,
 } from "./discovery.ts";
 import { errorMessage } from "./errorMessage.ts";
+import { formatEvent, heartbeatFrame, heartbeatMs } from "./eventStream.ts";
 import type {
   ReviewflowService,
   SetReviewflowTokenRequest,
@@ -73,6 +85,7 @@ export const apiRoutes = {
   configRepo: "/api/config/repo",
   configRepoPathSuggestions: "/api/config/repo-paths/suggestions",
   repos: "/api/repos",
+  repoClone: "/api/repos/clone",
   repoDiff: "/api/repos/diff",
   repoCommits: "/api/repos/commits",
   repoCommit: "/api/repos/commit",
@@ -83,8 +96,12 @@ export const apiRoutes = {
   repoPulls: "/api/repos/pulls",
   repoBranchPulls: "/api/repos/branch-pulls",
   repoSettledPulls: "/api/repos/settled-pulls",
+  repoWorktreeStatuses: "/api/repos/worktree-statuses",
+  repoWatch: "/api/repos/watch",
   repoWorktreeStatus: "/api/repos/worktree-status",
   repoWorktreeRemove: "/api/repos/worktree-remove",
+  repoFiles: "/api/repos/files",
+  repoFile: "/api/repos/file",
   prDetail: "/api/prs/detail",
   prCandidates: "/api/prs/candidates",
   prRevisions: "/api/prs/revisions",
@@ -172,7 +189,10 @@ export interface PullRequestOperations {
   }) => Promise<CheckoutSyncResponse>;
   pullCheckout: (checkout: string) => Promise<void>;
   pushCheckout: (checkout: string) => Promise<void>;
-  readWorktrees: (checkout: string) => Promise<CheckoutWorktree[]>;
+  listWorktrees: (checkout: string) => Promise<CheckoutWorktree[]>;
+  readWorktreeStatuses: (
+    checkout: string,
+  ) => Promise<CheckoutWorktreeStatusesResponse>;
   readBranches: (checkout: string) => Promise<CheckoutBranchesResponse>;
   fetchOpenPullRequests: (
     transport: GitHubTransport,
@@ -187,6 +207,8 @@ export interface PullRequestOperations {
     checkout: string;
     branch: string;
     pullRequests: BranchPullRequestCandidate[];
+    tip?: string;
+    defaultBranch?: string;
   }) => Promise<BranchPullRequest[]>;
   readWorktreeRemovalStatus: (params: {
     worktree: string;
@@ -201,6 +223,27 @@ export interface PullRequestOperations {
   completeWorktreeRemoval: (
     plan: WorktreeRemovalPlan,
   ) => Promise<WorktreeRemovalResult>;
+  listCheckoutFiles: (checkout: string) => Promise<CheckoutFilesResponse>;
+  readCheckoutFile: (
+    roots: CheckoutRoots,
+    path: string,
+  ) => CheckoutFileRead | { refused: string };
+  readCheckoutFileAtHead: (
+    checkout: string,
+    path: string,
+  ) => Promise<CheckoutFileAtHead | { refused: string }>;
+  saveCheckoutFile: (
+    roots: CheckoutRoots,
+    request: CheckoutFileSaveRequest,
+  ) => Promise<CheckoutFileSaveResponse | { refused: string }>;
+  cloneRepository: (plan: ClonePlan) => Promise<void>;
+  /** follows the repository's refs and `checkout`'s files; resolves with how it stops */
+  watchCheckout: (params: {
+    mainCheckout: string;
+    checkout: string;
+    onChange: (change: RepoChange) => void;
+    onError: (error: unknown) => void;
+  }) => Promise<() => void>;
 }
 
 export interface RouteDeps {
@@ -350,34 +393,6 @@ const handleRepos: Handler = async ({ operations, configPath }, request) => {
   return ok(body);
 };
 
-const ownerRepoPattern = /^[^/\s]+\/[^/\s]+$/;
-
-/**
- * The listed checkout the request names (`resolveListedCheckout`), or the
- * refusal to answer with. With `worktree`, one of its worktrees instead: only
- * a path `git worktree list` names, never any path from the request.
- */
-const readListedCheckout = async (
-  { operations, configPath }: Pick<RouteDeps, "configPath" | "operations">,
-  request: RouteRequest,
-): Promise<string | RouteAnswer> => {
-  const repo = request.query.get("repo") ?? "";
-  if (!ownerRepoPattern.test(repo)) return bad("repo must be owner/repo");
-  const resolved = await resolveListedCheckout(configPath, repo);
-  if ("refused" in resolved) return bad(resolved.refused);
-  const worktree = request.query.get("worktree");
-  if (worktree === null || worktree === resolved.checkout) {
-    return resolved.checkout;
-  }
-  const worktrees = await operations
-    .readWorktrees(resolved.checkout)
-    .catch(() => []);
-  const known = worktrees.some(
-    ({ path, prunable }) => path === worktree && !prunable,
-  );
-  return known ? worktree : bad(`${worktree} is not a worktree of ${repo}`);
-};
-
 /** git's failure (a missing base, an unknown commit) is the answer, as a 400. */
 const gitAnswer = async (
   read: () => Promise<unknown>,
@@ -387,6 +402,145 @@ const gitAnswer = async (
   } catch (error) {
     return bad(errorMessage(error));
   }
+};
+
+/** A second press while the first clone runs would race it into the same directory. */
+const cloningTargets = new Set<string>();
+
+/**
+ * Clones into one of `repoPaths` (`planClone`), then scans the folders again
+ * so the listing and every route reading a listed checkout see it. Answered
+ * once the clone is done; it goes on if the client leaves.
+ */
+const handleRepoClone: Handler = async (
+  { operations, configPath },
+  request,
+) => {
+  if (request.method !== "POST") return notAllowed();
+  const payload =
+    (await request.readJson()) as Partial<CloneRepositoryRequest> | null;
+  const plan = planClone({
+    repoPaths: readConfig(configPath).repoPaths,
+    ownerRepo: payload?.ownerRepo,
+    folder: payload?.folder,
+  });
+  if ("refused" in plan) return bad(plan.refused);
+  if (cloningTargets.has(plan.target)) {
+    return bad(`${plan.ownerRepo} is already being cloned into ${plan.target}`);
+  }
+  cloningTargets.add(plan.target);
+  try {
+    return await gitAnswer(async (): Promise<CloneRepositoryResponse> => {
+      await operations.cloneRepository(plan);
+      await listCheckouts(configPath, { refresh: true });
+      return { ownerRepo: plan.ownerRepo, path: plan.target };
+    });
+  } finally {
+    cloningTargets.delete(plan.target);
+  }
+};
+
+const ownerRepoPattern = /^[^/\s]+\/[^/\s]+$/;
+
+/**
+ * The listed checkout the request names (`resolveListedCheckout`), or the
+ * refusal to answer with. With `worktree`, one of its worktrees instead: only
+ * a path `git worktree list` names, never any path from the request.
+ */
+const readListedCheckoutRoots = async (
+  { operations, configPath }: Pick<RouteDeps, "configPath" | "operations">,
+  request: RouteRequest,
+): Promise<Required<CheckoutRoots> | RouteAnswer> => {
+  const repo = request.query.get("repo") ?? "";
+  if (!ownerRepoPattern.test(repo)) return bad("repo must be owner/repo");
+  const resolved = await resolveListedCheckout(configPath, repo);
+  if ("refused" in resolved) return bad(resolved.refused);
+  const mainCheckout = resolved.checkout;
+  const worktree = request.query.get("worktree");
+  if (worktree === null || worktree === mainCheckout) {
+    return { checkout: mainCheckout, mainCheckout };
+  }
+  const worktrees = await operations
+    .listWorktrees(mainCheckout)
+    .catch(() => []);
+  const known = worktrees.some(
+    ({ path, prunable }) => path === worktree && !prunable,
+  );
+  return known
+    ? { checkout: worktree, mainCheckout }
+    : bad(`${worktree} is not a worktree of ${repo}`);
+};
+
+const readListedCheckout = async (
+  deps: Pick<RouteDeps, "configPath" | "operations">,
+  request: RouteRequest,
+): Promise<string | RouteAnswer> => {
+  const roots = await readListedCheckoutRoots(deps, request);
+  return isAnswer(roots) ? roots : roots.checkout;
+};
+
+/** Every file of the checkout's working tree (`listCheckoutFiles`). */
+const handleRepoFiles: Handler = async (
+  { operations, configPath },
+  request,
+) => {
+  if (request.method !== "GET") return notAllowed();
+  const checkout = await readListedCheckout(
+    { operations, configPath },
+    request,
+  );
+  if (typeof checkout !== "string") return checkout;
+  return gitAnswer(() => operations.listCheckoutFiles(checkout));
+};
+
+/**
+ * One file of the checkout: GET reads it, PUT saves it. The path is confined
+ * to the checkout (and its main checkout, for a worktree's symlinks) by
+ * `resolveCheckoutPath`: a refusal is a 400, but a symlink leading to no file
+ * of the repository is read as `{ status: "link" }`. A save's conflict is an answer,
+ * not a failure — a 200 carrying `{ status: "conflict" }`, which the editor
+ * offers to reload. `at=head` reads the file as `HEAD` has it instead
+ * (`readCheckoutFileAtHead`), what the editor's draft is diffed against.
+ */
+const handleRepoFile: Handler = async ({ operations, configPath }, request) => {
+  if (request.method !== "GET" && request.method !== "PUT") {
+    return notAllowed();
+  }
+  const roots = await readListedCheckoutRoots(
+    { operations, configPath },
+    request,
+  );
+  if (isAnswer(roots)) return roots;
+  if (request.method === "GET" && request.query.get("at") === "head") {
+    const atHead = await operations.readCheckoutFileAtHead(
+      roots.checkout,
+      request.query.get("path") ?? "",
+    );
+    return "refused" in atHead ? bad(atHead.refused) : ok(atHead);
+  }
+  if (request.method === "GET") {
+    const read = operations.readCheckoutFile(
+      roots,
+      request.query.get("path") ?? "",
+    );
+    return "refused" in read ? bad(read.refused) : ok(read);
+  }
+  const payload = (await request.readJson()) as Partial<
+    Record<keyof CheckoutFileSaveRequest, unknown>
+  > | null;
+  if (typeof payload?.path !== "string") return bad("path must be a string");
+  if (typeof payload.source !== "string") {
+    return bad("source must be a string");
+  }
+  if (typeof payload.expectedSource !== "string") {
+    return bad("expectedSource must be the text the editor opened on");
+  }
+  const saved = await operations.saveCheckoutFile(roots, {
+    path: payload.path,
+    source: payload.source,
+    expectedSource: payload.expectedSource,
+  });
+  return "refused" in saved ? bad(saved.refused) : ok(saved);
 };
 
 const readWhitespace = (
@@ -525,6 +679,67 @@ const handleRepoBranches: Handler = async (
   return gitAnswer(() => operations.readBranches(checkout));
 };
 
+/** What each worktree holds, read apart from the branches: one git call per worktree. */
+const handleRepoWorktreeStatuses: Handler = async (
+  { operations, configPath },
+  request,
+) => {
+  if (request.method !== "GET") return notAllowed();
+  const checkout = await readListedCheckout(
+    { operations, configPath },
+    request,
+  );
+  if (typeof checkout !== "string") return checkout;
+  return gitAnswer(() => operations.readWorktreeStatuses(checkout));
+};
+
+/**
+ * `text/event-stream` of what moved in a checkout: `git` when a ref or a HEAD
+ * moved, `files` when a file git does not ignore changed, `watchError` once
+ * when the watch stopped. Nothing runs git until something moved, so a screen
+ * re-reads only then.
+ */
+const handleRepoWatch: Handler = async (deps, request) => {
+  if (request.method !== "GET") return notAllowed();
+  const roots = await readListedCheckoutRoots(deps, request);
+  if (isAnswer(roots)) return roots;
+  return {
+    status: 200,
+    body: null,
+    events: (write) => {
+      let closed = false;
+      let stop: (() => void) | null = null;
+      const reportError = (error: unknown): void => {
+        if (!closed) {
+          write(formatEvent("watchError", { error: errorMessage(error) }));
+        }
+      };
+      const heartbeat = setInterval(() => {
+        write(heartbeatFrame);
+      }, heartbeatMs);
+      deps.operations
+        .watchCheckout({
+          mainCheckout: roots.mainCheckout,
+          checkout: roots.checkout,
+          onChange: (change) => {
+            if (!closed) write(formatEvent(change, {}));
+          },
+          onError: reportError,
+        })
+        .then((stopWatch) => {
+          if (closed) stopWatch();
+          else stop = stopWatch;
+        })
+        .catch(reportError);
+      return () => {
+        closed = true;
+        clearInterval(heartbeat);
+        stop?.();
+      };
+    },
+  };
+};
+
 /** GitHub's open pull requests of a repository; GitHub's failure is the 400. */
 const handleRepoPulls: Handler = async ({ transport, operations }, request) => {
   if (request.method !== "GET") return notAllowed();
@@ -568,13 +783,13 @@ const handleRepoSettledPulls: Handler = async (deps, request) => {
   if (typeof checkout !== "string") return checkout;
   const ownerRepo = request.query.get("repo") ?? "";
   return gitAnswer(async (): Promise<SettledBranchPullRequestsResponse> => {
-    const { branches } = await deps.operations.readBranches(checkout);
+    const { base, branches } = await deps.operations.readBranches(checkout);
     const results = await deps.reviewflow.lookup(
       branches.map(({ name }) => ({ ownerRepo, headRef: name })),
     );
     if (results === null) return { connected: false, branches: [] };
     const settled = await Promise.all(
-      branches.map(async ({ name }, index) => {
+      branches.map(async ({ name, sha }, index) => {
         const result = results[index];
         const candidate =
           result === undefined ? null : settledCandidateOf(result);
@@ -583,6 +798,8 @@ const handleRepoSettledPulls: Handler = async (deps, request) => {
           checkout,
           branch: name,
           pullRequests: [candidate],
+          tip: sha,
+          defaultBranch: base?.name,
         });
         return linked.map((pullRequest) => ({ branch: name, pullRequest }));
       }),
@@ -991,6 +1208,7 @@ const handlers: Record<string, Handler> = {
   [apiRoutes.configRepo]: handleConfigRepo,
   [apiRoutes.configRepoPathSuggestions]: handleRepoPathSuggestions,
   [apiRoutes.repos]: handleRepos,
+  [apiRoutes.repoClone]: handleRepoClone,
   [apiRoutes.repoDiff]: handleRepoDiff,
   [apiRoutes.repoCommits]: handleRepoCommits,
   [apiRoutes.repoCommit]: handleRepoCommit,
@@ -1001,8 +1219,12 @@ const handlers: Record<string, Handler> = {
   [apiRoutes.repoPulls]: handleRepoPulls,
   [apiRoutes.repoBranchPulls]: handleBranchPulls,
   [apiRoutes.repoSettledPulls]: handleRepoSettledPulls,
+  [apiRoutes.repoWorktreeStatuses]: handleRepoWorktreeStatuses,
+  [apiRoutes.repoWatch]: handleRepoWatch,
   [apiRoutes.repoWorktreeStatus]: handleWorktreeStatus,
   [apiRoutes.repoWorktreeRemove]: handleWorktreeRemove,
+  [apiRoutes.repoFiles]: handleRepoFiles,
+  [apiRoutes.repoFile]: handleRepoFile,
   [apiRoutes.prDetail]: handlePrDetail,
   [apiRoutes.prCandidates]: handlePrCandidates,
   [apiRoutes.prRevisions]: handlePrRevisions,

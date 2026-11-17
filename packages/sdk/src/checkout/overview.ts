@@ -15,8 +15,20 @@ export interface CheckoutWorktree {
   lock: string | null;
   /** its directory is gone: `git worktree prune` would drop it */
   prunable: boolean;
+}
+
+export interface CheckoutWorktreeStatus {
+  path: string;
   /** null when prunable, or when git could not read it */
   status: CheckoutStatus | null;
+}
+
+/**
+ * `GET /api/repos/worktree-statuses?repo=<owner/repo>` — what each worktree
+ * holds, read apart from the branches: one git call per worktree.
+ */
+export interface CheckoutWorktreeStatusesResponse {
+  statuses: CheckoutWorktreeStatus[];
 }
 
 /** A local branch and where it stands. */

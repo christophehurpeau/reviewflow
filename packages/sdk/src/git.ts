@@ -36,13 +36,26 @@ export type {
   CommitDiffParams,
   RecentCommitsParams,
 } from "./git/checkoutCommits.ts";
+export { filterIgnoredPaths, readGitCommonDir } from "./git/ignoredPaths.ts";
+export {
+  isGitPath,
+  isRefChange,
+  watchCheckout,
+  watchRepo,
+} from "./git/repoWatch.ts";
+export type {
+  RepoChange,
+  RepoWatchParams,
+  WatchCheckoutParams,
+} from "./git/repoWatch.ts";
 export { linkBranchPullRequests } from "./git/branchPullRequests.ts";
 export type { LinkBranchPullRequestsParams } from "./git/branchPullRequests.ts";
 export {
   parseTrack,
+  listWorktrees,
   parseWorktreeList,
   readBranches,
-  readWorktrees,
+  readWorktreeStatuses,
 } from "./git/checkoutBranches.ts";
 export type { ReadBranchesParams } from "./git/checkoutBranches.ts";
 export {

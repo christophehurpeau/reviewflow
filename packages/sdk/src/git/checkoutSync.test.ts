@@ -51,7 +51,7 @@ describe("parseStatusV2", () => {
       ),
     ).toStrictEqual({
       branch: "feat/board",
-      hasCommit: true,
+      headSha: "1111111111111111111111111111111111111111",
       upstream: "origin/feat/board",
       ahead: 2,
       behind: 3,
@@ -69,7 +69,7 @@ describe("parseStatusV2", () => {
   it("reports a branch with no commit yet", () => {
     expect(
       parseStatusV2("# branch.oid (initial)\n# branch.head main\n"),
-    ).toMatchObject({ branch: "main", hasCommit: false });
+    ).toMatchObject({ branch: "main", headSha: null });
   });
 
   /** git drops `branch.ab` when the upstream's ref was pruned. */

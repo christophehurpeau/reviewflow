@@ -50,6 +50,8 @@ import {
 import { Platform } from "react-native";
 import { useDiffSettings } from "./branch-diff/use-diff-settings.tsx";
 import { WhitespaceButton } from "./branch-diff/whitespace-button.tsx";
+import type { CheckoutFiles } from "./checkout-files.tsx";
+import { CheckoutFilesBody } from "./checkout-files.tsx";
 import type { CommitSteps } from "./commit-list.tsx";
 import { CommitHeader, CommitList } from "./commit-list.tsx";
 import { OmittedFiles } from "./omitted-files.tsx";
@@ -77,10 +79,13 @@ const noViewedPaths: readonly string[] = [];
  * the branch left its base, as its pull request shows them. `history`: the
  * last commits of `HEAD`, each opening its own diff.
  */
-export type CheckoutTab = "branch" | "history" | "uncommitted";
+export type CheckoutTab = "branch" | "files" | "history" | "uncommitted";
 
 const isCheckoutTab = (value: string): value is CheckoutTab =>
-  value === "uncommitted" || value === "branch" || value === "history";
+  value === "uncommitted" ||
+  value === "branch" ||
+  value === "history" ||
+  value === "files";
 
 const shortSha = (sha: string): string => sha.slice(0, 7);
 
@@ -625,8 +630,10 @@ export interface CheckoutViewProps {
   headerStart?: ReactNode;
   /** before the reload button, e.g. pull and push */
   headerEnd?: ReactNode;
-  /** the tabs offered; all three unless set */
+  /** the tabs offered; the three diff tabs unless set, plus Files when `files` is */
   tabs?: CheckoutTab[];
+  /** the working tree's files, browsed and edited: offers the Files tab */
+  files?: CheckoutFiles;
   /** after the base's ref, e.g. where the base was taken from */
   renderBaseExtra?: (base: BranchDiffBase) => ReactNode;
 }
@@ -656,9 +663,12 @@ export function CheckoutView({
   notices,
   headerStart,
   headerEnd,
-  tabs = allTabs,
+  tabs: offeredTabs,
+  files,
   renderBaseExtra,
 }: CheckoutViewProps): ReactNode {
+  const tabs =
+    offeredTabs ?? (files === undefined ? allTabs : [...allTabs, "files"]);
   const [diffStyle, setDiffStyle] = useState<DiffStyle>("split");
   // the viewer is memoized: a press commits at once, the next patch renders after
   const shownDiff = useDeferredValue(diff.value);
@@ -669,10 +679,14 @@ export function CheckoutView({
     tab === "uncommitted" ||
     tab === "branch" ||
     (tab === "history" && history.openSha !== null);
-  const loading =
-    tab === "history"
+  const loading = ((): boolean => {
+    if (tab === "files") {
+      return (files?.paths.loading ?? false) || (files?.file.loading ?? false);
+    }
+    return tab === "history"
       ? history.commits.loading || history.diff.loading
       : diff.loading || shownDiff !== diff.value;
+  })();
   const display: DiffDisplay = { diffStyle, collapse };
 
   // a tab switch shows the last tab's answer for a render: never under the new tab's name
@@ -712,7 +726,7 @@ export function CheckoutView({
 
   return (
     <View className="min-h-0 flex-1">
-      <View className="gap-m border-b border-muted p-m">
+      <View className="gap-m p-m">
         <View className="flex-row flex-wrap items-center gap-m">
           {headerStart}
           <Text
@@ -763,6 +777,9 @@ export function CheckoutView({
             {tabs.includes("history") ? (
               <Tab value="history" label="History" />
             ) : null}
+            {files !== undefined && tabs.includes("files") ? (
+              <Tab value="files" label="Files" />
+            ) : null}
           </Tabs>
           {showsDiff ? (
             <DiffTools
@@ -781,9 +798,14 @@ export function CheckoutView({
       </View>
       {/* what is on screen stays while the next read runs, so the bar says it is being replaced */}
       <IndeterminateLinearProgress loading={loading} size="xs" />
-      <ScrollView className="flex-1" contentContainerClassName="p-m">
-        {body}
-      </ScrollView>
+      {/* the tree and the editor scroll on their own: a bounded height, not the page's scroll */}
+      {tab === "files" && files !== undefined ? (
+        <CheckoutFilesBody {...files} />
+      ) : (
+        <ScrollView className="flex-1" contentContainerClassName="p-m">
+          {body}
+        </ScrollView>
+      )}
     </View>
   );
 }

@@ -2,10 +2,15 @@ import type {
   CheckoutBranch,
   CheckoutBranchesResponse,
   CheckoutWorktree,
+  CheckoutWorktreeStatusesResponse,
 } from "../checkout/overview.ts";
-import type { ResolvedDiffBase } from "./checkoutBranchDiff.ts";
-import { readDefaultBranch, resolveDiffBase } from "./checkoutBranchDiff.ts";
-import { readCheckoutStatus } from "./checkoutSync.ts";
+import type { BranchDiffBase } from "../diff/types.ts";
+import type { StatusV2 } from "./checkoutSync.ts";
+import {
+  readHeadCommits,
+  readStatusV2,
+  toCheckoutStatus,
+} from "./checkoutSync.ts";
 import { git, gitOrNull } from "./run.ts";
 
 interface ListedWorktree {
@@ -51,38 +56,102 @@ export const parseWorktreeList = (output: string): ListedWorktree[] =>
     });
 
 /**
- * Every worktree of the repository `cwd` belongs to, the main one first, each
- * with its status; a bare repository's own entry is left out, having no files.
+ * Every worktree of the repository `cwd` belongs to, the main one first; a
+ * bare repository's own entry is left out, having no files. One git call.
  */
-export const readWorktrees = async (
+export const listWorktrees = async (cwd: string): Promise<CheckoutWorktree[]> =>
+  parseWorktreeList(await git(cwd, ["worktree", "list", "--porcelain"]))
+    .map((worktree, index) => ({ ...worktree, main: index === 0 }))
+    .filter(({ bare }) => !bare)
+    .map(({ bare: _bare, ...worktree }) => worktree);
+
+const readStatusOrNull = (
+  worktree: CheckoutWorktree,
+): Promise<StatusV2 | null> =>
+  worktree.prunable
+    ? Promise.resolve(null)
+    : readStatusV2(worktree.path).catch(() => null);
+
+/**
+ * What each worktree holds: one `git status` per worktree, and their head
+ * commits in a single call.
+ */
+export const readWorktreeStatuses = async (
   cwd: string,
-): Promise<CheckoutWorktree[]> => {
-  const listed = parseWorktreeList(
-    await git(cwd, ["worktree", "list", "--porcelain"]),
+): Promise<CheckoutWorktreeStatusesResponse> => {
+  const worktrees = await listWorktrees(cwd);
+  const statuses = await Promise.all(worktrees.map(readStatusOrNull));
+  const commits = await readHeadCommits(
+    cwd,
+    statuses.flatMap((status) =>
+      status?.headSha == null ? [] : [status.headSha],
+    ),
   );
-  return Promise.all(
-    listed
-      .map((worktree, index) => ({ ...worktree, main: index === 0 }))
-      .filter(({ bare }) => !bare)
-      .map(async ({ bare: _bare, ...worktree }) => ({
-        ...worktree,
-        status: worktree.prunable
-          ? null
-          : await readCheckoutStatus(worktree.path).catch(() => null),
-      })),
-  );
+  return {
+    statuses: worktrees.map(({ path }, index) => {
+      const status = statuses[index] ?? null;
+      return {
+        path,
+        status:
+          status === null ? null : toCheckoutStatus(path, status, commits),
+      };
+    }),
+  };
 };
 
 const fieldSeparator = "\u0000";
-const branchFormat = [
-  "%(refname:lstrip=2)",
+const refFormat = [
+  "%(refname)",
   "%(objectname)",
   "%(upstream:short)",
   "%(upstream:track)",
   "%(committerdate:iso-strict)",
   "%(worktreepath)",
+  "%(symref)",
   "%(subject)",
 ].join("%00");
+
+const headsPrefix = "refs/heads/";
+const originPrefix = "refs/remotes/origin/";
+const originHead = `${originPrefix}HEAD`;
+
+interface ListedRef {
+  refname: string;
+  sha: string;
+  upstream: string;
+  track: string;
+  committedAt: string;
+  worktreePath: string;
+  symref: string;
+  subject: string;
+}
+
+const parseRefs = (output: string): ListedRef[] =>
+  output
+    .split("\n")
+    .filter((line) => line !== "")
+    .map((line) => {
+      const [
+        refname = "",
+        sha = "",
+        upstream = "",
+        track = "",
+        committedAt = "",
+        worktreePath = "",
+        symref = "",
+        subject = "",
+      ] = line.split(fieldSeparator);
+      return {
+        refname,
+        sha,
+        upstream,
+        track,
+        committedAt,
+        worktreePath,
+        symref,
+        subject,
+      };
+    });
 
 interface Track {
   ahead: number | null;
@@ -102,30 +171,62 @@ export const parseTrack = (track: string, hasUpstream: boolean): Track => {
   return { ahead: count("ahead"), behind: count("behind"), gone: false };
 };
 
+/** The branch `origin/HEAD` names, as `readDefaultBranch` reads it. */
+const defaultBranchOf = (refs: ListedRef[]): string | null => {
+  const symref = refs.find(({ refname }) => refname === originHead)?.symref;
+  if (symref === undefined || !symref.startsWith(originPrefix)) return null;
+  return symref.slice(originPrefix.length);
+};
+
+/** `origin/<name>` before `<name>`, as `resolveDiffBase` picks it. */
+const findBase = (
+  refs: ListedRef[],
+  baseName: string | undefined,
+): BranchDiffBase | null => {
+  const name = baseName ?? defaultBranchOf(refs) ?? "main";
+  const shaOf = (refname: string): string | null =>
+    refs.find((ref) => ref.refname === refname)?.sha ?? null;
+  const remoteSha = shaOf(`${originPrefix}${name}`);
+  if (remoteSha !== null) {
+    return { name, ref: `origin/${name}`, sha: remoteSha };
+  }
+  const localSha = shaOf(`${headsPrefix}${name}`);
+  return localSha === null ? null : { name, ref: name, sha: localSha };
+};
+
 const readMergedBranches = async (
   cwd: string,
-  start: ResolvedDiffBase | null,
+  base: BranchDiffBase | null,
 ): Promise<Set<string>> => {
-  if (start === null) return new Set();
+  if (base === null) return new Set();
   const listed = await git(cwd, [
     "for-each-ref",
-    `--merged=${start.base.sha}`,
+    `--merged=${base.sha}`,
     "--format=%(refname:lstrip=2)",
     "refs/heads",
   ]);
   return new Set(
-    listed
-      .split("\n")
-      .filter((name) => name !== "" && name !== start.base.name),
+    listed.split("\n").filter((name) => name !== "" && name !== base.name),
   );
 };
 
-const readBase = async (
-  cwd: string,
-  baseName: string | undefined,
-): Promise<ResolvedDiffBase | null> => {
-  const name = baseName ?? (await readDefaultBranch(cwd)) ?? "main";
-  return resolveDiffBase(cwd, name).catch(() => null);
+const toBranch = (ref: ListedRef, merged: Set<string>): CheckoutBranch => {
+  const name = ref.refname.slice(headsPrefix.length);
+  const { ahead, behind, gone } = parseTrack(ref.track, ref.upstream !== "");
+  return {
+    name,
+    sha: ref.sha,
+    upstream: ref.upstream === "" ? null : ref.upstream,
+    ahead,
+    behind,
+    upstreamGone: gone,
+    merged: merged.has(name),
+    worktreePath: ref.worktreePath === "" ? null : ref.worktreePath,
+    lastCommit: {
+      subject: ref.subject,
+      committedAt: new Date(ref.committedAt).toISOString(),
+    },
+  };
 };
 
 export interface ReadBranchesParams {
@@ -136,52 +237,29 @@ export interface ReadBranchesParams {
 
 /**
  * The local branches, most recently committed first, and the worktrees they
- * are checked out in. Nothing is fetched: ahead, behind and gone are as of the
- * last fetch.
+ * are checked out in, without their status (`readWorktreeStatuses`). Nothing
+ * is fetched: ahead, behind and gone are as of the last fetch. Three git calls,
+ * whatever the number of branches and worktrees.
  */
 export const readBranches = async ({
   cwd,
   baseName,
 }: ReadBranchesParams): Promise<CheckoutBranchesResponse> => {
-  const start = await readBase(cwd, baseName);
-  const [listing, merged, worktrees] = await Promise.all([
+  const [listing, worktrees] = await Promise.all([
     gitOrNull(cwd, [
       "for-each-ref",
       "--sort=-committerdate",
-      `--format=${branchFormat}`,
+      `--format=${refFormat}`,
       "refs/heads",
+      "refs/remotes/origin",
     ]),
-    readMergedBranches(cwd, start),
-    readWorktrees(cwd),
+    listWorktrees(cwd),
   ]);
-  const branches = (listing ?? "")
-    .split("\n")
-    .filter((line) => line !== "")
-    .map((line): CheckoutBranch => {
-      const [
-        name = "",
-        sha = "",
-        upstream = "",
-        track = "",
-        committedAt = "",
-        worktreePath = "",
-        subject = "",
-      ] = line.split(fieldSeparator);
-      const { ahead, behind, gone } = parseTrack(track, upstream !== "");
-      return {
-        name,
-        sha,
-        upstream: upstream === "" ? null : upstream,
-        ahead,
-        behind,
-        upstreamGone: gone,
-        merged: merged.has(name),
-        worktreePath: worktreePath === "" ? null : worktreePath,
-        lastCommit: {
-          subject,
-          committedAt: new Date(committedAt).toISOString(),
-        },
-      };
-    });
-  return { base: start?.base ?? null, worktrees, branches };
+  const refs = parseRefs(listing ?? "");
+  const base = findBase(refs, baseName);
+  const merged = await readMergedBranches(cwd, base);
+  const branches = refs
+    .filter(({ refname }) => refname.startsWith(headsPrefix))
+    .map((ref) => toBranch(ref, merged));
+  return { base, worktrees, branches };
 };

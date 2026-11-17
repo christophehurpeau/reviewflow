@@ -17,16 +17,31 @@ const isAncestor = async (
     descendant,
   ])) !== null;
 
-/** The first of `names` found as a remote-tracking branch, else as a local one. */
+/** The first of `names` found as a remote-tracking branch, else as a local one; one git call for all. */
 const readBaseSha = async (
   cwd: string,
   names: string[],
 ): Promise<string | null> => {
-  for (const name of names) {
-    for (const ref of [`refs/remotes/origin/${name}`, `refs/heads/${name}`]) {
-      const sha = await readCommit(cwd, ref);
-      if (sha !== null) return sha;
-    }
+  const wanted = names.flatMap((name) => [
+    `refs/remotes/origin/${name}`,
+    `refs/heads/${name}`,
+  ]);
+  const listed = await gitOrNull(cwd, [
+    "for-each-ref",
+    "--format=%(refname) %(objectname)",
+    ...wanted,
+  ]);
+  if (listed === null) return null;
+  // a pattern also matches the refs below it (`refs/heads/main/x`): only exact names count
+  const shaByRef = new Map(
+    listed
+      .split("\n")
+      .filter((line) => line !== "")
+      .map((line) => line.split(" ") as [string, string]),
+  );
+  for (const ref of wanted) {
+    const sha = shaByRef.get(ref);
+    if (sha !== undefined) return sha;
   }
   return null;
 };
@@ -49,11 +64,11 @@ const sharesOwnCommits = async ({
   defaultBranch,
   pullRequest,
 }: OwnWorkParams): Promise<boolean> => {
-  if ((await readCommit(cwd, pullRequest.sha)) === null) return false;
   const base = await readBaseSha(cwd, [
     ...new Set([pullRequest.baseRefName, defaultBranch]),
   ]);
   if (base === null) return false;
+  // fails, as a head never fetched does, when the pull request's head is not here
   const mergeBase = await gitOrNull(cwd, ["merge-base", tip, pullRequest.sha]);
   if (mergeBase === null) return false;
   return !(await isAncestor(cwd, mergeBase.trim(), base));
@@ -72,6 +87,10 @@ export interface LinkBranchPullRequestsParams {
   cwd: string;
   branch: string;
   pullRequests: BranchPullRequestCandidate[];
+  /** the branch's commit, when the caller already read it: saves a git call */
+  tip?: string;
+  /** the repository's default branch, when the caller already read it: saves a git call */
+  defaultBranch?: string;
 }
 
 /**
@@ -88,10 +107,13 @@ export const linkBranchPullRequests = async ({
   cwd,
   branch,
   pullRequests,
+  tip: knownTip,
+  defaultBranch: knownDefaultBranch,
 }: LinkBranchPullRequestsParams): Promise<BranchPullRequest[]> => {
-  const tip = await readCommit(cwd, `refs/heads/${branch}`);
+  const tip = knownTip ?? (await readCommit(cwd, `refs/heads/${branch}`));
   if (tip === null) throw new Error(`no local branch ${branch} in ${cwd}`);
-  const defaultBranch = (await readDefaultBranch(cwd)) ?? "main";
+  const defaultBranch =
+    knownDefaultBranch ?? (await readDefaultBranch(cwd)) ?? "main";
   const owned = await Promise.all(
     pullRequests.map((pullRequest) =>
       isOwnWork({ cwd, tip, defaultBranch, pullRequest }),

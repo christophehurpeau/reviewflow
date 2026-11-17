@@ -4,7 +4,8 @@ import type { ReactNode } from "react";
 import { useEffect, useEffectEvent, useRef } from "react";
 import type { CodeLanguage } from "./codeEditorExtensions.ts";
 import { codeEditorExtensions } from "./codeEditorExtensions.ts";
-import { changeBetween, externalUpdate } from "./extensions.ts";
+import { editorFrameClasses } from "./editorFrame.ts";
+import { changeBetween, externalUpdate, saveShortcut } from "./extensions.ts";
 import "./markdown-editor.css";
 import "./code-token-colors.css";
 
@@ -25,6 +26,16 @@ export interface CodeEditorProps {
    * selection alone.
    */
   cursor?: number | null;
+  /** numbers the lines in a gutter; read at mount, like `readOnly` */
+  lineNumbers?: boolean;
+  /**
+   * Takes the height of its parent and scrolls inside, rather than growing
+   * with its content for the page to scroll: an editor that is the screen's
+   * main content, beside a file tree. The parent gives it a bounded height.
+   */
+  fill?: boolean;
+  /** ⌘S / Ctrl+S in the editor; unset, the key is the browser's */
+  onSaveShortcut?: () => void;
 }
 
 /**
@@ -44,10 +55,18 @@ export function CodeEditor({
   className,
   autoFocus = false,
   cursor = null,
+  lineNumbers = false,
+  fill = false,
+  onSaveShortcut,
 }: CodeEditorProps): ReactNode {
   const hostRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const emitChange = useEffectEvent((next: string) => onChange?.(next));
+  const emitSave = useEffectEvent((): boolean => {
+    if (onSaveShortcut === undefined) return false;
+    onSaveShortcut();
+    return true;
+  });
   const readValue = useEffectEvent(() => value);
   const autoFocusRef = useRef(autoFocus);
 
@@ -63,10 +82,12 @@ export function CodeEditor({
         codeEditorExtensions({
           language,
           readOnly,
+          lineNumbers,
           onChange: (next) => {
             emitChange(next);
           },
         }),
+        saveShortcut(() => emitSave()),
         EditorView.contentAttributes.of({ "aria-label": ariaLabel }),
       ],
     });
@@ -76,7 +97,7 @@ export function CodeEditor({
       view.destroy();
       viewRef.current = null;
     };
-  }, [language, readOnly, ariaLabel]);
+  }, [language, readOnly, lineNumbers, ariaLabel]);
 
   useEffect(() => {
     const view = viewRef.current;
@@ -96,17 +117,17 @@ export function CodeEditor({
       scrollIntoView: true,
     });
     view.focus();
-  }, [cursor, language, readOnly, ariaLabel]);
+  }, [cursor, language, readOnly, lineNumbers, ariaLabel]);
+
+  const columnClassName = fill
+    ? `min-h-0 flex-1${className === undefined ? "" : ` ${className}`}`
+    : className;
 
   return (
-    <View className={className}>
+    <View className={columnClassName}>
       <div
         ref={hostRef}
-        className={
-          readOnly
-            ? "markdown-editor markdown-editor-code markdown-editor-readonly"
-            : "markdown-editor markdown-editor-code"
-        }
+        className={editorFrameClasses({ code: true, readOnly, fill })}
       />
     </View>
   );

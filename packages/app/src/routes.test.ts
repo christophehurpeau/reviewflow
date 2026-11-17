@@ -101,11 +101,12 @@ const makeDeps = (
     readCheckoutSync: vi.fn(async () => ({ fetchError: null })),
     pullCheckout: vi.fn(async () => undefined),
     pushCheckout: vi.fn(async () => undefined),
-    readWorktrees: vi.fn(async () => [
+    listWorktrees: vi.fn(async () => [
       { path: repo, prunable: false },
       { path: "/elsewhere/widgets-fix", prunable: false },
       { path: "/elsewhere/gone", prunable: true },
     ]),
+    readWorktreeStatuses: vi.fn(async () => ({ statuses: [] })),
     readBranches: vi.fn(async () => ({ branches: [] })),
     fetchOpenPullRequests: vi.fn(async () => ({ pullRequests: [] })),
     fetchBranchPullRequests: vi.fn(async () => [
@@ -118,6 +119,22 @@ const makeDeps = (
     readWorktreeRemovalStatus: vi.fn(async () => ({ main: false })),
     prepareWorktreeRemoval: vi.fn(async () => ({ path: "plan" })),
     completeWorktreeRemoval: vi.fn(async () => ({ branchError: null })),
+    listCheckoutFiles: vi.fn(async () => ({
+      paths: ["a.ts", "src/b.ts"],
+      statuses: { "a.ts": "modified" },
+    })),
+    readCheckoutFile: vi.fn(() => ({ status: "text", source: "a" })),
+    readCheckoutFileAtHead: vi.fn(async () => ({
+      status: "text",
+      source: "committed",
+    })),
+    saveCheckoutFile: vi.fn(async () => ({
+      status: "saved",
+      source: "b",
+      warnings: [],
+    })),
+    cloneRepository: vi.fn(async () => undefined),
+    watchCheckout: vi.fn(async () => () => undefined),
     ...overrides,
   } as unknown as PullRequestOperations,
 });
@@ -325,6 +342,33 @@ describe("repos", () => {
     ).toEqual({ status: 200, body: { branches: [] } });
     expect(deps.operations.readBranches).toHaveBeenCalledWith(repo);
     expect(
+      await call(deps, "GET", "/api/repos/worktree-statuses?repo=acme/widgets"),
+    ).toEqual({ status: 200, body: { statuses: [] } });
+    expect(deps.operations.readWorktreeStatuses).toHaveBeenCalledWith(repo);
+    const watch = await call(
+      deps,
+      "GET",
+      "/api/repos/watch?repo=acme/widgets&worktree=/elsewhere/widgets-fix",
+    );
+    expect(watch?.status).toBe(200);
+    const stopWatch = watch?.events?.(() => undefined);
+    expect(deps.operations.watchCheckout).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mainCheckout: repo,
+        checkout: "/elsewhere/widgets-fix",
+      }),
+    );
+    stopWatch?.();
+    expect(
+      (
+        await call(
+          deps,
+          "GET",
+          "/api/repos/watch?repo=acme/widgets&worktree=/nope",
+        )
+      )?.status,
+    ).toBe(400);
+    expect(
       await call(deps, "GET", "/api/repos/pulls?repo=acme/widgets"),
     ).toEqual({ status: 200, body: { pullRequests: [] } });
     expect(deps.operations.fetchOpenPullRequests).toHaveBeenCalledWith(
@@ -401,11 +445,12 @@ describe("repos", () => {
         readBranches: vi.fn(
           async () =>
             ({
+              base: { name: "main" },
               branches: [
-                { name: "feat/merged" },
-                { name: "feat/reused" },
-                { name: "feat/open" },
-                { name: "feat/none" },
+                { name: "feat/merged", sha: "a1" },
+                { name: "feat/reused", sha: "b2" },
+                { name: "feat/open", sha: "c3" },
+                { name: "feat/none", sha: "d4" },
               ],
             }) as unknown as CheckoutBranchesResponse,
         ),
@@ -443,6 +488,13 @@ describe("repos", () => {
         { ownerRepo: "acme/widgets", headRef: "feat/none" },
       ]);
       expect(deps.operations.linkBranchPullRequests).toHaveBeenCalledTimes(2);
+      expect(deps.operations.linkBranchPullRequests).toHaveBeenCalledWith(
+        expect.objectContaining({
+          branch: "feat/merged",
+          tip: "a1",
+          defaultBranch: "main",
+        }),
+      );
       expect(answer).toEqual({
         status: 200,
         body: {
@@ -584,6 +636,60 @@ describe("repos", () => {
     expect(refusing.operations.completeWorktreeRemoval).not.toHaveBeenCalled();
   });
 
+  test("clones into a configured folder on a POST, then lists the folders again", async () => {
+    const deps = makeDeps();
+    expect(
+      await call(deps, "POST", "/api/repos/clone", {
+        ownerRepo: "acme/tools",
+        folder: checkouts,
+      }),
+    ).toEqual({
+      status: 200,
+      body: { ownerRepo: "acme/tools", path: join(checkouts, "tools") },
+    });
+    expect(deps.operations.cloneRepository).toHaveBeenCalledWith({
+      ownerRepo: "acme/tools",
+      target: join(checkouts, "tools"),
+    });
+    expect((await call(deps, "GET", "/api/repos/clone"))?.status).toBe(405);
+  });
+
+  test("refuses a clone outside repoPaths or over a directory, and answers gh's failure as a 400", async () => {
+    const deps = makeDeps();
+    expect(
+      (
+        await call(deps, "POST", "/api/repos/clone", {
+          ownerRepo: "acme/tools",
+          folder: root,
+        })
+      )?.status,
+    ).toBe(400);
+    expect(
+      (
+        await call(deps, "POST", "/api/repos/clone", {
+          ownerRepo: "acme/gadgets",
+          folder: checkouts,
+        })
+      )?.status,
+    ).toBe(400);
+    expect(deps.operations.cloneRepository).not.toHaveBeenCalled();
+
+    const failing = makeDeps({
+      cloneRepository: vi.fn(async () => {
+        throw new Error("gh repo clone acme/tools failed: not found");
+      }),
+    });
+    expect(
+      await call(failing, "POST", "/api/repos/clone", {
+        ownerRepo: "acme/tools",
+        folder: checkouts,
+      }),
+    ).toEqual({
+      status: 400,
+      body: { error: "gh repo clone acme/tools failed: not found" },
+    });
+  });
+
   test("refuses a bad scope or whitespace, and answers git's failure as a 400", async () => {
     const deps = makeDeps({
       readCheckoutBranchDiff: vi.fn(async () => {
@@ -609,6 +715,91 @@ describe("repos", () => {
       status: 400,
       body: { error: "neither origin/main nor main exists" },
     });
+  });
+});
+
+describe("checkout files", () => {
+  test("lists a worktree's files, and reads one within its main checkout's bounds", async () => {
+    const deps = makeDeps();
+    const worktree = "/elsewhere/widgets-fix";
+
+    expect(
+      await call(
+        deps,
+        "GET",
+        `/api/repos/files?repo=acme/widgets&worktree=${worktree}`,
+      ),
+    ).toEqual({
+      status: 200,
+      body: {
+        paths: ["a.ts", "src/b.ts"],
+        statuses: { "a.ts": "modified" },
+      },
+    });
+    expect(deps.operations.listCheckoutFiles).toHaveBeenCalledWith(worktree);
+
+    expect(
+      await call(
+        deps,
+        "GET",
+        `/api/repos/file?repo=acme/widgets&worktree=${worktree}&path=a.ts`,
+      ),
+    ).toEqual({ status: 200, body: { status: "text", source: "a" } });
+    expect(deps.operations.readCheckoutFile).toHaveBeenCalledWith(
+      { checkout: worktree, mainCheckout: repo },
+      "a.ts",
+    );
+  });
+
+  test("answers a refused path as a 400", async () => {
+    const deps = makeDeps({
+      readCheckoutFile: vi.fn(() => ({ refused: "x is inside .git" })),
+    });
+    expect(
+      await call(deps, "GET", "/api/repos/file?repo=acme/widgets&path=x"),
+    ).toEqual({ status: 400, body: { error: "x is inside .git" } });
+  });
+
+  test("reads the file as HEAD has it with at=head", async () => {
+    const deps = makeDeps();
+    expect(
+      await call(
+        deps,
+        "GET",
+        "/api/repos/file?repo=acme/widgets&path=a.ts&at=head",
+      ),
+    ).toEqual({ status: 200, body: { status: "text", source: "committed" } });
+    expect(deps.operations.readCheckoutFileAtHead).toHaveBeenCalledWith(
+      repo,
+      "a.ts",
+    );
+    expect(deps.operations.readCheckoutFile).not.toHaveBeenCalled();
+  });
+
+  test("saves on a PUT, and refuses a body without the opened text", async () => {
+    const deps = makeDeps();
+    expect(
+      await call(deps, "PUT", "/api/repos/file?repo=acme/widgets", {
+        path: "a.ts",
+        source: "b",
+        expectedSource: "a",
+      }),
+    ).toEqual({
+      status: 200,
+      body: { status: "saved", source: "b", warnings: [] },
+    });
+    expect(deps.operations.saveCheckoutFile).toHaveBeenCalledWith(
+      { checkout: repo, mainCheckout: repo },
+      { path: "a.ts", source: "b", expectedSource: "a" },
+    );
+    expect(
+      (
+        await call(deps, "PUT", "/api/repos/file?repo=acme/widgets", {
+          path: "a.ts",
+          source: "b",
+        })
+      )?.status,
+    ).toBe(400);
   });
 });
 

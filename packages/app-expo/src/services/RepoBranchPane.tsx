@@ -4,19 +4,15 @@ import type {
   DiffWhitespace,
 } from "@reviewflow/sdk";
 import type { CheckoutRead, CheckoutTab } from "@reviewflow/ui";
-import { CheckoutView, DiffSettingsProvider } from "@reviewflow/ui";
+import { CheckoutView } from "@reviewflow/ui";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
-import { ErrorMessage, IconButton, View } from "alouette";
-import { ArrowLeftRegularIcon } from "alouette-icons/phosphor-icons/ArrowLeft";
-import { useLocalSearchParams, useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import {
   BranchPullRequests,
   BranchPullRequestsNotice,
 } from "#/services/BranchPullRequests.tsx";
-import { useDiffPreferences } from "#/services/DiffPreferencesProvider.tsx";
 import type { CheckoutRef } from "#/services/reposApi.ts";
 import {
   invalidateBranchPulls,
@@ -26,9 +22,6 @@ import {
   useRepoCommits,
   useRepoDiff,
 } from "#/services/reposApi.ts";
-
-const first = (value: string[] | string | undefined): string | undefined =>
-  Array.isArray(value) ? value[0] : value;
 
 const readOf = <Value,>(query: UseQueryResult<Value>): CheckoutRead<Value> => ({
   value: query.data ?? null,
@@ -61,19 +54,28 @@ const statusOfBranch = (
   untracked: 0,
 });
 
-interface RepoBranchProps {
+interface RepoBranchPaneProps {
   ownerRepo: string;
   branchName: string;
   initialWhitespace: DiffWhitespace;
-  back: ReactNode;
+  /** before the title, e.g. a back button on a narrow screen */
+  headerStart?: ReactNode;
+  /** opens one of the branch's pull requests in place; its own screen unless set */
+  onOpenPullRequest?: (number: number) => void;
 }
 
-function RepoBranch({
+/**
+ * A local branch no worktree has out, read from the listed checkout: its
+ * commits since it left the default branch, its history, and its pull
+ * requests, merged and closed ones included.
+ */
+export function RepoBranchPane({
   ownerRepo,
   branchName,
   initialWhitespace,
-  back,
-}: RepoBranchProps): ReactNode {
+  headerStart,
+  onOpenPullRequest,
+}: RepoBranchPaneProps): ReactNode {
   const client = useQueryClient();
   const [tab, setTab] = useState<CheckoutTab>("branch");
   const [openSha, setOpenSha] = useState<string | null>(null);
@@ -118,9 +120,13 @@ function RepoBranch({
         onOpenChange: setOpenSha,
       }}
       whitespace={whitespace}
-      headerStart={back}
+      headerStart={headerStart}
       headerEnd={
-        <BranchPullRequests ownerRepo={ownerRepo} branch={branchName} />
+        <BranchPullRequests
+          ownerRepo={ownerRepo}
+          branch={branchName}
+          onOpen={onOpenPullRequest}
+        />
       }
       notices={
         <BranchPullRequestsNotice ownerRepo={ownerRepo} branch={branchName} />
@@ -135,64 +141,5 @@ function RepoBranch({
         setWhitespace(whitespace === "show" ? "hide" : "show");
       }}
     />
-  );
-}
-
-/**
- * A local branch no worktree has out, read from the listed checkout: its
- * commits since it left the default branch, its history, and its pull
- * requests, merged and closed ones included.
- */
-export default function BranchPage(): ReactNode {
-  const router = useRouter();
-  const params = useLocalSearchParams<{ repo?: string; branch?: string }>();
-  const ownerRepo = first(params.repo) ?? "";
-  const branchName = first(params.branch) ?? "";
-  const valid = /^[^/\s]+\/[^/\s]+$/.test(ownerRepo) && branchName !== "";
-  const { settings, loaded } = useDiffPreferences();
-
-  const back = (
-    <IconButton
-      icon={<ArrowLeftRegularIcon />}
-      size="sm"
-      aria-label={`Back to ${ownerRepo}`}
-      onPress={() => {
-        if (router.canGoBack()) router.back();
-        else router.replace({ pathname: "/repo", params: { repo: ownerRepo } });
-      }}
-    />
-  );
-
-  if (!valid) {
-    return (
-      <View className="mx-auto w-full max-w-[1200px] gap-m px-l pt-l">
-        <View className="flex-row">{back}</View>
-        <ErrorMessage>
-          This address is not a branch: it needs ?repo=owner/repo&branch=name.
-        </ErrorMessage>
-      </View>
-    );
-  }
-  // the whitespace preference is read once, when the screen mounts
-  if (!loaded) return null;
-
-  return (
-    <View className="mx-auto min-h-0 w-full max-w-[1800px] flex-1">
-      <DiffSettingsProvider
-        theme={settings.theme}
-        font={settings.font}
-        customFont={settings.customFont}
-        wordWrap={settings.wordWrap}
-      >
-        <RepoBranch
-          // another branch is another screen: its tab and open commit start over
-          key={`${ownerRepo}\n${branchName}`}
-          ownerRepo={ownerRepo}
-          branchName={branchName}
-          initialWhitespace={settings.hideWhitespace ? "hide" : "show"}
-          back={back}
-        />
-      </DiffSettingsProvider>
-    </View>
   );
 }

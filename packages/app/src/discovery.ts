@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { mkdir, rename, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join, relative, resolve, sep } from "node:path";
@@ -153,6 +153,35 @@ export const listCheckouts = async (
   };
 };
 
+/** `.git/config`'s mtime: the origin a check read changes only with it. */
+const gitConfigStamp = (path: string): number | null => {
+  try {
+    return statSync(join(path, ".git", "config")).mtimeMs;
+  } catch {
+    return null;
+  }
+};
+
+const passedChecks = new Map<string, number>();
+
+/**
+ * Every request names its checkout, and the check runs git: past checks are
+ * kept while `.git/config` is unchanged, so each read does not pay a git
+ * startup for it. A failed check is never kept.
+ */
+const checkCheckoutOnce = async (
+  ownerRepo: string,
+  path: string,
+): Promise<string | null> => {
+  const key = `${ownerRepo.toLowerCase()}\n${path}`;
+  const stamp = gitConfigStamp(path);
+  if (stamp !== null && passedChecks.get(key) === stamp) return null;
+  const problem = await checkCheckout(ownerRepo, path);
+  if (problem === null && stamp !== null) passedChecks.set(key, stamp);
+  else passedChecks.delete(key);
+  return problem;
+};
+
 /**
  * The listed checkout of `ownerRepo`, usable; refused otherwise. A route that
  * reads a checkout takes it from here, never from the request: no route
@@ -173,7 +202,7 @@ export const resolveListedCheckout = async (
       refused: `${ownerRepo} is neither configured nor a checkout found under repoPaths (refresh the list after a clone)`,
     };
   }
-  const problem = await checkCheckout(listed.ownerRepo, listed.path);
+  const problem = await checkCheckoutOnce(listed.ownerRepo, listed.path);
   return problem === null ? { checkout: listed.path } : { refused: problem };
 };
 

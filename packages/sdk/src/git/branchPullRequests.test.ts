@@ -156,6 +156,19 @@ describe("linkBranchPullRequests", () => {
     ).toEqual([]);
   });
 
+  it("reads a base by its exact name, never a branch below it", async () => {
+    repo = createGitRepo();
+    repo.git(["branch", "--quiet", "develop/1"]);
+    const head = createFeature(repo);
+    repo.git(["merge", "--quiet", "--no-ff", "-m", "merge", "feature"]);
+    recreateFeature(repo);
+    expect(
+      await linkedNumbers(repo, [
+        candidate({ sha: head, baseRefName: "develop" }),
+      ]),
+    ).toEqual([]);
+  });
+
   it("keeps their order and drops the commits from the answer", async () => {
     repo = createGitRepo();
     const tip = createFeature(repo);

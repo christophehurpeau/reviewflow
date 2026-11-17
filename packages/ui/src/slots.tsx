@@ -1,4 +1,4 @@
-import type { PrStatus } from "@reviewflow/sdk";
+import type { DiffRefusal, PrStatus } from "@reviewflow/sdk";
 import type { Accent } from "alouette";
 import type { ReactNode } from "react";
 import { createContext, use } from "react";
@@ -24,9 +24,13 @@ export interface PullRequestSlots {
   /**
    * The action beside "this repository has no usable checkout", in the
    * attachment banner and in the refused diff: a button to the screen where the
-   * checkout is configured. Absent: the message stands alone.
+   * checkout is configured, a clone when none is (`notConfigured`). Absent:
+   * the message stands alone.
    */
-  renderRepositoryAction?: (ownerRepo: string) => ReactNode;
+  renderRepositoryAction?: (
+    ownerRepo: string,
+    reason: RepositoryRefusalReason,
+  ) => ReactNode;
   /**
    * The status badge's accent, per status, over `prStatusAccents`: an app with
    * an accent of its own for one (a theme it generates beside alouette's, cast
@@ -34,6 +38,8 @@ export interface PullRequestSlots {
    */
   prStatusAccents?: Partial<Record<PrStatus, Accent | undefined>>;
 }
+
+export type RepositoryRefusalReason = DiffRefusal["reason"];
 
 const SlotsContext = createContext<PullRequestSlots>({});
 

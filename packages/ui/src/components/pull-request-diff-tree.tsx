@@ -2,6 +2,7 @@ import { getResolvedOrResolveTheme } from "@pierre/diffs";
 import type {
   FileTree as FileTreeModel,
   FileTreeRowDecoration,
+  GitStatus,
   GitStatusEntry,
 } from "@pierre/trees";
 import { themeToTreeStyles } from "@pierre/trees";
@@ -12,6 +13,10 @@ import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { DiffTheme } from "./branch-diff/diff-themes.ts";
 import { diffThemeNames } from "./branch-diff/diff-themes.ts";
+import {
+  goToFileShortcutLabel,
+  isGoToFileShortcut,
+} from "./go-to-file-shortcut.ts";
 import { omissionLabel } from "./omitted-files.tsx";
 import type { DiffTreeFile } from "./pull-request-diff-tree-files.ts";
 import { isOmittedFile } from "./pull-request-diff-tree-files.ts";
@@ -29,6 +34,23 @@ export interface PullRequestDiffTreeProps {
    * `onFilePress` again (a diff scrolled away from it goes back).
    */
   selectedPath?: string | null;
+  /**
+   * A checkout's files rather than a diff's (`CheckoutFileTree`): a file with
+   * no status is a plain file, not one left out, and the folders open closed —
+   * a whole repository opened at once is a wall of rows. Read at mount.
+   */
+  listing?: boolean;
+  /**
+   * With `listing`: each changed file's git state, by path, colored as the
+   * diff's statuses are, `untracked` included. A path absent is unchanged.
+   */
+  listingStatuses?: Readonly<Record<string, GitStatus>>;
+  /**
+   * ⌘P (Ctrl+P outside a Mac), anywhere on the page while the tree is
+   * mounted, opens its search to go to a file — the browser's Print is then
+   * not offered. Enter opens the highlighted match.
+   */
+  goToFileShortcut?: boolean;
 }
 
 interface DecorationData {
@@ -135,10 +157,18 @@ const useThemeGitColors = (themeName: string): CustomProperties => {
   return resolved?.themeName === themeName ? resolved.colors : {};
 };
 
-const gitStatusOf = (files: readonly DiffTreeFile[]): GitStatusEntry[] =>
-  files.flatMap(({ path, status }) =>
-    status === null ? [] : [{ path, status }],
-  );
+const gitStatusOf = (
+  files: readonly DiffTreeFile[],
+  listingStatuses: Readonly<Record<string, GitStatus>> | undefined,
+): GitStatusEntry[] =>
+  listingStatuses === undefined
+    ? files.flatMap(({ path, status }) =>
+        status === null ? [] : [{ path, status }],
+      )
+    : Object.entries(listingStatuses).map(([path, status]) => ({
+        path,
+        status,
+      }));
 
 const countsOf = ({
   additions,
@@ -207,13 +237,32 @@ const syncSelection = (
 };
 
 /**
+ * The search input lives in the tree's shadow root. Opening the search focuses
+ * it; an open one is focused here, its query selected to be typed over.
+ */
+const openSearch = (model: FileTreeModel): void => {
+  if (!model.isSearchOpen()) {
+    model.openSearch();
+    return;
+  }
+  const input = model
+    .getFileTreeContainer()
+    ?.shadowRoot?.querySelector<HTMLInputElement>(
+      "[data-file-tree-search-input]",
+    );
+  input?.focus();
+  input?.select();
+};
+
+/**
  * The range's files by folder, in `@pierre/trees`: searchable, virtualized,
  * each file's git status and viewed mark on its row. Web only (DOM in a shadow
  * root), loaded lazily as the diff viewer is.
  *
  * Fills its parent's width and height: the rows are virtualized, so the
- * parent needs a bounded height. No key is listened to outside the tree: its
- * keyboard navigation and search answer only while it has the focus.
+ * parent needs a bounded height. Unless `goToFileShortcut` is set, no key is
+ * listened to outside the tree: its keyboard navigation and search answer only
+ * while it has the focus.
  *
  * The model is created once and fed through its methods. Uncontrolled,
  * selecting a file scrolls the diff to it and is undone at once, so pressing
@@ -229,6 +278,9 @@ function PullRequestDiffTree({
   theme,
   onFilePress,
   selectedPath,
+  listing = false,
+  listingStatuses,
+  goToFileShortcut = false,
 }: PullRequestDiffTreeProps): ReactNode {
   const mode = useCurrentMode();
   const gitColors = useThemeGitColors(diffThemeNames(theme)[mode]);
@@ -240,11 +292,15 @@ function PullRequestDiffTree({
         `${status ?? "omitted"} ${omitted ?? ""} ${String(additions)} ${String(deletions)} ${path}`,
     ),
     ...viewedList,
+    ...Object.entries(listingStatuses ?? {}).map(
+      ([path, status]) => `${status} ${path}`,
+    ),
   ].join("\n");
   const viewedPaths = new Set(viewedList);
   const filesByPath = new Map(files.map((file) => [file.path, file]));
   const latest = useRef({
     files,
+    listingStatuses,
     onFilePress,
     viewedPaths,
     filesByPath,
@@ -258,14 +314,19 @@ function PullRequestDiffTree({
   const { model } = useFileTree({
     paths,
     flattenEmptyDirectories: true,
-    initialExpansion: "open",
+    initialExpansion: listing ? "closed" : "open",
     density: "compact",
     icons: { set: "standard", colored: false },
     search: true,
     fileTreeSearchMode: "hide-non-matches",
-    gitStatus: gitStatusOf(files),
+    labels: goToFileShortcut
+      ? { searchPlaceholder: `Go to file (${goToFileShortcutLabel})` }
+      : undefined,
+    gitStatus: gitStatusOf(files, listingStatuses),
     renderRowDecoration: ({ item }) =>
-      item.kind === "file" ? decorationOf(item.path, latest.current) : null,
+      item.kind === "file" && !listing
+        ? decorationOf(item.path, latest.current)
+        : null,
     onSelectionChange: (selected) => {
       if (syncing.current) return;
       const path = selected.at(-1);
@@ -302,6 +363,7 @@ function PullRequestDiffTree({
     modelRef.current = model;
     latest.current = {
       files,
+      listingStatuses,
       onFilePress,
       viewedPaths,
       filesByPath,
@@ -316,7 +378,7 @@ function PullRequestDiffTree({
       appliedPathsKey.current = pathsKey;
       model.resetPaths(current.map(({ path }) => path));
     }
-    model.setGitStatus(gitStatusOf(current));
+    model.setGitStatus(gitStatusOf(current, latest.current.listingStatuses));
     // a reset may drop the selected row: it is selected again once it is back
     syncSelection(model, latest.current.selectedPath, syncing);
   }, [model, pathsKey, repaintKey]);
@@ -324,6 +386,21 @@ function PullRequestDiffTree({
   useEffect(() => {
     syncSelection(model, selectedPath, syncing);
   }, [model, selectedPath]);
+
+  useEffect(() => {
+    if (!goToFileShortcut) return undefined;
+    // capture: ahead of the code editor's keymap, whichever element has the focus
+    const listener = (event: KeyboardEvent): void => {
+      if (!isGoToFileShortcut(event)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      openSearch(model);
+    };
+    window.addEventListener("keydown", listener, true);
+    return () => {
+      window.removeEventListener("keydown", listener, true);
+    };
+  }, [model, goToFileShortcut]);
 
   return (
     <CapturedAccent accent="brand">

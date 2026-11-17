@@ -2,6 +2,7 @@
  * Browser-safe surface: nothing here may import node. Reading a diff from a
  * local checkout is `@reviewflow/sdk/git`, which is node only.
  */
+export type * from "./checkout/files.ts";
 export * from "./checkout/overview.ts";
 export * from "./checkout/sync.ts";
 export * from "./checkout/worktreeRemoval.ts";

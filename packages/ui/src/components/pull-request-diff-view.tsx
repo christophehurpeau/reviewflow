@@ -136,7 +136,7 @@ export function DiffRefused({
 }): ReactNode {
   const { reason, ownerRepo, configPath, detail } = refused;
   const { renderRepositoryAction } = usePullRequestSlots();
-  const shownAction = action ?? renderRepositoryAction?.(ownerRepo);
+  const shownAction = action ?? renderRepositoryAction?.(ownerRepo, reason);
   return (
     <WarningMessage>
       <View className="gap-xs">

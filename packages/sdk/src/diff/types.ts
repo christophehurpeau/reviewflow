@@ -139,6 +139,19 @@ export interface RepoPathSuggestionsResponse {
   suggestions: RepoPathSuggestion[];
 }
 
+/** `POST /api/repos/clone`: clones `ownerRepo` into `<folder>/<repo>` */
+export interface CloneRepositoryRequest {
+  ownerRepo: string;
+  /** one of `CheckoutReposResponse.repoPaths`, as listed: any other folder is refused */
+  folder: string;
+}
+
+/** Answered once the clone is done and listed. */
+export interface CloneRepositoryResponse {
+  ownerRepo: string;
+  path: string;
+}
+
 /** A commit of a checkout, as git has it: the author is git's name, with no avatar. */
 export interface CheckoutCommit extends PullRequestCommit {
   /** since the branch left its base: what the branch's diff carries */
