@@ -40,6 +40,7 @@ export const prsPerBranch = 5;
  */
 export const prFields = `fragment prFields on PullRequest {
   number
+  title
   state
   isDraft
   reviewDecision
@@ -126,6 +127,7 @@ interface GhCountByState {
 
 export interface GhPullRequest {
   number: number;
+  title: string;
   state: string;
   isDraft: boolean;
   reviewDecision: string | null;
@@ -267,6 +269,7 @@ const mergeables = new Map<string, PrMergeable>([
 export interface FetchedPr extends CheckCounts {
   target: PrQueryTarget;
   number: number;
+  title: string;
   state: PrState;
   reviewDecision: PrReviewDecision;
   mergeable: PrMergeable;
@@ -289,6 +292,7 @@ export const toFetchedPr = (
   return {
     target,
     number: pullRequest.number,
+    title: pullRequest.title,
     state,
     reviewDecision: toReviewDecision(pullRequest),
     mergeable: mergeables.get(pullRequest.mergeable) ?? "unknown",

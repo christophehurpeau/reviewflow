@@ -17,6 +17,7 @@ interface CountByState {
 
 const pullRequest = ({
   number = 7,
+  title = "feat: add the thing",
   state = "OPEN",
   isDraft = false,
   reviewDecision = null,
@@ -31,6 +32,7 @@ const pullRequest = ({
   rollup = true,
 }: {
   number?: number;
+  title?: string;
   state?: string;
   isDraft?: boolean;
   reviewDecision?: string | null;
@@ -45,6 +47,7 @@ const pullRequest = ({
   rollup?: boolean;
 } = {}): unknown => ({
   number,
+  title,
   state,
   isDraft,
   reviewDecision,
@@ -253,6 +256,12 @@ describe("parsePrQueryResponse", () => {
     expect(parseOne(pullRequest({ mergeable: "UNKNOWN" }))[0]?.mergeable).toBe(
       "unknown",
     );
+  });
+
+  it("keeps the title", () => {
+    expect(
+      parseOne(pullRequest({ title: "fix: the thing GEN-1234" }))[0]?.title,
+    ).toBe("fix: the thing GEN-1234");
   });
 
   /** What the branch diff is taken against when it is not the repo's default. */
