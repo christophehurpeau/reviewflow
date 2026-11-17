@@ -103,7 +103,7 @@
     "react-native-safe-area-context": "5.8.0",
     "react-native-svg": "15.15.5",
     "shiki": "4.6.0",
-    "storybook": "10.6.6",
+    "storybook": "10.6.7",
     "typescript": "npm:@typescript/typescript6@6.0.2"
   },
   "peerDependencies": {
