@@ -32,8 +32,8 @@
     "watch": "pnpm -r --parallel --filter \"!*-example\" run watch"
   },
   "devDependencies": {
-    "@pob/eslint-config": "68.4.0",
-    "@pob/eslint-config-typescript-react": "68.5.0",
+    "@pob/eslint-config": "68.5.0",
+    "@pob/eslint-config-typescript-react": "68.6.1",
     "@pob/root": "28.7.0",
     "@typescript/native": "npm:typescript@7.0.2",
     "@vitest/coverage-v8": "5.1.0",

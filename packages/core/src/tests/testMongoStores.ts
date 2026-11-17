@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import type { MongoConnection } from "liwi-mongo";
 import { inject } from "vitest";
+import type { MongoConnection } from "liwi-mongo";
 import init from "../mongo.ts";
 import type { MongoStores } from "../mongo.ts";
 
