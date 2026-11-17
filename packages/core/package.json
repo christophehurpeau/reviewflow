@@ -38,10 +38,8 @@
     "lint:eslint": "pnpm --dir '../..' exec eslint --quiet 'packages/core'",
     "lint:oxlint": "pnpm --dir '../..' exec oxlint --quiet 'packages/core'",
     "start": "pnpm run clean:build && rollup --config rollup.config.mjs --watch",
-    "test": "pnpm run --dir '../..' test -- 'packages/core'",
     "tsc": "tsrs",
-    "tsc:go": "tsc",
-    "watch": "pnpm run clean:build && rollup --config rollup.config.mjs --watch"
+    "tsc:go": "tsc"
   },
   "dependencies": {
     "@reviewflow/modules": "workspace:*",
@@ -57,7 +55,7 @@
   },
   "devDependencies": {
     "@octokit/rest": "22.0.1",
-    "@pob/rollup-esbuild": "11.5.0",
+    "@pob/rollup-esbuild": "11.5.1",
     "@slack/web-api": "8.0.0",
     "@types/node": "24.12.4",
     "@typescript/native": "npm:typescript@7.0.2",

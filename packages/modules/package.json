@@ -38,15 +38,14 @@
     "lint:oxlint": "pnpm --dir '../..' exec oxlint --quiet 'packages/modules'",
     "start": "pnpm run clean:build && rollup --config rollup.config.mjs --watch",
     "tsc": "tsrs",
-    "tsc:go": "tsc",
-    "watch": "pnpm run clean:build && rollup --config rollup.config.mjs --watch"
+    "tsc:go": "tsc"
   },
   "dependencies": {
     "liwi-mongo": "15.2.0",
     "liwi-resources-client": "15.2.0"
   },
   "devDependencies": {
-    "@pob/rollup-esbuild": "11.5.0",
+    "@pob/rollup-esbuild": "11.5.1",
     "@typescript/native": "npm:typescript@7.0.2",
     "tsrs": "0.25.0-ts7.1.0-beta",
     "typescript": "npm:@typescript/typescript6@6.0.2"
