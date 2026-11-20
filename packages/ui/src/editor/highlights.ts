@@ -24,7 +24,7 @@ export interface EditorTextSelection {
   text: string;
 }
 
-interface HighlightsValue {
+export interface HighlightsValue {
   highlights: readonly EditorHighlight[];
   activeId: string | null;
 }

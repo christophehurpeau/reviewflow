@@ -1,8 +1,12 @@
 import { StateEffect } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import type { ReactNode } from "react";
-import { useEffect, useEffectEvent, useRef, useState } from "react";
-import type { EditorHighlight, EditorTextSelection } from "./highlights.ts";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import type {
+  EditorHighlight,
+  EditorTextSelection,
+  HighlightsValue,
+} from "./highlights.ts";
 import { highlightExtension, setHighlights } from "./highlights.ts";
 
 /**
@@ -93,21 +97,45 @@ const place = (
 };
 
 /**
+ * The caller's passages, kept by content: a caller building the array on each
+ * render must not rebuild the decorations on each render. The editor sets them
+ * in the same transaction as a new `value`, since they are offsets in that
+ * text: mapped through the diff, or set over the previous text, they would
+ * mark the wrong words.
+ */
+export const useHighlightsValue = ({
+  highlights,
+  activeHighlightId = null,
+}: EditorAnnotationProps): HighlightsValue => {
+  const highlightsKey = JSON.stringify(highlights ?? []);
+  const stableHighlights = useMemo(
+    () => JSON.parse(highlightsKey) as EditorHighlight[],
+    [highlightsKey],
+  );
+  return useMemo(
+    () => ({ highlights: stableHighlights, activeId: activeHighlightId }),
+    [stableHighlights, activeHighlightId],
+  );
+};
+
+/**
  * Marks, selection and the selection's bubble on `view`, the editor's live
  * view (`null` until it is mounted, and again while it is remounted). It adds
  * its own CodeMirror extension to the view rather than asking the editor to
  * build it in, so every callback runs from an effect. Returns the bubble, to
  * render inside the editor's frame, which is its positioned ancestor.
+ *
+ * Called after the editor's effect syncing `value`, so `highlightsValue` is
+ * set over the text it goes with.
  */
 export function useEditorAnnotations(
   {
-    highlights,
-    activeHighlightId = null,
     onHighlightPress,
     onHighlightsChange,
     onSelectionChange,
     renderSelectionAction,
   }: EditorAnnotationProps,
+  highlightsValue: HighlightsValue,
   view: EditorView | null,
 ): ReactNode {
   const [placed, setPlaced] = useState<PlacedSelection | null>(null);
@@ -186,32 +214,25 @@ export function useEditorAnnotations(
     };
   }, [view]);
 
-  // by content: a caller building the array on each render must not rebuild
-  // the decorations on each render
-  const highlightsKey = JSON.stringify(highlights ?? []);
-  const readHighlights = useEffectEvent(() => ({
-    highlights: highlights ?? [],
-    activeId: activeHighlightId,
-  }));
   const shownActive = useRef<{ view: EditorView | null; id: string | null }>({
     view: null,
     id: null,
   });
   useEffect(() => {
     if (view === null) return;
-    const value = readHighlights();
-    const effects: StateEffect<unknown>[] = [setHighlights.of(value)];
+    const { highlights, activeId } = highlightsValue;
+    const effects: StateEffect<unknown>[] = [setHighlights.of(highlightsValue)];
     // scrolled to when it changes, not when a remounted view first shows it
     const shown = shownActive.current;
-    if (shown.view === view && value.activeId !== shown.id) {
-      const active = value.highlights.find(({ id }) => id === value.activeId);
+    if (shown.view === view && activeId !== shown.id) {
+      const active = highlights.find(({ id }) => id === activeId);
       if (active !== undefined && active.to <= view.state.doc.length) {
         effects.push(EditorView.scrollIntoView(active.from, { y: "center" }));
       }
     }
-    shownActive.current = { view, id: value.activeId };
+    shownActive.current = { view, id: activeId };
     view.dispatch({ effects });
-  }, [view, highlightsKey, activeHighlightId]);
+  }, [view, highlightsValue]);
 
   if (placed === null || renderSelectionAction === undefined) return null;
   return (

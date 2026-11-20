@@ -26,8 +26,12 @@ import {
   markdownEditorExtensions,
   saveShortcut,
 } from "./extensions.ts";
+import { setHighlights } from "./highlights.ts";
 import type { EditorAnnotationProps } from "./useEditorAnnotations.tsx";
-import { useEditorAnnotations } from "./useEditorAnnotations.tsx";
+import {
+  useEditorAnnotations,
+  useHighlightsValue,
+} from "./useEditorAnnotations.tsx";
 import "./markdown-editor.css";
 import "./code-token-colors.css";
 
@@ -236,7 +240,7 @@ export function MarkdownEditor({
   const viewRef = useRef<EditorView | null>(null);
   // the view as state too, for the annotations to attach to once it exists
   const [mountedView, setMountedView] = useState<EditorView | null>(null);
-  const selectionAction = useEditorAnnotations(annotationProps, mountedView);
+  const highlightsValue = useHighlightsValue(annotationProps);
   const emitChange = useEffectEvent((next: string) => onChange?.(next));
   const emitSave = useEffectEvent((): boolean => {
     if (onSaveShortcut === undefined) return false;
@@ -287,8 +291,18 @@ export function MarkdownEditor({
     if (view === null) return;
     const changes = changeBetween(view.state.doc.toString(), value);
     if (changes === null) return;
-    view.dispatch({ changes, annotations: externalUpdate.of(true) });
-  }, [value]);
+    view.dispatch({
+      changes,
+      annotations: externalUpdate.of(true),
+      effects: setHighlights.of(highlightsValue),
+    });
+  }, [value, highlightsValue]);
+
+  const selectionAction = useEditorAnnotations(
+    annotationProps,
+    highlightsValue,
+    mountedView,
+  );
 
   const columnClassName = [
     "gap-xs",

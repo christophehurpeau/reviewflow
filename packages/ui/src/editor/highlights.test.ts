@@ -66,6 +66,17 @@ describe("highlights", () => {
     expect(highlightsOf(state)).toEqual([{ id: "b", from: 0, to: 3 }]);
   });
 
+  it("sets passages over the new text when they come with it", () => {
+    const state = withHighlights([hello]).update({
+      changes: { from: doc.length, insert: " Then ships." },
+      effects: setHighlights.of({
+        highlights: [{ id: "c", from: 49, to: 54 }],
+        activeId: null,
+      }),
+    }).state;
+    expect(marks(state)).toEqual([{ text: "ships", class: "cm-highlight" }]);
+  });
+
   it("follows the text typed before, inside and after a passage", () => {
     const state = withHighlights([hello]);
     const before = state.update({ changes: { from: 0, insert: "So: " } }).state;
