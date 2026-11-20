@@ -81,9 +81,12 @@ jobs:
       - name: Build
         run: pnpm run build
 
-      # the webapp storybook project renders its stories in a real browser
+      # the webapp storybook project renders its stories in a real browser.
+      # Headless only, so the headless shell is enough. No --with-deps: the
+      # runner image already has chromium's system libs, and the extra fonts it
+      # adds come from the ubuntu mirror (minutes when slow) for no screenshot test.
       - name: Install Playwright chromium
-        run: pnpm --filter @reviewflow/webapp exec playwright install --with-deps chromium
+        run: pnpm --filter @reviewflow/webapp exec playwright install --only-shell chromium
 
       # tests start a real mongod through mongodb-memory-server, which downloads
       # the binary on first use (version pinned in scripts/vitestMongoGlobalSetup.ts)
