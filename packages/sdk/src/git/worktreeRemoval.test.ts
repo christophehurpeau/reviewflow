@@ -12,7 +12,9 @@ import type { GitRepoFixture } from "./test/gitRepo.ts";
 import { createGitRepo } from "./test/gitRepo.ts";
 import {
   completeWorktreeRemoval,
-  countProcessesInside,
+  launcherOf,
+  listProcessesInside,
+  parseProcessTable,
   prepareWorktreeRemoval,
   readWorktreeRemovalStatus,
 } from "./worktreeRemoval.ts";
@@ -51,7 +53,7 @@ describe("readWorktreeRemovalStatus", () => {
       untracked: 0,
       unpushedCommits: 0,
       lock: null,
-      processesInside: expect.any(Number),
+      processesInside: expect.any(Array),
       localOnlyIgnored: [],
     });
   });
@@ -157,22 +159,80 @@ describe("readWorktreeRemovalStatus", () => {
   });
 });
 
-describe("countProcessesInside", () => {
-  it("counts a process whose working directory is inside", async () => {
+describe("listProcessesInside", () => {
+  it("names a process whose working directory is inside", async () => {
     const worktree = addWorktree("linked", "feat");
-    const before = await countProcessesInside(worktree);
+    const before = await listProcessesInside(worktree);
     const child = spawn("sleep", ["30"], { cwd: worktree });
     try {
       // lsof sees the child once it has started
       await new Promise((resolve) => {
         child.once("spawn", resolve);
       });
-      const during = await countProcessesInside(worktree);
-      expect(before).toBe(0);
-      expect(during).toBe(1);
+      const during = await listProcessesInside(worktree);
+      expect(before).toEqual([]);
+      // launchedBy is whatever runs the suite: a terminal app, tmux or ci
+      expect(during).toHaveLength(1);
+      expect(during?.[0]).toMatchObject({
+        pid: child.pid,
+        command: "sleep 30",
+        startedAt: expect.any(String),
+      });
+      const startedAgo = Date.now() - Date.parse(during?.[0]?.startedAt ?? "");
+      expect(startedAgo).toBeGreaterThanOrEqual(0);
+      expect(startedAgo).toBeLessThan(60_000);
     } finally {
       child.kill();
     }
+  });
+});
+
+/** Read from a mac whose iTerm2 restored its tabs after a reboot. */
+const psTable = `
+    1     0 02-04:02:34 /sbin/launchd
+  774     1 02-04:01:35 /Applications/iTerm.app/Contents/MacOS/iTerm2
+ 1161   774 02-04:01:13 /Users/me/Library/Application Support/iTerm2/iTermServer-3.7.7
+ 1171  1161 02-04:01:13 /usr/bin/login
+ 1172  1171 02-04:01:13 -zsh
+34753  1172    05:42:31 caffeinate
+ 2166     1 02-04:00:22 /Applications/Visual Studio Code.app/Contents/MacOS/Code
+ 2190  2166    01:00:00 /Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Plugin).app/Contents/MacOS/Code Helper (Plugin)
+ 2200  2190       00:07 /bin/zsh
+ 3000     1 01:00:00 tmux
+ 3001  3000       12:00 -zsh
+`;
+
+describe("parseProcessTable", () => {
+  it("reads the parent, the elapsed time in every etime form and a path with spaces", () => {
+    const table = parseProcessTable(psTable);
+    expect(table.get(1161)).toEqual({
+      parentPid: 774,
+      elapsedSeconds: ((2 * 24 + 4) * 60 + 1) * 60 + 13,
+      executable:
+        "/Users/me/Library/Application Support/iTerm2/iTermServer-3.7.7",
+    });
+    expect(table.get(34_753)?.elapsedSeconds).toBe((5 * 60 + 42) * 60 + 31);
+    expect(table.get(2200)?.elapsedSeconds).toBe(7);
+    expect(table.get(3000)?.elapsedSeconds).toBe(3600);
+  });
+});
+
+describe("launcherOf", () => {
+  const table = parseProcessTable(psTable);
+
+  it("names the first app bundle up the parent chain", () => {
+    expect(launcherOf(table, 1172)).toBe("iTerm");
+    expect(launcherOf(table, 34_753)).toBe("iTerm");
+    expect(launcherOf(table, 2200)).toBe("Visual Studio Code");
+  });
+
+  it("names the root of the tree when no app bundle is in it", () => {
+    expect(launcherOf(table, 3001)).toBe("tmux");
+  });
+
+  it("names nothing for a child of init or an unknown process", () => {
+    expect(launcherOf(table, 3000)).toBeNull();
+    expect(launcherOf(table, 99_999)).toBeNull();
   });
 });
 

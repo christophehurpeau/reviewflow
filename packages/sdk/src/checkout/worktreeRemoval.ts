@@ -34,7 +34,7 @@ export interface WorktreeRemovalStatus {
    * that would lose the ground under it. Null when it cannot be told (no
    * `lsof`), which refuses nothing.
    */
-  processesInside: number | null;
+  processesInside: ProcessInside[] | null;
   /**
    * Ignored paths, relative to the worktree, not symlinks, that the main
    * checkout does not have: `git worktree remove` deletes them without asking
@@ -43,6 +43,22 @@ export interface WorktreeRemovalStatus {
    * then the regenerable directories, each group by path.
    */
   localOnlyIgnored: LocalOnlyIgnored[];
+}
+
+/** Named so the reader can tell which window or tab to close. */
+export interface ProcessInside {
+  pid: number;
+  /** its command line; the bare process name when the process table could not be read */
+  command: string;
+  /** ISO, to the second; null when the process table could not be read */
+  startedAt: string | null;
+  /**
+   * The application it was started from, read up its parent chain: the first
+   * ancestor run from a macOS `.app` bundle ("iTerm", "Visual Studio Code"),
+   * else the root of its tree ("tmux" for a detached session's shell). Null
+   * when its parent is the init process, or unknown.
+   */
+  launchedBy: string | null;
 }
 
 export interface LocalOnlyIgnoredFile {
@@ -119,7 +135,7 @@ export const worktreeRemovalRefusals = (
     dirtyRefusal(status),
     unpushedRefusal(status.unpushedCommits),
     lockRefusal(status.lock),
-    processesRefusal(status.processesInside),
+    processesRefusal(status.processesInside?.length ?? null),
   ].filter((refusal) => refusal !== null);
 };
 

@@ -60,7 +60,7 @@ export {
 export type { ReadBranchesParams } from "./git/checkoutBranches.ts";
 export {
   completeWorktreeRemoval,
-  countProcessesInside,
+  listProcessesInside,
   prepareWorktreeRemoval,
   readWorktreeRemovalStatus,
 } from "./git/worktreeRemoval.ts";

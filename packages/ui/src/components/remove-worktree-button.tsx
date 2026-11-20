@@ -1,9 +1,14 @@
 import type {
   LocalOnlyIgnored,
+  ProcessInside,
   WorktreeRemovalResult,
   WorktreeRemovalStatus,
 } from "@reviewflow/sdk";
-import { pluralOf, worktreeRemovalRefusals } from "@reviewflow/sdk";
+import {
+  formatRelativeDate,
+  pluralOf,
+  worktreeRemovalRefusals,
+} from "@reviewflow/sdk";
 import {
   Button,
   Checkbox,
@@ -20,6 +25,49 @@ import { useRef, useState } from "react";
 import { errorToMessage } from "../services/errorToMessage.ts";
 
 const visibleIgnored = 10;
+const visibleProcesses = 10;
+
+interface ProcessEntryProps {
+  process: ProcessInside;
+}
+
+function ProcessEntry({ process }: ProcessEntryProps): ReactNode {
+  const details = [
+    process.launchedBy === null ? null : `from ${process.launchedBy}`,
+    `pid ${String(process.pid)}`,
+    process.startedAt === null
+      ? null
+      : `started ${formatRelativeDate(process.startedAt)}`,
+  ].filter((detail) => detail !== null);
+  return (
+    <View className="flex-row flex-wrap items-center gap-xs">
+      <Code>{process.command}</Code>
+      <Text className="text-sm text-muted">{details.join(", ")}</Text>
+    </View>
+  );
+}
+
+export interface ProcessesInsideProps {
+  processes: ProcessInside[] | null;
+}
+
+/** Names what the processes refusal counts, so the reader knows which window or tab to close. */
+export function ProcessesInside({
+  processes,
+}: ProcessesInsideProps): ReactNode {
+  if (processes === null || processes.length === 0) return null;
+  const hidden = processes.length - visibleProcesses;
+  return (
+    <View className="gap-xxs">
+      {processes.slice(0, visibleProcesses).map((process) => (
+        <ProcessEntry key={process.pid} process={process} />
+      ))}
+      {hidden > 0 ? (
+        <Text className="text-sm text-muted">{`and ${String(hidden)} more`}</Text>
+      ) : null}
+    </View>
+  );
+}
 
 interface IgnoredEntryProps {
   entry: LocalOnlyIgnored;
@@ -89,7 +137,7 @@ export interface WorktreeRemovalMessagesProps {
   check: WorktreeRemovalCheck;
 }
 
-/** Every refusal, or the all-clear; the notice; then the ignored files the removal takes. */
+/** Every refusal, or the all-clear; the processes inside; the notice; then the ignored files the removal takes. */
 export function WorktreeRemovalMessages({
   check,
 }: WorktreeRemovalMessagesProps): ReactNode {
@@ -107,6 +155,7 @@ export function WorktreeRemovalMessages({
           request, and nothing runs inside.
         </ConfirmationMessage>
       ) : null}
+      <ProcessesInside processes={check.status.processesInside} />
       {check.notice === null ? null : (
         <Text className="text-sm text-muted">{check.notice}</Text>
       )}
@@ -220,13 +269,13 @@ export function RemoveWorktreeButton({
     pickedDeleteBranch ?? (branch !== null && check?.branchSpent === true);
   const offersCloseProcesses =
     closeProcessesOption !== undefined &&
-    (check?.status.processesInside ?? 0) > 0;
+    (check?.status.processesInside?.length ?? 0) > 0;
   const closeProcesses = offersCloseProcesses && pickedCloseProcesses;
   // the host ends them before its server reads the status again, so only the other refusals count here
   const removable =
     check !== null &&
     worktreeRemovalRefusals(
-      closeProcesses ? { ...check.status, processesInside: 0 } : check.status,
+      closeProcesses ? { ...check.status, processesInside: [] } : check.status,
     ).length === 0;
 
   const open = (): void => {

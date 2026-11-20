@@ -67,6 +67,7 @@ export { RepoSidebar } from "./components/repo-sidebar.tsx";
 export type {
   CloseProcessesOption,
   IgnoredFilesProps,
+  ProcessesInsideProps,
   RemoveWorktreeButtonProps,
   RemoveWorktreeOptions,
   WorktreeRemovalCheck,
@@ -74,6 +75,7 @@ export type {
 } from "./components/remove-worktree-button.tsx";
 export {
   IgnoredFiles,
+  ProcessesInside,
   RemoveWorktreeButton,
   WorktreeRemovalMessages,
 } from "./components/remove-worktree-button.tsx";

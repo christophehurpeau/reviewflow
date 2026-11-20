@@ -16,7 +16,7 @@ const status = (
   untracked: 0,
   unpushedCommits: 0,
   lock: null,
-  processesInside: 0,
+  processesInside: [],
   localOnlyIgnored: [],
   ...overrides,
 });
@@ -48,7 +48,14 @@ describe("worktreeRemovalRefusals", () => {
           untracked: 2,
           unpushedCommits: 3,
           lock: "",
-          processesInside: 1,
+          processesInside: [
+            {
+              pid: 1172,
+              command: "-zsh",
+              startedAt: "2026-11-18T09:43:40.000Z",
+              launchedBy: "iTerm",
+            },
+          ],
         }),
       ),
     ).toEqual([

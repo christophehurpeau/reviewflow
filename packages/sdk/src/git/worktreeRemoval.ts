@@ -1,11 +1,12 @@
 import { execFile } from "node:child_process";
 import { existsSync, realpathSync } from "node:fs";
 import { lstat, readdir } from "node:fs/promises";
-import { dirname, isAbsolute, join, relative, sep } from "node:path";
+import { basename, dirname, isAbsolute, join, relative, sep } from "node:path";
 import { pid } from "node:process";
 import { promisify } from "node:util";
 import type {
   LocalOnlyIgnored,
+  ProcessInside,
   WorktreeRemovalResult,
   WorktreeRemovalStatus,
 } from "../checkout/worktreeRemoval.ts";
@@ -114,19 +115,18 @@ const readLock = async (worktree: string): Promise<string | null> => {
 };
 
 /**
- * `lsof -d cwd` lists every process's working directory in one call. It exits
- * 1 with a partial listing when some processes cannot be read, which is still
- * an answer; without `lsof` at all nothing can be told, and null refuses
- * nothing. This server's own process is not counted.
+ * `lsof` and `ps` exit 1 with a partial listing when some processes cannot be
+ * read or have ended, which is still an answer.
  */
-export const countProcessesInside = async (
-  directory: string,
-): Promise<number | null> => {
-  const stdout = await execFileAsync("lsof", ["-n", "-d", "cwd", "-F", "pn"], {
+const runForAnswer = async (
+  command: string,
+  args: string[],
+): Promise<string | null> =>
+  execFileAsync(command, args, {
     timeout: 10_000,
     maxBuffer: 16 * 1024 * 1024,
   }).then(
-    ({ stdout: answer }) => answer,
+    ({ stdout }) => stdout,
     (error: unknown) => {
       if (
         typeof error === "object" &&
@@ -140,21 +140,151 @@ export const countProcessesInside = async (
       return null;
     },
   );
-  if (stdout === null) return null;
-  const root = realpathOrSelf(directory);
-  const inside = new Set<string>();
-  let processId = "";
+
+export interface ProcessRow {
+  parentPid: number;
+  elapsedSeconds: number;
+  /** a full path on macOS, the name alone on linux */
+  executable: string;
+}
+
+/** `pid ppid etime comm`, etime being `[[dd-]hh:]mm:ss` */
+const processRowPattern =
+  /^\s*(\d+)\s+(\d+)\s+(?:(\d+)-)?(?:(\d+):)?(\d+):(\d+) +(\S.*)$/;
+
+/** Parses `ps -A -o pid=,ppid=,etime=,comm=`. */
+export const parseProcessTable = (stdout: string): Map<number, ProcessRow> => {
+  const table = new Map<number, ProcessRow>();
   for (const line of stdout.split("\n")) {
-    if (line.startsWith("p")) processId = line.slice(1);
-    else if (
-      line.startsWith("n") &&
-      processId !== String(pid) &&
-      isInsideDirectory(root, line.slice(1))
-    ) {
-      inside.add(processId);
+    const match = processRowPattern.exec(line);
+    if (match === null) continue;
+    const days = Number(match[3] ?? 0);
+    const hours = Number(match[4] ?? 0);
+    const minutes = Number(match[5]);
+    const seconds = Number(match[6]);
+    table.set(Number(match[1]), {
+      parentPid: Number(match[2]),
+      elapsedSeconds: ((days * 24 + hours) * 60 + minutes) * 60 + seconds,
+      executable: (match[7] ?? "").trim(),
+    });
+  }
+  return table;
+};
+
+const appBundlePattern = /\/([^/]+)\.app\//;
+
+/** A login shell is listed as `-zsh`. */
+const processName = (executable: string): string =>
+  basename(executable).replace(/^-/, "");
+
+/**
+ * The first ancestor run from a `.app` bundle, else the root of the tree under
+ * the init process: a terminal app's shells go through `login` and a helper
+ * before reaching the app, and a tmux server is re-parented to init.
+ */
+export const launcherOf = (
+  table: Map<number, ProcessRow>,
+  processId: number,
+): string | null => {
+  const visited = new Set([processId]);
+  let root: ProcessRow | null = null;
+  let parentPid = table.get(processId)?.parentPid;
+  while (parentPid !== undefined && parentPid > 1 && !visited.has(parentPid)) {
+    const parent = table.get(parentPid);
+    if (parent === undefined) break;
+    const app = appBundlePattern.exec(parent.executable)?.[1];
+    if (app !== undefined) return app;
+    visited.add(parentPid);
+    root = parent;
+    parentPid = parent.parentPid;
+  }
+  return root === null ? null : processName(root.executable);
+};
+
+const readProcessTable = async (): Promise<Map<number, ProcessRow> | null> => {
+  const stdout = await runForAnswer("ps", [
+    "-A",
+    "-o",
+    "pid=,ppid=,etime=,comm=",
+  ]);
+  return stdout === null ? null : parseProcessTable(stdout);
+};
+
+const commandLinePattern = /^\s*(\d+) +(\S.*)$/;
+
+const readCommandLines = async (
+  processIds: number[],
+): Promise<Map<number, string>> => {
+  const stdout = await runForAnswer("ps", [
+    "-o",
+    "pid=,args=",
+    "-p",
+    processIds.join(","),
+  ]);
+  const commandLines = new Map<number, string>();
+  for (const line of stdout?.split("\n") ?? []) {
+    const match = commandLinePattern.exec(line);
+    if (match?.[2] !== undefined) {
+      commandLines.set(Number(match[1]), match[2].trim());
     }
   }
-  return inside.size;
+  return commandLines;
+};
+
+/**
+ * `lsof -d cwd` lists every process's working directory in one call; without
+ * `lsof` at all nothing can be told, and null refuses nothing. This server's
+ * own process is not listed. `ps` then names each one; a process that ended
+ * in between is dropped, and without `ps` the bare names `lsof` gave are kept.
+ */
+export const listProcessesInside = async (
+  directory: string,
+): Promise<ProcessInside[] | null> => {
+  const stdout = await runForAnswer("lsof", ["-n", "-d", "cwd", "-F", "pcn"]);
+  if (stdout === null) return null;
+  const root = realpathOrSelf(directory);
+  const names = new Map<number, string>();
+  let processId = 0;
+  let name = "";
+  for (const line of stdout.split("\n")) {
+    if (line.startsWith("p")) processId = Number(line.slice(1));
+    else if (line.startsWith("c")) name = line.slice(1);
+    else if (
+      line.startsWith("n") &&
+      processId !== pid &&
+      isInsideDirectory(root, line.slice(1))
+    ) {
+      names.set(processId, name);
+    }
+  }
+  const processIds = [...names.keys()].toSorted((a, b) => a - b);
+  if (processIds.length === 0) return [];
+
+  const [table, commandLines] = await Promise.all([
+    readProcessTable(),
+    readCommandLines(processIds),
+  ]);
+  if (table === null) {
+    return processIds.map((id) => ({
+      pid: id,
+      command: names.get(id) ?? "",
+      startedAt: null,
+      launchedBy: null,
+    }));
+  }
+  const now = Date.now();
+  return processIds.flatMap((id) => {
+    const row = table.get(id);
+    if (row === undefined) return [];
+    return [
+      {
+        pid: id,
+        command: commandLines.get(id) ?? processName(row.executable),
+        startedAt: new Date(now - row.elapsedSeconds * 1000).toISOString(),
+        launchedBy: launcherOf(table, id),
+      },
+    ];
+  });
 };
 
 const ignoredPrefix = "!! ";
@@ -316,7 +446,7 @@ export const readWorktreeRemovalStatus = async ({
     listLocalOnlyIgnored(worktree, dirname(commonDirectory)),
   ]);
   // after the reads: the gits they run have their working directory inside too
-  const processesInside = await countProcessesInside(worktree);
+  const processesInside = await listProcessesInside(worktree);
   return {
     path: worktree,
     main: gitDirectory === commonDirectory,
