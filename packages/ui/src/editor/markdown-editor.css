@@ -37,7 +37,7 @@
   /* the --md-tok-* colors are generated, in code-token-colors.css */
 
   /* the type, as variables: the gutter sizes its rows from them (see gutter) */
-  --md-font-size: 0.9375rem;
+  --md-font-size: var(--text-base, 1rem);
   --md-line-height: 1.7;
 
   /* fills a column the caller grew; the editor still sizes to its content, and

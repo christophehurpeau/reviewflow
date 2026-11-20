@@ -80,8 +80,8 @@ export const VariantsStory: StoryObj<typeof MarkdownText> = {
       <Story.Section title="empty">
         <MarkdownText github text="" />
       </Story.Section>
-      <Story.Section title="document (a plan)">
-        <MarkdownText document text={plan} />
+      <Story.Section title="plain, a plan">
+        <MarkdownText text={plan} />
       </Story.Section>
     </Story>
   ),

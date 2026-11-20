@@ -70,7 +70,7 @@ const headingClass = (depth: number): string => {
   if (depth === 1) return "font-heading-extrabold text-2xl";
   if (depth === 2) return "font-heading-bold text-xl";
   if (depth === 3) return "font-heading-bold text-lg";
-  return "font-body-bold text-sm";
+  return "font-body-bold text-base";
 };
 
 /** A link needs its label as one string, so the run is flattened for it. */
@@ -132,7 +132,7 @@ function InlineNodes({ nodes }: { nodes: InlineNode[] }): ReactNode {
           key={key}
           accent="info"
           icon={null}
-          size="sm"
+          size="md"
           href={node.href}
           text={inlineText(node.children)}
         />
@@ -176,7 +176,7 @@ function MarkdownTable({ node }: { node: TableNode }): ReactNode {
         {node.header.map((cell, index) => (
           <Text
             key={`header-${String(index)}`}
-            className={`min-w-0 basis-0 text-xs font-body-bold web:wrap-anywhere ${alignClass(node.align[index])}`}
+            className={`min-w-0 basis-0 font-body-bold web:wrap-anywhere text-base ${alignClass(node.align[index])}`}
             style={{ flexGrow: weights[index] }}
           >
             <InlineNodes nodes={cell.children} />
@@ -191,7 +191,7 @@ function MarkdownTable({ node }: { node: TableNode }): ReactNode {
           {row.map((cell, index) => (
             <Text
               key={`cell-${String(index)}`}
-              className={`min-w-0 basis-0 select-auto text-xs web:wrap-anywhere ${alignClass(node.align[index])}`}
+              className={`min-w-0 basis-0 select-auto web:wrap-anywhere text-base ${alignClass(node.align[index])}`}
               style={{ flexGrow: weights[index] }}
             >
               <InlineNodes nodes={cell.children} />
@@ -219,26 +219,19 @@ function MarkdownQuote({ children }: { children: ReactNode }): ReactNode {
 }
 
 /**
- * A document read on its own (a plan, a spec) rather than a message in a
- * thread: its sections are set apart by room above their headings, while
- * the blocks inside a section keep a message's spacing.
+ * Sections are set apart by room above their headings (levels 1 to 3), while
+ * the blocks inside a section keep the tighter spacing of a message.
  */
-const DocumentLayoutContext = createContext(false);
-
-const headingSpacingClass = (
-  asDocument: boolean,
-  depth: number,
-  index: number,
-): string => (asDocument && index > 0 && depth <= 3 ? " pt-sm" : "");
+const headingSpacingClass = (depth: number, index: number): string =>
+  index > 0 && depth <= 3 ? " pt-sm" : "";
 
 function BlockNodes({ nodes }: { nodes: BlockNode[] }): ReactNode {
-  const asDocument = use(DocumentLayoutContext);
   return nodes.map((node, index) => {
     const key = `${node.type}-${String(index)}`;
 
     if (node.type === "paragraph") {
       return (
-        <Text key={key} className="select-auto text-sm">
+        <Text key={key} className="select-auto text-base">
           <InlineNodes nodes={node.children} />
         </Text>
       );
@@ -247,7 +240,7 @@ function BlockNodes({ nodes }: { nodes: BlockNode[] }): ReactNode {
       return (
         <Text
           key={key}
-          className={`select-auto ${headingClass(node.depth)}${headingSpacingClass(asDocument, node.depth, index)}`}
+          className={`select-auto ${headingClass(node.depth)}${headingSpacingClass(node.depth, index)}`}
         >
           <InlineNodes nodes={node.children} />
         </Text>
@@ -257,7 +250,7 @@ function BlockNodes({ nodes }: { nodes: BlockNode[] }): ReactNode {
       return (
         <CopyableCodeBlock
           key={key}
-          size="sm"
+          size="md"
           title={node.title ?? node.lang}
           language={node.lang}
           text={node.value}
@@ -275,7 +268,7 @@ function BlockNodes({ nodes }: { nodes: BlockNode[] }): ReactNode {
               key={`item-${String(itemIndex)}`}
               className="flex-row items-baseline gap-xs pl-xs"
             >
-              <Text className="text-sm text-muted">
+              <Text className="text-base text-muted">
                 {node.ordered
                   ? `${String((node.start ?? 1) + itemIndex)}.`
                   : "•"}
@@ -301,7 +294,7 @@ function BlockNodes({ nodes }: { nodes: BlockNode[] }): ReactNode {
     }
     if (node.type === "html") {
       return (
-        <Text key={key} className="select-auto font-mono text-xs text-muted">
+        <Text key={key} className="select-auto font-mono text-sm text-muted">
           {node.value}
         </Text>
       );
@@ -364,13 +357,13 @@ function GithubImage({ src, alt }: GhImage): ReactNode {
     };
   }, [source]);
 
-  if (!safe) return <Text className="text-sm">{alt || src}</Text>;
+  if (!safe) return <Text className="text-base">{alt || src}</Text>;
   // a host GitHub does not proxy would learn who reads the pull request
   if (source === null || size === "failed") {
     return (
       <ExternalLinkText
         accent="info"
-        size="sm"
+        size="md"
         href={src}
         text={alt || src}
         icon={null}
@@ -378,7 +371,7 @@ function GithubImage({ src, alt }: GhImage): ReactNode {
     );
   }
   if (size === null) {
-    return <Text className="text-xs text-muted">{alt}</Text>;
+    return <Text className="text-sm text-muted">{alt}</Text>;
   }
   return (
     <Image
@@ -482,7 +475,7 @@ function GithubInlines({ nodes }: { nodes: GhBlockNode[] }): ReactNode {
           key={key}
           accent="info"
           icon={null}
-          size="sm"
+          size="md"
           href={href}
           text={emojify(textOf(children))}
         />
@@ -543,7 +536,7 @@ function GithubInlines({ nodes }: { nodes: GhBlockNode[] }): ReactNode {
             key={key}
             accent="info"
             icon={null}
-            size="sm"
+            size="md"
             href={node.href}
             text={emojify(textOf(node.children))}
           />
@@ -586,7 +579,7 @@ function GithubTable({
         {header.map((cell, index) => (
           <Text
             key={`header-${String(index)}`}
-            className="min-w-0 basis-0 text-xs font-body-bold web:wrap-anywhere"
+            className="min-w-0 basis-0 text-base font-body-bold web:wrap-anywhere"
             style={{ flexGrow: weights[index] }}
           >
             <GithubInlines nodes={cell.children} />
@@ -601,7 +594,7 @@ function GithubTable({
           {row.map((cell, index) => (
             <Text
               key={`cell-${String(index)}`}
-              className="min-w-0 basis-0 select-auto text-xs web:wrap-anywhere"
+              className="min-w-0 basis-0 select-auto text-base web:wrap-anywhere"
               style={{ flexGrow: weights[index] }}
             >
               <GithubInlines nodes={cell.children} />
@@ -672,7 +665,7 @@ function GithubTask({
   // Set in a line of text so the row can align it on the content's baseline: a
   // box pinned to the top sat above the text.
   return (
-    <Text className="text-sm">
+    <Text className="text-base">
       <InteractiveBox
         withFocusVisibleOutline
         withPressEffect={false}
@@ -748,7 +741,7 @@ function GithubRun({ nodes }: { nodes: GhBlockNode[] }): ReactNode {
     );
   }
   return (
-    <Text className="select-auto text-sm">
+    <Text className="select-auto text-base">
       <GithubInlines nodes={nodes} />
     </Text>
   );
@@ -762,7 +755,7 @@ function GithubCode({
   if (node.lang === "suggestion") return <SuggestedChange value={node.value} />;
   return (
     <CopyableCodeBlock
-      size="sm"
+      size="md"
       title={node.title ?? node.lang}
       language={node.lang}
       text={node.value}
@@ -806,7 +799,7 @@ function GithubBlocks({ nodes }: { nodes: GhBlockNode[] }): ReactNode {
             className="flex-row items-baseline gap-xs pl-xs"
           >
             {label === null ? (
-              <Text className="text-sm text-muted">
+              <Text className="text-base text-muted">
                 {ordered ? `${String(start + itemIndex)}.` : "•"}
               </Text>
             ) : (
@@ -836,7 +829,7 @@ function GithubBlocks({ nodes }: { nodes: GhBlockNode[] }): ReactNode {
           key={key}
           initiallyOpen={"open" in attrs}
           summary={
-            <Text className="select-auto font-body-bold text-sm">
+            <Text className="select-auto font-body-bold text-base">
               {summary ? <GithubInlines nodes={summary.children} /> : "Details"}
             </Text>
           }
@@ -868,7 +861,7 @@ function GithubBlocks({ nodes }: { nodes: GhBlockNode[] }): ReactNode {
       return (
         <CopyableCodeBlock
           key={key}
-          size="sm"
+          size="md"
           text={textOf(children).replace(/^\n+|\n+$/g, "")}
         />
       );
@@ -990,7 +983,7 @@ function GithubMarkdown({
   }, [text]);
 
   if (paired === null) {
-    return <Text className="select-auto text-sm">{text}</Text>;
+    return <Text className="select-auto text-base">{text}</Text>;
   }
 
   // Boxes are pressable only when every marker in the source can be matched to
@@ -1052,18 +1045,9 @@ export interface MarkdownTextProps {
    * pressed box flipped, for the caller to save. Absent, they are read-only.
    */
   onTaskToggle?: (nextText: string) => Promise<void>;
-  /**
-   * A document read on its own, such as a plan, rather than a message: room
-   * above each section's heading (levels 1 to 3). Plain rendering only;
-   * `github` keeps its own spacing.
-   */
-  document?: boolean;
 }
 
-function PlainMarkdown({
-  text,
-  document: asDocument = false,
-}: Pick<MarkdownTextProps, "document" | "text">): ReactNode {
+function PlainMarkdown({ text }: Pick<MarkdownTextProps, "text">): ReactNode {
   const parsed = useMemo(() => {
     try {
       return parseMarkdown(text);
@@ -1073,15 +1057,13 @@ function PlainMarkdown({
   }, [text]);
 
   if (parsed === null) {
-    return <Text className="select-auto text-sm">{text}</Text>;
+    return <Text className="select-auto text-base">{text}</Text>;
   }
 
   return (
-    <DocumentLayoutContext value={asDocument}>
-      <Box className="gap-xs">
-        <BlockNodes nodes={parsed.children} />
-      </Box>
-    </DocumentLayoutContext>
+    <Box className="gap-xs">
+      <BlockNodes nodes={parsed.children} />
+    </Box>
   );
 }
 
@@ -1093,12 +1075,11 @@ function MarkdownTextBase({
   text,
   github = false,
   onTaskToggle,
-  document = false,
 }: MarkdownTextProps): ReactNode {
   if (github) {
     return <GithubMarkdown text={text} onTaskToggle={onTaskToggle} />;
   }
-  return <PlainMarkdown text={text} document={document} />;
+  return <PlainMarkdown text={text} />;
 }
 
 export const MarkdownText = memo(MarkdownTextBase);
