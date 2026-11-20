@@ -28,18 +28,17 @@
     "test:coverage:generate": "TZ=UTC POB_VITEST_COVERAGE=json vitest run --coverage",
     "test:watch": "TZ=UTC vitest --watch",
     "tsc": "tsrs -b",
-    "tsc:go": "tsc -b",
-    "watch": "pnpm -r --parallel --filter \"!*-example\" run watch"
+    "tsc:go": "tsc -b"
   },
   "devDependencies": {
-    "@pob/eslint-config": "68.5.0",
-    "@pob/eslint-config-typescript-react": "68.6.1",
-    "@pob/root": "28.7.0",
+    "@pob/eslint-config": "68.6.0",
+    "@pob/eslint-config-typescript-react": "68.7.0",
+    "@pob/root": "28.9.0",
     "@typescript/native": "npm:typescript@7.0.2",
     "@vitest/coverage-v8": "5.1.0",
-    "eslint": "10.14.0",
+    "eslint": "10.15.0",
     "mongodb-memory-server": "11.3.0",
-    "tsrs": "0.22.0-ts7.1.0-beta",
+    "tsrs": "0.25.0-ts7.1.0-beta",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.3.8",
     "vitest": "5.1.0"

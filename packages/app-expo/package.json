@@ -75,9 +75,9 @@
     "@typescript/native": "npm:typescript@7.0.2",
     "@vitejs/plugin-react": "6.1.2",
     "@vitest/browser-playwright": "5.1.0",
-    "playwright": "1.63.0",
+    "playwright": "1.65.1",
     "storybook": "10.6.7",
-    "tsrs": "0.22.0-ts7.1.0-beta",
+    "tsrs": "0.25.0-ts7.1.0-beta",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.3.8",
     "vitest": "5.1.0"

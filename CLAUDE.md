@@ -47,7 +47,12 @@ not hold, or when no reviewflow token is set.
 
 - **Runtime / packaging**: node, pnpm workspaces, ESM. Libraries and servers are
   bundled with rollup + esbuild via the `pob` toolchain; `pob` config lives in
-  each `package.json`.
+  each `package.json`. pob rewrites `pnpm-workspace.yaml` without comments, so
+  its settings are explained here: the `rollup` override to
+  `@rollup/wasm-node` is there because the native linux-x64 binary crashes
+  with SIGILL on the production server cpu (Xeon E3-1245 V2, x86-64-v2, no
+  AVX2); `allowBuilds.mongodb-memory-server: false` because the mongod binary
+  is downloaded on first use and cached, not at install.
 - **Bot**: probot on top of express for GitHub App webhooks, octokit (REST and
   GraphQL) for the GitHub api, commitlint for commit/title conventions, the Slack
   web api client for messages and app home, Sentry for error reporting.
@@ -60,7 +65,7 @@ not hold, or when no reviewflow token is set.
 - **Webapp UI**: Expo (Router, react-native-web) so the same code runs on web and
   native, styled with the `alouette` design system on nativewind/tailwind, icons
   from `alouette-icons` (Phosphor).
-- **Tooling**: vitest (root-level, run per package with a path filter; the `core` and `reviewflow` projects start a real standalone mongod through `mongodb-memory-server`, see `createTestMongoStores` in `packages/core/src/tests`), eslint,
+- **Tooling**: vitest (root-level, run per package with a path filter; the `core` and `reviewflow` projects start a real standalone mongod through `mongodb-memory-server`, see `createTestMongoStores`, imported from `@reviewflow/core/tests`), eslint,
   oxfmt for formatting, renovate for dependency updates, conventional commits.
 
 Prefer the `alouette-*` skills over reading its source when working in the webapp.

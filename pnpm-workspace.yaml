@@ -1,7 +1,6 @@
 allowBuilds:
   bufferutil: true
   esbuild: true
-  # the mongod binary is downloaded on first use and cached, not at install
   mongodb-memory-server: false
   unrs-resolver: true
   utf-8-validate: false
@@ -23,8 +22,6 @@ minimumReleaseAgeExclude:
   - react-liwi
 nodeLinker: hoisted
 overrides:
-  # the native linux-x64 binary of rollup 4.67 crashes with SIGILL on the
-  # production server cpu (Xeon E3-1245 V2, x86-64-v2, no AVX2)
   rollup: npm:@rollup/wasm-node@4.68.3
 packages:
   - packages/*

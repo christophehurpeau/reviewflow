@@ -23,7 +23,12 @@
         "import": "./build/index-node.mjs"
       }
     },
-    "./tests": "./src/tests/testMongoStores.ts"
+    "./tests": {
+      "types": "./src/tests.ts",
+      "node": {
+        "import": "./build/tests-node.mjs"
+      }
+    }
   },
   "scripts": {
     "build": "pnpm run clean:build && rollup --config rollup.config.mjs",
@@ -33,10 +38,8 @@
     "lint:eslint": "pnpm --dir '../..' exec eslint --quiet 'packages/core'",
     "lint:oxlint": "pnpm --dir '../..' exec oxlint --quiet 'packages/core'",
     "start": "pnpm run clean:build && rollup --config rollup.config.mjs --watch",
-    "test": "pnpm run --dir '../..' test -- 'packages/core'",
     "tsc": "tsrs",
-    "tsc:go": "tsc",
-    "watch": "pnpm run clean:build && rollup --config rollup.config.mjs --watch"
+    "tsc:go": "tsc"
   },
   "dependencies": {
     "@reviewflow/modules": "workspace:*",
@@ -52,14 +55,13 @@
   },
   "devDependencies": {
     "@octokit/rest": "22.0.1",
-    "@pob/rollup-esbuild": "11.5.0",
+    "@pob/rollup-esbuild": "11.5.1",
     "@slack/web-api": "8.0.0",
     "@types/node": "24.12.4",
     "@typescript/native": "npm:typescript@7.0.2",
-    "tsrs": "0.22.0-ts7.1.0-beta",
+    "tsrs": "0.25.0-ts7.1.0-beta",
     "typescript": "npm:@typescript/typescript6@6.0.2",
-    "vite": "8.3.8",
-    "vitest": "5.1.0"
+    "vite": "8.3.8"
   },
   "engines": {
     "node": "^24.22.1 || >=26.13.0"
@@ -67,7 +69,8 @@
   "pob": {
     "bundler": "rollup-esbuild",
     "entries": [
-      "index"
+      "index",
+      "tests"
     ],
     "envs": [
       {
