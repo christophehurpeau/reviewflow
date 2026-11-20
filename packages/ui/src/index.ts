@@ -140,6 +140,8 @@ export type {
   EditorTextSelection,
 } from "./editor/highlights.ts";
 export type { EditorAnnotationProps } from "./editor/useEditorAnnotations.tsx";
+export { TextHighlights } from "./components/text-highlights.tsx";
+export type { TextHighlightsProps } from "./components/text-highlights.tsx";
 export { CodeEditor } from "./editor/code-editor.tsx";
 export type { CodeEditorProps } from "./editor/code-editor.tsx";
 export type { CodeLanguage } from "./editor/codeEditorExtensions.ts";

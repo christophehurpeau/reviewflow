@@ -1,0 +1,22 @@
+/*
+ * TextHighlights: marked passages of rendered content, painted by the CSS
+ * Custom Highlight API. The ink is the warning accent captured by
+ * EditorInkScope into --md-highlight, as in the editors.
+ */
+.text-highlights {
+  position: relative;
+}
+
+::highlight(reviewflow-text-highlight) {
+  background-color: color-mix(in srgb, var(--md-highlight) 22%, transparent);
+}
+
+::highlight(reviewflow-text-highlight-active) {
+  background-color: color-mix(in srgb, var(--md-highlight) 45%, transparent);
+}
+
+/* the selection's action bubble, placed in px by the component */
+.text-highlights-action {
+  position: absolute;
+  z-index: 10;
+}
