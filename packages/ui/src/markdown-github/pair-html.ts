@@ -243,6 +243,8 @@ const pairInlines = (nodes: InlineNode[]): GhInlineNode[] => {
       case "break":
         builder.append(node);
         break;
+      // @tanstack/markdown's parser never produces it: only custom parsers do
+      case "inlineComponent":
       default:
         break;
     }
