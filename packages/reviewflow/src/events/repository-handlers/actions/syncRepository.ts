@@ -5,6 +5,7 @@ import {
   getEmojiFromRepoDescription,
   shouldIgnoreRepo,
 } from "@reviewflow/core";
+import { toLabelResponse } from "../../../context/initRepoLabels.ts";
 import { deleteRepoContext } from "../../../context/repoContext.ts";
 import { syncRepositoryLabels } from "../../../context/syncRepositoryLabels.ts";
 import type { OctokitPaginate, OctokitRestCompat } from "../../../octokit";
@@ -125,7 +126,7 @@ export const syncRepository = async ({
       mongoStores,
       account,
       repo: { id: repository._id, name },
-      labels,
+      labels: labels.map(toLabelResponse),
     });
   }
 

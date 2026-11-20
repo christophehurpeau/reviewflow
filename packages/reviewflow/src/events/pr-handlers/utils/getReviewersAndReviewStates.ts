@@ -31,17 +31,18 @@ export const getReviewersAndReviewStates = async <
     ({ data: reviews }) => {
       reviews.forEach((review) => {
         if (!review.user) return;
-        if (!userIds.has(review.user.id)) {
-          userIds.add(review.user.id);
+        const userId = Number(review.user.id);
+        if (!userIds.has(userId)) {
+          userIds.add(userId);
           reviewers.push({
-            id: review.user.id,
+            id: userId,
             login: review.user.login,
             type: review.user.type,
           });
         }
         const state = review.state.toUpperCase();
         if (state !== "COMMENTED") {
-          reviewStatesByUser.set(review.user.id, state as ReviewState);
+          reviewStatesByUser.set(userId, state as ReviewState);
         }
       });
 

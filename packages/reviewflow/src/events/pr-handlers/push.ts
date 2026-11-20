@@ -1,6 +1,6 @@
-import type { RestEndpointMethodTypes } from "@octokit/rest";
 import type { Probot } from "probot";
 import type { AppContext } from "../../context/AppContext.ts";
+import type { RestEndpointMethodTypes } from "../../octokit.ts";
 import { checkIfUserIsBot } from "../../utils/github/isBotUser.ts";
 import { createPullRequestsHandler } from "./utils/createPullRequestHandler.ts";
 

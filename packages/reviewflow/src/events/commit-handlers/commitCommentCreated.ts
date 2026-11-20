@@ -141,7 +141,7 @@ export default function commitCommentCreated(
               isBotUser
                 ? "commit-comment-follow-bots"
                 : "commit-comment-follow",
-              otherCommenter,
+              { ...otherCommenter, id: Number(otherCommenter.id) },
               notAuthorSlackMessage,
             ),
           ),

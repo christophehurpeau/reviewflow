@@ -3,6 +3,7 @@ import type { ReviewflowPr } from "@reviewflow/core";
 import type { SetRequired } from "type-fest";
 import type { AppContext } from "../../../../context/AppContext.ts";
 import type { LabelResponse } from "../../../../context/initRepoLabels";
+import { toLabelResponse } from "../../../../context/initRepoLabels.ts";
 import type { ProbotEvent } from "../../../probot-types";
 import type { PullRequestWithDecentData } from "../../utils/PullRequestData";
 import hasLabelInPR from "./labels/hasLabelInPR.ts";
@@ -50,16 +51,16 @@ export default async function syncLabel<
         name: label.name,
       }),
     );
-    let updatedLabels = response.data;
+    let updatedLabels = response.data.map(toLabelResponse);
     if (onRemove) {
-      if ((await onRemove(response.data)) === false) {
+      if ((await onRemove(updatedLabels)) === false) {
         const addResponse = await context.octokit.rest.issues.addLabels(
           context.repo({
             issue_number: pullRequest.number,
             labels: [label.name],
           }),
         );
-        updatedLabels = addResponse.data;
+        updatedLabels = addResponse.data.map(toLabelResponse);
       }
     }
     if (persist) {
@@ -73,16 +74,16 @@ export default async function syncLabel<
         labels: [label.name],
       }),
     );
-    let updatedLabels = response.data;
+    let updatedLabels = response.data.map(toLabelResponse);
     if (onAdd) {
-      if ((await onAdd(response.data)) === false) {
+      if ((await onAdd(updatedLabels)) === false) {
         const removeResponse = await context.octokit.rest.issues.removeLabel(
           context.repo({
             issue_number: pullRequest.number,
             name: label.name,
           }),
         );
-        updatedLabels = removeResponse.data;
+        updatedLabels = removeResponse.data.map(toLabelResponse);
       }
     }
     if (persist) {
@@ -103,10 +104,11 @@ export const removeLabel = async <EventName extends EmitterWebhookEventName>(
       name: label.name,
     }),
   );
+  const labels = response.data.map(toLabelResponse);
   if (persist) {
-    await updateReviewflowPrLabels({ ...persist, labels: response.data });
+    await updateReviewflowPrLabels({ ...persist, labels });
   }
-  return response.data;
+  return labels;
 };
 
 export interface LabelToSync extends SyncLabelOptions {
@@ -150,7 +152,7 @@ export async function syncLabels<EventName extends EmitterWebhookEventName>(
       },
     );
 
-  let updatedLabels: LabelResponse[] = pullRequest.labels;
+  let updatedLabels: LabelResponse[] | undefined;
 
   if (labelsToRemove.length > 0) {
     for (const label of labelsToRemove) {
@@ -173,7 +175,7 @@ export async function syncLabels<EventName extends EmitterWebhookEventName>(
         labels: labelsToAdd,
       }),
     );
-    updatedLabels = response.data;
+    updatedLabels = response.data.map(toLabelResponse);
   }
 
   /*
@@ -181,12 +183,14 @@ export async function syncLabels<EventName extends EmitterWebhookEventName>(
    * can be a payload snapshot taken before another action of the same handler changed them.
    * Persisted before the callbacks, which can change labels again through their own persist.
    */
-  if (persist && updatedLabels !== pullRequest.labels) {
+  if (persist && updatedLabels) {
     await updateReviewflowPrLabels({ ...persist, labels: updatedLabels });
   }
 
-  // oxlint-disable-next-line typescript/await-thenable
-  await Promise.all(callbacks.map((callback) => callback(updatedLabels)));
+  const prLabels = updatedLabels ?? pullRequest.labels.map(toLabelResponse);
 
-  return updatedLabels;
+  // oxlint-disable-next-line typescript/await-thenable
+  await Promise.all(callbacks.map((callback) => callback(prLabels)));
+
+  return prLabels;
 }

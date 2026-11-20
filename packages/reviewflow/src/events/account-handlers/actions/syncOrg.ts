@@ -28,14 +28,15 @@ export const syncOrg = async (
   })) {
     await Promise.all(
       data.map(async (member) => {
-        memberIds.push(member.id);
+        const memberId = Number(member.id);
+        memberIds.push(memberId);
         return Promise.all([
           mongoStores.orgMembers.upsertOne<"teams">(
             {
-              _id: `${org.id}_${member.id}`,
+              _id: `${org.id}_${memberId}`,
               org: orgEmbed,
               user: {
-                id: member.id,
+                id: memberId,
                 login: member.login,
               },
             },
@@ -44,7 +45,7 @@ export const syncOrg = async (
             },
           ),
           mongoStores.users.upsertOne({
-            _id: member.id,
+            _id: memberId,
             login: member.login,
             type: member.type,
           }),

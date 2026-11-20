@@ -20,7 +20,7 @@ export const syncTeamMembers = async (
     const currentIterationMemberIds = data
       .filter(ExcludesFalsy)
 
-      .map((member) => member.id);
+      .map((member) => Number(member.id));
     memberIds.push(...currentIterationMemberIds);
 
     await mongoStores.orgMembers.partialUpdateMany(

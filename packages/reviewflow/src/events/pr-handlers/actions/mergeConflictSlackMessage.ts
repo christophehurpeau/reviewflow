@@ -36,7 +36,7 @@ const notifyMergeConflict = async (
   repoContext: RepoContext,
   pullRequest: PullRequestWithDecentData,
 ): Promise<void> => {
-  const typeId = createTypeId(repoContext, pullRequest.id);
+  const typeId = createTypeId(repoContext, Number(pullRequest.id));
   const createText = (createOwnerPartOptions: CreateOwnerPartOptions): string =>
     `:warning: Merge conflict on ${createOwnerPart(
       repoContext,
@@ -97,7 +97,11 @@ export const syncMergeConflictSlackMessage = async (
       break;
     }
     case "mergeable": {
-      await markMergeConflictAsDone(appContext, repoContext, pullRequest.id);
+      await markMergeConflictAsDone(
+        appContext,
+        repoContext,
+        Number(pullRequest.id),
+      );
       break;
     }
     case "unknown": {

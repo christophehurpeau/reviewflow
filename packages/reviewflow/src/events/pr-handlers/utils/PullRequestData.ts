@@ -38,11 +38,15 @@ export type PullRequestLabels =
   | LabelResponse[]
   | PullRequestWithDecentData["labels"];
 
-export function toBasicUser<U extends BasicUser>(
+interface UserWithRestId extends Omit<BasicUser, "id"> {
+  id: BasicUser["id"] | bigint;
+}
+
+export function toBasicUser<U extends UserWithRestId>(
   user: U,
 ): SetRequired<BasicUser, "avatar_url" | "type"> {
   return {
-    id: user.id,
+    id: Number(user.id),
     login: user.login,
     type: user.type!,
     avatar_url: user.avatar_url!,

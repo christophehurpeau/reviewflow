@@ -114,7 +114,7 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
       account: repoContext.accountEmbed,
       repo: repoContext.repoEmbed,
       pr: prEmbed,
-      commentId: comment.id,
+      commentId: Number(comment.id),
       title: "title" in pullRequest ? pullRequest.title : "Unknown Title",
       isClosed: "closed_at" in pullRequest ? !!pullRequest.closed_at : false,
       isDraft: "draft" in pullRequest && pullRequest.draft === true,
@@ -209,18 +209,18 @@ export const getReviewflowPrContext = async <T extends EventsWithRepository>(
 
     if (!existing) {
       const reviewflowPr = await appContext.mongoStores.prs.insertOne(
-        createReviewflowPr(newComment.id),
+        createReviewflowPr(Number(newComment.id)),
       );
       return { reviewflowPr, commentBody: newComment.body! };
     } else {
       await appContext.mongoStores.prs.partialUpdateByKey(existing._id, {
-        $set: { commentId: newComment.id },
+        $set: { commentId: Number(newComment.id) },
       });
       return { reviewflowPr: existing, commentBody: newComment.body! };
     }
   } else if (!existing) {
     const reviewflowPr = await appContext.mongoStores.prs.insertOne(
-      createReviewflowPr(comment.id),
+      createReviewflowPr(Number(comment.id)),
     );
     return { reviewflowPr, commentBody: comment.body! };
   }
