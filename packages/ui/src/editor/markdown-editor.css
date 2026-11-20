@@ -286,14 +286,19 @@
   font-style: normal;
 }
 
-/* Sora's weights are separate families on Expo web, so bold is a family, not a
-   synthesized font-weight */
+/* Sora's weights are separate families on Expo web, so bold is a family, and
+   the weight goes with it, as alouette's font-* utilities do: an app that has
+   not loaded that family falls back to a font whose bold is a weight.
+   font-synthesis: none keeps an already bold face from being thickened. */
 .markdown-editor .md-bold {
   font-family: var(--font-body-bold);
+  font-weight: 700;
+  font-synthesis: none;
 }
 
 .markdown-editor .md-bold .md-syntax {
   font-family: var(--font-body);
+  font-weight: 400;
 }
 
 .markdown-editor .md-italic {
@@ -381,10 +386,13 @@
 
 .markdown-editor .cm-line.md-heading {
   font-family: var(--font-heading-bold);
+  font-weight: 700;
+  font-synthesis: none;
 }
 
 .markdown-editor .cm-line.md-heading .md-syntax {
   font-family: var(--font-heading);
+  font-weight: 400;
 }
 
 .markdown-editor .cm-line.md-h1 {
@@ -550,6 +558,8 @@
 
 .markdown-editor .md-alert-type {
   font-family: var(--font-body-bold);
+  font-weight: 700;
+  font-synthesis: none;
   letter-spacing: 0.02em;
   color: var(--md-alert-accent);
 }
