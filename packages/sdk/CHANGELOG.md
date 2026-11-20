@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [7.0.0](https://github.com/christophehurpeau/reviewflow/compare/v6.34.1...v7.0.0) (2026-11-20)
+
+### ⚠ BREAKING CHANGES
+
+* **sdk:** WorktreeRemovalStatus.processesInside is a ProcessInside[]
+  (pid, command, startedAt, launchedBy) instead of a count, and
+  countProcessesInside is renamed listProcessesInside.
+
+### Features
+
+* **sdk:** name the processes running inside a worktree
+* **sdk:** read the pull request title in the branch query
+
 ## [6.34.1](https://github.com/christophehurpeau/reviewflow/compare/v6.34.0...v6.34.1) (2026-11-15)
 
 ### Bug Fixes

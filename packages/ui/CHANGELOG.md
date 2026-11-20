@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [7.0.0](https://github.com/christophehurpeau/reviewflow/compare/v6.34.1...v7.0.0) (2026-11-20)
+
+### ⚠ BREAKING CHANGES
+
+* **sdk:** WorktreeRemovalStatus.processesInside is a ProcessInside[]
+  (pid, command, startedAt, launchedBy) instead of a count, and
+  countProcessesInside is renamed listProcessesInside.
+
+### Features
+
+* **sdk:** name the processes running inside a worktree
+* **ui:** mark passages and act on the selection in rendered content
+* **ui:** mark passages and act on the selection in the editors
+
+### Bug Fixes
+
+* **ui:** give the editor's bold its weight
+* **ui:** set the editor's passages over the text they come with
+
+Version bump for dependency: @reviewflow/sdk
+
+
 ## [6.34.1](https://github.com/christophehurpeau/reviewflow/compare/v6.34.0...v6.34.1) (2026-11-15)
 
 Version bump for dependency: @reviewflow/sdk

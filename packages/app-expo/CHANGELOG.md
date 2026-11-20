@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [7.0.0](https://github.com/christophehurpeau/reviewflow/compare/v6.34.1...v7.0.0) (2026-11-20)
+
+### Bug Fixes
+
+* **deps:** update dependency tailwindcss to v4.3.5 ([#1276](https://github.com/christophehurpeau/reviewflow/issues/1276))
+
+Version bump for dependency: @reviewflow/sdk
+Version bump for dependency: @reviewflow/ui
+
+
 ## [6.34.1](https://github.com/christophehurpeau/reviewflow/compare/v6.34.0...v6.34.1) (2026-11-15)
 
 Version bump for dependency: @reviewflow/sdk
