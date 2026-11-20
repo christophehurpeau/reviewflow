@@ -1,10 +1,11 @@
 import type { CodeBlockProps } from "alouette";
-import { CodeBlock, IconButton, View } from "alouette";
+import { CodeBlock, IconButton, Text, View } from "alouette";
 import { CheckRegularIcon } from "alouette-icons/phosphor-icons/Check";
 import { CopyRegularIcon } from "alouette-icons/phosphor-icons/Copy";
 import { WarningRegularIcon } from "alouette-icons/phosphor-icons/Warning";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { highlightCode } from "./code-tokens.ts";
 
 type CopyState = "copied" | "failed" | "idle";
 
@@ -79,6 +80,11 @@ function CopyButton({ text }: { text: string }): ReactNode {
 
 interface CopyableCodeBlockProps extends Omit<CodeBlockProps, "children"> {
   text: string;
+  /**
+   * A fence's info string (`ts`, `json`…): colored like the editor colors it,
+   * on web, for the languages the editor parses; plain otherwise.
+   */
+  language?: string;
 }
 
 /**
@@ -88,12 +94,25 @@ interface CopyableCodeBlockProps extends Omit<CodeBlockProps, "children"> {
  */
 export function CopyableCodeBlock({
   text,
+  language,
   ...codeBlockProps
 }: CopyableCodeBlockProps): ReactNode {
+  const tokens = useMemo(() => highlightCode(language, text), [language, text]);
   return (
     <View className="flex-row items-end gap-xxs">
       <View className="min-w-0 flex-1">
-        <CodeBlock {...codeBlockProps}>{text}</CodeBlock>
+        <CodeBlock {...codeBlockProps}>
+          {tokens === null
+            ? text
+            : tokens.map((token) => (
+                <Text
+                  key={String(token.from)}
+                  className={token.className ?? undefined}
+                >
+                  {token.text}
+                </Text>
+              ))}
+        </CodeBlock>
       </View>
       <CopyButton text={text} />
     </View>

@@ -323,20 +323,23 @@ export const reviewflowSelectionColors: Record<"dark" | "light", string> = ${JSO
 `;
 
 const editorColorsSource = `/* ${header} */
-/* The code tokens of the editors, in fences and in the frontmatter's yaml. */
+/* The code tokens of the editors, in fences and in the frontmatter's yaml, and
+   of the code blocks MarkdownText renders: set per theme, not per editor, so
+   both read them. */
 
-.markdown-editor {
+:root,
+.light {
 ${editorTokenVariables("light", "  ")}
 }
 
-.dark .markdown-editor {
+.dark {
 ${editorTokenVariables("dark", "  ")}
 }
 
 /* the "system" preference never sets .dark: the palette resolves it with this
    media query, so the dark tokens are repeated here */
 @media (prefers-color-scheme: dark) {
-  .system .markdown-editor {
+  .system {
 ${editorTokenVariables("dark", "    ")}
   }
 }

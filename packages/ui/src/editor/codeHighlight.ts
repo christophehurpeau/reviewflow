@@ -25,7 +25,7 @@ import { tags } from "@lezer/highlight";
  * a tag nobody listed still lands somewhere sensible. Ported from
  * vscode-extension-markdown-beautiful-editor (`src/webview/cm/codeHighlight.ts`).
  */
-const codeTokenStyles: TagStyle[] = [
+export const codeTokenStyles: TagStyle[] = [
   { tag: tags.comment, class: "tok-comment" },
   { tag: tags.keyword, class: "tok-keyword" },
   { tag: tags.string, class: "tok-string" },

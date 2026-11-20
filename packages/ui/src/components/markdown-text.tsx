@@ -236,6 +236,7 @@ function BlockNodes({ nodes }: { nodes: BlockNode[] }): ReactNode {
           key={key}
           size="sm"
           title={node.title ?? node.lang}
+          language={node.lang}
           text={node.value}
         />
       );
@@ -740,6 +741,7 @@ function GithubCode({
     <CopyableCodeBlock
       size="sm"
       title={node.title ?? node.lang}
+      language={node.lang}
       text={node.value}
     />
   );

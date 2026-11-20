@@ -36,7 +36,7 @@ import { headingGutter } from "./headingGutter.ts";
  * Bundled statically: `lang-markdown` already depends on `lang-html`, which
  * brings `lang-javascript` and `lang-css`, so only json and yaml add weight.
  */
-const codeLanguages = [
+export const codeLanguages = [
   LanguageDescription.of({
     name: "typescript",
     alias: ["ts"],
