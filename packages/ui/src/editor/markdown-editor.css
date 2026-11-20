@@ -22,6 +22,12 @@
   --md-link: var(--color-accent);
 }
 
+/* the same, for marked passages (`highlights`) */
+.markdown-editor-highlight-ink {
+  display: contents;
+  --md-highlight: var(--color-accent);
+}
+
 .markdown-editor {
   --md-code-bg: color-mix(in srgb, var(--color-muted) 14%, transparent);
   --md-code-block-bg: color-mix(in srgb, var(--color-muted) 10%, transparent);
@@ -48,6 +54,11 @@
   font-size: var(--md-font-size);
   line-height: var(--md-line-height);
   transition: border-color 150ms ease-in;
+}
+
+/* positions the selection's action bubble (`selectionAction`) */
+.markdown-editor {
+  position: relative;
 }
 
 .markdown-editor:hover {
@@ -598,4 +609,23 @@
 .markdown-editor .cm-line .tok-invalid {
   color: var(--md-tok-invalid);
   text-decoration: underline wavy;
+}
+
+/* marked passages (`highlights`): a highlighter's stroke under the text, the
+   active one stronger. A background, never a border or padding: CodeMirror
+   measures the line boxes, and a mark must not change them. */
+.markdown-editor .cm-editor .cm-highlight {
+  background: color-mix(in srgb, var(--md-highlight) 22%, transparent);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.markdown-editor .cm-editor .cm-highlight-active {
+  background: color-mix(in srgb, var(--md-highlight) 45%, transparent);
+}
+
+/* the selection's action bubble, placed in px by the editor */
+.markdown-editor-selection-action {
+  position: absolute;
+  z-index: 10;
 }

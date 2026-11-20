@@ -1,14 +1,7 @@
 import type { StateCommand } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import type { SVGIconElement } from "alouette";
-import {
-  AccentScope,
-  IconButton,
-  ScopedTheme,
-  Tooltip,
-  View,
-  useCurrentTheme,
-} from "alouette";
+import { IconButton, Tooltip, View } from "alouette";
 import { CodeRegularIcon } from "alouette-icons/phosphor-icons/Code";
 import { CodeBlockRegularIcon } from "alouette-icons/phosphor-icons/CodeBlock";
 import { LinkSimpleRegularIcon } from "alouette-icons/phosphor-icons/LinkSimple";
@@ -23,15 +16,18 @@ import { TextHTwoRegularIcon } from "alouette-icons/phosphor-icons/TextHTwo";
 import { TextItalicRegularIcon } from "alouette-icons/phosphor-icons/TextItalic";
 import { TextStrikethroughRegularIcon } from "alouette-icons/phosphor-icons/TextStrikethrough";
 import type { ReactNode } from "react";
-import { useEffect, useEffectEvent, useRef } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { setLineType, toggleInlineFormat } from "./commands.ts";
 import { editorFrameClasses } from "./editorFrame.ts";
+import { EditorInkScope } from "./editorInkScope.tsx";
 import {
   changeBetween,
   externalUpdate,
   markdownEditorExtensions,
   saveShortcut,
 } from "./extensions.ts";
+import type { EditorAnnotationProps } from "./useEditorAnnotations.tsx";
+import { useEditorAnnotations } from "./useEditorAnnotations.tsx";
 import "./markdown-editor.css";
 import "./code-token-colors.css";
 
@@ -178,7 +174,7 @@ function FormatToolbar({
   );
 }
 
-export interface MarkdownEditorFieldProps {
+export interface MarkdownEditorFieldProps extends EditorAnnotationProps {
   value: string;
   /** omitted for a read-only editor */
   onChange?: (value: string) => void;
@@ -201,27 +197,6 @@ export interface MarkdownEditorFieldProps {
   fill?: boolean;
   /** ⌘S / Ctrl+S in the editor; unset, the key is the browser's */
   onSaveShortcut?: () => void;
-}
-
-interface LinkInkScopeProps {
-  children: ReactNode;
-}
-
-/**
- * Links are inked in the info accent, like the rendered markdown. The info
- * theme also retints the surface, borders and selection, so it is applied only
- * long enough to capture its `--color-accent` into `--md-link`, then the
- * current theme is restored around the editor.
- */
-function LinkInkScope({ children }: LinkInkScopeProps): ReactNode {
-  const theme = useCurrentTheme();
-  return (
-    <AccentScope accent="info">
-      <div className="markdown-editor-link-ink">
-        <ScopedTheme theme={theme}>{children}</ScopedTheme>
-      </div>
-    </AccentScope>
-  );
 }
 
 /**
@@ -255,9 +230,13 @@ export function MarkdownEditor({
   lineNumbers = false,
   fill = false,
   onSaveShortcut,
+  ...annotationProps
 }: MarkdownEditorFieldProps): ReactNode {
   const hostRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  // the view as state too, for the annotations to attach to once it exists
+  const [mountedView, setMountedView] = useState<EditorView | null>(null);
+  const selectionAction = useEditorAnnotations(annotationProps, mountedView);
   const emitChange = useEffectEvent((next: string) => onChange?.(next));
   const emitSave = useEffectEvent((): boolean => {
     if (onSaveShortcut === undefined) return false;
@@ -294,8 +273,10 @@ export function MarkdownEditor({
       ],
     });
     viewRef.current = view;
+    setMountedView(view);
     if (autoFocusRef.current) view.focus();
     return () => {
+      setMountedView(null);
       view.destroy();
       viewRef.current = null;
     };
@@ -320,7 +301,7 @@ export function MarkdownEditor({
   return (
     <View className={columnClassName}>
       {readOnly ? null : <FormatToolbar viewRef={viewRef} inset={fill} />}
-      <LinkInkScope>
+      <EditorInkScope>
         <div
           ref={hostRef}
           className={editorFrameClasses({
@@ -329,8 +310,10 @@ export function MarkdownEditor({
             compact,
             fill,
           })}
-        />
-      </LinkInkScope>
+        >
+          {selectionAction}
+        </div>
+      </EditorInkScope>
     </View>
   );
 }

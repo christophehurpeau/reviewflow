@@ -135,6 +135,11 @@ export { prStatusAccents } from "./prStatus.ts";
 export * from "./board/index.ts";
 export { MarkdownEditor } from "./editor/markdown-editor.tsx";
 export type { MarkdownEditorFieldProps } from "./editor/markdown-editor.tsx";
+export type {
+  EditorHighlight,
+  EditorTextSelection,
+} from "./editor/highlights.ts";
+export type { EditorAnnotationProps } from "./editor/useEditorAnnotations.tsx";
 export { CodeEditor } from "./editor/code-editor.tsx";
 export type { CodeEditorProps } from "./editor/code-editor.tsx";
 export type { CodeLanguage } from "./editor/codeEditorExtensions.ts";

@@ -1,15 +1,18 @@
 import { EditorView } from "@codemirror/view";
 import { View } from "alouette";
 import type { ReactNode } from "react";
-import { useEffect, useEffectEvent, useRef } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import type { CodeLanguage } from "./codeEditorExtensions.ts";
 import { codeEditorExtensions } from "./codeEditorExtensions.ts";
 import { editorFrameClasses } from "./editorFrame.ts";
+import { EditorInkScope } from "./editorInkScope.tsx";
 import { changeBetween, externalUpdate, saveShortcut } from "./extensions.ts";
+import type { EditorAnnotationProps } from "./useEditorAnnotations.tsx";
+import { useEditorAnnotations } from "./useEditorAnnotations.tsx";
 import "./markdown-editor.css";
 import "./code-token-colors.css";
 
-export interface CodeEditorProps {
+export interface CodeEditorProps extends EditorAnnotationProps {
   value: string;
   /** omitted for a read-only editor */
   onChange?: (value: string) => void;
@@ -58,9 +61,13 @@ export function CodeEditor({
   lineNumbers = false,
   fill = false,
   onSaveShortcut,
+  ...annotationProps
 }: CodeEditorProps): ReactNode {
   const hostRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  // the view as state too, for the annotations to attach to once it exists
+  const [mountedView, setMountedView] = useState<EditorView | null>(null);
+  const selectionAction = useEditorAnnotations(annotationProps, mountedView);
   const emitChange = useEffectEvent((next: string) => onChange?.(next));
   const emitSave = useEffectEvent((): boolean => {
     if (onSaveShortcut === undefined) return false;
@@ -92,8 +99,10 @@ export function CodeEditor({
       ],
     });
     viewRef.current = view;
+    setMountedView(view);
     if (autoFocusRef.current) view.focus();
     return () => {
+      setMountedView(null);
       view.destroy();
       viewRef.current = null;
     };
@@ -125,10 +134,14 @@ export function CodeEditor({
 
   return (
     <View className={columnClassName}>
-      <div
-        ref={hostRef}
-        className={editorFrameClasses({ code: true, readOnly, fill })}
-      />
+      <EditorInkScope>
+        <div
+          ref={hostRef}
+          className={editorFrameClasses({ code: true, readOnly, fill })}
+        >
+          {selectionAction}
+        </div>
+      </EditorInkScope>
     </View>
   );
 }
