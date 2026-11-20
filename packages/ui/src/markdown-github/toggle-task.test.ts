@@ -120,7 +120,7 @@ describe("toggleTask", () => {
   it("handles tasks whose line starts with an html comment (reviewflow options)", () => {
     const source = [
       "### Options:",
-      "- [ ] <!-- reviewflow-autoMerge -->[:vertical_traffic_light: automerge](https://github.com/acme/widgets/labels/%3Avertical_traffic_light%3A%20automerge): Automatically merge. When the repository requires _branches to be up to date before merging_, it merges.",
+      "- [ ] <!-- reviewflow-autoMerge -->[:vertical_traffic_light: automerge](https://github.com/christophehurpeau/widgets/labels/%3Avertical_traffic_light%3A%20automerge): Automatically merge. When the repository requires _branches to be up to date before merging_, it merges.",
       "- [ ] <!-- reviewflow-autoMergeWithSkipCi -->[:vertical_traffic_light: skip-ci](https://github.com/x): Add `[skip ci]` on merge commit.",
       "### Actions:",
       "- [ ] <!-- reviewflow-updateChecks -->:bug: Force updating reviewflow checks.",

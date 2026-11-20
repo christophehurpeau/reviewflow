@@ -19,7 +19,7 @@ const pullRequest = (
 ): GhPullRequestDetail => ({
   id: "PR_node",
   number: 12,
-  url: "https://github.com/acme/app/pull/12",
+  url: "https://github.com/christophehurpeau/app/pull/12",
   title: "Add the thing",
   body: "Why it is needed",
   state: "OPEN",
@@ -40,7 +40,8 @@ const pullRequest = (
   viewerCanUpdate: true,
   viewerCanUpdateBranch: false,
   viewerCanApplySuggestion: true,
-  mergeCommitHeadline: "Merge pull request #12 from acme/feat/thing",
+  mergeCommitHeadline:
+    "Merge pull request #12 from christophehurpeau/feat/thing",
   mergeCommitBody: "Add the thing",
   squashCommitHeadline: "Add the thing (#12)",
   squashCommitBody: "Why it is needed",
@@ -66,7 +67,7 @@ const answer = <GhPart>(part: GhPart, repository: MergeSettings = {}) => ({
     repository: { pullRequest: part, ...repository },
   },
   errors: [],
-  ownerRepo: "acme/app",
+  ownerRepo: "christophehurpeau/app",
   number: 12,
   fetchedAt: "2026-10-16T00:00:00Z",
 });
@@ -296,7 +297,7 @@ describe("parsePullRequestDetail", () => {
   it("orders comments, reviews that said something and threads into one timeline", () => {
     const base = {
       author: { login: "carol", avatarUrl: "https://avatars/carol" },
-      url: "https://github.com/acme/app/pull/12#x",
+      url: "https://github.com/christophehurpeau/app/pull/12#x",
       lastEditedAt: null,
       viewerCanUpdate: false,
       viewerCanReact: true,
@@ -450,7 +451,7 @@ describe("parsePullRequestDetail", () => {
     const review = (id: number, body: string) => ({
       __typename: "PullRequestReview" as const,
       author: { login: "carol", avatarUrl: "https://avatars/carol" },
-      url: "https://github.com/acme/app/pull/12#x",
+      url: "https://github.com/christophehurpeau/app/pull/12#x",
       lastEditedAt: null,
       viewerCanUpdate: true,
       viewerCanReact: true,
@@ -629,7 +630,7 @@ describe("parsePullRequestDetail", () => {
       mergeMethods: ["squash", "merge"],
       mergeCommitMessages: {
         merge: {
-          title: "Merge pull request #12 from acme/feat/thing",
+          title: "Merge pull request #12 from christophehurpeau/feat/thing",
           body: "Add the thing",
         },
         squash: { title: "Add the thing (#12)", body: "Why it is needed" },
@@ -738,13 +739,15 @@ describe("parsePullRequestDetail", () => {
     expect(() =>
       parsePullRequestDetail({
         data: { viewer: { login: "bob" }, repository: null },
-        errors: ["Could not resolve to a Repository with the name 'acme/app'."],
-        ownerRepo: "acme/app",
+        errors: [
+          "Could not resolve to a Repository with the name 'christophehurpeau/app'.",
+        ],
+        ownerRepo: "christophehurpeau/app",
         number: 12,
         fetchedAt: "2026-10-16T00:00:00Z",
       }),
     ).toThrow(
-      "no pull request #12 in acme/app: Could not resolve to a Repository",
+      "no pull request #12 in christophehurpeau/app: Could not resolve to a Repository",
     );
   });
 });
@@ -838,7 +841,9 @@ describe("parsePullRequestCandidates", () => {
     expect(() =>
       parsePullRequestCandidates({
         data: { repository: null },
-        errors: ["Could not resolve to a Repository with the name 'acme/app'."],
+        errors: [
+          "Could not resolve to a Repository with the name 'christophehurpeau/app'.",
+        ],
       }),
     ).toThrow("Could not resolve to a Repository");
   });

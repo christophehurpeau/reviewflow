@@ -28,7 +28,7 @@ export interface CreateGitRepoOptions {
  * git installation is on the machine out of it.
  */
 export const createGitRepo = ({
-  remote = "git@github.com:acme/app.git",
+  remote = "git@github.com:christophehurpeau/app.git",
   initialCommit = true,
   branch = "main",
 }: CreateGitRepoOptions = {}): GitRepoFixture => {

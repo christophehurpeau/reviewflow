@@ -48,10 +48,10 @@ const json = (
 /** a PrDetail as reviewflow 6.15 returns it, trimmed to what the client reads */
 const prDetail = (overrides: Record<string, unknown> = {}): unknown => ({
   _id: "pr-1",
-  ownerRepo: "acme/widgets",
+  ownerRepo: "reviewflow/widgets",
   number: 8655,
   title: "chore: hourly triage",
-  url: "https://github.com/acme/widgets/pull/8655",
+  url: "https://github.com/reviewflow/widgets/pull/8655",
   headRef: "chore/claude/hourly-monitoring-triage-GEN-8098",
   baseRef: "main",
   headSha: "abc",
@@ -75,10 +75,10 @@ describe("readPrDetail", () => {
   it("reads the fields the client keeps", () => {
     expect(readPrDetail(prDetail())).toEqual({
       id: "pr-1",
-      ownerRepo: "acme/widgets",
+      ownerRepo: "reviewflow/widgets",
       number: 8655,
       title: "chore: hourly triage",
-      url: "https://github.com/acme/widgets/pull/8655",
+      url: "https://github.com/reviewflow/widgets/pull/8655",
       headRef: "chore/claude/hourly-monitoring-triage-GEN-8098",
       baseRef: "main",
       headSha: "abc",
@@ -247,13 +247,13 @@ describe("createReviewflowClient", () => {
       total: 3,
       prs: [],
     });
-    await client(fetch).closedPrs("acme");
+    await client(fetch).closedPrs("reviewflow");
 
     expect(calls[0]).toMatchObject({
       url: "https://rf.example/api/closed-prs/v1",
     });
     expect(calls[1]).toMatchObject({
-      url: "https://rf.example/api/closed-prs/v1?account=acme",
+      url: "https://rf.example/api/closed-prs/v1?account=reviewflow",
     });
   });
 
@@ -271,7 +271,7 @@ describe("createReviewflowClient", () => {
         user: { id: 1, login: "christophehurpeau" },
         accounts: [
           { id: 1, login: "christophehurpeau", type: "User", teams: [] },
-          { id: 2, login: "acme", type: "Organization", teams: [] },
+          { id: 2, login: "reviewflow", type: "Organization", teams: [] },
         ],
       }),
     );
@@ -280,7 +280,7 @@ describe("createReviewflowClient", () => {
       login: "christophehurpeau",
       accounts: [
         { login: "christophehurpeau", type: "User" },
-        { login: "acme", type: "Organization" },
+        { login: "reviewflow", type: "Organization" },
       ],
     });
     expect(calls[0]).toMatchObject({
@@ -361,7 +361,7 @@ describe("createReviewflowClient", () => {
 
   it("follows a bucket's pages, dropping a row a page repeats", async () => {
     const { fetch, calls } = fakeFetch((path) => {
-      if (path === "/board/v1?account=acme") {
+      if (path === "/board/v1?account=reviewflow") {
         return json({
           groups: [
             {
@@ -381,7 +381,7 @@ describe("createReviewflowClient", () => {
         });
       }
       expect(path).toBe(
-        "/board-bucket/v1?bucket=requested-reviews&account=acme&page=page-2",
+        "/board-bucket/v1?bucket=requested-reviews&account=reviewflow&page=page-2",
       );
       return json({
         key: "requested-reviews",
@@ -392,7 +392,7 @@ describe("createReviewflowClient", () => {
       });
     });
 
-    const [group] = await client(fetch).board("acme");
+    const [group] = await client(fetch).board("reviewflow");
 
     expect(calls).toHaveLength(2);
     expect(group?.buckets[0]?.prs.map(({ id }) => id)).toEqual(["a", "b", "c"]);
@@ -440,26 +440,28 @@ describe("createReviewflowClient", () => {
 
   it("reads one pull request, and none where reviewflow cannot answer for it", async () => {
     const { fetch, calls } = fakeFetch((path) => {
-      if (path === "/pr/v1/acme/app/1") return json(prDetail({ number: 1 }));
+      if (path === "/pr/v1/reviewflow/app/1") {
+        return json(prDetail({ number: 1 }));
+      }
       if (path === "/pr/v1/other/app/1") {
         return json({ error: { code: "forbidden", message: "" } }, 403);
       }
-      if (path === "/pr/v1/acme/app/2") {
+      if (path === "/pr/v1/reviewflow/app/2") {
         return json({ error: { code: "notFound", message: "" } }, 404);
       }
       return json({ error: { code: "rateLimited", message: "" } }, 429);
     });
 
-    await expect(client(fetch).pr("acme/app", 1)).resolves.toMatchObject({
+    await expect(client(fetch).pr("reviewflow/app", 1)).resolves.toMatchObject({
       number: 1,
       baseRef: "main",
     });
     await expect(client(fetch).pr("other/app", 1)).resolves.toBeNull();
-    await expect(client(fetch).pr("acme/app", 2)).resolves.toBeNull();
-    await expect(client(fetch).pr("acme/app", 3)).rejects.toMatchObject({
+    await expect(client(fetch).pr("reviewflow/app", 2)).resolves.toBeNull();
+    await expect(client(fetch).pr("reviewflow/app", 3)).rejects.toMatchObject({
       status: 429,
     });
-    expect(calls[0]?.url).toBe("https://rf.example/api/pr/v1/acme/app/1");
+    expect(calls[0]?.url).toBe("https://rf.example/api/pr/v1/reviewflow/app/1");
   });
 
   it("says which server could not be reached", async () => {

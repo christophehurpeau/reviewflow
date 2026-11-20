@@ -128,7 +128,7 @@ const setup = () => {
   const read: string[] = [];
   const follower = createReviewflowFollower({
     connect,
-    accounts: () => ["acme"],
+    accounts: () => ["christophehurpeau"],
     onPr: (pr, phase) => prs.push([pr.id, phase]),
     onPrRemoved: (id) => removed.push(id),
     onAccountBoard: (account) => read.push(account),
@@ -388,8 +388,8 @@ describe("follow events", () => {
     expect(prs).toEqual([["a", "scope"]]);
     expect(states).toContain("live");
     await vi.advanceTimersByTimeAsync(boardReadDelayMs);
-    expect(board).toHaveBeenCalledWith("acme");
-    expect(read).toEqual(["acme"]);
+    expect(board).toHaveBeenCalledWith("christophehurpeau");
+    expect(read).toEqual(["christophehurpeau"]);
     follower.close();
   });
 
@@ -423,7 +423,10 @@ describe("follow events", () => {
     for (let i = 0; i < 5; i++) {
       stream.push({
         type: "pr",
-        pr: detail({ ownerRepo: "acme/x", title: `t${String(i)}` }),
+        pr: detail({
+          ownerRepo: "christophehurpeau/x",
+          title: `t${String(i)}`,
+        }),
       });
     }
     await flush();
@@ -436,7 +439,10 @@ describe("follow events", () => {
     const { stream, follower, removed, board } = setup();
     follower.setWatched(true);
     await flush();
-    stream.push({ type: "pr", pr: detail({ id: "a", ownerRepo: "acme/x" }) });
+    stream.push({
+      type: "pr",
+      pr: detail({ id: "a", ownerRepo: "christophehurpeau/x" }),
+    });
     stream.push({ type: "ready" });
     await flush();
     await vi.advanceTimersByTimeAsync(boardReadDelayMs);

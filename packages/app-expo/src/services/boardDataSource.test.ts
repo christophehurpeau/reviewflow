@@ -13,7 +13,7 @@ vi.mock("./api.ts", () => ({
 // its entry point reaches react-native, which node cannot parse
 vi.mock("@reviewflow/ui", () => ({ errorToMessage: String }));
 
-const ref = { ownerRepo: "acme/api", number: 12 };
+const ref = { ownerRepo: "christophehurpeau/api", number: 12 };
 
 describe("startReview", () => {
   beforeEach(() => {

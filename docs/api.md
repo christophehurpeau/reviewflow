@@ -122,7 +122,7 @@ Authorization: Bearer rfp_…
     { "id": 42, "login": "octocat", "type": "User", "teams": [] },
     {
       "id": 1,
-      "login": "acme",
+      "login": "reviewflow",
       "type": "Organization",
       "teams": [{ "id": 7, "slug": "web", "name": "Web" }]
     }
@@ -182,7 +182,7 @@ GET /api/health
 The board as the webapp shows it, for the pull requests you own or are asked to review. Same buckets, same membership, same order: the code is the webapp's.
 
 ```http
-GET /api/board/v1?account=acme
+GET /api/board/v1?account=reviewflow
 Authorization: Bearer rfp_…
 ```
 
@@ -230,7 +230,7 @@ Conditional: `ETag` / `If-None-Match`, see [conventions](#conventions). Poll wit
 One bucket of the board, 100 pull requests at a time.
 
 ```http
-GET /api/board-bucket/v1?bucket=requested-reviews&account=acme&page=b2Zmc2V0OjEwMA
+GET /api/board-bucket/v1?bucket=requested-reviews&account=reviewflow&page=b2Zmc2V0OjEwMA
 Authorization: Bearer rfp_…
 ```
 
@@ -248,7 +248,7 @@ Errors: as for the board, and `400 badRequest` when `bucket` is missing or unkno
 The 100 most recently closed or merged pull requests you created, are assigned to, or reviewed.
 
 ```http
-GET /api/closed-prs/v1?account=acme
+GET /api/closed-prs/v1?account=reviewflow
 Authorization: Bearer rfp_…
 ```
 
@@ -269,7 +269,7 @@ Errors: as for the board. Conditional: `ETag` / `If-None-Match`, see [convention
 One pull request, in the [shape above](#pull-request-shape), with `myBuckets` computed for you in that account.
 
 ```http
-GET /api/pr/v1/acme/api/412
+GET /api/pr/v1/reviewflow/api/412
 Authorization: Bearer rfp_…
 ```
 
@@ -278,7 +278,7 @@ The response is the pull request object, abridged here:
 ```json
 {
   "_id": "6718f0c2a1b2c3d4e5f60718",
-  "ownerRepo": "acme/api",
+  "ownerRepo": "reviewflow/api",
   "number": 412,
   "state": "open",
   "reviewState": "requested",
@@ -312,7 +312,7 @@ POST /api/prs-lookup/v1
 Authorization: Bearer rfp_…
 Content-Type: application/json
 
-{ "targets": [{ "ownerRepo": "acme/api", "headRef": "feat/read-api" }] }
+{ "targets": [{ "ownerRepo": "reviewflow/api", "headRef": "feat/read-api" }] }
 ```
 
 ```json
@@ -360,7 +360,7 @@ Errors:
 Your pull requests as they change, as [server-sent events](https://html.spec.whatwg.org/multipage/server-sent-events.html): the board, kept current, without polling.
 
 ```http
-GET /api/stream/v1?account=acme&closedWithinDays=7
+GET /api/stream/v1?account=reviewflow&closedWithinDays=7
 Authorization: Bearer rfp_…
 Accept: text/event-stream
 ```

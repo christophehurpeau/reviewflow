@@ -11,10 +11,10 @@ import type {
 import { EditableFile } from "./editable-file.tsx";
 
 const config =
-  '{\n  "repos": {\n    "acme/storefront": "/Users/ada/dev/storefront"\n  }\n}\n';
+  '{\n  "repos": {\n    "christophehurpeau/storefront": "/Users/ada/dev/storefront"\n  }\n}\n';
 const edited = config.replace(
   'storefront"\n',
-  'storefront",\n    "acme/web": "/Users/ada/dev/web"\n',
+  'storefront",\n    "christophehurpeau/web": "/Users/ada/dev/web"\n',
 );
 
 /** An editor opened on the config, whose save answers `answer` after a beat. */
@@ -86,7 +86,7 @@ export const ValidationErrorStory: Story_ = {
       initialValue={edited}
       answer={() => ({
         status: "invalid",
-        error: 'repos["acme/web"] must be an absolute path',
+        error: 'repos["christophehurpeau/web"] must be an absolute path',
       })}
     />
   ),
@@ -101,7 +101,7 @@ export const WarningsStory: Story_ = {
         status: "saved",
         source,
         warnings: [
-          "acme/web: /Users/ada/dev/web does not exist or is not a directory",
+          "christophehurpeau/web: /Users/ada/dev/web does not exist or is not a directory",
         ],
       })}
     />

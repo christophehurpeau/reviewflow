@@ -41,7 +41,7 @@ const createApp = (stored: PersonalToken | undefined): Harness => {
         org: { id: 1, login: "elax" },
         teams: [{ id: 7, name: "Squad Apps", slug: "squad-apps" }],
       },
-      { org: { id: 2, login: "acme" }, teams: [] },
+      { org: { id: 2, login: "reviewflow" }, teams: [] },
     ]),
   );
 
@@ -57,7 +57,7 @@ const createApp = (stored: PersonalToken | undefined): Harness => {
             config: { allowPersonalTokens: true },
             paidFeatures: { enabled: true },
           },
-          { _id: 2, login: "acme", config: {} },
+          { _id: 2, login: "reviewflow", config: {} },
         ]),
     },
     users: {

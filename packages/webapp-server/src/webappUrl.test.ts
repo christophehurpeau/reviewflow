@@ -15,7 +15,9 @@ describe("webappUrl", () => {
     vi.stubEnv("REVIEWFLOW_APP_URL", "https://reviewflow.example");
     const { webappUrl } = await importWebappUrl();
 
-    expect(webappUrl("/org/acme")).toBe("https://reviewflow.example/org/acme");
+    expect(webappUrl("/org/christophehurpeau")).toBe(
+      "https://reviewflow.example/org/christophehurpeau",
+    );
     expect(webappUrl("/", { error: "nope" })).toBe(
       "https://reviewflow.example/?error=nope",
     );

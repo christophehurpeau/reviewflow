@@ -39,16 +39,19 @@ const createCheckout = (path: string, origin: string): void => {
 beforeAll(() => {
   root = mkdtempSync(join(tmpdir(), "reviewflow-app-config-"));
   repo = join(root, "checkout");
-  createCheckout(repo, "git@github.com:Acme/Widgets.git");
+  createCheckout(repo, "git@github.com:ChristopheHurpeau/Widgets.git");
   reposBase = join(root, "dev");
-  createCheckout(join(reposBase, "gizmos"), "git@github.com:acme/gizmos.git");
+  createCheckout(
+    join(reposBase, "gizmos"),
+    "git@github.com:christophehurpeau/gizmos.git",
+  );
   createCheckout(
     join(reposBase, "fork", "gadgets"),
     "git@github.com:someone/gadgets.git",
   );
   createCheckout(
     join(reposBase, "perso", "gadgets"),
-    "git@github.com:acme/gadgets.git",
+    "git@github.com:christophehurpeau/gadgets.git",
   );
   configPath = join(root, "config.json");
 });
@@ -101,12 +104,12 @@ describe("config", () => {
       configPath,
       JSON.stringify({
         repoPaths: ["~/code", "/work"],
-        repos: { "acme/widgets": "~/dev/widgets" },
+        repos: { "christophehurpeau/widgets": "~/dev/widgets" },
       }),
     );
     expect(readConfig(configPath)).toEqual({
       repoPaths: [join(homedir(), "code"), "/work"],
-      repos: { "acme/widgets": join(homedir(), "dev/widgets") },
+      repos: { "christophehurpeau/widgets": join(homedir(), "dev/widgets") },
     });
   });
 
@@ -124,7 +127,9 @@ describe("config", () => {
   test("an empty repoPaths searches no folder", async () => {
     writeFileSync(configPath, JSON.stringify({ repoPaths: [] }));
     expect(readConfig(configPath).repoPaths).toEqual([]);
-    expect(await resolveCheckout(configPath, "acme/gizmos")).toMatchObject({
+    expect(
+      await resolveCheckout(configPath, "christophehurpeau/gizmos"),
+    ).toMatchObject({
       refused: {
         reason: "notConfigured",
         detail: expect.stringContaining("no repositories folder"),
@@ -141,7 +146,7 @@ describe("config", () => {
     expect(readConfig(join(root, "nope.json")).repos).toEqual({});
     const refusal = await resolveCheckout(
       join(root, "nope.json"),
-      "Acme/Widgets",
+      "ChristopheHurpeau/Widgets",
     );
     expect(refusal).toMatchObject({ refused: { reason: "notConfigured" } });
   });
@@ -153,31 +158,39 @@ describe("config", () => {
 
   test("finds a repo missing from the file under any of repoPaths", async () => {
     writeConfig({});
-    expect(await resolveCheckout(configPath, "acme/gizmos")).toEqual({
+    expect(
+      await resolveCheckout(configPath, "christophehurpeau/gizmos"),
+    ).toEqual({
       checkout: join(reposBase, "gizmos"),
     });
   });
 
   test("an explicit entry wins over repoPaths", async () => {
-    writeConfig({ "acme/gizmos": join(root, "gone") });
-    expect(await resolveCheckout(configPath, "acme/gizmos")).toMatchObject({
+    writeConfig({ "christophehurpeau/gizmos": join(root, "gone") });
+    expect(
+      await resolveCheckout(configPath, "christophehurpeau/gizmos"),
+    ).toMatchObject({
       refused: { reason: "invalidPath" },
     });
   });
 
   test("resolves a checkout whose origin names the repo, case-insensitively", async () => {
-    writeConfig({ "acme/widgets": repo });
-    expect(await resolveCheckout(configPath, "Acme/Widgets")).toEqual({
+    writeConfig({ "christophehurpeau/widgets": repo });
+    expect(
+      await resolveCheckout(configPath, "ChristopheHurpeau/Widgets"),
+    ).toEqual({
       checkout: repo,
     });
   });
 
   test("refuses a repo missing from the file", async () => {
-    writeConfig({ "acme/widgets": repo });
-    expect(await resolveCheckout(configPath, "acme/other")).toEqual({
+    writeConfig({ "christophehurpeau/widgets": repo });
+    expect(
+      await resolveCheckout(configPath, "christophehurpeau/other"),
+    ).toEqual({
       refused: {
         reason: "notConfigured",
-        ownerRepo: "acme/other",
+        ownerRepo: "christophehurpeau/other",
         configPath,
         detail: expect.any(String),
       },
@@ -185,41 +198,53 @@ describe("config", () => {
   });
 
   test("refuses a path that does not exist", async () => {
-    writeConfig({ "acme/widgets": join(root, "gone") });
-    expect(await resolveCheckout(configPath, "acme/widgets")).toMatchObject({
+    writeConfig({ "christophehurpeau/widgets": join(root, "gone") });
+    expect(
+      await resolveCheckout(configPath, "christophehurpeau/widgets"),
+    ).toMatchObject({
       refused: { reason: "invalidPath" },
     });
   });
 
   test("refuses a checkout whose origin names another repo", async () => {
-    writeConfig({ "acme/gadgets": repo });
-    const answer = await resolveCheckout(configPath, "acme/gadgets");
+    writeConfig({ "christophehurpeau/gadgets": repo });
+    const answer = await resolveCheckout(
+      configPath,
+      "christophehurpeau/gadgets",
+    );
     expect(answer).toMatchObject({ refused: { reason: "invalidPath" } });
-    expect(JSON.stringify(answer)).toContain("does not name acme/gadgets");
+    expect(JSON.stringify(answer)).toContain(
+      "does not name christophehurpeau/gadgets",
+    );
   });
 
   test("describeRepoAttachment answers a state for each case", async () => {
-    writeConfig({ "acme/widgets": repo, "acme/gadgets": repo });
-    expect(await describeRepoAttachment(configPath, "acme/widgets")).toEqual({
-      ownerRepo: "acme/widgets",
+    writeConfig({
+      "christophehurpeau/widgets": repo,
+      "christophehurpeau/gadgets": repo,
+    });
+    expect(
+      await describeRepoAttachment(configPath, "christophehurpeau/widgets"),
+    ).toEqual({
+      ownerRepo: "christophehurpeau/widgets",
       status: "attached",
       detail: repo,
     });
     expect(
-      await describeRepoAttachment(configPath, "acme/gadgets"),
+      await describeRepoAttachment(configPath, "christophehurpeau/gadgets"),
     ).toMatchObject({
       status: "invalidPath",
       detail: expect.stringContaining("does not name"),
     });
     expect(
-      await describeRepoAttachment(configPath, "acme/other"),
+      await describeRepoAttachment(configPath, "christophehurpeau/other"),
     ).toMatchObject({ status: "notConfigured" });
   });
 
   test("describeRepoAttachment reports an unreadable file as not configured", async () => {
     writeFileSync(configPath, "{");
     expect(
-      await describeRepoAttachment(configPath, "acme/widgets"),
+      await describeRepoAttachment(configPath, "christophehurpeau/widgets"),
     ).toMatchObject({
       status: "notConfigured",
       detail: expect.stringContaining("not valid json"),
@@ -229,25 +254,25 @@ describe("config", () => {
 
 describe("checkCheckout", () => {
   test("accepts a checkout whose origin names the repository", async () => {
-    expect(await checkCheckout("acme/widgets", repo)).toBeNull();
+    expect(await checkCheckout("christophehurpeau/widgets", repo)).toBeNull();
   });
 
   test("reports a repository without origin", async () => {
     const path = join(root, "no-origin");
     mkdirSync(path);
     git(path, "init", "--quiet");
-    expect(await checkCheckout("acme/widgets", path)).toBe(
+    expect(await checkCheckout("christophehurpeau/widgets", path)).toBe(
       `${path} has no remote.origin.url (is it a git checkout?)`,
     );
   });
 
   test("reports git's failure rather than a missing origin", async () => {
     const path = join(root, "unreadable-config");
-    createCheckout(path, "git@github.com:acme/widgets.git");
+    createCheckout(path, "git@github.com:christophehurpeau/widgets.git");
     const config = join(path, ".git", "config");
     chmodSync(config, 0o000);
     try {
-      const problem = await checkCheckout("acme/widgets", path);
+      const problem = await checkCheckout("christophehurpeau/widgets", path);
       expect(problem).toContain(
         `git config --get remote.origin.url failed in ${path}`,
       );
@@ -259,21 +284,23 @@ describe("checkCheckout", () => {
 
 describe("findCheckoutUnder", () => {
   test("finds <base>/<repo>, case-insensitively", async () => {
-    expect(await findCheckoutUnder(reposBase, "Acme/Gizmos")).toBe(
+    expect(await findCheckoutUnder(reposBase, "ChristopheHurpeau/Gizmos")).toBe(
       join(reposBase, "gizmos"),
     );
   });
 
   test("finds <base>/<any>/<repo>, skipping one whose origin is another repo", async () => {
-    expect(await findCheckoutUnder(reposBase, "acme/gadgets")).toBe(
-      join(reposBase, "perso", "gadgets"),
-    );
+    expect(
+      await findCheckoutUnder(reposBase, "christophehurpeau/gadgets"),
+    ).toBe(join(reposBase, "perso", "gadgets"));
   });
 
   test("finds nothing for an unknown repo or a missing base", async () => {
-    expect(await findCheckoutUnder(reposBase, "acme/other")).toBeNull();
     expect(
-      await findCheckoutUnder(join(root, "gone"), "acme/gizmos"),
+      await findCheckoutUnder(reposBase, "christophehurpeau/other"),
+    ).toBeNull();
+    expect(
+      await findCheckoutUnder(join(root, "gone"), "christophehurpeau/gizmos"),
     ).toBeNull();
   });
 });
@@ -283,7 +310,7 @@ describe("validateConfigSource", () => {
 
   test("accepts a valid checkout without warnings", async () => {
     expect(
-      await validateConfigSource(source({ "acme/widgets": repo })),
+      await validateConfigSource(source({ "christophehurpeau/widgets": repo })),
     ).toEqual({
       warnings: [],
     });
@@ -302,12 +329,18 @@ describe("validateConfigSource", () => {
     ['{"repos":[]}', '"repos" must be an object'],
     [source({ widgets: "/x" }), 'repos key "widgets" must be owner/repo'],
     [
-      source({ "acme/widgets": 3 }),
-      'repos["acme/widgets"] must be the absolute path',
+      source({ "christophehurpeau/widgets": 3 }),
+      'repos["christophehurpeau/widgets"] must be the absolute path',
     ],
-    [source({ "acme/widgets": "" }), "non-empty string"],
-    [source({ "acme/widgets": "relative/dir" }), "must be an absolute path"],
-    [source({ "acme/widgets": "~other/dir" }), "must be an absolute path"],
+    [source({ "christophehurpeau/widgets": "" }), "non-empty string"],
+    [
+      source({ "christophehurpeau/widgets": "relative/dir" }),
+      "must be an absolute path",
+    ],
+    [
+      source({ "christophehurpeau/widgets": "~other/dir" }),
+      "must be an absolute path",
+    ],
     [
       '{"repos":{},"defaultRepoPath":3}',
       '"defaultRepoPath" must be a non-empty',
@@ -335,10 +368,12 @@ describe("validateConfigSource", () => {
   test("accepts a path under ~, checked expanded", async () => {
     const missing = "~/reviewflow-app-config-test-missing";
     expect(
-      await validateConfigSource(source({ "acme/widgets": missing })),
+      await validateConfigSource(
+        source({ "christophehurpeau/widgets": missing }),
+      ),
     ).toEqual({
       warnings: [
-        `acme/widgets: ${expandHome(missing)} does not exist or is not a directory`,
+        `christophehurpeau/widgets: ${expandHome(missing)} does not exist or is not a directory`,
       ],
     });
   });
@@ -383,15 +418,15 @@ describe("validateConfigSource", () => {
   test("warns, and does not refuse, for a missing or mismatching checkout", async () => {
     const result = await validateConfigSource(
       source({
-        "acme/widgets": repo,
-        "acme/gone": join(root, "gone"),
-        "acme/gadgets": repo,
+        "christophehurpeau/widgets": repo,
+        "christophehurpeau/gone": join(root, "gone"),
+        "christophehurpeau/gadgets": repo,
       }),
     );
     expect(result).toEqual({
       warnings: [
-        expect.stringContaining("acme/gone: "),
-        expect.stringContaining("acme/gadgets: "),
+        expect.stringContaining("christophehurpeau/gone: "),
+        expect.stringContaining("christophehurpeau/gadgets: "),
       ],
     });
     expect((result as { warnings: string[] }).warnings[0]).toContain(

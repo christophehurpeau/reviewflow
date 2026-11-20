@@ -25,7 +25,7 @@ const createApp = ({
   const mongoStores = {
     orgs: {
       findByKey: () =>
-        Promise.resolve({ _id: orgId, login: "acme", slackTeamId: "T1" }),
+        Promise.resolve({ _id: orgId, login: "reviewflow", slackTeamId: "T1" }),
       partialUpdateOne,
     },
     orgMembers: {
@@ -67,7 +67,7 @@ describe("membership", () => {
 
     const response = await callApp(app, {
       method: "GET",
-      url: `/app/slack-install?orgId=${orgId}&orgLogin=acme`,
+      url: `/app/slack-install?orgId=${orgId}&orgLogin=reviewflow`,
       headers: await authenticatedHeaders(),
     });
 
@@ -81,7 +81,7 @@ describe("membership", () => {
 
     const response = await callApp(app, {
       method: "GET",
-      url: `/app/slack-connect?orgId=${orgId}&orgLogin=acme`,
+      url: `/app/slack-connect?orgId=${orgId}&orgLogin=reviewflow`,
       headers: await authenticatedHeaders(),
     });
 
@@ -95,7 +95,7 @@ describe("membership", () => {
 
     const response = await callApp(app, {
       method: "GET",
-      url: `/app/slack-install?orgId=${orgId}&orgLogin=acme`,
+      url: `/app/slack-install?orgId=${orgId}&orgLogin=reviewflow`,
       headers: await authenticatedHeaders(),
     });
 
@@ -105,7 +105,7 @@ describe("membership", () => {
   it("never links a slack workspace to an org the state points at without membership", async () => {
     const app = createApp({ orgMember: undefined });
     const state = encodeURIComponent(
-      JSON.stringify({ orgId, orgLogin: "acme", isInstall: true }),
+      JSON.stringify({ orgId, orgLogin: "reviewflow", isInstall: true }),
     );
 
     const response = await callApp(app, {
@@ -125,7 +125,7 @@ describe("membership", () => {
 
     const response = await callApp(app, {
       method: "GET",
-      url: `/app/slack-install?orgId=${orgId}&orgLogin=acme`,
+      url: `/app/slack-install?orgId=${orgId}&orgLogin=reviewflow`,
       headers: { "user-agent": userAgent, host: "localhost:3000" },
     });
 

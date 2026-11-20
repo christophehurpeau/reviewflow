@@ -38,10 +38,10 @@ const detail = (
   overrides: Partial<ReviewflowPrDetail> = {},
 ): ReviewflowPrDetail => ({
   id: "rf-1",
-  ownerRepo: "acme/repo",
+  ownerRepo: "reviewflow/repo",
   number: 1,
   title: "a pull request",
-  url: "https://github.com/acme/repo/pull/1",
+  url: "https://github.com/reviewflow/repo/pull/1",
   headRef: "feat",
   baseRef: "main",
   headSha: "abc",
@@ -136,12 +136,12 @@ const setup = (client: Partial<ReviewflowClient> = {}) => {
       login: "me",
       accounts: [
         { login: "me", type: "User" as const },
-        { login: "acme", type: "Organization" as const },
+        { login: "reviewflow", type: "Organization" as const },
       ],
     })),
     lookup: vi.fn(async () => []),
     board: vi.fn(async (account: string) =>
-      groupsOf(account === "acme" ? [detail()] : []),
+      groupsOf(account === "reviewflow" ? [detail()] : []),
     ),
     closedPrs: vi.fn(async () => ({ total: 0, prs: [] })),
     pr: vi.fn(async () => null),
@@ -181,7 +181,7 @@ describe("token", () => {
       configured: true,
       url,
       login: "me",
-      accounts: ["me", "acme"],
+      accounts: ["me", "reviewflow"],
       stream: "off",
       error: null,
     });
@@ -272,7 +272,7 @@ describe("board", () => {
     expect(first.board?.groups[0]?.buckets[0]?.prs).toHaveLength(1);
     expect(first.board?.fetchedAt).toBe("2026-11-06T10:00:00.000Z");
     await service.board(false);
-    expect(client.board).toHaveBeenCalledTimes(2); // me + acme, once
+    expect(client.board).toHaveBeenCalledTimes(2); // me + reviewflow, once
     await service.board(true);
     expect(client.board).toHaveBeenCalledTimes(4);
   });
@@ -294,7 +294,7 @@ describe("board", () => {
         async (account: string) =>
           new Promise<ReturnType<typeof groupsOf>>((resolve) => {
             answers.push(() => {
-              resolve(groupsOf(account === "acme" ? [detail()] : []));
+              resolve(groupsOf(account === "reviewflow" ? [detail()] : []));
             });
           }),
       ),
@@ -337,7 +337,7 @@ describe("pr", () => {
   test("is null without a token, reviewflow not asked", async () => {
     const { service, client } = setup();
     expect(
-      await service.pr({ ownerRepo: "acme/storefront", number: 1 }),
+      await service.pr({ ownerRepo: "reviewflow/storefront", number: 1 }),
     ).toEqual({ pr: null });
     expect(client.pr).not.toHaveBeenCalled();
   });
@@ -346,11 +346,11 @@ describe("pr", () => {
     const { service, client } = setup({ pr: vi.fn(async () => detail()) });
     await service.setToken({ url, token });
     const answer = await service.pr({
-      ownerRepo: "acme/storefront",
+      ownerRepo: "reviewflow/storefront",
       number: 1,
     });
     expect(answer.pr).toEqual(detail());
-    expect(client.pr).toHaveBeenCalledWith("acme/storefront", 1);
+    expect(client.pr).toHaveBeenCalledWith("reviewflow/storefront", 1);
   });
 
   test("fails with the reason, never the token", async () => {
@@ -360,7 +360,7 @@ describe("pr", () => {
       },
     });
     await service.setToken({ url, token });
-    const read = service.pr({ ownerRepo: "acme/storefront", number: 1 });
+    const read = service.pr({ ownerRepo: "reviewflow/storefront", number: 1 });
     await expect(read).rejects.toThrow(/503/);
     await expect(read).rejects.not.toThrow(token);
   });
@@ -384,16 +384,16 @@ describe("closedPullRequests", () => {
     });
     await service.setToken({ url: "https://rf.example", token: "rfp_x" });
 
-    const answer = await service.closedPullRequests("acme");
+    const answer = await service.closedPullRequests("reviewflow");
 
-    expect(client.closedPrs).toHaveBeenCalledWith("acme");
+    expect(client.closedPrs).toHaveBeenCalledWith("reviewflow");
     expect(answer).toMatchObject({ total: 7, viewer: "me" });
     expect(answer.prs).toHaveLength(1);
   });
 });
 
 describe("lookup", () => {
-  const targets = [{ ownerRepo: "acme/storefront", headRef: "feat/x" }];
+  const targets = [{ ownerRepo: "reviewflow/storefront", headRef: "feat/x" }];
 
   test("is null without a token, reviewflow not asked", async () => {
     const { service, client } = setup();
@@ -508,7 +508,10 @@ describe("events", () => {
     await flush();
     seen = frames(writes);
     const changed = seen.find((f) => f.event === "pullRequestChanged");
-    expect(changed?.data).toMatchObject({ ownerRepo: "acme/repo", number: 1 });
+    expect(changed?.data).toMatchObject({
+      ownerRepo: "reviewflow/repo",
+      number: 1,
+    });
     expect(changed?.data.parts).toContain("commits");
     close();
     service.close();
@@ -639,15 +642,20 @@ describe("routes", () => {
       },
     });
     expect(
-      (await call(service, "GET", "/api/reviewflow/pr?repo=acme&number=1"))
-        ?.status,
+      (
+        await call(
+          service,
+          "GET",
+          "/api/reviewflow/pr?repo=reviewflow&number=1",
+        )
+      )?.status,
     ).toBe(400);
     expect(
       (
         await call(
           service,
           "GET",
-          "/api/reviewflow/pr?repo=acme/storefront&number=1",
+          "/api/reviewflow/pr?repo=reviewflow/storefront&number=1",
         )
       )?.body,
     ).toEqual({ pr: null });
@@ -657,7 +665,7 @@ describe("routes", () => {
         await call(
           service,
           "GET",
-          "/api/reviewflow/pr?repo=acme/storefront&number=1",
+          "/api/reviewflow/pr?repo=reviewflow/storefront&number=1",
         )
       )?.status,
     ).toBe(502);

@@ -120,7 +120,9 @@ export const VariantsStory: StoryObj<typeof MarkdownEditor> = {
         <CodeEditor
           aria-label="json"
           language="json"
-          value={'{\n  "repos": { "acme/web": "/Users/ada/dev/web" }\n}\n'}
+          value={
+            '{\n  "repos": { "christophehurpeau/web": "/Users/ada/dev/web" }\n}\n'
+          }
         />
       </Story.Section>
       <Story.Section title="CodeEditor markdown">

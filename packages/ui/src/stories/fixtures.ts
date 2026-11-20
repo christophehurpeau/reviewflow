@@ -14,7 +14,7 @@ import type {
   ReviewflowPrDetail,
 } from "@reviewflow/sdk";
 
-export const ownerRepo = "acme/storefront";
+export const ownerRepo = "christophehurpeau/storefront";
 export const number = 482;
 export const ref = { ownerRepo, number };
 
@@ -105,7 +105,7 @@ export const checks: PullRequestChecksResponse = {
       outcome: "failed",
       running: false,
       description: "2 tests failed",
-      url: "https://github.com/acme/storefront/actions/runs/1",
+      url: "https://github.com/christophehurpeau/storefront/actions/runs/1",
     },
     {
       name: "build",
@@ -158,7 +158,8 @@ export const reviewflowPr: ReviewflowPrDetail = {
         status: "completed",
         conclusion: "failure",
         title: "2 tests failed",
-        detailsUrl: "https://github.com/acme/storefront/actions/runs/1",
+        detailsUrl:
+          "https://github.com/christophehurpeau/storefront/actions/runs/1",
       },
       {
         name: "build",
@@ -229,7 +230,7 @@ export const timeline: PullRequestTimelineResponse = {
       body: "Nice. Does the cache survive a deploy? **Please** check `cartVersion`.",
       createdAt: "2026-11-05T08:00:00.000Z",
       lastEditedAt: null,
-      url: "https://github.com/acme/storefront/pull/482#issuecomment-1",
+      url: "https://github.com/christophehurpeau/storefront/pull/482#issuecomment-1",
       viewerCanUpdate: false,
       reactions: [{ content: "thumbsUp", count: 1, viewerHasReacted: true }],
     },
@@ -262,7 +263,7 @@ export const timeline: PullRequestTimelineResponse = {
           body: "Should the key include the currency?\n\n```suggestion\nconst key = `${sessionId}:${cartVersion}:${currency}`;\n```",
           createdAt: "2026-11-05T09:00:00.000Z",
           lastEditedAt: null,
-          url: "https://github.com/acme/storefront/pull/482#discussion_r11",
+          url: "https://github.com/christophehurpeau/storefront/pull/482#discussion_r11",
           viewerCanUpdate: true,
         },
         {
@@ -272,7 +273,7 @@ export const timeline: PullRequestTimelineResponse = {
           body: "Good catch, adding it.",
           createdAt: "2026-11-05T09:30:00.000Z",
           lastEditedAt: null,
-          url: "https://github.com/acme/storefront/pull/482#discussion_r12",
+          url: "https://github.com/christophehurpeau/storefront/pull/482#discussion_r12",
           viewerCanUpdate: false,
         },
       ],
@@ -286,7 +287,7 @@ export const timeline: PullRequestTimelineResponse = {
       body: "Left a few notes on the key.",
       createdAt: "2026-11-05T09:05:00.000Z",
       lastEditedAt: null,
-      url: "https://github.com/acme/storefront/pull/482#pullrequestreview-21",
+      url: "https://github.com/christophehurpeau/storefront/pull/482#pullrequestreview-21",
       viewerCanUpdate: true,
       commitOid: headSha,
     },
@@ -418,7 +419,7 @@ index 4444444..5555555 100644
 --- a/packages/app/src/cart-screen.tsx
 +++ b/packages/app/src/cart-screen.tsx
 @@ -1,3 +1,3 @@
- import { totalsOf } from "@acme/sdk";
+ import { totalsOf } from "@christophehurpeau/sdk";
  
 -export const CartScreen = ({ cart }) => totalsOf(cart);
 +export const CartScreen = ({ sessionId, cart }) => totalsOf(sessionId, cart);

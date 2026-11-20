@@ -229,7 +229,7 @@ describe("editPullRequest applySuggestions", () => {
 
     expect(
       await editPullRequest(transport, {
-        ownerRepo: "acme/app",
+        ownerRepo: "christophehurpeau/app",
         number: 12,
         edit,
       }),
@@ -279,7 +279,7 @@ describe("editPullRequest applySuggestions", () => {
 
     expect(
       await editPullRequest(transport, {
-        ownerRepo: "acme/app",
+        ownerRepo: "christophehurpeau/app",
         number: 12,
         edit,
       }),
@@ -292,7 +292,11 @@ describe("editPullRequest applySuggestions", () => {
       errors: [],
     });
     await expect(
-      editPullRequest(transport, { ownerRepo: "acme/app", number: 12, edit }),
+      editPullRequest(transport, {
+        ownerRepo: "christophehurpeau/app",
+        number: 12,
+        edit,
+      }),
     ).rejects.toThrow(/is merged/);
     expect(ghGraphql).toHaveBeenCalledTimes(1);
   });

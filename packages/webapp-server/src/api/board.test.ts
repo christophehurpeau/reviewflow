@@ -109,7 +109,7 @@ const createApp = (tokenId: string, requestedTotal = 2) => {
       findAll: () =>
         Promise.resolve([
           { org: { id: 1, login: "elax" }, teams: [] },
-          { org: { id: 2, login: "acme" }, teams: [] },
+          { org: { id: 2, login: "reviewflow" }, teams: [] },
         ]),
     },
     users: {
@@ -125,7 +125,7 @@ const createApp = (tokenId: string, requestedTotal = 2) => {
             config: { allowPersonalTokens: true },
             paidFeatures: { enabled: true },
           },
-          { _id: 2, login: "acme", config: {} },
+          { _id: 2, login: "reviewflow", config: {} },
         ]),
     },
     prs: { createQueryCollection, count },
@@ -173,7 +173,7 @@ describe("GET /api/closed-prs/v1", () => {
     await get(app, "/api/closed-prs/v1?account=elax");
     expect(calls[0]!.criteria["account.id"]).toEqual({ $in: [1] });
 
-    const forbidden = await get(app, "/api/closed-prs/v1?account=acme");
+    const forbidden = await get(app, "/api/closed-prs/v1?account=reviewflow");
     expect(forbidden.status).toBe(403);
     expect(errorOf(forbidden.body)).toBe("forbidden");
   });
@@ -282,7 +282,7 @@ describe("GET /api/board/v1", () => {
   it("answers 403 for an organization that does not allow tokens, or an unknown account", async () => {
     const { app, calls } = createApp("t-board-403");
 
-    const notAllowed = await get(app, "/api/board/v1?account=acme");
+    const notAllowed = await get(app, "/api/board/v1?account=reviewflow");
     const unknown = await get(app, "/api/board/v1?account=stranger");
 
     expect(notAllowed.status).toBe(403);
@@ -372,7 +372,10 @@ describe("GET /api/board-bucket/v1", () => {
     const { app } = createApp("t-bucket-account");
 
     const ok = await get(app, bucketUrl("bucket=drafts&account=elax"));
-    const forbidden = await get(app, bucketUrl("bucket=drafts&account=acme"));
+    const forbidden = await get(
+      app,
+      bucketUrl("bucket=drafts&account=reviewflow"),
+    );
 
     expect(ok.status).toBe(200);
     expect(forbidden.status).toBe(403);

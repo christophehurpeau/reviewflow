@@ -12,7 +12,7 @@ import { createTestMongoStores } from "@reviewflow/core/tests";
 import type { OctokitPaginate, OctokitRestCompat } from "../../../octokit.ts";
 import { syncTeams } from "./syncTeams.ts";
 
-const org = { id: 1, login: "acme" };
+const org = { id: 1, login: "reviewflow" };
 const otherOrg = { id: 2, login: "other" };
 
 interface GithubTeam {

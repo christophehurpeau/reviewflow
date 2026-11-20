@@ -24,7 +24,7 @@ const meta = {
   args: {
     userLogin: "christophehurpeau",
     userPaidEnabled: true,
-    orgs: [buildOrg(1, "elax", true), buildOrg(2, "acme", false)],
+    orgs: [buildOrg(1, "elax", true), buildOrg(2, "reviewflow", false)],
   },
 } satisfies Meta<typeof TokenReachList>;
 
@@ -56,7 +56,7 @@ export const VariantsStory: StoryObj<typeof meta> = {
         <TokenReachList
           userPaidEnabled
           userLogin="christophehurpeau"
-          orgs={[buildOrg(1, "elax", true), buildOrg(2, "acme", false)]}
+          orgs={[buildOrg(1, "elax", true), buildOrg(2, "reviewflow", false)]}
         />
       </Story.Section>
       <Story.Section title="several orgs do not allow">
@@ -64,7 +64,7 @@ export const VariantsStory: StoryObj<typeof meta> = {
           userPaidEnabled
           userLogin="christophehurpeau"
           orgs={[
-            buildOrg(2, "acme", false),
+            buildOrg(2, "reviewflow", false),
             buildOrg(3, "globex", false),
             buildOrg(4, "initech", false),
           ]}
@@ -83,7 +83,7 @@ export const VariantsStory: StoryObj<typeof meta> = {
           userLogin="christophehurpeau"
           orgs={[
             buildOrg(1, "elax", true),
-            buildOrg(2, "acme", true, false),
+            buildOrg(2, "reviewflow", true, false),
             buildOrg(3, "globex", false, false),
           ]}
         />

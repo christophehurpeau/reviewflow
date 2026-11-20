@@ -9,13 +9,17 @@ describe("orgSettingsUrl", () => {
   it("points at the org screen of the webapp", () => {
     vi.stubEnv("REVIEWFLOW_APP_URL", "https://reviewflow.example");
 
-    expect(orgSettingsUrl("acme")).toBe("https://reviewflow.example/org/acme");
+    expect(orgSettingsUrl("christophehurpeau")).toBe(
+      "https://reviewflow.example/org/christophehurpeau",
+    );
   });
 
   it("ignores a trailing slash", () => {
     vi.stubEnv("REVIEWFLOW_APP_URL", "https://reviewflow.example/");
 
-    expect(orgSettingsUrl("acme")).toBe("https://reviewflow.example/org/acme");
+    expect(orgSettingsUrl("christophehurpeau")).toBe(
+      "https://reviewflow.example/org/christophehurpeau",
+    );
   });
 });
 

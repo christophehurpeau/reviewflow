@@ -33,7 +33,7 @@ const user = (index: number): ReviewflowPr["creator"] & {} => ({
 
 const buildPr = (index: number): ReviewflowPr => ({
   _id: `pr-${index}`,
-  account: { id: accountId, login: "acme", type: "Organization" },
+  account: { id: accountId, login: "reviewflow", type: "Organization" },
   repo: { id: 1 + (index % 20), name: `repo-${index % 20}` },
   pr: { number: index },
   commentId: index,

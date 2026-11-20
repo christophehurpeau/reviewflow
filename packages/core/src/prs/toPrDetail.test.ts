@@ -26,7 +26,7 @@ const emptyReviews = (): ReviewflowPr["reviews"] => ({
 
 const buildPr = (overrides: Partial<ReviewflowPr> = {}): ReviewflowPr => ({
   _id: "pr-id",
-  account: { id: 1, login: "acme", type: "Organization" },
+  account: { id: 1, login: "reviewflow", type: "Organization" },
   repo: { id: 2, name: "api" },
   pr: { number: 412 },
   commentId: 1,
@@ -48,9 +48,9 @@ describe("identity and branches", () => {
       _id: "pr-id",
       accountId: 1,
       repoId: 2,
-      ownerRepo: "acme/api",
+      ownerRepo: "reviewflow/api",
       number: 412,
-      url: "https://github.com/acme/api/pull/412",
+      url: "https://github.com/reviewflow/api/pull/412",
     });
   });
 
@@ -85,7 +85,7 @@ describe("identity and branches", () => {
         headRef: "feat/read-api",
         baseRef: "main",
         headSha: "abc123",
-        headRepoFullName: "acme/api",
+        headRepoFullName: "reviewflow/api",
         reviewState: "requested",
         flowDates: {
           createdAt: new Date("2026-10-01T09:00:00Z"),
@@ -100,7 +100,7 @@ describe("identity and branches", () => {
       headRef: "feat/read-api",
       baseRef: "main",
       headSha: "abc123",
-      headRepoFullName: "acme/api",
+      headRepoFullName: "reviewflow/api",
       reviewState: "requested",
       updatedAt: "2026-10-02T10:00:00.000Z",
     });
@@ -144,7 +144,7 @@ describe("labels", () => {
 describe("unresolvedThreads", () => {
   const thread = {
     rootCommentId: 1,
-    url: "https://github.com/acme/api/pull/412#discussion_r1",
+    url: "https://github.com/reviewflow/api/pull/412#discussion_r1",
     path: "src/a.ts",
     authorLogin: "reviewer",
     reviewId: 1,
@@ -313,7 +313,8 @@ describe("checks", () => {
             status: "completed",
             conclusion: "failure",
             title: "2 tests failed",
-            details_url: "https://github.com/acme/api/actions/runs/1/job/2",
+            details_url:
+              "https://github.com/reviewflow/api/actions/runs/1/job/2",
           },
           b: { name: "build", conclusion: "success" },
         },
@@ -342,7 +343,7 @@ describe("checks", () => {
         status: "completed",
         conclusion: "failure",
         title: "2 tests failed",
-        detailsUrl: "https://github.com/acme/api/actions/runs/1/job/2",
+        detailsUrl: "https://github.com/reviewflow/api/actions/runs/1/job/2",
       },
     ]);
     expect(detail.checks.statuses).toEqual([

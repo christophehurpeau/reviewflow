@@ -38,8 +38,14 @@ beforeEach(() => {
   mkdirSync(join(root, "home"));
   work = join(root, "dev", "work");
   perso = join(root, "dev", "perso");
-  createCheckout(join(work, "widgets"), "git@github.com:acme/widgets.git");
-  createCheckout(join(perso, "widgets"), "git@github.com:acme/widgets.git");
+  createCheckout(
+    join(work, "widgets"),
+    "git@github.com:christophehurpeau/widgets.git",
+  );
+  createCheckout(
+    join(perso, "widgets"),
+    "git@github.com:christophehurpeau/widgets.git",
+  );
   createCheckout(join(perso, "gizmos"), "git@github.com:me/gizmos.git");
   mkdirSync(join(perso, "notes"));
 });
@@ -55,7 +61,7 @@ describe("listCheckouts", () => {
     expect(listing.repoPaths).toEqual([work, perso]);
     expect(listing.checkouts).toEqual([
       {
-        ownerRepo: "acme/widgets",
+        ownerRepo: "christophehurpeau/widgets",
         path: join(work, "widgets"),
         configured: false,
       },
@@ -100,7 +106,7 @@ describe("listCheckouts", () => {
     const listing = await listCheckouts(configPath);
     expect(listing.checkouts).toEqual([
       {
-        ownerRepo: "acme/widgets",
+        ownerRepo: "christophehurpeau/widgets",
         path: join(work, "widgets"),
         configured: false,
       },
@@ -118,12 +124,12 @@ describe("listCheckouts", () => {
   test("a configured entry hides the found clone of its repository", async () => {
     writeConfig({
       repoPaths: [perso],
-      repos: { "acme/widgets": join(work, "widgets") },
+      repos: { "christophehurpeau/widgets": join(work, "widgets") },
     });
     const { checkouts } = await listCheckouts(configPath);
     expect(checkouts).toEqual([
       {
-        ownerRepo: "acme/widgets",
+        ownerRepo: "christophehurpeau/widgets",
         path: join(work, "widgets"),
         configured: true,
       },

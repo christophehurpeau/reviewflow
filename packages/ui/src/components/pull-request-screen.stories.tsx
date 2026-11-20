@@ -186,7 +186,7 @@ export const ReviewDiffByCommitNoCheckoutStory: Story = {
       diffsByHead={fixtures.commitDiffs}
       attachment={{
         status: "notConfigured",
-        detail: "no checkout is configured for acme/storefront",
+        detail: "no checkout is configured for christophehurpeau/storefront",
       }}
     />
   ),
@@ -236,7 +236,7 @@ export const ReviewDiffRefusedStory: Story = {
           reason: "notConfigured",
           ownerRepo: fixtures.ownerRepo,
           configPath: "/Users/ada/.reviewflow-app/config.json",
-          detail: "acme/storefront is not in the config file.",
+          detail: "christophehurpeau/storefront is not in the config file.",
         },
       }}
     />
@@ -255,7 +255,7 @@ export const ReviewDiffInvalidPathStory: Story = {
           ownerRepo: fixtures.ownerRepo,
           configPath: "/Users/ada/.reviewflow-app/config.json",
           detail:
-            "/Users/ada/dev/storefront has origin acme/web, not acme/storefront.",
+            "/Users/ada/dev/storefront has origin christophehurpeau/web, not christophehurpeau/storefront.",
         },
       }}
     />
@@ -270,7 +270,7 @@ export const NotAttachedStory: Story = {
       initialTab="timeline"
       attachment={{
         status: "notConfigured",
-        detail: "no checkout is configured for acme/storefront",
+        detail: "no checkout is configured for christophehurpeau/storefront",
       }}
     />
   ),
@@ -285,7 +285,7 @@ export const NotAttachedInvalidPathStory: Story = {
       attachment={{
         status: "invalidPath",
         detail:
-          "remote.origin.url of /Users/ada/dev/storefront is git@github.com:acme/web.git, which does not name acme/storefront",
+          "remote.origin.url of /Users/ada/dev/storefront is git@github.com:christophehurpeau/web.git, which does not name christophehurpeau/storefront",
       }}
     />
   ),

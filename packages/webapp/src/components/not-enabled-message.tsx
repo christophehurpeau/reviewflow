@@ -3,7 +3,7 @@ import { ExternalLinkText, WarningMessage } from "alouette";
 import type { ReactNode } from "react";
 
 interface NotEnabledMessageProps {
-  /** what is not enabled, as a sentence: "Live updates are not enabled for acme." */
+  /** what is not enabled, as a sentence: "Live updates are not enabled for christophehurpeau." */
   children: string;
   /** `flat` inside a raised surface */
   variant?: "flat" | "surface";

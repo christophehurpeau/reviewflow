@@ -16,7 +16,7 @@ const enabledOrg: AdminAccountSummary = {
 
 const disabledOrg: AdminAccountSummary = {
   _id: 2,
-  login: "acme",
+  login: "reviewflow",
   type: "Organization",
   knownSince: new Date("2026-09-20T09:00:00Z"),
   paidEnabled: false,

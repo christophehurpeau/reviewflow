@@ -60,12 +60,12 @@ describe("readReadingOrder", () => {
 
   it("orders the packages by dependency and the files from the entry point, through a subpath import and an unchanged barrel", async () => {
     write("package.json", '{ "name": "root" }');
-    write("packages/sdk/package.json", '{ "name": "@acme/sdk" }');
+    write("packages/sdk/package.json", '{ "name": "@christophehurpeau/sdk" }');
     write("packages/sdk/src/index.ts", 'export * from "./format.js";\n');
     write("packages/sdk/src/format.ts", "export const format = 1;\n");
     write(
       "packages/ui/package.json",
-      '{ "name": "@acme/ui", "imports": { "#/*": "./src/*" }, "dependencies": { "@acme/sdk": "workspace:*" } }',
+      '{ "name": "@christophehurpeau/ui", "imports": { "#/*": "./src/*" }, "dependencies": { "@christophehurpeau/sdk": "workspace:*" } }',
     );
     write("packages/ui/src/screen.tsx", 'import { x } from "#/lib";\n');
     write("packages/ui/src/lib/index.ts", 'export * from "./row.tsx";\n');

@@ -16,18 +16,18 @@ describe("mongo stores on a real mongod", () => {
   it("inserts, partially updates and reads back an org", async () => {
     const inserted = await stores.orgs.insertOne({
       _id: 1,
-      login: "acme",
+      login: "reviewflow",
       config: {},
       status: "active",
     });
-    expect(inserted.login).toBe("acme");
+    expect(inserted.login).toBe("reviewflow");
 
     await stores.orgs.partialUpdateOne(inserted, {
       $set: { status: "suspended" },
     });
 
     const found = await stores.orgs.findByKey(1);
-    expect(found).toMatchObject({ login: "acme", status: "suspended" });
+    expect(found).toMatchObject({ login: "reviewflow", status: "suspended" });
   });
 
   it("creates the slackSentMessages index on a database without collections", async () => {
@@ -56,7 +56,7 @@ describe("mongo stores on a real mongod", () => {
     await expect(
       stores.orgs.insertOne({
         _id: 2,
-        login: "acme",
+        login: "reviewflow",
         config: {},
         status: "active",
       }),

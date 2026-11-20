@@ -15,7 +15,7 @@ const transport: GitHubTransport = {
   text: vi.fn(),
 };
 
-const ref = { ownerRepo: "acme/app", number: 12 };
+const ref = { ownerRepo: "christophehurpeau/app", number: 12 };
 
 describe("parsePullRequestEdit", () => {
   it("trims a title and refuses an empty one", () => {
@@ -234,14 +234,14 @@ describe("editPullRequest", () => {
         [
           {
             method: "POST",
-            path: "repos/acme/app/pulls/12/reviews",
+            path: "repos/christophehurpeau/app/pulls/12/reviews",
             body: { event: "COMMENT", body: "I started the review" },
           },
         ],
         [
           {
             method: "POST",
-            path: "repos/acme/app/pulls/12/requested_reviewers",
+            path: "repos/christophehurpeau/app/pulls/12/requested_reviewers",
             body: { reviewers: ["ada"] },
           },
         ],
@@ -286,14 +286,14 @@ describe("editPullRequest", () => {
       [
         {
           method: "POST",
-          path: "repos/acme/app/issues/12/labels",
+          path: "repos/christophehurpeau/app/issues/12/labels",
           body: { labels: ["bug", "ui"] },
         },
       ],
       [
         {
           method: "DELETE",
-          path: "repos/acme/app/issues/12/labels/needs%20review",
+          path: "repos/christophehurpeau/app/issues/12/labels/needs%20review",
         },
       ],
     ]);
@@ -315,14 +315,14 @@ describe("editPullRequest", () => {
       [
         {
           method: "POST",
-          path: "repos/acme/app/pulls/12/requested_reviewers",
+          path: "repos/christophehurpeau/app/pulls/12/requested_reviewers",
           body: { reviewers: ["carol"], team_reviewers: ["backend"] },
         },
       ],
       [
         {
           method: "DELETE",
-          path: "repos/acme/app/pulls/12/requested_reviewers",
+          path: "repos/christophehurpeau/app/pulls/12/requested_reviewers",
           body: { reviewers: [], team_reviewers: ["frontend"] },
         },
       ],
@@ -393,14 +393,14 @@ describe("editPullRequest", () => {
     expect(await sent({ kind: "body", body: "New text" })).toEqual([
       {
         method: "PATCH",
-        path: "repos/acme/app/pulls/12",
+        path: "repos/christophehurpeau/app/pulls/12",
         body: { body: "New text" },
       },
     ]);
     expect(await sent({ kind: "state", state: "closed" })).toEqual([
       {
         method: "PATCH",
-        path: "repos/acme/app/pulls/12",
+        path: "repos/christophehurpeau/app/pulls/12",
         body: { state: "closed" },
       },
     ]);
@@ -409,7 +409,7 @@ describe("editPullRequest", () => {
     ).toEqual([
       {
         method: "PUT",
-        path: "repos/acme/app/pulls/12/merge",
+        path: "repos/christophehurpeau/app/pulls/12/merge",
         body: { merge_method: "squash", sha },
       },
     ]);
@@ -423,7 +423,7 @@ describe("editPullRequest", () => {
     ).toEqual([
       {
         method: "PUT",
-        path: "repos/acme/app/pulls/12/merge",
+        path: "repos/christophehurpeau/app/pulls/12/merge",
         body: {
           merge_method: "merge",
           sha,
@@ -435,7 +435,7 @@ describe("editPullRequest", () => {
     expect(await sent({ kind: "updateBranch", expectedHeadSha: sha })).toEqual([
       {
         method: "PUT",
-        path: "repos/acme/app/pulls/12/update-branch",
+        path: "repos/christophehurpeau/app/pulls/12/update-branch",
         body: { expected_head_sha: sha },
       },
     ]);
@@ -447,7 +447,7 @@ describe("editPullRequest", () => {
     ).toEqual([
       {
         method: "POST",
-        path: "repos/acme/app/issues/12/assignees",
+        path: "repos/christophehurpeau/app/issues/12/assignees",
         body: { assignees: ["carol"] },
       },
     ]);
@@ -456,7 +456,7 @@ describe("editPullRequest", () => {
     ).toEqual([
       {
         method: "DELETE",
-        path: "repos/acme/app/issues/12/assignees",
+        path: "repos/christophehurpeau/app/issues/12/assignees",
         body: { assignees: ["dave"] },
       },
     ]);
@@ -466,14 +466,14 @@ describe("editPullRequest", () => {
     expect(await sent({ kind: "comment", body: "hi" })).toEqual([
       {
         method: "POST",
-        path: "repos/acme/app/issues/12/comments",
+        path: "repos/christophehurpeau/app/issues/12/comments",
         body: { body: "hi" },
       },
     ]);
     expect(await sent({ kind: "reply", inReplyTo: 99, body: "re" })).toEqual([
       {
         method: "POST",
-        path: "repos/acme/app/pulls/12/comments/99/replies",
+        path: "repos/christophehurpeau/app/pulls/12/comments/99/replies",
         body: { body: "re" },
       },
     ]);
@@ -482,21 +482,21 @@ describe("editPullRequest", () => {
     expect(await edited("issueComment")).toEqual([
       {
         method: "PATCH",
-        path: "repos/acme/app/issues/comments/7",
+        path: "repos/christophehurpeau/app/issues/comments/7",
         body: { body: "b" },
       },
     ]);
     expect(await edited("reviewComment")).toEqual([
       {
         method: "PATCH",
-        path: "repos/acme/app/pulls/comments/7",
+        path: "repos/christophehurpeau/app/pulls/comments/7",
         body: { body: "b" },
       },
     ]);
     expect(await edited("review")).toEqual([
       {
         method: "PUT",
-        path: "repos/acme/app/pulls/12/reviews/7",
+        path: "repos/christophehurpeau/app/pulls/12/reviews/7",
         body: { body: "b" },
       },
     ]);
@@ -538,7 +538,7 @@ describe("editPullRequest", () => {
 
     expect(call).toEqual({
       method: "POST",
-      path: "repos/acme/app/pulls/12/reviews",
+      path: "repos/christophehurpeau/app/pulls/12/reviews",
       body: {
         commit_id: sha,
         event: "REQUEST_CHANGES",
@@ -572,7 +572,7 @@ describe("editPullRequest", () => {
     });
     expect(inline).toEqual({
       method: "POST",
-      path: "repos/acme/app/pulls/12/comments",
+      path: "repos/christophehurpeau/app/pulls/12/comments",
       body: { commit_id: sha, path: "a.ts", body: "x", line: 5, side: "RIGHT" },
     });
 

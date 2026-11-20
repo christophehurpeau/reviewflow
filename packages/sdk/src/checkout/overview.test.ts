@@ -32,25 +32,30 @@ const branch = (name: string): CheckoutBranch => ({
   lastCommit: { subject: "x", committedAt: "2026-11-08T10:00:00.000Z" },
 });
 
-const own = pullRequest(1, "feat/x", "Acme/Widgets");
+const own = pullRequest(1, "feat/x", "ChristopheHurpeau/Widgets");
 const fork = pullRequest(2, "feat/x", "someone/widgets");
-const remoteOnly = pullRequest(3, "fix/y", "acme/widgets");
+const remoteOnly = pullRequest(3, "fix/y", "christophehurpeau/widgets");
 
 describe("pullRequestOfBranch", () => {
   it("matches the head branch of this repository only, whatever the case of its name", () => {
     expect(
-      pullRequestOfBranch([fork, own], "acme/widgets", "feat/x")?.number,
+      pullRequestOfBranch([fork, own], "christophehurpeau/widgets", "feat/x")
+        ?.number,
     ).toBe(1);
-    expect(pullRequestOfBranch([fork], "acme/widgets", "feat/x")).toBeNull();
+    expect(
+      pullRequestOfBranch([fork], "christophehurpeau/widgets", "feat/x"),
+    ).toBeNull();
   });
 });
 
 describe("pullRequestsWithoutBranch", () => {
   it("keeps a fork's namesake and a branch never checked out", () => {
     expect(
-      pullRequestsWithoutBranch([own, fork, remoteOnly], "acme/widgets", [
-        branch("feat/x"),
-      ]).map(({ number }) => number),
+      pullRequestsWithoutBranch(
+        [own, fork, remoteOnly],
+        "christophehurpeau/widgets",
+        [branch("feat/x")],
+      ).map(({ number }) => number),
     ).toEqual([2, 3]);
   });
 });
@@ -114,7 +119,7 @@ describe("parseBranchPullRequests", () => {
     closedAt: "2026-11-08T10:00:00Z",
     baseRefName: "main",
     headRefOid: "abc",
-    headRepository: { nameWithOwner: "Acme/Widgets" },
+    headRepository: { nameWithOwner: "ChristopheHurpeau/Widgets" },
     author: null,
     commits: { nodes: [{ commit: { oid: "def" } }, null] },
   };
@@ -141,7 +146,7 @@ describe("parseBranchPullRequests", () => {
           },
           errors: [],
         },
-        "acme/widgets",
+        "christophehurpeau/widgets",
       ),
     ).toEqual([
       {
@@ -164,7 +169,7 @@ describe("parseBranchPullRequests", () => {
     expect(() =>
       parseBranchPullRequests(
         { data: null, errors: ["Bad credentials"] },
-        "acme/widgets",
+        "christophehurpeau/widgets",
       ),
     ).toThrow("Bad credentials");
   });

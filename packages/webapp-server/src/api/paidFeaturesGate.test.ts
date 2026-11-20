@@ -28,16 +28,16 @@ const createToken = (_id: string): PersonalToken => ({
 interface Flags {
   /** the user's own account */
   user?: boolean;
-  /** elax allows tokens, acme does not, globex allows them */
+  /** elax allows tokens, reviewflow does not, globex allows them */
   elax?: boolean;
-  acme?: boolean;
+  reviewflow?: boolean;
   globex?: boolean;
 }
 
 const paid = (isEnabled: boolean | undefined) =>
   isEnabled ? { paidFeatures: { enabled: true } } : {};
 
-const createStores = ({ user, elax, acme, globex }: Flags): MongoStores =>
+const createStores = ({ user, elax, reviewflow, globex }: Flags): MongoStores =>
   ({
     personalTokens: {
       findOne: (criteria: { _id: string }) =>
@@ -48,7 +48,7 @@ const createStores = ({ user, elax, acme, globex }: Flags): MongoStores =>
       findAll: () =>
         Promise.resolve([
           { org: { id: 1, login: "elax" }, teams: [] },
-          { org: { id: 2, login: "acme" }, teams: [] },
+          { org: { id: 2, login: "reviewflow" }, teams: [] },
           { org: { id: 3, login: "globex" }, teams: [] },
         ]),
     },
@@ -61,7 +61,7 @@ const createStores = ({ user, elax, acme, globex }: Flags): MongoStores =>
             config: { allowPersonalTokens: true },
             ...paid(elax),
           },
-          { _id: 2, login: "acme", config: {}, ...paid(acme) },
+          { _id: 2, login: "reviewflow", config: {}, ...paid(reviewflow) },
           {
             _id: 3,
             login: "globex",
@@ -105,7 +105,7 @@ describe("resolveTokenAccounts", () => {
   });
 
   it("does not read an org enabled but not allowed by its owners", async () => {
-    expect(await loginsOf({ acme: true }, "t-not-allowed")).toEqual([]);
+    expect(await loginsOf({ reviewflow: true }, "t-not-allowed")).toEqual([]);
   });
 
   it("reads the enabled accounts only", async () => {
@@ -122,7 +122,7 @@ describe("resolveTokenAccounts", () => {
 describe("the board", () => {
   it("spans the enabled accounts only", async () => {
     const accounts = await resolveBoardAccounts(
-      createStores({ user: true, elax: true, acme: true }),
+      createStores({ user: true, elax: true, reviewflow: true }),
       auth("t-board-mixed"),
       undefined,
     );

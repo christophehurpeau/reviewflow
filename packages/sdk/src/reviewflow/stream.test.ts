@@ -5,10 +5,10 @@ import { readReviewflowStream } from "./stream.ts";
 
 const prDetail = (number: number): unknown => ({
   _id: `pr-${String(number)}`,
-  ownerRepo: "acme/widgets",
+  ownerRepo: "christophehurpeau/widgets",
   number,
   title: "a pull request",
-  url: `https://github.com/acme/widgets/pull/${String(number)}`,
+  url: `https://github.com/christophehurpeau/widgets/pull/${String(number)}`,
   headRef: "feat/one",
   state: "open",
   reviewState: "requested",

@@ -243,9 +243,14 @@ describe("errors", () => {
     const notFound = await call(app, "GET", "/api/pr/v1/elax/api/999", {
       "if-none-match": "*",
     });
-    const forbidden = await call(app, "GET", "/api/board/v1?account=acme", {
-      "if-none-match": "*",
-    });
+    const forbidden = await call(
+      app,
+      "GET",
+      "/api/board/v1?account=reviewflow",
+      {
+        "if-none-match": "*",
+      },
+    );
     const badRequest = await call(
       app,
       "GET",

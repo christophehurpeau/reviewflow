@@ -38,11 +38,12 @@ describe("readRepoPathsSetting", () => {
 describe("writeRepoPathsSetting", () => {
   it("adds the key first and keeps the others", () => {
     expect(
-      writeRepoPathsSetting(JSON.stringify({ repos: { "acme/web": "/web" } }), [
-        " ~/code/ ",
-      ]),
+      writeRepoPathsSetting(
+        JSON.stringify({ repos: { "christophehurpeau/web": "/web" } }),
+        [" ~/code/ "],
+      ),
     ).toBe(
-      '{\n  "repoPaths": [\n    "~/code/"\n  ],\n  "repos": {\n    "acme/web": "/web"\n  }\n}\n',
+      '{\n  "repoPaths": [\n    "~/code/"\n  ],\n  "repos": {\n    "christophehurpeau/web": "/web"\n  }\n}\n',
     );
   });
 

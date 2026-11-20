@@ -104,7 +104,7 @@ describe("readImpacts", () => {
     write(
       "packages/sdk/package.json",
       JSON.stringify({
-        name: "@acme/sdk",
+        name: "@christophehurpeau/sdk",
         exports: {
           ".": { types: "./src/index.ts" },
           "./git": { types: "./src/git.ts" },
@@ -140,12 +140,12 @@ describe("readImpacts", () => {
     write("packages/sdk/README.md", "# sdk\n");
     write(
       "packages/ui/package.json",
-      '{ "name": "@acme/ui", "dependencies": { "@acme/sdk": "workspace:*", "react": "*" } }',
+      '{ "name": "@christophehurpeau/ui", "dependencies": { "@christophehurpeau/sdk": "workspace:*", "react": "*" } }',
     );
     write(
       "packages/ui/src/screen.tsx",
       lines(
-        'import { format, draw, helperUsed, viaStar } from "@acme/sdk";',
+        'import { format, draw, helperUsed, viaStar } from "@christophehurpeau/sdk";',
         'import React from "react";',
         'import "./a.css";',
         "export const screen = [format, draw, helperUsed, viaStar, React];",
@@ -154,23 +154,23 @@ describe("readImpacts", () => {
     write("packages/ui/src/a.css", "body {}\n");
     write(
       "packages/ui/src/screen.test.tsx",
-      'import { format } from "@acme/sdk";\nformat("x");\n',
+      'import { format } from "@christophehurpeau/sdk";\nformat("x");\n',
     );
     write(
       "packages/ui/src/ns.ts",
-      'import * as git from "@acme/sdk/git";\nexport const all = git;\n',
+      'import * as git from "@christophehurpeau/sdk/git";\nexport const all = git;\n',
     );
     write(
       "packages/ui/src/legacy.ts",
-      'import { removedLater } from "@acme/sdk";\nexport const legacy = removedLater;\n',
+      'import { removedLater } from "@christophehurpeau/sdk";\nexport const legacy = removedLater;\n',
     );
     write(
       "packages/ui/src/inDiff.ts",
-      'import { format } from "@acme/sdk";\nexport const inDiff = format;\n',
+      'import { format } from "@christophehurpeau/sdk";\nexport const inDiff = format;\n',
     );
     write(
       "packages/ui/src/untouched.ts",
-      'import { other } from "@acme/sdk/git";\nexport const untouched = other;\n',
+      'import { other } from "@christophehurpeau/sdk/git";\nexport const untouched = other;\n',
     );
   };
 
@@ -193,7 +193,7 @@ describe("readImpacts", () => {
     write("packages/sdk/README.md", "# sdk, changed\n");
     write(
       "packages/ui/src/inDiff.ts",
-      'import { format } from "@acme/sdk";\nexport const inDiff = [format];\n',
+      'import { format } from "@christophehurpeau/sdk";\nexport const inDiff = [format];\n',
     );
     write(
       "packages/ui/src/alias.ts",
@@ -283,7 +283,7 @@ describe("readImpacts", () => {
     writeBase();
     write(
       "packages/sdk/package.json",
-      '{ "name": "@acme/sdk", "exports": { ".": "./build/index.js" } }',
+      '{ "name": "@christophehurpeau/sdk", "exports": { ".": "./build/index.js" } }',
     );
     const base = commitAll();
     write("packages/sdk/src/render.ts", "export const render = () => 2;\n");
@@ -348,8 +348,8 @@ describe("readImpacts", () => {
     write(
       "packages/ui/package.json",
       JSON.stringify({
-        name: "@acme/ui",
-        dependencies: { "@acme/sdk": "workspace:*", react: "*" },
+        name: "@christophehurpeau/ui",
+        dependencies: { "@christophehurpeau/sdk": "workspace:*", react: "*" },
         peerDependencies: { "react-dom": "*" },
       }),
     );
@@ -385,7 +385,7 @@ describe("readImpacts", () => {
     writeBase();
     write(
       "packages/sdk/package.json",
-      '{ "name": "@acme/sdk", "exports": { ".": "./build/index.js" } }',
+      '{ "name": "@christophehurpeau/sdk", "exports": { ".": "./build/index.js" } }',
     );
     const base = commitAll();
     write("packages/ui/src/screen.tsx", "export const screen = 2;\n");

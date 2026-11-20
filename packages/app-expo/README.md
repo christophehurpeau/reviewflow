@@ -106,7 +106,7 @@ the entry already added, unsaved), or by hand. `~/.reviewflow-app/config.json`:
 ```json
 {
   "repoPaths": ["~/dev/", "~/work/"],
-  "repos": { "acme/widgets": "/Users/me/code/widgets" }
+  "repos": { "christophehurpeau/widgets": "/Users/me/code/widgets" }
 }
 ```
 

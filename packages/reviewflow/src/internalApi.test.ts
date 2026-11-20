@@ -155,7 +155,7 @@ describe("POST /sync/org", () => {
 
   it("syncs with the installation octokit, not the caller's", async () => {
     const { app, auth } = createApp({
-      org: { _id: 1, login: "acme", installationId: 77 },
+      org: { _id: 1, login: "reviewflow", installationId: 77 },
     });
 
     const response = await callApp(app, {
@@ -172,13 +172,13 @@ describe("POST /sync/org", () => {
       installationOctokit.rest,
       installationOctokit.paginate,
       77,
-      { id: 1, login: "acme" },
+      { id: 1, login: "reviewflow" },
     );
     expect(syncTeamsAndTeamMembers).toHaveBeenCalledWith(
       expect.anything(),
       installationOctokit.rest,
       installationOctokit.paginate,
-      { id: 1, login: "acme" },
+      { id: 1, login: "reviewflow" },
     );
   });
 
@@ -188,7 +188,7 @@ describe("POST /sync/org", () => {
       Promise.resolve({ updateGithubTeamMembers }) as any,
     );
     const { app } = createApp({
-      org: { _id: 1, login: "acme", installationId: 77 },
+      org: { _id: 1, login: "reviewflow", installationId: 77 },
     });
 
     const response = await callApp(app, {
@@ -204,7 +204,7 @@ describe("POST /sync/org", () => {
 
   it("succeeds when the org has no cached account context", async () => {
     const { app } = createApp({
-      org: { _id: 1, login: "acme", installationId: 77 },
+      org: { _id: 1, login: "reviewflow", installationId: 77 },
     });
 
     const response = await callApp(app, {
@@ -263,8 +263,8 @@ describe("POST /sync/user", () => {
 describe("POST /sync/repository", () => {
   const orgRepository = {
     _id: 42,
-    account: { id: 1, login: "acme", type: "Organization" },
-    fullName: "acme/website",
+    account: { id: 1, login: "reviewflow", type: "Organization" },
+    fullName: "reviewflow/website",
   };
 
   it("rejects a missing repositoryId", async () => {
@@ -298,7 +298,7 @@ describe("POST /sync/repository", () => {
   it("answers not found when the account has no installation", async () => {
     const { app } = createApp({
       repository: orgRepository,
-      org: { _id: 1, login: "acme" },
+      org: { _id: 1, login: "reviewflow" },
     });
 
     const response = await callApp(app, {
@@ -315,7 +315,7 @@ describe("POST /sync/repository", () => {
   it("syncs a repository with the installation of its org", async () => {
     const { app, auth } = createApp({
       repository: orgRepository,
-      org: { _id: 1, login: "acme", installationId: 77 },
+      org: { _id: 1, login: "reviewflow", installationId: 77 },
     });
 
     const response = await callApp(app, {
@@ -414,7 +414,7 @@ describe("POST /slack/org-installed", () => {
       method: "POST",
       url: "/api/internal/slack/org-installed",
       headers: authorized,
-      body: { orgId: 1, orgLogin: "acme" },
+      body: { orgId: 1, orgLogin: "reviewflow" },
     });
 
     expect(response.status).toBe(204);
@@ -431,14 +431,14 @@ describe("POST /slack/org-installed", () => {
       method: "POST",
       url: "/api/internal/slack/org-installed",
       headers: authorized,
-      body: { orgId: 1, orgLogin: "acme" },
+      body: { orgId: 1, orgLogin: "reviewflow" },
     });
 
     expect(response.status).toBe(204);
     expect(getExistingAccountContext).toHaveBeenCalledWith({
       type: "Organization",
       id: 1,
-      login: "acme",
+      login: "reviewflow",
     });
     expect(initSlack).toHaveBeenCalled();
   });
@@ -456,7 +456,12 @@ describe("POST /slack/member-linked", () => {
       method: "POST",
       url: "/api/internal/slack/member-linked",
       headers: authorized,
-      body: { orgId: 1, orgLogin: "acme", userId: 42, userLogin: "someone" },
+      body: {
+        orgId: 1,
+        orgLogin: "reviewflow",
+        userId: 42,
+        userLogin: "someone",
+      },
     });
 
     expect(response.status).toBe(204);
@@ -470,7 +475,7 @@ describe("POST /slack/member-linked", () => {
       method: "POST",
       url: "/api/internal/slack/member-linked",
       headers: authorized,
-      body: { orgId: 1, orgLogin: "acme" },
+      body: { orgId: 1, orgLogin: "reviewflow" },
     });
 
     expect(response.status).toBe(400);
@@ -478,7 +483,7 @@ describe("POST /slack/member-linked", () => {
 });
 
 describe("POST /org/member-role", () => {
-  const org = { _id: 1, login: "acme", installationId: 77 };
+  const org = { _id: 1, login: "reviewflow", installationId: 77 };
 
   const callMemberRole = (app: express.Express, body: unknown) =>
     callApp(app, {
@@ -508,7 +513,7 @@ describe("POST /org/member-role", () => {
   });
 
   it("answers not found for an org without installation", async () => {
-    const { app, auth } = createApp({ org: { _id: 1, login: "acme" } });
+    const { app, auth } = createApp({ org: { _id: 1, login: "reviewflow" } });
 
     const response = await callMemberRole(app, {
       orgId: 1,
@@ -532,7 +537,7 @@ describe("POST /org/member-role", () => {
 
     expect(auth).toHaveBeenCalledWith(77);
     expect(getMembership).toHaveBeenCalledWith({
-      org: "acme",
+      org: "reviewflow",
       username: "chris",
     });
     expect(response).toEqual({ status: 200, body: { role: "admin" } });

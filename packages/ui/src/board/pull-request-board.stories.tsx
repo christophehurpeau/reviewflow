@@ -117,7 +117,9 @@ export const ReviewStartedStory: StoryObj<typeof PullRequestBoard> = {
   name: "PullRequestBoard Review started",
   render: () =>
     render({
-      startedReviews: [{ ownerRepo: "acme/storefront", number: 482 }],
+      startedReviews: [
+        { ownerRepo: "christophehurpeau/storefront", number: 482 },
+      ],
     }),
 };
 

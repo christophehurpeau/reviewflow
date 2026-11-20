@@ -36,7 +36,7 @@ const reviewflow = {
   url: "https://reviewflow.example.com",
   token: "secret-token-value",
   login: "me",
-  accounts: ["me", "acme"],
+  accounts: ["me", "christophehurpeau"],
   lastVerifiedAt: null,
 };
 

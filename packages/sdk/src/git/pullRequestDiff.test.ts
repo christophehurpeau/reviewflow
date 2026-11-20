@@ -27,7 +27,7 @@ const transport = {
   rest: vi.fn(),
 } as unknown as GitHubTransport;
 
-const ref = { ownerRepo: "acme/app", number: 12 };
+const ref = { ownerRepo: "christophehurpeau/app", number: 12 };
 
 describe("readPullRequestDiff", () => {
   let remote: BareRemoteFixture;
@@ -169,7 +169,7 @@ describe("readPullRequestDiff", () => {
       groups: [{ name: "src", paths: ["src/app.ts"] }],
     });
     expect(text).toHaveBeenCalledWith({
-      path: `repos/acme/app/compare/${shas.base}...${shas.head}`,
+      path: `repos/christophehurpeau/app/compare/${shas.base}...${shas.head}`,
       accept: "application/vnd.github.diff",
     });
   });

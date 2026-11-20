@@ -58,7 +58,7 @@ const createPr = (
 /**
  * Org 1 (elax, installed, allows tokens) owns repositories 20 `api`, 21
  * `legacy` (documents without `headRef`), 22 `reviewflow-test` (ignored); org
- * 2 (acme) does not allow tokens; the user's own account has no installation.
+ * 2 (reviewflow) does not allow tokens; the user's own account has no installation.
  */
 const createApp = (tokenId: string, prs: ReviewflowPr[]) => {
   const repositories: Record<string, { _id: number; fullName: string }> = {
@@ -104,7 +104,7 @@ const createApp = (tokenId: string, prs: ReviewflowPr[]) => {
       findAll: () =>
         Promise.resolve([
           { org: { id: 1, login: "elax" }, teams: [] },
-          { org: { id: 2, login: "acme" }, teams: [] },
+          { org: { id: 2, login: "reviewflow" }, teams: [] },
         ]),
     },
     orgs: {
@@ -116,7 +116,7 @@ const createApp = (tokenId: string, prs: ReviewflowPr[]) => {
             config: { allowPersonalTokens: true },
             paidFeatures: { enabled: true },
           },
-          { _id: 2, login: "acme", config: {} },
+          { _id: 2, login: "reviewflow", config: {} },
         ]),
       findByKey: (id: number) =>
         Promise.resolve(id === 1 ? { _id: 1, installationId: 100 } : null),
@@ -171,7 +171,7 @@ describe("POST /api/prs-lookup/v1", () => {
       { ownerRepo: "ELAX/api", headRef: "feat/b" },
       { ownerRepo: "elax/api", headRef: "feat/a" },
       { ownerRepo: "elax/api", headRef: "feat/none" },
-      { ownerRepo: "acme/api", headRef: "feat/a" },
+      { ownerRepo: "reviewflow/api", headRef: "feat/a" },
     ]);
 
     expect(response.status).toBe(200);
@@ -271,7 +271,7 @@ describe("POST /api/prs-lookup/v1", () => {
   it("looks nothing up for an owner the token cannot read", async () => {
     const { app, repositoriesFindOne, prsFindAll } = createApp("t-lk-403", []);
 
-    await lookup(app, [{ ownerRepo: "acme/api", headRef: "a" }]);
+    await lookup(app, [{ ownerRepo: "reviewflow/api", headRef: "a" }]);
 
     expect(repositoriesFindOne).not.toHaveBeenCalled();
     expect(prsFindAll).not.toHaveBeenCalled();
@@ -284,7 +284,7 @@ describe("POST /api/prs-lookup/v1", () => {
     const full = await lookup(
       app,
       Array.from({ length: 200 }, (_, i) => ({
-        ownerRepo: "acme/api",
+        ownerRepo: "reviewflow/api",
         headRef: `b${i}`,
       })),
     );

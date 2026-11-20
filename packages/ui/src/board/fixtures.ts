@@ -15,10 +15,10 @@ const pr = (
   overrides: Partial<ReviewflowBoardPr> = {},
 ): ReviewflowBoardPr => ({
   id: `pr-${String(number)}`,
-  ownerRepo: "acme/storefront",
+  ownerRepo: "christophehurpeau/storefront",
   number,
   title,
-  url: `https://github.com/acme/storefront/pull/${String(number)}`,
+  url: `https://github.com/christophehurpeau/storefront/pull/${String(number)}`,
   headRef: `feat/${String(number)}`,
   state: "open",
   reviewState: "requested",
@@ -152,7 +152,7 @@ export const connectedStatus: ReviewflowConnectionStatus = {
   configured: true,
   url: "https://reviewflow.example.com",
   login: "grace",
-  accounts: ["grace", "acme"],
+  accounts: ["grace", "christophehurpeau"],
   stream: "live",
   error: null,
 };

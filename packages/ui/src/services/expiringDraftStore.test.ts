@@ -30,8 +30,10 @@ describe("createExpiringDraftStore", () => {
       storage: createMemoryStorage(),
       retentionDays: 7,
     });
-    store.write("acme/app#1:comment", "half a sentence");
-    expect(store.read("acme/app#1:comment")).toBe("half a sentence");
+    store.write("christophehurpeau/app#1:comment", "half a sentence");
+    expect(store.read("christophehurpeau/app#1:comment")).toBe(
+      "half a sentence",
+    );
   });
 
   it("reads nothing once removed", () => {
@@ -39,9 +41,9 @@ describe("createExpiringDraftStore", () => {
       storage: createMemoryStorage(),
       retentionDays: 7,
     });
-    store.write("acme/app#1:comment", "half a sentence");
-    store.remove("acme/app#1:comment");
-    expect(store.read("acme/app#1:comment")).toBeUndefined();
+    store.write("christophehurpeau/app#1:comment", "half a sentence");
+    store.remove("christophehurpeau/app#1:comment");
+    expect(store.read("christophehurpeau/app#1:comment")).toBeUndefined();
   });
 
   it("drops a draft older than the retention on read", () => {
@@ -52,9 +54,9 @@ describe("createExpiringDraftStore", () => {
       retentionDays: 7,
       now: () => time,
     });
-    store.write("acme/app#1:comment", "old");
+    store.write("christophehurpeau/app#1:comment", "old");
     time = 7 * dayMs + 1;
-    expect(store.read("acme/app#1:comment")).toBeUndefined();
+    expect(store.read("christophehurpeau/app#1:comment")).toBeUndefined();
     expect(storage.entries.size).toBe(0);
   });
 
@@ -65,9 +67,9 @@ describe("createExpiringDraftStore", () => {
       retentionDays: 7,
       now: () => time,
     });
-    store.write("acme/app#1:comment", "recent");
+    store.write("christophehurpeau/app#1:comment", "recent");
     time = 7 * dayMs;
-    expect(store.read("acme/app#1:comment")).toBe("recent");
+    expect(store.read("christophehurpeau/app#1:comment")).toBe("recent");
   });
 
   it("sweeps expired and unreadable drafts on creation, and only its own keys", () => {
@@ -98,8 +100,8 @@ describe("createExpiringDraftStore", () => {
     };
     const store = createExpiringDraftStore({ storage, retentionDays: 7 });
     expect(() => {
-      store.write("acme/app#1:comment", "text");
+      store.write("christophehurpeau/app#1:comment", "text");
     }).not.toThrow();
-    expect(store.read("acme/app#1:comment")).toBeUndefined();
+    expect(store.read("christophehurpeau/app#1:comment")).toBeUndefined();
   });
 });

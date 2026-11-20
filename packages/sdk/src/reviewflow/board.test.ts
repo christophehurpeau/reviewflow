@@ -67,7 +67,7 @@ const group = (
   buckets: buckets.map((bucket) => ({ ...bucket, title: bucket.key })),
 });
 
-const acme: ReviewflowGroup[] = [
+const christophehurpeau: ReviewflowGroup[] = [
   group("mine", [
     { key: "review", total: 120, prs: [detail({ id: "a", number: 1 })] },
     { key: "drafts", total: 1, prs: [detail({ id: "b", number: 2 })] },
@@ -86,8 +86,8 @@ const beta: ReviewflowGroup[] = [
 
 const snapshot = (): ReviewflowBoardSnapshot =>
   withAccountBoard(
-    withAccountBoard({}, "acme", {
-      groups: acme,
+    withAccountBoard({}, "christophehurpeau", {
+      groups: christophehurpeau,
       fetchedAt: "2026-11-06T10:00:00Z",
     }),
     "beta",
@@ -157,12 +157,12 @@ describe("readAccountBoards", () => {
       {
         board: async (account) => {
           if (account === "beta") throw new Error("forbidden");
-          return acme;
+          return christophehurpeau;
         },
       },
-      ["acme", "beta"],
+      ["christophehurpeau", "beta"],
     );
-    expect(read.boards.map((b) => b.account)).toEqual(["acme"]);
+    expect(read.boards.map((b) => b.account)).toEqual(["christophehurpeau"]);
     expect(read.errors).toEqual([{ account: "beta", message: "forbidden" }]);
   });
 });
@@ -173,13 +173,13 @@ describe("applyStreamEvent", () => {
     const pr = detail({ id: "a", number: 1, title: "renamed" });
     const applied = applyStreamEvent(before, { type: "pr", pr });
     expect(applied.changed).toBe(true);
-    expect(applied.readAccounts).toEqual(["acme"]);
+    expect(applied.readAccounts).toEqual(["christophehurpeau"]);
     expect(
-      assembleBoard(applied.snapshot, null, ["acme"]).board?.groups[0]
-        ?.buckets[0]?.prs[0]?.title,
+      assembleBoard(applied.snapshot, null, ["christophehurpeau"]).board
+        ?.groups[0]?.buckets[0]?.prs[0]?.title,
     ).toBe("renamed");
     // the input is not mutated
-    expect(before.acme!.groups[0]!.buckets[0]!.prs[0]!.title).toBe(
+    expect(before.christophehurpeau!.groups[0]!.buckets[0]!.prs[0]!.title).toBe(
       "a pull request",
     );
   });
@@ -188,11 +188,11 @@ describe("applyStreamEvent", () => {
     const before = snapshot();
     const applied = applyStreamEvent(before, {
       type: "pr",
-      pr: detail({ id: "new", ownerRepo: "Acme/repo", number: 9 }),
+      pr: detail({ id: "new", ownerRepo: "ChristopheHurpeau/repo", number: 9 }),
     });
     expect(applied.changed).toBe(false);
     expect(applied.snapshot).toBe(before);
-    expect(applied.readAccounts).toEqual(["acme"]);
+    expect(applied.readAccounts).toEqual(["christophehurpeau"]);
   });
 
   it("removes a row and lowers the total", () => {
@@ -200,10 +200,10 @@ describe("applyStreamEvent", () => {
       type: "prRemoved",
       id: "a",
     });
-    const bucket = applied.snapshot.acme!.groups[0]!.buckets[0]!;
+    const bucket = applied.snapshot.christophehurpeau!.groups[0]!.buckets[0]!;
     expect(bucket.prs).toEqual([]);
     expect(bucket.total).toBe(119);
-    expect(applied.readAccounts).toEqual(["acme"]);
+    expect(applied.readAccounts).toEqual(["christophehurpeau"]);
   });
 
   it("ignores events that are not about a pull request", () => {

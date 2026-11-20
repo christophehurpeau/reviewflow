@@ -164,7 +164,7 @@ export const RefusedStory: StoryObj<typeof PullRequestDiffView> = {
             reason: "notConfigured",
             ownerRepo: fixtures.ownerRepo,
             configPath: "/Users/ada/.reviewflow-app/config.json",
-            detail: "acme/storefront is not in the config file.",
+            detail: "christophehurpeau/storefront is not in the config file.",
           }}
         />
       </Story.Section>

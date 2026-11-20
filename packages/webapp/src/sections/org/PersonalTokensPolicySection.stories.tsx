@@ -11,7 +11,7 @@ const meta = {
     componentSubtitle: "Lets the org owners allow personal API tokens",
   },
   args: {
-    orgLogin: "acme",
+    orgLogin: "reviewflow",
     policy: {
       _id: 1,
       allowPersonalTokens: false,
@@ -34,7 +34,7 @@ export const VariantsStory: StoryObj<typeof meta> = {
     <Story>
       <Story.Section title="owner, not allowed">
         <PersonalTokensPolicySection
-          orgLogin="acme"
+          orgLogin="reviewflow"
           policy={{
             _id: 1,
             allowPersonalTokens: false,
@@ -46,7 +46,7 @@ export const VariantsStory: StoryObj<typeof meta> = {
       </Story.Section>
       <Story.Section title="owner, allowed">
         <PersonalTokensPolicySection
-          orgLogin="acme"
+          orgLogin="reviewflow"
           policy={{
             _id: 1,
             allowPersonalTokens: true,
@@ -58,7 +58,7 @@ export const VariantsStory: StoryObj<typeof meta> = {
       </Story.Section>
       <Story.Section title="member, not allowed">
         <PersonalTokensPolicySection
-          orgLogin="acme"
+          orgLogin="reviewflow"
           policy={{
             _id: 1,
             allowPersonalTokens: false,
@@ -70,7 +70,7 @@ export const VariantsStory: StoryObj<typeof meta> = {
       </Story.Section>
       <Story.Section title="member, allowed">
         <PersonalTokensPolicySection
-          orgLogin="acme"
+          orgLogin="reviewflow"
           policy={{
             _id: 1,
             allowPersonalTokens: true,
@@ -82,7 +82,7 @@ export const VariantsStory: StoryObj<typeof meta> = {
       </Story.Section>
       <Story.Section title="not enabled: the switch is off and disabled">
         <PersonalTokensPolicySection
-          orgLogin="acme"
+          orgLogin="reviewflow"
           policy={{
             _id: 1,
             allowPersonalTokens: false,
@@ -94,7 +94,7 @@ export const VariantsStory: StoryObj<typeof meta> = {
       </Story.Section>
       <Story.Section title="not enabled, still allowed: the owner can switch it off">
         <PersonalTokensPolicySection
-          orgLogin="acme"
+          orgLogin="reviewflow"
           policy={{
             _id: 1,
             allowPersonalTokens: true,

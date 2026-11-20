@@ -48,14 +48,14 @@ const initCheckout = (path: string, origin: string): void => {
 beforeAll(() => {
   root = mkdtempSync(join(tmpdir(), "reviewflow-app-routes-"));
   repo = join(root, "checkout");
-  initCheckout(repo, "https://github.com/acme/widgets.git");
+  initCheckout(repo, "https://github.com/christophehurpeau/widgets.git");
   // the directory searched for checkouts the config does not name, never the user's own
   checkouts = join(root, "checkouts");
   discovered = join(checkouts, "gadgets");
-  initCheckout(discovered, "git@github.com:acme/gadgets.git");
+  initCheckout(discovered, "git@github.com:christophehurpeau/gadgets.git");
   initCheckout(
     join(checkouts, "widgets-copy"),
-    "https://github.com/acme/widgets",
+    "https://github.com/christophehurpeau/widgets",
   );
   mkdirSync(join(checkouts, "notes"));
   configPath = join(root, "config.json");
@@ -63,7 +63,7 @@ beforeAll(() => {
     configPath,
     JSON.stringify({
       repoPaths: [checkouts],
-      repos: { "acme/widgets": repo },
+      repos: { "christophehurpeau/widgets": repo },
     }),
   );
 });
@@ -166,14 +166,14 @@ describe("repos", () => {
         scannedAt: expect.any(String),
         repos: [
           {
-            ownerRepo: "acme/gadgets",
+            ownerRepo: "christophehurpeau/gadgets",
             path: discovered,
             configured: false,
             branch: "feature",
             problem: null,
           },
           {
-            ownerRepo: "acme/widgets",
+            ownerRepo: "christophehurpeau/widgets",
             path: repo,
             configured: true,
             branch: "feature",
@@ -187,21 +187,26 @@ describe("repos", () => {
 
   test("diffs a discovered checkout, and refuses a repository it does not list", async () => {
     const deps = makeDeps();
-    await call(deps, "GET", "/api/repos/diff?repo=ACME/gadgets");
+    await call(deps, "GET", "/api/repos/diff?repo=CHRISTOPHEHURPEAU/gadgets");
     expect(deps.operations.readCheckoutBranchDiff).toHaveBeenCalledWith({
       checkout: discovered,
       scope: "committed",
       whitespace: "show",
     });
     expect(
-      (await call(deps, "GET", "/api/repos/diff?repo=acme/other"))?.status,
+      (await call(deps, "GET", "/api/repos/diff?repo=christophehurpeau/other"))
+        ?.status,
     ).toBe(400);
   });
 
   test("reads a listed checkout's status, fetching only when asked", async () => {
     const deps = makeDeps();
-    await call(deps, "GET", "/api/repos/status?repo=acme/widgets");
-    await call(deps, "GET", "/api/repos/status?repo=acme/widgets&fetch=1");
+    await call(deps, "GET", "/api/repos/status?repo=christophehurpeau/widgets");
+    await call(
+      deps,
+      "GET",
+      "/api/repos/status?repo=christophehurpeau/widgets&fetch=1",
+    );
     expect(deps.operations.readCheckoutSync).toHaveBeenNthCalledWith(1, {
       checkout: repo,
       fetch: "never",
@@ -219,24 +224,43 @@ describe("repos", () => {
       }),
     });
     expect(
-      await call(deps, "POST", "/api/repos/pull?repo=acme/widgets"),
+      await call(
+        deps,
+        "POST",
+        "/api/repos/pull?repo=christophehurpeau/widgets",
+      ),
     ).toEqual({ status: 200, body: { path: repo } });
     expect(deps.operations.pullCheckout).toHaveBeenCalledWith(repo);
     expect(
-      await call(deps, "POST", "/api/repos/push?repo=acme/widgets"),
+      await call(
+        deps,
+        "POST",
+        "/api/repos/push?repo=christophehurpeau/widgets",
+      ),
     ).toEqual({ status: 400, body: { error: "widgets has nothing to push" } });
     expect(
-      (await call(deps, "GET", "/api/repos/pull?repo=acme/widgets"))?.status,
+      (
+        await call(
+          deps,
+          "GET",
+          "/api/repos/pull?repo=christophehurpeau/widgets",
+        )
+      )?.status,
     ).toBe(405);
     expect(
-      (await call(deps, "POST", "/api/repos/pull?repo=acme/other"))?.status,
+      (await call(deps, "POST", "/api/repos/pull?repo=christophehurpeau/other"))
+        ?.status,
     ).toBe(400);
   });
 
   test("reads the recent commits and one commit's diff of a listed checkout", async () => {
     const deps = makeDeps();
     expect(
-      await call(deps, "GET", "/api/repos/commits?repo=acme/widgets&limit=5"),
+      await call(
+        deps,
+        "GET",
+        "/api/repos/commits?repo=christophehurpeau/widgets&limit=5",
+      ),
     ).toEqual({ status: 200, body: { commits: [] } });
     expect(deps.operations.readRecentCommits).toHaveBeenCalledWith({
       checkout: repo,
@@ -246,7 +270,7 @@ describe("repos", () => {
       await call(
         deps,
         "GET",
-        `/api/repos/commit?repo=acme/widgets&sha=${sha}&whitespace=hide`,
+        `/api/repos/commit?repo=christophehurpeau/widgets&sha=${sha}&whitespace=hide`,
       ),
     ).toEqual({ status: 200, body: { patch: "commit" } });
     expect(deps.operations.readCommitDiff).toHaveBeenCalledWith({
@@ -255,18 +279,32 @@ describe("repos", () => {
       whitespace: "hide",
     });
     expect(
-      (await call(deps, "GET", "/api/repos/commits?repo=acme/widgets&limit=0"))
-        ?.status,
+      (
+        await call(
+          deps,
+          "GET",
+          "/api/repos/commits?repo=christophehurpeau/widgets&limit=0",
+        )
+      )?.status,
     ).toBe(400);
     expect(
-      (await call(deps, "GET", "/api/repos/commit?repo=acme/widgets&sha=nope"))
-        ?.status,
+      (
+        await call(
+          deps,
+          "GET",
+          "/api/repos/commit?repo=christophehurpeau/widgets&sha=nope",
+        )
+      )?.status,
     ).toBe(400);
   });
 
   test("reads a local branch in place of HEAD when asked, refusing an empty name", async () => {
     const deps = makeDeps();
-    await call(deps, "GET", "/api/repos/diff?repo=acme/widgets&branch=feat/x");
+    await call(
+      deps,
+      "GET",
+      "/api/repos/diff?repo=christophehurpeau/widgets&branch=feat/x",
+    );
     expect(deps.operations.readCheckoutBranchDiff).toHaveBeenCalledWith({
       checkout: repo,
       scope: "committed",
@@ -276,7 +314,7 @@ describe("repos", () => {
     await call(
       deps,
       "GET",
-      "/api/repos/commits?repo=acme/widgets&branch=feat/x",
+      "/api/repos/commits?repo=christophehurpeau/widgets&branch=feat/x",
     );
     expect(deps.operations.readRecentCommits).toHaveBeenCalledWith({
       checkout: repo,
@@ -284,8 +322,13 @@ describe("repos", () => {
       branch: "feat/x",
     });
     expect(
-      (await call(deps, "GET", "/api/repos/commits?repo=acme/widgets&branch="))
-        ?.status,
+      (
+        await call(
+          deps,
+          "GET",
+          "/api/repos/commits?repo=christophehurpeau/widgets&branch=",
+        )
+      )?.status,
     ).toBe(400);
   });
 
@@ -294,7 +337,7 @@ describe("repos", () => {
     const answer = await call(
       deps,
       "GET",
-      "/api/repos/diff?repo=acme/widgets&scope=uncommitted&whitespace=hide",
+      "/api/repos/diff?repo=christophehurpeau/widgets&scope=uncommitted&whitespace=hide",
     );
     expect(answer).toEqual({ status: 200, body: { patch: "fake" } });
     expect(deps.operations.readCheckoutBranchDiff).toHaveBeenCalledWith({
@@ -309,7 +352,7 @@ describe("repos", () => {
     await call(
       deps,
       "GET",
-      "/api/repos/status?repo=acme/widgets&worktree=/elsewhere/widgets-fix",
+      "/api/repos/status?repo=christophehurpeau/widgets&worktree=/elsewhere/widgets-fix",
     );
     expect(deps.operations.readCheckoutSync).toHaveBeenCalledWith({
       checkout: "/elsewhere/widgets-fix",
@@ -320,7 +363,7 @@ describe("repos", () => {
         await call(
           deps,
           "GET",
-          "/api/repos/status?repo=acme/widgets&worktree=/etc",
+          "/api/repos/status?repo=christophehurpeau/widgets&worktree=/etc",
         )
       )?.status,
     ).toBe(400);
@@ -329,7 +372,7 @@ describe("repos", () => {
         await call(
           deps,
           "GET",
-          "/api/repos/diff?repo=acme/widgets&worktree=/elsewhere/gone",
+          "/api/repos/diff?repo=christophehurpeau/widgets&worktree=/elsewhere/gone",
         )
       )?.status,
     ).toBe(400);
@@ -338,17 +381,25 @@ describe("repos", () => {
   test("reads the branches of a listed checkout and the open pull requests of a repository", async () => {
     const deps = makeDeps();
     expect(
-      await call(deps, "GET", "/api/repos/branches?repo=acme/widgets"),
+      await call(
+        deps,
+        "GET",
+        "/api/repos/branches?repo=christophehurpeau/widgets",
+      ),
     ).toEqual({ status: 200, body: { branches: [] } });
     expect(deps.operations.readBranches).toHaveBeenCalledWith(repo);
     expect(
-      await call(deps, "GET", "/api/repos/worktree-statuses?repo=acme/widgets"),
+      await call(
+        deps,
+        "GET",
+        "/api/repos/worktree-statuses?repo=christophehurpeau/widgets",
+      ),
     ).toEqual({ status: 200, body: { statuses: [] } });
     expect(deps.operations.readWorktreeStatuses).toHaveBeenCalledWith(repo);
     const watch = await call(
       deps,
       "GET",
-      "/api/repos/watch?repo=acme/widgets&worktree=/elsewhere/widgets-fix",
+      "/api/repos/watch?repo=christophehurpeau/widgets&worktree=/elsewhere/widgets-fix",
     );
     expect(watch?.status).toBe(200);
     const stopWatch = watch?.events?.(() => undefined);
@@ -364,16 +415,20 @@ describe("repos", () => {
         await call(
           deps,
           "GET",
-          "/api/repos/watch?repo=acme/widgets&worktree=/nope",
+          "/api/repos/watch?repo=christophehurpeau/widgets&worktree=/nope",
         )
       )?.status,
     ).toBe(400);
     expect(
-      await call(deps, "GET", "/api/repos/pulls?repo=acme/widgets"),
+      await call(
+        deps,
+        "GET",
+        "/api/repos/pulls?repo=christophehurpeau/widgets",
+      ),
     ).toEqual({ status: 200, body: { pullRequests: [] } });
     expect(deps.operations.fetchOpenPullRequests).toHaveBeenCalledWith(
       transport,
-      "acme/widgets",
+      "christophehurpeau/widgets",
     );
     expect(
       (await call(deps, "GET", "/api/repos/pulls?repo=nope"))?.status,
@@ -386,7 +441,7 @@ describe("repos", () => {
       await call(
         deps,
         "GET",
-        "/api/repos/branch-pulls?repo=acme/widgets&branch=feat/x",
+        "/api/repos/branch-pulls?repo=christophehurpeau/widgets&branch=feat/x",
       ),
     ).toEqual({
       status: 200,
@@ -394,7 +449,7 @@ describe("repos", () => {
     });
     expect(deps.operations.fetchBranchPullRequests).toHaveBeenCalledWith(
       transport,
-      "acme/widgets",
+      "christophehurpeau/widgets",
       "feat/x",
     );
     expect(deps.operations.linkBranchPullRequests).toHaveBeenCalledWith({
@@ -406,8 +461,13 @@ describe("repos", () => {
       ],
     });
     expect(
-      (await call(deps, "GET", "/api/repos/branch-pulls?repo=acme/widgets"))
-        ?.status,
+      (
+        await call(
+          deps,
+          "GET",
+          "/api/repos/branch-pulls?repo=christophehurpeau/widgets",
+        )
+      )?.status,
     ).toBe(400);
     expect(
       (await call(deps, "GET", "/api/repos/branch-pulls?repo=nope&branch=x"))
@@ -478,14 +538,14 @@ describe("repos", () => {
       const answer = await call(
         deps,
         "GET",
-        "/api/repos/settled-pulls?repo=acme/widgets",
+        "/api/repos/settled-pulls?repo=christophehurpeau/widgets",
       );
 
       expect(lookup).toHaveBeenCalledWith([
-        { ownerRepo: "acme/widgets", headRef: "feat/merged" },
-        { ownerRepo: "acme/widgets", headRef: "feat/reused" },
-        { ownerRepo: "acme/widgets", headRef: "feat/open" },
-        { ownerRepo: "acme/widgets", headRef: "feat/none" },
+        { ownerRepo: "christophehurpeau/widgets", headRef: "feat/merged" },
+        { ownerRepo: "christophehurpeau/widgets", headRef: "feat/reused" },
+        { ownerRepo: "christophehurpeau/widgets", headRef: "feat/open" },
+        { ownerRepo: "christophehurpeau/widgets", headRef: "feat/none" },
       ]);
       expect(deps.operations.linkBranchPullRequests).toHaveBeenCalledTimes(2);
       expect(deps.operations.linkBranchPullRequests).toHaveBeenCalledWith(
@@ -523,7 +583,11 @@ describe("repos", () => {
     test("asks nothing without a reviewflow token", async () => {
       const deps = withReviewflow(vi.fn(async () => null));
       expect(
-        await call(deps, "GET", "/api/repos/settled-pulls?repo=acme/widgets"),
+        await call(
+          deps,
+          "GET",
+          "/api/repos/settled-pulls?repo=christophehurpeau/widgets",
+        ),
       ).toEqual({ status: 200, body: { connected: false, branches: [] } });
       expect(deps.operations.linkBranchPullRequests).not.toHaveBeenCalled();
     });
@@ -535,7 +599,7 @@ describe("repos", () => {
       await call(
         deps,
         "GET",
-        "/api/repos/worktree-status?repo=acme/widgets&worktree=/elsewhere/widgets-fix",
+        "/api/repos/worktree-status?repo=christophehurpeau/widgets&worktree=/elsewhere/widgets-fix",
       ),
     ).toEqual({
       status: 200,
@@ -566,7 +630,7 @@ describe("repos", () => {
     const answer = await call(
       deps,
       "GET",
-      "/api/repos/worktree-status?repo=acme/widgets&worktree=/elsewhere/widgets-fix",
+      "/api/repos/worktree-status?repo=christophehurpeau/widgets&worktree=/elsewhere/widgets-fix",
     );
     expect(answer?.body).toMatchObject({ pullRequestsError: "offline" });
     expect(deps.operations.readWorktreeRemovalStatus).toHaveBeenCalledWith({
@@ -581,7 +645,7 @@ describe("repos", () => {
       await call(
         deps,
         "POST",
-        "/api/repos/worktree-remove?repo=acme/widgets&worktree=/elsewhere/widgets-fix",
+        "/api/repos/worktree-remove?repo=christophehurpeau/widgets&worktree=/elsewhere/widgets-fix",
         { deleteBranch: true },
       ),
     ).toEqual({ status: 200, body: { branchError: null } });
@@ -595,15 +659,20 @@ describe("repos", () => {
     });
 
     expect(
-      (await call(deps, "POST", "/api/repos/worktree-remove?repo=acme/widgets"))
-        ?.status,
+      (
+        await call(
+          deps,
+          "POST",
+          "/api/repos/worktree-remove?repo=christophehurpeau/widgets",
+        )
+      )?.status,
     ).toBe(400);
     expect(
       (
         await call(
           deps,
           "POST",
-          "/api/repos/worktree-remove?repo=acme/widgets&worktree=/etc",
+          "/api/repos/worktree-remove?repo=christophehurpeau/widgets&worktree=/etc",
         )
       )?.status,
     ).toBe(400);
@@ -612,7 +681,7 @@ describe("repos", () => {
         await call(
           deps,
           "GET",
-          "/api/repos/worktree-remove?repo=acme/widgets&worktree=/elsewhere/widgets-fix",
+          "/api/repos/worktree-remove?repo=christophehurpeau/widgets&worktree=/elsewhere/widgets-fix",
         )
       )?.status,
     ).toBe(405);
@@ -626,7 +695,7 @@ describe("repos", () => {
       await call(
         refusing,
         "POST",
-        "/api/repos/worktree-remove?repo=acme/widgets&worktree=/elsewhere/widgets-fix",
+        "/api/repos/worktree-remove?repo=christophehurpeau/widgets&worktree=/elsewhere/widgets-fix",
         {},
       ),
     ).toEqual({
@@ -640,15 +709,18 @@ describe("repos", () => {
     const deps = makeDeps();
     expect(
       await call(deps, "POST", "/api/repos/clone", {
-        ownerRepo: "acme/tools",
+        ownerRepo: "christophehurpeau/tools",
         folder: checkouts,
       }),
     ).toEqual({
       status: 200,
-      body: { ownerRepo: "acme/tools", path: join(checkouts, "tools") },
+      body: {
+        ownerRepo: "christophehurpeau/tools",
+        path: join(checkouts, "tools"),
+      },
     });
     expect(deps.operations.cloneRepository).toHaveBeenCalledWith({
-      ownerRepo: "acme/tools",
+      ownerRepo: "christophehurpeau/tools",
       target: join(checkouts, "tools"),
     });
     expect((await call(deps, "GET", "/api/repos/clone"))?.status).toBe(405);
@@ -659,7 +731,7 @@ describe("repos", () => {
     expect(
       (
         await call(deps, "POST", "/api/repos/clone", {
-          ownerRepo: "acme/tools",
+          ownerRepo: "christophehurpeau/tools",
           folder: root,
         })
       )?.status,
@@ -667,7 +739,7 @@ describe("repos", () => {
     expect(
       (
         await call(deps, "POST", "/api/repos/clone", {
-          ownerRepo: "acme/gadgets",
+          ownerRepo: "christophehurpeau/gadgets",
           folder: checkouts,
         })
       )?.status,
@@ -676,17 +748,21 @@ describe("repos", () => {
 
     const failing = makeDeps({
       cloneRepository: vi.fn(async () => {
-        throw new Error("gh repo clone acme/tools failed: not found");
+        throw new Error(
+          "gh repo clone christophehurpeau/tools failed: not found",
+        );
       }),
     });
     expect(
       await call(failing, "POST", "/api/repos/clone", {
-        ownerRepo: "acme/tools",
+        ownerRepo: "christophehurpeau/tools",
         folder: checkouts,
       }),
     ).toEqual({
       status: 400,
-      body: { error: "gh repo clone acme/tools failed: not found" },
+      body: {
+        error: "gh repo clone christophehurpeau/tools failed: not found",
+      },
     });
   });
 
@@ -697,20 +773,25 @@ describe("repos", () => {
       }),
     });
     expect(
-      (await call(deps, "GET", "/api/repos/diff?repo=acme/widgets&scope=x"))
-        ?.status,
+      (
+        await call(
+          deps,
+          "GET",
+          "/api/repos/diff?repo=christophehurpeau/widgets&scope=x",
+        )
+      )?.status,
     ).toBe(400);
     expect(
       (
         await call(
           deps,
           "GET",
-          "/api/repos/diff?repo=acme/widgets&whitespace=x",
+          "/api/repos/diff?repo=christophehurpeau/widgets&whitespace=x",
         )
       )?.status,
     ).toBe(400);
     expect(
-      await call(deps, "GET", "/api/repos/diff?repo=acme/widgets"),
+      await call(deps, "GET", "/api/repos/diff?repo=christophehurpeau/widgets"),
     ).toEqual({
       status: 400,
       body: { error: "neither origin/main nor main exists" },
@@ -727,7 +808,7 @@ describe("checkout files", () => {
       await call(
         deps,
         "GET",
-        `/api/repos/files?repo=acme/widgets&worktree=${worktree}`,
+        `/api/repos/files?repo=christophehurpeau/widgets&worktree=${worktree}`,
       ),
     ).toEqual({
       status: 200,
@@ -742,7 +823,7 @@ describe("checkout files", () => {
       await call(
         deps,
         "GET",
-        `/api/repos/file?repo=acme/widgets&worktree=${worktree}&path=a.ts`,
+        `/api/repos/file?repo=christophehurpeau/widgets&worktree=${worktree}&path=a.ts`,
       ),
     ).toEqual({ status: 200, body: { status: "text", source: "a" } });
     expect(deps.operations.readCheckoutFile).toHaveBeenCalledWith(
@@ -756,7 +837,11 @@ describe("checkout files", () => {
       readCheckoutFile: vi.fn(() => ({ refused: "x is inside .git" })),
     });
     expect(
-      await call(deps, "GET", "/api/repos/file?repo=acme/widgets&path=x"),
+      await call(
+        deps,
+        "GET",
+        "/api/repos/file?repo=christophehurpeau/widgets&path=x",
+      ),
     ).toEqual({ status: 400, body: { error: "x is inside .git" } });
   });
 
@@ -766,7 +851,7 @@ describe("checkout files", () => {
       await call(
         deps,
         "GET",
-        "/api/repos/file?repo=acme/widgets&path=a.ts&at=head",
+        "/api/repos/file?repo=christophehurpeau/widgets&path=a.ts&at=head",
       ),
     ).toEqual({ status: 200, body: { status: "text", source: "committed" } });
     expect(deps.operations.readCheckoutFileAtHead).toHaveBeenCalledWith(
@@ -779,11 +864,16 @@ describe("checkout files", () => {
   test("saves on a PUT, and refuses a body without the opened text", async () => {
     const deps = makeDeps();
     expect(
-      await call(deps, "PUT", "/api/repos/file?repo=acme/widgets", {
-        path: "a.ts",
-        source: "b",
-        expectedSource: "a",
-      }),
+      await call(
+        deps,
+        "PUT",
+        "/api/repos/file?repo=christophehurpeau/widgets",
+        {
+          path: "a.ts",
+          source: "b",
+          expectedSource: "a",
+        },
+      ),
     ).toEqual({
       status: 200,
       body: { status: "saved", source: "b", warnings: [] },
@@ -794,10 +884,15 @@ describe("checkout files", () => {
     );
     expect(
       (
-        await call(deps, "PUT", "/api/repos/file?repo=acme/widgets", {
-          path: "a.ts",
-          source: "b",
-        })
+        await call(
+          deps,
+          "PUT",
+          "/api/repos/file?repo=christophehurpeau/widgets",
+          {
+            path: "a.ts",
+            source: "b",
+          },
+        )
       )?.status,
     ).toBe(400);
   });
@@ -814,12 +909,12 @@ describe("routes", () => {
     const answer = await call(
       deps,
       "GET",
-      "/api/prs/detail?repo=acme/widgets&number=3&part=checks",
+      "/api/prs/detail?repo=christophehurpeau/widgets&number=3&part=checks",
     );
     expect(answer).toEqual({ status: 200, body: { part: "fake" } });
     expect(deps.operations.fetchPullRequestPart).toHaveBeenCalledWith(
       transport,
-      { ownerRepo: "acme/widgets", number: 3 },
+      { ownerRepo: "christophehurpeau/widgets", number: 3 },
       "checks",
     );
   });
@@ -910,13 +1005,13 @@ describe("routes", () => {
     const answer = await call(
       deps,
       "GET",
-      `/api/prs/diff?repo=acme/widgets&number=3&head=${sha}&base=${other}&whitespace=hide`,
+      `/api/prs/diff?repo=christophehurpeau/widgets&number=3&head=${sha}&base=${other}&whitespace=hide`,
     );
     expect(answer).toEqual({ status: 200, body: { source: "git" } });
     expect(deps.operations.readPullRequestDiff).toHaveBeenCalledWith({
       checkout: repo,
       transport,
-      ref: { ownerRepo: "acme/widgets", number: 3 },
+      ref: { ownerRepo: "christophehurpeau/widgets", number: 3 },
       head: sha,
       base: other,
       whitespace: "hide",
@@ -928,11 +1023,15 @@ describe("routes", () => {
     const answer = await call(
       deps,
       "GET",
-      `/api/prs/diff?repo=acme/other&number=3&head=${sha}&base=${other}`,
+      `/api/prs/diff?repo=christophehurpeau/other&number=3&head=${sha}&base=${other}`,
     );
     expect(answer?.status).toBe(200);
     expect(answer?.body).toMatchObject({
-      refused: { reason: "notConfigured", ownerRepo: "acme/other", configPath },
+      refused: {
+        reason: "notConfigured",
+        ownerRepo: "christophehurpeau/other",
+        configPath,
+      },
     });
     expect(deps.operations.readPullRequestDiff).not.toHaveBeenCalled();
   });
@@ -942,7 +1041,7 @@ describe("routes", () => {
     const answer = await call(
       deps,
       "GET",
-      `/api/prs/reading-order?repo=acme/widgets&number=3&head=${sha}&base=${other}`,
+      `/api/prs/reading-order?repo=christophehurpeau/widgets&number=3&head=${sha}&base=${other}`,
     );
     expect(answer).toEqual({ status: 200, body: { groups: [] } });
     expect(deps.operations.readReadingOrder).toHaveBeenCalledWith({
@@ -957,10 +1056,14 @@ describe("routes", () => {
     const answer = await call(
       deps,
       "GET",
-      `/api/prs/reading-order?repo=acme/other&number=3&head=${sha}&base=${other}`,
+      `/api/prs/reading-order?repo=christophehurpeau/other&number=3&head=${sha}&base=${other}`,
     );
     expect(answer?.body).toMatchObject({
-      refused: { reason: "notConfigured", ownerRepo: "acme/other", configPath },
+      refused: {
+        reason: "notConfigured",
+        ownerRepo: "christophehurpeau/other",
+        configPath,
+      },
     });
     expect(deps.operations.readReadingOrder).not.toHaveBeenCalled();
     expect(
@@ -968,7 +1071,7 @@ describe("routes", () => {
         await call(
           deps,
           "GET",
-          "/api/prs/reading-order?repo=acme/widgets&number=3&head=x&base=y",
+          "/api/prs/reading-order?repo=christophehurpeau/widgets&number=3&head=x&base=y",
         )
       )?.status,
     ).toBe(400);
@@ -979,7 +1082,7 @@ describe("routes", () => {
     const answer = await call(
       deps,
       "GET",
-      `/api/prs/impacts?repo=acme/widgets&number=3&head=${sha}&base=${other}`,
+      `/api/prs/impacts?repo=christophehurpeau/widgets&number=3&head=${sha}&base=${other}`,
     );
     expect(answer).toEqual({
       status: 200,
@@ -997,10 +1100,14 @@ describe("routes", () => {
     const answer = await call(
       deps,
       "GET",
-      `/api/prs/impacts?repo=acme/other&number=3&head=${sha}&base=${other}`,
+      `/api/prs/impacts?repo=christophehurpeau/other&number=3&head=${sha}&base=${other}`,
     );
     expect(answer?.body).toMatchObject({
-      refused: { reason: "notConfigured", ownerRepo: "acme/other", configPath },
+      refused: {
+        reason: "notConfigured",
+        ownerRepo: "christophehurpeau/other",
+        configPath,
+      },
     });
     expect(deps.operations.readImpacts).not.toHaveBeenCalled();
     expect(
@@ -1008,7 +1115,7 @@ describe("routes", () => {
         await call(
           deps,
           "GET",
-          "/api/prs/impacts?repo=acme/widgets&number=3&head=x&base=y",
+          "/api/prs/impacts?repo=christophehurpeau/widgets&number=3&head=x&base=y",
         )
       )?.status,
     ).toBe(400);
@@ -1031,7 +1138,7 @@ describe("routes", () => {
     const answer = await call(
       deps,
       "GET",
-      `/api/prs/diff?repo=acme/widgets&number=3&head=${sha}&base=${other}&stream=1`,
+      `/api/prs/diff?repo=christophehurpeau/widgets&number=3&head=${sha}&base=${other}&stream=1`,
     );
     expect(answer?.status).toBe(200);
     expect(await readLines(answer)).toEqual([
@@ -1051,7 +1158,7 @@ describe("routes", () => {
     const answer = await call(
       deps,
       "GET",
-      `/api/prs/diff?repo=acme/widgets&number=3&head=${sha}&base=${other}&stream=1`,
+      `/api/prs/diff?repo=christophehurpeau/widgets&number=3&head=${sha}&base=${other}&stream=1`,
     );
     expect(await readLines(answer)).toEqual([
       { step: "fetching" },
@@ -1064,12 +1171,15 @@ describe("routes", () => {
     const answer = await call(
       deps,
       "GET",
-      `/api/prs/diff?repo=acme/other&number=3&head=${sha}&base=${other}&stream=1`,
+      `/api/prs/diff?repo=christophehurpeau/other&number=3&head=${sha}&base=${other}&stream=1`,
     );
     const lines = await readLines(answer);
     expect(lines).toHaveLength(1);
     expect(lines[0]).toMatchObject({
-      refused: { reason: "notConfigured", ownerRepo: "acme/other" },
+      refused: {
+        reason: "notConfigured",
+        ownerRepo: "christophehurpeau/other",
+      },
     });
     expect(deps.operations.readPullRequestDiff).not.toHaveBeenCalled();
   });
@@ -1101,7 +1211,7 @@ describe("routes", () => {
     const answer = await call(
       deps,
       "GET",
-      `/api/prs/file?repo=acme/widgets&number=3&sha=${sha}&path=src/a.ts`,
+      `/api/prs/file?repo=christophehurpeau/widgets&number=3&sha=${sha}&path=src/a.ts`,
     );
     expect(answer).toEqual({ status: 200, body: { contents: "file body" } });
     expect(deps.operations.readFileAtSha).toHaveBeenCalledWith(
@@ -1114,7 +1224,7 @@ describe("routes", () => {
         await call(
           deps,
           "GET",
-          `/api/prs/file?repo=acme/other&number=3&sha=${sha}&path=a`,
+          `/api/prs/file?repo=christophehurpeau/other&number=3&sha=${sha}&path=a`,
         )
       )?.status,
     ).toBe(400);
@@ -1123,7 +1233,7 @@ describe("routes", () => {
         await call(
           deps,
           "GET",
-          `/api/prs/file?repo=acme/widgets&number=3&sha=${sha}`,
+          `/api/prs/file?repo=christophehurpeau/widgets&number=3&sha=${sha}`,
         )
       )?.status,
     ).toBe(400);
@@ -1133,7 +1243,11 @@ describe("routes", () => {
     let home: string;
     let path: string;
     const deps = (): RouteDeps => ({ ...makeDeps(), configPath: path });
-    const valid = JSON.stringify({ repos: { "acme/widgets": repo } }, null, 2);
+    const valid = JSON.stringify(
+      { repos: { "christophehurpeau/widgets": repo } },
+      null,
+      2,
+    );
 
     beforeEach(() => {
       home = mkdtempSync(join(tmpdir(), "reviewflow-app-config-file-"));
@@ -1153,7 +1267,10 @@ describe("routes", () => {
 
     test("PUT creates the file and answers it with its warnings", async () => {
       const source = JSON.stringify({
-        repos: { "acme/widgets": repo, "acme/gone": join(home, "gone") },
+        repos: {
+          "christophehurpeau/widgets": repo,
+          "christophehurpeau/gone": join(home, "gone"),
+        },
       });
       const answer = await call(deps(), "PUT", "/api/config/file", {
         source,
@@ -1164,7 +1281,7 @@ describe("routes", () => {
         path,
         source: `${source}\n`,
         exists: true,
-        warnings: [expect.stringContaining("acme/gone: ")],
+        warnings: [expect.stringContaining("christophehurpeau/gone: ")],
       });
       expect(readFileSync(path, "utf8")).toBe(`${source}\n`);
       expect(
@@ -1217,12 +1334,30 @@ describe("routes", () => {
 
   test("config/repo answers whether a checkout is attached", async () => {
     expect(
-      (await call(makeDeps(), "GET", "/api/config/repo?repo=acme/widgets"))
-        ?.body,
-    ).toEqual({ ownerRepo: "acme/widgets", status: "attached", detail: repo });
+      (
+        await call(
+          makeDeps(),
+          "GET",
+          "/api/config/repo?repo=christophehurpeau/widgets",
+        )
+      )?.body,
+    ).toEqual({
+      ownerRepo: "christophehurpeau/widgets",
+      status: "attached",
+      detail: repo,
+    });
     expect(
-      (await call(makeDeps(), "GET", "/api/config/repo?repo=acme/other"))?.body,
-    ).toMatchObject({ ownerRepo: "acme/other", status: "notConfigured" });
+      (
+        await call(
+          makeDeps(),
+          "GET",
+          "/api/config/repo?repo=christophehurpeau/other",
+        )
+      )?.body,
+    ).toMatchObject({
+      ownerRepo: "christophehurpeau/other",
+      status: "notConfigured",
+    });
     expect(
       (await call(makeDeps(), "GET", "/api/config/repo?repo=nope"))?.status,
     ).toBe(400);

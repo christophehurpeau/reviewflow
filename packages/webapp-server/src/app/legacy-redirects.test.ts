@@ -38,8 +38,8 @@ describe("legacy /app redirects", () => {
     ["/app/user", "/user"],
     ["/app/user/force-sync", "/user"],
     ["/app/repositories", "/user/repositories"],
-    ["/app/org/acme", "/org/acme"],
-    ["/app/org/acme/force-sync", "/org/acme"],
+    ["/app/org/christophehurpeau", "/org/christophehurpeau"],
+    ["/app/org/christophehurpeau/force-sync", "/org/christophehurpeau"],
   ])("permanently redirects %s to the webapp %s", async (url, path) => {
     const response = await callApp(createApp(), { method: "GET", url });
 
@@ -60,23 +60,23 @@ describe("legacy /app redirects", () => {
   it("redirects a repository of another owner to the organization", async () => {
     const response = await callApp(createApp(), {
       method: "GET",
-      url: "/app/repository/acme/reviewflow",
+      url: "/app/repository/christophehurpeau/reviewflow",
       headers: await authenticatedHeaders("someone"),
     });
 
     expect(response.location).toBe(
-      `${webappUrl}/org/acme/repositories/reviewflow`,
+      `${webappUrl}/org/christophehurpeau/repositories/reviewflow`,
     );
   });
 
   it("redirects a repository to the organization when signed out", async () => {
     const response = await callApp(createApp(), {
       method: "GET",
-      url: "/app/repository/acme/reviewflow",
+      url: "/app/repository/christophehurpeau/reviewflow",
     });
 
     expect(response.location).toBe(
-      `${webappUrl}/org/acme/repositories/reviewflow`,
+      `${webappUrl}/org/christophehurpeau/repositories/reviewflow`,
     );
   });
 });

@@ -69,7 +69,7 @@ function DraftsCase(): ReactNode {
   return (
     <PullRequestDraftsProvider
       store={undefined}
-      pullRequest={{ ownerRepo: "acme/web", number: 12 }}
+      pullRequest={{ ownerRepo: "christophehurpeau/web", number: 12 }}
     >
       <Story>
         <Story.Section title="one key, two editors">

@@ -78,7 +78,7 @@ const createApp = (tokenId: string) => {
       findAll: () =>
         Promise.resolve([
           { org: { id: 1, login: "elax" }, teams: [] },
-          { org: { id: 2, login: "acme" }, teams: [] },
+          { org: { id: 2, login: "reviewflow" }, teams: [] },
         ]),
     },
     users: {
@@ -94,7 +94,7 @@ const createApp = (tokenId: string) => {
             config: { allowPersonalTokens: true },
             paidFeatures: { enabled: true },
           },
-          { _id: 2, login: "acme", config: {} },
+          { _id: 2, login: "reviewflow", config: {} },
         ]),
     },
     repositories: { findOne: repositoriesFindOne },
@@ -169,7 +169,7 @@ describe("GET /api/pr/v1/:owner/:repo/:number", () => {
   it("answers 403 for an organization that does not allow tokens, without looking any data up", async () => {
     const { app, repositoriesFindOne, prsFindOne } = createApp("t-pr-403");
 
-    const response = await getPr(app, "acme/api/412");
+    const response = await getPr(app, "reviewflow/api/412");
 
     expect(response.status).toBe(403);
     expect(JSON.parse(response.body)).toEqual({
@@ -186,7 +186,7 @@ describe("GET /api/pr/v1/:owner/:repo/:number", () => {
     const { app } = createApp("t-pr-403-same");
 
     const unknown = await getPr(app, "stranger/api/412");
-    const missing = await getPr(app, "acme/nope/1");
+    const missing = await getPr(app, "reviewflow/nope/1");
 
     expect(unknown.status).toBe(403);
     expect(missing.status).toBe(403);

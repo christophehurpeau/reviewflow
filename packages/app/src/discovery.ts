@@ -233,7 +233,7 @@ const asConfigPath = (path: string, home: string): string => {
 
 /**
  * A usual folder and, since checkouts are often grouped by owner or by
- * project (`~/dev/acme/widgets`), each of its subdirectories that is not
+ * project (`~/dev/christophehurpeau/widgets`), each of its subdirectories that is not
  * itself a checkout.
  */
 const candidateFolders = async (home: string): Promise<string[]> => {

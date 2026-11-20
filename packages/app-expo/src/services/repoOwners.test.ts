@@ -3,13 +3,13 @@ import { filterReposByOwner, listRepoOwners } from "./repoOwners.ts";
 
 const repos = [
   { ownerRepo: "globex/web" },
-  { ownerRepo: "acme/api" },
-  { ownerRepo: "acme/web" },
+  { ownerRepo: "christophehurpeau/api" },
+  { ownerRepo: "christophehurpeau/web" },
 ];
 
 describe("listRepoOwners", () => {
   it("lists each owner once, sorted", () => {
-    expect(listRepoOwners(repos)).toEqual(["acme", "globex"]);
+    expect(listRepoOwners(repos)).toEqual(["christophehurpeau", "globex"]);
   });
 });
 
@@ -19,9 +19,9 @@ describe("filterReposByOwner", () => {
   });
 
   it("keeps the repositories of that owner", () => {
-    expect(filterReposByOwner(repos, "acme")).toEqual([
-      { ownerRepo: "acme/api" },
-      { ownerRepo: "acme/web" },
+    expect(filterReposByOwner(repos, "christophehurpeau")).toEqual([
+      { ownerRepo: "christophehurpeau/api" },
+      { ownerRepo: "christophehurpeau/web" },
     ]);
   });
 });

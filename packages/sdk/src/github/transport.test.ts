@@ -151,14 +151,14 @@ describe("createGitHubTransport", () => {
 
     const result = await transport.rest({
       method: "POST",
-      path: "repos/acme/app/issues/1/comments",
+      path: "repos/christophehurpeau/app/issues/1/comments",
       body: { body: "hi" },
     });
 
     expect(result).toEqual({ id: 7 });
     expect(send).toHaveBeenCalledWith({
       method: "POST",
-      path: "repos/acme/app/issues/1/comments",
+      path: "repos/christophehurpeau/app/issues/1/comments",
       accept: "application/vnd.github+json",
       body: JSON.stringify({ body: "hi" }),
     });
@@ -168,7 +168,10 @@ describe("createGitHubTransport", () => {
     const { send, transport } = transportAnswering({ status: 204, body: "" });
 
     await expect(
-      transport.rest({ method: "DELETE", path: "repos/acme/app/x" }),
+      transport.rest({
+        method: "DELETE",
+        path: "repos/christophehurpeau/app/x",
+      }),
     ).resolves.toBeNull();
     expect(send.mock.calls[0]?.[0].body).toBeUndefined();
   });
@@ -183,9 +186,12 @@ describe("createGitHubTransport", () => {
     });
 
     await expect(
-      transport.rest({ method: "PUT", path: "repos/acme/app/pulls/1/merge" }),
+      transport.rest({
+        method: "PUT",
+        path: "repos/christophehurpeau/app/pulls/1/merge",
+      }),
     ).rejects.toThrow(
-      "GitHub refused PUT repos/acme/app/pulls/1/merge: Validation Failed: head invalid",
+      "GitHub refused PUT repos/christophehurpeau/app/pulls/1/merge: Validation Failed: head invalid",
     );
   });
 
@@ -193,8 +199,13 @@ describe("createGitHubTransport", () => {
     const { transport } = transportAnswering({ status: 500, body: "" });
 
     await expect(
-      transport.rest({ method: "PATCH", path: "repos/acme/app/pulls/1" }),
-    ).rejects.toThrow("GitHub refused PATCH repos/acme/app/pulls/1: HTTP 500");
+      transport.rest({
+        method: "PATCH",
+        path: "repos/christophehurpeau/app/pulls/1",
+      }),
+    ).rejects.toThrow(
+      "GitHub refused PATCH repos/christophehurpeau/app/pulls/1: HTTP 500",
+    );
   });
 
   it("reads text with the accept header it is given", async () => {
@@ -204,14 +215,14 @@ describe("createGitHubTransport", () => {
     });
 
     const text = await transport.text({
-      path: "repos/acme/app/pulls/1",
+      path: "repos/christophehurpeau/app/pulls/1",
       accept: "application/vnd.github.diff",
     });
 
     expect(text).toBe("diff --git a/x b/x\n");
     expect(send).toHaveBeenCalledWith({
       method: "GET",
-      path: "repos/acme/app/pulls/1",
+      path: "repos/christophehurpeau/app/pulls/1",
       accept: "application/vnd.github.diff",
       body: undefined,
     });
@@ -227,11 +238,11 @@ describe("createGitHubTransport", () => {
 
     await expect(
       transport.text({
-        path: "repos/acme/app/pulls/1",
+        path: "repos/christophehurpeau/app/pulls/1",
         accept: "application/vnd.github.diff",
       }),
     ).rejects.toThrow(
-      "GitHub refused GET repos/acme/app/pulls/1: Sorry, the diff exceeded the maximum number of lines (20000)",
+      "GitHub refused GET repos/christophehurpeau/app/pulls/1: Sorry, the diff exceeded the maximum number of lines (20000)",
     );
   });
 });

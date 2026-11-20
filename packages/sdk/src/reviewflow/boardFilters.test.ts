@@ -13,10 +13,10 @@ import {
 
 const pr = (overrides: Partial<ReviewflowBoardPr> = {}): ReviewflowBoardPr => ({
   id: "1",
-  ownerRepo: "Acme/api",
+  ownerRepo: "ChristopheHurpeau/api",
   number: 1,
   title: "A change",
-  url: "https://github.com/acme/api/pull/1",
+  url: "https://github.com/christophehurpeau/api/pull/1",
   headRef: "feat/a",
   state: "open",
   reviewState: "requested",
@@ -55,18 +55,18 @@ describe("matchesBoardFilters", () => {
   });
 
   it("filters on the account and repository, whatever their case", () => {
-    expect(matchesBoardFilters(pr(), filtersOf({ account: "acme" }))).toBe(
-      true,
-    );
+    expect(
+      matchesBoardFilters(pr(), filtersOf({ account: "christophehurpeau" })),
+    ).toBe(true);
     expect(matchesBoardFilters(pr(), filtersOf({ account: "globex" }))).toBe(
       false,
     );
-    expect(matchesBoardFilters(pr(), filtersOf({ repo: "acme/API" }))).toBe(
-      true,
-    );
-    expect(matchesBoardFilters(pr(), filtersOf({ repo: "acme/web" }))).toBe(
-      false,
-    );
+    expect(
+      matchesBoardFilters(pr(), filtersOf({ repo: "christophehurpeau/API" })),
+    ).toBe(true);
+    expect(
+      matchesBoardFilters(pr(), filtersOf({ repo: "christophehurpeau/web" })),
+    ).toBe(false);
   });
 
   it("filters on the author, which an old pull request does not have", () => {
@@ -158,8 +158,8 @@ describe("url parameters", () => {
   it("round-trips the filters, leaving the defaults out", () => {
     const filters: BoardFilters = {
       state: "closed",
-      account: "acme",
-      repo: "acme/api",
+      account: "christophehurpeau",
+      repo: "christophehurpeau/api",
       author: "ada",
       draft: "ready",
       checks: "none",
@@ -189,7 +189,7 @@ describe("buildBoardFilterOptions", () => {
 
   it("lists each repository and author once, sorted", () => {
     expect(buildBoardFilterOptions(rows, defaultBoardFilters)).toEqual({
-      repos: ["Acme/api", "globex/web"],
+      repos: ["ChristopheHurpeau/api", "globex/web"],
       authors: ["ada", "linus"],
       labels: ["bug"],
     });
@@ -205,14 +205,22 @@ describe("buildBoardFilterOptions", () => {
     expect(
       buildBoardFilterOptions(
         [],
-        filtersOf({ repo: "acme/gone", author: "ghost", label: "old" }),
+        filtersOf({
+          repo: "christophehurpeau/gone",
+          author: "ghost",
+          label: "old",
+        }),
       ),
-    ).toEqual({ repos: ["acme/gone"], authors: ["ghost"], labels: ["old"] });
+    ).toEqual({
+      repos: ["christophehurpeau/gone"],
+      authors: ["ghost"],
+      labels: ["old"],
+    });
   });
 });
 
 describe("withBoardFilterAccount", () => {
-  const filters = filtersOf({ repo: "acme/api" });
+  const filters = filtersOf({ repo: "christophehurpeau/api" });
 
   it("forgets a repository of another account", () => {
     expect(withBoardFilterAccount(filters, "globex")).toEqual(
@@ -225,6 +233,8 @@ describe("withBoardFilterAccount", () => {
   });
 
   it("keeps a repository of that account", () => {
-    expect(withBoardFilterAccount(filters, "acme").repo).toBe("acme/api");
+    expect(withBoardFilterAccount(filters, "christophehurpeau").repo).toBe(
+      "christophehurpeau/api",
+    );
   });
 });

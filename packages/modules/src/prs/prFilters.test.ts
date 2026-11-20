@@ -12,11 +12,11 @@ import {
 
 const pr = (overrides: Partial<PrSummary> = {}): PrSummary => ({
   _id: "1",
-  orgLogin: "acme",
+  orgLogin: "reviewflow",
   repoName: "api",
   number: 1,
   title: "A change",
-  url: "https://github.com/acme/api/pull/1",
+  url: "https://github.com/reviewflow/api/pull/1",
   headRef: "feat/retry",
   isDraft: false,
   checks: { conclusion: "passed", runningCount: 0, failedNames: [] },
@@ -41,8 +41,8 @@ describe("matchesPrFilters", () => {
   });
 
   it("filters on the repository as owner/name", () => {
-    expect(matchesPrFilters(pr(), { repo: "acme/api" })).toBe(true);
-    expect(matchesPrFilters(pr(), { repo: "acme/web" })).toBe(false);
+    expect(matchesPrFilters(pr(), { repo: "reviewflow/api" })).toBe(true);
+    expect(matchesPrFilters(pr(), { repo: "reviewflow/web" })).toBe(false);
   });
 
   it("filters on the author, which an old pull request does not have", () => {
@@ -107,9 +107,9 @@ describe("matchesPrFilters", () => {
   });
 
   it("requires every filter to match", () => {
-    expect(matchesPrFilters(pr(), { repo: "acme/api", author: "linus" })).toBe(
-      false,
-    );
+    expect(
+      matchesPrFilters(pr(), { repo: "reviewflow/api", author: "linus" }),
+    ).toBe(false);
   });
 });
 
@@ -132,7 +132,7 @@ describe("url parameters", () => {
 
   it("round-trips the filters, leaving the defaults out", () => {
     const filters = {
-      repo: "acme/api",
+      repo: "reviewflow/api",
       author: "ada",
       draft: "ready",
       checks: "none",
@@ -166,7 +166,7 @@ describe("buildPrFilterOptions", () => {
         {},
       ),
     ).toEqual({
-      repos: ["acme/api", "acme/web"],
+      repos: ["reviewflow/api", "reviewflow/web"],
       authors: ["ada", "linus"],
       labels: ["bug"],
     });
@@ -175,30 +175,34 @@ describe("buildPrFilterOptions", () => {
   it("keeps what is selected when no row carries it anymore", () => {
     expect(
       buildPrFilterOptions([], {
-        repo: "acme/gone",
+        repo: "reviewflow/gone",
         author: "ghost",
         label: "old",
       }),
-    ).toEqual({ repos: ["acme/gone"], authors: ["ghost"], labels: ["old"] });
+    ).toEqual({
+      repos: ["reviewflow/gone"],
+      authors: ["ghost"],
+      labels: ["old"],
+    });
   });
 });
 
 describe("prFiltersForAccount", () => {
   it("forgets a repository of another account", () => {
     expect(
-      prFiltersForAccount({ repo: "acme/api", author: "ada" }, "globex"),
+      prFiltersForAccount({ repo: "reviewflow/api", author: "ada" }, "globex"),
     ).toEqual({ repo: undefined, author: "ada" });
   });
 
   it("forgets a repository once no account is selected", () => {
-    expect(prFiltersForAccount({ repo: "acme/api" }, undefined)).toEqual({
+    expect(prFiltersForAccount({ repo: "reviewflow/api" }, undefined)).toEqual({
       repo: undefined,
     });
   });
 
   it("keeps a repository of that account", () => {
-    const filters = { repo: "acme/api" };
+    const filters = { repo: "reviewflow/api" };
 
-    expect(prFiltersForAccount(filters, "acme")).toBe(filters);
+    expect(prFiltersForAccount(filters, "reviewflow")).toBe(filters);
   });
 });

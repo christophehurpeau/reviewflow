@@ -25,48 +25,70 @@ describe("planClone", () => {
     expect(
       planClone({
         repoPaths: [dev, work],
-        ownerRepo: "acme/widgets",
+        ownerRepo: "christophehurpeau/widgets",
         folder: work,
       }),
-    ).toEqual({ ownerRepo: "acme/widgets", target: join(work, "widgets") });
+    ).toEqual({
+      ownerRepo: "christophehurpeau/widgets",
+      target: join(work, "widgets"),
+    });
   });
 
   test("matches the folder however its trailing slash is written", () => {
     expect(
       planClone({
         repoPaths: [`${dev}/`],
-        ownerRepo: "acme/.github",
+        ownerRepo: "christophehurpeau/.github",
         folder: dev,
       }),
-    ).toEqual({ ownerRepo: "acme/.github", target: join(dev, ".github") });
+    ).toEqual({
+      ownerRepo: "christophehurpeau/.github",
+      target: join(dev, ".github"),
+    });
   });
 
   test("refuses a folder that is not one of repoPaths", () => {
     expect(
-      planClone({ repoPaths: [dev], ownerRepo: "acme/widgets", folder: work }),
+      planClone({
+        repoPaths: [dev],
+        ownerRepo: "christophehurpeau/widgets",
+        folder: work,
+      }),
     ).toEqual({
       refused: `folder must be one of the repositories folders: ${dev}`,
     });
     expect(
-      planClone({ repoPaths: [], ownerRepo: "acme/widgets", folder: dev }),
+      planClone({
+        repoPaths: [],
+        ownerRepo: "christophehurpeau/widgets",
+        folder: dev,
+      }),
     ).toEqual({
       refused:
         "folder must be one of the repositories folders: no repositories folder",
     });
   });
 
-  test.each(["acme", "acme/../etc", "acme/..", "acme/.", "../acme/w", 42])(
-    "refuses %s as a repository name",
-    (ownerRepo) => {
-      expect(planClone({ repoPaths: [dev], ownerRepo, folder: dev })).toEqual({
-        refused: "ownerRepo must be owner/repo",
-      });
-    },
-  );
+  test.each([
+    "christophehurpeau",
+    "christophehurpeau/../etc",
+    "christophehurpeau/..",
+    "christophehurpeau/.",
+    "../christophehurpeau/w",
+    42,
+  ])("refuses %s as a repository name", (ownerRepo) => {
+    expect(planClone({ repoPaths: [dev], ownerRepo, folder: dev })).toEqual({
+      refused: "ownerRepo must be owner/repo",
+    });
+  });
 
   test("refuses a target that already exists, and a folder that does not", () => {
     expect(
-      planClone({ repoPaths: [dev], ownerRepo: "acme/taken", folder: dev }),
+      planClone({
+        repoPaths: [dev],
+        ownerRepo: "christophehurpeau/taken",
+        folder: dev,
+      }),
     ).toEqual({
       refused: `${join(dev, "taken")} already exists: move it, or clone into another folder`,
     });
@@ -74,7 +96,7 @@ describe("planClone", () => {
     expect(
       planClone({
         repoPaths: [missing],
-        ownerRepo: "acme/widgets",
+        ownerRepo: "christophehurpeau/widgets",
         folder: missing,
       }),
     ).toEqual({ refused: `${missing} does not exist or is not a directory` });

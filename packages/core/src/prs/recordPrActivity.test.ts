@@ -19,7 +19,11 @@ describe("recordPrActivity", () => {
   const insertPr = (flowDates?: Record<string, Date>) =>
     stores.db.collection("prs").insertOne({
       _id: "pr-id" as any,
-      account: { id: target.accountId, login: "acme", type: "Organization" },
+      account: {
+        id: target.accountId,
+        login: "reviewflow",
+        type: "Organization",
+      },
       repo: { id: target.repoId, name: "api" },
       pr: { number: target.number },
       ...(flowDates ? { flowDates } : {}),

@@ -32,8 +32,16 @@ class FakeEventSource {
   }
 }
 
-const partKey = ["pullRequest", "acme/web", 12, "part", "checks"];
-const diffKey = ["pullRequest", "acme/web", 12, "diff", "a", "b", "show"];
+const partKey = ["pullRequest", "christophehurpeau/web", 12, "part", "checks"];
+const diffKey = [
+  "pullRequest",
+  "christophehurpeau/web",
+  12,
+  "diff",
+  "a",
+  "b",
+  "show",
+];
 
 const seeded = (): QueryClient => {
   const client = new QueryClient();

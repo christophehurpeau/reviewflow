@@ -24,7 +24,7 @@ const buildOrg = (
 ): Org =>
   ({
     _id: 1,
-    login: "acme",
+    login: "reviewflow",
     status: "active",
     config,
     paidFeatures: paidEnabled ? { enabled: true } : undefined,
@@ -46,11 +46,17 @@ const createStores = (isPaidEnabled = true): Stores => {
   const mongoStores: any = {
     orgMembers: {
       findAll: () =>
-        Promise.resolve([{ org: { id: 1, login: "acme" }, user: { id: 42 } }]),
+        Promise.resolve([
+          { org: { id: 1, login: "reviewflow" }, user: { id: 42 } },
+        ]),
       findOne: ({ "org.id": orgId }: Record<string, number>) =>
         Promise.resolve(
           orgId === 1
-            ? { _id: "1_42", org: { id: 1, login: "acme" }, user: { id: 42 } }
+            ? {
+                _id: "1_42",
+                org: { id: 1, login: "reviewflow" },
+                user: { id: 42 },
+              }
             : null,
         ),
     },
@@ -184,14 +190,16 @@ describe("queryOrgSettings", () => {
     const settingsStores = {
       orgs: {
         findOne: () =>
-          Promise.resolve({ _id: 1, login: "acme", slackTeamId: "T1" }),
+          Promise.resolve({ _id: 1, login: "reviewflow", slackTeamId: "T1" }),
       },
-      slackTeams: { findByKey: () => Promise.resolve({ teamName: "acme" }) },
+      slackTeams: {
+        findByKey: () => Promise.resolve({ teamName: "reviewflow" }),
+      },
       orgMembers: {
         findOne: () =>
           Promise.resolve({
             _id: "1_42",
-            org: { id: 1, login: "acme" },
+            org: { id: 1, login: "reviewflow" },
             user: { id: 42 },
           }),
         createQuerySingleItem,
@@ -201,7 +209,7 @@ describe("queryOrgSettings", () => {
     await createOrgsService(
       { mongoStores: settingsStores },
       scopes,
-    ).queries.queryOrgSettings({ orgLogin: "acme" }, loggedInUser);
+    ).queries.queryOrgSettings({ orgLogin: "reviewflow" }, loggedInUser);
     const transformer = transformerOf(createQuerySingleItem) as (
       orgMember: unknown,
     ) => { slack: unknown };
@@ -215,7 +223,7 @@ describe("queryOrgSettings", () => {
       transformer(orgMember({ tokenRevokedAt: new Date() })).slack,
     ).toEqual({
       state: "token-revoked",
-      teamName: "acme",
+      teamName: "reviewflow",
       teamId: "T1",
       userId: "U1",
       usesDeprecatedCustomApp: false,
@@ -238,7 +246,7 @@ describe("queryMyOrgs", () => {
 
     expect(transformer(buildOrg({ allowPersonalTokens: true }, true))).toEqual({
       _id: 1,
-      login: "acme",
+      login: "reviewflow",
       status: "active",
       allowPersonalTokens: true,
       paidEnabled: true,
