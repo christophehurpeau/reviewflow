@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [7.1.0](https://github.com/christophehurpeau/reviewflow/compare/v7.0.0...v7.1.0) (2026-11-20)
+
+### Features
+
+* **ui:** align table columns and space a document in MarkdownText
+* **ui:** color the code blocks MarkdownText renders
+* **ui:** set markdown text in text-base and space headings in plain rendering
+
 ## [7.0.0](https://github.com/christophehurpeau/reviewflow/compare/v6.34.1...v7.0.0) (2026-11-20)
 
 ### ⚠ BREAKING CHANGES
