@@ -158,6 +158,12 @@ function InlineNodes({ nodes }: { nodes: InlineNode[] }): ReactNode {
  * min-content width, so without `min-w-0` and `wrap-anywhere` one unbreakable
  * identifier widens its cell and shifts that row out of the grid.
  */
+const alignClass = (align: TableNode["align"][number] | undefined): string => {
+  if (align === "center") return "text-center";
+  if (align === "right") return "text-right";
+  return "text-left";
+};
+
 function MarkdownTable({ node }: { node: TableNode }): ReactNode {
   const weights = columnWeights(
     [node.header, ...node.rows].map((row) =>
@@ -170,7 +176,7 @@ function MarkdownTable({ node }: { node: TableNode }): ReactNode {
         {node.header.map((cell, index) => (
           <Text
             key={`header-${String(index)}`}
-            className="min-w-0 basis-0 text-xs font-body-bold web:wrap-anywhere"
+            className={`min-w-0 basis-0 text-xs font-body-bold web:wrap-anywhere ${alignClass(node.align[index])}`}
             style={{ flexGrow: weights[index] }}
           >
             <InlineNodes nodes={cell.children} />
@@ -185,7 +191,7 @@ function MarkdownTable({ node }: { node: TableNode }): ReactNode {
           {row.map((cell, index) => (
             <Text
               key={`cell-${String(index)}`}
-              className="min-w-0 basis-0 select-auto text-xs web:wrap-anywhere"
+              className={`min-w-0 basis-0 select-auto text-xs web:wrap-anywhere ${alignClass(node.align[index])}`}
               style={{ flexGrow: weights[index] }}
             >
               <InlineNodes nodes={cell.children} />
@@ -212,7 +218,21 @@ function MarkdownQuote({ children }: { children: ReactNode }): ReactNode {
   );
 }
 
+/**
+ * A document read on its own (a plan, a spec) rather than a message in a
+ * thread: its sections are set apart by room above their headings, while
+ * the blocks inside a section keep a message's spacing.
+ */
+const DocumentLayoutContext = createContext(false);
+
+const headingSpacingClass = (
+  asDocument: boolean,
+  depth: number,
+  index: number,
+): string => (asDocument && index > 0 && depth <= 3 ? " pt-sm" : "");
+
 function BlockNodes({ nodes }: { nodes: BlockNode[] }): ReactNode {
+  const asDocument = use(DocumentLayoutContext);
   return nodes.map((node, index) => {
     const key = `${node.type}-${String(index)}`;
 
@@ -225,7 +245,10 @@ function BlockNodes({ nodes }: { nodes: BlockNode[] }): ReactNode {
     }
     if (node.type === "heading") {
       return (
-        <Text key={key} className={`select-auto ${headingClass(node.depth)}`}>
+        <Text
+          key={key}
+          className={`select-auto ${headingClass(node.depth)}${headingSpacingClass(asDocument, node.depth, index)}`}
+        >
           <InlineNodes nodes={node.children} />
         </Text>
       );
@@ -1029,10 +1052,19 @@ export interface MarkdownTextProps {
    * pressed box flipped, for the caller to save. Absent, they are read-only.
    */
   onTaskToggle?: (nextText: string) => Promise<void>;
+  /**
+   * A document read on its own, such as a plan, rather than a message: room
+   * above each section's heading (levels 1 to 3). Plain rendering only;
+   * `github` keeps its own spacing.
+   */
+  document?: boolean;
 }
 
-function PlainMarkdown({ text }: Pick<MarkdownTextProps, "text">): ReactNode {
-  const document = useMemo(() => {
+function PlainMarkdown({
+  text,
+  document: asDocument = false,
+}: Pick<MarkdownTextProps, "document" | "text">): ReactNode {
+  const parsed = useMemo(() => {
     try {
       return parseMarkdown(text);
     } catch {
@@ -1040,14 +1072,16 @@ function PlainMarkdown({ text }: Pick<MarkdownTextProps, "text">): ReactNode {
     }
   }, [text]);
 
-  if (document === null) {
+  if (parsed === null) {
     return <Text className="select-auto text-sm">{text}</Text>;
   }
 
   return (
-    <Box className="gap-xs">
-      <BlockNodes nodes={document.children} />
-    </Box>
+    <DocumentLayoutContext value={asDocument}>
+      <Box className="gap-xs">
+        <BlockNodes nodes={parsed.children} />
+      </Box>
+    </DocumentLayoutContext>
   );
 }
 
@@ -1059,11 +1093,12 @@ function MarkdownTextBase({
   text,
   github = false,
   onTaskToggle,
+  document = false,
 }: MarkdownTextProps): ReactNode {
   if (github) {
     return <GithubMarkdown text={text} onTaskToggle={onTaskToggle} />;
   }
-  return <PlainMarkdown text={text} />;
+  return <PlainMarkdown text={text} document={document} />;
 }
 
 export const MarkdownText = memo(MarkdownTextBase);

@@ -32,6 +32,28 @@ const meta = {
 
 export default meta;
 
+const plan = [
+  "# Plan",
+  "",
+  "## Context",
+  "",
+  "Why the change is made.",
+  "",
+  "## Steps",
+  "",
+  "1. Add `hello.ts`:",
+  "",
+  "   ```ts",
+  '   export const hello = (name: string): string => "hello " + name; // greet',
+  "   ```",
+  "",
+  "2. Check it.",
+  "",
+  "| file | lines |",
+  "| :--- | ----: |",
+  "| hello.ts | 1 |",
+].join("\n");
+
 export const PreviewStory: StoryObj<typeof MarkdownText> = {
   name: "MarkdownText Preview",
 };
@@ -57,6 +79,9 @@ export const VariantsStory: StoryObj<typeof MarkdownText> = {
       </Story.Section>
       <Story.Section title="empty">
         <MarkdownText github text="" />
+      </Story.Section>
+      <Story.Section title="document (a plan)">
+        <MarkdownText document text={plan} />
       </Story.Section>
     </Story>
   ),
