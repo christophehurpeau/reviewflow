@@ -59,6 +59,7 @@ import {
   changeBackgroundCSS,
   diffThemeNames,
 } from "./branch-diff/diff-themes.ts";
+import { DiffVirtualizer } from "./branch-diff/diff-virtualizer.tsx";
 // metro picks the .web.tsx variant only for a specifier without extension
 /* eslint-disable-next-line import-x/no-unresolved */ // oxlint-disable-next-line import/extensions
 import { DiffWorkerPool } from "./branch-diff/diff-worker-pool";
@@ -1404,37 +1405,39 @@ function PullRequestDiffViewer({
 
   return (
     <DiffWorkerPool theme={theme}>
-      {review === undefined ? (
-        <ReadOnlyFiles
-          groups={fileGroups}
-          diffStyle={diffStyle}
-          theme={theme}
-          themeType={themeType}
-          fontFamily={fontFamily}
-          wordWrap={wordWrap}
-          stickyTop={stickyTop}
-          collapse={collapse}
-          loadFiles={loadFiles}
-          impactsOf={impactsOf}
-        />
-      ) : (
-        <ReviewedFiles
-          groups={fileGroups}
-          review={review}
-          whitespace={whitespace}
-          diffStyle={diffStyle}
-          theme={theme}
-          themeType={themeType}
-          fontFamily={fontFamily}
-          wordWrap={wordWrap}
-          stickyTop={stickyTop}
-          collapse={collapse}
-          loadFiles={loadFiles}
-          impactsOf={impactsOf}
-          commitComposer={commitComposer}
-          onCommitComposerChange={onCommitComposerChange}
-        />
-      )}
+      <DiffVirtualizer>
+        {review === undefined ? (
+          <ReadOnlyFiles
+            groups={fileGroups}
+            diffStyle={diffStyle}
+            theme={theme}
+            themeType={themeType}
+            fontFamily={fontFamily}
+            wordWrap={wordWrap}
+            stickyTop={stickyTop}
+            collapse={collapse}
+            loadFiles={loadFiles}
+            impactsOf={impactsOf}
+          />
+        ) : (
+          <ReviewedFiles
+            groups={fileGroups}
+            review={review}
+            whitespace={whitespace}
+            diffStyle={diffStyle}
+            theme={theme}
+            themeType={themeType}
+            fontFamily={fontFamily}
+            wordWrap={wordWrap}
+            stickyTop={stickyTop}
+            collapse={collapse}
+            loadFiles={loadFiles}
+            impactsOf={impactsOf}
+            commitComposer={commitComposer}
+            onCommitComposerChange={onCommitComposerChange}
+          />
+        )}
+      </DiffVirtualizer>
     </DiffWorkerPool>
   );
 }
@@ -1493,40 +1496,42 @@ function DiffViewer({
   const shownFile = path === undefined ? undefined : fileOfPath(files, path);
   return (
     <DiffWorkerPool theme={theme}>
-      {path === undefined ? (
-        <ReadOnlyFiles
-          groups={fileGroups}
-          diffStyle={diffStyle}
-          theme={theme}
-          themeType={themeType}
-          fontFamily={fontFamily}
-          wordWrap={wordWrap}
-          stickyTop={stickyTop}
-          collapse={collapse}
-          loadFiles={loadFiles}
-        />
-      ) : null}
-      {shownFile === undefined ? null : (
-        <DiffFile
-          key={shownFile.name}
-          file={shownFile}
-          diffStyle={diffStyle}
-          theme={theme}
-          themeType={themeType}
-          fontFamily={fontFamily}
-          wordWrap={wordWrap}
-          stickyTop={stickyTop}
-          loadFiles={loadFiles}
-          entry={false}
-          collapsed={collapse.isCollapsed(shownFile.name, false)}
-          onToggleCollapsed={() => {
-            collapse.set(
-              shownFile.name,
-              !collapse.isCollapsed(shownFile.name, false),
-            );
-          }}
-        />
-      )}
+      <DiffVirtualizer>
+        {path === undefined ? (
+          <ReadOnlyFiles
+            groups={fileGroups}
+            diffStyle={diffStyle}
+            theme={theme}
+            themeType={themeType}
+            fontFamily={fontFamily}
+            wordWrap={wordWrap}
+            stickyTop={stickyTop}
+            collapse={collapse}
+            loadFiles={loadFiles}
+          />
+        ) : null}
+        {shownFile === undefined ? null : (
+          <DiffFile
+            key={shownFile.name}
+            file={shownFile}
+            diffStyle={diffStyle}
+            theme={theme}
+            themeType={themeType}
+            fontFamily={fontFamily}
+            wordWrap={wordWrap}
+            stickyTop={stickyTop}
+            loadFiles={loadFiles}
+            entry={false}
+            collapsed={collapse.isCollapsed(shownFile.name, false)}
+            onToggleCollapsed={() => {
+              collapse.set(
+                shownFile.name,
+                !collapse.isCollapsed(shownFile.name, false),
+              );
+            }}
+          />
+        )}
+      </DiffVirtualizer>
     </DiffWorkerPool>
   );
 }
