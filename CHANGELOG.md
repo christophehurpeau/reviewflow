@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [7.4.0](https://github.com/christophehurpeau/reviewflow/compare/v7.3.0...v7.4.0) (2026-11-23)
+
+### Features
+
+* **ui:** virtualize the diff viewers
+
+### Bug Fixes
+
+* **ui:** keep the review diff in place when its range changes
+
 ## [7.3.0](https://github.com/christophehurpeau/reviewflow/compare/v7.2.0...v7.3.0) (2026-11-23)
 
 ### Features
