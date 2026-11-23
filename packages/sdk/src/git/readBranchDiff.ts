@@ -52,7 +52,7 @@ export interface DiffLimits {
 export const defaultDiffLimits: DiffLimits = {
   maxLinesPerFile: 3000,
   maxTotalLines: 30_000,
-  maxFiles: 500,
+  maxFiles: 1000,
   maxUntrackedFiles: 100,
   maxUntrackedBytes: 512 * 1024,
 };
