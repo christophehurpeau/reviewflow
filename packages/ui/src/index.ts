@@ -103,11 +103,9 @@ export { diffFontFamily } from "./components/branch-diff/diff-font.ts";
 export { linkInRow } from "./components/link-in-row.ts";
 export { scrollParentOf } from "./components/scroll-parent.ts";
 export { MarkdownText } from "./components/markdown-text.tsx";
-export {
-  DiffSettingsProvider,
-  isDiffFileOrder,
-} from "./components/branch-diff/use-diff-settings.tsx";
-export type { DiffFileOrder } from "./components/branch-diff/use-diff-settings.tsx";
+export { DiffSettingsProvider } from "./components/branch-diff/use-diff-settings.tsx";
+export type { DiffFileOrder } from "@reviewflow/sdk";
+export { isDiffFileOrder } from "@reviewflow/sdk";
 // From the sdk, not `branch-diff/diff-themes.ts`: that one registers the reviewflow themes with
 // @pierre/diffs, which this index would put in every importer's main bundle.
 export type { DiffTheme } from "@reviewflow/sdk";

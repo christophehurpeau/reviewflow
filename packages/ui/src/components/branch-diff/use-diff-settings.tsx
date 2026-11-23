@@ -1,19 +1,13 @@
-import type { DiffFont, DiffWhitespace } from "@reviewflow/sdk";
-import { defaultDiffFont, defaultDiffTheme } from "@reviewflow/sdk";
+import type { DiffFileOrder, DiffFont, DiffWhitespace } from "@reviewflow/sdk";
+import {
+  defaultDiffFileOrder,
+  defaultDiffFont,
+  defaultDiffTheme,
+} from "@reviewflow/sdk";
 import type { ReactNode } from "react";
 import { createContext, use, useMemo, useState } from "react";
 import { diffFontFamily } from "./diff-font.ts";
 import type { DiffTheme } from "./diff-themes.ts";
-
-/**
- * `packages`: by package, in patch order. `reading` (experimental): packages
- * from the one depending on the others down, files from their entry points
- * down, tests and stories closed below the file they cover.
- */
-export type DiffFileOrder = "packages" | "reading";
-
-export const isDiffFileOrder = (value: string): value is DiffFileOrder =>
-  value === "packages" || value === "reading";
 
 export interface DiffSettings {
   wordWrap: boolean;
@@ -32,7 +26,7 @@ const defaults: DiffSettings = {
   fontFamily: diffFontFamily(defaultDiffFont, ""),
   whitespace: "show",
   setWhitespace: () => undefined,
-  fileOrder: "packages",
+  fileOrder: defaultDiffFileOrder,
   setFileOrder: () => undefined,
 };
 

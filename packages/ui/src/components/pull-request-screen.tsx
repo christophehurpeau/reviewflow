@@ -1,5 +1,6 @@
 import { pullRequestPartsStaleAfter } from "@reviewflow/sdk";
 import type {
+  DiffFileOrder,
   DiffFont,
   DiffWhitespace,
   PullRequestDetailResponse,
@@ -28,7 +29,6 @@ import { GithubImagesContext } from "../services/githubImages.tsx";
 import type { PullRequestSlots } from "../slots.tsx";
 import { PullRequestSlotsProvider } from "../slots.tsx";
 import type { DiffTheme } from "./branch-diff/diff-themes.ts";
-import type { DiffFileOrder } from "./branch-diff/use-diff-settings.tsx";
 import { DiffSettingsProvider } from "./branch-diff/use-diff-settings.tsx";
 import type { PullRequestTab } from "./pull-request-panel.tsx";
 import {
