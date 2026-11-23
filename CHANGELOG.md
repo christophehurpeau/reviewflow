@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [7.2.0](https://github.com/christophehurpeau/reviewflow/compare/v7.1.0...v7.2.0) (2026-11-23)
+
+### Features
+
+* **sdk:** move DiffFileOrder from the ui to the sdk
+
 ## [7.1.0](https://github.com/christophehurpeau/reviewflow/compare/v7.0.0...v7.1.0) (2026-11-20)
 
 ### Features

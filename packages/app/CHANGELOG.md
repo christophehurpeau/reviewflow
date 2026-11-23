@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [7.2.0](https://github.com/christophehurpeau/reviewflow/compare/v7.1.0...v7.2.0) (2026-11-23)
+
+Version bump for dependency: @reviewflow/sdk
+
+
 ## [7.0.0](https://github.com/christophehurpeau/reviewflow/compare/v6.34.1...v7.0.0) (2026-11-20)
 
 Version bump for dependency: @reviewflow/sdk
