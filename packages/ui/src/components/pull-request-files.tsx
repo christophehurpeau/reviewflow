@@ -23,8 +23,8 @@ import {
 import { CaretLeftRegularIcon } from "alouette-icons/phosphor-icons/CaretLeft";
 import { CaretRightRegularIcon } from "alouette-icons/phosphor-icons/CaretRight";
 import { GitCommitRegularIcon } from "alouette-icons/phosphor-icons/GitCommit";
-import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import type { ComponentRef, ReactNode } from "react";
+import { useMemo, useRef, useState } from "react";
 import { usePullRequestDataSource } from "../dataSource.ts";
 import { usePullRequestReviewDraft } from "../services/PullRequestReviewDraftProvider.tsx";
 import { errorToMessage } from "../services/errorToMessage.ts";
@@ -54,6 +54,7 @@ import {
   PullRequestPartPending,
   PullRequestPartReading,
 } from "./pull-request-part-notice.tsx";
+import { revealTopOf } from "./scroll-parent.ts";
 import { TooltipIconButton } from "./tooltip-icon-button.tsx";
 
 type Scope = "all" | "since";
@@ -369,6 +370,11 @@ const useCommitByCommit = ({
  * default over more than one commit, it says so in a confirmation message
  * above the diff: the reader did not ask for it, and the stepper alone is
  * easy to miss.
+ *
+ * Stepping to another commit, toggling commit by commit or switching the
+ * scope swaps the diff for a loader. A reader down the diff is first brought
+ * back to its top, and the diff's area keeps a screen's height, so the page
+ * shrinking under the loader does not scroll them up to the description.
  */
 export interface PullRequestFilesTabProps {
   detail: PullRequestDetailResponse;
@@ -400,6 +406,13 @@ export function PullRequestFiles({
   });
   const shownCommit = byCommit.shown?.commit;
   const commitFiles = byCommit.shown?.files;
+  const diffArea = useRef<ComponentRef<typeof View>>(null);
+  const revealDiffTop = (): void => {
+    const element: unknown = diffArea.current;
+    if (typeof HTMLElement !== "undefined" && element instanceof HTMLElement) {
+      revealTopOf(element, 0);
+    }
+  };
   const viewedCount = (files.value?.files ?? []).filter(
     ({ viewed }) => viewed === "viewed",
   ).length;
@@ -448,106 +461,115 @@ export function PullRequestFiles({
           {`The commits' files could not be read: ${byCommit.error}`}
         </WarningMessage>
       )}
-      {(() => {
-        if (shas === null) {
+      <View ref={diffArea} className="web:min-h-screen">
+        {(() => {
+          if (shas === null) {
+            return (
+              <PullRequestPartPending
+                error={null}
+                what="the pull request's head"
+              />
+            );
+          }
+          if (byCommit.waiting) {
+            return (
+              <PullRequestPartPending
+                error={null}
+                what="the files each commit changes"
+              />
+            );
+          }
           return (
-            <PullRequestPartPending
-              error={null}
-              what="the pull request's head"
+            <PullRequestDiffView
+              range={{
+                ownerRepo: pullRequest.ownerRepo,
+                number: pullRequest.number,
+                head: shownCommit?.oid ?? shas.head,
+                base: (() => {
+                  if (shownCommit !== undefined) {
+                    return shownCommit.parentOid ?? shas.base;
+                  }
+                  if (scope === "since" && lastReview !== null) {
+                    return lastReview.oid;
+                  }
+                  return shas.base;
+                })(),
+              }}
+              toolbarStart={
+                <>
+                  {byCommit.toRead === null ||
+                  byCommit.toRead.kind === "none" ? null : (
+                    <ByCommitButton
+                      byCommit={byCommit.on}
+                      disabledReason={byCommit.disabledReason}
+                      onToggle={() => {
+                        revealDiffTop();
+                        byCommit.toggle();
+                      }}
+                    />
+                  )}
+                  {sinceAvailable ? (
+                    <Tabs
+                      aria-label="Changes shown"
+                      value={scope}
+                      onValueChange={(value) => {
+                        revealDiffTop();
+                        setRequested(value as Scope);
+                        byCommit.setIndex(0);
+                      }}
+                    >
+                      <Tab value="all" label="All changes" />
+                      <Tab value="since" label="Since your last review" />
+                    </Tabs>
+                  ) : null}
+                  <LastReviewRange scope={scope} lastReview={lastReview} />
+                  <Text className="text-sm text-muted">
+                    {`${String(viewedCount)} / ${String(pullRequest.changedFiles)} viewed`}
+                  </Text>
+                  {byCommit.shown === null ? null : (
+                    <CommitStepper
+                      commits={byCommit.stepped}
+                      summaries={byCommit.summaries}
+                      index={byCommit.index}
+                      onIndexChange={(index) => {
+                        revealDiffTop();
+                        byCommit.setIndex(index);
+                      }}
+                    />
+                  )}
+                </>
+              }
+              toolbarEnd={
+                isAuthor ? null : (
+                  <PullRequestReviewButton detail={detail} onEdit={onEdit} />
+                )
+              }
+              review={{
+                headSha: shas.head,
+                threads:
+                  timeline.value?.timeline.filter(
+                    (item): item is PullRequestThread => item.kind === "thread",
+                  ) ?? null,
+                files: files.value?.files ?? null,
+                commentable: true,
+                rightOnly: scope === "since" && commitFiles === undefined,
+                commitFiles,
+                reviewable: !isAuthor,
+                movedOn,
+                onEdit,
+                onViewed: async (path, viewed) => {
+                  try {
+                    await onEdit({ kind: "viewed", path, viewed });
+                    setViewedError(null);
+                  } catch (error) {
+                    setViewedError(errorToMessage(error));
+                  }
+                },
+              }}
             />
           );
-        }
-        if (byCommit.waiting) {
-          return (
-            <PullRequestPartPending
-              error={null}
-              what="the files each commit changes"
-            />
-          );
-        }
-        return (
-          <PullRequestDiffView
-            range={{
-              ownerRepo: pullRequest.ownerRepo,
-              number: pullRequest.number,
-              head: shownCommit?.oid ?? shas.head,
-              base: (() => {
-                if (shownCommit !== undefined) {
-                  return shownCommit.parentOid ?? shas.base;
-                }
-                if (scope === "since" && lastReview !== null) {
-                  return lastReview.oid;
-                }
-                return shas.base;
-              })(),
-            }}
-            toolbarStart={
-              <>
-                {byCommit.toRead === null ||
-                byCommit.toRead.kind === "none" ? null : (
-                  <ByCommitButton
-                    byCommit={byCommit.on}
-                    disabledReason={byCommit.disabledReason}
-                    onToggle={byCommit.toggle}
-                  />
-                )}
-                {sinceAvailable ? (
-                  <Tabs
-                    aria-label="Changes shown"
-                    value={scope}
-                    onValueChange={(value) => {
-                      setRequested(value as Scope);
-                      byCommit.setIndex(0);
-                    }}
-                  >
-                    <Tab value="all" label="All changes" />
-                    <Tab value="since" label="Since your last review" />
-                  </Tabs>
-                ) : null}
-                <LastReviewRange scope={scope} lastReview={lastReview} />
-                <Text className="text-sm text-muted">
-                  {`${String(viewedCount)} / ${String(pullRequest.changedFiles)} viewed`}
-                </Text>
-                {byCommit.shown === null ? null : (
-                  <CommitStepper
-                    commits={byCommit.stepped}
-                    summaries={byCommit.summaries}
-                    index={byCommit.index}
-                    onIndexChange={byCommit.setIndex}
-                  />
-                )}
-              </>
-            }
-            toolbarEnd={
-              isAuthor ? null : (
-                <PullRequestReviewButton detail={detail} onEdit={onEdit} />
-              )
-            }
-            review={{
-              headSha: shas.head,
-              threads:
-                timeline.value?.timeline.filter(
-                  (item): item is PullRequestThread => item.kind === "thread",
-                ) ?? null,
-              files: files.value?.files ?? null,
-              commentable: true,
-              rightOnly: scope === "since" && commitFiles === undefined,
-              commitFiles,
-              reviewable: !isAuthor,
-              movedOn,
-              onEdit,
-              onViewed: async (path, viewed) => {
-                try {
-                  await onEdit({ kind: "viewed", path, viewed });
-                  setViewedError(null);
-                } catch (error) {
-                  setViewedError(errorToMessage(error));
-                }
-              },
-            }}
-          />
-        );
-      })()}
+        })()}
+      </View>
     </View>
   );
 }
