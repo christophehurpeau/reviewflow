@@ -37,6 +37,7 @@ const plainText = (nodes: readonly InlineNode[]): string =>
         case "break":
           return "\n";
         case "emphasis":
+        case "inlineComponent":
         case "link":
         case "strike":
         case "strong":
