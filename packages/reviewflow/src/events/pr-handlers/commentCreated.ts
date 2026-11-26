@@ -1,4 +1,3 @@
-import type { RestEndpointMethodTypes } from "@octokit/rest";
 import type { AccountEmbed, AccountInfo, SlackMessage } from "@reviewflow/core";
 import type { MessageCategory } from "@reviewflow/modules";
 import type { Context, Probot } from "probot";
@@ -7,6 +6,7 @@ import type {
   PostSlackMessageResult,
   SlackMessageResult,
 } from "../../context/slack/TeamSlack.ts";
+import type { RestEndpointMethodTypes } from "../../octokit.ts";
 import * as slackUtils from "../../slack/utils.ts";
 import { ExcludesNullish } from "../../utils/Excludes.ts";
 import {
@@ -80,9 +80,11 @@ const getUsersInThread = (
   const users: AccountInfo[] = [];
 
   discussion.forEach((c) => {
-    if (!c.user || userIds.has(c.user.id)) return;
-    userIds.add(c.user.id);
-    users.push({ id: c.user.id, login: c.user.login, type: c.user.type });
+    if (!c.user) return;
+    const userId = Number(c.user.id);
+    if (userIds.has(userId)) return;
+    userIds.add(userId);
+    users.push({ id: userId, login: c.user.login, type: c.user.type });
   });
 
   return users;

@@ -1,7 +1,7 @@
-import type { RestEndpointMethodTypes } from "@octokit/rest";
 import type { EmitterWebhookEventName } from "@octokit/webhooks";
 import type { Config } from "@reviewflow/core";
 import type { ProbotEvent } from "../events/probot-types";
+import type { RestEndpointMethodTypes } from "../octokit.ts";
 
 export interface LabelResponse {
   id: number;
@@ -15,15 +15,23 @@ export interface LabelResponse {
 
 export type LabelsRecord = Record<string, LabelResponse>;
 
+type LabelData =
+  RestEndpointMethodTypes["issues"]["getLabel"]["response"]["data"];
+
+export const toLabelResponse = (label: LabelData): LabelResponse => ({
+  ...label,
+  id: Number(label.id),
+});
+
 export const getLabelsForRepo = async <T extends EmitterWebhookEventName>(
   context: ProbotEvent<T>,
-): Promise<
-  RestEndpointMethodTypes["issues"]["listLabelsForRepo"]["response"]["data"]
-> =>
-  context.octokit.paginate(
+): Promise<LabelResponse[]> => {
+  const labels = await context.octokit.paginate(
     context.octokit.rest.issues.listLabelsForRepo,
     context.repo({ per_page: 100 }),
   );
+  return labels.map(toLabelResponse);
+};
 
 export interface InitRepoLabelsResult {
   labelsRecord: LabelsRecord;
@@ -104,8 +112,9 @@ export const initRepoLabels = async <
           description,
         }),
       );
-      finalLabels[labelKey] = result.data;
-      allLabels.set(result.data.id, result.data);
+      const label = toLabelResponse(result.data);
+      finalLabels[labelKey] = label;
+      allLabels.set(label.id, label);
     } else if (
       existingLabel.name !== labelConfig.name ||
       existingLabel.color !== labelColor ||
@@ -131,8 +140,9 @@ export const initRepoLabels = async <
           description,
         }),
       );
-      finalLabels[labelKey] = result.data;
-      allLabels.set(result.data.id, result.data);
+      const label = toLabelResponse(result.data);
+      finalLabels[labelKey] = label;
+      allLabels.set(label.id, label);
     } else {
       finalLabels[labelKey] = existingLabel;
     }

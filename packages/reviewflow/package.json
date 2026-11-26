@@ -41,8 +41,7 @@
     "@commitlint/parse": "21.0.2",
     "@octokit/core": "7.0.8",
     "@octokit/graphql": "9.0.5",
-    "@octokit/plugin-rest-endpoint-methods": "17.0.0",
-    "@octokit/rest": "22.0.1",
+    "@octokit/plugin-rest-endpoint-methods": "18.0.0",
     "@octokit/webhooks": "14.2.0",
     "@reviewflow/core": "workspace:*",
     "@reviewflow/modules": "workspace:*",
@@ -57,7 +56,7 @@
     "liwi-store": "15.1.0",
     "lock": "1.1.0",
     "nightingale-logger": "18.2.0",
-    "probot": "14.3.2",
+    "probot": "14.3.7",
     "slackify-markdown": "5.0.0"
   },
   "devDependencies": {

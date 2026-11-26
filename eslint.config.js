@@ -56,23 +56,6 @@ export default [
           },
         },
       ],
-      "check-package-dependencies/satisfies-versions-between-dependencies": [
-        "error",
-        {
-          dependencies: [
-            {
-              name: "@octokit/plugin-rest-endpoint-methods",
-              from: "probot",
-              to: "@octokit/rest",
-            },
-            {
-              name: "@octokit/plugin-paginate-rest",
-              from: "probot",
-              to: "@octokit/rest",
-            },
-          ],
-        },
-      ],
     },
   },
 ];

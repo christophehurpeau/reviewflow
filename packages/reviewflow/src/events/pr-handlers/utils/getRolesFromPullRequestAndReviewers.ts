@@ -15,6 +15,10 @@ interface GetRolesFromPullRequestAndReviewersOptions {
   excludeIds?: number[];
 }
 
+const withNumberId = <User extends { id: number | bigint }>(
+  user: User,
+): User & { id: number } => ({ ...user, id: Number(user.id) });
+
 interface PullRequestOwners {
   owner: PullRequestWithDecentDataFromWebhook["user"];
   assigneesNotOwner: PullRequestWithDecentDataFromWebhook["assignees"];
@@ -24,8 +28,9 @@ export function getOwnersFromPullRequest(
   pullRequest: PullRequestWithDecentData,
 ): PullRequestOwners {
   const pr = pullRequest; // fix typings
+  const owner = pr.user!;
   return {
-    owner: pr.user!,
+    owner: owner && withNumberId(owner),
     // @ts-expect-error invalid gravatar_id compat
     assigneesNotOwner: pr.assignees
       ? pr.assignees.filter(ExcludesFalsy).filter((u) => u.id !== pr.user!.id)
@@ -34,7 +39,7 @@ export function getOwnersFromPullRequest(
 }
 
 export function getRolesFromPullRequestAndReviewers(
-  pullRequest: PullRequestWithDecentDataFromWebhook,
+  pullRequest: PullRequestWithDecentData,
   reviewers: Reviewer[],
   { excludeIds = [] }: GetRolesFromPullRequestAndReviewersOptions = {},
 ): {
@@ -47,10 +52,10 @@ export function getRolesFromPullRequestAndReviewers(
   requestedReviewers: RequestedReviewers[];
   followers: AccountInfo[];
 } {
-  const owner = pullRequest.user!;
-  const assignees = pullRequest.assignees!.filter(
-    (a) => !excludeIds.includes(a!.id),
-  );
+  const owner = withNumberId(pullRequest.user!);
+  const assignees = pullRequest
+    .assignees!.map((a) => a && withNumberId(a))
+    .filter((a) => !excludeIds.includes(a!.id));
 
   const assigneeIds = assignees?.map((a) => a!.id);
 
@@ -63,9 +68,9 @@ export function getRolesFromPullRequestAndReviewers(
   const requestedReviewers: RequestedReviewers[] = (
     pullRequest.requested_reviewers || []
   )
-    .filter((rr) => !excludeIds.includes(rr!.id))
+    .filter((rr) => !excludeIds.includes(Number(rr!.id)))
     .map((rr) => ({
-      id: rr!.id,
+      id: Number(rr!.id),
       login: (rr as any).login,
       type: (rr as any).type,
       isRequestedByName: true,
