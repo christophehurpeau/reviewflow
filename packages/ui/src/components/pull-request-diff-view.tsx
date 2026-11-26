@@ -418,7 +418,7 @@ export function PullRequestDiffView({
               disabledReason={((): string | null => {
                 if (missingCheckout !== null) return missingCheckout;
                 if (walkthrough !== null) {
-                  return "The walkthrough is read step by step already";
+                  return "Switch to Files to read the reading order step by step";
                 }
                 if (!ordered) return "Order the files for reading first";
                 if (readingOrder.value !== null && readingStepCount < 2) {
