@@ -52,7 +52,7 @@ const headerName = (raw: string, prefix: string): string | null => {
  * `--- a/…` for a deletion, or the header's second half for a binary file or a
  * pure rename, which carry no `+++` line.
  */
-const pathOfBlock = (block: string): string | null => {
+export const pathOfBlock = (block: string): string | null => {
   const added = /^\+\+\+ (.*)$/m.exec(block)?.[1];
   const addedName = added === undefined ? null : headerName(added, "b/");
   if (addedName !== null) return addedName;

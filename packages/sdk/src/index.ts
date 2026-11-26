@@ -12,6 +12,8 @@ export { isAttachablePath, subjectsOf } from "./diff/readingOrder.ts";
 export * from "./diff/themes.ts";
 export * from "./diff/fileOrder.ts";
 export * from "./diff/types.ts";
+export * from "./diff/readingSteps.ts";
+export * from "./diff/walkthrough.ts";
 export * from "./github/applySuggestions.ts";
 export * from "./github/editPullRequest.ts";
 export * from "./github/fetchCompareDiff.ts";

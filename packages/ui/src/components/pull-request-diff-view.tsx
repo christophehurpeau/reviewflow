@@ -1,8 +1,10 @@
 import type {
+  DiffReadingOrderResponse,
   DiffStep,
   DiffWhitespace,
   PullRequestDiffResponse,
 } from "@reviewflow/sdk";
+import { readingStepsOf } from "@reviewflow/sdk";
 import {
   AccentScope,
   Code,
@@ -20,6 +22,7 @@ import {
 import { ArrowsInLineVerticalRegularIcon } from "alouette-icons/phosphor-icons/ArrowsInLineVertical";
 import { ArrowsOutLineVerticalRegularIcon } from "alouette-icons/phosphor-icons/ArrowsOutLineVertical";
 import { ColumnsRegularIcon } from "alouette-icons/phosphor-icons/Columns";
+import { FootprintsRegularIcon } from "alouette-icons/phosphor-icons/Footprints";
 import { RowsRegularIcon } from "alouette-icons/phosphor-icons/Rows";
 import { TreeStructureRegularIcon } from "alouette-icons/phosphor-icons/TreeStructure";
 import type { ComponentRef, ReactNode } from "react";
@@ -63,6 +66,12 @@ import type {
   DiffStyle,
   PullRequestDiffReview,
 } from "./pull-request-diff-viewer.tsx";
+import { PullRequestReadingSteps } from "./pull-request-reading-steps.tsx";
+import type { WalkthroughDisplay } from "./pull-request-walkthrough.tsx";
+import {
+  PullRequestWalkthroughDiff,
+  groupsOfPatch,
+} from "./pull-request-walkthrough.tsx";
 import { cssVariableOf, scrollToTopOf } from "./scroll-parent.ts";
 import { TooltipIconButton } from "./tooltip-icon-button.tsx";
 
@@ -165,8 +174,14 @@ interface PullRequestDiffViewProps {
   toolbarStart?: ReactNode;
   /** last in the toolbar: the action the diff is read for */
   toolbarEnd?: ReactNode;
+  /** beside the file order: another way to read the files, an icon button */
+  orderEnd?: ReactNode;
+  /** a line of the toolbar under its buttons, sticking with them; absent: none */
+  toolbarRow?: ReactNode;
   /** absent: read-only, no threads, no commenting */
   review?: PullRequestDiffReview;
+  /** set: the diff is read step by step, in place of its files' order */
+  walkthrough?: WalkthroughDisplay | null;
 }
 
 /**
@@ -197,7 +212,10 @@ export function PullRequestDiffView({
   range,
   toolbarStart,
   toolbarEnd,
+  orderEnd,
+  toolbarRow,
   review,
+  walkthrough = null,
 }: PullRequestDiffViewProps): ReactNode {
   const [diffStyle, setDiffStyle] = useState<DiffStyle>("split");
   const [toolbarHeight, setToolbarHeight] = useState(0);
@@ -260,6 +278,18 @@ export function PullRequestDiffView({
     readingOrder.available &&
     missingCheckout === null &&
     fileOrder === "reading";
+  const [stepByStep, setStepByStep] = useState(false);
+  const readingStepCount = useMemo(
+    () =>
+      readingOrder.value === null
+        ? 0
+        : readingStepsOf(readingOrder.value).length,
+    [readingOrder.value],
+  );
+  const readingSteps: DiffReadingOrderResponse | null =
+    ordered && walkthrough === null && stepByStep && readingStepCount > 1
+      ? readingOrder.value
+      : null;
   const impacts = usePullRequestImpacts(range, missingCheckout === null);
   const impactsStatus = ((): ImpactsStatus => {
     if (impacts.value !== null) return "ready";
@@ -380,6 +410,33 @@ export function PullRequestDiffView({
               }}
             />
           ) : null}
+          {readingOrder.available ? (
+            <TooltipIconButton
+              icon={<FootprintsRegularIcon />}
+              size="sm"
+              accent={readingSteps === null ? "neutral" : "brand"}
+              disabledReason={((): string | null => {
+                if (missingCheckout !== null) return missingCheckout;
+                if (walkthrough !== null) {
+                  return "The walkthrough is read step by step already";
+                }
+                if (!ordered) return "Order the files for reading first";
+                if (readingOrder.value !== null && readingStepCount < 2) {
+                  return "The reading order makes a single step";
+                }
+                return null;
+              })()}
+              aria-label={
+                readingSteps === null
+                  ? "Read step by step"
+                  : "Read every file at once"
+              }
+              onPress={() => {
+                setStepByStep(readingSteps === null);
+              }}
+            />
+          ) : null}
+          {orderEnd}
           <WhitespaceButton
             whitespace={whitespace.whitespace}
             disabledReason={
@@ -401,6 +458,11 @@ export function PullRequestDiffView({
           />
           {toolbarEnd}
         </View>
+        {toolbarRow === undefined || toolbarRow === null ? null : (
+          <View className="w-full flex-row flex-wrap items-center gap-sm">
+            {toolbarRow}
+          </View>
+        )}
       </View>
       {error === null ? null : <WarningMessage>{error}</WarningMessage>}
       {ordered && readingOrder.error !== null ? (
@@ -414,100 +476,172 @@ export function PullRequestDiffView({
           if (refused !== null || error !== null) return null;
           return <DiffLoading step={step} />;
         }
+        const renderPart = (
+          patch: string,
+          partStickyTop: number,
+          partReadingOrder: DiffReadingOrderResponse | null,
+        ): ReactNode => (
+          <Suspense fallback={<DiffLoading />}>
+            <DiffFileElementsContext value={fileElements}>
+              <PullRequestDiffViewer
+                pullRequest={range}
+                patch={patch}
+                groups={groupsOfPatch(shownDiff.groups, patch)}
+                readingOrder={partReadingOrder}
+                impacts={impacts.value}
+                sides={shownDiff.sides}
+                whitespace={shownDiff.whitespace}
+                diffStyle={diffStyle}
+                theme={theme}
+                themeType={mode}
+                fontFamily={fontFamily}
+                wordWrap={wordWrap}
+                stickyTop={partStickyTop}
+                collapse={collapse}
+                review={review}
+                commitComposer={shownCommitComposer}
+                onCommitComposerChange={onCommitComposerChange}
+              />
+            </DiffFileElementsContext>
+          </Suspense>
+        );
+        const stepped = ((): ReactNode => {
+          if (walkthrough !== null) {
+            return (
+              <PullRequestWalkthroughDiff
+                display={walkthrough}
+                viewedPaths={viewedPaths}
+                patch={shownDiff.patch}
+                aside={aside}
+                stickyTop={toolbarHeight}
+                renderDiff={(patch, partStickyTop) =>
+                  renderPart(patch, partStickyTop, null)
+                }
+              />
+            );
+          }
+          if (readingSteps !== null) {
+            return (
+              <PullRequestReadingSteps
+                key={rangeKey}
+                readingOrder={readingSteps}
+                impacts={impacts.value}
+                viewedPaths={viewedPaths}
+                patch={shownDiff.patch}
+                aside={aside}
+                stickyTop={toolbarHeight}
+                renderDiff={(patch, partReadingOrder, partStickyTop) =>
+                  renderPart(patch, partStickyTop, partReadingOrder)
+                }
+              />
+            );
+          }
+          return null;
+        })();
         return (
           <View className="gap-m">
             <DiffSource diff={shownDiff} asked={whitespace.whitespace} />
-            <View className={aside ? "flex-row items-start gap-xl" : "gap-l"}>
-              <View
-                className={
-                  aside
-                    ? "w-[280px] shrink-0 gap-sm web:sticky web:max-h-[calc(100vh-8rem)] web:overflow-y-auto"
-                    : ""
-                }
-                style={aside ? { top: toolbarHeight } : undefined}
-              >
-                {aside && diffTreeAvailable ? (
-                  <Tabs
-                    aria-label="Files listed"
-                    value={asideView}
-                    onValueChange={(value) => {
-                      setRequestedAsideView(value as AsideView);
-                    }}
-                  >
-                    {ordered ? listTab : null}
-                    <Tab value="tree" label="Tree" />
-                    {ordered ? null : listTab}
-                  </Tabs>
-                ) : null}
-                {aside && asideView === "tree" ? (
-                  // a height of its own: the tree virtualizes, and grows to every row without one
-                  <View className="web:h-[calc(100vh-12rem)]">
-                    <Suspense fallback={<DiffLoading />}>
-                      <PullRequestDiffTree
-                        files={treeFiles}
-                        viewedPaths={viewedPaths}
-                        theme={theme}
-                        onFilePress={goToFile}
-                      />
-                    </Suspense>
-                  </View>
-                ) : (
-                  <PullRequestDiffOverview
-                    groups={shownDiff.groups}
-                    omitted={shownDiff.omitted}
-                    readingOrder={readingOrder.value}
-                    readingOrderStatus={overviewStatus}
-                    impacts={impacts.value}
-                    impactsStatus={impactsStatus}
-                    displayOrder={
-                      (aside && diffTreeAvailable) || ordered
-                        ? readingOrder.value
-                        : null
-                    }
-                    statuses={statuses}
-                    viewedPaths={viewedPaths}
-                    currentPath={fileInView}
-                    aside={aside}
-                    onFilePress={goToFile}
-                  />
-                )}
-                {/* the file header is pierre's shadow DOM, which no accent
+            {stepped === null ? (
+              <View className={aside ? "flex-row items-start gap-xl" : "gap-l"}>
+                <View
+                  className={
+                    aside
+                      ? "w-[280px] shrink-0 gap-sm web:sticky web:max-h-[calc(100vh-8rem)] web:overflow-y-auto"
+                      : ""
+                  }
+                  style={aside ? { top: toolbarHeight } : undefined}
+                >
+                  {aside && diffTreeAvailable ? (
+                    <Tabs
+                      aria-label="Files listed"
+                      value={asideView}
+                      onValueChange={(value) => {
+                        setRequestedAsideView(value as AsideView);
+                      }}
+                    >
+                      {ordered ? listTab : null}
+                      <Tab value="tree" label="Tree" />
+                      {ordered ? null : listTab}
+                    </Tabs>
+                  ) : null}
+                  {aside && asideView === "tree" ? (
+                    // a height of its own: the tree virtualizes, and grows to every row without one
+                    <View className="web:h-[calc(100vh-12rem)]">
+                      <Suspense fallback={<DiffLoading />}>
+                        <PullRequestDiffTree
+                          files={treeFiles}
+                          viewedPaths={viewedPaths}
+                          theme={theme}
+                          onFilePress={goToFile}
+                        />
+                      </Suspense>
+                    </View>
+                  ) : (
+                    <PullRequestDiffOverview
+                      groups={shownDiff.groups}
+                      omitted={shownDiff.omitted}
+                      readingOrder={readingOrder.value}
+                      readingOrderStatus={overviewStatus}
+                      impacts={impacts.value}
+                      impactsStatus={impactsStatus}
+                      displayOrder={
+                        (aside && diffTreeAvailable) || ordered
+                          ? readingOrder.value
+                          : null
+                      }
+                      statuses={statuses}
+                      viewedPaths={viewedPaths}
+                      currentPath={fileInView}
+                      aside={aside}
+                      onFilePress={goToFile}
+                    />
+                  )}
+                  {/* the file header is pierre's shadow DOM, which no accent
                     class reaches: the color is read here and handed to it */}
+                  <AccentScope accent="info">
+                    <View ref={highlightProbe} className="hidden" />
+                  </AccentScope>
+                </View>
+                <View className="min-w-0 flex-1 gap-m">
+                  <OmittedFiles omitted={shownDiff.omitted} />
+                  {shownDiff.patch === "" ? (
+                    <Text className="text-muted">no changes</Text>
+                  ) : (
+                    <Suspense fallback={<DiffLoading />}>
+                      <DiffFileElementsContext value={fileElements}>
+                        <PullRequestDiffViewer
+                          pullRequest={range}
+                          patch={shownDiff.patch}
+                          groups={shownDiff.groups}
+                          readingOrder={ordered ? readingOrder.value : null}
+                          impacts={impacts.value}
+                          sides={shownDiff.sides}
+                          whitespace={shownDiff.whitespace}
+                          diffStyle={diffStyle}
+                          theme={theme}
+                          themeType={mode}
+                          fontFamily={fontFamily}
+                          wordWrap={wordWrap}
+                          stickyTop={toolbarHeight}
+                          collapse={collapse}
+                          review={review}
+                          commitComposer={shownCommitComposer}
+                          onCommitComposerChange={onCommitComposerChange}
+                        />
+                      </DiffFileElementsContext>
+                    </Suspense>
+                  )}
+                </View>
+              </View>
+            ) : (
+              <>
+                {/* the file header is pierre's shadow DOM: see the probe of the side column */}
                 <AccentScope accent="info">
                   <View ref={highlightProbe} className="hidden" />
                 </AccentScope>
-              </View>
-              <View className="min-w-0 flex-1 gap-m">
-                <OmittedFiles omitted={shownDiff.omitted} />
-                {shownDiff.patch === "" ? (
-                  <Text className="text-muted">no changes</Text>
-                ) : (
-                  <Suspense fallback={<DiffLoading />}>
-                    <DiffFileElementsContext value={fileElements}>
-                      <PullRequestDiffViewer
-                        pullRequest={range}
-                        patch={shownDiff.patch}
-                        groups={shownDiff.groups}
-                        readingOrder={ordered ? readingOrder.value : null}
-                        impacts={impacts.value}
-                        sides={shownDiff.sides}
-                        whitespace={shownDiff.whitespace}
-                        diffStyle={diffStyle}
-                        theme={theme}
-                        themeType={mode}
-                        fontFamily={fontFamily}
-                        wordWrap={wordWrap}
-                        stickyTop={toolbarHeight}
-                        collapse={collapse}
-                        review={review}
-                        commitComposer={shownCommitComposer}
-                        onCommitComposerChange={onCommitComposerChange}
-                      />
-                    </DiffFileElementsContext>
-                  </Suspense>
-                )}
-              </View>
-            </View>
+                {stepped}
+              </>
+            )}
           </View>
         );
       })()}

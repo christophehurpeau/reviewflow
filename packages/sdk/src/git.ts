@@ -92,6 +92,11 @@ export { readFileAtSha, readPullRequestDiff } from "./git/pullRequestDiff.ts";
 export type { PullRequestDiffRequest } from "./git/pullRequestDiff.ts";
 export { readReadingOrder } from "./git/readingOrder.ts";
 export type { ReadingOrderRequest } from "./git/readingOrder.ts";
+export { readWalkthroughDiff } from "./git/walkthrough.ts";
+export type {
+  WalkthroughDiff,
+  WalkthroughDiffRequest,
+} from "./git/walkthrough.ts";
 export {
   createBindingsCache,
   maxTypescriptFiles,

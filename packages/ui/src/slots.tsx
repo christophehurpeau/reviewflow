@@ -1,4 +1,9 @@
-import type { DiffRefusal, PrStatus } from "@reviewflow/sdk";
+import type {
+  DiffRefusal,
+  DiffWalkthroughResponse,
+  PrStatus,
+  PullRequestRef,
+} from "@reviewflow/sdk";
 import type { Accent } from "alouette";
 import type { ReactNode } from "react";
 import { createContext, use } from "react";
@@ -8,6 +13,14 @@ export interface MarkdownEditorProps {
   onChange: (value: string) => void;
   "aria-label": string;
   autoFocus?: boolean;
+}
+
+export interface WalkthroughWritingProps {
+  pullRequest: PullRequestRef;
+  /** the source's answer while a walkthrough is being written: `requestedAt` is set */
+  response: DiffWalkthroughResponse;
+  /** asks for one again; null when the source cannot */
+  request: (() => Promise<void>) | null;
 }
 
 /**
@@ -37,6 +50,13 @@ export interface PullRequestSlots {
    * to `Accent`) passes it here.
    */
   prStatusAccents?: Partial<Record<PrStatus, Accent | undefined>>;
+  /**
+   * What the diff's toolbar says while a walkthrough is being written: an app
+   * that knows its writer (an agent's session) shows how far it is and where
+   * to watch it, and offers to ask again once it stopped without one. Absent:
+   * how long ago it was asked.
+   */
+  renderWalkthroughWriting?: (props: WalkthroughWritingProps) => ReactNode;
 }
 
 export type RepositoryRefusalReason = DiffRefusal["reason"];

@@ -9,6 +9,7 @@ import type {
   PullRequestImpactsState,
   PullRequestReadingOrderState,
   PullRequestShas,
+  PullRequestWalkthroughState,
   RepositoryAttachment,
 } from "../dataSource.ts";
 import { usePullRequestDataSource } from "../dataSource.ts";
@@ -97,6 +98,58 @@ export const usePullRequestReadingOrder = (
     wanted ? { head, base } : null,
   );
   return { ...read, available: useReadingOrder !== undefined };
+};
+
+const notWritten: PullRequestWalkthroughState = {
+  value: null,
+  cached: false,
+  reading: false,
+  error: null,
+};
+
+const useNoWalkthrough = (): PullRequestWalkthroughState => notWritten;
+
+interface WalkthroughState extends PullRequestWalkthroughState {
+  /** the source reads walkthroughs */
+  available: boolean;
+  /** null: the source cannot ask for one */
+  request: (() => Promise<void>) | null;
+  /** null: the source cannot bring an older one to the range */
+  update: (() => Promise<void>) | null;
+}
+
+/** The walkthrough written on the pull request's own range, read while the range is known. */
+export const usePullRequestWalkthrough = (
+  ref: PullRequestRef,
+  shas: PullRequestShas | null,
+): WalkthroughState => {
+  const { useWalkthrough, requestWalkthrough, updateWalkthrough } =
+    usePullRequestDataSource();
+  const range = shas === null ? null : { head: shas.head, base: shas.base };
+  const read = (useWalkthrough ?? useNoWalkthrough)(
+    { ownerRepo: ref.ownerRepo, number: ref.number },
+    range,
+  );
+  return {
+    ...read,
+    available: useWalkthrough !== undefined,
+    request:
+      requestWalkthrough === undefined || range === null
+        ? null
+        : () =>
+            requestWalkthrough(
+              { ownerRepo: ref.ownerRepo, number: ref.number },
+              range,
+            ),
+    update:
+      updateWalkthrough === undefined || range === null
+        ? null
+        : () =>
+            updateWalkthrough(
+              { ownerRepo: ref.ownerRepo, number: ref.number },
+              range,
+            ),
+  };
 };
 
 const notAnalyzed: PullRequestImpactsState = {

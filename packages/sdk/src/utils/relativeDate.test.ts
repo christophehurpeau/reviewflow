@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatRelativeDate } from "./relativeDate.ts";
+import { formatElapsed, formatRelativeDate } from "./relativeDate.ts";
 
 /** Local dates, so the calendar-day arithmetic is tested in the runner's zone. */
 const now = new Date(2026, 9, 14, 10, 0);
@@ -41,5 +41,17 @@ describe("formatRelativeDate", () => {
 
   it("says so for a value that is no date", () => {
     expect(formatRelativeDate("not a date", { now })).toBe("unknown date");
+  });
+});
+
+describe("formatElapsed", () => {
+  const now = new Date("2026-11-26T12:00:00.000Z");
+
+  it("says under a minute, then minutes, then hours", () => {
+    expect(formatElapsed("2026-11-26T11:59:30.000Z", now)).toBe(
+      "under a minute",
+    );
+    expect(formatElapsed("2026-11-26T11:56:00.000Z", now)).toBe("4 min");
+    expect(formatElapsed("2026-11-26T10:55:00.000Z", now)).toBe("1 h 05");
   });
 });

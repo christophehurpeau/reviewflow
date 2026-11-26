@@ -3,6 +3,7 @@ import type {
   DiffReadingOrderResponse,
   DiffRefusal,
   DiffStep,
+  DiffWalkthroughResponse,
   DiffWhitespace,
   EditPullRequestResponse,
   PullRequestCandidatesResponse,
@@ -81,6 +82,9 @@ export interface PullRequestReadingOrderState extends PullRequestReadState<DiffR
   /** set instead of `value` when the source refused to read, as for the diff */
   refused: PullRequestDiffRefusal | null;
 }
+
+export type PullRequestWalkthroughState =
+  PullRequestReadState<DiffWalkthroughResponse>;
 
 export interface PullRequestImpactsState extends PullRequestReadState<DiffImpactsResponse> {
   /** set instead of `value` when the source refused to read, as for the diff */
@@ -184,6 +188,38 @@ export interface PullRequestDataSource {
     ref: PullRequestRef,
     range: { head: string; base: string } | null,
   ) => PullRequestImpactsState;
+
+  /**
+   * The walkthrough written on the range, and whether one was asked for and
+   * is being written. `null` reads nothing. Optional: without it the diff
+   * offers no walkthrough.
+   */
+  useWalkthrough?: (
+    ref: PullRequestRef,
+    range: { head: string; base: string } | null,
+  ) => PullRequestWalkthroughState;
+
+  /**
+   * Asks for a walkthrough of the range, written by whatever the app has to
+   * write one (an agent); resolves once asked, not once written, which
+   * `useWalkthrough` then says. Optional: without it no walkthrough is asked
+   * for from the screen.
+   */
+  requestWalkthrough?: (
+    ref: PullRequestRef,
+    range: { head: string; base: string },
+  ) => Promise<void>;
+
+  /**
+   * Asks for the `older` walkthrough to be brought to the range, by what wrote
+   * it when the app can (the same agent, which knows the pull request
+   * already); resolves once asked. Optional: without it an outdated
+   * walkthrough is only written again from scratch.
+   */
+  updateWalkthrough?: (
+    ref: PullRequestRef,
+    range: { head: string; base: string },
+  ) => Promise<void>;
 
   /**
    * One file at a commit, so the diff can unfold the lines the patch left out.

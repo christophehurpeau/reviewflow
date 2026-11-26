@@ -8,6 +8,7 @@ export type {
   PullRequestReadingOrderState,
   PullRequestReadState,
   PullRequestShas,
+  PullRequestWalkthroughState,
   RepositoryAttachment,
 } from "./dataSource.ts";
 export {
@@ -18,6 +19,7 @@ export type {
   MarkdownEditorProps,
   PullRequestSlots,
   RepositoryRefusalReason,
+  WalkthroughWritingProps,
 } from "./slots.tsx";
 export { PullRequestSlotsProvider, usePullRequestSlots } from "./slots.tsx";
 export type { PullRequestScreenProps } from "./components/pull-request-screen.tsx";

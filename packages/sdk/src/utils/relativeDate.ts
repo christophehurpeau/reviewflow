@@ -54,3 +54,22 @@ export const formatRelativeDate = (
   });
   return `${day}, ${time}`;
 };
+
+const minuteMs = 60 * 1000;
+
+/**
+ * How long something has been running: "under a minute", "4 min", "1 h 05".
+ * For a wait the operator watches, which a time of day does not measure.
+ */
+export const formatElapsed = (
+  since: Date | string,
+  now: Date = new Date(),
+): string => {
+  const start = typeof since === "string" ? new Date(since) : since;
+  const minutes = Math.floor((now.getTime() - start.getTime()) / minuteMs);
+  if (Number.isNaN(minutes)) return "unknown";
+  if (minutes < 1) return "under a minute";
+  if (minutes < 60) return `${String(minutes)} min`;
+  const hours = Math.floor(minutes / 60);
+  return `${String(hours)} h ${String(minutes % 60).padStart(2, "0")}`;
+};

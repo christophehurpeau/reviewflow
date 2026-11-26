@@ -3,11 +3,13 @@ import type {
   PullRequestDetail,
   PullRequestDetailResponse,
   PullRequestEdit,
+  PullRequestRef,
   PullRequestThread,
   PullRequestViewerLastReview,
 } from "@reviewflow/sdk";
-import { formatRelativeDate, pluralOf } from "@reviewflow/sdk";
+import { formatElapsed, formatRelativeDate, pluralOf } from "@reviewflow/sdk";
 import {
+  ActionButton,
   Button,
   Code,
   ConfirmationMessage,
@@ -20,15 +22,18 @@ import {
   View,
   WarningMessage,
 } from "alouette";
+import { BookOpenTextRegularIcon } from "alouette-icons/phosphor-icons/BookOpenText";
 import { CaretLeftRegularIcon } from "alouette-icons/phosphor-icons/CaretLeft";
 import { CaretRightRegularIcon } from "alouette-icons/phosphor-icons/CaretRight";
 import { GitCommitRegularIcon } from "alouette-icons/phosphor-icons/GitCommit";
 import type { ComponentRef, ReactNode } from "react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePullRequestDataSource } from "../dataSource.ts";
 import { usePullRequestReviewDraft } from "../services/PullRequestReviewDraftProvider.tsx";
 import { errorToMessage } from "../services/errorToMessage.ts";
 import { isViewerAuthor } from "../services/isViewerAuthor.ts";
+import type { WalkthroughWritingProps } from "../slots.tsx";
+import { usePullRequestSlots } from "../slots.tsx";
 import { PullRequestReviewButton } from "./pull-request-actions-review.tsx";
 import type {
   CommitSummary,
@@ -46,6 +51,7 @@ import {
   changedPathsOf,
   useMissingCheckoutReason,
   usePullRequestMovedOn,
+  usePullRequestWalkthrough,
 } from "./pull-request-diff-data.ts";
 import { PullRequestDiffView } from "./pull-request-diff-view.tsx";
 import type { PullRequestDiffReview } from "./pull-request-diff-viewer.tsx";
@@ -54,6 +60,7 @@ import {
   PullRequestPartPending,
   PullRequestPartReading,
 } from "./pull-request-part-notice.tsx";
+import type { WalkthroughLayout } from "./pull-request-walkthrough.tsx";
 import { revealTopOf } from "./scroll-parent.ts";
 import { TooltipIconButton } from "./tooltip-icon-button.tsx";
 
@@ -345,6 +352,156 @@ const useCommitByCommit = ({
   };
 };
 
+type ReadAs = "files" | "walkthrough";
+
+const elapsedTickMs = 15_000;
+
+/** How long ago the walkthrough was asked, counted on while the reader waits. */
+function WalkthroughWritingNotice({
+  response,
+}: WalkthroughWritingProps): ReactNode {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, elapsedTickMs);
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+  return (
+    <Text className="text-sm text-muted">
+      {`Walkthrough being written for ${formatElapsed(response.requestedAt ?? now, now)}`}
+    </Text>
+  );
+}
+
+/** Where the walkthrough's state sits in its line: at the end, under the toolbar's buttons. */
+function WalkthroughStatusLine({
+  children,
+}: {
+  children: ReactNode;
+}): ReactNode {
+  return (
+    <View className="flex-1 flex-row flex-wrap items-center justify-end gap-sm">
+      {children}
+    </View>
+  );
+}
+
+interface WalkthroughControlsProps {
+  pullRequest: PullRequestRef;
+  walkthrough: ReturnType<typeof usePullRequestWalkthrough>;
+  readAs: ReadAs;
+  onReadAsChange: (readAs: ReadAs) => void;
+  layout: WalkthroughLayout;
+  onLayoutChange: (layout: WalkthroughLayout) => void;
+}
+
+/**
+ * The line the walkthrough button opens under the toolbar: files or the
+ * walkthrough, and its layout, once one is on the range; how far the agent
+ * writing it is; the way to bring one written before the latest commits up to
+ * date, or to write one.
+ */
+function WalkthroughControls({
+  pullRequest,
+  walkthrough,
+  readAs,
+  onReadAsChange,
+  layout,
+  onLayoutChange,
+}: WalkthroughControlsProps): ReactNode {
+  const { renderWalkthroughWriting } = usePullRequestSlots();
+  const { value, request, update } = walkthrough;
+  if (value?.walkthrough != null) {
+    return (
+      <>
+        <Tabs
+          aria-label="Diff read as"
+          value={readAs}
+          onValueChange={(next) => {
+            onReadAsChange(next as ReadAs);
+          }}
+        >
+          <Tab value="walkthrough" label="Walkthrough" />
+          <Tab value="files" label="Files" />
+        </Tabs>
+        {readAs === "walkthrough" ? (
+          <Tabs
+            aria-label="Walkthrough layout"
+            value={layout}
+            onValueChange={(next) => {
+              onLayoutChange(next as WalkthroughLayout);
+            }}
+          >
+            <Tab value="stepper" label="Step by step" />
+            <Tab value="stacked" label="All steps" />
+          </Tabs>
+        ) : null}
+      </>
+    );
+  }
+  if (value?.requestedAt != null) {
+    const props: WalkthroughWritingProps = {
+      pullRequest,
+      response: value,
+      request,
+    };
+    return (
+      <WalkthroughStatusLine>
+        {renderWalkthroughWriting === undefined ? (
+          <WalkthroughWritingNotice {...props} />
+        ) : (
+          renderWalkthroughWriting(props)
+        )}
+      </WalkthroughStatusLine>
+    );
+  }
+  if (value?.older != null) {
+    return (
+      <WalkthroughStatusLine>
+        <Text className="text-sm text-muted">
+          {`The walkthrough was written on ${value.older.head.slice(0, 7)}, before the latest commits.`}
+        </Text>
+        {update === null ? null : (
+          <ActionButton
+            text="Update the walkthrough"
+            accent="brand"
+            variant="tonal"
+            size="sm"
+            errorToMessage={errorToMessage}
+            onPress={update}
+          />
+        )}
+        {request === null ? null : (
+          <ActionButton
+            text="Write a new one"
+            accent="neutral"
+            variant="tonal"
+            size="sm"
+            errorToMessage={errorToMessage}
+            onPress={request}
+          />
+        )}
+      </WalkthroughStatusLine>
+    );
+  }
+  if (request === null) return null;
+  return (
+    <WalkthroughStatusLine>
+      <ActionButton
+        text="Write a walkthrough"
+        accent="neutral"
+        variant="tonal"
+        size="sm"
+        errorToMessage={errorToMessage}
+        onPress={request}
+      />
+    </WalkthroughStatusLine>
+  );
+}
+
 /**
  * The pull request's diff with its review state: viewed marks, threads on the
  * lines and commenting. Scope "since your last review" diffs the head against
@@ -396,16 +553,39 @@ export function PullRequestFiles({
   const timeline = dataSource.usePart(pullRequest, "timeline");
   const { shas, latest, follow } = usePullRequestReviewDraft();
   const movedOn = usePullRequestMovedOn(pullRequest, shas, latest);
+  const walkthrough = usePullRequestWalkthrough(pullRequest, shas);
+  const [requestedReadAs, setRequestedReadAs] = useState<ReadAs | null>(null);
+  const [walkthroughLayout, setWalkthroughLayout] =
+    useState<WalkthroughLayout>("stepper");
+  const [requestedRowOpen, setRequestedRowOpen] = useState<boolean | null>(
+    null,
+  );
+  const hasWalkthrough = walkthrough.value?.walkthrough != null;
+  // a walkthrough on the range keeps its line, which switches to the files;
+  // one being written or outdated opens it until the reader closes it
+  const walkthroughRowOpen =
+    hasWalkthrough ||
+    (requestedRowOpen ??
+      (walkthrough.value?.requestedAt != null ||
+        walkthrough.value?.older != null));
+  const readAs = requestedReadAs ?? (hasWalkthrough ? "walkthrough" : "files");
+  const shownWalkthrough =
+    readAs === "walkthrough" ? (walkthrough.value?.walkthrough ?? null) : null;
   const lastReview = files.value?.viewerLastReview ?? null;
-  const sinceAvailable = lastReview !== null && lastReview.oid !== shas?.head;
+  const sinceAvailable =
+    shownWalkthrough === null &&
+    lastReview !== null &&
+    lastReview.oid !== shas?.head;
   const scope: Scope = sinceAvailable ? requested : "all";
   const byCommit = useCommitByCommit({
     pullRequest,
     head: shas?.head ?? null,
     since: scope === "since" ? (lastReview?.oid ?? null) : null,
   });
-  const shownCommit = byCommit.shown?.commit;
-  const commitFiles = byCommit.shown?.files;
+  // a walkthrough is written on the whole pull request, never on one commit
+  const shownStep = shownWalkthrough === null ? byCommit.shown : null;
+  const shownCommit = shownStep?.commit;
+  const commitFiles = shownStep?.files;
   const diffArea = useRef<ComponentRef<typeof View>>(null);
   const revealDiffTop = (): void => {
     const element: unknown = diffArea.current;
@@ -444,7 +624,8 @@ export function PullRequestFiles({
         <PullRequestPartReading reading={files.reading || timeline.reading} />
       )}
       <MovedOnNotice movedOn={movedOn} follow={follow} />
-      {byCommit.automatic &&
+      {shownWalkthrough === null &&
+      byCommit.automatic &&
       byCommit.stepped.length > 1 &&
       !byCommitNoticeDismissed ? (
         <ConfirmationMessage
@@ -471,7 +652,7 @@ export function PullRequestFiles({
               />
             );
           }
-          if (byCommit.waiting) {
+          if (shownWalkthrough === null && byCommit.waiting) {
             return (
               <PullRequestPartPending
                 error={null}
@@ -497,7 +678,8 @@ export function PullRequestFiles({
               }}
               toolbarStart={
                 <>
-                  {byCommit.toRead === null ||
+                  {shownWalkthrough !== null ||
+                  byCommit.toRead === null ||
                   byCommit.toRead.kind === "none" ? null : (
                     <ByCommitButton
                       byCommit={byCommit.on}
@@ -526,7 +708,7 @@ export function PullRequestFiles({
                   <Text className="text-sm text-muted">
                     {`${String(viewedCount)} / ${String(pullRequest.changedFiles)} viewed`}
                   </Text>
-                  {byCommit.shown === null ? null : (
+                  {shownStep === null || shownStep === undefined ? null : (
                     <CommitStepper
                       commits={byCommit.stepped}
                       summaries={byCommit.summaries}
@@ -539,10 +721,56 @@ export function PullRequestFiles({
                   )}
                 </>
               }
+              orderEnd={
+                walkthrough.available ? (
+                  <TooltipIconButton
+                    icon={<BookOpenTextRegularIcon />}
+                    size="sm"
+                    accent={walkthroughRowOpen ? "brand" : "neutral"}
+                    disabledReason={
+                      hasWalkthrough
+                        ? "A walkthrough is written on this range: its line switches to the files"
+                        : null
+                    }
+                    aria-label={
+                      walkthroughRowOpen
+                        ? "Hide the walkthrough"
+                        : "Walkthrough"
+                    }
+                    onPress={() => {
+                      revealDiffTop();
+                      setRequestedRowOpen(!walkthroughRowOpen);
+                    }}
+                  />
+                ) : null
+              }
+              toolbarRow={
+                walkthroughRowOpen ? (
+                  <WalkthroughControls
+                    pullRequest={pullRequest}
+                    walkthrough={walkthrough}
+                    readAs={readAs}
+                    layout={walkthroughLayout}
+                    onReadAsChange={(next) => {
+                      revealDiffTop();
+                      setRequestedReadAs(next);
+                    }}
+                    onLayoutChange={(next) => {
+                      revealDiffTop();
+                      setWalkthroughLayout(next);
+                    }}
+                  />
+                ) : null
+              }
               toolbarEnd={
                 isAuthor ? null : (
                   <PullRequestReviewButton detail={detail} onEdit={onEdit} />
                 )
+              }
+              walkthrough={
+                shownWalkthrough === null
+                  ? null
+                  : { walkthrough: shownWalkthrough, layout: walkthroughLayout }
               }
               review={{
                 headSha: shas.head,
