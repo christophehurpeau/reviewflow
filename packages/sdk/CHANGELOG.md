@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [7.5.0](https://github.com/christophehurpeau/reviewflow/compare/v7.4.0...v7.5.0) (2026-11-26)
+
+### Features
+
+* **ui:** read the diff through a walkthrough or step by step from its entry points
+
 ## [7.3.0](https://github.com/christophehurpeau/reviewflow/compare/v7.2.0...v7.3.0) (2026-11-23)
 
 ### Features
