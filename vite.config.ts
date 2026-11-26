@@ -15,6 +15,10 @@ for (const name of execFileSync("git", ["rev-parse", "--local-env-vars"], {
 
 // projects do not inherit the root test options, each one repeats what it needs
 const testTimeout = 30_000;
+// the sdk and app tests spawn git more than 1,700 times: where an endpoint
+// security agent vets every exec of the machine one at a time (~0.3 s each), a
+// test or hook waits behind every other spawn, up to 194 s seen
+const gitSpawningTimeout = 300_000;
 // globalSetup paths resolve from each project root
 const mongoGlobalSetup = fileURLToPath(
   new URL("./scripts/vitestMongoGlobalSetup.ts", import.meta.url),
@@ -98,7 +102,8 @@ export default defineConfig({
         test: {
           name: "sdk",
           root: "packages/sdk",
-          testTimeout,
+          testTimeout: gitSpawningTimeout,
+          hookTimeout: gitSpawningTimeout,
           include: ["src/**/*.test.ts?(x)"],
         },
       },
@@ -116,7 +121,8 @@ export default defineConfig({
         test: {
           name: "app",
           root: "packages/app",
-          testTimeout,
+          testTimeout: gitSpawningTimeout,
+          hookTimeout: gitSpawningTimeout,
           include: ["src/**/*.test.ts?(x)"],
         },
       },
